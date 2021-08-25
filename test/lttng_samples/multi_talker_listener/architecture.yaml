@@ -1,0 +1,32 @@
+path_name_alias: []
+nodes:
+- node_name: /ns2/talker
+  callbacks:
+  - callback_name: timer_callback_0
+    type: timer_callback
+    period_ns: 1000000000
+    symbol: demo_nodes_cpp::Talker::Talker(rclcpp::NodeOptionsconst&)::{lambda()#1}
+  publish:
+  - topic_name: /ns2/chatter
+    callback_name: timer_callback_0
+- node_name: /ns1/talker
+  callbacks:
+  - callback_name: timer_callback_0
+    type: timer_callback
+    period_ns: 1000000000
+    symbol: demo_nodes_cpp::Talker::Talker(rclcpp::NodeOptionsconst&)::{lambda()#1}
+  publish:
+  - topic_name: /ns1/chatter
+    callback_name: timer_callback_0
+- node_name: /ns1/listener
+  callbacks:
+  - callback_name: subscription_callback_0
+    type: subscription_callback
+    topic_name: /ns1/chatter
+    symbol: demo_nodes_cpp::Listener::Listener(rclcpp::NodeOptionsconst&)::{lambda(std::shared_ptr<std_msgs::msg::String>)#1}
+- node_name: /ns2/listener
+  callbacks:
+  - callback_name: subscription_callback_0
+    type: subscription_callback
+    topic_name: /ns2/chatter
+    symbol: demo_nodes_cpp::Listener::Listener(rclcpp::NodeOptionsconst&)::{lambda(std::shared_ptr<std_msgs::msg::String>)#1}
