@@ -19,28 +19,28 @@ from trace_analysis.record.lttng import Lttng
 
 class TestNode:
     def test_init_satus(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         node = app.nodes[0]
 
         assert len(node.variable_passings) == 0
 
     def test_search_paths(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         node = app.nodes[0]
 
         assert len(node.variable_passings) == 0
 
     def test_compose_callback_duration(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
 
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         node = app.nodes[0]
         callback = node.callbacks[0]

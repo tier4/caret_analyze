@@ -39,14 +39,14 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, node_names_expect",
         [
-            ("test/lttng_samples/talker_listener", ["/talker", "/listener"]),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", ["/pipe1", "/pipe2"]),
+            ("sample/lttng_samples/talker_listener", ["/talker", "/listener"]),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", ["/pipe1", "/pipe2"]),
             (
-                "test/lttng_samples/multi_talker_listener",
+                "sample/lttng_samples/multi_talker_listener",
                 ["/ns1/talker", "/ns1/listener", "/ns2/talker", "/ns2/listener"],
             ),
             (
-                "test/lttng_samples/end_to_end_sample",
+                "sample/lttng_samples/end_to_end_sample",
                 [
                     "/actuator_dummy_node",
                     "/filter_node",
@@ -66,12 +66,12 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, node_name, topic_name, pub_attrs_len",
         [
-            ("test/lttng_samples/talker_listener", None, None, 5),
-            ("test/lttng_samples/talker_listener", "/talker", None, 3),
-            ("test/lttng_samples/talker_listener", "/talker", "/chatter", 1),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", None, None, 6),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", None, 3),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", "/topic2", 1),
+            ("sample/lttng_samples/talker_listener", None, None, 5),
+            ("sample/lttng_samples/talker_listener", "/talker", None, 3),
+            ("sample/lttng_samples/talker_listener", "/talker", "/chatter", 1),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", None, None, 6),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", None, 3),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", "/topic2", 1),
         ],
     )
     def test_get_publisher_attrs(self, path, node_name, topic_name, pub_attrs_len):
@@ -82,12 +82,12 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, node_name, topic_name, attrs_len",
         [
-            ("test/lttng_samples/talker_listener", None, None, 3),
-            ("test/lttng_samples/talker_listener", "/listener", None, 2),
-            ("test/lttng_samples/talker_listener", "/listener", "/chatter", 1),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", None, None, 4),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", None, 2),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", "/topic1", 1),
+            ("sample/lttng_samples/talker_listener", None, None, 3),
+            ("sample/lttng_samples/talker_listener", "/listener", None, 2),
+            ("sample/lttng_samples/talker_listener", "/listener", "/chatter", 1),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", None, None, 4),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", None, 2),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", "/topic1", 1),
         ],
     )
     def test_get_subscription_callback_attrs_with_empty_publish(
@@ -100,12 +100,12 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, node_name, period_ns, cbs_len",
         [
-            ("test/lttng_samples/talker_listener", None, None, 1),
-            ("test/lttng_samples/talker_listener", "/talker", None, 1),
-            ("test/lttng_samples/talker_listener", "/talker", 1000000000, 1),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", None, None, 0),
-            ("test/lttng_samples/multi_talker_listener", None, None, 2),
-            ("test/lttng_samples/end_to_end_sample", None, None, 3),
+            ("sample/lttng_samples/talker_listener", None, None, 1),
+            ("sample/lttng_samples/talker_listener", "/talker", None, 1),
+            ("sample/lttng_samples/talker_listener", "/talker", 1000000000, 1),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", None, None, 0),
+            ("sample/lttng_samples/multi_talker_listener", None, None, 2),
+            ("sample/lttng_samples/end_to_end_sample", None, None, 3),
         ],
     )
     def test_get_timer_callback_attrs_with_empty_publish(
@@ -118,8 +118,8 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, attr, records_len",
         [
-            ("test/lttng_samples/talker_listener", listener_callback, 3),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", pipe2_callback, 5),
+            ("sample/lttng_samples/talker_listener", listener_callback, 3),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", pipe2_callback, 5),
         ],
     )
     def test_compose_callback_records(self, path, attr, records_len):
@@ -130,9 +130,9 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, node_name, topic_name, records_len, records_drop_removed_len",
         [
-            ("test/lttng_samples/talker_listener", "/listener", "/chatter", 3, 3),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", "/pipe2", "/topic2", 0, 0),
-            ("test/lttng_samples/end_to_end_sample", "/filter_node", "/topic1", 205, 102),
+            ("sample/lttng_samples/talker_listener", "/listener", "/chatter", 3, 3),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", "/pipe2", "/topic2", 0, 0),
+            ("sample/lttng_samples/end_to_end_sample", "/filter_node", "/topic1", 205, 102),
         ],
     )
     def test_compose_inter_process_communication_records(
@@ -158,8 +158,8 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, attr, records_len",
         [
-            ("test/lttng_samples/talker_listener", listener_callback, 0),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", pipe2_callback, 5),
+            ("sample/lttng_samples/talker_listener", listener_callback, 0),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", pipe2_callback, 5),
         ],
     )
     def test_compose_intra_process_communication_records(self, path, attr, records_len):
@@ -170,7 +170,7 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, attr, records_len, records_drop_removed_len",
         [
-            ("test/lttng_samples/end_to_end_sample", listener_callback, 95, 6),
+            ("sample/lttng_samples/end_to_end_sample", listener_callback, 95, 6),
         ],
     )
     def test_compose_variable_passing_records(

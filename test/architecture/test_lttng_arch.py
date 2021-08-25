@@ -19,7 +19,7 @@ from trace_analysis.architecture import LttngArchitectureImporter
 
 class TestLttngArchitectureImporter:
     def test_create_node(self):
-        container = Lttng("test/lttng_samples/talker_listener")
+        container = Lttng("sample/lttng_samples/talker_listener")
         importer = LttngArchitectureImporter(None)
 
         node_name = "/listener"
@@ -56,7 +56,7 @@ class TestLttngArchitectureImporter:
 
     def test_exec(self):
         importer = LttngArchitectureImporter(None)
-        importer.exec("test/lttng_samples/talker_listener", ignore_topics=IGNORE_TOPICS)
+        importer.exec("sample/lttng_samples/talker_listener", ignore_topics=IGNORE_TOPICS)
         assert len(importer.nodes) == 2
         assert len(importer.path_aliases) == 0
         assert len(importer.communications) == 1

@@ -24,9 +24,9 @@ class TestTimerCallback:
         assert TimerCallback.to_callback_name(1) == "timer_callback_1"
 
     def test_to_dataframe(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", 'yaml', lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         node = app.nodes[1]
         callback = node.callbacks[0]
@@ -38,9 +38,9 @@ class TestTimerCallback:
         assert set(df.columns) == columns_expect
 
     def test_to_timeseries_and_to_histogram(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", 'yaml', lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         node = app.nodes[1]
         callback = node.callbacks[0]
@@ -58,9 +58,9 @@ class TestSubscriptionCallback:
         assert SubscriptionCallback.to_callback_name(1) == "subscription_callback_1"
 
     def test_to_dataframe(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         node = app.nodes[0]
         callback = node.callbacks[0]
@@ -72,9 +72,9 @@ class TestSubscriptionCallback:
         assert set(df.columns) == columns_expect
 
     def test_to_timeseries_and_to_histogram(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", 'yaml', lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         node = app.nodes[0]
         callback = node.callbacks[0]

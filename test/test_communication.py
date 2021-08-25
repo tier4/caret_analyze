@@ -21,9 +21,9 @@ from trace_analysis.application import Application
 
 class TestCommunication:
     def test_to_dataframe(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         comm = app.communications[0]
 
@@ -40,8 +40,8 @@ class TestCommunication:
     @pytest.mark.parametrize(
         "trace_dir, comm_idx, is_intra_process",
         [
-            ("test/lttng_samples/talker_listener/", 0, False),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", 0, True),
+            ("sample/lttng_samples/talker_listener/", 0, False),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", 0, True),
         ],
     )
     def test_is_intra_process(self, trace_dir, comm_idx, is_intra_process):
@@ -55,8 +55,8 @@ class TestCommunication:
     @pytest.mark.parametrize(
         "trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len",
         [
-            ("test/lttng_samples/talker_listener/", 0, 100000, 3, 4),
-            ("test/lttng_samples/cyclic_pipeline_intra_process", 0, 100000, 5, 22),
+            ("sample/lttng_samples/talker_listener/", 0, 100000, 3, 4),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", 0, 100000, 5, 22),
         ],
     )
     def test_to_timeseries_and_to_histogram(
@@ -75,9 +75,9 @@ class TestCommunication:
         assert len(latencies) == histogram_len and len(hist) == histogram_len + 1
 
     def test_to_pubsub_latency(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         comm = app.communications[0]
 
@@ -90,9 +90,9 @@ class TestCommunication:
         assert len(latencies) == 4 and len(hist) == 5
 
     def test_to_dds_latency(self):
-        lttng = Lttng("test/lttng_samples/talker_listener/")
+        lttng = Lttng("sample/lttng_samples/talker_listener/")
         arch = Architecture()
-        arch.import_file("test/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         app = Application(arch)
         comm = app.communications[0]
 
