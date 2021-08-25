@@ -42,6 +42,8 @@ class LatencyBase(metaclass=ABCMeta):
         sort_target_index = fully_recorded.index[0]
         df.sort_values(sort_target_index, axis=1, ascending=True, inplace=True)
 
+        if remove_dropped:
+            return df.dropna()
         return df
 
     def to_timeseries(self, remove_dropped=False) -> Tuple[np.array, np.array]:
@@ -58,7 +60,7 @@ class LatencyBase(metaclass=ABCMeta):
     def to_histogram(self, binsize_ns: int = 1000000) -> Tuple[np.array, np.array]:
         import math
 
-        _, latency_ns = self.to_timeseries()
+        _, latency_ns = self.to_timeseries(remove_dropped=True)
 
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
