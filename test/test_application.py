@@ -93,12 +93,4 @@ class TestApplication:
         app = Application(arch)
 
         paths = app.search_paths(start_cb_name, end_cb_name)
-        path = paths[0]
-        df = path.to_dataframe()
-        # path.to_timeseries()
-        # path.to_histogram()
-        for _, row in df.iterrows():
-            for i in range(len(row) - 1):
-                if np.isnan(row[i]) or np.isnan(row[i + 1]):
-                    continue
-                assert row[i] < row[i + 1]
+        assert len(paths) == paths_len
