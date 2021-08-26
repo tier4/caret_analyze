@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from typing import List, Any, Tuple, Callable, Optional, Iterable
 from collections import UserList
 import os
 
@@ -33,7 +34,7 @@ class Util:
         return ext[1:]
 
     @classmethod
-    def find_one(self, items: List[Any], f: Callable[[Any], bool]) -> Optional[Any]:
+    def find_one(self, items: Iterable[Any], f: Callable[[Any], bool]) -> Optional[Any]:
         try:
             return next(filter(f, items))
         except StopIteration:
