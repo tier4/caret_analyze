@@ -18,7 +18,6 @@ import pandas as pd
 from trace_analysis.record.record import (
     Record,
     Records,
-    RecordsIterator,
     merge,
     merge_sequencial,
     merge_sequencial_with_copy,
@@ -181,108 +180,6 @@ class TestRecords:
     def test_equals(self, records, records_, equal):
         assert records.equals(records_) is equal
 
-    def test_iterrows(self):
-        records: Records = Records()
-        it = records.iterrows()
-        assert isinstance(it, RecordsIterator)
-
-
-class TestRecordsIterator:
-    def test_next(self):
-        key = "stamp"
-
-        records: Records = Records()
-        for i in range(3):
-            records.append(Record({key: i}))
-
-        for i, record in enumerate(records.iterrows()):
-            assert record[key] == i
-
-    def test_copy(self):
-        key = "stamp"
-
-        records: Records = Records(
-            [
-                Record({key: 0}),
-                Record({key: 1}),
-                Record({key: 2}),
-            ]
-        )
-
-        it = records.iterrows()
-        it_ = it.copy()
-        assert len(list(it_)) == 3
-        assert len(list(it)) == 3
-
-        it = records.iterrows()
-        next(it)
-        it_ = it.copy()
-        assert len(list(it_)) == 2
-        assert len(list(it)) == 2
-
-        it = records.iterrows()
-        next(it)
-        next(it)
-        it_ = it.copy()
-        assert len(list(it_)) == 1
-        assert len(list(it)) == 1
-
-    def test_has_get(self):
-        key = "stamp"
-        records: Records = Records([Record({key: 0}), Record({key: 1})])
-        it = records.iterrows()
-        next(it)
-
-        item = it.current_value()
-        assert item[key] == 0
-        next_item = it.next_value()
-        assert next_item[key] == 1
-        next(it)
-
-        item = it.current_value()
-        assert item[key] == 1
-        next_item = it.next_value()
-        assert next_item is None
-
-        records_empty: Records = Records([])
-        it_ = records_empty.iterrows()
-
-        assert it_.current_value() is None
-        next_item = it_.next_value()
-        assert next_item is None
-
-    def test_forward_while(self):
-        key = "stamp"
-        records: Records = Records([Record({key: 0}), Record({key: 1}), Record({key: 2})])
-        it = records.iterrows()
-        it.forward_while(lambda record: record[key] <= 1)
-        item = it.current_value()
-        assert item[key] == 2
-
-    def test_find_item(self):
-        records: Records = Records(
-            [
-                Record({"stamp": 0, "value": 0}),
-                Record({"stamp": 1, "value": 1}),
-                Record({"stamp": 2, "value": 1}),
-                Record({"stamp": 3, "value": 2}),
-            ]
-        )
-        it = records.iterrows()
-
-        item = it.find_item(lambda record: record["stamp"] == 2)
-        assert item["stamp"] == 2
-
-        item = it.find_item(lambda record: record["value"] == 1, item_index=1)
-        assert item["stamp"] == 2
-
-        item = it.find_item(lambda record: record["value"] == 1, item_index=3)
-        assert item is None
-
-        it.find_item(lambda record: record["stamp"] == 2, inplace_iter_count=True)
-        item = it.current_value()
-        assert item["stamp"] == 2
-
 
 @pytest.mark.parametrize(
     "how, records_expect",
@@ -353,45 +250,152 @@ def test_merge(how: str, records_expect: Records):
     assert merged.equals(records_expect) is True
 
 
-def test_merge_sequencial():
-    records: Records = Records(
+@pytest.mark.parametrize(
+    "how, expect",
+    [
+        (
+            "inner",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 3}),
+                    Record({"key": 2, "stamp": 1, "sub_stamp": 2}),
+                ]
+            ),
+        ),
+        (
+            "left",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 3}),
+                    Record({"key": 2, "stamp": 1, "sub_stamp": 2}),
+                    Record({"key": 1, "stamp": 6}),
+                    Record({"key": 2, "stamp": 7}),
+                ]
+            ),
+        ),
+        (
+            "right",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 3}),
+                    Record({"key": 2, "stamp": 1, "sub_stamp": 2}),
+                    Record({"key": 1, "sub_stamp": 4}),
+                    Record({"key": 2, "sub_stamp": 5}),
+                ]
+            ),
+        ),
+        (
+            "outer",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 3}),
+                    Record({"key": 2, "stamp": 1, "sub_stamp": 2}),
+                    Record({"key": 1, "sub_stamp": 4}),
+                    Record({"key": 2, "sub_stamp": 5}),
+                    Record({"key": 1, "stamp": 6}),
+                    Record({"key": 2, "stamp": 7}),
+                ]
+            ),
+        ),
+    ],
+)
+def test_merge_sequencial_with_key(how, expect):
+    left_records: Records = Records(
         [
             Record({"key": 1, "stamp": 0}),
-            Record({"key": 3, "stamp": 2}),
-            Record({"key": 1, "stamp": 3}),
+            Record({"key": 2, "stamp": 1}),
+            Record({"key": 1, "stamp": 6}),
+            Record({"key": 2, "stamp": 7}),
         ]
     )
 
-    sub_records: Records = Records(
+    right_records: Records = Records(
         [
-            Record({"key": 1, "sub_stamp": 1}),
+            Record({"key": 2, "sub_stamp": 2}),
+            Record({"key": 1, "sub_stamp": 3}),
             Record({"key": 1, "sub_stamp": 4}),
-            Record({"key": 3, "sub_stamp": 5}),
-            Record({"key": 1, "sub_stamp": 7}),
-            Record({"key": 5, "sub_stamp": 8}),
+            Record({"key": 2, "sub_stamp": 5}),
         ]
     )
 
     merged = merge_sequencial(
-        records=records,
-        sub_records=sub_records,
-        record_stamp_key="stamp",
-        sub_record_stamp_key="sub_stamp",
+        left_records=left_records,
+        right_records=right_records,
+        left_stamp_key="stamp",
+        right_stamp_key="sub_stamp",
         join_key="key",
+        how=how,
     )
 
-    records_expect: Records = Records(
+    assert merged.equals(expect)
+
+
+@pytest.mark.parametrize(
+    "how, expect",
+    [
+        (
+            "inner",
+            Records(
+                [
+                    Record({"stamp": 0, "sub_stamp": 1}),
+                ]
+            ),
+        ),
+        (
+            "left",
+            Records(
+                [
+                    Record({"stamp": 0, "sub_stamp": 1}),
+                    Record({"stamp": 3}),
+                ]
+            ),
+        ),
+        (
+            "right",
+            Records(
+                [
+                    Record({"stamp": 0, "sub_stamp": 1}),
+                    Record({"sub_stamp": 2}),
+                ]
+            ),
+        ),
+        (
+            "outer",
+            Records(
+                [
+                    Record({"stamp": 0, "sub_stamp": 1}),
+                    Record({"sub_stamp": 2}),
+                    Record({"stamp": 3}),
+                ]
+            ),
+        ),
+    ],
+)
+def test_merge_sequencial_without_key(how, expect):
+    left_records: Records = Records(
         [
-            Record({"key": 1, "stamp": 0, "sub_stamp": 1}),
-            Record({"key": 1, "stamp": 3, "sub_stamp": 4}),
-            Record({"key": 3, "stamp": 2, "sub_stamp": 5}),
+            Record({"stamp": 0}),
+            Record({"stamp": 3}),
         ]
     )
 
-    merged.sort(key=lambda record: record["stamp"])
-    records_expect.sort(key=lambda record: record["stamp"])
+    right_records: Records = Records(
+        [
+            Record({"sub_stamp": 1}),
+            Record({"sub_stamp": 2}),
+        ]
+    )
 
-    assert merged.equals(records_expect)
+    merged = merge_sequencial(
+        left_records=left_records,
+        right_records=right_records,
+        left_stamp_key="stamp",
+        right_stamp_key="sub_stamp",
+        join_key=None,
+        how=how,
+    )
+
+    assert merged.equals(expect)
 
 
 def test_merge_sequencial_with_drop():
@@ -416,10 +420,10 @@ def test_merge_sequencial_with_drop():
 
     # merged = merge_sequencial_with_drop(
     merged = merge_sequencial(
-        records=records,
-        sub_records=sub_records,
-        record_stamp_key="stamp",
-        sub_record_stamp_key="sub_stamp",
+        left_records=records,
+        right_records=sub_records,
+        left_stamp_key="stamp",
+        right_stamp_key="sub_stamp",
         join_key="key",
     )
 

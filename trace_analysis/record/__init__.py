@@ -25,7 +25,6 @@ from .interface import (
 from .record import (
     Record,
     Records,
-    RecordsIterator,
     merge,
     merge_sequencial,
     merge_sequencial_with_copy,
@@ -34,7 +33,6 @@ from .record import (
 __all__ = [
     "Record",
     "Records",
-    "RecordsIterator",
     "LatencyComposer",
     "AppInfoGetter",
     "PublisherInterface",

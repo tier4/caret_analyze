@@ -19,11 +19,38 @@ import copy
 from typing import List, Optional, Callable, Dict, Set
 from enum import Enum
 import pandas as pd
+import sys
+
+
+class MergeSideInfo(Enum):
+    LEFT = 1
+    RIGHT = 2
 
 
 class Record(collections.UserDict):
+    def __init__(self, init: Optional[Dict] = None, timestamp: Optional[float] = None):
+        init = init or {}
+        super().__init__(init)
+        self.columns = set(init.keys())
+        self.latest_stamp = timestamp or 0
+        self.oldest_stamp = timestamp or sys.float_info.max
+
     def equals(self, record: Record) -> bool:
         return self.data == record.data
+
+    def merge(self, other: Record) -> None:
+        self.data.update(other.data)
+        self.columns |= other.columns
+
+        if other.latest_stamp is None or other.oldest_stamp is None:
+            return None
+
+        if self.latest_stamp is None or self.oldest_stamp is None:
+            self.latest_stamp = other.latest_stamp
+            self.oldest_stamp = other.oldest_stamp
+        else:
+            self.latest_stamp = max(self.latest_stamp, other.latest_stamp)
+            self.oldest_stamp = min(self.oldest_stamp, other.oldest_stamp)
 
 
 class Records(collections.UserList):
@@ -57,9 +84,6 @@ class Records(collections.UserList):
             return self
         else:
             raise NotImplementedError()
-
-    def iterrows(self) -> RecordsIterator:
-        return RecordsIterator(self)
 
     def drop_columns(self, columns: List[str] = [], inplace: bool = False) -> Optional[Records]:
 
@@ -133,85 +157,6 @@ class Records(collections.UserList):
         return True
 
 
-class RecordsIterator:
-    def __init__(self, records):
-        self._i = 0
-        self._i_next = 0
-        self._records = records
-
-    def __iter__(self) -> RecordsIterator:
-        return self
-
-    def __next__(self) -> Record:
-        self._i = self._i_next
-        self._i_next += 1
-        self._i_next = min(self._i_next, len(self._records))
-        if not self._has_current_value():
-            raise StopIteration()
-        return self.current_value()  # type: ignore
-
-    def copy(self) -> RecordsIterator:
-        it = RecordsIterator(self._records)
-        it._i = self._i
-        it._i_next = self._i_next
-        return it
-
-    def _has_current_value(self) -> bool:
-        return self._i < len(self._records)
-
-    def _has_next_value(self) -> bool:
-        return self._i_next < len(self._records)
-
-    def next_value(self) -> Optional[Record]:
-        has_next_value = self._has_next_value()
-        if not has_next_value:
-            return None
-        return self._records[self._i_next]
-
-    def current_value(self) -> Optional[Record]:
-        if not self._has_current_value():
-            return None
-        return self._records[self._i]
-
-    def forward_while(self, condition: Callable[[Record], bool]) -> Records:
-        befores = Records()
-        while True:
-            value = self.current_value()
-            if value is not None and condition(value):
-                befores.append(value)
-                next(self)
-                continue
-            return befores
-
-    def find_item(
-        self,
-        condition: Callable[[Record], bool],
-        item_index: int = 0,
-        inplace_iter_count: bool = False,
-    ) -> Optional[Record]:
-        assert item_index >= 0
-
-        if inplace_iter_count:
-            it = self
-        else:
-            it = self.copy()
-        i = 0
-
-        while True:
-            record = it.current_value()
-            if record is not None and condition(record):
-                if i == item_index:
-                    if inplace_iter_count:
-                        return None
-                    else:
-                        return record
-                i += 1
-            try:
-                next(it)
-            except StopIteration:
-                return None
-
-
 def merge(
     records: Records,
     records_: Records,
@@ -222,10 +167,8 @@ def merge(
     merged_records = Records()
     assert how in ["inner", "left", "right", "outer"]
 
-    record_sort_key = record_sort_key or join_key
-    records.sort(key=lambda x: x[record_sort_key], reverse=True)
-
-    records_.sort(key=lambda x: x[join_key], reverse=True)
+    records.sort(key=lambda x: x.latest_stamp)
+    records_.sort(key=lambda x: x.latest_stamp)
 
     records_inseted: List[Record] = []
 
@@ -242,8 +185,8 @@ def merge(
             if record_[join_key] == record[join_key]:
                 records_inseted.append(record_)
 
-                merged_record = Record(record_)
-                merged_record.update(record)
+                merged_record = copy.deepcopy(record_)
+                merged_record.merge(record)
                 merged_records.append(merged_record)
                 record_inserted = True
                 break
@@ -262,109 +205,97 @@ def merge(
 
 
 def merge_sequencial(
-    records: Records,
-    sub_records: Records,
-    record_stamp_key: str,
-    sub_record_stamp_key: str,
+    left_records: Records,
+    right_records: Records,
+    left_stamp_key: str,
+    right_stamp_key: str,
     join_key: Optional[str],
-    remove_dropped=False,
-    record_sort_key: Optional[str] = None,
+    how: str = "inner",
+    *,
+    left_sort_key: Optional[str] = None,
+    right_sort_key: Optional[str] = None,
 ) -> Records:
-    def is_key_matched(record: Record, sub_record: Record) -> bool:
+    assert how in ["inner", "left", "right", "outer"]
+
+    def is_key_matched(record: Record, record_: Record) -> bool:
         if join_key is None:
             return True
-        if join_key not in record.keys() or join_key not in sub_record.keys():
+        if join_key not in record.columns or join_key not in record_.columns:
             return False
-        return record[join_key] == sub_record[join_key]
-
-    def is_next_sub_record_valid(
-        record: Record, sub_records_it: RecordsIterator, join_key: Optional[str]
-    ) -> bool:
-        # Get the second sub_record that matches the condition without forwarding the iterator.
-        if join_key is None:
-            next_sub_record = sub_records_it.find_item(lambda _: True, item_index=1)
-        else:
-            next_sub_record = sub_records_it.find_item(
-                lambda sub_record: is_key_matched(record, sub_record), item_index=1
-            )
-
-        if next_sub_record is None:
-            return False
-
-        # If write -> read order is also true for the second sub_record,
-        # ignore current sub_record.
-        record_stamp = record.get(record_stamp_key, 0)
-        next_sub_record_stamp = next_sub_record.get(sub_record_stamp_key, 0)
-        if record_stamp < next_sub_record_stamp:
-            return True
-        return False
-
-    def is_invalid(record: Record, sub_record: Record) -> bool:
-
-        if (
-            record_stamp_key not in record.keys()
-            or sub_record_stamp_key not in sub_record.keys()
-            or record[record_stamp_key] is None
-            or sub_record[sub_record_stamp_key] is None
-        ):
-            return True
-        return record[record_stamp_key] > sub_record[sub_record_stamp_key]
+        return record[join_key] == record_[join_key]
 
     merged_records: Records = Records()
 
-    record_sort_key = record_sort_key or record_stamp_key
-    records.sort(key=lambda x: x[record_sort_key], reverse=True)
-    sub_records.sort(key=lambda x: x[sub_record_stamp_key], reverse=True)
+    for left in left_records:
+        left["side"] = MergeSideInfo.LEFT
 
-    # Proceed for the first record.
-    try:
-        records_it: RecordsIterator = records.iterrows()
-        sub_records_it: RecordsIterator = sub_records.iterrows()
-        next(records_it)
-    except StopIteration:
-        return merged_records
+    for right in right_records:
+        right["side"] = MergeSideInfo.RIGHT
 
-    recorded_stamps = set()
+    left_sort_key = left_sort_key or left_stamp_key
+    right_sort_key = right_sort_key or right_stamp_key
 
-    while True:
-        try:
-            sub_record: Record = next(sub_records_it)
-            try:
-                # From now on, proceed with itertor
-                # in order to skip the confirmation of unneeded records.
-                passed_records = records_it.forward_while(
-                    lambda record: is_invalid(record, sub_record)
-                )
-                if remove_dropped is False:
-                    for passed in passed_records:
-                        is_recorded = (
-                            record_stamp_key in passed.keys()
-                            and passed[record_stamp_key] in recorded_stamps
-                        )
-                        if is_recorded or not is_key_matched(passed, sub_record):
-                            continue
-                        merged_records.append(passed)
+    records = left_records + right_records
+    records.sort(key=lambda x: x.latest_stamp)
 
-                # Get the first record that matches the condition without fowarding the iterator.
-                record = records_it.find_item(lambda record: is_key_matched(record, sub_record))
+    added = set()
+    for i, current_record in enumerate(records):
+        if current_record.latest_stamp in added:
+            continue
+        if join_key is not None and join_key not in current_record.columns:
+            continue
 
-                if record is None:
+        if current_record["side"] == MergeSideInfo.RIGHT:
+            if how in ["right", "outer"]:
+                merged_records.append(current_record)
+                added.add(current_record.stamp)
+            continue
+
+        next_record: Optional[Record] = None
+        sub_record: Optional[Record] = None
+        if join_key is None:
+            for record in records.data[i + 1 :]:
+                if next_record is not None and sub_record is not None:
+                    break
+                if record["side"] == MergeSideInfo.LEFT and next_record is None:
+                    next_record = record
+                if record["side"] == MergeSideInfo.RIGHT and sub_record is None:
+                    sub_record = record
+        else:
+            for record in records.data[i + 1 :]:
+                if next_record is not None and sub_record is not None:
+                    break
+                if join_key not in record.columns:
                     continue
 
-                # The case where the next (chronologically earlier) data
-                # is sending the same data earlier.
-                if is_next_sub_record_valid(record, sub_records_it, join_key):
-                    continue
+                key_matched = record[join_key] == current_record[join_key]
+                if key_matched and record["side"] == MergeSideInfo.LEFT and next_record is None:
+                    next_record = record
+                if key_matched and record["side"] == MergeSideInfo.RIGHT and sub_record is None:
+                    sub_record = record
 
-                if record[record_stamp_key] not in recorded_stamps:
-                    recorded_stamps.add(record[record_stamp_key])
-                    merged_record = Record(record)
-                    merged_record.update(sub_record)
-                    merged_records.append(merged_record)
-            except StopIteration:
-                pass
-        except StopIteration:
-            return merged_records
+        has_valid_next_record = (
+            next_record is not None
+            and sub_record is not None
+            and next_record.latest_stamp < sub_record.latest_stamp
+        )
+        if has_valid_next_record or sub_record is None or sub_record.latest_stamp in added:
+            if how in ["left", "outer"]:
+                merged_records.append(current_record)
+                added.add(current_record.latest_stamp)
+            continue
+
+        merged_record = copy.deepcopy(current_record)
+        merged_record.merge(sub_record)
+        merged_records.append(merged_record)
+        added.add(current_record.latest_stamp)
+        added.add(sub_record.latest_stamp)
+
+    merged_records.drop_columns(["side"], inplace=True)
+    left_records.drop_columns(["side"], inplace=True)
+    right_records.drop_columns(["side"], inplace=True)
+
+    return merged_records
 
 
 class RecordType(Enum):
@@ -442,7 +373,7 @@ def merge_sequencial_with_copy(
                 lambda x: record[source_key] in x[sink_from_key], processing_records[:]
             ):
                 processing_records.remove(processing_record)
-                processing_record.update(record)
+                processing_record.merge(record)
                 merged_records.append(processing_record)
 
     # Deleting an added key

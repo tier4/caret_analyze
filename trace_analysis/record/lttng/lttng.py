@@ -240,13 +240,18 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         write_records.rename_columns({"callback_object": "write_callback_object"}, inplace=True)
         write_records.drop_columns(["callback_start_timestamp"], inplace=True)
 
+        if remove_dropped:
+            how = "inner"
+        else:
+            how = "left"
+
         merged_records = merge_sequencial(
-            write_records,
-            read_records,
-            record_stamp_key="callback_end_timestamp",
-            sub_record_stamp_key="callback_start_timestamp",
+            left_records=write_records,
+            right_records=read_records,
+            left_stamp_key="callback_end_timestamp",
+            right_stamp_key="callback_start_timestamp",
             join_key=None,
-            remove_dropped=remove_dropped,
+            how=how,
         )
 
         merged_records.sort(key=lambda x: x["callback_end_timestamp"])

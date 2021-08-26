@@ -117,10 +117,10 @@ class RecordsContainer:
         self, drop_inter_mediate_columns
     ) -> Tuple[Records, Records, Records]:
         callback_records = merge_sequencial(
-            records=self._data_util.data.callback_start_instances,
-            sub_records=self._data_util.data.callback_end_instances,
-            record_stamp_key="callback_start_timestamp",
-            sub_record_stamp_key="callback_end_timestamp",
+            left_records=self._data_util.data.callback_start_instances,
+            right_records=self._data_util.data.callback_end_instances,
+            left_stamp_key="callback_start_timestamp",
+            right_stamp_key="callback_end_timestamp",
             join_key="callback_object",
         )
 
@@ -197,10 +197,10 @@ class RecordsContainer:
         )
 
         intra_records = merge_sequencial(
-            records=intra_publish_records,
-            sub_records=intra_process_callback_records,
-            record_stamp_key="dispatch_intra_process_timestamp",
-            sub_record_stamp_key="callback_start_timestamp",
+            left_records=intra_publish_records,
+            right_records=intra_process_callback_records,
+            left_stamp_key="dispatch_intra_process_timestamp",
+            right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
         )
 
@@ -234,34 +234,34 @@ class RecordsContainer:
         )
 
         publish = merge_sequencial(
-            records=self._data_util.data.rclcpp_publish_instances,
-            sub_records=self._data_util.data.rcl_publish_instances,
-            record_stamp_key="rclcpp_publish_timestamp",
-            sub_record_stamp_key="rcl_publish_timestamp",
+            left_records=self._data_util.data.rclcpp_publish_instances,
+            right_records=self._data_util.data.rcl_publish_instances,
+            left_stamp_key="rclcpp_publish_timestamp",
+            right_stamp_key="rcl_publish_timestamp",
             join_key="message",
         )
 
         publish = merge_sequencial(
-            records=publish,
-            sub_records=dds_write,
-            record_stamp_key="rcl_publish_timestamp",
-            sub_record_stamp_key="dds_write_timestamp",
+            left_records=publish,
+            right_records=dds_write,
+            left_stamp_key="rcl_publish_timestamp",
+            right_stamp_key="dds_write_timestamp",
             join_key="message",
         )
 
         subscription = merge_sequencial(
-            records=self._data_util.data.take_type_erased_instances,
-            sub_records=self._data_util.data.dispatch_instances,
-            record_stamp_key="take_type_erased_timestamp",
-            sub_record_stamp_key="dispatch_timestamp",
+            left_records=self._data_util.data.take_type_erased_instances,
+            right_records=self._data_util.data.dispatch_instances,
+            left_stamp_key="take_type_erased_timestamp",
+            right_stamp_key="dispatch_timestamp",
             join_key="message",
         )
 
         subscription = merge_sequencial(
-            records=subscription,
-            sub_records=inter_process_callback.drop_columns(["callback_end_timestamp"]),
-            record_stamp_key="dispatch_timestamp",
-            sub_record_stamp_key="callback_start_timestamp",
+            left_records=subscription,
+            right_records=inter_process_callback.drop_columns(["callback_end_timestamp"]),
+            left_stamp_key="dispatch_timestamp",
+            right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
         )
 

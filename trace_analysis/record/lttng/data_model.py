@@ -67,7 +67,8 @@ class Ros2DataModel(DataModel):
                 "timestamp": timestamp,
                 "pid": pid,
                 "version": version,
-            }
+            },
+            timestamp,
         )
         self._contexts.append(record)
 
@@ -80,7 +81,8 @@ class Ros2DataModel(DataModel):
                 "rmw_handle": rmw_handle,
                 "namespace": namespace,
                 "name": name,
-            }
+            },
+            timestamp,
         )
         self._nodes.append(record)
 
@@ -93,7 +95,8 @@ class Ros2DataModel(DataModel):
                 "rmw_handle": rmw_handle,
                 "topic_name": topic_name,
                 "depth": depth,
-            }
+            },
+            timestamp,
         )
         self._publishers.append(record)
 
@@ -108,7 +111,8 @@ class Ros2DataModel(DataModel):
                 "rmw_handle": rmw_handle,
                 "topic_name": topic_name,
                 "depth": depth,
-            }
+            },
+            timestamp,
         )
         self._subscriptions.append(record)
 
@@ -120,7 +124,8 @@ class Ros2DataModel(DataModel):
                 "subscription": subscription_pointer,
                 "timestamp": timestamp,
                 "subscription_handle": subscription_handle,
-            }
+            },
+            timestamp,
         )
         self._subscription_objects.append(record)
 
@@ -132,7 +137,8 @@ class Ros2DataModel(DataModel):
                 "node_handle": node_handle,
                 "rmw_handle": rmw_handle,
                 "service_name": service_name,
-            }
+            },
+            timestamp,
         )
         self._services.append(record)
 
@@ -144,7 +150,8 @@ class Ros2DataModel(DataModel):
                 "node_handle": node_handle,
                 "rmw_handle": rmw_handle,
                 "service_name": service_name,
-            }
+            },
+            timestamp,
         )
         self._clients.append(record)
 
@@ -155,7 +162,8 @@ class Ros2DataModel(DataModel):
                 "timestamp": timestamp,
                 "period": period,
                 "tid": tid,
-            }
+            },
+            timestamp,
         )
         self._timers.append(record)
 
@@ -165,7 +173,8 @@ class Ros2DataModel(DataModel):
                 "timer_handle": handle,
                 "timestamp": timestamp,
                 "node_handle": node_handle,
-            }
+            },
+            timestamp,
         )
         self._timer_node_links.append(record)
 
@@ -175,7 +184,8 @@ class Ros2DataModel(DataModel):
                 "reference": reference,
                 "timestamp": timestamp,
                 "callback_object": callback_object,
-            }
+            },
+            timestamp,
         )
         self._callback_objects.append(record)
 
@@ -185,7 +195,8 @@ class Ros2DataModel(DataModel):
                 "callback_object": callback_object,
                 "timestamp": timestamp,
                 "symbol": symbol,
-            }
+            },
+            timestamp,
         )
         self._callback_symbols.append(record)
 
@@ -207,7 +218,8 @@ class Ros2DataModel(DataModel):
                 "start_label": start_label,
                 "goal_label": goal_label,
                 "timestamp": timestamp,
-            }
+            },
+            timestamp,
         )
         self.lifecycle_transitions.append(record)
 
@@ -219,12 +231,15 @@ class Ros2DataModel(DataModel):
                 "callback_start_timestamp": timestamp,
                 "callback_object": callback,
                 "is_intra_process": is_intra_process,
-            }
+            },
+            timestamp,
         )
         self.callback_start_instances.append(record)
 
     def add_callback_end_instance(self, timestamp: int, callback: int) -> None:
-        record = Record({"callback_end_timestamp": timestamp, "callback_object": callback})
+        record = Record(
+            {"callback_end_timestamp": timestamp, "callback_object": callback}, timestamp
+        )
         self.callback_end_instances.append(record)
 
     def add_rclcpp_intra_publish_instance(
@@ -238,7 +253,8 @@ class Ros2DataModel(DataModel):
                 "rclcpp_intra_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
                 "message": message,
-            }
+            },
+            timestamp,
         )
         self.rclcpp_intra_publish_instances.append(record)
 
@@ -253,7 +269,8 @@ class Ros2DataModel(DataModel):
                 "rclcpp_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
                 "message": message,
-            }
+            },
+            timestamp,
         )
         self.rclcpp_publish_instances.append(record)
 
@@ -268,7 +285,8 @@ class Ros2DataModel(DataModel):
                 "rcl_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
                 "message": message,
-            }
+            },
+            timestamp,
         )
         self.rcl_publish_instances.append(record)
 
@@ -281,7 +299,8 @@ class Ros2DataModel(DataModel):
             {
                 "dds_write_timestamp": timestamp,
                 "message": message,
-            }
+            },
+            timestamp,
         )
         self.dds_write_instances.append(record)
 
@@ -296,7 +315,8 @@ class Ros2DataModel(DataModel):
                 "dds_bind_addr_to_addr_timestamp": timestamp,
                 "addr_from": addr_from,
                 "addr_to": addr_to,
-            }
+            },
+            timestamp,
         )
         self.dds_bind_addr_to_addr.append(record)
 
@@ -311,7 +331,8 @@ class Ros2DataModel(DataModel):
                 "dds_bind_addr_to_stamp_timestamp": timestamp,
                 "addr": addr,
                 "source_timestamp": source_timestamp,
-            }
+            },
+            timestamp,
         )
         self.dds_bind_addr_to_stamp.append(record)
 
@@ -320,10 +341,13 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         source_timestamp: int,
     ) -> None:
-        record = Record({
+        record = Record(
+            {
                 "on_data_available_timestamp": timestamp,
                 "source_timestamp": source_timestamp,
-            })
+            },
+            timestamp,
+        )
         self.on_data_available_instances.append(record)
 
     def add_take_type_erased_instance(
@@ -334,7 +358,8 @@ class Ros2DataModel(DataModel):
                 "take_type_erased_timestamp": timestamp,
                 "source_timestamp": source_timestamp,
                 "message": message,
-            }
+            },
+            timestamp,
         )
         self.take_type_erased_instances.append(record)
 
@@ -346,7 +371,8 @@ class Ros2DataModel(DataModel):
                 "message_construct_timestamp": timestamp,
                 "original_message": original_message,
                 "constructed_message": constructed_message,
-            }
+            },
+            timestamp,
         )
         self.message_construct_instances.append(record)
 
@@ -361,7 +387,8 @@ class Ros2DataModel(DataModel):
                 "dispatch_timestamp": timestamp,
                 "callback_object": callback_object,
                 "message": message,
-            }
+            },
+            timestamp,
         )
         self.dispatch_instances.append(record)
 
@@ -376,7 +403,8 @@ class Ros2DataModel(DataModel):
                 "dispatch_intra_process_timestamp": timestamp,
                 "callback_object": callback_object,
                 "message": message,
-            }
+            },
+            timestamp,
         )
         self.dispatch_intra_process_instances.append(record)
 

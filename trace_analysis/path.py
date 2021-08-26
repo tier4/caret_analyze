@@ -163,12 +163,12 @@ class PathLatencyMerger:
             other.callback_from, sub_trace_point_name
         )
         self.records = merge_sequencial(
-            records=self.records,
-            sub_records=records,
-            record_stamp_key=record_stamp_key,
-            sub_record_stamp_key=sub_record_stamp_key,
+            left_records=self.records,
+            right_records=records,
+            right_stamp_key=record_stamp_key,
+            left_stamp_key=sub_record_stamp_key,
             join_key=None,
-            record_sort_key=self._sort_key,
+            left_sort_key=self._sort_key,
         )
 
     def _get_callback_records(self, callback: CallbackBase) -> Records:
