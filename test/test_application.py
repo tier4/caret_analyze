@@ -17,7 +17,6 @@ from trace_analysis.application import Application
 from trace_analysis.record.lttng import Lttng
 
 import pytest
-import numpy as np
 
 
 class TestApplication:

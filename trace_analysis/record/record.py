@@ -254,7 +254,7 @@ def merge_sequencial(
         next_record: Optional[Record] = None
         sub_record: Optional[Record] = None
         if join_key is None:
-            for record in records.data[i + 1 :]:
+            for record in records.data[i + 1:]:
                 if next_record is not None and sub_record is not None:
                     break
                 if record["side"] == MergeSideInfo.LEFT and next_record is None:
@@ -262,7 +262,7 @@ def merge_sequencial(
                 if record["side"] == MergeSideInfo.RIGHT and sub_record is None:
                     sub_record = record
         else:
-            for record in records.data[i + 1 :]:
+            for record in records.data[i + 1:]:
                 if next_record is not None and sub_record is not None:
                     break
                 if join_key not in record.columns:
