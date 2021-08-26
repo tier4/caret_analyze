@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, Any, Tuple, Callable, Optional
+from collections import UserList
 import os
 
 
@@ -60,3 +60,21 @@ class Singleton(object):
         if not hasattr(cls, "_instance"):
             cls._instance = super(Singleton, cls).__new__(cls)
         return cls._instance
+
+
+class UniqueList(UserList):
+    def __init__(self, init=None):
+        super().__init__(init)
+
+    def append(self, i):
+        if i in self.data:
+            return
+        self.data.append(i)
+
+    def __add__(self, other):
+        return self.data + other.data
+
+    def __iadd__(self, other):
+        for i in other:
+            self.append(i)
+        return self

@@ -14,9 +14,16 @@
 
 import pytest
 
+from typing import List, Optional
+
+import numpy as np
+import pandas as pd
+
 from trace_analysis.record.lttng import Lttng
 from trace_analysis.architecture import Architecture
 from trace_analysis.application import Application
+from trace_analysis.communication import Communication, PubSubLatency, DDSLatency, VariablePassing
+from trace_analysis.callback import SubscriptionCallback
 
 
 class TestCommunication:
@@ -51,6 +58,30 @@ class TestCommunication:
         app = Application(arch)
         comm = app.communications[comm_idx]
         assert comm.is_intra_process == is_intra_process
+
+    @pytest.mark.parametrize(
+        "is_intra_process, columns",
+        [
+            (True, Communication.column_names_intra_process),
+            (False, Communication.column_names_inter_process),
+        ],
+    )
+    def test_column_names(self, mocker, is_intra_process: bool, columns: List[str]):
+        def custom_to_dataframe(
+            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+        ) -> pd.DataFrame:
+            assert column_names == columns
+            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
+            df = pd.DataFrame(dummy_data, columns=columns)
+            return df
+
+        callback = SubscriptionCallback(None, "", "", "", "")
+        comm = Communication(None, callback, callback)
+        mocker.patch.object(comm, "to_dataframe", custom_to_dataframe)
+
+        comm.is_intra_process = is_intra_process
+        comm.to_histogram()
+        comm.to_timeseries()
 
     @pytest.mark.parametrize(
         "trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len",
@@ -103,3 +134,66 @@ class TestCommunication:
 
         latencies, hist = latency.to_histogram(binsize_ns=100000)
         assert len(latencies) == 1 and len(hist) == 2
+
+
+class TestPubSubLatency:
+    def test_column_names(self, mocker):
+        columns = PubSubLatency.column_names
+        Communication.column_names_intra_process
+
+        def custom_to_dataframe(
+            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+        ) -> pd.DataFrame:
+            assert column_names == columns
+            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
+            df = pd.DataFrame(dummy_data, columns=columns)
+            return df
+
+        callback = SubscriptionCallback(None, "", "", "", "")
+        comm = PubSubLatency(None, callback, callback)
+        mocker.patch.object(comm, "to_dataframe", custom_to_dataframe)
+
+        comm.to_histogram()
+        comm.to_timeseries()
+
+
+class TestDDSLatency:
+    def test_column_names(self, mocker):
+        columns = DDSLatency.column_names
+        Communication.column_names_intra_process
+
+        def custom_to_dataframe(
+            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+        ) -> pd.DataFrame:
+            assert column_names == columns
+            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
+            df = pd.DataFrame(dummy_data, columns=columns)
+            return df
+
+        callback = SubscriptionCallback(None, "", "", "", "")
+        comm = DDSLatency(None, callback, callback)
+        mocker.patch.object(comm, "to_dataframe", custom_to_dataframe)
+
+        comm.to_histogram()
+        comm.to_timeseries()
+
+
+class TestVariablePassingLatency:
+    def test_column_names(self, mocker):
+        columns = VariablePassing.column_names
+        Communication.column_names_intra_process
+
+        def custom_to_dataframe(
+            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+        ) -> pd.DataFrame:
+            assert column_names == columns
+            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
+            df = pd.DataFrame(dummy_data, columns=columns)
+            return df
+
+        callback = SubscriptionCallback(None, "", "", "", "")
+        comm = VariablePassing(None, callback, callback)
+        mocker.patch.object(comm, "to_dataframe", custom_to_dataframe)
+
+        comm.to_histogram()
+        comm.to_timeseries()

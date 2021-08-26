@@ -14,7 +14,7 @@
 
 from abc import ABCMeta, abstractmethod
 
-from typing import Tuple
+from typing import Tuple, Optional, List
 
 import numpy as np
 import pandas as pd
@@ -27,9 +27,14 @@ class LatencyBase(metaclass=ABCMeta):
     def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
         pass
 
-    def to_dataframe(self, remove_dropped=False) -> pd.DataFrame:
+    def to_dataframe(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
         records = self.to_records(remove_dropped, True)
         df = records.to_dataframe()
+
+        if column_names is not None:
+            return df[column_names]
 
         fully_recorded = df.dropna()
         err_msg = (
@@ -44,21 +49,24 @@ class LatencyBase(metaclass=ABCMeta):
 
         return df
 
-    def to_timeseries(self, remove_dropped=False) -> Tuple[np.array, np.array]:
-        df = self.to_dataframe(remove_dropped)
-
+    def to_timeseries(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        df = self.to_dataframe(remove_dropped, column_names=column_names)
+        assert len(df) > 0
         source_stamps_ns = np.array(df.iloc[:, 0].values)
         dest_stamps_ns = np.array(df.iloc[:, -1].values)
         t = source_stamps_ns
 
         latency_ns = dest_stamps_ns - source_stamps_ns
-
         return t, latency_ns
 
-    def to_histogram(self, binsize_ns: int = 1000000) -> Tuple[np.array, np.array]:
+    def to_histogram(
+        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
         import math
 
-        _, latency_ns = self.to_timeseries(remove_dropped=True)
+        _, latency_ns = self.to_timeseries(remove_dropped=True, column_names=column_names)
 
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns

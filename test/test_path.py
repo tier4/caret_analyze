@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional, List
+
+import pandas as pd
+import numpy as np
+
 from trace_analysis.callback import TimerCallback
 from trace_analysis.communication import Communication, VariablePassing
 from trace_analysis.path import ColumnNameCounter, PathLatencyMerger
 from trace_analysis.record import Record, Records
+from trace_analysis import Application, Architecture, Lttng
 
 
 class TestPathLatencyManager:
@@ -228,3 +234,49 @@ class TestColumnNameCounter:
         callback = TimerCallback(None, "/node0", "callback0", "symbol0", 100)
         key = counter._to_key(callback, "callback_start_timestamp")
         assert key == "/node0/callback0/callback_start_timestamp"
+
+
+class TestPath:
+    def test_column_names(
+        self,
+        mocker,
+    ):
+        columns = [
+            "/message_driven_node/subscription_callback_0/callback_start_timestamp/0",
+            "/message_driven_node/subscription_callback_0/callback_end_timestamp/0",
+            "/message_driven_node/subscription_callback_1/callback_start_timestamp/0",
+            "/message_driven_node/subscription_callback_1/callback_end_timestamp/0",
+            "/message_driven_node/subscription_callback_1/rclcpp_publish_timestamp/0",
+            "/message_driven_node/subscription_callback_1/rcl_publish_timestamp/0",
+            "/message_driven_node/subscription_callback_1/dds_write_timestamp/0",
+            "/timer_driven_node/subscription_callback_0/on_data_available_timestamp/0",
+            "/timer_driven_node/subscription_callback_0/callback_start_timestamp/0",
+            "/timer_driven_node/subscription_callback_0/callback_end_timestamp/0",
+        ]
+
+        def custom_to_dataframe(
+            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+        ) -> pd.DataFrame:
+
+            assert column_names == columns
+
+            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
+            df = pd.DataFrame(dummy_data, columns=columns)
+            return df
+
+        lttng = Lttng("sample/lttng_samples/end_to_end_sample")
+        arch = Architecture()
+        arch.import_file(
+            "sample/lttng_samples/end_to_end_sample/architecture_modified.yaml", "yaml", lttng
+        )
+        app = Application(arch)
+
+        start_cb_name = "/message_driven_node/subscription_callback_0"
+        end_cb_name = "/timer_driven_node/subscription_callback_0"
+        paths = app.search_paths(start_cb_name, end_cb_name)
+        path = paths[0]
+
+        mocker.patch.object(path, "to_dataframe", custom_to_dataframe)
+
+        path.to_histogram()
+        path.to_timeseries()

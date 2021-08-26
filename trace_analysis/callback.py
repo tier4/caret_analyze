@@ -14,7 +14,10 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 
 from trace_analysis.pub_sub import Publisher, Subscription
 from trace_analysis.latency import LatencyBase
@@ -29,6 +32,8 @@ from abc import abstractmethod
 
 
 class CallbackBase(CallbackInterface, LatencyBase):
+    column_names = ["callback_start_timestamp", "callback_end_timestamp"]
+
     def __init__(
         self,
         latency_composer: Optional[LatencyComposer],
@@ -59,6 +64,21 @@ class CallbackBase(CallbackInterface, LatencyBase):
     @abstractmethod
     def subscription(self) -> Optional[Subscription]:
         pass
+
+    def to_dataframe(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        return super().to_dataframe(remove_dropped)
+
+    def to_timeseries(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_timeseries(remove_dropped, column_names=CallbackBase.column_names)
+
+    def to_histogram(
+        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_histogram(binsize_ns, column_names=CallbackBase.column_names)
 
     @property
     def unique_name(self) -> str:

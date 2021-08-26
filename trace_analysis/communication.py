@@ -16,8 +16,10 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABCMeta
 
-from typing import Optional
+from typing import Tuple, Optional, List
 
+import numpy as np
+import pandas as pd
 from trace_analysis.record.interface import (
     LatencyComposer,
 )
@@ -39,6 +41,19 @@ class CommunicationInterface(metaclass=ABCMeta):
 
 
 class Communication(CommunicationInterface, LatencyBase):
+    column_names_inter_process = [
+        "rclcpp_publish_timestamp",
+        "rcl_publish_timestamp",
+        "dds_write_timestamp",
+        "on_data_available_timestamp",
+        "callback_start_timestamp",
+    ]
+
+    column_names_intra_process = [
+        "rclcpp_intra_publish_timestamp",
+        "callback_start_timestamp",
+    ]
+
     def __init__(
         self,
         latency_composer: Optional[LatencyComposer],
@@ -71,6 +86,33 @@ class Communication(CommunicationInterface, LatencyBase):
     def callback_to(self):
         return self.callback_subscription
 
+    def to_dataframe(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        if self.is_intra_process:
+            columns = Communication.column_names_intra_process
+        else:
+            columns = Communication.column_names_inter_process
+        return super().to_dataframe(remove_dropped, column_names=columns)
+
+    def to_timeseries(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        if self.is_intra_process:
+            columns = Communication.column_names_intra_process
+        else:
+            columns = Communication.column_names_inter_process
+        return super().to_timeseries(remove_dropped, column_names=columns)
+
+    def to_histogram(
+        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        if self.is_intra_process:
+            columns = Communication.column_names_intra_process
+        else:
+            columns = Communication.column_names_inter_process
+        return super().to_histogram(binsize_ns, column_names=columns)
+
     def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
         assert self._latency_composer is not None
 
@@ -93,12 +135,15 @@ class Communication(CommunicationInterface, LatencyBase):
     def _is_intra_process(self) -> bool:
         assert self._latency_composer is not None
 
+        # Even if intra-process communication is enabled in the configuration,
+        # at least one process from actual publish to callback execution is required.
+        # Depending on the measurement results,
+        # columns may be unintentionally generated as inter-process communication.
         intra_records = self._latency_composer.compose_intra_process_communication_records(
             self.callback_subscription, self.callback_publish, remove_dropped=True
         )
 
-        self._is_intra_process_cache = len(intra_records) > 0
-        return self._is_intra_process_cache
+        return len(intra_records) > 0
 
     def to_pubsub_latency(self) -> PubSubLatency:
         assert self.is_intra_process is False, "target is intra process communication"
@@ -114,6 +159,14 @@ class Communication(CommunicationInterface, LatencyBase):
 
 
 class PubSubLatency(CommunicationInterface, LatencyBase):
+    column_names = [
+        "rclcpp_publish_timestamp",
+        "rcl_publish_timestamp",
+        "dds_write_timestamp",
+        "on_data_available_timestamp",
+        "callback_start_timestamp",
+    ]
+
     def __init__(
         self,
         latency_composer: Optional[LatencyComposer],
@@ -131,6 +184,21 @@ class PubSubLatency(CommunicationInterface, LatencyBase):
     @property
     def callback_to(self):
         return self.callback_subscription
+
+    def to_dataframe(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        return super().to_dataframe(remove_dropped, column_names=PubSubLatency.column_names)
+
+    def to_timeseries(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_timeseries(remove_dropped, column_names=PubSubLatency.column_names)
+
+    def to_histogram(
+        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_histogram(binsize_ns, column_names=PubSubLatency.column_names)
 
     def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
         assert self._latency_composer is not None
@@ -147,6 +215,11 @@ class PubSubLatency(CommunicationInterface, LatencyBase):
 
 
 class DDSLatency(CommunicationInterface, LatencyBase):
+    column_names = [
+        "dds_write_timestamp",
+        "on_data_available_timestamp",
+    ]
+
     def __init__(
         self,
         latency_composer: Optional[LatencyComposer],
@@ -164,6 +237,21 @@ class DDSLatency(CommunicationInterface, LatencyBase):
     @property
     def callback_to(self):
         return self.callback_subscription
+
+    def to_dataframe(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        return super().to_dataframe(remove_dropped, column_names=DDSLatency.column_names)
+
+    def to_timeseries(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_timeseries(remove_dropped, column_names=DDSLatency.column_names)
+
+    def to_histogram(
+        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_histogram(binsize_ns, column_names=DDSLatency.column_names)
 
     def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
         assert self._latency_composer is not None
@@ -186,6 +274,8 @@ class DDSLatency(CommunicationInterface, LatencyBase):
 
 
 class VariablePassing(CommunicationInterface, LatencyBase):
+    column_names = ["callback_end_timestamp", "callback_start_timestamp"]
+
     def __init__(
         self,
         latency_composer: LatencyComposer,
@@ -206,6 +296,21 @@ class VariablePassing(CommunicationInterface, LatencyBase):
             records.drop_columns(runtime_info_columns, inplace=True)
 
         return records
+
+    def to_dataframe(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        return super().to_dataframe(remove_dropped, column_names=VariablePassing.column_names)
+
+    def to_timeseries(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_timeseries(remove_dropped, column_names=VariablePassing.column_names)
+
+    def to_histogram(
+        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_histogram(binsize_ns, column_names=VariablePassing.column_names)
 
     @property
     def callback_from(self):

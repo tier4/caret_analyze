@@ -12,15 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Callable, Union
+from typing import List, Callable, Union, Optional, Tuple, Set
+
+import numpy as np
+import pandas as pd
 
 from collections import UserList, UserDict
 from collections import namedtuple
 
+import itertools
+
 from trace_analysis.latency import LatencyBase
 from trace_analysis.callback import CallbackBase
 from trace_analysis.communication import Communication, VariablePassing, CommunicationInterface
-from trace_analysis.util import Util
+from trace_analysis.util import Util, UniqueList
 from trace_analysis.record.record import Records, merge, merge_sequencial
 
 TracePointsType = namedtuple(
@@ -121,14 +126,30 @@ class ColumnNameCounter(UserDict):
 
 
 class PathLatencyMerger:
-    def __init__(self, latency: LatencyComponent):
+    def __init__(self, latency: LatencyComponent, column_only: Optional[bool] = None):
+        self._column_only = column_only or False
         self._counter = ColumnNameCounter()
-        self.records = self._get_records_with_preffix(latency)
         tracepoint_names = latency.to_records(remove_runtime_info=True).columns
         self._counter.increment_count(latency, list(tracepoint_names))
-        self._sort_key = list(self.records[0].keys())[
-            0
-        ]  # Save the first record as a key for sorting.
+
+        self.records = self._get_records_with_preffix(latency)
+
+        self.column_names = UniqueList()
+        self.column_names += self._to_ordered_column_names(latency, self.records.columns)
+
+    def _to_ordered_column_names(self, latency: LatencyComponent, tracepoint_names: Set[str]):
+        if isinstance(latency, CallbackBase) or isinstance(latency, VariablePassing):
+            ordered_names = latency.column_names
+        elif latency.is_intra_process:
+            ordered_names = latency.column_names_intra_process
+        else:
+            ordered_names = latency.column_names_inter_process
+
+        ordered_columns_names = []
+        for ordered_name, column_name in itertools.product(ordered_names, tracepoint_names):
+            if ordered_name in column_name:
+                ordered_columns_names.append(column_name)
+        return ordered_columns_names
 
     def merge(self, other: LatencyComponent, join_trace_point_name: str) -> None:
         increment_keys = other.to_records(remove_runtime_info=True).columns - set(
@@ -137,6 +158,9 @@ class PathLatencyMerger:
         self._counter.increment_count(other, list(increment_keys))
 
         records = self._get_records_with_preffix(other)
+        self.column_names += self._to_ordered_column_names(other, records.columns)
+        if self._column_only:
+            return
 
         join_key = self._counter.to_column_name(other, join_trace_point_name)
         self.records = merge(
@@ -144,7 +168,6 @@ class PathLatencyMerger:
             records_=records,
             join_key=join_key,
             how="left",
-            record_sort_key=self._sort_key,
         )
 
     def merge_sequencial(
@@ -157,6 +180,10 @@ class PathLatencyMerger:
         self._counter.increment_count(other, list(increment_keys))
 
         records = self._get_records_with_preffix(other)
+        self.column_names += self._to_ordered_column_names(other, records.columns)
+
+        if self._column_only:
+            return
 
         record_stamp_key = self._counter.to_column_name(other.callback_from, trace_point_name)
         sub_record_stamp_key = self._counter.to_column_name(
@@ -168,7 +195,6 @@ class PathLatencyMerger:
             right_stamp_key=record_stamp_key,
             left_stamp_key=sub_record_stamp_key,
             join_key=None,
-            left_sort_key=self._sort_key,
         )
 
     def _get_callback_records(self, callback: CallbackBase) -> Records:
@@ -240,11 +266,22 @@ class Path(UserList, LatencyBase):
             callbacks, communications, variable_passings
         )
         super().__init__(chain)
+        self._column_names: List[str] = self._to_column_names()
 
     def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
         assert len(self) > 0
+        records, _ = self._merge_path(remove_dropped, remove_runtime_info)
+        return records
 
-        merger = PathLatencyMerger(self.data[0])
+    def _to_column_names(self):
+        assert len(self) > 0
+        _, column_names = self._merge_path(True, True, True)
+        return column_names
+
+    def _merge_path(
+        self, remove_dropped: bool, remove_runtime_info: bool, column_only=False
+    ) -> Tuple[Records, List[str]]:
+        merger = PathLatencyMerger(self.data[0], column_only)
 
         for latency, latency_ in zip(
             self.data[:-1], self.data[1:]
@@ -276,7 +313,22 @@ class Path(UserList, LatencyBase):
                 # callback_end -> callback_start [merge]
                 merger.merge(latency_, "callback_end_timestamp")
 
-        return merger.records
+        return merger.records, merger.column_names.data
+
+    def to_dataframe(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        return super().to_dataframe(remove_dropped, column_names=self._column_names)
+
+    def to_timeseries(
+        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_timeseries(remove_dropped, column_names=self._column_names)
+
+    def to_histogram(
+        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+    ) -> Tuple[np.array, np.array]:
+        return super().to_dataframe(binsize_ns, column_names=self._column_names)
 
     @property
     def callbacks(self) -> List[CallbackBase]:

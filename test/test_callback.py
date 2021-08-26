@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from trace_analysis.callback import TimerCallback, SubscriptionCallback
+from typing import List, Optional
+import numpy as np
+import pandas as pd
+
+from trace_analysis.callback import TimerCallback, SubscriptionCallback, CallbackBase
 from trace_analysis.record.lttng import Lttng
 from trace_analysis.application import Application
 from trace_analysis.architecture import Architecture
@@ -84,3 +88,20 @@ class TestSubscriptionCallback:
 
         latencies, hist = callback.to_histogram(binsize_ns=100000)
         assert len(latencies) == 4 and len(hist) == 5
+
+    def test_column_names(self, mocker):
+        columns = CallbackBase.column_names
+
+        def custom_to_dataframe(
+            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+        ) -> pd.DataFrame:
+            assert column_names == columns
+            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
+            df = pd.DataFrame(dummy_data, columns=columns)
+            return df
+
+        callback = SubscriptionCallback(None, "", "", "", "")
+        mocker.patch.object(callback, "to_dataframe", custom_to_dataframe)
+
+        callback.to_histogram()
+        callback.to_timeseries()

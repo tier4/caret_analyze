@@ -14,7 +14,7 @@
 
 import pytest
 
-from typing import Tuple, Set, List
+from typing import Tuple, Set, List, Optional
 import numpy as np
 
 from trace_analysis.record import Record, Records
@@ -104,7 +104,9 @@ class TestLatencyBase:
     def test_to_histogram(
         self, mocker, latencies: List[int], binsize_ns: int, bins_range: Tuple[int, int]
     ):
-        def custom_to_timeseries(remove_dropped=False) -> Tuple[np.array, np.array]:
+        def custom_to_timeseries(
+            remove_dropped=False, *, column_names: Optional[List[str]] = None
+        ) -> Tuple[np.array, np.array]:
             return np.array([]), np.array(latencies)
 
         latency = LatencyBaseImpl()
