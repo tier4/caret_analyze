@@ -42,8 +42,6 @@ class LatencyBase(metaclass=ABCMeta):
         sort_target_index = fully_recorded.index[0]
         df.sort_values(sort_target_index, axis=1, ascending=True, inplace=True)
 
-        if remove_dropped:
-            return df.dropna()
         return df
 
     def to_timeseries(self, remove_dropped=False) -> Tuple[np.array, np.array]:
