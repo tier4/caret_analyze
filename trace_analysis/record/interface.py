@@ -133,7 +133,6 @@ class LatencyComposer(metaclass=ABCMeta):
         self,
         subscription_callback_attr: SubscriptionCallbackInterface,
         publish_callback_attr: CallbackInterface,
-        remove_dropped: bool,
     ) -> Records:
         pass
 
@@ -145,7 +144,6 @@ class LatencyComposer(metaclass=ABCMeta):
         self,
         subscription_callback_attr: SubscriptionCallbackInterface,
         publish_callback_attr: CallbackInterface,
-        remove_dropped: bool,
     ) -> Records:
         pass
 
@@ -154,7 +152,6 @@ class LatencyComposer(metaclass=ABCMeta):
         self,
         callback_write_attr: CallbackInterface,
         callback_read_attr: CallbackInterface,
-        remove_dropped: bool,
     ) -> Records:
         pass
 

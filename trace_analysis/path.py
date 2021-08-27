@@ -129,7 +129,7 @@ class PathLatencyMerger:
     def __init__(self, latency: LatencyComponent, column_only: Optional[bool] = None):
         self._column_only = column_only or False
         self._counter = ColumnNameCounter()
-        tracepoint_names = latency.to_records(remove_runtime_info=True).columns
+        tracepoint_names = latency.to_records().columns
         self._counter.increment_count(latency, list(tracepoint_names))
 
         self.records = self._get_records_with_preffix(latency)
@@ -152,9 +152,7 @@ class PathLatencyMerger:
         return ordered_columns_names
 
     def merge(self, other: LatencyComponent, join_trace_point_name: str) -> None:
-        increment_keys = other.to_records(remove_runtime_info=True).columns - set(
-            [join_trace_point_name]
-        )
+        increment_keys = other.to_records().columns - set([join_trace_point_name])
         self._counter.increment_count(other, list(increment_keys))
 
         records = self._get_records_with_preffix(other)
@@ -176,7 +174,7 @@ class PathLatencyMerger:
         trace_point_name: str,
         sub_trace_point_name: str,
     ) -> None:
-        increment_keys = other.to_records(remove_runtime_info=True).columns
+        increment_keys = other.to_records().columns
         self._counter.increment_count(other, list(increment_keys))
 
         records = self._get_records_with_preffix(other)
@@ -195,11 +193,11 @@ class PathLatencyMerger:
             right_stamp_key=record_stamp_key,
             left_stamp_key=sub_record_stamp_key,
             join_key=None,
-            how='left'
+            how="left",
         )
 
     def _get_callback_records(self, callback: CallbackBase) -> Records:
-        records = callback.to_records(remove_runtime_info=True)
+        records = callback.to_records()
         renames = {}
 
         for key in TRACE_POINTS.CALLBACK:
@@ -209,7 +207,7 @@ class PathLatencyMerger:
         return records
 
     def _get_intra_process_records(self, communication: Communication) -> Records:
-        records = communication.to_records(remove_runtime_info=True)
+        records = communication.to_records()
         renames = {}
 
         for key in TRACE_POINTS.INTRA_PROCESS.FROM:
@@ -221,7 +219,7 @@ class PathLatencyMerger:
         return records
 
     def _get_inter_process_records(self, communication: Communication) -> Records:
-        records = communication.to_records(remove_runtime_info=True)
+        records = communication.to_records()
         renames = {}
 
         for key in TRACE_POINTS.INTER_PROCESS.FROM:
@@ -233,7 +231,7 @@ class PathLatencyMerger:
         return records
 
     def _get_variable_passing_records(self, variable_passing: VariablePassing) -> Records:
-        records = variable_passing.to_records(remove_runtime_info=True)
+        records = variable_passing.to_records()
         renames = {}
 
         for key in TRACE_POINTS.VARIABLE_PASSING.FROM:
@@ -269,19 +267,17 @@ class Path(UserList, LatencyBase):
         super().__init__(chain)
         self._column_names: List[str] = self._to_column_names()
 
-    def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
+    def to_records(self) -> Records:
         assert len(self) > 0
-        records, _ = self._merge_path(remove_dropped, remove_runtime_info)
+        records, _ = self._merge_path()
         return records
 
     def _to_column_names(self):
         assert len(self) > 0
-        _, column_names = self._merge_path(True, True, True)
+        _, column_names = self._merge_path(column_only=True)
         return column_names
 
-    def _merge_path(
-        self, remove_dropped: bool, remove_runtime_info: bool, column_only=False
-    ) -> Tuple[Records, List[str]]:
+    def _merge_path(self, column_only=False) -> Tuple[Records, List[str]]:
         merger = PathLatencyMerger(self.data[0], column_only)
 
         for latency, latency_ in zip(
@@ -329,7 +325,7 @@ class Path(UserList, LatencyBase):
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
-        return super().to_dataframe(binsize_ns, column_names=self._column_names)
+        return super().to_histogram(binsize_ns, column_names=self._column_names)
 
     @property
     def callbacks(self) -> List[CallbackBase]:

@@ -68,7 +68,7 @@ class TestCommunication:
     )
     def test_column_names(self, mocker, is_intra_process: bool, columns: List[str]):
         def custom_to_dataframe(
-            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+            self, *, column_names: Optional[List[str]] = None
         ) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
@@ -142,7 +142,7 @@ class TestPubSubLatency:
         Communication.column_names_intra_process
 
         def custom_to_dataframe(
-            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+            self, *, column_names: Optional[List[str]] = None
         ) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
@@ -163,7 +163,7 @@ class TestDDSLatency:
         Communication.column_names_intra_process
 
         def custom_to_dataframe(
-            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+            self, *, column_names: Optional[List[str]] = None
         ) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
@@ -184,7 +184,7 @@ class TestVariablePassingLatency:
         Communication.column_names_intra_process
 
         def custom_to_dataframe(
-            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+            self, *, column_names: Optional[List[str]] = None
         ) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))

@@ -113,22 +113,18 @@ class Communication(CommunicationInterface, LatencyBase):
             columns = Communication.column_names_inter_process
         return super().to_histogram(binsize_ns, column_names=columns)
 
-    def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
+    def to_records(self) -> Records:
         assert self._latency_composer is not None
 
         records: Records
         if self.is_intra_process:
             records = self._latency_composer.compose_intra_process_communication_records(
-                self.callback_subscription, self.callback_publish, remove_dropped
+                self.callback_subscription, self.callback_publish
             )
         else:
             records = self._latency_composer.compose_inter_process_communication_records(
-                self.callback_subscription, self.callback_publish, remove_dropped
+                self.callback_subscription, self.callback_publish
             )
-
-        runtime_info_columns = ["callback_object", "publisher_handle"]
-        if remove_runtime_info:
-            records.drop_columns(runtime_info_columns, inplace=True)
 
         return records
 
@@ -140,7 +136,7 @@ class Communication(CommunicationInterface, LatencyBase):
         # Depending on the measurement results,
         # columns may be unintentionally generated as inter-process communication.
         intra_records = self._latency_composer.compose_intra_process_communication_records(
-            self.callback_subscription, self.callback_publish, remove_dropped=True
+            self.callback_subscription, self.callback_publish
         )
 
         return len(intra_records) > 0
@@ -200,16 +196,12 @@ class PubSubLatency(CommunicationInterface, LatencyBase):
     ) -> Tuple[np.array, np.array]:
         return super().to_histogram(binsize_ns, column_names=PubSubLatency.column_names)
 
-    def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
+    def to_records(self) -> Records:
         assert self._latency_composer is not None
 
         records = self._latency_composer.compose_inter_process_communication_records(
-            self.callback_subscription, self.callback_publish, remove_dropped
+            self.callback_subscription, self.callback_publish
         )
-
-        runtime_info_columns = ["callback_object", "publisher_handle"]
-        if remove_runtime_info:
-            records.drop_columns(runtime_info_columns, inplace=True)
 
         return records
 
@@ -253,11 +245,11 @@ class DDSLatency(CommunicationInterface, LatencyBase):
     ) -> Tuple[np.array, np.array]:
         return super().to_histogram(binsize_ns, column_names=DDSLatency.column_names)
 
-    def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
+    def to_records(self) -> Records:
         assert self._latency_composer is not None
 
         records = self._latency_composer.compose_inter_process_communication_records(
-            self.callback_subscription, self.callback_publish, remove_dropped
+            self.callback_subscription, self.callback_publish
         )
         rcl_layer_columns = [
             "callback_start_timestamp",
@@ -265,10 +257,6 @@ class DDSLatency(CommunicationInterface, LatencyBase):
             "rclcpp_publish_timestamp",
         ]
         records.drop_columns(rcl_layer_columns, inplace=True)
-
-        runtime_info_columns = ["callback_object", "publisher_handle"]
-        if remove_runtime_info:
-            records.drop_columns(runtime_info_columns, inplace=True)
 
         return records
 
@@ -286,15 +274,11 @@ class VariablePassing(CommunicationInterface, LatencyBase):
         self.callback_read = callback_read
         self._latency_composer = latency_composer
 
-    def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
+    def to_records(self) -> Records:
         assert self._latency_composer is not None
         records: Records = self._latency_composer.compose_variable_passing_records(
-            self.callback_write, self.callback_read, remove_dropped
+            self.callback_write, self.callback_read
         )
-        runtime_info_columns = ["read_callback_object", "write_callback_object"]
-        if remove_runtime_info:
-            records.drop_columns(runtime_info_columns, inplace=True)
-
         return records
 
     def to_dataframe(

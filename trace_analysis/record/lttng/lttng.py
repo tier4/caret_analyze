@@ -139,23 +139,12 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         self,
         subscription_callback: SubscriptionCallbackImpl,
         publisher_handle: int,
-        remove_dropped: bool,
         is_intra_process: bool,
     ):
         callback_object: Optional[int]
-        if is_intra_process:
-            callback_object = subscription_callback.intra_callback_object
-        else:
-            callback_object = subscription_callback.inter_callback_object
 
         def is_target(record: Record):
-            if remove_dropped is False:
-                return record.get("publisher_handle") == publisher_handle
-            else:
-                return (
-                    record.get("publisher_handle") == publisher_handle
-                    and record.get("callback_object") == callback_object
-                )
+            return record.get("publisher_handle") == publisher_handle
 
         communication_records = self._records.get_communication_records(is_intra_process)
         communication_records = communication_records.filter(is_target)
@@ -165,24 +154,18 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
     def _compose_communication_records(
         self,
         subscription_callback: SubscriptionCallbackImpl,
-        publish_callback: Optional[CallbackImpl],
-        remove_dropped: bool,
+        publish_callback: CallbackImpl,
         is_intra_process: bool,
     ) -> Records:
 
-        if publish_callback is not None:
-            publisher_handles = self._dataframe.get_publisher_handles(
-                subscription_callback.topic_name, publish_callback.node_name
-            )
-        else:
-            publisher_handles = self._dataframe.get_publisher_handles(
-                subscription_callback.topic_name
-            )
+        publisher_handles = self._dataframe.get_publisher_handles(
+            subscription_callback.topic_name, publish_callback.node_name
+        )
 
         communication_records = Records()
         for publisher_handle in publisher_handles:
             communication_records += self._compose_specific_communication_records(
-                subscription_callback, publisher_handle, remove_dropped, is_intra_process
+                subscription_callback, publisher_handle, is_intra_process
             )
 
         return communication_records
@@ -190,49 +173,49 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
     def compose_callback_records(self, callback: CallbackInterface):
         callback_impl = self._to_local_attr(callback)
         records = self._records.get_callback_records(callback_impl)
-        return deepcopy(records)
+
+        runtime_info_columns = ["callback_object"]
+        return records.drop_columns(runtime_info_columns)
 
     def compose_inter_process_communication_records(
-        self, subscription_callback, publish_callback=None, remove_dropped=False
+        self, subscription_callback, publish_callback
     ):
         subscription_callback = self._to_local_attr(subscription_callback)
-        if publish_callback is not None:
-            publish_callback = self._to_local_attr(publish_callback)
+        publish_callback = self._to_local_attr(publish_callback)
 
         records = self._compose_communication_records(
-            subscription_callback, publish_callback, remove_dropped, is_intra_process=False
+            subscription_callback, publish_callback, is_intra_process=False
         )
-        return deepcopy(records)
+
+        runtime_info_columns = ["callback_object", "publisher_handle"]
+        return records.drop_columns(runtime_info_columns)
 
     def compose_intra_process_communication_records(
         self,
         subscription_callback: SubscriptionCallbackInterface,
         publish_callback: Optional[CallbackInterface] = None,
-        remove_dropped=False,
     ):
         subscription_callback_impl = self._to_local_attr(subscription_callback)
-        publish_callback_impl: Optional[CallbackImpl] = None
-        if publish_callback is not None:
-            publish_callback_impl = self._to_local_attr(publish_callback)
+        publish_callback_impl = self._to_local_attr(publish_callback)
 
         records = self._compose_communication_records(
             subscription_callback_impl,
             publish_callback_impl,
-            remove_dropped,
             is_intra_process=True,
         )
-        return deepcopy(records)
+
+        runtime_info_columns = ["callback_object", "publisher_handle"]
+        return records.drop_columns(runtime_info_columns)
 
     def compose_variable_passing_records(
         self,
         write_callback: CallbackInterface,
         read_callback: CallbackInterface,
-        remove_dropped: bool,
     ):
         write_callback_impl = self._to_local_attr(write_callback)
         read_callback_impl = self._to_local_attr(read_callback)
 
-        read_records = self._records.get_callback_records(read_callback_impl)
+        read_records = deepcopy(self._records.get_callback_records(read_callback_impl))
         read_records.drop_columns(["callback_end_timestamp"], inplace=True)
         read_records.rename_columns({"callback_object": "read_callback_object"}, inplace=True)
 
@@ -240,20 +223,17 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         write_records.rename_columns({"callback_object": "write_callback_object"}, inplace=True)
         write_records.drop_columns(["callback_start_timestamp"], inplace=True)
 
-        if remove_dropped:
-            how = "inner"
-        else:
-            how = "left"
-
         merged_records = merge_sequencial(
             left_records=write_records,
             right_records=read_records,
             left_stamp_key="callback_end_timestamp",
             right_stamp_key="callback_start_timestamp",
             join_key=None,
-            how=how,
+            how='left',
         )
 
         merged_records.sort(key=lambda x: x["callback_end_timestamp"])
 
-        return deepcopy(merged_records)
+        runtime_info_columns = ["read_callback_object", "write_callback_object"]
+
+        return merged_records.drop_columns(runtime_info_columns)

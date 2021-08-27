@@ -28,7 +28,7 @@ class TestPathLatencyManager:
     def test_init(self, mocker):
         records: Records
 
-        def custom_to_records(remove_dropped=False, remove_runtime_info=False) -> Records:
+        def custom_to_records() -> Records:
             return records
 
         callback0 = TimerCallback(None, "/node0", "callback0", "symbol0", 100)
@@ -71,7 +71,7 @@ class TestPathLatencyManager:
     def test_merge(self, mocker):
         records: Records
 
-        def custom_to_records(remove_dropped=False, remove_runtime_info=False) -> Records:
+        def custom_to_records() -> Records:
             return records
 
         callback0 = TimerCallback(None, "/node0", "callback0", "symbol0", 100)
@@ -127,7 +127,7 @@ class TestPathLatencyManager:
     def test_merge_sequential(self, mocker):
         records: Records
 
-        def custom_to_records(remove_dropped=False, remove_runtime_info=False) -> Records:
+        def custom_to_records() -> Records:
             return records
 
         callback0 = TimerCallback(None, "/node0", "callback0", "symbol0", 100)

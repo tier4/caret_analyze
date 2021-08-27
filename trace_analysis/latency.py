@@ -24,13 +24,13 @@ from trace_analysis.record import Records
 
 class LatencyBase(metaclass=ABCMeta):
     @abstractmethod
-    def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
+    def to_records(self) -> Records:
         pass
 
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
-        records = self.to_records(remove_dropped, True)
+        records = self.to_records()
         df = records.to_dataframe()
 
         if remove_dropped:

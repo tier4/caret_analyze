@@ -84,16 +84,9 @@ class CallbackBase(CallbackInterface, LatencyBase):
     def unique_name(self) -> str:
         return f"{self.node_name}/{self.callback_name}"
 
-    def to_records(self, remove_dropped=False, remove_runtime_info=False) -> Records:
+    def to_records(self) -> Records:
         assert self._latency_composer is not None
-
-        # Consider that the callback function does not do any dropping.
-        # Ignore remove_dropped flag.
         records = self._latency_composer.compose_callback_records(self)
-
-        runtime_info_columns = ["callback_object"]
-        if remove_runtime_info:
-            records.drop_columns(runtime_info_columns, inplace=True)
 
         return records
 

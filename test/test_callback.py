@@ -93,7 +93,7 @@ class TestSubscriptionCallback:
         columns = CallbackBase.column_names
 
         def custom_to_dataframe(
-            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+            self, *, column_names: Optional[List[str]] = None
         ) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))

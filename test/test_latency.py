@@ -53,7 +53,7 @@ class TestLatencyBase:
         ],
     )
     def test_to_dataframe(self, mocker, records: Records, df_len: int, columns: Set[str]):
-        def custom_to_records(_, remove_dropped=False) -> Records:
+        def custom_to_records() -> Records:
             return records
 
         latency = LatencyBaseImpl()
@@ -84,7 +84,7 @@ class TestLatencyBase:
         ],
     )
     def test_to_dataframe_failed_to_sort_columns(self, mocker, records: Records):
-        def custom_to_records(remove_dropped=False, remove_runtime_info=False) -> Records:
+        def custom_to_records() -> Records:
             return records
 
         with pytest.raises(AssertionError):
@@ -105,7 +105,7 @@ class TestLatencyBase:
         self, mocker, latencies: List[int], binsize_ns: int, bins_range: Tuple[int, int]
     ):
         def custom_to_timeseries(
-            remove_dropped=False, *, column_names: Optional[List[str]] = None
+            *, remove_dropped: bool = False, column_names: Optional[List[str]] = None
         ) -> Tuple[np.array, np.array]:
             return np.array([]), np.array(latencies)
 

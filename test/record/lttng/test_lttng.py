@@ -128,54 +128,63 @@ class TestLttng:
         assert len(records) == records_len
 
     @pytest.mark.parametrize(
-        "path, node_name, topic_name, records_len, records_drop_removed_len",
+        "path, sub_node_name, pub_node_name, topic_name, records_len",
         [
-            ("sample/lttng_samples/talker_listener", "/listener", "/chatter", 3, 3),
-            ("sample/lttng_samples/cyclic_pipeline_intra_process", "/pipe2", "/topic2", 0, 0),
-            ("sample/lttng_samples/end_to_end_sample", "/filter_node", "/topic1", 205, 102),
+            ("sample/lttng_samples/talker_listener", "/listener", "/talker", "/chatter", 3),
+            (
+                "sample/lttng_samples/end_to_end_sample",
+                "/filter_node",
+                "/sensor_dummy_node",
+                "/topic1",
+                205,
+            ),
         ],
     )
     def test_compose_inter_process_communication_records(
         self,
         path: str,
-        node_name: str,
+        sub_node_name: str,
+        pub_node_name: str,
         topic_name: str,
         records_len: int,
-        records_drop_removed_len: int,
     ):
         lttng = Lttng(path)
 
-        attr = lttng.get_subscription_callbacks(node_name=node_name, topic_name=topic_name)[0]
-        records = lttng.compose_inter_process_communication_records(
-            attr, publish_callback=None, remove_dropped=False
-        )
-        records_drop_removed = lttng.compose_inter_process_communication_records(
-            attr, publish_callback=None, remove_dropped=True
-        )
+        sub_cb = lttng.get_subscription_callbacks(node_name=sub_node_name, topic_name=topic_name)[
+            0
+        ]
+        pub_cb = lttng.get_timer_callbacks(node_name=pub_node_name)[0]
+        records = lttng.compose_inter_process_communication_records(sub_cb, pub_cb)
         assert len(records) == records_len
-        assert len(records_drop_removed) == records_drop_removed_len
+
+    @pytest.mark.parametrize(
+        "path, pub_node_name, sub_node_name, records_len",
+        [
+            ("sample/lttng_samples/talker_listener", "/talker", "/listener", 0),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", "/pipe1", "/pipe2", 5),
+        ],
+    )
+    def test_compose_intra_process_communication_records(
+        self, path, pub_node_name, sub_node_name, records_len
+    ):
+        def get_cb(node_name: str):
+            cb = lttng.get_timer_callbacks(node_name)
+            cb += lttng.get_subscription_callbacks(node_name)
+            return cb[0]
+
+        lttng = Lttng(path)
+        pub = get_cb(pub_node_name)
+        sub = get_cb(sub_node_name)
+        records = lttng.compose_intra_process_communication_records(sub, pub)
+        assert len(records) == records_len
 
     @pytest.mark.parametrize(
         "path, attr, records_len",
         [
-            ("sample/lttng_samples/talker_listener", listener_callback, 0),
-            ("sample/lttng_samples/cyclic_pipeline_intra_process", pipe2_callback, 5),
+            ("sample/lttng_samples/end_to_end_sample", listener_callback, 95),
         ],
     )
-    def test_compose_intra_process_communication_records(self, path, attr, records_len):
-        lttng = Lttng(path)
-        records = lttng.compose_intra_process_communication_records(attr)
-        assert len(records) == records_len
-
-    @pytest.mark.parametrize(
-        "path, attr, records_len, records_drop_removed_len",
-        [
-            ("sample/lttng_samples/end_to_end_sample", listener_callback, 95, 6),
-        ],
-    )
-    def test_compose_variable_passing_records(
-        self, path, attr, records_len, records_drop_removed_len
-    ):
+    def test_compose_variable_passing_records(self, path, attr, records_len):
         lttng = Lttng(path)
 
         callback_write = SubscriptionCallback(
@@ -194,11 +203,5 @@ class TestLttng:
             "/drive",
         )
 
-        records = lttng.compose_variable_passing_records(
-            callback_write, callback_read, remove_dropped=False
-        )
-        records_drop_removed = lttng.compose_variable_passing_records(
-            callback_write, callback_read, remove_dropped=True
-        )
+        records = lttng.compose_variable_passing_records(callback_write, callback_read)
         assert len(records) == records_len
-        assert len(records_drop_removed) == records_drop_removed_len
