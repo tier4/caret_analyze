@@ -144,7 +144,11 @@ class Records(collections.UserList):
             return None
 
     def to_dataframe(self) -> pd.DataFrame:
-        return pd.DataFrame.from_dict(self.data)
+        df = pd.DataFrame.from_dict(self.data)
+        missing_columns = set(self.columns) - set(df.columns)
+        df_miss = pd.DataFrame(columns=missing_columns)
+        df = pd.concat([df, df_miss])
+        return df
 
     def to_string(self) -> str:
         return self.to_dataframe().to_string()
@@ -200,6 +204,8 @@ def merge(
         for record_ in records_:
             if record_ not in records_inseted:
                 merged_records.append(record_)
+
+    merged_records.columns = records.columns | records_.columns
 
     return merged_records
 
@@ -294,6 +300,8 @@ def merge_sequencial(
     merged_records.drop_columns(["side"], inplace=True)
     left_records.drop_columns(["side"], inplace=True)
     right_records.drop_columns(["side"], inplace=True)
+
+    merged_records.columns = left_records.columns | right_records.columns
 
     return merged_records
 

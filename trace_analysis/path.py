@@ -195,6 +195,7 @@ class PathLatencyMerger:
             right_stamp_key=record_stamp_key,
             left_stamp_key=sub_record_stamp_key,
             join_key=None,
+            how='left'
         )
 
     def _get_callback_records(self, callback: CallbackBase) -> Records:
