@@ -250,6 +250,47 @@ def test_merge(how: str, records_expect: Records):
     assert merged.equals(records_expect) is True
 
 
+def test_merge_with_drop():
+    left_records = Records(
+        [
+            Record({"other_stamp": 4, "stamp": 1, "value": 1}, 4),
+            Record({"other_stamp": 8}, 8),
+            Record({"other_stamp": 12, "stamp": 9, "value": 1}, 12),
+            Record({"other_stamp": 16}, 16),
+        ]
+    )
+
+    right_records = Records(
+        [
+            Record({"other_stamp_": 2, "stamp_": 3, "value": 1}, 2),
+            Record({"other_stamp_": 6, "stamp_": 7, "value": 1}, 6),
+            Record({"other_stamp_": 10}, 10),
+            Record({"other_stamp_": 14}, 14),
+        ]
+    )
+
+    records_expect = Records(
+        [
+            Record({"other_stamp": 4, "other_stamp_": 2, "stamp": 1, "stamp_": 3, "value": 1}),
+            Record({"other_stamp": 8}),
+            Record({"other_stamp": 12, "stamp": 9, "value": 1}),
+            Record({"other_stamp": 16}),
+        ]
+    )
+    merged = merge_sequencial(
+        left_records=left_records,
+        right_records=right_records,
+        left_stamp_key="stamp",
+        right_stamp_key="stamp_",
+        join_key="value",
+        how='left',
+    )
+
+    merged.sort(key=lambda record: record["other_stamp"])
+    records_expect.sort(key=lambda record: record["other_stamp"])
+    assert merged.equals(records_expect) is True
+
+
 @pytest.mark.parametrize(
     "how, expect",
     [

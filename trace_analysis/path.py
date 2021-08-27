@@ -190,8 +190,8 @@ class PathLatencyMerger:
         self.records = merge_sequencial(
             left_records=self.records,
             right_records=records,
-            right_stamp_key=record_stamp_key,
-            left_stamp_key=sub_record_stamp_key,
+            left_stamp_key=record_stamp_key,
+            right_stamp_key=sub_record_stamp_key,
             join_key=None,
             how="left",
         )
