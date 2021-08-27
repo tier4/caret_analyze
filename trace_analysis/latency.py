@@ -33,6 +33,9 @@ class LatencyBase(metaclass=ABCMeta):
         records = self.to_records(remove_dropped, True)
         df = records.to_dataframe()
 
+        if remove_dropped:
+            df.dropna(inplace=True)
+
         if column_names is not None:
             return df[column_names]
 
@@ -53,7 +56,12 @@ class LatencyBase(metaclass=ABCMeta):
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
         df = self.to_dataframe(remove_dropped, column_names=column_names)
-        assert len(df) > 0
+        msg = (
+            "Failed to find any records that went through the path."
+            + "There is a possibility that all records are lost.",
+        )
+
+        assert len(df) > 0, msg
         source_stamps_ns = np.array(df.iloc[:, 0].values)
         dest_stamps_ns = np.array(df.iloc[:, -1].values)
         t = source_stamps_ns
