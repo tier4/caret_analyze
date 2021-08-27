@@ -202,6 +202,7 @@ class RecordsContainer:
             left_stamp_key="dispatch_intra_process_timestamp",
             right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
+            how="left",
         )
 
         if drop_inter_mediate_columns:
@@ -239,6 +240,7 @@ class RecordsContainer:
             left_stamp_key="rclcpp_publish_timestamp",
             right_stamp_key="rcl_publish_timestamp",
             join_key="message",
+            how='left'
         )
 
         publish = merge_sequencial(
@@ -247,6 +249,7 @@ class RecordsContainer:
             left_stamp_key="rcl_publish_timestamp",
             right_stamp_key="dds_write_timestamp",
             join_key="message",
+            how='left'
         )
 
         subscription = merge_sequencial(
@@ -255,6 +258,7 @@ class RecordsContainer:
             left_stamp_key="take_type_erased_timestamp",
             right_stamp_key="dispatch_timestamp",
             join_key="message",
+            how='left'
         )
 
         subscription = merge_sequencial(
@@ -263,6 +267,7 @@ class RecordsContainer:
             left_stamp_key="dispatch_timestamp",
             right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
+            how='left'
         )
 
         communication = merge(
