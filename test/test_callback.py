@@ -50,10 +50,10 @@ class TestTimerCallback:
         callback = node.callbacks[0]
 
         t, latencies = callback.to_timeseries()
-        assert len(t) == 3 and len(latencies) == 3
+        assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = callback.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 5 and len(hist) == 6
+        assert len(latencies) == 7 and len(hist) == 8
 
 
 class TestSubscriptionCallback:
@@ -84,10 +84,10 @@ class TestSubscriptionCallback:
         callback = node.callbacks[0]
 
         t, latencies = callback.to_timeseries()
-        assert len(t) == 3 and len(latencies) == 3
+        assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = callback.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 4 and len(hist) == 5
+        assert len(latencies) == 5 and len(hist) == 6
 
     def test_column_names(self, mocker):
         columns = CallbackBase.column_names

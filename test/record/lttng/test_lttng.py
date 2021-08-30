@@ -118,7 +118,7 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, attr, records_len",
         [
-            ("sample/lttng_samples/talker_listener", listener_callback, 3),
+            ("sample/lttng_samples/talker_listener", listener_callback, 5),
             ("sample/lttng_samples/cyclic_pipeline_intra_process", pipe2_callback, 5),
         ],
     )
@@ -130,13 +130,13 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, sub_node_name, pub_node_name, topic_name, records_len",
         [
-            ("sample/lttng_samples/talker_listener", "/listener", "/talker", "/chatter", 3),
+            ("sample/lttng_samples/talker_listener", "/listener", "/talker", "/chatter", 5),
             (
                 "sample/lttng_samples/end_to_end_sample",
                 "/filter_node",
                 "/sensor_dummy_node",
                 "/topic1",
-                205,
+                201,
             ),
         ],
     )
@@ -181,7 +181,7 @@ class TestLttng:
     @pytest.mark.parametrize(
         "path, attr, records_len",
         [
-            ("sample/lttng_samples/end_to_end_sample", listener_callback, 95),
+            ("sample/lttng_samples/end_to_end_sample", listener_callback, 173),
         ],
     )
     def test_compose_variable_passing_records(self, path, attr, records_len):

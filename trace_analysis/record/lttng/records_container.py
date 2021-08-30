@@ -183,23 +183,24 @@ class RecordsContainer:
         # inter_subscription = self._get_inter_subscription_records(
         #     self.inter_callback, drop_inter_mediate_columns)
         # アドレスでの紐付けなので、トピックなどを全てまぜた状態での算出が必要
+        sink_records = self._data_util.data.dispatch_intra_process_subscription_callback_instances
         intra_publish_records = merge_sequencial_with_copy(
             source_records=self._data_util.data.rclcpp_intra_publish_instances,
             copy_records=self._data_util.data.message_construct_instances,
-            sink_records=self._data_util.data.dispatch_intra_process_instances,
+            sink_records=sink_records,
             source_stamp_key="rclcpp_intra_publish_timestamp",
             source_key="message",
             copy_stamp_key="message_construct_timestamp",
             copy_from_key="original_message",
             copy_to_key="constructed_message",
-            sink_stamp_key="dispatch_intra_process_timestamp",
+            sink_stamp_key="dispatch_intra_process_subscription_callback_timestamp",
             sink_from_key="message",
         )
 
         intra_records = merge_sequencial(
             left_records=intra_publish_records,
             right_records=intra_process_callback_records,
-            left_stamp_key="dispatch_intra_process_timestamp",
+            left_stamp_key="dispatch_intra_process_subscription_callback_timestamp",
             right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
             how="left",
@@ -208,7 +209,7 @@ class RecordsContainer:
         if drop_inter_mediate_columns:
             intra_records.drop_columns(
                 [
-                    "dispatch_intra_process_timestamp",
+                    "dispatch_intra_process_subscription_callback_timestamp",
                     "message",
                     "callback_end_timestamp",
                 ],
@@ -240,7 +241,7 @@ class RecordsContainer:
             left_stamp_key="rclcpp_publish_timestamp",
             right_stamp_key="rcl_publish_timestamp",
             join_key="message",
-            how='left'
+            how="left",
         )
 
         publish = merge_sequencial(
@@ -249,25 +250,18 @@ class RecordsContainer:
             left_stamp_key="rcl_publish_timestamp",
             right_stamp_key="dds_write_timestamp",
             join_key="message",
-            how='left'
+            how="left",
         )
 
-        subscription = merge_sequencial(
-            left_records=self._data_util.data.take_type_erased_instances,
-            right_records=self._data_util.data.dispatch_instances,
-            left_stamp_key="take_type_erased_timestamp",
-            right_stamp_key="dispatch_timestamp",
-            join_key="message",
-            how='left'
-        )
+        subscription = self._data_util.data.dispatch_subscription_callback_instances
 
         subscription = merge_sequencial(
             left_records=subscription,
             right_records=inter_process_callback.drop_columns(["callback_end_timestamp"]),
-            left_stamp_key="dispatch_timestamp",
+            left_stamp_key="dispatch_subscription_callback_timestamp",
             right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
-            how='left'
+            how="left",
         )
 
         communication = merge(
@@ -287,7 +281,7 @@ class RecordsContainer:
                     "source_timestamp",
                     "dds_bind_addr_to_stamp_timestamp",
                     "take_type_erased_timestamp",
-                    "dispatch_timestamp",
+                    "dispatch_subscription_callback_timestamp",
                 ],
                 inplace=True,
             )

@@ -39,7 +39,7 @@ nodes:
     symbol: TimerDependencyNode::TimerDependencyNode(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,int)::{lambda(std::unique_ptr<sensor_msgs::msg::Image>)#1}
   - callback_name: timer_callback_0
     type: timer_callback
-    period_ns: 150000000
+    period_ns: 100000000
     symbol: TimerDependencyNode::TimerDependencyNode(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,int)::{lambda()#2}
   callback_dependencies:
   - callback_name_from: UNDEFINED
@@ -60,7 +60,7 @@ nodes:
   callbacks:
   - callback_name: timer_callback_0
     type: timer_callback
-    period_ns: 200000000
+    period_ns: 100000000
     symbol: SensorDummy::SensorDummy(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,int)::{lambda()#1}
   publish:
   - topic_name: /drive

@@ -86,8 +86,8 @@ class TestCommunication:
     @pytest.mark.parametrize(
         "trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len",
         [
-            ("sample/lttng_samples/talker_listener/", 0, 100000, 3, 4),
-            ("sample/lttng_samples/cyclic_pipeline_intra_process", 0, 100000, 5, 22),
+            ("sample/lttng_samples/talker_listener/", 0, 100000, 5, 6),
+            ("sample/lttng_samples/cyclic_pipeline_intra_process", 0, 100000, 5, 24),
         ],
     )
     def test_to_timeseries_and_to_histogram(
@@ -115,10 +115,10 @@ class TestCommunication:
         latency = comm.to_pubsub_latency()
 
         t, latencies = latency.to_timeseries()
-        assert len(t) == 3 and len(latencies) == 3
+        assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = latency.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 4 and len(hist) == 5
+        assert len(latencies) == 6 and len(hist) == 7
 
     def test_to_dds_latency(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
@@ -130,10 +130,10 @@ class TestCommunication:
         latency = comm.to_dds_latency()
 
         t, latencies = latency.to_timeseries()
-        assert len(t) == 3 and len(latencies) == 3
+        assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = latency.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 1 and len(hist) == 2
+        assert len(latencies) == 3 and len(hist) == 4
 
 
 class TestPubSubLatency:

@@ -52,5 +52,5 @@ class TestNode:
         t, latencies = callback.to_timeseries()
         bin_latencies, hist = callback.to_histogram()
 
-        assert len(t) == 3 and len(latencies) == 3
+        assert len(t) == 5 and len(latencies) == 5
         assert len(bin_latencies) == 1 and len(hist) == 2

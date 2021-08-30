@@ -55,9 +55,8 @@ class Ros2DataModel(DataModel):
         self.rclcpp_intra_publish_instances = Records()
         self.rclcpp_publish_instances = Records()
         self.rcl_publish_instances = Records()
-        self.take_type_erased_instances = Records()
-        self.dispatch_instances = Records()
-        self.dispatch_intra_process_instances = Records()
+        self.dispatch_subscription_callback_instances = Records()
+        self.dispatch_intra_process_subscription_callback_instances = Records()
         self.message_construct_instances = Records()
 
     def add_context(self, context_handle, timestamp, pid, version) -> None:
@@ -350,19 +349,6 @@ class Ros2DataModel(DataModel):
         )
         self.on_data_available_instances.append(record)
 
-    def add_take_type_erased_instance(
-        self, timestamp: int, source_timestamp: int, message: int
-    ) -> None:
-        record = Record(
-            {
-                "take_type_erased_timestamp": timestamp,
-                "source_timestamp": source_timestamp,
-                "message": message,
-            },
-            timestamp,
-        )
-        self.take_type_erased_instances.append(record)
-
     def add_message_construct_instance(
         self, timestamp: int, original_message: int, constructed_message: int
     ) -> None:
@@ -376,23 +362,25 @@ class Ros2DataModel(DataModel):
         )
         self.message_construct_instances.append(record)
 
-    def add_dispatch_instance(
+    def add_dispatch_subscription_callback_instance(
         self,
         timestamp: int,
         callback_object: int,
         message: int,
+        source_timestamp: int,
     ) -> None:
         record = Record(
             {
-                "dispatch_timestamp": timestamp,
+                "dispatch_subscription_callback_timestamp": timestamp,
                 "callback_object": callback_object,
                 "message": message,
+                "source_timestamp": source_timestamp
             },
             timestamp,
         )
-        self.dispatch_instances.append(record)
+        self.dispatch_subscription_callback_instances.append(record)
 
-    def add_dispatch_intra_process_instance(
+    def add_dispatch_intra_process_subscription_callback_instance(
         self,
         timestamp: int,
         callback_object: int,
@@ -400,13 +388,13 @@ class Ros2DataModel(DataModel):
     ) -> None:
         record = Record(
             {
-                "dispatch_intra_process_timestamp": timestamp,
+                "dispatch_intra_process_subscription_callback_timestamp": timestamp,
                 "callback_object": callback_object,
                 "message": message,
             },
             timestamp,
         )
-        self.dispatch_intra_process_instances.append(record)
+        self.dispatch_intra_process_subscription_callback_instances.append(record)
 
     def _finalize(self) -> None:
         self.contexts = pd.DataFrame.from_dict(self._contexts)
