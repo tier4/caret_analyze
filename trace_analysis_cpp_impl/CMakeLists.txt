@@ -8,7 +8,10 @@ endif()
 find_package(ament_cmake REQUIRED)
 
 add_subdirectory(pybind11)
-pybind11_add_module(cmake_example src/main.cpp)
+include_directories(
+  include
+  pybind11/include)
+pybind11_add_module(cmake_example src/pybind.cpp src/record.cpp)
 install(
   TARGETS cmake_example
   EXPORT export_cmake_example
