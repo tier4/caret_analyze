@@ -143,9 +143,12 @@ class RecordsContainer:
         )
 
         for callback_record in callback_records:
-            callback_object = callback_record["callback_object"]
-            records = cb_to_records[callback_object]
-            records.append(callback_record)
+            try:
+                callback_object = callback_record["callback_object"]
+                records = cb_to_records[callback_object]
+                records.append(callback_record)
+            except KeyError:
+                pass
 
         subscription_intra_callback_records = Records()
         subscription_inter_callback_records = Records()
