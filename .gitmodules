@@ -1,0 +1,3 @@
+[submodule "trace_analysis_cpp_impl/pybind11"]
+	path = trace_analysis_cpp_impl/pybind11
+	url = https://github.com/pybind/pybind11
