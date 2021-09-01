@@ -66,8 +66,7 @@ class Ros2DataModel(DataModel):
                 "timestamp": timestamp,
                 "pid": pid,
                 "version": version,
-            },
-            timestamp,
+            }
         )
         self._contexts.append(record)
 
@@ -80,8 +79,7 @@ class Ros2DataModel(DataModel):
                 "rmw_handle": rmw_handle,
                 "namespace": namespace,
                 "name": name,
-            },
-            timestamp,
+            }
         )
         self._nodes.append(record)
 
@@ -94,8 +92,7 @@ class Ros2DataModel(DataModel):
                 "rmw_handle": rmw_handle,
                 "topic_name": topic_name,
                 "depth": depth,
-            },
-            timestamp,
+            }
         )
         self._publishers.append(record)
 
@@ -110,8 +107,7 @@ class Ros2DataModel(DataModel):
                 "rmw_handle": rmw_handle,
                 "topic_name": topic_name,
                 "depth": depth,
-            },
-            timestamp,
+            }
         )
         self._subscriptions.append(record)
 
@@ -123,8 +119,7 @@ class Ros2DataModel(DataModel):
                 "subscription": subscription_pointer,
                 "timestamp": timestamp,
                 "subscription_handle": subscription_handle,
-            },
-            timestamp,
+            }
         )
         self._subscription_objects.append(record)
 
@@ -136,8 +131,7 @@ class Ros2DataModel(DataModel):
                 "node_handle": node_handle,
                 "rmw_handle": rmw_handle,
                 "service_name": service_name,
-            },
-            timestamp,
+            }
         )
         self._services.append(record)
 
@@ -149,8 +143,7 @@ class Ros2DataModel(DataModel):
                 "node_handle": node_handle,
                 "rmw_handle": rmw_handle,
                 "service_name": service_name,
-            },
-            timestamp,
+            }
         )
         self._clients.append(record)
 
@@ -161,8 +154,7 @@ class Ros2DataModel(DataModel):
                 "timestamp": timestamp,
                 "period": period,
                 "tid": tid,
-            },
-            timestamp,
+            }
         )
         self._timers.append(record)
 
@@ -172,8 +164,7 @@ class Ros2DataModel(DataModel):
                 "timer_handle": handle,
                 "timestamp": timestamp,
                 "node_handle": node_handle,
-            },
-            timestamp,
+            }
         )
         self._timer_node_links.append(record)
 
@@ -183,8 +174,7 @@ class Ros2DataModel(DataModel):
                 "reference": reference,
                 "timestamp": timestamp,
                 "callback_object": callback_object,
-            },
-            timestamp,
+            }
         )
         self._callback_objects.append(record)
 
@@ -194,8 +184,7 @@ class Ros2DataModel(DataModel):
                 "callback_object": callback_object,
                 "timestamp": timestamp,
                 "symbol": symbol,
-            },
-            timestamp,
+            }
         )
         self._callback_symbols.append(record)
 
@@ -217,8 +206,7 @@ class Ros2DataModel(DataModel):
                 "start_label": start_label,
                 "goal_label": goal_label,
                 "timestamp": timestamp,
-            },
-            timestamp,
+            }
         )
         self.lifecycle_transitions.append(record)
 
@@ -230,15 +218,12 @@ class Ros2DataModel(DataModel):
                 "callback_start_timestamp": timestamp,
                 "callback_object": callback,
                 "is_intra_process": is_intra_process,
-            },
-            timestamp,
+            }
         )
         self.callback_start_instances.append(record)
 
     def add_callback_end_instance(self, timestamp: int, callback: int) -> None:
-        record = Record(
-            {"callback_end_timestamp": timestamp, "callback_object": callback}, timestamp
-        )
+        record = Record({"callback_end_timestamp": timestamp, "callback_object": callback})
         self.callback_end_instances.append(record)
 
     def add_rclcpp_intra_publish_instance(
@@ -252,8 +237,7 @@ class Ros2DataModel(DataModel):
                 "rclcpp_intra_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
                 "message": message,
-            },
-            timestamp,
+            }
         )
         self.rclcpp_intra_publish_instances.append(record)
 
@@ -268,8 +252,7 @@ class Ros2DataModel(DataModel):
                 "rclcpp_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
                 "message": message,
-            },
-            timestamp,
+            }
         )
         self.rclcpp_publish_instances.append(record)
 
@@ -284,8 +267,7 @@ class Ros2DataModel(DataModel):
                 "rcl_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
                 "message": message,
-            },
-            timestamp,
+            }
         )
         self.rcl_publish_instances.append(record)
 
@@ -298,8 +280,7 @@ class Ros2DataModel(DataModel):
             {
                 "dds_write_timestamp": timestamp,
                 "message": message,
-            },
-            timestamp,
+            }
         )
         self.dds_write_instances.append(record)
 
@@ -314,8 +295,7 @@ class Ros2DataModel(DataModel):
                 "dds_bind_addr_to_addr_timestamp": timestamp,
                 "addr_from": addr_from,
                 "addr_to": addr_to,
-            },
-            timestamp,
+            }
         )
         self.dds_bind_addr_to_addr.append(record)
 
@@ -330,8 +310,7 @@ class Ros2DataModel(DataModel):
                 "dds_bind_addr_to_stamp_timestamp": timestamp,
                 "addr": addr,
                 "source_timestamp": source_timestamp,
-            },
-            timestamp,
+            }
         )
         self.dds_bind_addr_to_stamp.append(record)
 
@@ -344,8 +323,7 @@ class Ros2DataModel(DataModel):
             {
                 "on_data_available_timestamp": timestamp,
                 "source_timestamp": source_timestamp,
-            },
-            timestamp,
+            }
         )
         self.on_data_available_instances.append(record)
 
@@ -357,8 +335,7 @@ class Ros2DataModel(DataModel):
                 "message_construct_timestamp": timestamp,
                 "original_message": original_message,
                 "constructed_message": constructed_message,
-            },
-            timestamp,
+            }
         )
         self.message_construct_instances.append(record)
 
@@ -374,9 +351,8 @@ class Ros2DataModel(DataModel):
                 "dispatch_subscription_callback_timestamp": timestamp,
                 "callback_object": callback_object,
                 "message": message,
-                "source_timestamp": source_timestamp
-            },
-            timestamp,
+                "source_timestamp": source_timestamp,
+            }
         )
         self.dispatch_subscription_callback_instances.append(record)
 
@@ -391,46 +367,49 @@ class Ros2DataModel(DataModel):
                 "dispatch_intra_process_subscription_callback_timestamp": timestamp,
                 "callback_object": callback_object,
                 "message": message,
-            },
-            timestamp,
+            }
         )
         self.dispatch_intra_process_subscription_callback_instances.append(record)
 
     def _finalize(self) -> None:
-        self.contexts = pd.DataFrame.from_dict(self._contexts)
+        self.contexts = pd.DataFrame.from_dict([_.data for _ in self._contexts])
         if self._contexts:
             self.contexts.set_index("context_handle", inplace=True, drop=True)
-        self.nodes = pd.DataFrame.from_dict(self._nodes)
+        self.nodes = pd.DataFrame.from_dict([_.data for _ in self._nodes])
         if self._nodes:
             self.nodes.set_index("node_handle", inplace=True, drop=True)
-        self.publishers = pd.DataFrame.from_dict(self._publishers)
+        self.publishers = pd.DataFrame.from_dict([_.data for _ in self._publishers])
         if self._publishers:
             self.publishers.set_index("publisher_handle", inplace=True, drop=True)
-        self.subscriptions = pd.DataFrame.from_dict(self._subscriptions)
+        self.subscriptions = pd.DataFrame.from_dict([_.data for _ in self._subscriptions])
         if self._subscriptions:
             self.subscriptions.set_index("subscription_handle", inplace=True, drop=True)
-        self.subscription_objects = pd.DataFrame.from_dict(self._subscription_objects)
+        self.subscription_objects = pd.DataFrame.from_dict(
+            [_.data for _ in self._subscription_objects]
+        )
         if self._subscription_objects:
             self.subscription_objects.set_index("subscription", inplace=True, drop=True)
-        self.services = pd.DataFrame.from_dict(self._services)
+        self.services = pd.DataFrame.from_dict([_.data for _ in self._services])
         if self._services:
             self.services.set_index("service_handle", inplace=True, drop=True)
-        self.clients = pd.DataFrame.from_dict(self._clients)
+        self.clients = pd.DataFrame.from_dict([_.data for _ in self._clients])
         if self._clients:
             self.clients.set_index("client_handle", inplace=True, drop=True)
-        self.timers = pd.DataFrame.from_dict(self._timers)
+        self.timers = pd.DataFrame.from_dict([_.data for _ in self._timers])
         if self._timers:
             self.timers.set_index("timer_handle", inplace=True, drop=True)
-        self.timer_node_links = pd.DataFrame.from_dict(self._timer_node_links)
+        self.timer_node_links = pd.DataFrame.from_dict([_.data for _ in self._timer_node_links])
         if self._timer_node_links:
             self.timer_node_links.set_index("timer_handle", inplace=True, drop=True)
-        self.callback_objects = pd.DataFrame.from_dict(self._callback_objects)
+        self.callback_objects = pd.DataFrame.from_dict([_.data for _ in self._callback_objects])
         if self._callback_objects:
             self.callback_objects.set_index("reference", inplace=True, drop=True)
-        self.callback_symbols = pd.DataFrame.from_dict(self._callback_symbols)
+        self.callback_symbols = pd.DataFrame.from_dict([_.data for _ in self._callback_symbols])
         if self._callback_symbols:
             self.callback_symbols.set_index("callback_object", inplace=True, drop=True)
-        self.lifecycle_state_machines = pd.DataFrame.from_dict(self._lifecycle_state_machines)
+        self.lifecycle_state_machines = pd.DataFrame.from_dict(
+            [_.data for _ in self._lifecycle_state_machines]
+        )
         if self._lifecycle_state_machines:
             self.lifecycle_state_machines.set_index(
                 "state_machine_handle", inplace=True, drop=True

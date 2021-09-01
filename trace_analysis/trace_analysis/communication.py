@@ -139,7 +139,7 @@ class Communication(CommunicationInterface, LatencyBase):
             self.callback_subscription, self.callback_publish
         )
 
-        return len(intra_records) > 0
+        return len(intra_records.data) > 0
 
     def to_pubsub_latency(self) -> PubSubLatency:
         assert self.is_intra_process is False, "target is intra process communication"

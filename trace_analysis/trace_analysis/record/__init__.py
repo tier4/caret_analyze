@@ -23,6 +23,8 @@ from .interface import (
 )
 
 from .record import (
+    RecordInterface,
+    RecordsInterface,
     Record,
     Records,
     merge,
@@ -31,6 +33,8 @@ from .record import (
 )
 
 __all__ = [
+    "RecordInterface",
+    "RecordsInterface",
     "Record",
     "Records",
     "LatencyComposer",

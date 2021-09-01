@@ -125,7 +125,7 @@ class TestLttng:
     def test_compose_callback_records(self, path, attr, records_len):
         lttng = Lttng(path)
         records = lttng.compose_callback_records(attr)
-        assert len(records) == records_len
+        assert len(records.data) == records_len
 
     @pytest.mark.parametrize(
         "path, sub_node_name, pub_node_name, topic_name, records_len",
@@ -155,7 +155,7 @@ class TestLttng:
         ]
         pub_cb = lttng.get_timer_callbacks(node_name=pub_node_name)[0]
         records = lttng.compose_inter_process_communication_records(sub_cb, pub_cb)
-        assert len(records) == records_len
+        assert len(records.data) == records_len
 
     @pytest.mark.parametrize(
         "path, pub_node_name, sub_node_name, records_len",
@@ -176,7 +176,7 @@ class TestLttng:
         pub = get_cb(pub_node_name)
         sub = get_cb(sub_node_name)
         records = lttng.compose_intra_process_communication_records(sub, pub)
-        assert len(records) == records_len
+        assert len(records.data) == records_len
 
     @pytest.mark.parametrize(
         "path, attr, records_len",
@@ -204,4 +204,4 @@ class TestLttng:
         )
 
         records = lttng.compose_variable_passing_records(callback_write, callback_read)
-        assert len(records) == records_len
+        assert len(records.data) == records_len

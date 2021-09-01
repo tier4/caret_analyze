@@ -14,6 +14,7 @@
 
 import pytest
 import pandas as pd
+from copy import deepcopy
 
 from trace_analysis.record.record import (
     Record,
@@ -26,7 +27,7 @@ from trace_analysis.record.record import (
 
 class TestRecord:
     @pytest.mark.parametrize(
-        "record, record_, equal",
+        "record, record_, expect",
         [
             (Record({"stamp": 0}), Record({"stamp": 0}), True),
             (Record({"stamp": 0}), Record({"stamp": 1}), False),
@@ -35,8 +36,46 @@ class TestRecord:
             (Record({"stamp": 0, "stamp_": 1}), Record({"stamp": 1, "stamp_": 0}), False),
         ],
     )
-    def test_equals(self, record, record_, equal):
-        assert record.equals(record_) is equal
+    def test_equals(self, record, record_, expect):
+        assert record.equals(record_) is expect
+
+    def test_data_dict(self):
+        dic = {"stamp": 0, "value": 1}
+        record = Record(dic)
+        assert record.data == dic
+
+    def test_columns(self):
+        dic = {"stamp": 0, "value": 1}
+        record = Record(dic)
+        assert record.columns == set(dic.keys())
+
+    def test_drop_columns(self):
+        dic = {"stamp": 0, "value": 1}
+        record = Record(dic)
+        assert record.columns == set(dic.keys())
+
+        dropped = record.drop_columns(["stamp"])
+        assert dropped.columns == set(["value"])
+
+        record.drop_columns(["stamp"], inplace=True)
+        assert record.columns == set(["value"])
+
+    def test_merge(self):
+        left_dict = {"a": 1, "b": 2}
+        right_dict = {"c": 3, "d": 4}
+        merged_dict = deepcopy(left_dict)
+        merged_dict.update(right_dict)
+
+        left = Record(left_dict)
+        right = Record(right_dict)
+        merged = left.merge(right, inplace=False)
+        assert left.data == left_dict
+        assert right.data == right_dict
+        assert merged.data == merged_dict
+
+        left.merge(right, inplace=True)
+        assert left.data == merged_dict
+        assert right.data == right_dict
 
 
 class TestRecords:
@@ -52,24 +91,24 @@ class TestRecords:
         assert records.columns == set([key])
 
         drop_keys = [key]
-        for record in records:
-            assert key in record.keys()
+        for record in records.data:
+            assert key in record.columns
 
         dropped_records = records.drop_columns(drop_keys)
-        for dropped_record in dropped_records:
-            assert key not in dropped_record.keys()
+        for dropped_record in dropped_records.data:
+            assert key not in dropped_record.columns
         assert dropped_records.columns == set()
 
         records.drop_columns(drop_keys, inplace=True)
-        for record in records:
-            assert key not in record.keys()
+        for record in records.data:
+            assert key not in record.columns
         assert records.columns == set()
 
-        records_empty = Records([Record()])
+        records_empty = Records()
         assert records.columns == set()
         records_empty.drop_columns(drop_keys, inplace=True)
         assert records.columns == set()
-        assert len(records_empty) == 1
+        assert len(records_empty.data) == 0
 
     def test_rename_columns(self):
         key_before = "stamp"
@@ -85,21 +124,21 @@ class TestRecords:
 
         rename_keys = {key_before: key_after}
 
-        for record in records:
-            assert key_before in record.keys()
-            assert key_after not in record.keys()
+        for record in records.data:
+            assert key_before in record.columns
+            assert key_after not in record.columns
         assert records.columns == set([key_before])
 
         renamed_records = records.rename_columns(rename_keys)
-        for renamed_record in renamed_records:
-            assert key_before not in renamed_record.keys()
-            assert key_after in renamed_record.keys()
+        for renamed_record in renamed_records.data:
+            assert key_before not in renamed_record.columns
+            assert key_after in renamed_record.columns
         assert renamed_records.columns == set([key_after])
 
         records.rename_columns(rename_keys, inplace=True)
-        for record in records:
-            assert key_before not in record.keys()
-            assert key_after in record.keys()
+        for record in records.data:
+            assert key_before not in record.columns
+            assert key_after in record.columns
         assert records.columns == set([key_after])
 
     def test_filter(self):
@@ -112,22 +151,22 @@ class TestRecords:
                 Record({key: 2}),
             ]
         )
-        assert len(records) == 3
+        assert len(records.data) == 3
         init_columns = records.columns
 
-        filtered_records = records.filter(lambda record: record[key] == 1)
-        assert len(filtered_records) == 1
-        assert filtered_records[0][key] == 1
+        filtered_records = records.filter(lambda record: record.get(key) == 1)
+        assert len(filtered_records.data) == 1
+        assert filtered_records.data[0].get(key) == 1
         assert init_columns == filtered_records.columns
 
-        records.filter(lambda record: record[key] == 1, inplace=True)
+        records.filter(lambda record: record.get(key) == 1, inplace=True)
         assert init_columns == records.columns
-        assert len(records) == 1
-        assert records[0][key] == 1
+        assert len(records.data) == 1
+        assert records.data[0].get(key) == 1
 
         records.filter(lambda _: False, inplace=True)
         assert init_columns == records.columns
-        assert len(records) == 0
+        assert len(records.data) == 0
 
     def test_to_df(self):
         key = "stamp"
@@ -140,7 +179,9 @@ class TestRecords:
         )
 
         df = records.to_dataframe()
-        assert df.equals(pd.DataFrame.from_dict(records))
+        expect = [record.data for record in records.data]
+        expect_df = pd.DataFrame.from_dict(expect)
+        assert df.equals(expect_df)
 
     @pytest.mark.parametrize(
         "records, records_, equal",
@@ -245,27 +286,27 @@ def test_merge(how: str, records_expect: Records):
 
     merged = merge(records_left, records_right, "value", how=how)
 
-    merged.sort(key=lambda record: record["value"])
-    records_expect.sort(key=lambda record: record["value"])
+    merged.sort(key="value")
+    records_expect.sort(key="value")
     assert merged.equals(records_expect) is True
 
 
 def test_merge_with_drop():
     left_records = Records(
         [
-            Record({"other_stamp": 4, "stamp": 1, "value": 1}, 4),
-            Record({"other_stamp": 8}, 8),
-            Record({"other_stamp": 12, "stamp": 9, "value": 1}, 12),
-            Record({"other_stamp": 16}, 16),
+            Record({"other_stamp": 4, "stamp": 1, "value": 1}),
+            Record({"other_stamp": 8}),
+            Record({"other_stamp": 12, "stamp": 9, "value": 1}),
+            Record({"other_stamp": 16}),
         ]
     )
 
     right_records = Records(
         [
-            Record({"other_stamp_": 2, "stamp_": 3, "value": 1}, 2),
-            Record({"other_stamp_": 6, "stamp_": 7, "value": 1}, 6),
-            Record({"other_stamp_": 10}, 10),
-            Record({"other_stamp_": 14}, 14),
+            Record({"other_stamp_": 2, "stamp_": 3, "value": 1}),
+            Record({"other_stamp_": 6, "stamp_": 7, "value": 1}),
+            Record({"other_stamp_": 10}),
+            Record({"other_stamp_": 14}),
         ]
     )
 
@@ -283,11 +324,11 @@ def test_merge_with_drop():
         left_stamp_key="stamp",
         right_stamp_key="stamp_",
         join_key="value",
-        how='left',
+        how="left",
     )
 
-    merged.sort(key=lambda record: record["other_stamp"])
-    records_expect.sort(key=lambda record: record["other_stamp"])
+    merged.sort(key="other_stamp")
+    records_expect.sort(key="other_stamp")
     assert merged.equals(records_expect) is True
 
 
@@ -439,8 +480,56 @@ def test_merge_sequencial_without_key(how, expect):
     assert merged.equals(expect)
 
 
-def test_merge_sequencial_with_drop():
-    # ココを考える。
+@pytest.mark.parametrize(
+    "how, expect",
+    [
+        (
+            "inner",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
+                    Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                ]
+            ),
+        ),
+        (
+            "left",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
+                    Record({"key": 1, "stamp": 4}),
+                    Record({"key": 1, "stamp": 5}),
+                    Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                ]
+            ),
+        ),
+        (
+            "right",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
+                    Record({"key": 3, "sub_stamp": 1}),
+                    Record({"key": 1, "sub_stamp": 3}),
+                    Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                ]
+            ),
+        ),
+        (
+            "outer",
+            Records(
+                [
+                    Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
+                    Record({"key": 3, "sub_stamp": 1}),
+                    Record({"key": 1, "sub_stamp": 3}),
+                    Record({"key": 1, "stamp": 4}),
+                    Record({"key": 1, "stamp": 5}),
+                    Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                ]
+            ),
+        ),
+    ],
+)
+def test_merge_sequencial_with_drop(how, expect):
     records: Records = Records(
         [
             Record({"key": 1, "stamp": 0}),
@@ -466,21 +555,12 @@ def test_merge_sequencial_with_drop():
         left_stamp_key="stamp",
         right_stamp_key="sub_stamp",
         join_key="key",
+        how=how,
     )
 
-    records_expect: Records = Records(
-        [
-            Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
-            Record({"key": 1, "stamp": 4}),
-            Record({"key": 1, "stamp": 5}),
-            Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
-        ]
-    )
+    # records_expect.sort(key=lambda record: record["stamp"])
 
-    merged.sort(key=lambda record: record["stamp"])
-    records_expect.sort(key=lambda record: record["stamp"])
-
-    assert merged.equals(records_expect)
+    assert merged.equals(expect)
 
 
 def test_merge_sequencial_with_copy():
@@ -531,7 +611,7 @@ def test_merge_sequencial_with_copy():
         ]
     )
 
-    merged.sort(key=lambda record: record["sink_stamp"])
-    records_expect.sort(key=lambda record: record["sink_stamp"])
+    merged.sort(key="sink_stamp")
+    records_expect.sort(key="sink_stamp")
 
     assert merged.equals(records_expect)

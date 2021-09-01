@@ -164,8 +164,11 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
 
         communication_records = Records()
         for publisher_handle in publisher_handles:
-            communication_records += self._compose_specific_communication_records(
-                subscription_callback, publisher_handle, is_intra_process
+            communication_records.merge(
+                self._compose_specific_communication_records(
+                    subscription_callback, publisher_handle, is_intra_process
+                ),
+                inplace=True,
             )
 
         return communication_records
@@ -177,9 +180,7 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         runtime_info_columns = ["callback_object"]
         return records.drop_columns(runtime_info_columns)
 
-    def compose_inter_process_communication_records(
-        self, subscription_callback, publish_callback
-    ):
+    def compose_inter_process_communication_records(self, subscription_callback, publish_callback):
         subscription_callback = self._to_local_attr(subscription_callback)
         publish_callback = self._to_local_attr(publish_callback)
 
@@ -229,10 +230,10 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
             left_stamp_key="callback_end_timestamp",
             right_stamp_key="callback_start_timestamp",
             join_key=None,
-            how='left',
+            how="left",
         )
 
-        merged_records.sort(key=lambda x: x["callback_end_timestamp"])
+        merged_records.sort(key="callback_end_timestamp")
 
         runtime_info_columns = ["read_callback_object", "write_callback_object"]
 

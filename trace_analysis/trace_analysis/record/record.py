@@ -14,12 +14,94 @@
 
 from __future__ import annotations
 
-import collections
-import copy
+from copy import deepcopy
 from typing import List, Optional, Callable, Dict, Set
 from enum import Enum
 import pandas as pd
 import sys
+
+from abc import ABCMeta, abstractmethod
+
+
+class RecordInterface(metaclass=ABCMeta):
+    @abstractmethod
+    def equals(self, other: RecordInterface) -> bool:
+        pass
+
+    @abstractmethod
+    def merge(self, other: RecordInterface, inplace=False) -> Optional[Record]:
+        pass
+
+    @abstractmethod
+    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[Record]:
+        pass
+
+    @abstractmethod
+    def add(self, key: str, stamp: int) -> None:
+        pass
+
+    @abstractmethod
+    def change_dict_key(self, old_key: str, new_key: str) -> None:
+        pass
+
+    @abstractmethod
+    def get(self, key: str) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def data(self) -> Dict[str, int]:
+        pass
+
+    @property
+    @abstractmethod
+    def columns(self) -> Set[str]:
+        pass
+
+
+class RecordsInterface(metaclass=ABCMeta):
+    @abstractmethod
+    def equals(self, other: RecordsInterface) -> bool:
+        pass
+
+    @abstractmethod
+    def append(self, other: RecordInterface) -> None:
+        pass
+
+    @abstractmethod
+    def merge(self, other: RecordsInterface, inplace=False) -> Optional[RecordsInterface]:
+        pass
+
+    @abstractmethod
+    def sort(self, key: str) -> None:
+        pass
+
+    def filter(
+        self, f: Callable[[RecordInterface], bool], inplace: bool = False
+    ) -> Optional[RecordsInterface]:
+        pass
+
+    @property
+    @abstractmethod
+    def data(self) -> List[RecordInterface]:
+        pass
+
+    @abstractmethod
+    def drop_columns(
+        self, columns: List[str], inplace: bool = False
+    ) -> Optional[RecordsInterface]:
+        pass
+
+    @abstractmethod
+    def rename_columns(
+        self, columns: Dict[str, str], inplace: bool = False
+    ) -> Optional[RecordsInterface]:
+        pass
+
+    @property
+    @abstractmethod
+    def columns(self) -> Set[str]:
+        pass
 
 
 class MergeSideInfo(Enum):
@@ -27,100 +109,129 @@ class MergeSideInfo(Enum):
     RIGHT = 2
 
 
-class Record(collections.UserDict):
-    def __init__(self, init: Optional[Dict] = None, timestamp: Optional[float] = None):
+# class Record(collections.UserDict, RecordInterface):
+class Record(RecordInterface):
+    def __init__(self, init: Optional[Dict] = None):
         init = init or {}
-        super().__init__(init)
-        self.columns = set(init.keys())
-        self.latest_stamp = timestamp or 0
-        self.oldest_stamp = timestamp or sys.float_info.max
+        self._data = init or {}
+        self._columns = set(init.keys())
 
-    def equals(self, record: Record) -> bool:
-        return self.data == record.data
+    def get(self, key: str) -> int:
+        return self._data[key]
 
-    def merge(self, other: Record) -> None:
-        self.data.update(other.data)
-        self.columns |= other.columns
+    @property
+    def data(self) -> Dict[str, int]:
+        return self._data
 
-        if other.latest_stamp is None or other.oldest_stamp is None:
-            return None
+    @property
+    def columns(self) -> Set[str]:
+        return self._columns
 
-        if self.latest_stamp is None or self.oldest_stamp is None:
-            self.latest_stamp = other.latest_stamp
-            self.oldest_stamp = other.oldest_stamp
+    def drop_columns(self, columns: List[str], inplace=False) -> Optional[Record]:
+        data: Dict[str, int]
+
+        if inplace:
+            data = self._data
         else:
-            self.latest_stamp = max(self.latest_stamp, other.latest_stamp)
-            self.oldest_stamp = min(self.oldest_stamp, other.oldest_stamp)
+            data = deepcopy(self)._data
+
+        for column in columns:
+            if column not in self.columns:
+                continue
+            del data[column]
+
+        if inplace:
+            self._columns -= set(columns)
+            return None
+        else:
+            return Record(data)
+
+    def equals(self, other: Record) -> bool:  # type: ignore
+        is_columns_equal = self.columns == other.columns
+        if is_columns_equal is False:
+            return False
+        return self.data == other.data
+
+    def add(self, key: str, stamp: int):
+        self.columns.add(key)
+        self._data[key] = stamp
+
+    def merge(self, other: Record, inplace=False) -> Optional[Record]:  # type: ignore
+        if inplace:
+            self._data.update(other.data)
+            self._columns |= other.columns
+            return None
+        else:
+            d = deepcopy(self.data)
+            d.update(deepcopy(other.data))
+            return Record(d)
 
     def change_dict_key(self, old_key: str, new_key: str) -> None:
-        self.data[new_key] = self.data.pop(old_key, None)
-        self.columns -= set([old_key])
-        self.columns |= set([new_key])
+        self._data[new_key] = self._data.pop(old_key, None)
+        self._columns -= set([old_key])
+        self._columns |= set([new_key])
 
 
-class Records(collections.UserList):
+# class Records(collections.UserList, RecordsInterface):
+class Records(RecordsInterface):
     def __init__(self, init: List[Record] = None):
-        self.columns: Set[str] = set()
+        self._columns: Set[str] = set()
         for record in init or []:
-            self.columns |= record.columns
-        super().__init__(init)
+            self._columns |= record.columns
+        self._data: List[Record] = init or []
 
-    def append(self, other: Record):
-        super().append(other)
-        self.columns |= other.columns
-        pass
+    @property
+    def columns(self) -> Set[str]:
+        return self._columns
 
-    def __add__(self, other) -> Records:
-        if isinstance(other, self.__class__):
-            records = Records()
-            records.data = copy.deepcopy(self.data)
-            records.columns = copy.deepcopy(self.columns)
+    def sort(self, key: str) -> None:
+        self.data.sort(key=lambda record: record.get(key))
 
-            for record in other:
-                records.append(record)
-            return records
+    @property
+    def data(self) -> List[Record]:  # type: ignore
+        return self._data
+
+    def append(self, other: Record):  # type: ignore
+        assert isinstance(other, Record)
+        self._data.append(other)
+        self._columns |= other.columns
+
+    def merge(self, other: Records, inplace=False) -> Optional[Records]:  # type: ignore
+        if inplace:
+            self._data += other._data
+            self._columns |= other.columns
+            return None
         else:
-            raise NotImplementedError()
+            d = deepcopy(self._data)
+            d += deepcopy(other._data)
+            return Records(d)
 
-    def __iadd__(self, other):
-        if isinstance(other, self.__class__):
-            for record in other:
-                self.append(record)
-            return self
-        else:
-            raise NotImplementedError()
-
-    def drop_columns(self, columns: List[str] = [], inplace: bool = False) -> Optional[Records]:
-
+    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[Records]:
         data: List[Record]
 
         if inplace:
-            data = self.data
+            data = self._data
         else:
-            data = copy.deepcopy(self).data
+            data = deepcopy(self._data)
 
         for record in data:
-            record.columns -= set(columns)
-            for column in columns:
-                if column not in record.keys():
-                    continue
-                del record[column]
+            record.drop_columns(columns, inplace=True)
 
-        self.columns -= set(columns)
         if not inplace:
             return Records(data)
         else:
+            self._columns -= set(columns)
             return None
 
     def rename_columns(self, columns: Dict[str, str], inplace: bool = False) -> Optional[Records]:
-        self.columns -= set(columns.keys())
-        self.columns |= set(columns.values())
+        self._columns -= set(columns.keys())
+        self._columns |= set(columns.values())
 
         data: List[Record]
         if inplace:
-            data = self.data
+            data = self._data
         else:
-            data = copy.deepcopy(self).data
+            data = deepcopy(self._data)
 
         for record in data:
             for key_from, key_to in columns.items():
@@ -136,20 +247,28 @@ class Records(collections.UserList):
     def filter(self, f: Callable[[Record], bool], inplace: bool = False) -> Optional[Records]:
         records = Records()
         init_columns = self.columns
-        for record in self:  # type: Record
+        for record in self._data:  # type: Record
             if f(record):
                 records.append(record)
 
         if not inplace:
-            records.columns = init_columns
-            records.data = copy.deepcopy(records.data)
+            records._columns = init_columns
+            records._data = deepcopy(records._data)
             return records
         else:
-            self.data = records.data
+            self._data = records._data
             return None
 
+    def equals(self, records: Records) -> bool:  # type: ignore
+        for r, r_ in zip(self.data, records.data):
+            if r.equals(r_) is False:
+                return False
+
+        return True
+
     def to_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame.from_dict(self.data)
+        pd_dict = [record.data for record in self.data]
+        df = pd.DataFrame.from_dict(pd_dict)
         missing_columns = set(self.columns) - set(df.columns)
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
@@ -158,13 +277,6 @@ class Records(collections.UserList):
     def to_string(self) -> str:
         return self.to_dataframe().to_string()
 
-    def equals(self, records: Records) -> bool:
-        for r, r_ in zip(self, records):
-            if r.equals(r_) is False:
-                return False
-
-        return True
-
 
 def merge(
     records: Records,
@@ -172,30 +284,31 @@ def merge(
     join_key: str,
     how: str = "inner",
     record_sort_key: Optional[str] = None,
+    record_sort_key_: Optional[str] = None,
 ) -> Records:
     merged_records = Records()
     assert how in ["inner", "left", "right", "outer"]
 
-    records.sort(key=lambda x: x.latest_stamp)
-    records_.sort(key=lambda x: x.latest_stamp)
+    records.sort(record_sort_key or join_key)
+    records_.sort(record_sort_key_ or join_key)
 
-    records_inseted: List[Record] = []
+    records_inserted: List[Record] = []
 
-    for record in records:
-        if join_key not in record.keys():
+    for record in records._data:
+        if join_key not in record.columns:
             if how in ["left", "outer"]:
                 merged_records.append(record)
             continue
 
         record_inserted = False
-        for record_ in records_:
-            if join_key not in record_.keys():
+        for record_ in records_._data:
+            if join_key not in record_.columns:
                 continue
-            if record_[join_key] == record[join_key]:
-                records_inseted.append(record_)
+            if record_.get(join_key) == record.get(join_key):
+                records_inserted.append(record_)
 
-                merged_record = copy.deepcopy(record_)
-                merged_record.merge(record)
+                merged_record = deepcopy(record_)
+                merged_record.merge(record, inplace=True)
                 merged_records.append(merged_record)
                 record_inserted = True
                 break
@@ -206,11 +319,9 @@ def merge(
             merged_records.append(record)
 
     if how in ["right", "outer"]:
-        for record_ in records_:
-            if record_ not in records_inseted:
+        for record_ in records_._data:
+            if record_ not in records_inserted:
                 merged_records.append(record_)
-
-    merged_records.columns = records.columns | records_.columns
 
     return merged_records
 
@@ -233,113 +344,114 @@ def merge_sequencial(
             return True
         if join_key not in record.columns or join_key not in record_.columns:
             return False
-        return record[join_key] == record_[join_key]
+        return record.data[join_key] == record_.data[join_key]
 
     merged_records: Records = Records()
 
-    for left in left_records:
-        left["side"] = MergeSideInfo.LEFT
+    for left in left_records.data:
+        left.add("side", MergeSideInfo.LEFT)  # type: ignore
 
-    for right in right_records:
-        right["side"] = MergeSideInfo.RIGHT
+    for right in right_records.data:
+        right.add("side", MergeSideInfo.RIGHT)  # type: ignore
 
     left_sort_key = left_sort_key or left_stamp_key
     right_sort_key = right_sort_key or right_stamp_key
 
-    records = left_records + right_records
+    records: Records
+    records = left_records.merge(right_records)  # type: ignore
 
-    for i, record in enumerate(records):
-        record["has_valid_join_key"] = join_key is None or join_key in record.columns
+    for i, record in enumerate(records._data):
+        record.add("has_valid_join_key", join_key is None or join_key in record.columns)
 
-        if (
-            record["side"] == MergeSideInfo.LEFT
-            and left_sort_key in record.columns
-        ):
-            record["sort_value"] = record[left_sort_key]
-            record["has_sort_value"] = True
-        elif (
-            record["side"] == MergeSideInfo.RIGHT
-            and right_sort_key in record.columns
-        ):
-            record["sort_value"] = record[right_sort_key]
-            record["has_sort_value"] = True
+        if record.get("side") == MergeSideInfo.LEFT and left_sort_key in record.columns:
+            record.add("sort_value", record.get(left_sort_key))
+            record.add("has_sort_value", True)
+        elif record.get("side") == MergeSideInfo.RIGHT and right_sort_key in record.columns:
+            record.add("sort_value", record.get(right_sort_key))
+            record.add("has_sort_value", True)
         else:
-            record["sort_value"] = record.latest_stamp
-            record["has_sort_value"] = False
-        if type(record["sort_value"]) is not int:
-            []
+            record.add("sort_value", sys.maxsize)
+            record.add("has_sort_value", False)
 
-    records.sort(key=lambda x: x["sort_value"])
+    records.sort(key="sort_value")
 
     added = set()
-    for i, current_record in enumerate(records):
-        recorded = current_record.latest_stamp in added
+    for i, current_record in enumerate(records._data):
+        recorded = current_record.get("sort_value") in added
         if recorded:
             continue
 
-        if not current_record["has_sort_value"] or not current_record["has_valid_join_key"]:
-            if current_record["side"] == MergeSideInfo.RIGHT and how in ["right", "outer"]:
+        if not current_record.get("has_sort_value") or not current_record.get(
+            "has_valid_join_key"
+        ):
+            if current_record.get("side") == MergeSideInfo.RIGHT and how in ["right", "outer"]:
                 merged_records.append(current_record)
-                added.add(current_record.latest_stamp)
-            elif current_record["side"] == MergeSideInfo.LEFT and how in ["left", "outer"]:
+                added.add(current_record.get("sort_value"))
+            elif current_record.get("side") == MergeSideInfo.LEFT and how in ["left", "outer"]:
                 merged_records.append(current_record)
-                added.add(current_record.latest_stamp)
+                added.add(current_record.get("sort_value"))
             continue
 
-        if current_record["side"] == MergeSideInfo.RIGHT:
+        if current_record.get("side") == MergeSideInfo.RIGHT:
             if how in ["right", "outer"]:
                 merged_records.append(current_record)
-                added.add(current_record.latest_stamp)
+                added.add(current_record.get("sort_value"))
             continue
 
         next_record: Optional[Record] = None
         sub_record: Optional[Record] = None
         if join_key is None:
-            for record in records.data[i + 1 :]:
+            for record in records._data[i + 1 :]:
                 if next_record is not None and sub_record is not None:
                     break
-                if record["has_sort_value"] is False:
+                if record.get("has_sort_value") is False:
                     continue
-                if record["side"] == MergeSideInfo.LEFT and next_record is None:
+                if record.get("side") == MergeSideInfo.LEFT and next_record is None:
                     next_record = record
-                if record["side"] == MergeSideInfo.RIGHT and sub_record is None:
+                if record.get("side") == MergeSideInfo.RIGHT and sub_record is None:
                     sub_record = record
         else:
-            for record in records.data[i + 1 :]:
+            for record in records._data[i + 1 :]:
                 if next_record is not None and sub_record is not None:
                     break
-                if record["has_sort_value"] is False:
+                if record.get("has_sort_value") is False:
                     continue
 
-                key_matched = record[join_key] == current_record[join_key]
-                if key_matched and record["side"] == MergeSideInfo.LEFT and next_record is None:
+                key_matched = record.get(join_key) == current_record.get(join_key)
+                if (
+                    key_matched
+                    and record.get("side") == MergeSideInfo.LEFT
+                    and next_record is None
+                ):
                     next_record = record
-                if key_matched and record["side"] == MergeSideInfo.RIGHT and sub_record is None:
+                if (
+                    key_matched
+                    and record.get("side") == MergeSideInfo.RIGHT
+                    and sub_record is None
+                ):
                     sub_record = record
 
         has_valid_next_record = (
             next_record is not None
             and sub_record is not None
-            and next_record.latest_stamp < sub_record.latest_stamp
+            and next_record.get("sort_value") < sub_record.get("sort_value")
         )
-        if has_valid_next_record or sub_record is None or sub_record.latest_stamp in added:
+        if has_valid_next_record or sub_record is None or sub_record.get("sort_value") in added:
             if how in ["left", "outer"]:
                 merged_records.append(current_record)
-                added.add(current_record.latest_stamp)
+                added.add(current_record.get("sort_value"))
             continue
 
-        merged_record = copy.deepcopy(current_record)
-        merged_record.merge(sub_record)
+        merged_record = deepcopy(current_record)
+        merged_record.merge(sub_record, inplace=True)
         merged_records.append(merged_record)
-        added.add(current_record.latest_stamp)
-        added.add(sub_record.latest_stamp)
+        added.add(current_record.get("sort_value"))
+        added.add(sub_record.get("sort_value"))
 
     temporay_columns = ["side", "sort_value", "has_sort_value", "has_valid_join_key"]
     merged_records.drop_columns(temporay_columns, inplace=True)
     left_records.drop_columns(temporay_columns, inplace=True)
     right_records.drop_columns(temporay_columns, inplace=True)
-
-    merged_records.columns = left_records.columns | right_records.columns
 
     return merged_records
 
@@ -363,24 +475,24 @@ def merge_sequencial_with_copy(
     sink_from_key: str,
 ):
 
-    source_records = copy.deepcopy(source_records)
-    copy_records = copy.deepcopy(copy_records)
-    sink_records = copy.deepcopy(sink_records)
+    source_records = deepcopy(source_records)
+    copy_records = deepcopy(copy_records)
+    sink_records = deepcopy(sink_records)
 
     merged_records: Records = Records()
 
-    for record in source_records:
-        record["type"] = RecordType.SOURCE
-        record["timestamp"] = record[source_stamp_key]
-    for record in copy_records:
-        record["type"] = RecordType.COPY
-        record["timestamp"] = record[copy_stamp_key]
-    for record in sink_records:
-        record["type"] = RecordType.SINK
-        record["timestamp"] = record[sink_stamp_key]
+    for record in source_records.data:
+        record.add("type", RecordType.SOURCE)  # type: ignore
+        record.add("timestamp", record.get(source_stamp_key))
+    for record in copy_records.data:
+        record.add("type", RecordType.COPY)  # type: ignore
+        record.add("timestamp", record.get(copy_stamp_key))
+    for record in sink_records.data:
+        record.add("type", RecordType.SINK)  # type: ignore
+        record.add("timestamp", record.get(sink_stamp_key))
 
-    records = Records(source_records.data + copy_records.data + sink_records.data)
-    records.sort(key=lambda x: x["timestamp"], reverse=True)
+    records = Records(source_records._data + copy_records._data + sink_records._data)
+    records.data.sort(key=lambda x: x.get("timestamp"), reverse=True)
     # Searching for records in chronological order is not good
     # because the lost records stay forever. Sort in reverse chronological order.
 
@@ -389,42 +501,41 @@ def merge_sequencial_with_copy(
 
     def merge_processing_record_keys(processing_record: Record):
         for processing_record_ in filter(
-            lambda x: x[sink_from_key] & processing_record[sink_from_key]
-            and x[sink_from_key] != processing_record[sink_from_key],
+            lambda x: x.get(sink_from_key) & processing_record.get(sink_from_key)
+            and x.get(sink_from_key) != processing_record.get(sink_from_key),
             processing_records,
         ):
-            processing_record_keys = processing_record[sink_from_key]
-            coresponding_record_keys = processing_record_[sink_from_key]
+            processing_record_keys = processing_record.get(sink_from_key)
+            coresponding_record_keys = processing_record_.get(sink_from_key)
 
             merged_set = processing_record_keys | coresponding_record_keys
-            processing_record[sink_from_key] = merged_set
-            processing_record_[sink_from_key] = merged_set
+            processing_record.data[sink_from_key] = merged_set
+            processing_record_.data[sink_from_key] = merged_set
 
-    for record in records:
-        if record["type"] == RecordType.SINK:
-            record[sink_from_key] = set([record[sink_from_key]])
+    for record in records.data:
+        if record.get("type") == RecordType.SINK:
+            record._data[sink_from_key] = set([record.get(sink_from_key)])  # type: ignore
             processing_records.append(record)
 
-        elif record["type"] == RecordType.COPY:
-            for processing_record in filter(
-                lambda x: record[copy_to_key] in x[sink_from_key], processing_records
-            ):
-                processing_record[sink_from_key].add(record[copy_from_key])
+        elif record.get("type") == RecordType.COPY:
+            records_need_to_merge = filter(
+                lambda x: record.get(copy_to_key) in x._data[sink_from_key], processing_records
+            )
+            for processing_record in records_need_to_merge:
+                processing_record._data[sink_from_key].add(record.get(copy_from_key))
                 merge_processing_record_keys(processing_record)
                 # No need for subsequent loops since we integrated them.
                 break
 
-        elif record["type"] == RecordType.SOURCE:
+        elif record.get("type") == RecordType.SOURCE:
             for processing_record in filter(
-                lambda x: record[source_key] in x[sink_from_key], processing_records[:]
+                lambda x: record.get(source_key) in x._data[sink_from_key], processing_records[:]
             ):
                 processing_records.remove(processing_record)
-                processing_record.merge(record)
+                processing_record.merge(record, inplace=True)
                 merged_records.append(processing_record)
 
     # Deleting an added key
-    for record in merged_records:
-        del record["type"]
-        del record["timestamp"]
+    merged_records.drop_columns(["type", "timestamp"], inplace=True)
 
     return merged_records

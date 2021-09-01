@@ -15,7 +15,8 @@
 from typing import Tuple
 
 from trace_analysis.record import (
-    Record,
+    RecordInterface,
+    RecordsInterface,
     Records,
     merge,
     merge_sequencial,
@@ -53,11 +54,11 @@ class RecordsContainer:
             self._inter_process_callback_records, drop_inter_mediate_columns
         )
 
-    def get_publish_records(self, publisher_handle, is_intra_process) -> Records:
+    def get_publish_records(self, publisher_handle, is_intra_process) -> RecordsInterface:
         def is_target_publish(x):
             return x["publisher_handle"] == publisher_handle
 
-        records: Records
+        records: RecordsInterface
         if is_intra_process:
             records = self._intra_process_publish_records.filter(is_target_publish)  # type: ignore
         else:
@@ -72,50 +73,50 @@ class RecordsContainer:
             return self._inter_process_communication_records
 
     def _get_subscription_callback_records(self, callback: SubscriptionCallbackImpl):
-        def has_same_intra_callback_object(record: Record):
-            return record.get("callback_object") == callback.intra_callback_object
+        def has_same_intra_callback_object(record: RecordInterface):
+            return record.data.get("callback_object") == callback.intra_callback_object
 
-        def has_same_inter_callback_object(record: Record):
-            return record.get("callback_object") == callback.inter_callback_object
+        def has_same_inter_callback_object(record: RecordInterface):
+            return record.data.get("callback_object") == callback.inter_callback_object
 
-        records: Records
+        records: RecordsInterface
         records = self._inter_process_callback_records.filter(
             has_same_inter_callback_object
         )  # type: ignore
 
         if callback.intra_callback_object is not None:
-            records += self._intra_process_callback_records.filter(
+            records.merge(self._intra_process_callback_records.filter(
                 has_same_intra_callback_object
-            )  # type: ignore
+            ), inplace=True)
 
         return records
 
     def _get_timer_callback_records(self, callback: TimerCallbackImpl):
-        def has_same_callback_object(record: Record):
-            return record.get("callback_object") == callback.callback_object
+        def has_same_callback_object(record: RecordInterface):
+            return record.data.get("callback_object") == callback.callback_object
 
         return self._timer_callback_records.filter(has_same_callback_object)
 
     def get_callback_records(self, callback: CallbackImpl):
-        records: Records
+        records: RecordsInterface
 
         if isinstance(callback, SubscriptionCallbackImpl):
             records = self._get_subscription_callback_records(callback)
         elif isinstance(callback, TimerCallbackImpl):
             records = self._get_timer_callback_records(callback)
 
-        records.sort(key=lambda x: x["callback_start_timestamp"])
+        records.sort(key="callback_start_timestamp")
         return records
 
-    def _compose_intra_publish_records(self) -> Records:
+    def _compose_intra_publish_records(self) -> RecordsInterface:
         return self._data_util.data.rclcpp_intra_publish_instances.drop_columns(["message"])
 
-    def _compose_inter_publish_records(self) -> Records:
+    def _compose_inter_publish_records(self) -> RecordsInterface:
         return self._data_util.data.rcl_publish_instances.drop_columns(["message"])
 
     def _compose_callback_records(
         self, drop_inter_mediate_columns
-    ) -> Tuple[Records, Records, Records]:
+    ) -> Tuple[RecordsInterface, RecordsInterface, RecordsInterface]:
         callback_records = merge_sequencial(
             left_records=self._data_util.data.callback_start_instances,
             right_records=self._data_util.data.callback_end_instances,
@@ -142,9 +143,9 @@ class RecordsContainer:
             }
         )
 
-        for callback_record in callback_records:
+        for callback_record in callback_records.data:
             try:
-                callback_object = callback_record["callback_object"]
+                callback_object = callback_record.get("callback_object")
                 records = cb_to_records[callback_object]
                 records.append(callback_record)
             except KeyError:
@@ -156,16 +157,16 @@ class RecordsContainer:
         subscription_intra_callback_records = Records(
             [
                 callback_record
-                for callback_record in subscription_callback_records
-                if callback_record["is_intra_process"] == 1
+                for callback_record in subscription_callback_records.data
+                if callback_record.get("is_intra_process") == 1
             ]
         )
 
         subscription_inter_callback_records = Records(
             [
                 callback_record
-                for callback_record in subscription_callback_records
-                if callback_record["is_intra_process"] == 0
+                for callback_record in subscription_callback_records.data
+                if callback_record.get("is_intra_process") == 0
             ]
         )
 
@@ -182,7 +183,7 @@ class RecordsContainer:
 
     def _compose_intra_process_communication(
         self, intra_process_callback_records, drop_inter_mediate_columns
-    ) -> Records:
+    ) -> RecordsInterface:
         # inter_subscription = self._get_inter_subscription_records(
         #     self.inter_callback, drop_inter_mediate_columns)
         # アドレスでの紐付けなので、トピックなどを全てまぜた状態での算出が必要
@@ -254,6 +255,7 @@ class RecordsContainer:
             right_stamp_key="dds_write_timestamp",
             join_key="message",
             how="left",
+            left_sort_key="rclcpp_publish_timestamp",
         )
 
         subscription = self._data_util.data.dispatch_subscription_callback_instances
@@ -272,9 +274,16 @@ class RecordsContainer:
             self._data_util.data.on_data_available_instances,
             join_key="source_timestamp",
             how="left",
+            record_sort_key="rclcpp_publish_timestamp",
         )
 
-        communication = merge(communication, subscription, join_key="source_timestamp", how="left")
+        communication = merge(
+            communication,
+            subscription,
+            join_key="source_timestamp",
+            how="left",
+            record_sort_key="rclcpp_publish_timestamp",
+        )
 
         if drop_inter_mediate_columns:
             communication.drop_columns(
