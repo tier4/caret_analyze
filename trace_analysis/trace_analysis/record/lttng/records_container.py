@@ -85,9 +85,10 @@ class RecordsContainer:
         )  # type: ignore
 
         if callback.intra_callback_object is not None:
-            records.merge(self._intra_process_callback_records.filter(
-                has_same_intra_callback_object
-            ), inplace=True)
+            records.concat(
+                self._intra_process_callback_records.filter(has_same_intra_callback_object),
+                inplace=True,
+            )
 
         return records
 

@@ -164,7 +164,7 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
 
         communication_records = Records()
         for publisher_handle in publisher_handles:
-            communication_records.merge(
+            communication_records.concat(
                 self._compose_specific_communication_records(
                     subscription_callback, publisher_handle, is_intra_process
                 ),
