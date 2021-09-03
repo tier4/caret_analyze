@@ -53,7 +53,7 @@ class TestTimerCallback:
         assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = callback.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 7 and len(hist) == 8
+        assert len(latencies) == 6 and len(hist) == 7
 
 
 class TestSubscriptionCallback:
@@ -87,14 +87,12 @@ class TestSubscriptionCallback:
         assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = callback.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 5 and len(hist) == 6
+        assert len(latencies) == 4 and len(hist) == 5
 
     def test_column_names(self, mocker):
         columns = CallbackBase.column_names
 
-        def custom_to_dataframe(
-            self, *, column_names: Optional[List[str]] = None
-        ) -> pd.DataFrame:
+        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
             df = pd.DataFrame(dummy_data, columns=columns)

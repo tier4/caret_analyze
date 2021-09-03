@@ -67,9 +67,7 @@ class TestCommunication:
         ],
     )
     def test_column_names(self, mocker, is_intra_process: bool, columns: List[str]):
-        def custom_to_dataframe(
-            self, *, column_names: Optional[List[str]] = None
-        ) -> pd.DataFrame:
+        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
             df = pd.DataFrame(dummy_data, columns=columns)
@@ -86,7 +84,7 @@ class TestCommunication:
     @pytest.mark.parametrize(
         "trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len",
         [
-            ("sample/lttng_samples/talker_listener/", 0, 100000, 5, 6),
+            ("sample/lttng_samples/talker_listener/", 0, 100000, 5, 4),
             ("sample/lttng_samples/cyclic_pipeline_intra_process", 0, 100000, 5, 24),
         ],
     )
@@ -118,7 +116,7 @@ class TestCommunication:
         assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = latency.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 6 and len(hist) == 7
+        assert len(latencies) == 4 and len(hist) == 5
 
     def test_to_dds_latency(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
@@ -133,7 +131,7 @@ class TestCommunication:
         assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = latency.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 3 and len(hist) == 4
+        assert len(latencies) == 2 and len(hist) == 3
 
 
 class TestPubSubLatency:
@@ -141,9 +139,7 @@ class TestPubSubLatency:
         columns = PubSubLatency.column_names
         Communication.column_names_intra_process
 
-        def custom_to_dataframe(
-            self, *, column_names: Optional[List[str]] = None
-        ) -> pd.DataFrame:
+        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
             df = pd.DataFrame(dummy_data, columns=columns)
@@ -162,9 +158,7 @@ class TestDDSLatency:
         columns = DDSLatency.column_names
         Communication.column_names_intra_process
 
-        def custom_to_dataframe(
-            self, *, column_names: Optional[List[str]] = None
-        ) -> pd.DataFrame:
+        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
             df = pd.DataFrame(dummy_data, columns=columns)
@@ -183,9 +177,7 @@ class TestVariablePassingLatency:
         columns = VariablePassing.column_names
         Communication.column_names_intra_process
 
-        def custom_to_dataframe(
-            self, *, column_names: Optional[List[str]] = None
-        ) -> pd.DataFrame:
+        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
             assert column_names == columns
             dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
             df = pd.DataFrame(dummy_data, columns=columns)
