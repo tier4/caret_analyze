@@ -11,10 +11,10 @@ class RecordBase
 {
 public:
   using ColumnT = std::unordered_set<std::string>;
-  using DataT = std::unordered_map<std::string, int64_t>;
+  using DataT = std::unordered_map<std::string, uint64_t>;
 
   RecordBase();
-  RecordBase(std::unordered_map<std::string, int64_t> dict);
+  RecordBase(std::unordered_map<std::string, uint64_t> dict);
   RecordBase(const RecordBase & record);
   ~RecordBase() = default;
 
@@ -25,8 +25,8 @@ public:
   void change_dict_key(std::string key_from, std::string key_to);
   bool equals(const RecordBase & other) const;
   void _merge(const RecordBase & other);
-  int64_t get(std::string key) const;
-  void add(std::string key, int64_t stamp);
+  uint64_t get(std::string key) const;
+  void add(std::string key, uint64_t stamp);
   void _drop_columns(std::vector<std::string> keys);
 
   DataT data_;

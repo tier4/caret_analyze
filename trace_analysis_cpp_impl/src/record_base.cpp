@@ -7,7 +7,7 @@
 #include "trace_analysis_cpp_impl/record.hpp"
 
 
-RecordBase::RecordBase(std::unordered_map<std::string, int64_t> init)
+RecordBase::RecordBase(std::unordered_map<std::string, uint64_t> init)
 {
   for (auto & pair : init) {
     add(pair.first, pair.second);
@@ -23,12 +23,12 @@ RecordBase::RecordBase(const RecordBase & record)
 {
 }
 
-std::unordered_map<std::string, int64_t> RecordBase::get_data() const
+std::unordered_map<std::string, uint64_t> RecordBase::get_data() const
 {
   return data_;
 }
 
-int64_t RecordBase::get(std::string key) const
+uint64_t RecordBase::get(std::string key) const
 {
   return data_.at(key);
 }
@@ -54,7 +54,7 @@ bool RecordBase::equals(const RecordBase & other) const
   return this->data_ == other.data_;
 }
 
-void RecordBase::add(std::string key, int64_t stamp)
+void RecordBase::add(std::string key, uint64_t stamp)
 {
   columns_.insert(key);
   data_.insert(std::make_pair(key, stamp));

@@ -123,23 +123,22 @@ class RecordComp
 {
 public:
   RecordComp(std::string key, bool ascending)
-  : key_(key)
+  : key_(key), ascending_(ascending)
   {
-    if (ascending) {
-      sign_ = 1;
-    } else {
-      sign_ = -1;
-    }
   }
 
   bool operator()(const RecordBase & a, const RecordBase & b) const noexcept
   {
-    return a.get(key_) * sign_ < b.get(key_) * sign_;
+    if (ascending_) {
+      return a.get(key_) < b.get(key_);
+    } else {
+      return a.get(key_) > b.get(key_);
+    }
   }
 
 private:
   std::string key_;
-  int sign_;
+  bool ascending_;
 };
 
 void RecordsBase::_sort(std::string key, bool ascending)
@@ -265,7 +264,7 @@ RecordsBase RecordsBase::_merge_sequencial(
       record.add("merge_stamp", record.get(right_stamp_key));
       record.add("has_merge_stamp", true);
     } else {
-      record.add("merge_stamp", INT64_MAX);
+      record.add("merge_stamp", UINT64_MAX);
       record.add("has_merge_stamp", false);
     }
   }
@@ -403,8 +402,8 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
   records._sort("timestamp", false);
 
   std::vector<RecordBase> processing_records;
-  using StampSet = std::set<int64_t>;
-  std::unordered_map<int64_t, std::shared_ptr<StampSet>> stamp_sets;
+  using StampSet = std::set<uint64_t>;
+  std::unordered_map<uint64_t, std::shared_ptr<StampSet>> stamp_sets;
 
   auto merge_processing_record_keys =
     [&processing_records, &stamp_sets](RecordBase & processing_record) {

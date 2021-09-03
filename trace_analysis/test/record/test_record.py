@@ -75,7 +75,7 @@ class TestRecord:
         assert record_cpp.equals(record_cpp_) is expect
 
     def test_data(self):
-        dic = {"stamp": 0, "value": 1}
+        dic = {"stamp": 0, "value": 18446744073709551615}
         for record_type in [Record, RecordCppImpl]:
             record = record_type(dic)
             assert record.data == dic
