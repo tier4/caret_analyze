@@ -16,28 +16,44 @@
 from typing import Optional, Dict, List
 
 from trace_analysis.record.record import Record, Records, RecordInterface, RecordsInterface
-from trace_analysis.record.record_cpp_impl import RecordCppImpl, RecordsCppImpl
 
 
-use_cpp_impl = True
+try:
+    import trace_analysis.record.record_cpp_impl as cpp_impl
+
+    use_cpp_impl = True
+    print("Succeed to find record_cpp_impl. the C++ version will be used.")
+except ModuleNotFoundError:
+    use_cpp_impl = False
+    print("Failed to find record_cpp_impl. the Python version will be used.")
 
 
 class RecordFactory:
     @classmethod
-    def create_instance(self, init: Optional[Dict] = None) -> RecordInterface:
+    def create_instance(cls, init: Optional[Dict] = None) -> RecordInterface:
         if use_cpp_impl:
-            if init is None:
-                return RecordCppImpl()
-            else:
-                return RecordCppImpl(init)
+            return cls._create_cpp_instance(init)
         else:
             return Record(init)
+
+    @classmethod
+    def _create_cpp_instance(cls, init: Optional[Dict] = None) -> RecordInterface:
+        if init is None:
+            return cpp_impl.RecordCppImpl()
+        else:
+            return cpp_impl.RecordCppImpl(init)
 
 
 class RecordsFactory:
     @classmethod
     def create_instance(cls, init: Optional[List[RecordInterface]] = None) -> RecordsInterface:
         if use_cpp_impl:
-            return RecordsCppImpl(init or [])  # type: ignore
+            return cls._create_cpp_instance(init)
         else:
             return Records(init)  # type: ignore
+
+    @classmethod
+    def _create_cpp_instance(
+        cls, init: Optional[List[RecordInterface]] = None
+    ) -> RecordsInterface:
+        return cpp_impl.RecordsCppImpl(init or [])  # type: ignore
