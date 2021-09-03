@@ -162,8 +162,8 @@ class PathLatencyMerger:
 
         join_key = self._counter.to_column_name(other, join_trace_point_name)
         self.records = merge(
-            records=self.records,
-            records_=records,
+            left_records=self.records,
+            right_records=records,
             join_key=join_key,
             how="left",
         )

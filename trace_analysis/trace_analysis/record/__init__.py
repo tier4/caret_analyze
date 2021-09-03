@@ -29,7 +29,7 @@ from .record import (
     Records,
     merge,
     merge_sequencial,
-    merge_sequencial_with_copy,
+    merge_sequencial_for_addr_track,
 )
 
 __all__ = [
@@ -46,5 +46,5 @@ __all__ = [
     "SubscriptionCallbackInterface",
     "merge",
     "merge_sequencial",
-    "merge_sequencial_with_copy",
+    "merge_sequencial_for_addr_track",
 ]

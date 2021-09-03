@@ -11,16 +11,25 @@ add_subdirectory(pybind11)
 include_directories(
   include
   pybind11/include)
-pybind11_add_module(cmake_example src/pybind.cpp src/record.cpp)
+pybind11_add_module(record_cpp_impl
+src/pybind.cpp
+src/record_base.cpp
+src/records_base.cpp)
+
 install(
-  TARGETS cmake_example
-  EXPORT export_cmake_example
+  TARGETS record_cpp_impl
+  EXPORT export_record_cpp_impl
   LIBRARY DESTINATION lib/python3.8/site-packages
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
 )
 
+
+add_executable(merge_sample
+src/merge_sample.cpp
+src/record_base.cpp
+src/records_base.cpp)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

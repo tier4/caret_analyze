@@ -20,7 +20,7 @@ from trace_analysis.record import (
     Records,
     merge,
     merge_sequencial,
-    merge_sequencial_with_copy,
+    merge_sequencial_for_addr_track,
 )
 from .impl import (
     CallbackImpl,
@@ -85,8 +85,12 @@ class RecordsContainer:
         )  # type: ignore
 
         if callback.intra_callback_object is not None:
+            callback_records = self._intra_process_callback_records.filter(
+                has_same_intra_callback_object
+            )
+            assert callback_records is not None
             records.concat(
-                self._intra_process_callback_records.filter(has_same_intra_callback_object),
+                callback_records,
                 inplace=True,
             )
 
@@ -189,7 +193,7 @@ class RecordsContainer:
         #     self.inter_callback, drop_inter_mediate_columns)
         # アドレスでの紐付けなので、トピックなどを全てまぜた状態での算出が必要
         sink_records = self._data_util.data.dispatch_intra_process_subscription_callback_instances
-        intra_publish_records = merge_sequencial_with_copy(
+        intra_publish_records = merge_sequencial_for_addr_track(
             source_records=self._data_util.data.rclcpp_intra_publish_instances,
             copy_records=self._data_util.data.message_construct_instances,
             sink_records=sink_records,
@@ -227,7 +231,7 @@ class RecordsContainer:
         self, inter_process_callback, drop_inter_mediate_columns
     ) -> Records:
         # アドレスでの紐付けなので、トピックなどを全てまぜた状態での算出が必要
-        dds_write = merge_sequencial_with_copy(
+        dds_write = merge_sequencial_for_addr_track(
             source_records=self._data_util.data.dds_write_instances,
             copy_records=self._data_util.data.dds_bind_addr_to_addr,
             sink_records=self._data_util.data.dds_bind_addr_to_stamp,
@@ -256,7 +260,6 @@ class RecordsContainer:
             right_stamp_key="dds_write_timestamp",
             join_key="message",
             how="left",
-            left_sort_key="rclcpp_publish_timestamp",
         )
 
         subscription = self._data_util.data.dispatch_subscription_callback_instances
@@ -275,7 +278,6 @@ class RecordsContainer:
             self._data_util.data.on_data_available_instances,
             join_key="source_timestamp",
             how="left",
-            record_sort_key="rclcpp_publish_timestamp",
         )
 
         communication = merge(
@@ -283,7 +285,6 @@ class RecordsContainer:
             subscription,
             join_key="source_timestamp",
             how="left",
-            record_sort_key="rclcpp_publish_timestamp",
         )
 
         if drop_inter_mediate_columns:

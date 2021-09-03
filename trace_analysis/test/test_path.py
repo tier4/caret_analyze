@@ -112,8 +112,8 @@ class TestPathLatencyManager:
                 ),
             ]
         )
-        records_expect.sort(key="/node0/callback0/callback_start_timestamp/0")
-        merger.records.sort(key="/node0/callback0/callback_start_timestamp/0")
+        records_expect.sort(key="/node0/callback0/callback_start_timestamp/0", inplace=True)
+        merger.records.sort(key="/node0/callback0/callback_start_timestamp/0", inplace=True)
         assert merger.records.equals(records_expect)
 
     def test_merge_sequential(self, mocker):
