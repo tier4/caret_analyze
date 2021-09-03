@@ -68,7 +68,7 @@ class CallbackBase(CallbackInterface, LatencyBase):
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
-        return super().to_dataframe(remove_dropped)
+        return super().to_dataframe(remove_dropped, column_names=CallbackBase.column_names)
 
     def to_timeseries(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None

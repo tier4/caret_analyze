@@ -37,7 +37,13 @@ class LatencyBase(metaclass=ABCMeta):
             df.dropna(inplace=True)
 
         if column_names is not None:
-            return df[column_names]
+            column_names_set = set(column_names)
+            df_columns_set = set(df.columns)
+            has_columns = column_names_set & df_columns_set == column_names_set
+            if has_columns:
+                return df[column_names]
+            else:
+                return pd.DataFrame(columns=column_names)
 
         fully_recorded = df.dropna()
         err_msg = (
