@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Tuple
+from typing import Optional
 
 from trace_analysis.record import (
     RecordInterface,
@@ -36,23 +36,15 @@ class RecordsContainer:
         self._dataframe_coitainer = dataframe_container
         self._data_util = data_util
 
-        drop_inter_mediate_columns = True
+        self._drop_inter_mediate_columns = True
 
-        (
-            self._timer_callback_records,
-            self._intra_process_callback_records,
-            self._inter_process_callback_records,
-        ) = self._compose_callback_records(drop_inter_mediate_columns)
-
-        self._intra_process_publish_records = self._compose_intra_publish_records()
-        self._intra_process_communication_records = self._compose_intra_process_communication(
-            self._intra_process_callback_records, drop_inter_mediate_columns
-        )
-
-        self._inter_process_publish_records = self._compose_inter_publish_records()
-        self._inter_process_communication_records = self._compose_inter_process_records(
-            self._inter_process_callback_records, drop_inter_mediate_columns
-        )
+        self._timer_callback_records_cache: Optional[RecordsInterface] = None
+        self._intra_process_callback_records_cache: Optional[RecordsInterface] = None
+        self._inter_process_callback_records_cache: Optional[RecordsInterface] = None
+        self._intra_process_publish_records_cache: Optional[RecordsInterface] = None
+        self._inter_process_publish_records_cache: Optional[RecordsInterface] = None
+        self._intra_process_communication_records_cache: Optional[RecordsInterface] = None
+        self._inter_process_communication_records_cache: Optional[RecordsInterface] = None
 
     def get_publish_records(self, publisher_handle, is_intra_process) -> RecordsInterface:
         def is_target_publish(x):
@@ -60,17 +52,30 @@ class RecordsContainer:
 
         records: RecordsInterface
         if is_intra_process:
-            records = self._intra_process_publish_records.filter(is_target_publish)  # type: ignore
+            intra_process_records = self._compose_intra_process_publish_records_with_cache()
+            records = intra_process_records.filter(is_target_publish)  # type: ignore
         else:
-            records = self._inter_process_publish_records.filter(is_target_publish)  # type: ignore
+            inter_process_records = self._compose_inter_process_publish_records_with_cache()
+            records = inter_process_records.filter(is_target_publish)  # type: ignore
 
         return records
 
     def get_communication_records(self, is_intra_process: bool):
         if is_intra_process:
-            return self._intra_process_communication_records
+            return self._compose_intra_process_communication_records_with_cache()
         else:
-            return self._inter_process_communication_records
+            return self._compose_inter_process_communication_records_with_cache()
+
+    def get_callback_records(self, callback: CallbackImpl):
+        records: RecordsInterface
+
+        if isinstance(callback, SubscriptionCallbackImpl):
+            records = self._get_subscription_callback_records(callback)
+        elif isinstance(callback, TimerCallbackImpl):
+            records = self._get_timer_callback_records(callback)
+
+        records.sort(key="callback_start_timestamp", inplace=True)
+        return records
 
     def _get_subscription_callback_records(self, callback: SubscriptionCallbackImpl):
         def has_same_intra_callback_object(record: RecordInterface):
@@ -80,14 +85,14 @@ class RecordsContainer:
             return record.data.get("callback_object") == callback.inter_callback_object
 
         records: RecordsInterface
-        records = self._inter_process_callback_records.filter(
-            has_same_inter_callback_object
-        )  # type: ignore
+
+        inter_records = self._compose_inter_process_callback_records_with_cache()
+        records = inter_records.filter(has_same_inter_callback_object)  # type: ignore
 
         if callback.intra_callback_object is not None:
-            callback_records = self._intra_process_callback_records.filter(
-                has_same_intra_callback_object
-            )
+            intra_records = self._compose_intra_process_callback_records_with_cache()
+            callback_records = intra_records.filter(has_same_intra_callback_object)
+
             assert callback_records is not None
             records.concat(
                 callback_records,
@@ -100,28 +105,63 @@ class RecordsContainer:
         def has_same_callback_object(record: RecordInterface):
             return record.data.get("callback_object") == callback.callback_object
 
-        return self._timer_callback_records.filter(has_same_callback_object)
+        timer_callback_records = self._compose_timer_callback_records_with_cache()
+        return timer_callback_records.filter(has_same_callback_object)
 
-    def get_callback_records(self, callback: CallbackImpl):
-        records: RecordsInterface
+    def _compose_timer_callback_records_with_cache(self) -> RecordsInterface:
+        if self._timer_callback_records_cache is None:
+            self._update_callback_records_cache()
 
-        if isinstance(callback, SubscriptionCallbackImpl):
-            records = self._get_subscription_callback_records(callback)
-        elif isinstance(callback, TimerCallbackImpl):
-            records = self._get_timer_callback_records(callback)
+        assert self._timer_callback_records_cache is not None
+        return self._timer_callback_records_cache
 
-        records.sort(key="callback_start_timestamp")
-        return records
+    def _compose_intra_process_callback_records_with_cache(self) -> RecordsInterface:
+        if self._intra_process_callback_records_cache is None:
+            self._update_callback_records_cache()
 
-    def _compose_intra_publish_records(self) -> RecordsInterface:
-        return self._data_util.data.rclcpp_intra_publish_instances.drop_columns(["message"])
+        assert self._intra_process_callback_records_cache is not None
+        return self._intra_process_callback_records_cache
 
-    def _compose_inter_publish_records(self) -> RecordsInterface:
-        return self._data_util.data.rcl_publish_instances.drop_columns(["message"])
+    def _compose_inter_process_callback_records_with_cache(self) -> RecordsInterface:
+        if self._inter_process_callback_records_cache is None:
+            self._update_callback_records_cache()
 
-    def _compose_callback_records(
-        self, drop_inter_mediate_columns
-    ) -> Tuple[RecordsInterface, RecordsInterface, RecordsInterface]:
+        assert self._inter_process_callback_records_cache is not None
+        return self._inter_process_callback_records_cache
+
+    def _compose_intra_process_publish_records_with_cache(self) -> RecordsInterface:
+        if self._intra_process_publish_records_cache is None:
+            self._intra_process_publish_records_cache = (
+                self._data_util.data.rcl_publish_instances.drop_columns(["message"])
+            )
+
+        assert self._intra_process_publish_records_cache is not None
+        return self._intra_process_publish_records_cache
+
+    def _compose_inter_process_publish_records_with_cache(self) -> RecordsInterface:
+        if self._inter_process_publish_records_cache is None:
+            self._inter_process_publish_records_cache = (
+                self._data_util.data.rclcpp_inter_publish_instances.drop_columns(["message"])
+            )
+
+        assert self._inter_process_publish_records_cache is not None
+        return self._inter_process_publish_records_cache
+
+    def _compose_intra_process_communication_records_with_cache(self) -> RecordsInterface:
+        if self._intra_process_communication_records_cache is None:
+            self._update_intra_process_communication_cache()
+
+        assert self._intra_process_communication_records_cache is not None
+        return self._intra_process_communication_records_cache
+
+    def _compose_inter_process_communication_records_with_cache(self) -> RecordsInterface:
+        if self._inter_process_communication_records_cache is None:
+            self._update_inter_process_communication_cache()
+
+        assert self._inter_process_communication_records_cache is not None
+        return self._inter_process_communication_records_cache
+
+    def _update_callback_records_cache(self) -> None:
         callback_records = merge_sequencial(
             left_records=self._data_util.data.callback_start_instances,
             right_records=self._data_util.data.callback_end_instances,
@@ -175,20 +215,18 @@ class RecordsContainer:
             ]
         )
 
-        if drop_inter_mediate_columns:
+        if self._drop_inter_mediate_columns:
             timer_callback_records.drop_columns(["is_intra_process"], inplace=True)
             subscription_intra_callback_records.drop_columns(["is_intra_process"], inplace=True)
             subscription_inter_callback_records.drop_columns(["is_intra_process"], inplace=True)
 
-        return (
-            timer_callback_records,
-            subscription_intra_callback_records,
-            subscription_inter_callback_records,
-        )
+        self._timer_callback_records_cache = timer_callback_records
+        self._intra_process_callback_records_cache = subscription_intra_callback_records
+        self._inter_process_callback_records_cache = subscription_inter_callback_records
 
-    def _compose_intra_process_communication(
-        self, intra_process_callback_records, drop_inter_mediate_columns
-    ) -> RecordsInterface:
+    def _update_intra_process_communication_cache(self):
+        intra_process_callback_records = self._compose_intra_process_callback_records_with_cache()
+
         # inter_subscription = self._get_inter_subscription_records(
         #     self.inter_callback, drop_inter_mediate_columns)
         # アドレスでの紐付けなので、トピックなどを全てまぜた状態での算出が必要
@@ -215,7 +253,7 @@ class RecordsContainer:
             how="left",
         )
 
-        if drop_inter_mediate_columns:
+        if self._drop_inter_mediate_columns:
             intra_records.drop_columns(
                 [
                     "dispatch_intra_process_subscription_callback_timestamp",
@@ -225,11 +263,13 @@ class RecordsContainer:
                 inplace=True,
             )
 
-        return intra_records
+        self._intra_process_communication_records_cache = intra_records
 
-    def _compose_inter_process_records(
-        self, inter_process_callback, drop_inter_mediate_columns
-    ) -> RecordsInterface:
+    def _update_inter_process_communication_cache(self) -> None:
+        inter_process_callback: RecordsInterface = (
+            self._compose_inter_process_callback_records_with_cache()
+        )
+
         # アドレスでの紐付けなので、トピックなどを全てまぜた状態での算出が必要
         dds_write = merge_sequencial_for_addr_track(
             source_records=self._data_util.data.dds_write_instances,
@@ -263,10 +303,14 @@ class RecordsContainer:
         )
 
         subscription = self._data_util.data.dispatch_subscription_callback_instances
+        inter_process_callback_dropped = inter_process_callback.drop_columns(
+            ["callback_end_timestamp"]
+        )
+        assert inter_process_callback_dropped is not None
 
         subscription = merge_sequencial(
             left_records=subscription,
-            right_records=inter_process_callback.drop_columns(["callback_end_timestamp"]),
+            right_records=inter_process_callback_dropped,
             left_stamp_key="dispatch_subscription_callback_timestamp",
             right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
@@ -287,7 +331,7 @@ class RecordsContainer:
             how="left",
         )
 
-        if drop_inter_mediate_columns:
+        if self._drop_inter_mediate_columns:
             communication.drop_columns(
                 [
                     "addr",
@@ -300,4 +344,4 @@ class RecordsContainer:
                 inplace=True,
             )
 
-        return communication
+        self._inter_process_communication_records_cache = communication
