@@ -17,11 +17,11 @@ from typing import Tuple
 from trace_analysis.record import (
     RecordInterface,
     RecordsInterface,
-    Records,
     merge,
     merge_sequencial,
     merge_sequencial_for_addr_track,
 )
+from trace_analysis.record.record_factory import RecordsFactory
 from .impl import (
     CallbackImpl,
     SubscriptionCallbackImpl,
@@ -130,8 +130,8 @@ class RecordsContainer:
             join_key="callback_object",
         )
 
-        timer_callback_records = Records()
-        subscription_callback_records = Records()
+        timer_callback_records = RecordsFactory.create_instance()
+        subscription_callback_records = RecordsFactory.create_instance()
 
         cb_to_records = {}
 
@@ -156,10 +156,10 @@ class RecordsContainer:
             except KeyError:
                 pass
 
-        subscription_intra_callback_records = Records()
-        subscription_inter_callback_records = Records()
+        subscription_intra_callback_records = RecordsFactory.create_instance()
+        subscription_inter_callback_records = RecordsFactory.create_instance()
 
-        subscription_intra_callback_records = Records(
+        subscription_intra_callback_records = RecordsFactory.create_instance(
             [
                 callback_record
                 for callback_record in subscription_callback_records.data
@@ -167,7 +167,7 @@ class RecordsContainer:
             ]
         )
 
-        subscription_inter_callback_records = Records(
+        subscription_inter_callback_records = RecordsFactory.create_instance(
             [
                 callback_record
                 for callback_record in subscription_callback_records.data
@@ -229,7 +229,7 @@ class RecordsContainer:
 
     def _compose_inter_process_records(
         self, inter_process_callback, drop_inter_mediate_columns
-    ) -> Records:
+    ) -> RecordsInterface:
         # アドレスでの紐付けなので、トピックなどを全てまぜた状態での算出が必要
         dds_write = merge_sequencial_for_addr_track(
             source_records=self._data_util.data.dds_write_instances,

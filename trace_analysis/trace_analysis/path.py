@@ -26,7 +26,7 @@ from trace_analysis.latency import LatencyBase
 from trace_analysis.callback import CallbackBase
 from trace_analysis.communication import Communication, VariablePassing, CommunicationInterface
 from trace_analysis.util import Util, UniqueList
-from trace_analysis.record.record import Records, merge, merge_sequencial
+from trace_analysis.record.record import RecordsInterface, merge, merge_sequencial
 
 TracePointsType = namedtuple(
     "TracePointsType",
@@ -196,7 +196,7 @@ class PathLatencyMerger:
             how="left",
         )
 
-    def _get_callback_records(self, callback: CallbackBase) -> Records:
+    def _get_callback_records(self, callback: CallbackBase) -> RecordsInterface:
         records = callback.to_records()
         renames = {}
 
@@ -206,7 +206,7 @@ class PathLatencyMerger:
         records.rename_columns(renames, inplace=True)
         return records
 
-    def _get_intra_process_records(self, communication: Communication) -> Records:
+    def _get_intra_process_records(self, communication: Communication) -> RecordsInterface:
         records = communication.to_records()
         renames = {}
 
@@ -218,7 +218,7 @@ class PathLatencyMerger:
         records.rename_columns(renames, inplace=True)
         return records
 
-    def _get_inter_process_records(self, communication: Communication) -> Records:
+    def _get_inter_process_records(self, communication: Communication) -> RecordsInterface:
         records = communication.to_records()
         renames = {}
 
@@ -230,7 +230,7 @@ class PathLatencyMerger:
         records.rename_columns(renames, inplace=True)
         return records
 
-    def _get_variable_passing_records(self, variable_passing: VariablePassing) -> Records:
+    def _get_variable_passing_records(self, variable_passing: VariablePassing) -> RecordsInterface:
         records = variable_passing.to_records()
         renames = {}
 
@@ -242,7 +242,7 @@ class PathLatencyMerger:
         records.rename_columns(renames, inplace=True)
         return records
 
-    def _get_records_with_preffix(self, latency: LatencyComponent) -> Records:
+    def _get_records_with_preffix(self, latency: LatencyComponent) -> RecordsInterface:
         if isinstance(latency, CallbackBase):
             return self._get_callback_records(latency)
         elif isinstance(latency, Communication):
@@ -267,7 +267,7 @@ class Path(UserList, LatencyBase):
         super().__init__(chain)
         self._column_names: List[str] = self._to_column_names()
 
-    def to_records(self) -> Records:
+    def to_records(self) -> RecordsInterface:
         assert len(self) > 0
         records, _ = self._merge_path()
         return records
@@ -277,7 +277,7 @@ class Path(UserList, LatencyBase):
         _, column_names = self._merge_path(column_only=True)
         return column_names
 
-    def _merge_path(self, column_only=False) -> Tuple[Records, List[str]]:
+    def _merge_path(self, column_only=False) -> Tuple[RecordsInterface, List[str]]:
         merger = PathLatencyMerger(self.data[0], column_only)
 
         for latency, latency_ in zip(

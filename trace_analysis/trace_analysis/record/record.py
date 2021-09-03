@@ -109,6 +109,14 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         pass
 
     @abstractmethod
+    def to_dataframe(self) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def to_string(self) -> str:
+        pass
+
+    @abstractmethod
     def merge(
         self,
         right_records: Records,
@@ -143,6 +151,10 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         sink_stamp_key: str,
         sink_from_key: str,
     ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def clone(self):
         pass
 
 
@@ -216,7 +228,7 @@ class Record(RecordInterface):
 
 # class Records(collections.UserList, RecordsInterface):
 class Records(RecordsInterface):
-    def __init__(self, init: List[Record] = None):
+    def __init__(self, init: Optional[List[Record]] = None):
         self._columns: Set[str] = set()
         for record in init or []:
             self._columns |= record.columns
@@ -337,6 +349,11 @@ class Records(RecordsInterface):
 
     def to_string(self) -> str:
         return self.to_dataframe().to_string()
+
+    def clone(self) -> Records:
+        from copy import deepcopy
+
+        return deepcopy(self)
 
     def merge(
         self,

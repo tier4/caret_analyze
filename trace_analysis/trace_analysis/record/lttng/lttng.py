@@ -13,19 +13,19 @@
 # limitations under the License.
 
 from typing import List, Optional
-from copy import deepcopy
 
 from trace_analysis.record import (
     LatencyComposer,
     AppInfoGetter,
-    Record,
-    Records,
+    RecordInterface,
+    RecordsInterface,
     merge_sequencial,
     TimerCallbackInterface,
     SubscriptionCallbackInterface,
     PublisherInterface,
     CallbackInterface,
 )
+from trace_analysis.record.record_factory import RecordsFactory
 from .dataframe_container import DataframeContainer
 from .records_container import RecordsContainer
 
@@ -143,7 +143,7 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
     ):
         callback_object: Optional[int]
 
-        def is_target(record: Record):
+        def is_target(record: RecordInterface):
             return record.get("publisher_handle") == publisher_handle
 
         communication_records = self._records.get_communication_records(is_intra_process)
@@ -156,13 +156,13 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         subscription_callback: SubscriptionCallbackImpl,
         publish_callback: CallbackImpl,
         is_intra_process: bool,
-    ) -> Records:
+    ) -> RecordsInterface:
 
         publisher_handles = self._dataframe.get_publisher_handles(
             subscription_callback.topic_name, publish_callback.node_name
         )
 
-        communication_records = Records()
+        communication_records = RecordsFactory.create_instance()
         for publisher_handle in publisher_handles:
             communication_records.concat(
                 self._compose_specific_communication_records(
@@ -216,7 +216,7 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         write_callback_impl = self._to_local_attr(write_callback)
         read_callback_impl = self._to_local_attr(read_callback)
 
-        read_records = deepcopy(self._records.get_callback_records(read_callback_impl))
+        read_records = self._records.get_callback_records(read_callback_impl).clone()
         read_records.drop_columns(["callback_end_timestamp"], inplace=True)
         read_records.rename_columns({"callback_object": "read_callback_object"}, inplace=True)
 

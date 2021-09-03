@@ -17,7 +17,7 @@
 import pandas as pd
 
 from tracetools_analysis.data_model import DataModel, DataModelIntermediateStorage
-from trace_analysis.record.record import Record, Records
+from trace_analysis.record.record_factory import RecordFactory, RecordsFactory
 
 
 class Ros2DataModel(DataModel):
@@ -45,162 +45,140 @@ class Ros2DataModel(DataModel):
         self._lifecycle_state_machines: DataModelIntermediateStorage = []
 
         # Events (multiple instances, may not have a meaningful index)
-        self.lifecycle_transitions = Records()
-        self.callback_start_instances = Records()
-        self.callback_end_instances = Records()
-        self.dds_write_instances = Records()
-        self.dds_bind_addr_to_stamp = Records()
-        self.dds_bind_addr_to_addr = Records()
-        self.on_data_available_instances = Records()
-        self.rclcpp_intra_publish_instances = Records()
-        self.rclcpp_publish_instances = Records()
-        self.rcl_publish_instances = Records()
-        self.dispatch_subscription_callback_instances = Records()
-        self.dispatch_intra_process_subscription_callback_instances = Records()
-        self.message_construct_instances = Records()
+        self.lifecycle_transitions = RecordsFactory.create_instance()
+        self.callback_start_instances = RecordsFactory.create_instance()
+        self.callback_end_instances = RecordsFactory.create_instance()
+        self.dds_write_instances = RecordsFactory.create_instance()
+        self.dds_bind_addr_to_stamp = RecordsFactory.create_instance()
+        self.dds_bind_addr_to_addr = RecordsFactory.create_instance()
+        self.on_data_available_instances = RecordsFactory.create_instance()
+        self.rclcpp_intra_publish_instances = RecordsFactory.create_instance()
+        self.rclcpp_publish_instances = RecordsFactory.create_instance()
+        self.rcl_publish_instances = RecordsFactory.create_instance()
+        self.dispatch_subscription_callback_instances = RecordsFactory.create_instance()
+        self.dispatch_intra_process_subscription_callback_instances = (
+            RecordsFactory.create_instance()
+        )
+        self.message_construct_instances = RecordsFactory.create_instance()
 
     def add_context(self, context_handle, timestamp, pid, version) -> None:
-        record = Record(
-            {
-                "context_handle": context_handle,
-                "timestamp": timestamp,
-                "pid": pid,
-                "version": version,
-            }
-        )
+        record = {
+            "context_handle": context_handle,
+            "timestamp": timestamp,
+            "pid": pid,
+            "version": version,  # Comment out to align with Dict[str: int64_t]
+        }
         self._contexts.append(record)
 
     def add_node(self, node_handle, timestamp, tid, rmw_handle, name, namespace) -> None:
-        record = Record(
-            {
-                "node_handle": node_handle,
-                "timestamp": timestamp,
-                "tid": tid,
-                "rmw_handle": rmw_handle,
-                "namespace": namespace,
-                "name": name,
-            }
-        )
+        record = {
+            "node_handle": node_handle,
+            "timestamp": timestamp,
+            "tid": tid,
+            "rmw_handle": rmw_handle,
+            "namespace": namespace,
+            "name": name,
+        }
         self._nodes.append(record)
 
     def add_publisher(self, handle, timestamp, node_handle, rmw_handle, topic_name, depth) -> None:
-        record = Record(
-            {
-                "publisher_handle": handle,
-                "timestamp": timestamp,
-                "node_handle": node_handle,
-                "rmw_handle": rmw_handle,
-                "topic_name": topic_name,
-                "depth": depth,
-            }
-        )
+        record = {
+            "publisher_handle": handle,
+            "timestamp": timestamp,
+            "node_handle": node_handle,
+            "rmw_handle": rmw_handle,
+            "topic_name": topic_name,
+            "depth": depth,
+        }
         self._publishers.append(record)
 
     def add_rcl_subscription(
         self, handle, timestamp, node_handle, rmw_handle, topic_name, depth
     ) -> None:
-        record = Record(
-            {
-                "subscription_handle": handle,
-                "timestamp": timestamp,
-                "node_handle": node_handle,
-                "rmw_handle": rmw_handle,
-                "topic_name": topic_name,
-                "depth": depth,
-            }
-        )
+        record = {
+            "subscription_handle": handle,
+            "timestamp": timestamp,
+            "node_handle": node_handle,
+            "rmw_handle": rmw_handle,
+            "topic_name": topic_name,
+            "depth": depth,
+        }
         self._subscriptions.append(record)
 
     def add_rclcpp_subscription(
         self, subscription_pointer, timestamp, subscription_handle
     ) -> None:
-        record = Record(
-            {
-                "subscription": subscription_pointer,
-                "timestamp": timestamp,
-                "subscription_handle": subscription_handle,
-            }
-        )
+        record = {
+            "subscription": subscription_pointer,
+            "timestamp": timestamp,
+            "subscription_handle": subscription_handle,
+        }
         self._subscription_objects.append(record)
 
     def add_service(self, handle, timestamp, node_handle, rmw_handle, service_name) -> None:
-        record = Record(
-            {
-                "service_handle": timestamp,
-                "timestamp": timestamp,
-                "node_handle": node_handle,
-                "rmw_handle": rmw_handle,
-                "service_name": service_name,
-            }
-        )
+        record = {
+            "service_handle": timestamp,
+            "timestamp": timestamp,
+            "node_handle": node_handle,
+            "rmw_handle": rmw_handle,
+            "service_name": service_name,
+        }
         self._services.append(record)
 
     def add_client(self, handle, timestamp, node_handle, rmw_handle, service_name) -> None:
-        record = Record(
-            {
-                "client_handle": handle,
-                "timestamp": timestamp,
-                "node_handle": node_handle,
-                "rmw_handle": rmw_handle,
-                "service_name": service_name,
-            }
-        )
+        record = {
+            "client_handle": handle,
+            "timestamp": timestamp,
+            "node_handle": node_handle,
+            "rmw_handle": rmw_handle,
+            "service_name": service_name,
+        }
         self._clients.append(record)
 
     def add_timer(self, handle, timestamp, period, tid) -> None:
-        record = Record(
-            {
-                "timer_handle": handle,
-                "timestamp": timestamp,
-                "period": period,
-                "tid": tid,
-            }
-        )
+        record = {
+            "timer_handle": handle,
+            "timestamp": timestamp,
+            "period": period,
+            "tid": tid,
+        }
         self._timers.append(record)
 
     def add_timer_node_link(self, handle, timestamp, node_handle) -> None:
-        record = Record(
-            {
-                "timer_handle": handle,
-                "timestamp": timestamp,
-                "node_handle": node_handle,
-            }
-        )
+        record = {
+            "timer_handle": handle,
+            "timestamp": timestamp,
+            "node_handle": node_handle,
+        }
         self._timer_node_links.append(record)
 
     def add_callback_object(self, reference, timestamp, callback_object) -> None:
-        record = Record(
-            {
-                "reference": reference,
-                "timestamp": timestamp,
-                "callback_object": callback_object,
-            }
-        )
+        record = {
+            "reference": reference,
+            "timestamp": timestamp,
+            "callback_object": callback_object,
+        }
         self._callback_objects.append(record)
 
     def add_callback_symbol(self, callback_object, timestamp, symbol) -> None:
-        record = Record(
-            {
-                "callback_object": callback_object,
-                "timestamp": timestamp,
-                "symbol": symbol,
-            }
-        )
+        record = {
+            "callback_object": callback_object,
+            "timestamp": timestamp,
+            "symbol": symbol,
+        }
         self._callback_symbols.append(record)
 
     def add_lifecycle_state_machine(self, handle, node_handle) -> None:
-        record = Record(
-            {
-                "state_machine_handle": handle,
-                "node_handle": node_handle,
-            }
-        )
+        record = {
+            "state_machine_handle": handle,
+            "node_handle": node_handle,
+        }
         self._lifecycle_state_machines.append(record)
 
     def add_lifecycle_state_transition(
         self, state_machine_handle, start_label, goal_label, timestamp
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "state_machine_handle": state_machine_handle,
                 "start_label": start_label,
@@ -213,7 +191,7 @@ class Ros2DataModel(DataModel):
     def add_callback_start_instance(
         self, timestamp: int, callback: int, is_intra_process: bool
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "callback_start_timestamp": timestamp,
                 "callback_object": callback,
@@ -223,7 +201,9 @@ class Ros2DataModel(DataModel):
         self.callback_start_instances.append(record)
 
     def add_callback_end_instance(self, timestamp: int, callback: int) -> None:
-        record = Record({"callback_end_timestamp": timestamp, "callback_object": callback})
+        record = RecordFactory.create_instance(
+            {"callback_end_timestamp": timestamp, "callback_object": callback}
+        )
         self.callback_end_instances.append(record)
 
     def add_rclcpp_intra_publish_instance(
@@ -232,7 +212,7 @@ class Ros2DataModel(DataModel):
         publisher_handle: int,
         message: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "rclcpp_intra_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
@@ -247,7 +227,7 @@ class Ros2DataModel(DataModel):
         publisher_handle: int,
         message: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "rclcpp_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
@@ -262,7 +242,7 @@ class Ros2DataModel(DataModel):
         publisher_handle: int,
         message: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "rcl_publish_timestamp": timestamp,
                 "publisher_handle": publisher_handle,
@@ -276,7 +256,7 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         message: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "dds_write_timestamp": timestamp,
                 "message": message,
@@ -290,7 +270,7 @@ class Ros2DataModel(DataModel):
         addr_from: int,
         addr_to: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "dds_bind_addr_to_addr_timestamp": timestamp,
                 "addr_from": addr_from,
@@ -305,7 +285,7 @@ class Ros2DataModel(DataModel):
         addr: int,
         source_timestamp: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "dds_bind_addr_to_stamp_timestamp": timestamp,
                 "addr": addr,
@@ -319,7 +299,7 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         source_timestamp: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "on_data_available_timestamp": timestamp,
                 "source_timestamp": source_timestamp,
@@ -330,7 +310,7 @@ class Ros2DataModel(DataModel):
     def add_message_construct_instance(
         self, timestamp: int, original_message: int, constructed_message: int
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "message_construct_timestamp": timestamp,
                 "original_message": original_message,
@@ -346,7 +326,7 @@ class Ros2DataModel(DataModel):
         message: int,
         source_timestamp: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "dispatch_subscription_callback_timestamp": timestamp,
                 "callback_object": callback_object,
@@ -362,7 +342,7 @@ class Ros2DataModel(DataModel):
         callback_object: int,
         message: int,
     ) -> None:
-        record = Record(
+        record = RecordFactory.create_instance(
             {
                 "dispatch_intra_process_subscription_callback_timestamp": timestamp,
                 "callback_object": callback_object,
@@ -372,44 +352,40 @@ class Ros2DataModel(DataModel):
         self.dispatch_intra_process_subscription_callback_instances.append(record)
 
     def _finalize(self) -> None:
-        self.contexts = pd.DataFrame.from_dict([_.data for _ in self._contexts])
+        self.contexts = pd.DataFrame.from_dict(self._contexts)
         if self._contexts:
             self.contexts.set_index("context_handle", inplace=True, drop=True)
-        self.nodes = pd.DataFrame.from_dict([_.data for _ in self._nodes])
+        self.nodes = pd.DataFrame.from_dict(self._nodes)
         if self._nodes:
             self.nodes.set_index("node_handle", inplace=True, drop=True)
-        self.publishers = pd.DataFrame.from_dict([_.data for _ in self._publishers])
+        self.publishers = pd.DataFrame.from_dict(self._publishers)
         if self._publishers:
             self.publishers.set_index("publisher_handle", inplace=True, drop=True)
-        self.subscriptions = pd.DataFrame.from_dict([_.data for _ in self._subscriptions])
+        self.subscriptions = pd.DataFrame.from_dict(self._subscriptions)
         if self._subscriptions:
             self.subscriptions.set_index("subscription_handle", inplace=True, drop=True)
-        self.subscription_objects = pd.DataFrame.from_dict(
-            [_.data for _ in self._subscription_objects]
-        )
+        self.subscription_objects = pd.DataFrame.from_dict(self._subscription_objects)
         if self._subscription_objects:
             self.subscription_objects.set_index("subscription", inplace=True, drop=True)
-        self.services = pd.DataFrame.from_dict([_.data for _ in self._services])
+        self.services = pd.DataFrame.from_dict(self._services)
         if self._services:
             self.services.set_index("service_handle", inplace=True, drop=True)
-        self.clients = pd.DataFrame.from_dict([_.data for _ in self._clients])
+        self.clients = pd.DataFrame.from_dict(self._clients)
         if self._clients:
             self.clients.set_index("client_handle", inplace=True, drop=True)
-        self.timers = pd.DataFrame.from_dict([_.data for _ in self._timers])
+        self.timers = pd.DataFrame.from_dict(self._timers)
         if self._timers:
             self.timers.set_index("timer_handle", inplace=True, drop=True)
-        self.timer_node_links = pd.DataFrame.from_dict([_.data for _ in self._timer_node_links])
+        self.timer_node_links = pd.DataFrame.from_dict(self._timer_node_links)
         if self._timer_node_links:
             self.timer_node_links.set_index("timer_handle", inplace=True, drop=True)
-        self.callback_objects = pd.DataFrame.from_dict([_.data for _ in self._callback_objects])
+        self.callback_objects = pd.DataFrame.from_dict(self._callback_objects)
         if self._callback_objects:
             self.callback_objects.set_index("reference", inplace=True, drop=True)
-        self.callback_symbols = pd.DataFrame.from_dict([_.data for _ in self._callback_symbols])
+        self.callback_symbols = pd.DataFrame.from_dict(self._callback_symbols)
         if self._callback_symbols:
             self.callback_symbols.set_index("callback_object", inplace=True, drop=True)
-        self.lifecycle_state_machines = pd.DataFrame.from_dict(
-            [_.data for _ in self._lifecycle_state_machines]
-        )
+        self.lifecycle_state_machines = pd.DataFrame.from_dict(self._lifecycle_state_machines)
         if self._lifecycle_state_machines:
             self.lifecycle_state_machines.set_index(
                 "state_machine_handle", inplace=True, drop=True

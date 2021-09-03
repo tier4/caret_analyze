@@ -21,7 +21,7 @@ import pandas as pd
 
 from trace_analysis.pub_sub import Publisher, Subscription
 from trace_analysis.latency import LatencyBase
-from trace_analysis.record import LatencyComposer, Records
+from trace_analysis.record import LatencyComposer, RecordsInterface
 from trace_analysis.record.interface import (
     CallbackInterface,
     SubscriptionCallbackInterface,
@@ -84,7 +84,7 @@ class CallbackBase(CallbackInterface, LatencyBase):
     def unique_name(self) -> str:
         return f"{self.node_name}/{self.callback_name}"
 
-    def to_records(self) -> Records:
+    def to_records(self) -> RecordsInterface:
         assert self._latency_composer is not None
         records = self._latency_composer.compose_callback_records(self)
 

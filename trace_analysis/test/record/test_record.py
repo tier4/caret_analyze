@@ -340,11 +340,11 @@ class TestRecords:
             records_sorted = records.sort(key, inplace=False, ascending=False)
             assert records_sorted.equals(records_desc)
 
-            records_ = records.copy()
+            records_ = records.clone()
             records_.sort(key, inplace=True, ascending=True)
             assert records_.equals(records_asc)
 
-            records_ = records.copy()
+            records_ = records.clone()
             records_.sort(key, inplace=True, ascending=False)
             assert records_.equals(records_desc)
 

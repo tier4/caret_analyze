@@ -19,12 +19,12 @@ from typing import Tuple, Optional, List
 import numpy as np
 import pandas as pd
 
-from trace_analysis.record import Records
+from trace_analysis.record import RecordsInterface
 
 
 class LatencyBase(metaclass=ABCMeta):
     @abstractmethod
-    def to_records(self) -> Records:
+    def to_records(self) -> RecordsInterface:
         pass
 
     def to_dataframe(

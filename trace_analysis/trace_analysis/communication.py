@@ -25,7 +25,7 @@ from trace_analysis.record.interface import (
 )
 from trace_analysis.callback import CallbackBase, SubscriptionCallback
 from trace_analysis.latency import LatencyBase
-from trace_analysis.record import Records
+from trace_analysis.record import RecordsInterface
 
 
 class CommunicationInterface(metaclass=ABCMeta):
@@ -113,10 +113,10 @@ class Communication(CommunicationInterface, LatencyBase):
             columns = Communication.column_names_inter_process
         return super().to_histogram(binsize_ns, column_names=columns)
 
-    def to_records(self) -> Records:
+    def to_records(self) -> RecordsInterface:
         assert self._latency_composer is not None
 
-        records: Records
+        records: RecordsInterface
         if self.is_intra_process:
             records = self._latency_composer.compose_intra_process_communication_records(
                 self.callback_subscription, self.callback_publish
@@ -196,7 +196,7 @@ class PubSubLatency(CommunicationInterface, LatencyBase):
     ) -> Tuple[np.array, np.array]:
         return super().to_histogram(binsize_ns, column_names=PubSubLatency.column_names)
 
-    def to_records(self) -> Records:
+    def to_records(self) -> RecordsInterface:
         assert self._latency_composer is not None
 
         records = self._latency_composer.compose_inter_process_communication_records(
@@ -245,7 +245,7 @@ class DDSLatency(CommunicationInterface, LatencyBase):
     ) -> Tuple[np.array, np.array]:
         return super().to_histogram(binsize_ns, column_names=DDSLatency.column_names)
 
-    def to_records(self) -> Records:
+    def to_records(self) -> RecordsInterface:
         assert self._latency_composer is not None
 
         records = self._latency_composer.compose_inter_process_communication_records(
@@ -274,9 +274,9 @@ class VariablePassing(CommunicationInterface, LatencyBase):
         self.callback_read = callback_read
         self._latency_composer = latency_composer
 
-    def to_records(self) -> Records:
+    def to_records(self) -> RecordsInterface:
         assert self._latency_composer is not None
-        records: Records = self._latency_composer.compose_variable_passing_records(
+        records: RecordsInterface = self._latency_composer.compose_variable_passing_records(
             self.callback_write, self.callback_read
         )
         return records

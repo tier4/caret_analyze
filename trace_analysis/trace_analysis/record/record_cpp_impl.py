@@ -38,7 +38,9 @@ def to_py_records(records: RecordsCppImpl) -> Records:
 
 
 class RecordCppImpl(RecordBase, RecordInterface):
-    def merge(self, other: Record, inplace=False) -> Optional[Record]:  # type: ignore
+    def merge(  # type: ignore
+        self, other: RecordCppImpl, inplace=False
+    ) -> Optional[RecordCppImpl]:
         if inplace:
             self._merge(other)
             return None
@@ -47,7 +49,7 @@ class RecordCppImpl(RecordBase, RecordInterface):
             record._merge(other)
             return record
 
-    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[Record]:
+    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[RecordCppImpl]:
         if inplace:
             self._drop_columns(columns)
             return None
@@ -58,6 +60,9 @@ class RecordCppImpl(RecordBase, RecordInterface):
 
 
 class RecordsCppImpl(RecordsBase, RecordsInterface):
+    def __init__(self, init: Optional[List[RecordCppImpl]] = None):
+        super().__init__(init or [])
+
     def to_string(self) -> str:
         return self.to_dataframe().to_string()
 
@@ -87,7 +92,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             records._sort(key, ascending)
             return records
 
-    def copy(self) -> RecordsCppImpl:
+    def clone(self) -> RecordsCppImpl:
         return RecordsCppImpl([RecordCppImpl(record.data) for record in self.data])
 
     def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[RecordsCppImpl]:

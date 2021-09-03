@@ -16,7 +16,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 
 from typing import List, Optional
-from .record import Records
+from .record import RecordsInterface
 
 
 class PublisherInterface(metaclass=ABCMeta):
@@ -119,7 +119,7 @@ class LatencyComposer(metaclass=ABCMeta):
     # callback_object
     # callback_start_timestamp
     @abstractmethod
-    def compose_callback_records(self, callback_attr: CallbackInterface) -> Records:
+    def compose_callback_records(self, callback_attr: CallbackInterface) -> RecordsInterface:
         pass
 
     # subsequent_callback_object
@@ -133,7 +133,7 @@ class LatencyComposer(metaclass=ABCMeta):
         self,
         subscription_callback_attr: SubscriptionCallbackInterface,
         publish_callback_attr: CallbackInterface,
-    ) -> Records:
+    ) -> RecordsInterface:
         pass
 
     # subsequent_callback_object
@@ -144,7 +144,7 @@ class LatencyComposer(metaclass=ABCMeta):
         self,
         subscription_callback_attr: SubscriptionCallbackInterface,
         publish_callback_attr: CallbackInterface,
-    ) -> Records:
+    ) -> RecordsInterface:
         pass
 
     @abstractmethod
@@ -152,7 +152,7 @@ class LatencyComposer(metaclass=ABCMeta):
         self,
         callback_write_attr: CallbackInterface,
         callback_read_attr: CallbackInterface,
-    ) -> Records:
+    ) -> RecordsInterface:
         pass
 
 
