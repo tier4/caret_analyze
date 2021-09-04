@@ -61,7 +61,7 @@ public:
     const RecordsBase & right_records,
     std::string join_key,
     std::string how,
-    std::string progress_label
+    std::string progress_label = ""
   );
 
   RecordsBase _merge_sequencial(
@@ -70,7 +70,7 @@ public:
     std::string right_stamp_key,
     std::string join_key,
     std::string how,
-    std::string progress_label);
+    std::string progress_label = "");
 
   RecordsBase _merge_sequencial_for_addr_track(
     std::string source_stamp_key,
@@ -82,7 +82,7 @@ public:
     const RecordsBase & sink_records,
     std::string sink_stamp_key,
     std::string sink_from_key,
-    std::string progress_label
+    std::string progress_label = ""
   );
 
   std::shared_ptr<DataT> data_;
