@@ -125,7 +125,7 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         left_record_sort_key: Optional[str] = None,
         right_record_sort_key: Optional[str] = None,
         *,
-        process_label: Optional[str] = None
+        progress_label: Optional[str] = None
     ) -> Records:
         pass
 
@@ -138,7 +138,7 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         join_key: Optional[str],
         how: str = "inner",
         *,
-        process_label: Optional[str] = None
+        progress_label: Optional[str] = None
     ) -> Records:
         pass
 
@@ -155,7 +155,7 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         sink_stamp_key: str,
         sink_from_key: str,
         *,
-        process_label: Optional[str] = None
+        progress_label: Optional[str] = None
     ) -> RecordsInterface:
         pass
 
@@ -369,7 +369,7 @@ class Records(RecordsInterface):
         left_sort_key: Optional[str] = None,
         right_sort_key: Optional[str] = None,
         *,
-        process_label: Optional[str] = None  # unused
+        progress_label: Optional[str] = None  # unused
     ) -> Records:
         records = self
 
@@ -417,7 +417,7 @@ class Records(RecordsInterface):
         join_key: Optional[str],
         how: str = "inner",
         *,
-        process_label: Optional[str] = None  # unused
+        progress_label: Optional[str] = None  # unused
     ) -> Records:
         assert how in ["inner", "left", "right", "outer"]
 
@@ -551,7 +551,7 @@ class Records(RecordsInterface):
         sink_stamp_key: str,
         sink_from_key: str,
         *,
-        process_label: Optional[str] = None  # unused
+        progress_label: Optional[str] = None  # unused
     ) -> Records:
 
         source_records = deepcopy(self)
