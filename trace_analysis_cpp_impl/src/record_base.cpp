@@ -57,7 +57,7 @@ bool RecordBase::equals(const RecordBase & other) const
 void RecordBase::add(std::string key, uint64_t stamp)
 {
   columns_.insert(key);
-  data_.insert(std::make_pair(key, stamp));
+  data_[key] = stamp;
 }
 
 void RecordBase::_merge(const RecordBase & other)

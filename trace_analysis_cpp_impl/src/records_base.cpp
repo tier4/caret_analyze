@@ -266,41 +266,41 @@ RecordsBase RecordsBase::_merge_sequencial(
     }
   }
 
-  conat_records._sort("merge_stamp", true);
 
-
-  auto find_next_record_and_sub_record =
-    [&conat_records](const RecordBase & current_record, const std::string join_key,
-      const int records_offset) {
-
-      std::pair<RecordBase *, RecordBase *> next_and_sub_records;
-      RecordBase * & next_record = next_and_sub_records.first;
-      RecordBase * & sub_record = next_and_sub_records.second;
-      next_record = nullptr;
-      sub_record = nullptr;
-
-      int records_size = conat_records.data_->size();
-      for (int i = records_offset; i < records_size; i++) {
-        RecordBase & record = (*conat_records.data_)[i];
-        if (next_record != nullptr && sub_record != nullptr) {
-          break;
-        } else if (!record.get("has_merge_stamp") || !record.get("has_valid_join_key")) {
-          continue;
-        }
-
-        bool matched = true;
-        if (join_key != "") {
-          matched = record.get(join_key) == current_record.get(join_key);
-        }
-
-        if (matched && record.get("side") == Left && next_record == nullptr) {
-          next_record = &record;
-        } else if (matched && record.get("side") == Right && sub_record == nullptr) {
-          sub_record = &record;
-        }
+  auto get_join_value = [&join_key](RecordBase & record) -> uint64_t {
+      if (join_key == "") {
+        return 0;
       }
-      return next_and_sub_records;
+      return record.get(join_key);
     };
+
+  conat_records._sort("merge_stamp", true);
+  std::unordered_map<int, uint64_t> next_empty_records;
+  std::unordered_map<int, uint64_t> sub_empty_records;
+  for (uint64_t i = 0; i < (uint64_t)conat_records.data_->size(); i++) {
+    auto & record = (*conat_records.data_)[i];
+    if (record.get("side") == Left && record.get("has_merge_stamp")) {
+      record.add("next_record_index", UINT64_MAX); // use MAX as None
+      record.add("sub_record_index", UINT64_MAX);
+
+      auto join_value = get_join_value(record);
+      if (next_empty_records.count(join_value) > 0) {
+        auto pre_left_record_index = next_empty_records[join_value];
+        RecordBase & pre_left_record = (*conat_records.data_)[pre_left_record_index];
+        pre_left_record.add("next_record_index", i);
+      }
+      next_empty_records[join_value] = i;
+      sub_empty_records[join_value] = i;
+    } else if (record.get("side") == Right && record.get("has_merge_stamp")) {
+      auto join_value = get_join_value(record);
+      if (sub_empty_records.count(join_value) > 0) {
+        auto pre_left_record_index = sub_empty_records[join_value];
+        RecordBase & pre_left_record = (*conat_records.data_)[pre_left_record_index];
+        pre_left_record.add("sub_record_index", i);
+        sub_empty_records.erase(join_value);
+      }
+    }
+  }
 
   std::unordered_set<const RecordBase *> added;
 
@@ -333,10 +333,16 @@ RecordsBase RecordsBase::_merge_sequencial(
       continue;
     }
 
-    auto next_and_sub_records_pair =
-      find_next_record_and_sub_record(current_record, join_key, i + 1);
-    RecordBase * next_record_ptr = next_and_sub_records_pair.first;
-    RecordBase * sub_record_ptr = next_and_sub_records_pair.second;
+    RecordBase * next_record_ptr = nullptr;
+    RecordBase * sub_record_ptr = nullptr;
+    auto next_record_index = current_record.get("next_record_index");
+    auto sub_record_index = current_record.get("sub_record_index");
+    if (next_record_index != UINT64_MAX) {
+      next_record_ptr = &(*conat_records.data_)[next_record_index];
+    }
+    if (sub_record_index != UINT64_MAX) {
+      sub_record_ptr = &(*conat_records.data_)[sub_record_index];
+    }
 
     bool has_valid_next_record = next_record_ptr != nullptr &&
       sub_record_ptr != nullptr &&
@@ -357,7 +363,8 @@ RecordsBase RecordsBase::_merge_sequencial(
     added.insert(sub_record_ptr);
   }
 
-  merged_records._drop_columns({"side", "has_merge_stamp", "merge_stamp", "has_valid_join_key"});
+  merged_records._drop_columns({"side", "has_merge_stamp", "merge_stamp", "has_valid_join_key",
+      "next_record_index", "sub_record_index"});
 
   return merged_records;
 }
