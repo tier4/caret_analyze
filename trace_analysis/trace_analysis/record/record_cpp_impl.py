@@ -73,7 +73,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             self._concat(other)
             return None
         else:
-            records = RecordsCppImpl(self.data)
+            records = RecordsCppImpl(self)
             records._concat(other)
             return records
 
@@ -88,7 +88,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             self._sort(key, ascending)
             return None
         else:
-            records = RecordsCppImpl(self.data)
+            records = RecordsCppImpl(self)
             records._sort(key, ascending)
             return records
 
@@ -100,7 +100,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             self._drop_columns(columns)
             return None
         else:
-            records = RecordsCppImpl(self.data)
+            records = RecordsCppImpl(self)
             records._drop_columns(columns)
             return records
 
@@ -115,7 +115,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             self._rename_columns(columns)
             return None
         else:
-            records = RecordsCppImpl(self.data)
+            records = RecordsCppImpl(self)
             records._rename_columns(columns)
             return records
 
@@ -126,7 +126,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             self._filter(f)
             return None
         else:
-            records = RecordsCppImpl(self.data)
+            records = RecordsCppImpl(self)
             records._filter(f)
             return records
 
