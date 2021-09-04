@@ -11,6 +11,7 @@ add_subdirectory(pybind11)
 include_directories(
   include
   pybind11/include
+  json/include
   indicators/include
   )
 pybind11_add_module(record_cpp_impl

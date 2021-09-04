@@ -4,12 +4,15 @@
 #include <string>
 #include <limits>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <set>
 #include <memory>
 #include <limits>
 #include <tuple>
 #include <utility>
+
+#include "nlohmann/json.hpp"
 
 #include "trace_analysis_cpp_impl/record.hpp"
 #include "trace_analysis_cpp_impl/common.hpp"
@@ -24,8 +27,8 @@ RecordsBase::RecordsBase(std::vector<RecordBase> init)
 }
 
 RecordsBase::RecordsBase()
-: data_(std::make_unique<std::vector<RecordBase>>()),
-  columns_(std::make_unique<std::unordered_set<std::string>>())
+: data_(std::make_shared<std::vector<RecordBase>>()),
+  columns_(std::make_shared<std::unordered_set<std::string>>())
 {
 }
 
@@ -34,6 +37,25 @@ RecordsBase::RecordsBase(const RecordsBase & records)
   data_ = std::make_shared<DataT>(*records.data_);
   columns_ = std::make_shared<ColumnT>(*records.columns_);
 }
+
+RecordsBase::RecordsBase(std::string json_path)
+: RecordsBase()
+{
+  using json = nlohmann::json;
+  std::ifstream json_file(json_path.c_str());
+  json records_json;
+  json_file >> records_json;
+  for (auto & record_json: records_json) {
+    RecordBase record;
+    for (auto & elem: record_json.items()) {
+      auto & key = elem.key();
+      auto & value = elem.value();
+      record.add(key, value);
+    }
+    append(record);
+  }
+}
+
 
 void RecordsBase::append(const RecordBase & other)
 {

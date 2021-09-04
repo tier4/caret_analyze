@@ -57,7 +57,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         s = json.dumps(data_dict)
 
         with open(path, mode="w") as f:
-            f.write(json.dumps(s))
+            f.write(s)
         return None
 
     def concat(  # type: ignore

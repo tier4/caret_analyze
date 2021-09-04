@@ -43,6 +43,7 @@ public:
   RecordsBase();
   RecordsBase(DataT records);
   RecordsBase(const RecordsBase & records);
+  RecordsBase(std::string json_path);
 
   ~RecordsBase() = default;
 
