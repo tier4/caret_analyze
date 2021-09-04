@@ -124,6 +124,8 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         how: str = "inner",
         left_record_sort_key: Optional[str] = None,
         right_record_sort_key: Optional[str] = None,
+        *,
+        process_label: Optional[str] = None
     ) -> Records:
         pass
 
@@ -135,6 +137,8 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         right_stamp_key: str,
         join_key: Optional[str],
         how: str = "inner",
+        *,
+        process_label: Optional[str] = None
     ) -> Records:
         pass
 
@@ -150,6 +154,8 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         sink_records: RecordsInterface,
         sink_stamp_key: str,
         sink_from_key: str,
+        *,
+        process_label: Optional[str] = None
     ) -> RecordsInterface:
         pass
 
@@ -362,6 +368,8 @@ class Records(RecordsInterface):
         how: str = "inner",
         left_sort_key: Optional[str] = None,
         right_sort_key: Optional[str] = None,
+        *,
+        process_label: Optional[str] = None  # unused
     ) -> Records:
         records = self
 
@@ -408,6 +416,8 @@ class Records(RecordsInterface):
         right_stamp_key: str,
         join_key: Optional[str],
         how: str = "inner",
+        *,
+        process_label: Optional[str] = None  # unused
     ) -> Records:
         assert how in ["inner", "left", "right", "outer"]
 
@@ -540,6 +550,8 @@ class Records(RecordsInterface):
         sink_records: Records,
         sink_stamp_key: str,
         sink_from_key: str,
+        *,
+        process_label: Optional[str] = None  # unused
     ) -> Records:
 
         source_records = deepcopy(self)
@@ -614,10 +626,14 @@ def merge(
     right_records: RecordsInterface,
     join_key: str,
     how: str = "inner",
+    *,
+    progress_label: Optional[str] = None
 ) -> Records:
     assert type(left_records) == type(right_records)
 
-    return left_records.merge(right_records, join_key, how)  # type: ignore
+    return left_records.merge(
+        right_records, join_key, how, progress_label=progress_label  # type: ignore
+    )
 
 
 def merge_sequencial(
@@ -627,6 +643,8 @@ def merge_sequencial(
     right_stamp_key: str,
     join_key: Optional[str],
     how: str = "inner",
+    *,
+    progress_label: Optional[str] = None
 ) -> Records:
     assert type(left_records) == type(right_records)
 
@@ -636,6 +654,7 @@ def merge_sequencial(
         right_stamp_key,
         join_key,
         how,
+        progress_label=progress_label,
     )
 
 
@@ -656,6 +675,8 @@ def merge_sequencial_for_addr_track(
     sink_records: RecordsInterface,
     sink_stamp_key: str,
     sink_from_key: str,
+    *,
+    progress_label: Optional[str] = None
 ):
     assert type(source_records) == type(copy_records) and type(copy_records) == type(sink_records)
 
@@ -669,4 +690,5 @@ def merge_sequencial_for_addr_track(
         sink_records,  # type: ignore
         sink_stamp_key,
         sink_from_key,
+        progress_label=progress_label,
     )

@@ -10,11 +10,15 @@ find_package(ament_cmake REQUIRED)
 add_subdirectory(pybind11)
 include_directories(
   include
-  pybind11/include)
+  pybind11/include
+  indicators/include
+  )
 pybind11_add_module(record_cpp_impl
 src/pybind.cpp
 src/record_base.cpp
-src/records_base.cpp)
+src/records_base.cpp
+src/progress.cpp
+)
 
 install(
   TARGETS record_cpp_impl
@@ -29,7 +33,9 @@ install(
 add_executable(merge_sample
 src/merge_sample.cpp
 src/record_base.cpp
-src/records_base.cpp)
+src/records_base.cpp
+src/progress.cpp
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

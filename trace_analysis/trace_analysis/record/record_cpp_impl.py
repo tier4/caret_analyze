@@ -45,7 +45,7 @@ class RecordCppImpl(RecordBase, RecordInterface):
             self._merge(other)
             return None
         else:
-            record = RecordCppImpl(self.data)
+            record = RecordCppImpl(self)
             record._merge(other)
             return record
 
@@ -54,7 +54,7 @@ class RecordCppImpl(RecordBase, RecordInterface):
             self._drop_columns(columns)
             return None
         else:
-            record = RecordCppImpl(self.data)
+            record = RecordCppImpl(self)
             record._drop_columns(columns)
             return record
 
@@ -135,13 +135,12 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         right_records: RecordsCppImpl,
         join_key: str,
         how: str = "inner",
+        *,
+        progress_label: Optional[str] = None,
     ) -> RecordsCppImpl:
+        progress_label = progress_label or ""
         assert how in ["inner", "left", "right", "outer"]
-        merged_cpp_base = self._merge(
-            right_records,
-            join_key,
-            how,
-        )
+        merged_cpp_base = self._merge(right_records, join_key, how, progress_label)
         merged = RecordsCppImpl(merged_cpp_base)
         return merged
 
@@ -152,13 +151,12 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         right_stamp_key: str,
         join_key: Optional[str],
         how: str = "inner",
+        *,
+        progress_label: Optional[str] = None,
     ) -> RecordsCppImpl:
+        progress_label = progress_label or ""
         merged_cpp_base = self._merge_sequencial(
-            right_records,
-            left_stamp_key,
-            right_stamp_key,
-            join_key or "",
-            how,
+            right_records, left_stamp_key, right_stamp_key, join_key or "", how, progress_label
         )
 
         merged = RecordsCppImpl(merged_cpp_base)
@@ -175,8 +173,10 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         sink_records: RecordsCppImpl,
         sink_stamp_key: str,
         sink_from_key: str,
+        *,
+        progress_label: Optional[str] = None,
     ) -> RecordsCppImpl:
-
+        progress_label = progress_label or ""
         merged_cpp_base = self._merge_sequencial_for_addr_track(
             source_stamp_key,
             source_key,
@@ -187,6 +187,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             sink_records,
             sink_stamp_key,
             sink_from_key,
+            progress_label,
         )
 
         merged = RecordsCppImpl(merged_cpp_base)

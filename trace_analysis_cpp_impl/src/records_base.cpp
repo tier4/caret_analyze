@@ -13,6 +13,7 @@
 
 #include "trace_analysis_cpp_impl/record.hpp"
 #include "trace_analysis_cpp_impl/common.hpp"
+#include "trace_analysis_cpp_impl/progress.hpp"
 
 RecordsBase::RecordsBase(std::vector<RecordBase> init)
 : RecordsBase()
@@ -148,7 +149,11 @@ void RecordsBase::_sort(std::string key, bool ascending)
 
 
 RecordsBase RecordsBase::_merge(
-  const RecordsBase & right_records, std::string join_key, std::string how)
+  const RecordsBase & right_records,
+  std::string join_key,
+  std::string how,
+  std::string progress_label
+)
 {
   // [python side implementation]
   // assert how in ["inner", "left", "right", "outer"]
@@ -174,7 +179,9 @@ RecordsBase RecordsBase::_merge(
 
 
     bool left_record_inserted = false;
+    auto bar = Progress(right_records.data_->size(), progress_label);
     for (auto & right_record : *right_records.data_) {
+      bar.tick();
       if (right_record.columns_.count(join_key) == 0) {
         continue;
       }
@@ -220,7 +227,9 @@ RecordsBase RecordsBase::_merge_sequencial(
   std::string left_stamp_key,
   std::string right_stamp_key,
   std::string join_key,
-  std::string how)
+  std::string how,
+  std::string progress_label
+)
 {
   enum Side {Left, Right};
 
@@ -228,18 +237,6 @@ RecordsBase RecordsBase::_merge_sequencial(
 
   bool merge_left = how == "left" || how == "outer";
   bool merge_right = how == "right" || how == "outer";
-
-  // auto is_key_matched = [&join_key](const RecordBase & record, const RecordBase & record_) {
-  //     if (join_key == "") {
-  //       return true;
-  //     }
-  //     bool has_join_key = record.columns_.count(join_key) > 0;
-  //     bool has_join_key_ = record_.columns_.count(join_key) > 0;
-  //     if (!has_join_key || !has_join_key_) {
-  //       return false;
-  //     }
-  //     return record.get(join_key) == record_.get(join_key);
-  //   };
 
   RecordsBase merged_records;
 
@@ -307,8 +304,10 @@ RecordsBase RecordsBase::_merge_sequencial(
 
   std::unordered_set<const RecordBase *> added;
 
-  int records_size = conat_records.data_->size();
-  for (int i = 0; i < records_size; i++) {
+  std::size_t records_size = conat_records.data_->size();
+  auto bar = Progress(records_size, progress_label);
+  for (int i = 0; i < (int)records_size; i++) {
+    bar.tick();
     RecordBase & current_record = (*conat_records.data_)[i];
     bool is_recorded = added.count(&current_record) > 0;
     if (is_recorded) {
@@ -373,7 +372,9 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
   std::string copy_to_key,
   const RecordsBase & sink_records,
   std::string sink_stamp_key,
-  std::string sink_from_key)
+  std::string sink_from_key,
+  std::string progress_label
+)
 {
   enum RecordType { Source, Copy, Sink };
   // [python side implementation]
@@ -442,7 +443,9 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
 
   RecordsBase merged_records;
 
+  auto bar = Progress(records.data_->size(), progress_label);
   for (auto & record: *records.data_) {
+    bar.tick();
     if (record.get("type") == Sink) {
       auto timestamp = record.get("timestamp");
       auto stamp_set = std::make_shared<StampSet>();

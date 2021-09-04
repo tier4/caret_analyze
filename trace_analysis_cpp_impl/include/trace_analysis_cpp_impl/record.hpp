@@ -58,14 +58,19 @@ public:
   void _filter(std::function<bool(RecordBase)> & f);
   void _sort(std::string key, bool ascending);
   RecordsBase _merge(
-    const RecordsBase & right_records, std::string join_key, std::string how);
+    const RecordsBase & right_records,
+    std::string join_key,
+    std::string how,
+    std::string progress_label
+  );
 
   RecordsBase _merge_sequencial(
     const RecordsBase & right_records,
     std::string left_stamp_key,
     std::string right_stamp_key,
     std::string join_key,
-    std::string how);
+    std::string how,
+    std::string progress_label);
 
   RecordsBase _merge_sequencial_for_addr_track(
     std::string source_stamp_key,
@@ -76,7 +81,9 @@ public:
     std::string copy_to_key,
     const RecordsBase & sink_records,
     std::string sink_stamp_key,
-    std::string sink_from_key);
+    std::string sink_from_key,
+    std::string progress_label
+  );
 
   std::shared_ptr<DataT> data_;
   std::shared_ptr<ColumnT> columns_;

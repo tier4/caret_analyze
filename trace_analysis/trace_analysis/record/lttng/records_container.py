@@ -141,7 +141,7 @@ class RecordsContainer:
     def _compose_inter_process_publish_records_with_cache(self) -> RecordsInterface:
         if self._inter_process_publish_records_cache is None:
             self._inter_process_publish_records_cache = (
-                self._data_util.data.rclcpp_inter_publish_instances.drop_columns(["message"])
+                self._data_util.data.rclcpp_publish_instances.drop_columns(["message"])
             )
 
         assert self._inter_process_publish_records_cache is not None
@@ -168,6 +168,7 @@ class RecordsContainer:
             left_stamp_key="callback_start_timestamp",
             right_stamp_key="callback_end_timestamp",
             join_key="callback_object",
+            progress_label="binding: callback_start and callback_end",
         )
 
         timer_callback_records = RecordsFactory.create_instance()
@@ -242,6 +243,7 @@ class RecordsContainer:
             copy_to_key="constructed_message",
             sink_stamp_key="dispatch_intra_process_subscription_callback_timestamp",
             sink_from_key="message",
+            progress_label="bindig: rclcpp_intra_publish and message_address",
         )
 
         intra_records = merge_sequencial(
@@ -251,6 +253,7 @@ class RecordsContainer:
             right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
             how="left",
+            progress_label="bindig: dispatch_subscription_callback and callback_object",
         )
 
         if self._drop_inter_mediate_columns:
@@ -282,6 +285,7 @@ class RecordsContainer:
             copy_to_key="addr_to",
             sink_stamp_key="dds_bind_addr_to_stamp_timestamp",
             sink_from_key="addr",
+            progress_label="binding: message_address and source_timestamp",
         )
 
         publish = merge_sequencial(
@@ -291,6 +295,7 @@ class RecordsContainer:
             right_stamp_key="rcl_publish_timestamp",
             join_key="message",
             how="left",
+            progress_label="binding: rclcpp_publish and rcl_publish",
         )
 
         publish = merge_sequencial(
@@ -300,6 +305,7 @@ class RecordsContainer:
             right_stamp_key="dds_write_timestamp",
             join_key="message",
             how="left",
+            progress_label="binding: rcl_publish and dds_write",
         )
 
         subscription = self._data_util.data.dispatch_subscription_callback_instances
@@ -315,6 +321,7 @@ class RecordsContainer:
             right_stamp_key="callback_start_timestamp",
             join_key="callback_object",
             how="left",
+            progress_label="binding: dispatch_subscription_callback and callback_start",
         )
 
         communication = merge(
@@ -322,6 +329,7 @@ class RecordsContainer:
             self._data_util.data.on_data_available_instances,
             join_key="source_timestamp",
             how="left",
+            progress_label="binding: source_timestamp and on_data_available",
         )
 
         communication = merge(
@@ -329,9 +337,11 @@ class RecordsContainer:
             subscription,
             join_key="source_timestamp",
             how="left",
+            progress_label="binding: source_timestamp and callback_start",
         )
 
         if self._drop_inter_mediate_columns:
+            print("communication.drop_columns(", flush=True)
             communication.drop_columns(
                 [
                     "addr",
