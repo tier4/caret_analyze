@@ -248,10 +248,10 @@ RecordsBase RecordsBase::_merge_sequencial(
     right_record.add("side", Right);
   }
 
-  RecordsBase & conat_records = left_records;
-  conat_records._concat(right_records);
+  RecordsBase & concat_records = left_records;
+  concat_records._concat(right_records);
 
-  for (auto & record : *conat_records.data_) {
+  for (auto & record : *concat_records.data_) {
     record.add("has_valid_join_key", join_key == "" || record.columns_.count(join_key) > 0);
 
     if (record.get("side") == Left && record.columns_.count(left_stamp_key) > 0) {
@@ -274,11 +274,11 @@ RecordsBase RecordsBase::_merge_sequencial(
       return record.get(join_key);
     };
 
-  conat_records._sort("merge_stamp", true);
+  concat_records._sort("merge_stamp", true);
   std::unordered_map<int, uint64_t> next_empty_records;
   std::unordered_map<int, uint64_t> sub_empty_records;
-  for (uint64_t i = 0; i < (uint64_t)conat_records.data_->size(); i++) {
-    auto & record = (*conat_records.data_)[i];
+  for (uint64_t i = 0; i < (uint64_t)concat_records.data_->size(); i++) {
+    auto & record = (*concat_records.data_)[i];
     if (record.get("side") == Left && record.get("has_merge_stamp")) {
       record.add("next_record_index", UINT64_MAX); // use MAX as None
       record.add("sub_record_index", UINT64_MAX);
@@ -286,7 +286,7 @@ RecordsBase RecordsBase::_merge_sequencial(
       auto join_value = get_join_value(record);
       if (next_empty_records.count(join_value) > 0) {
         auto pre_left_record_index = next_empty_records[join_value];
-        RecordBase & pre_left_record = (*conat_records.data_)[pre_left_record_index];
+        RecordBase & pre_left_record = (*concat_records.data_)[pre_left_record_index];
         pre_left_record.add("next_record_index", i);
       }
       next_empty_records[join_value] = i;
@@ -295,7 +295,7 @@ RecordsBase RecordsBase::_merge_sequencial(
       auto join_value = get_join_value(record);
       if (sub_empty_records.count(join_value) > 0) {
         auto pre_left_record_index = sub_empty_records[join_value];
-        RecordBase & pre_left_record = (*conat_records.data_)[pre_left_record_index];
+        RecordBase & pre_left_record = (*concat_records.data_)[pre_left_record_index];
         pre_left_record.add("sub_record_index", i);
         sub_empty_records.erase(join_value);
       }
@@ -304,11 +304,11 @@ RecordsBase RecordsBase::_merge_sequencial(
 
   std::unordered_set<const RecordBase *> added;
 
-  std::size_t records_size = conat_records.data_->size();
+  std::size_t records_size = concat_records.data_->size();
   auto bar = Progress(records_size, progress_label);
   for (int i = 0; i < (int)records_size; i++) {
     bar.tick();
-    RecordBase & current_record = (*conat_records.data_)[i];
+    RecordBase & current_record = (*concat_records.data_)[i];
     bool is_recorded = added.count(&current_record) > 0;
     if (is_recorded) {
       continue;
@@ -338,10 +338,10 @@ RecordsBase RecordsBase::_merge_sequencial(
     auto next_record_index = current_record.get("next_record_index");
     auto sub_record_index = current_record.get("sub_record_index");
     if (next_record_index != UINT64_MAX) {
-      next_record_ptr = &(*conat_records.data_)[next_record_index];
+      next_record_ptr = &(*concat_records.data_)[next_record_index];
     }
     if (sub_record_index != UINT64_MAX) {
-      sub_record_ptr = &(*conat_records.data_)[sub_record_index];
+      sub_record_ptr = &(*concat_records.data_)[sub_record_index];
     }
 
     bool has_valid_next_record = next_record_ptr != nullptr &&
@@ -363,7 +363,8 @@ RecordsBase RecordsBase::_merge_sequencial(
     added.insert(sub_record_ptr);
   }
 
-  merged_records._drop_columns({"side", "has_merge_stamp", "merge_stamp", "has_valid_join_key",
+  merged_records._drop_columns(
+    {"side", "has_merge_stamp", "merge_stamp", "has_valid_join_key",
       "next_record_index", "sub_record_index"});
 
   return merged_records;
