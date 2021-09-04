@@ -14,6 +14,12 @@ PYBIND11_MODULE(record_cpp_impl, m) {
   .def(py::init())
   .def(
     py::init(
+      [](const RecordBase & init) {
+        return new RecordBase(init);
+      })
+  )
+  .def(
+    py::init(
       [](std::unordered_map<std::string, uint64_t> init) {
         return new RecordBase(init);
       })
