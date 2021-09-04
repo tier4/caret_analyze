@@ -341,7 +341,6 @@ class RecordsContainer:
         )
 
         if self._drop_inter_mediate_columns:
-            print("communication.drop_columns(", flush=True)
             communication.drop_columns(
                 [
                     "addr",
