@@ -57,7 +57,8 @@ public:
   void _rename_columns(std::unordered_map<std::string, std::string> renames);
   void _concat(const RecordsBase & other);
   void _filter(std::function<bool(RecordBase)> & f);
-  void _sort(std::string key, bool ascending);
+  void _sort(std::string key, std::string sub_key = "", bool ascending = true);
+
   RecordsBase _merge(
     const RecordsBase & right_records,
     std::string join_key,

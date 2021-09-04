@@ -76,14 +76,14 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         return [RecordCppImpl(record_base.data) for record_base in self._data]
 
     def sort(  # type: ignore
-        self, key: str, ascending=True, inplace=False
+        self, key: str, sub_key: Optional[str] = None, ascending=True, inplace=False
     ) -> Optional[RecordsCppImpl]:
         if inplace:
-            self._sort(key, ascending)
+            self._sort(key, sub_key or "", ascending)
             return None
         else:
             records = RecordsCppImpl(self)
-            records._sort(key, ascending)
+            records._sort(key, sub_key or "", ascending)
             return records
 
     def clone(self) -> RecordsCppImpl:

@@ -398,6 +398,52 @@ class TestRecords:
             records_.sort(key, inplace=True, ascending=False)
             assert records_.equals(records_desc)
 
+    def test_sort_with_sub_key(self):
+        key = "stamp"
+        sub_key = "stamp_"
+
+        for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
+
+            records = records_type(
+                [
+                    record_type({key: 2, sub_key: 2}),
+                    record_type({key: 2, sub_key: 1}),
+                    record_type({key: 0, sub_key: 5}),
+                    record_type({key: 1, sub_key: 3}),
+                ]
+            )
+            records_asc = records_type(
+                [
+                    record_type({key: 0, sub_key: 5}),
+                    record_type({key: 1, sub_key: 3}),
+                    record_type({key: 2, sub_key: 1}),
+                    record_type({key: 2, sub_key: 2}),
+                ]
+            )
+            records_desc = records_type(
+                [
+                    record_type({key: 2, sub_key: 2}),
+                    record_type({key: 2, sub_key: 1}),
+                    record_type({key: 1, sub_key: 3}),
+                    record_type({key: 0, sub_key: 5}),
+                ]
+            )
+            records_sorted = records.sort(key, sub_key=sub_key, inplace=False, ascending=True)
+            assert records_sorted.equals(records_asc)
+
+            records_sorted = records.sort(key, sub_key=sub_key, inplace=False, ascending=False)
+            assert records_sorted.equals(records_desc)
+
+            records_ = records.clone()
+            records_.sort(key, sub_key=sub_key, inplace=True, ascending=True)
+            assert records_.equals(records_asc)
+
+            records_ = records.clone()
+            records_.sort(key, sub_key=sub_key, inplace=True, ascending=False)
+            assert records_.equals(records_desc)
+
     @pytest.mark.parametrize(
         "records_py, records_py_, expect",
         [
@@ -465,8 +511,10 @@ class TestRecords:
                 "inner",
                 Records(
                     [
-                        Record({"value": 2, "stamp": 2, "stamp_": 4}),
-                        Record({"value": 3, "stamp": 3, "stamp_": 5}),
+                        Record({"value": 10, "stamp": 1, "stamp_": 2}),
+                        Record({"value": 20, "stamp": 3, "stamp_": 4}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
                     ]
                 ),
             ),
@@ -474,9 +522,11 @@ class TestRecords:
                 "left",
                 Records(
                     [
-                        Record({"value": 1, "stamp": 0}),
-                        Record({"value": 2, "stamp": 2, "stamp_": 4}),
-                        Record({"value": 3, "stamp": 3, "stamp_": 5}),
+                        Record({"value": 10, "stamp": 1, "stamp_": 2}),
+                        Record({"value": 20, "stamp": 3, "stamp_": 4}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
+                        Record({"value": 40, "stamp": 7}),
                     ]
                 ),
             ),
@@ -484,9 +534,11 @@ class TestRecords:
                 "right",
                 Records(
                     [
-                        Record({"value": 2, "stamp": 2, "stamp_": 4}),
-                        Record({"value": 3, "stamp": 3, "stamp_": 5}),
-                        Record({"value": 4, "stamp_": 6}),
+                        Record({"value": 10, "stamp": 1, "stamp_": 2}),
+                        Record({"value": 20, "stamp": 3, "stamp_": 4}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
+                        Record({"value": 50, "stamp_": 10}),
                     ]
                 ),
             ),
@@ -494,10 +546,12 @@ class TestRecords:
                 "outer",
                 Records(
                     [
-                        Record({"value": 1, "stamp": 0}),
-                        Record({"value": 2, "stamp": 2, "stamp_": 4}),
-                        Record({"value": 3, "stamp": 3, "stamp_": 5}),
-                        Record({"value": 4, "stamp_": 6}),
+                        Record({"value": 10, "stamp": 1, "stamp_": 2}),
+                        Record({"value": 20, "stamp": 3, "stamp_": 4}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
+                        Record({"value": 30, "stamp": 5, "stamp_": 6}),
+                        Record({"value": 40, "stamp": 7}),
+                        Record({"value": 50, "stamp_": 10}),
                     ]
                 ),
             ),
@@ -506,17 +560,20 @@ class TestRecords:
     def test_merge(self, how: str, records_expect_py: Records):
         records_left_py: Records = Records(
             [
-                Record({"stamp": 0, "value": 1}),
-                Record({"stamp": 2, "value": 2}),
-                Record({"stamp": 3, "value": 3}),
+                Record({"stamp": 1, "value": 10}),
+                Record({"stamp": 3, "value": 20}),
+                Record({"stamp": 5, "value": 30}),
+                Record({"stamp": 7, "value": 40}),
             ]
         )
 
         records_right_py: Records = Records(
             [
-                Record({"stamp_": 4, "value": 2}),
-                Record({"stamp_": 5, "value": 3}),
-                Record({"stamp_": 6, "value": 4}),
+                Record({"stamp_": 2, "value": 10}),
+                Record({"stamp_": 4, "value": 20}),
+                Record({"stamp_": 6, "value": 30}),
+                Record({"stamp_": 6, "value": 30}),
+                Record({"stamp_": 10, "value": 50}),
             ]
         )
 
@@ -532,7 +589,7 @@ class TestRecords:
             if not CppImplValid:
                 continue
             merged = records_left.merge(records_right, "value", how=how)  # type: ignore
-            merged.sort(key="value")
+            merged.sort(key="value", inplace=True)
             assert merged.equals(records_expect) is True  # type: ignore
 
     @pytest.mark.parametrize(
@@ -576,7 +633,6 @@ class TestRecords:
                                 "value": 1,
                             }
                         ),
-                        Record({"other_stamp": 8}),
                         Record(
                             {
                                 "other_stamp": 12,
@@ -586,6 +642,7 @@ class TestRecords:
                                 "value": 2,
                             }
                         ),
+                        Record({"other_stamp": 8}),
                         Record({"other_stamp": 16}),
                     ]
                 ),
@@ -630,7 +687,6 @@ class TestRecords:
                                 "value": 1,
                             }
                         ),
-                        Record({"other_stamp": 8}),
                         Record(
                             {
                                 "other_stamp": 12,
@@ -640,6 +696,7 @@ class TestRecords:
                                 "value": 2,
                             }
                         ),
+                        Record({"other_stamp": 8}),
                         Record({"other_stamp": 16}),
                         Record({"other_stamp_": 10}),
                         Record({"other_stamp_": 14}),
@@ -884,10 +941,10 @@ class TestRecords:
                 Records(
                     [
                         Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
-                        Record({"key": 3, "sub_stamp": 1}),
-                        Record({"key": 1, "sub_stamp": 3}),
-                        Record({"key": 1, "stamp": 4}),
-                        Record({"key": 1, "stamp": 5}),
+                        Record({"key": 3, "sub_stamp": 1}),  # stamp lost
+                        Record({"key": 1, "sub_stamp": 3}),  # stamp lost
+                        Record({"key": 1, "stamp": 4}),  # sub_stamp lost
+                        Record({"key": 1, "stamp": 5}),  # sub_stamp lost
                         Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
                     ]
                 ),

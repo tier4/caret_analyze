@@ -18,6 +18,8 @@
 #include "trace_analysis_cpp_impl/common.hpp"
 #include "trace_analysis_cpp_impl/progress.hpp"
 
+enum Side {Left, Right};
+
 RecordsBase::RecordsBase(std::vector<RecordBase> init)
 : RecordsBase()
 {
@@ -145,28 +147,35 @@ void RecordsBase::_concat(const RecordsBase & other)
 class RecordComp
 {
 public:
-  RecordComp(std::string key, bool ascending)
-  : key_(key), ascending_(ascending)
+  RecordComp(std::string key, std::string sub_key, bool ascending)
+  : key_(key), sub_key_(sub_key), ascending_(ascending)
   {
   }
 
   bool operator()(const RecordBase & a, const RecordBase & b) const noexcept
   {
     if (ascending_) {
-      return a.get(key_) < b.get(key_);
+      if (a.get(key_) != b.get(key_) || sub_key_ == "") {
+        return a.get(key_) < b.get(key_);
+      }
+      return a.get(sub_key_) < b.get(sub_key_);
     } else {
-      return a.get(key_) > b.get(key_);
+      if (a.get(key_) != b.get(key_) || sub_key_ == "") {
+        return a.get(key_) > b.get(key_);
+      }
+      return a.get(sub_key_) > b.get(sub_key_);
     }
   }
 
 private:
   std::string key_;
+  std::string sub_key_;
   bool ascending_;
 };
 
-void RecordsBase::_sort(std::string key, bool ascending)
+void RecordsBase::_sort(std::string key, std::string sub_key, bool ascending)
 {
-  std::sort(data_->begin(), data_->end(), RecordComp{key, ascending});
+  std::sort(data_->begin(), data_->end(), RecordComp{key, sub_key, ascending});
 }
 
 
@@ -180,67 +189,91 @@ RecordsBase RecordsBase::_merge(
   // [python side implementation]
   // assert how in ["inner", "left", "right", "outer"]
 
-  RecordsBase records;
-
-  *records.columns_ = merge_set<std::string>(*columns_, *right_records.columns_);
 
   bool merge_right_record = how == "right" || how == "outer";
   bool merge_left_record = how == "left" || how == "outer";
 
-  std::unordered_set<const void *> right_records_inserted;
+  auto left_records = RecordsBase(*this);
 
-  for (auto & left_record : *data_) {
-    if (left_record.columns_.count(join_key) == 0) {
-      if (merge_left_record) {
-        records.data_->emplace_back();
-        RecordBase & merged_record = records.data_->back();
-        merged_record._merge(left_record);
+  for (auto & left_record: *left_records.data_) {
+    left_record.add("side", Left);
+  }
+
+  for (auto & right_record: *right_records.data_) {
+    right_record.add("side", Right);
+  }
+
+  RecordsBase & concat_records = left_records;
+  concat_records._concat(right_records);
+
+  for (auto & record : *concat_records.data_) {
+    record.add("has_valid_join_key", record.columns_.count(join_key) > 0);
+
+    if (record.columns_.count(join_key) > 0) {
+      record.add("merge_stamp", record.get(join_key));
+    } else {
+      record.add("merge_stamp", UINT64_MAX);
+    }
+  }
+
+  concat_records._sort("merge_stamp", "side", true);
+
+  std::vector<RecordBase *> empty_records;
+  RecordBase * left_record_ = nullptr;
+
+  RecordsBase merged_records;
+  *merged_records.columns_ = merge_set<std::string>(*columns_, *right_records.columns_);
+
+  auto bar = Progress(concat_records.data_->size(), progress_label);
+  for (uint64_t i = 0; i < (uint64_t)concat_records.data_->size(); i++) {
+    bar.tick();
+    auto & record = (*concat_records.data_)[i];
+    if (!record.get("has_valid_join_key")) {
+      if (record.get("side") == Left && merge_left_record) {
+        merged_records.append(record);
+      } else if (record.get("side") == Right && merge_right_record) {
+        merged_records.append(record);
       }
       continue;
     }
 
-
-    bool left_record_inserted = false;
-    auto bar = Progress(right_records.data_->size(), progress_label);
-    for (auto & right_record : *right_records.data_) {
-      bar.tick();
-      if (right_record.columns_.count(join_key) == 0) {
-        continue;
+    auto join_value = record.get(join_key);
+    if (record.get("side") == Left) {
+      if (left_record_ && !left_record_->get("found_right_record")) {
+        empty_records.push_back(&record);
       }
-
-      if (left_record.get(join_key) == right_record.get(join_key)) {
-        right_records_inserted.insert(&right_record);
-        left_record_inserted = true;
-
-        records.data_->emplace_back();
-        RecordBase & merged_record = records.data_->back();
-        merged_record._merge(left_record);
-        merged_record._merge(right_record);
-        break;
+      left_record_ = &record;
+      left_record_->add("found_right_record", false);
+    } else {
+      if (left_record_ && join_value == left_record_->get(join_key) &&
+        record.get("has_valid_join_key"))
+      {
+        left_record_->add("found_right_record", true);
+        auto merged_record = record;
+        merged_record._merge(*left_record_);
+        merged_records.append(merged_record);
+      } else {
+        empty_records.push_back(&record);
       }
     }
-    if (left_record_inserted) {
-      continue;
-    }
-    if (merge_left_record) {
-      records.data_->emplace_back();
-      RecordBase & merged_record = records.data_->back();
-      merged_record._merge(left_record);
+  }
+  if (left_record_ && !left_record_->get("found_right_record")) {
+    empty_records.push_back(left_record_);
+  }
+  for (auto & record_ptr: empty_records) {
+    auto & record = *record_ptr;
+    if (record.get("side") == Left && merge_left_record) {
+      merged_records.append(record);
+    } else if (record.get("side") == Right && merge_right_record) {
+      merged_records.append(record);
     }
   }
 
-  if (merge_right_record) {
-    for (auto & right_record: *right_records.data_) {
-      if (right_records_inserted.count(&right_record) > 0) {
-        continue;
-      }
-      records.data_->emplace_back();
-      RecordBase & merged_record = records.data_->back();
-      merged_record._merge(right_record);
-    }
-  }
+  merged_records._drop_columns(
+    {"side", "has_merge_stamp", "merge_stamp", "has_valid_join_key",
+      "found_right_record"});
 
-  return records;
+  return merged_records;
 }
 
 
@@ -253,7 +286,6 @@ RecordsBase RecordsBase::_merge_sequencial(
   std::string progress_label
 )
 {
-  enum Side {Left, Right};
 
   auto left_records = RecordsBase(*this);
 
@@ -296,7 +328,7 @@ RecordsBase RecordsBase::_merge_sequencial(
       return record.get(join_key);
     };
 
-  concat_records._sort("merge_stamp", true);
+  concat_records._sort("merge_stamp", "side", true);
   std::unordered_map<int, uint64_t> next_empty_records;
   std::unordered_map<int, uint64_t> sub_empty_records;
   for (uint64_t i = 0; i < (uint64_t)concat_records.data_->size(); i++) {
@@ -406,7 +438,7 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
   std::string progress_label
 )
 {
-  enum RecordType { Source, Copy, Sink };
+  enum RecordType { Copy, Sink, Source};
   // [python side implementation]
   // assert how in ["inner", "left", "right", "outer"]
 
@@ -430,7 +462,7 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
   auto & records = source_records_;
   records._concat(copy_records_);
   records._concat(sink_records_);
-  records._sort("timestamp", false);
+  records._sort("timestamp", "type", false);
 
   std::vector<RecordBase> processing_records;
   using StampSet = std::set<uint64_t>;
