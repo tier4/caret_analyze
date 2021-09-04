@@ -15,6 +15,7 @@
 import pytest
 import pandas as pd
 from copy import deepcopy
+from typing import Any, Optional
 
 from trace_analysis.record.record import (
     Record,
@@ -22,42 +23,52 @@ from trace_analysis.record.record import (
     merge,
 )
 
-from trace_analysis.record.record_cpp_impl import (
-    to_cpp_record,
-    to_cpp_records,
-    to_py_record,
-    to_py_records,
-    RecordCppImpl,
-    RecordsCppImpl,
-)
+RecordCppImpl: Any
+RecordsCppImpl: Any
+
+try:
+    import trace_analysis.record.record_cpp_impl as cpp_impl
+
+    RecordCppImpl = cpp_impl.RecordCppImpl
+    RecordsCppImpl = cpp_impl.RecordsCppImpl
+    CppImplValid = True
+except ModuleNotFoundError:
+    RecordCppImpl = None
+    RecordsCppImpl = None
+    CppImplValid = False
 
 
-def test_to_record_conversion():
-    expect = {"a": 1, "b": 2}
-    record = Record(expect)
-    record_cpp = to_cpp_record(record)
-    record_ = to_py_record(record_cpp)
+def to_cpp_record(record: Record) -> Optional[RecordCppImpl]:
+    if not CppImplValid:
+        return None
 
-    assert record_.data == expect
-    assert record_cpp.data == expect
+    return RecordCppImpl(record.data)
 
 
-def test_to_records_conversion():
-    expects = Records([Record({"a": 1, "b": 2})])
-    expects_cpp = RecordsCppImpl([RecordCppImpl({"a": 1, "b": 2})])
+def to_cpp_records(records: Records) -> Optional[RecordsCppImpl]:
+    if not CppImplValid:
+        return None
 
-    records_cpp = to_cpp_records(expects)
-    for record_cpp, expect in zip(records_cpp.data, expects_cpp.data):
-        assert record_cpp.data == expect.data
+    return RecordsCppImpl([to_cpp_record(dic) for dic in records.data])
 
-    records = to_py_records(expects_cpp)
-    for record, expect in zip(records.data, expects.data):
-        assert record.data == expect.data
+
+def to_py_record(record: RecordCppImpl) -> Optional[Record]:
+    if not CppImplValid:
+        return None
+
+    return Record(record.data)
+
+
+def to_py_records(records: RecordsCppImpl) -> Optional[Records]:
+    if not CppImplValid:
+        return None
+
+    return Records([Record(dic.data) for dic in records.data])
 
 
 class TestRecord:
     @pytest.mark.parametrize(
-        "record, record_, expect",
+        "record_py, record_py_, expect",
         [
             (Record({"stamp": 0}), Record({"stamp": 0}), True),
             (Record({"stamp": 0}), Record({"stamp": 1}), False),
@@ -66,35 +77,46 @@ class TestRecord:
             (Record({"stamp": 0, "stamp_": 1}), Record({"stamp": 1, "stamp_": 0}), False),
         ],
     )
-    def test_equals(self, record, record_, expect):
-        assert record.equals(record_) is expect
+    def test_equals(self, record_py, record_py_, expect):
+        for record, record_ in zip(
+            [record_py, to_cpp_record(record_py)], [record_py_, to_cpp_record(record_py_)]
+        ):
+            if not CppImplValid:
+                continue
 
-        record_cpp = to_cpp_record(record)
-        record_cpp_ = to_cpp_record(record_)
-
-        assert record_cpp.equals(record_cpp_) is expect
+            assert record.equals(record_) is expect
 
     def test_data(self):
         dic = {"stamp": 0, "value": 18446744073709551615}
         for record_type in [Record, RecordCppImpl]:
+            if not CppImplValid:
+                continue
+
             record = record_type(dic)
             assert record.data == dic
 
     def test_columns(self):
         dic = {"stamp": 0, "value": 1}
         for record_type in [Record, RecordCppImpl]:
+            if not CppImplValid:
+                continue
+
             record = record_type(dic)
             assert record.columns == set(dic.keys())
 
     def test_get(self):
         dic = {"stamp": 0, "value": 1}
         for record_type in [Record, RecordCppImpl]:
+            if not CppImplValid:
+                continue
             record = record_type(dic)
             assert record.get("stamp") == 0
             assert record.get("value") == 1
 
     def test_add(self):
         for record_type in [Record, RecordCppImpl]:
+            if not CppImplValid:
+                continue
             expect = {"stamp": 0, "value": 1}
 
             record = record_type()
@@ -105,6 +127,8 @@ class TestRecord:
 
     def test_change_dict_key(self):
         for record_type in [Record, RecordCppImpl]:
+            if not CppImplValid:
+                continue
             record = record_type({"key_before": 0, "value": 1})
             expect = record_type({"key_after": 0, "value": 1})
 
@@ -116,6 +140,8 @@ class TestRecord:
         dic = {"stamp": 0, "value": 1}
 
         for record_type in [Record, RecordCppImpl]:
+            if not CppImplValid:
+                continue
             record = record_type(dic)
             assert record.columns == set(dic.keys())
 
@@ -132,6 +158,8 @@ class TestRecord:
         merged_dict.update(right_dict)
 
         for record_type in [Record, RecordCppImpl]:
+            if not CppImplValid:
+                continue
             left = record_type(left_dict)
             right = record_type(right_dict)
             merged = left.merge(right, inplace=False)
@@ -155,6 +183,8 @@ class TestRecords:
         expects_cpp = to_cpp_records(expects_py)
 
         for expects, records_type in zip([expects_py, expects_cpp], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
             records = records_type(expects.data)
             assert records.equals(expects)
 
@@ -167,6 +197,8 @@ class TestRecords:
         )
         expects_cpp = to_cpp_records(expects_py)
         for expects, records_type in zip([expects_py, expects_cpp], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
             records = records_type()
             records.append(expects.data[0])
             records.append(expects.data[1])
@@ -186,6 +218,9 @@ class TestRecords:
         records_cpp = to_cpp_records(records_py)
 
         for records, records_type in zip([records_py, records_cpp], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
+
             drop_keys = [key]
             for record in records.data:
                 assert key in record.columns
@@ -220,6 +255,9 @@ class TestRecords:
         records_cpp = to_cpp_records(records_py)
 
         for records, records_type in zip([records_py, records_cpp], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
+
             rename_keys = {key_before: key_after}
 
             for record in records.data:
@@ -251,6 +289,9 @@ class TestRecords:
         )
         records_cpp = to_cpp_records(records_py)
         for records, records_type in zip([records_py, records_cpp], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
+
             assert len(records.data) == 3
             init_columns = records.columns
 
@@ -270,6 +311,9 @@ class TestRecords:
 
     def test_concat(self):
         for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
+
             records_left = records_type(
                 [
                     record_type({"a": 0}),
@@ -306,6 +350,9 @@ class TestRecords:
         expect_df = pd.DataFrame.from_dict(expect_dict)
 
         for records in [records_py, records_cpp]:
+            if not CppImplValid:
+                continue
+
             df = records.to_dataframe()
             assert df.equals(expect_df)
 
@@ -313,6 +360,9 @@ class TestRecords:
         key = "stamp"
 
         for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
+
             records = records_type(
                 [
                     record_type({key: 2}),
@@ -349,7 +399,7 @@ class TestRecords:
             assert records_.equals(records_desc)
 
     @pytest.mark.parametrize(
-        "records, records_, expect",
+        "records_py, records_py_, expect",
         [
             (
                 Records(
@@ -398,11 +448,15 @@ class TestRecords:
             ),
         ],
     )
-    def test_equals(self, records, records_, expect):
-        assert records.equals(records_) is expect
-        records_cpp = to_cpp_records(records)
-        records_cpp_ = to_cpp_records(records_)
-        assert records_cpp.equals(records_cpp_) is expect
+    def test_equals(self, records_py, records_py_, expect):
+        records_cpp = to_cpp_records(records_py)
+        records_cpp_ = to_cpp_records(records_py_)
+
+        for records, records_ in zip([records_py, records_cpp], [records_py_, records_cpp_]):
+            if not CppImplValid:
+                continue
+
+            assert records.equals(records_) is expect
 
     @pytest.mark.parametrize(
         "how, records_expect_py",
@@ -475,9 +529,10 @@ class TestRecords:
             [records_right_py, records_right_cpp],
             [records_expect_py, records_expect_cpp],
         ):
+            if not CppImplValid:
+                continue
             merged = records_left.merge(records_right, "value", how=how)  # type: ignore
             merged.sort(key="value")
-            records_expect.sort(key="value")
             assert merged.equals(records_expect) is True  # type: ignore
 
     @pytest.mark.parametrize(
@@ -621,6 +676,9 @@ class TestRecords:
             [right_records_py, right_records_cpp],
             [expect_records_py, expect_records_cpp],
         ):
+            if not CppImplValid:
+                continue
+
             merged = merge(
                 left_records=left_records, right_records=right_records, join_key="value", how=how
             )
@@ -700,6 +758,9 @@ class TestRecords:
             [right_records_py, to_cpp_records(right_records_py)],
             [expect_records_py, to_cpp_records(expect_records_py)],
         ):
+            if not CppImplValid:
+                continue
+
             merged_records = left_records.merge_sequencial(
                 right_records=right_records,
                 left_stamp_key="stamp",
@@ -771,6 +832,9 @@ class TestRecords:
             [right_records_py, to_cpp_records(right_records_py)],
             [expect_records_py, to_cpp_records(expect_records_py)],
         ):
+            if not CppImplValid:
+                continue
+
             merged = left_records.merge_sequencial(
                 right_records=right_records,
                 left_stamp_key="stamp",
@@ -854,6 +918,9 @@ class TestRecords:
             [right_records_py, to_cpp_records(right_records_py)],
             [expect_records_py, to_cpp_records(expect_records_py)],
         ):
+            if not CppImplValid:
+                continue
+
             merged = left_records.merge_sequencial(
                 right_records=right_records,
                 left_stamp_key="stamp",
@@ -947,6 +1014,9 @@ class TestRecords:
             [right_records_py, to_cpp_records(right_records_py)],
             [expect_records_py, to_cpp_records(expect_records_py)],
         ):
+            if not CppImplValid:
+                continue
+
             merged = left_records.merge_sequencial(
                 right_records=right_records,
                 left_stamp_key="stamp",
@@ -998,6 +1068,9 @@ class TestRecords:
             [sink_records, to_cpp_records(sink_records)],
             [expect_records, to_cpp_records(expect_records)],
         ):
+            if not CppImplValid:
+                continue
+
             merged = source_records.merge_sequencial_for_addr_track(
                 source_stamp_key="source_stamp",
                 source_key="source_addr",

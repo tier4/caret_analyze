@@ -17,24 +17,8 @@ from __future__ import annotations
 from typing import List, Optional, Dict, Callable
 import pandas as pd
 
-from .record import Record, Records, RecordInterface, RecordsInterface
+from .record import RecordInterface, RecordsInterface
 from record_cpp_impl import RecordBase, RecordsBase
-
-
-def to_cpp_record(record: Record) -> RecordCppImpl:
-    return RecordCppImpl(record.data)
-
-
-def to_cpp_records(records: Records) -> RecordsCppImpl:
-    return RecordsCppImpl([RecordCppImpl(dic.data) for dic in records.data])
-
-
-def to_py_record(record: RecordCppImpl) -> Record:
-    return Record(record.data)
-
-
-def to_py_records(records: RecordsCppImpl) -> Records:
-    return Records([Record(dic.data) for dic in records.data])
 
 
 class RecordCppImpl(RecordBase, RecordInterface):
@@ -65,6 +49,16 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
 
     def to_string(self) -> str:
         return self.to_dataframe().to_string()
+
+    def export_json(self, path: str) -> None:
+        import json
+
+        data_dict = [dic.data for dic in self.data]
+        s = json.dumps(data_dict)
+
+        with open(path, mode="w") as f:
+            f.write(json.dumps(s))
+        return None
 
     def concat(  # type: ignore
         self, other: RecordsCppImpl, inplace=False

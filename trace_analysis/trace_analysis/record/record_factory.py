@@ -30,6 +30,10 @@ except ModuleNotFoundError:
 
 class RecordFactory:
     @classmethod
+    def is_cpp_impl_valid(cls) -> bool:
+        return use_cpp_impl
+
+    @classmethod
     def create_instance(cls, init: Optional[Dict] = None) -> RecordInterface:
         if use_cpp_impl:
             return cls._create_cpp_instance(init)
@@ -45,6 +49,10 @@ class RecordFactory:
 
 
 class RecordsFactory:
+    @classmethod
+    def is_cpp_impl_valid(cls) -> bool:
+        return use_cpp_impl
+
     @classmethod
     def create_instance(cls, init: Optional[List[RecordInterface]] = None) -> RecordsInterface:
         if use_cpp_impl:
