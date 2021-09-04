@@ -29,9 +29,9 @@ RecordsBase::RecordsBase()
 }
 
 RecordsBase::RecordsBase(const RecordsBase & records)
-: data_(records.data_),
-  columns_(records.columns_)
 {
+  data_ = std::make_shared<DataT>(*records.data_);
+  columns_ = std::make_shared<ColumnT>(*records.columns_);
 }
 
 void RecordsBase::append(const RecordBase & other)

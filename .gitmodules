@@ -1,3 +1,9 @@
 [submodule "trace_analysis_cpp_impl/pybind11"]
 	path = trace_analysis_cpp_impl/pybind11
 	url = https://github.com/pybind/pybind11
+[submodule "trace_analysis_cpp_impl/json"]
+	path = trace_analysis_cpp_impl/json
+	url = https://github.com/nlohmann/json.git
+[submodule "trace_analysis_cpp_impl/indicators"]
+	path = trace_analysis_cpp_impl/indicators
+	url = https://github.com/p-ranav/indicators.git
