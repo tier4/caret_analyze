@@ -324,8 +324,11 @@ RecordsBase RecordsBase::_merge_sequencial(
   auto get_join_value = [&join_key](RecordBase & record) -> uint64_t {
       if (join_key == "") {
         return 0;
+      } else if (record.columns_.count(join_key) > 0) {
+        return record.get(join_key);
+      } else {
+        return UINT64_MAX;  // use as None
       }
-      return record.get(join_key);
     };
 
   concat_records._sort("merge_stamp", "side", true);
@@ -338,6 +341,9 @@ RecordsBase RecordsBase::_merge_sequencial(
       record.add("sub_record_index", UINT64_MAX);
 
       auto join_value = get_join_value(record);
+      if (join_value == UINT16_MAX) {
+        continue;
+      }
       if (next_empty_records.count(join_value) > 0) {
         auto pre_left_record_index = next_empty_records[join_value];
         RecordBase & pre_left_record = (*concat_records.data_)[pre_left_record_index];
@@ -347,6 +353,9 @@ RecordsBase RecordsBase::_merge_sequencial(
       sub_empty_records[join_value] = i;
     } else if (record.get("side") == Right && record.get("has_merge_stamp")) {
       auto join_value = get_join_value(record);
+      if (join_value == UINT16_MAX) {
+        continue;
+      }
       if (sub_empty_records.count(join_value) > 0) {
         auto pre_left_record_index = sub_empty_records[join_value];
         RecordBase & pre_left_record = (*concat_records.data_)[pre_left_record_index];

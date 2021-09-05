@@ -505,11 +505,13 @@ class Records(RecordsInterface):
 
         records.sort(key="merge_stamp", inplace=True)
 
-        def get_join_value(record: RecordInterface):
+        def get_join_value(record: RecordInterface) -> Optional[int]:
             if join_key is None:
                 return 0
-                # TODO: implement when: join_key is not None and join_key not in record.columns
-            return record.get(join_key)
+            elif join_key in record.columns:
+                return record.get(join_key)
+            else:
+                return None
 
         for record in records._data:
             if record.get("side") == MergeSideInfo.LEFT and record.get("has_merge_stamp"):
@@ -517,15 +519,18 @@ class Records(RecordsInterface):
                 record.add("sub_record", None)  # type: ignore
 
                 join_value = get_join_value(record)
+                if join_value is None:
+                    continue
                 if join_value in next_empty_records.keys():
                     pre_left_record = next_empty_records[join_value]
                     pre_left_record._data["next_record"] = record
                     # del next_empty_records[join_value]
-
                 next_empty_records[join_value] = record
                 sub_empty_records[join_value] = record
             elif record.get("side") == MergeSideInfo.RIGHT and record.get("has_merge_stamp"):
                 join_value = get_join_value(record)
+                if join_value is None:
+                    continue
                 if join_value in sub_empty_records.keys():
                     pre_left_record = sub_empty_records[join_value]
                     pre_left_record._data["sub_record"] = record

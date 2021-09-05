@@ -1040,8 +1040,8 @@ class TestRecords:
                             }
                         ),
                         Record({"other_stamp_": 6, "stamp_": 7, "value": 1}),
-                        Record({"other_stamp_": 10}),
-                        Record({"other_stamp_": 14}),
+                        Record({"other_stamp_": 10, "stamp_": 10}),
+                        Record({"other_stamp_": 14, "value": 2}),
                     ]
                 ),
             ),
@@ -1061,8 +1061,8 @@ class TestRecords:
             [
                 Record({"other_stamp_": 2, "stamp_": 3, "value": 1}),
                 Record({"other_stamp_": 6, "stamp_": 7, "value": 1}),
-                Record({"other_stamp_": 10}),
-                Record({"other_stamp_": 14}),
+                Record({"other_stamp_": 10, "stamp_": 10}),
+                Record({"other_stamp_": 14, "value": 2}),
             ]
         )
 
