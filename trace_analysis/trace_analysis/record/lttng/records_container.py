@@ -190,12 +190,11 @@ class RecordsContainer:
         )
 
         for callback_record in callback_records.data:
-            try:
-                callback_object = callback_record.get("callback_object")
-                records = cb_to_records[callback_object]
-                records.append(callback_record)
-            except KeyError:
-                pass
+            if "callback_object" not in callback_record.columns:
+                continue
+            callback_object = callback_record.get("callback_object")
+            records = cb_to_records[callback_object]
+            records.append(callback_record)
 
         subscription_intra_callback_records = RecordsFactory.create_instance()
         subscription_inter_callback_records = RecordsFactory.create_instance()
