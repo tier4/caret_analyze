@@ -87,6 +87,7 @@ class CallbackBase(CallbackInterface, LatencyBase):
     def to_records(self) -> RecordsInterface:
         assert self._latency_composer is not None
         records = self._latency_composer.compose_callback_records(self)
+        records.sort(CallbackBase.column_names[0], inplace=True)
 
         return records
 

@@ -121,10 +121,12 @@ class Communication(CommunicationInterface, LatencyBase):
             records = self._latency_composer.compose_intra_process_communication_records(
                 self.callback_subscription, self.callback_publish
             )
+            records.sort(Communication.column_names_intra_process[0], inplace=True)
         else:
             records = self._latency_composer.compose_inter_process_communication_records(
                 self.callback_subscription, self.callback_publish
             )
+            records.sort(Communication.column_names_inter_process[0], inplace=True)
 
         return records
 
@@ -202,6 +204,7 @@ class PubSubLatency(CommunicationInterface, LatencyBase):
         records = self._latency_composer.compose_inter_process_communication_records(
             self.callback_subscription, self.callback_publish
         )
+        records.sort(PubSubLatency.column_names[0], inplace=True)
 
         return records
 
@@ -257,6 +260,7 @@ class DDSLatency(CommunicationInterface, LatencyBase):
             "rclcpp_publish_timestamp",
         ]
         records.drop_columns(rcl_layer_columns, inplace=True)
+        records.sort(DDSLatency.column_names[0], inplace=True)
 
         return records
 
@@ -279,6 +283,7 @@ class VariablePassing(CommunicationInterface, LatencyBase):
         records: RecordsInterface = self._latency_composer.compose_variable_passing_records(
             self.callback_write, self.callback_read
         )
+        records.sort(VariablePassing.column_names[0], inplace=True)
         return records
 
     def to_dataframe(

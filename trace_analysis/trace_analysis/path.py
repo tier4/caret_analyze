@@ -314,6 +314,9 @@ class Path(UserList, LatencyBase):
                 # callback_end -> callback_start [merge]
                 merger.merge(latency_, "callback_end_timestamp")
 
+        if column_only is False:
+            merger.records.sort(self._column_names[0], inplace=True)
+
         return merger.records, merger.column_names.data
 
     def to_dataframe(
