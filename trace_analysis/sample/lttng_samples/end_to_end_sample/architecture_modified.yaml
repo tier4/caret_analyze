@@ -1,4 +1,13 @@
-path_name_alias: []
+path_name_alias:
+- path_name: end_to_end
+  callbacks:
+  - /sensor_dummy_node/timer_callback_0
+  - /filter_node/subscription_callback_0
+  - /message_driven_node/subscription_callback_0
+  - /message_driven_node/subscription_callback_1
+  - /timer_driven_node/subscription_callback_0
+  - /timer_driven_node/timer_callback_0
+  - /actuator_dummy_node/subscription_callback_0
 nodes:
 - node_name: /actuator_dummy_node
   callbacks:

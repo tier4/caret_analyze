@@ -13,7 +13,9 @@
 # limitations under the License.
 
 
-from typing import List
+from typing import List, Dict
+
+from itertools import product
 
 from .util import Util
 
@@ -29,12 +31,17 @@ from trace_analysis.graph_search import CallbackPathSercher
 class Application:
     def __init__(self, arch: Architecture):
         self.nodes: List[Node] = arch.nodes
-        self._path_aliases: List[PathAlias] = arch.path_aliases
         self.communications: List[Communication] = arch.communications
         self.variable_passings: List[VariablePassing] = arch.variable_passings
         self._path_searcher = CallbackPathSercher(
             arch.nodes, arch.communications, arch.variable_passings
         )
+        self.path: Dict[str, Path] = self._to_paths(arch.path_aliases)
+        self._set_node_paths(self.nodes)
+
+    @property
+    def paths(self) -> List[Path]:
+        return list(self.path.values())
 
     def search_paths(
         self, start_callback_unique_name: str, end_callback_unique_name: str
@@ -47,6 +54,23 @@ class Application:
 
     def _to_path(self, callbacks: List[CallbackBase]) -> Path:
         return Path(callbacks, self.communications, self.variable_passings)
+
+    def _to_callback(self, unique_name: str):
+        return Util.find_one(self.callbacks, lambda x: x.unique_name == unique_name)
+
+    def _set_node_paths(self, nodes):
+        for node in nodes:
+            for start_callback, end_callback in product(node.callbacks, node.callbacks):
+                node.paths += self.search_paths(
+                    start_callback.unique_name, end_callback.unique_name
+                )
+
+    def _to_paths(self, path_aliases: List[PathAlias]) -> Dict[str, Path]:
+        path: Dict[str, Path] = {}
+        for alias in path_aliases:
+            callbacks = [self._to_callback(name) for name in alias.callback_names]
+            path[alias.path_name] = self._to_path(callbacks)
+        return path
 
     @property
     def callbacks(self) -> List[CallbackBase]:

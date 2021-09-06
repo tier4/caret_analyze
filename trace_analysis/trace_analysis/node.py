@@ -20,6 +20,7 @@ from trace_analysis.callback import CallbackBase
 from trace_analysis.record.interface import LatencyComposer
 from trace_analysis.pub_sub import Publisher, Subscription
 from trace_analysis.communication import VariablePassing
+from trace_analysis.path import Path
 
 
 class Node:
@@ -30,6 +31,7 @@ class Node:
         self._unlinked_publishes: List[Publisher] = []
         self.composer: Optional[LatencyComposer] = None
         self.variable_passings: List[VariablePassing] = []
+        self.paths: List[Path] = []
 
     @property
     def publishes(self) -> List[Publisher]:

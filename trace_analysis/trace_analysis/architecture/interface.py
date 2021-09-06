@@ -26,9 +26,9 @@ UNDEFINED_STR = "UNDEFINED"
 
 
 class PathAlias:
-    def __init__(self, alias: str, callbacks: List[CallbackBase]):
-        self.alias = alias
-        self.callbacks = callbacks
+    def __init__(self, alias: str, callback_names: List[str]):
+        self.path_name = alias
+        self.callback_names = callback_names
 
 
 class ArchitectureInterface(metaclass=ABCMeta):

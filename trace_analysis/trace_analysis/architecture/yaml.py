@@ -38,21 +38,10 @@ class YamlArchitectureExporter(ArchitectureExporter):
 
         with open(file_path, mode="w") as f:
             obj: Dict[str, Any] = {
-                "path_name_alias": self._aliases_to_yaml_objs(architecture.path_aliases),
+                "path_name_alias": [],
                 "nodes": self._nodes_to_yaml_objs(architecture.nodes),
             }
             f.write(yaml.dump(obj, indent=2, default_flow_style=False, sort_keys=False))
-
-    def _aliases_to_yaml_objs(self, aliases: List[PathAlias]) -> List[YamlObject]:
-        objs: List[YamlObject] = []
-        # TODO(hsgwa): implement here
-        # for path in aliases:
-        #     objs.append({"path_name": path.alias, "callbacks": path.callback_names})
-
-        # if len(objs) == 0:
-        #     objs.append({"path_name": UNDEFINED_STR, "callbacks": []})
-
-        return objs
 
     def _nodes_to_yaml_objs(self, nodes: List[Node]) -> List[YamlObject]:
         objs: List[YamlObject] = []
@@ -217,7 +206,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
 
         for alias_dict in arch_yaml["path_name_alias"]:
             self._path_aliases.append(
-                PathAlias(alias=alias_dict["path_name"], callbacks=alias_dict["callbacks"])
+                PathAlias(alias=alias_dict["path_name"], callback_names=alias_dict["callbacks"])
             )
 
         return None
