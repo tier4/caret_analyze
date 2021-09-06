@@ -272,6 +272,10 @@ class Path(UserList, LatencyBase):
         records, _ = self._merge_path()
         return records
 
+    def __str__(self) -> str:
+        unique_names = [callback.unique_name for callback in self.callbacks]
+        return "\n".join(unique_names)
+
     def _to_column_names(self):
         assert len(self) > 0
         _, column_names = self._merge_path(column_only=True)
