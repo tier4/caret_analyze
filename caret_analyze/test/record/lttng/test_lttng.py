@@ -136,7 +136,7 @@ class TestLttng:
                 "/filter_node",
                 "/sensor_dummy_node",
                 "/topic1",
-                109,
+                117,
             ),
         ],
     )
