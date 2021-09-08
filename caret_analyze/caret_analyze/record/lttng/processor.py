@@ -75,11 +75,11 @@ class Ros2Handler(EventHandler):
         handler_map[
             "ros2:dispatch_intra_process_subscription_callback"
         ] = self._handle_dispatch_intra_process_subscription_callback
-        handler_map["ros2_hook:on_data_available"] = self._handle_on_data_available
+        handler_map["ros2_caret:on_data_available"] = self._handle_on_data_available
         handler_map["ros2:rcl_publish"] = self._handle_rcl_publish
-        handler_map["ros2_hook:dds_write"] = self._handle_dds_write
-        handler_map["ros2_hook:dds_bind_addr_to_stamp"] = self._handle_dds_bind_addr_to_stamp
-        handler_map["ros2_hook:dds_bind_addr_to_addr"] = self._handle_dds_bind_addr_to_addr
+        handler_map["ros2_caret:dds_write"] = self._handle_dds_write
+        handler_map["ros2_caret:dds_bind_addr_to_stamp"] = self._handle_dds_bind_addr_to_stamp
+        handler_map["ros2_caret:dds_bind_addr_to_addr"] = self._handle_dds_bind_addr_to_addr
 
         super().__init__(
             handler_map=handler_map,
