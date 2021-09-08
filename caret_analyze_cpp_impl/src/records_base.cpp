@@ -254,7 +254,7 @@ RecordsBase RecordsBase::_merge(
     auto join_value = record.get(join_key);
     if (record.get("side") == Left) {
       if (left_record_ && !left_record_->get("found_right_record")) {
-        empty_records.push_back(&record);
+        empty_records.push_back(left_record_);
       }
       left_record_ = &record;
       left_record_->add("found_right_record", false);
