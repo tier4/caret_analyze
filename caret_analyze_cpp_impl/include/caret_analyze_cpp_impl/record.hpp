@@ -1,4 +1,18 @@
-#pragma once
+// Copyright 2021 Research Institute of Systems Planning, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef CARET_ANALYZE_CPP_IMPL__RECORD_HPP_
 
 #include <unordered_set>
 #include <unordered_map>
@@ -14,7 +28,7 @@ public:
   using DataT = std::unordered_map<std::string, uint64_t>;
 
   RecordBase();
-  RecordBase(std::unordered_map<std::string, uint64_t> dict);
+  explicit RecordBase(std::unordered_map<std::string, uint64_t> dict);
   RecordBase(const RecordBase & record);
   ~RecordBase() = default;
 
@@ -41,9 +55,9 @@ public:
   using DataT = std::vector<RecordBase>;
 
   RecordsBase();
-  RecordsBase(DataT records);
   RecordsBase(const RecordsBase & records);
-  RecordsBase(std::string json_path);
+  explicit RecordsBase(DataT records);
+  explicit RecordsBase(std::string json_path);
 
   ~RecordsBase() = default;
 
@@ -92,3 +106,6 @@ public:
 
 private:
 };
+
+#endif  // CARET_ANALYZE_CPP_IMPL__RECORD_HPP_
+#define CARET_ANALYZE_CPP_IMPL__RECORD_HPP_

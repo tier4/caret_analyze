@@ -13,7 +13,7 @@ include_directories(
   pybind11/include
   json/include
   indicators/include
-  )
+)
 pybind11_add_module(record_cpp_impl
 src/pybind.cpp
 src/record_base.cpp

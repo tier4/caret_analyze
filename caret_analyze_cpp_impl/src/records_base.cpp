@@ -1,3 +1,18 @@
+// Copyright 2021 Research Institute of Systems Planning, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
@@ -8,7 +23,6 @@
 #include <algorithm>
 #include <set>
 #include <memory>
-#include <limits>
 #include <tuple>
 #include <utility>
 
@@ -47,9 +61,9 @@ RecordsBase::RecordsBase(std::string json_path)
   std::ifstream json_file(json_path.c_str());
   json records_json;
   json_file >> records_json;
-  for (auto & record_json: records_json) {
+  for (auto & record_json : records_json) {
     RecordBase record;
-    for (auto & elem: record_json.items()) {
+    for (auto & elem : record_json.items()) {
       auto & key = elem.key();
       auto & value = elem.value();
       record.add(key, value);
@@ -62,7 +76,7 @@ RecordsBase::RecordsBase(std::string json_path)
 void RecordsBase::append(const RecordBase & other)
 {
   data_->push_back(other);
-  for (auto & pair: other.get_data()) {
+  for (auto & pair : other.get_data()) {
     columns_->insert(pair.first);
   }
 }
@@ -91,7 +105,7 @@ bool RecordsBase::equals(const RecordsBase & other) const
 
 void RecordsBase::_drop_columns(std::vector<std::string> column_names)
 {
-  for (auto & record: *data_) {
+  for (auto & record : *data_) {
     record._drop_columns(column_names);
   }
   for (auto & column_name : column_names) {
@@ -101,12 +115,12 @@ void RecordsBase::_drop_columns(std::vector<std::string> column_names)
 
 void RecordsBase::_rename_columns(std::unordered_map<std::string, std::string> renames)
 {
-  for (auto & record: *data_) {
-    for (auto & pair: renames) {
+  for (auto & record : *data_) {
+    for (auto & pair : renames) {
       record.change_dict_key(pair.first, pair.second);
     }
   }
-  for (auto & pair: renames) {
+  for (auto & pair : renames) {
     columns_->erase(pair.first);
     columns_->insert(pair.second);
   }
@@ -195,11 +209,11 @@ RecordsBase RecordsBase::_merge(
 
   auto left_records = RecordsBase(*this);
 
-  for (auto & left_record: *left_records.data_) {
+  for (auto & left_record : *left_records.data_) {
     left_record.add("side", Left);
   }
 
-  for (auto & right_record: *right_records.data_) {
+  for (auto & right_record : *right_records.data_) {
     right_record.add("side", Right);
   }
 
@@ -260,7 +274,7 @@ RecordsBase RecordsBase::_merge(
   if (left_record_ && !left_record_->get("found_right_record")) {
     empty_records.push_back(left_record_);
   }
-  for (auto & record_ptr: empty_records) {
+  for (auto & record_ptr : empty_records) {
     auto & record = *record_ptr;
     if (record.get("side") == Left && merge_left_record) {
       merged_records.append(record);
@@ -286,7 +300,6 @@ RecordsBase RecordsBase::_merge_sequencial(
   std::string progress_label
 )
 {
-
   auto left_records = RecordsBase(*this);
 
   bool merge_left = how == "left" || how == "outer";
@@ -294,11 +307,11 @@ RecordsBase RecordsBase::_merge_sequencial(
 
   RecordsBase merged_records;
 
-  for (auto & left_record: *left_records.data_) {
+  for (auto & left_record : *left_records.data_) {
     left_record.add("side", Left);
   }
 
-  for (auto & right_record: *right_records.data_) {
+  for (auto & right_record : *right_records.data_) {
     right_record.add("side", Right);
   }
 
@@ -337,7 +350,7 @@ RecordsBase RecordsBase::_merge_sequencial(
   for (uint64_t i = 0; i < (uint64_t)concat_records.data_->size(); i++) {
     auto & record = (*concat_records.data_)[i];
     if (record.get("side") == Left && record.get("has_merge_stamp")) {
-      record.add("next_record_index", UINT64_MAX); // use MAX as None
+      record.add("next_record_index", UINT64_MAX);  // use MAX as None
       record.add("sub_record_index", UINT64_MAX);
 
       auto join_value = get_join_value(record);
@@ -369,7 +382,7 @@ RecordsBase RecordsBase::_merge_sequencial(
 
   std::size_t records_size = concat_records.data_->size();
   auto bar = Progress(records_size, progress_label);
-  for (int i = 0; i < (int)records_size; i++) {
+  for (int i = 0; i < static_cast<int>(records_size); i++) {
     bar.tick();
     RecordBase & current_record = (*concat_records.data_)[i];
     bool is_recorded = added.count(&current_record) > 0;
@@ -459,11 +472,11 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
     record.add("type", Source);
     record.add("timestamp", record.get(source_stamp_key));
   }
-  for (auto & record: *copy_records_.data_) {
+  for (auto & record : *copy_records_.data_) {
     record.add("type", Copy);
     record.add("timestamp", record.get(copy_stamp_key));
   }
-  for (auto & record: *sink_records_.data_) {
+  for (auto & record : *sink_records_.data_) {
     record.add("type", Sink);
     record.add("timestamp", record.get(sink_stamp_key));
   }
@@ -495,7 +508,7 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
       std::vector<RecordBase> processing_records_ = filter(
         processing_records, condition
       );
-      for (auto & processing_record_: processing_records_) {
+      for (auto & processing_record_ : processing_records_) {
         std::shared_ptr<StampSet> & processing_record_keys = stamp_sets[processing_record.get(
               "timestamp")];
         std::shared_ptr<StampSet> & corresponding_record_keys =
@@ -515,7 +528,7 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
   RecordsBase merged_records;
 
   auto bar = Progress(records.data_->size(), progress_label);
-  for (auto & record: *records.data_) {
+  for (auto & record : *records.data_) {
     bar.tick();
     if (record.get("type") == Sink) {
       auto timestamp = record.get("timestamp");
@@ -532,7 +545,7 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
         };
       std::vector<RecordBase> records_with_same_source_addrs =
         filter(processing_records, condition);
-      for (auto & processing_record: records_with_same_source_addrs) {
+      for (auto & processing_record : records_with_same_source_addrs) {
         auto timestamp = processing_record.get("timestamp");
         std::shared_ptr<StampSet> stamp_set = stamp_sets[timestamp];
         stamp_set->insert(record.get(copy_from_key));
@@ -549,8 +562,7 @@ RecordsBase RecordsBase::_merge_sequencial_for_addr_track(
         };
       std::vector<RecordBase> records_with_same_source_addrs =
         filter(processing_records, condition);
-      for (auto & processing_record: records_with_same_source_addrs) {
-
+      for (auto & processing_record : records_with_same_source_addrs) {
         // remove processing_record from processing_records
         auto it = processing_records.begin();
         while (it != processing_records.end()) {
