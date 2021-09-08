@@ -53,7 +53,7 @@ class TestTimerCallback:
         assert len(t) == 5 and len(latencies) == 5
 
         latencies, hist = callback.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 6 and len(hist) == 7
+        assert len(latencies) == 5 and len(hist) == 6
 
 
 class TestSubscriptionCallback:
