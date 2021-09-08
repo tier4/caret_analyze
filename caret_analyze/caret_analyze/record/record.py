@@ -574,7 +574,8 @@ class Records(RecordsInterface):
                     added.add(current_record)
                 continue
 
-            merged_record = deepcopy(current_record)
+            merged_record = Record()
+            merged_record.merge(current_record, inplace=True)
             merged_record.merge(sub_record, inplace=True)
             merged_records.append(merged_record)
             added.add(current_record)
