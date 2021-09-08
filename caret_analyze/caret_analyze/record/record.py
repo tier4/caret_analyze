@@ -412,8 +412,7 @@ class Records(RecordsInterface):
         records.sort(key="merge_stamp", sub_key="side", inplace=True)
 
         empty_records: List[Record] = []
-        left_record_: Record
-        is_first_left_record = True
+        left_record_: Optional[Record] = None
 
         for record in records._data:
             if record.get("has_valid_join_key") is False:
@@ -426,14 +425,13 @@ class Records(RecordsInterface):
             join_value = record.get(join_key)
 
             if record.get("side") == MergeSideInfo.LEFT:
-                if not is_first_left_record and left_record_.get("found_right_record") is False:
+                if left_record_ and left_record_.get("found_right_record") is False:
                     empty_records.append(left_record_)
-                is_first_left_record = False
                 left_record_ = record
                 left_record_.add("found_right_record", False)
             else:
                 if (
-                    is_first_left_record is False
+                    left_record_
                     and join_value == left_record_.get(join_key)
                     and record.get("has_valid_join_key")
                 ):
