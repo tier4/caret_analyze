@@ -207,19 +207,19 @@ RecordsBase RecordsBase::_merge(
   bool merge_right_record = how == "right" || how == "outer";
   bool merge_left_record = how == "left" || how == "outer";
 
-  auto left_records = RecordsBase(*this);
+  auto left_records_copy = RecordsBase(*this);
+  auto right_records_copy = RecordsBase(right_records);
 
-  for (auto & left_record : *left_records.data_) {
+  for (auto & left_record : *left_records_copy.data_) {
     left_record.add("side", Left);
   }
 
-  for (auto & right_record : *right_records.data_) {
+  for (auto & right_record : *right_records_copy.data_) {
     right_record.add("side", Right);
   }
 
-  RecordsBase & concat_records = left_records;
-  concat_records._concat(right_records);
-
+  RecordsBase & concat_records = left_records_copy;
+  concat_records._concat(right_records_copy);
   for (auto & record : *concat_records.data_) {
     record.add("has_valid_join_key", record.columns_.count(join_key) > 0);
 
