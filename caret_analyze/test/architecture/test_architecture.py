@@ -28,7 +28,7 @@ class TestArchitecture:
             ("sample/lttng_samples/multi_talker_listener/architecture.yaml", 4, 0, 2, 0),
             ("sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml", 2, 0, 2, 0),
             ("sample/lttng_samples/end_to_end_sample/architecture.yaml", 6, 0, 3, 0),
-            ("sample/lttng_samples/end_to_end_sample/architecture_modified.yaml", 6, 0, 5, 2),
+            ("sample/lttng_samples/end_to_end_sample/architecture_modified.yaml", 6, 1, 5, 2),
         ],
     )
     def test_import_file(self, yaml_path, nodes_len, aliases_len, comm_len, var_passings_len):

@@ -17,7 +17,6 @@ from typing import List, Optional
 
 from abc import ABCMeta, abstractmethod
 
-from caret_analyze.callback import CallbackBase
 from caret_analyze.communication import VariablePassing, Communication
 from caret_analyze.node import Node
 
