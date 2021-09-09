@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Callable, Union, Optional, Tuple, Set
+from typing import List, Callable, NamedTuple, Union, Optional, Tuple, Set
 
 import numpy as np
 import pandas as pd
@@ -28,51 +28,42 @@ from caret_analyze.communication import Communication, VariablePassing, Communic
 from caret_analyze.util import Util, UniqueList
 from caret_analyze.record.record import RecordsInterface, merge, merge_sequencial
 
-TracePointsType = namedtuple(
-    "TracePointsType",
-    "CALLBACK INTER_PROCESS  INTRA_PROCESS VARIABLE_PASSING",
-)
 
-CommunicationTracePointsType = namedtuple("CommunicationTracePointsType", "FROM TO")
-TracePointType = namedtuple(
-    "TracePointType",
-    [
-        "CALLBACK_START_TIMESTAMP",
-        "CALLBACK_END_TIMESTAMP",
-        "RCLCPP_PUBLISH_TIMESTAMP",
-        "RCL_PUBLISH_TIMESTAMP",
-        "DDS_WRITE_TIMESTAMP",
-        "ON_DATA_AVAILABLE_TIMESTAMP",
-        "RCLCPP_INTRA_PUBLISH_TIMESTAMP",
-    ],
-)
-TRACE_POINT = TracePointType(
-    "callback_start_timestamp",
-    "callback_end_timestamp",
-    "rclcpp_publish_timestamp",
-    "rcl_publish_timestamp",
-    "dds_write_timestamp",
-    "on_data_available_timestamp",
-    "rclcpp_intra_publish_timestamp",
-)
+class TracePoint(NamedTuple):
+    CALLBACK_START_TIMESTAMP: str = "callback_start_timestamp"
+    CALLBACK_END_TIMESTAMP: str = "callback_end_timestamp"
+    RCLCPP_PUBLISH_TIMESTAMP: str = "rclcpp_publish_timestamp"
+    RCL_PUBLISH_TIMESTAMP: str = "rcl_publish_timestamp"
+    DDS_WRITE_TIMESTAMP: str = "dds_write_timestamp"
+    ON_DATA_AVAILABLE_TIMESTAMP: str = "on_data_available_timestamp"
+    RCLCPP_INTRA_PUBLISH_TIMESTAMP: str = "rclcpp_intra_publish_timestamp"
 
-TRACE_POINTS = TracePointsType(
-    (TRACE_POINT.CALLBACK_START_TIMESTAMP, TRACE_POINT.CALLBACK_END_TIMESTAMP),
-    CommunicationTracePointsType(
-        (
+
+TRACE_POINT = TracePoint()
+
+
+class TracePoints(NamedTuple):
+    CALLBACK: List[str] = [
+        TRACE_POINT.CALLBACK_START_TIMESTAMP,
+        TRACE_POINT.CALLBACK_END_TIMESTAMP,
+    ]
+    INTER_PROCESS_FROM: List[str] = [
             TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
             TRACE_POINT.RCL_PUBLISH_TIMESTAMP,
             TRACE_POINT.DDS_WRITE_TIMESTAMP,
-        ),
-        (TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP, TRACE_POINT.CALLBACK_START_TIMESTAMP),
-    ),
-    CommunicationTracePointsType(
-        (TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP,), (TRACE_POINT.CALLBACK_START_TIMESTAMP,)
-    ),
-    CommunicationTracePointsType(
-        (TRACE_POINT.CALLBACK_END_TIMESTAMP,), (TRACE_POINT.CALLBACK_START_TIMESTAMP,)
-    ),
-)
+    ]
+    INTER_PROCESS_TO: List[str] = [
+        TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
+        TRACE_POINT.CALLBACK_START_TIMESTAMP,
+    ]
+    INTRA_PROCESS_FROM: List[str] = [TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP]
+    INTRA_PROCESS_TO: List[str] = [TRACE_POINT.CALLBACK_START_TIMESTAMP]
+    VARIABLE_PASSING_FROM: List[str] = [TRACE_POINT.CALLBACK_END_TIMESTAMP]
+    VARIABLE_PASSING_TO: List[str] = [TRACE_POINT.CALLBACK_START_TIMESTAMP]
+
+
+TRACE_POINTS = TracePoints()
+
 
 LatencyComponent = Union[CallbackBase, Communication, VariablePassing]
 
@@ -81,9 +72,9 @@ class ColumnNameCounter(UserDict):
     def __init__(self) -> None:
         super().__init__()
         self._tracepoints_from = (
-            TRACE_POINTS.INTRA_PROCESS.FROM
-            + TRACE_POINTS.INTER_PROCESS.FROM
-            + TRACE_POINTS.VARIABLE_PASSING.FROM
+            TRACE_POINTS.INTER_PROCESS_FROM
+            + TRACE_POINTS.INTRA_PROCESS_FROM
+            + TRACE_POINTS.VARIABLE_PASSING_FROM
         )
 
     def increment_count(self, latency: LatencyComponent, tracepoint_names: List[str]) -> None:
@@ -210,9 +201,9 @@ class PathLatencyMerger:
         records = communication.to_records()
         renames = {}
 
-        for key in TRACE_POINTS.INTRA_PROCESS.FROM:
+        for key in TRACE_POINTS.INTRA_PROCESS_FROM:
             renames[key] = self._counter.to_column_name(communication, key)
-        for key in TRACE_POINTS.INTRA_PROCESS.TO:
+        for key in TRACE_POINTS.INTRA_PROCESS_TO:
             renames[key] = self._counter.to_column_name(communication, key)
 
         records.rename_columns(renames, inplace=True)
@@ -222,9 +213,9 @@ class PathLatencyMerger:
         records = communication.to_records()
         renames = {}
 
-        for key in TRACE_POINTS.INTER_PROCESS.FROM:
+        for key in TRACE_POINTS.INTER_PROCESS_FROM:
             renames[key] = self._counter.to_column_name(communication, key)
-        for key in TRACE_POINTS.INTER_PROCESS.TO:
+        for key in TRACE_POINTS.INTER_PROCESS_TO:
             renames[key] = self._counter.to_column_name(communication, key)
 
         records.rename_columns(renames, inplace=True)
@@ -234,9 +225,9 @@ class PathLatencyMerger:
         records = variable_passing.to_records()
         renames = {}
 
-        for key in TRACE_POINTS.VARIABLE_PASSING.FROM:
+        for key in TRACE_POINTS.VARIABLE_PASSING_FROM:
             renames[key] = self._counter.to_column_name(variable_passing, key)
-        for key in TRACE_POINTS.VARIABLE_PASSING.TO:
+        for key in TRACE_POINTS.VARIABLE_PASSING_TO:
             renames[key] = self._counter.to_column_name(variable_passing, key)
 
         records.rename_columns(renames, inplace=True)
