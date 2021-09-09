@@ -248,8 +248,7 @@ class TestRecords:
         records_py: Records = Records(
             [
                 Record({key_before: 0}),
-                Record({key_before: 1}),
-                Record({key_before: 2}),
+                Record(),
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -259,22 +258,26 @@ class TestRecords:
                 continue
 
             rename_keys = {key_before: key_after}
+            assert key_before in records.data[0].columns
+            assert key_after not in records.data[0].columns
+            assert key_before not in records.data[1].columns
+            assert key_after not in records.data[1].columns
 
-            for record in records.data:
-                assert key_before in record.columns
-                assert key_after not in record.columns
             assert records.columns == set([key_before])
 
             renamed_records = records.rename_columns(rename_keys)
-            for renamed_record in renamed_records.data:
-                assert key_before not in renamed_record.columns
-                assert key_after in renamed_record.columns
+            assert key_before not in renamed_records.data[0].columns
+            assert key_after in renamed_records.data[0].columns
+            assert key_before not in renamed_records.data[1].columns
+            assert key_after not in renamed_records.data[1].columns
+
             assert renamed_records.columns == set([key_after])
 
             records.rename_columns(rename_keys, inplace=True)
-            for record in records.data:
-                assert key_before not in record.columns
-                assert key_after in record.columns
+            assert key_before not in records.data[0].columns
+            assert key_after in records.data[0].columns
+            assert key_before not in records.data[1].columns
+            assert key_after not in records.data[1].columns
             assert records.columns == set([key_after])
 
     def test_filter(self):
