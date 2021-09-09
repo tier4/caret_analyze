@@ -27,13 +27,14 @@ import numpy as np
 from bokeh.io import show
 from bokeh.plotting import figure
 from bokeh.palettes import Bokeh8
+from bokeh.models import CrosshairTool
 
 
 def message_flow(path: Path, granularity: Optional[str] = None):
     granularity = granularity or "raw"
     assert granularity in ["raw", "callback", "node"]
 
-    p = figure(plot_width=1000, plot_height=400)
+    fig = figure(plot_width=1000, plot_height=400)
 
     df = path.to_dataframe()
     renames = {}
@@ -116,7 +117,7 @@ def message_flow(path: Path, granularity: Optional[str] = None):
     y = np.arange(len(df.T)) * -1
     for i, row in df.iterrows():
         x = row.values
-        p.line(
+        fig.line(
             x=x,  # X軸
             y=y,  # Y軸
             line_width=1.5,  # 線の幅
@@ -124,9 +125,11 @@ def message_flow(path: Path, granularity: Optional[str] = None):
             line_alpha=1,  # 線の彩度
         )
 
-    p.yaxis.ticker = y
+    fig.yaxis.ticker = y
     tick_labels = {}
     for y_value, column_name in zip(y, df.columns):
         tick_labels[str(y_value)] = column_name
-    p.yaxis.major_label_overrides = tick_labels
-    show(p)
+    fig.yaxis.major_label_overrides = tick_labels
+
+    fig.add_tools(CrosshairTool(line_alpha=0.4))
+    show(fig)
