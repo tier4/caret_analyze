@@ -13,16 +13,10 @@
 # limitations under the License.
 
 from typing import Optional
-from bokeh.models import callbacks, tickers
-
-from numpy.lib.function_base import _diff_dispatcher
-from numpy.lib.shape_base import split
 from ..path import Path
-from itertools import product
 from ..callback import CallbackBase, SubscriptionCallback
 from ..util import Util
 
-import pandas as pd
 import numpy as np
 from bokeh.io import show
 from bokeh.plotting import figure
