@@ -42,7 +42,22 @@ def message_flow(path: Path, granularity: Optional[str] = None):
     callback: Optional[CallbackBase] = None
 
     # 購読側のtopic_nameから扱うため、逆順で処理
-    if granularity == "callback":
+    if granularity == "raw":
+        topic_name = ""
+        for column_name in df.columns[::-1]:
+            split_text = column_name.split("/")
+            tracepoint_name = split_text[-2]
+            unique_name = "/".join(split_text[:-2])
+
+            callback = Util.find_one(path.callbacks, lambda x: x.unique_name == unique_name)
+            assert callback is not None
+            if tracepoint_name == "on_data_available_timestamp":
+                assert isinstance(callback, SubscriptionCallback)
+                topic_name = callback.topic_name
+                renames[column_name] = f"{topic_name}/{tracepoint_name}"
+            elif tracepoint_name == "dds_write_timestamp":
+                renames[column_name] = f"{topic_name}/{tracepoint_name}"
+    elif granularity == "callback":
         topic_name = ""
         for column_name in df.columns[::-1]:
             split_text = column_name.split("/")
