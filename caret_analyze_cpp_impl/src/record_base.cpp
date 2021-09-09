@@ -50,6 +50,9 @@ uint64_t RecordBase::get(std::string key) const
 
 void RecordBase::change_dict_key(std::string key_from, std::string key_to)
 {
+  if (data_.count(key_from) == 0) {
+    return;
+  }
   data_.insert(std::make_pair(key_to, data_[key_from]));
   data_.erase(key_from);
   columns_.erase(key_from);
