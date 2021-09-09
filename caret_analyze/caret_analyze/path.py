@@ -265,6 +265,8 @@ class Path(UserList, LatencyBase):
             callbacks, communications, variable_passings
         )
         super().__init__(chain)
+        self.communications = communications
+        self.variable_passings = variable_passings
         self._column_names: List[str] = self._to_column_names()
 
     def to_records(self) -> RecordsInterface:
