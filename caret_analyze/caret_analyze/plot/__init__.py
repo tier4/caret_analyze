@@ -14,5 +14,6 @@
 
 
 from .bokeh import message_flow
+from .graphviz import path_latency
 
 __all__ = ["message_flow"]

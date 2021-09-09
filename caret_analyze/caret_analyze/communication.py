@@ -86,6 +86,10 @@ class Communication(CommunicationInterface, LatencyBase):
     def callback_to(self):
         return self.callback_subscription
 
+    @property
+    def topic_name(self) -> str:
+        return self.callback_to.topic_name
+
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
