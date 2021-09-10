@@ -345,25 +345,19 @@ RecordsBase RecordsBase::_merge_sequencial(
     };
 
   concat_records._sort("merge_stamp", "side", true);
-  std::unordered_map<int, uint64_t> next_empty_records;
   std::unordered_map<int, uint64_t> sub_empty_records;
   for (uint64_t i = 0; i < (uint64_t)concat_records.data_->size(); i++) {
     auto & record = (*concat_records.data_)[i];
     if (record.get("side") == Left && record.get("has_merge_stamp")) {
-      record.add("next_record_index", UINT64_MAX);  // use MAX as None
-      record.add("sub_record_index", UINT64_MAX);
+      record.add("sub_record_index", UINT64_MAX);  // use MAX as None
 
       auto join_value = get_join_value(record);
       if (join_value == UINT16_MAX) {
         continue;
       }
-      if (next_empty_records.count(join_value) > 0) {
-        auto pre_left_record_index = next_empty_records[join_value];
-        RecordBase & pre_left_record = (*concat_records.data_)[pre_left_record_index];
-        pre_left_record.add("next_record_index", i);
+      if (sub_empty_records.count(join_value) == 0) {
+        sub_empty_records[join_value] = i;
       }
-      next_empty_records[join_value] = i;
-      sub_empty_records[join_value] = i;
     } else if (record.get("side") == Right && record.get("has_merge_stamp")) {
       auto join_value = get_join_value(record);
       if (join_value == UINT16_MAX) {
@@ -409,23 +403,13 @@ RecordsBase RecordsBase::_merge_sequencial(
       continue;
     }
 
-    RecordBase * next_record_ptr = nullptr;
     RecordBase * sub_record_ptr = nullptr;
-    auto next_record_index = current_record.get("next_record_index");
     auto sub_record_index = current_record.get("sub_record_index");
-    if (next_record_index != UINT64_MAX) {
-      next_record_ptr = &(*concat_records.data_)[next_record_index];
-    }
     if (sub_record_index != UINT64_MAX) {
       sub_record_ptr = &(*concat_records.data_)[sub_record_index];
     }
 
-    bool has_valid_next_record = next_record_ptr != nullptr &&
-      sub_record_ptr != nullptr &&
-      next_record_ptr->get("merge_stamp") < sub_record_ptr->get("merge_stamp");
-    if (has_valid_next_record || sub_record_ptr == nullptr ||
-      added.count(sub_record_ptr) > 0)
-    {
+    if (sub_record_ptr == nullptr || added.count(sub_record_ptr) > 0) {
       if (merge_left) {
         merged_records.append(current_record);
         added.insert(&current_record);
@@ -441,7 +425,7 @@ RecordsBase RecordsBase::_merge_sequencial(
 
   merged_records._drop_columns(
     {"side", "has_merge_stamp", "merge_stamp", "has_valid_join_key",
-      "next_record_index", "sub_record_index"});
+      "sub_record_index"});
 
   return merged_records;
 }

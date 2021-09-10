@@ -486,9 +486,6 @@ class Records(RecordsInterface):
         records: Records
         records = left_records.concat(right_records)  # type: ignore
 
-        next_empty_records: Dict[int, Record] = {}
-        sub_empty_records: Dict[int, Record] = {}
-
         for record in records._data:
             record.add("has_valid_join_key", join_key is None or join_key in record.columns)
             if record.get("side") == MergeSideInfo.LEFT and left_stamp_key in record.columns:
@@ -511,28 +508,24 @@ class Records(RecordsInterface):
             else:
                 return None
 
+        left_records_with_empty_sub_record: Dict[int, Record] = {}
         for record in records._data:
             if record.get("side") == MergeSideInfo.LEFT and record.get("has_merge_stamp"):
-                record.add("next_record", None)  # type: ignore  # TODO: clean here
                 record.add("sub_record", None)  # type: ignore
 
                 join_value = get_join_value(record)
                 if join_value is None:
                     continue
-                if join_value in next_empty_records.keys():
-                    pre_left_record = next_empty_records[join_value]
-                    pre_left_record._data["next_record"] = record
-                    # del next_empty_records[join_value]
-                next_empty_records[join_value] = record
-                sub_empty_records[join_value] = record
+                if join_value not in left_records_with_empty_sub_record.keys():
+                    left_records_with_empty_sub_record[join_value] = record
             elif record.get("side") == MergeSideInfo.RIGHT and record.get("has_merge_stamp"):
                 join_value = get_join_value(record)
                 if join_value is None:
                     continue
-                if join_value in sub_empty_records.keys():
-                    pre_left_record = sub_empty_records[join_value]
-                    pre_left_record._data["sub_record"] = record
-                    del sub_empty_records[join_value]
+                if join_value in left_records_with_empty_sub_record.keys():
+                    left_record_to_be_bind = left_records_with_empty_sub_record[join_value]
+                    left_record_to_be_bind._data["sub_record"] = record
+                    del left_records_with_empty_sub_record[join_value]
 
         added: Set[Record] = set()
         for i, current_record in enumerate(records._data):
@@ -558,15 +551,9 @@ class Records(RecordsInterface):
                     added.add(current_record)
                 continue
 
-            next_record: Optional[Record] = current_record._data["next_record"]
             sub_record: Optional[Record] = current_record._data["sub_record"]
 
-            has_valid_next_record = (
-                next_record is not None
-                and sub_record is not None
-                and next_record.get("merge_stamp") < sub_record.get("merge_stamp")
-            )
-            if has_valid_next_record or sub_record is None or sub_record in added:
+            if sub_record is None or sub_record in added:
                 if merge_left:
                     merged_records.append(current_record)
                     added.add(current_record)
@@ -584,7 +571,6 @@ class Records(RecordsInterface):
             "merge_stamp",
             "has_merge_stamp",
             "has_valid_join_key",
-            "next_record",
             "sub_record",
         ]
         merged_records.drop_columns(temporay_columns, inplace=True)
