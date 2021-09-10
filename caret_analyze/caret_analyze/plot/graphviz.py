@@ -89,20 +89,31 @@ def path_latency(path: Path, granularity: Optional[str] = None, **kwargs):
                 or comm_path.callback_to.node_name not in node_names
             ):
                 continue
-            _, pubsub_latency = comm_path.to_pubsub_latency().to_timeseries(remove_dropped=True)
-            _, dds_latency = comm_path.to_dds_latency().to_timeseries(remove_dropped=True)
-            label = comm_path.topic_name
-            label += "\n" + (
-                "min: {:.2f} ({:.2f}) ms\n".format(
-                    np.min(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+            if comm_path.is_intra_process:
+                _, pubsub_latency = comm_path.to_timeseries(remove_dropped=True)
+                label = comm_path.topic_name
+                label += "\n" + (
+                    "min: {:.2f} ms\n".format(np.min(pubsub_latency * 1.0e-6))
+                    + "avg: {:.2f} ms\n".format(np.average(pubsub_latency * 1.0e-6))
+                    + "max: {:.2f} ms".format(np.max(pubsub_latency * 1.0e-6))
                 )
-                + "avg: {:.2f} ({:.2f}) ms\n".format(
-                    np.average(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+            else:
+                _, pubsub_latency = comm_path.to_pubsub_latency().to_timeseries(
+                    remove_dropped=True
                 )
-                + "max: {:.2f} ({:.2f}) ms".format(
-                    np.max(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                _, dds_latency = comm_path.to_dds_latency().to_timeseries(remove_dropped=True)
+                label = comm_path.topic_name
+                label += "\n" + (
+                    "min: {:.2f} ({:.2f}) ms\n".format(
+                        np.min(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                    )
+                    + "avg: {:.2f} ({:.2f}) ms\n".format(
+                        np.average(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                    )
+                    + "max: {:.2f} ({:.2f}) ms".format(
+                        np.max(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                    )
                 )
-            )
 
             dot.edge(
                 comm_path.callback_from.node_name,
