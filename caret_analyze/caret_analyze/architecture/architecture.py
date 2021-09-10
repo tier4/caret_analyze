@@ -28,7 +28,7 @@ from caret_analyze.util import Util
 from . import YamlArchitectureExporter, YamlArchitectureImporter, LttngArchitectureImporter
 from caret_analyze.record import LatencyComposer
 
-IGNORE_TOPICS = ["/parameter_events", "/rosout"]
+IGNORE_TOPICS = ["/parameter_events", "/rosout", "/clock"]
 
 
 class Architecture(ArchitectureInterface):
