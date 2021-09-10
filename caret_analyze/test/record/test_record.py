@@ -839,6 +839,7 @@ class TestRecords:
                 Records(
                     [
                         Record({"stamp": 0, "sub_stamp": 1}),
+                        Record({"stamp": 3, "sub_stamp": 6}),
                     ]
                 ),
             ),
@@ -847,7 +848,10 @@ class TestRecords:
                 Records(
                     [
                         Record({"stamp": 0, "sub_stamp": 1}),
-                        Record({"stamp": 3}),
+                        Record({"stamp": 3, "sub_stamp": 6}),
+                        Record({"stamp": 4}),
+                        Record({"stamp": 5}),
+                        Record({"stamp": 8}),
                     ]
                 ),
             ),
@@ -856,7 +860,8 @@ class TestRecords:
                 Records(
                     [
                         Record({"stamp": 0, "sub_stamp": 1}),
-                        Record({"sub_stamp": 2}),
+                        Record({"stamp": 3, "sub_stamp": 6}),
+                        Record({"sub_stamp": 7}),
                     ]
                 ),
             ),
@@ -865,8 +870,11 @@ class TestRecords:
                 Records(
                     [
                         Record({"stamp": 0, "sub_stamp": 1}),
-                        Record({"sub_stamp": 2}),
-                        Record({"stamp": 3}),
+                        Record({"stamp": 3, "sub_stamp": 6}),
+                        Record({"stamp": 4}),
+                        Record({"stamp": 5}),
+                        Record({"sub_stamp": 7}),
+                        Record({"stamp": 8}),
                     ]
                 ),
             ),
@@ -877,13 +885,17 @@ class TestRecords:
             [
                 Record({"stamp": 0}),
                 Record({"stamp": 3}),
+                Record({"stamp": 4}),
+                Record({"stamp": 5}),
+                Record({"stamp": 8}),
             ]
         )
 
         right_records_py: Records = Records(
             [
                 Record({"sub_stamp": 1}),
-                Record({"sub_stamp": 2}),
+                Record({"sub_stamp": 6}),
+                Record({"sub_stamp": 7}),
             ]
         )
 
@@ -913,7 +925,7 @@ class TestRecords:
                 Records(
                     [
                         Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
-                        Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                        Record({"key": 1, "stamp": 4, "sub_stamp": 7}),
                     ]
                 ),
             ),
@@ -922,9 +934,9 @@ class TestRecords:
                 Records(
                     [
                         Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
-                        Record({"key": 1, "stamp": 4}),
+                        Record({"key": 1, "stamp": 4, "sub_stamp": 7}),
                         Record({"key": 1, "stamp": 5}),
-                        Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                        Record({"key": 1, "stamp": 6}),
                     ]
                 ),
             ),
@@ -935,7 +947,7 @@ class TestRecords:
                         Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
                         Record({"key": 3, "sub_stamp": 1}),
                         Record({"key": 1, "sub_stamp": 3}),
-                        Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                        Record({"key": 1, "stamp": 4, "sub_stamp": 7}),
                     ]
                 ),
             ),
@@ -946,9 +958,9 @@ class TestRecords:
                         Record({"key": 1, "stamp": 0, "sub_stamp": 2}),
                         Record({"key": 3, "sub_stamp": 1}),  # stamp lost
                         Record({"key": 1, "sub_stamp": 3}),  # stamp lost
-                        Record({"key": 1, "stamp": 4}),  # sub_stamp lost
+                        Record({"key": 1, "stamp": 4, "sub_stamp": 7}),
                         Record({"key": 1, "stamp": 5}),  # sub_stamp lost
-                        Record({"key": 1, "stamp": 6, "sub_stamp": 7}),
+                        Record({"key": 1, "stamp": 6}),  # sub_stamp lost
                     ]
                 ),
             ),
