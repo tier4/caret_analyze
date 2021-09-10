@@ -174,7 +174,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
             and cb.callback_name == subscription.callback_name,
         )
         if callback_publish is None:
-            print('f"callback_name is UNDEFINED. Ignoring {publish.topic_name} topic."')
+            print(f"callback_name is UNDEFINED. Ignoring {publish.topic_name} topic.")
             return None
         if callback_subscription is None or not isinstance(
             callback_subscription, SubscriptionCallback
