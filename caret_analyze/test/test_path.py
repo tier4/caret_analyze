@@ -365,8 +365,7 @@ class TestPath:
             return df
 
         lttng = Lttng("sample/lttng_samples/end_to_end_sample")
-        arch = Architecture()
-        arch.import_file(
+        arch = Architecture(
             "sample/lttng_samples/end_to_end_sample/architecture_modified.yaml", "yaml", lttng
         )
         app = Application(arch)

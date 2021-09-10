@@ -29,8 +29,9 @@ class TestTimerCallback:
 
     def test_to_dataframe(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture()
-        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch = Architecture(
+            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
+        )
         app = Application(arch)
         node = app.nodes[1]
         callback = node.callbacks[0]
@@ -43,8 +44,9 @@ class TestTimerCallback:
 
     def test_to_timeseries_and_to_histogram(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture()
-        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch = Architecture(
+            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
+        )
         app = Application(arch)
         node = app.nodes[1]
         callback = node.callbacks[0]
@@ -63,8 +65,9 @@ class TestSubscriptionCallback:
 
     def test_to_dataframe(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture()
-        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch = Architecture(
+            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
+        )
         app = Application(arch)
         node = app.nodes[0]
         callback = node.callbacks[0]
@@ -77,8 +80,9 @@ class TestSubscriptionCallback:
 
     def test_to_timeseries_and_to_histogram(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture()
-        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch = Architecture(
+            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
+        )
         app = Application(arch)
         node = app.nodes[0]
         callback = node.callbacks[0]

@@ -32,8 +32,7 @@ class TestArchitecture:
         ],
     )
     def test_import_file(self, yaml_path, nodes_len, aliases_len, comm_len, var_passings_len):
-        arch = Architecture()
-        arch.import_file(yaml_path, "yaml", None)
+        arch = Architecture(yaml_path, "yaml", None)
 
         assert len(arch.nodes) == nodes_len
         assert len(arch._path_aliases) == aliases_len
@@ -50,17 +49,14 @@ class TestArchitecture:
         ],
     )
     def test_export_and_import_yaml(self, tmpdir, trace_path):
-        arch = Architecture()
-
-        arch.import_file(trace_path, "lttng", None)
+        arch = Architecture(trace_path, "lttng", None)
 
         trace_name = trace_path.split("/")[-1]
         yaml_path = tmpdir.mkdir("architecture").join(f"{trace_name}.yaml")
 
-        arch.export_file(yaml_path, "yaml")
+        arch.export(yaml_path)
 
-        arch_ = Architecture()
-        arch_.import_file(yaml_path, "yaml", None)
+        arch_ = Architecture(yaml_path, "yaml", None)
 
         assert len(arch.nodes) == len(arch_.nodes)
         assert len(arch.path_aliases) == len(arch_.path_aliases)

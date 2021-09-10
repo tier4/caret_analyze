@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from typing import List, Optional
-
 from caret_analyze.node import Node
 from caret_analyze.communication import VariablePassing, Communication
 from caret_analyze.architecture.interface import (
@@ -32,28 +31,31 @@ IGNORE_TOPICS = ["/parameter_events", "/rosout", "/clock"]
 
 
 class Architecture(ArchitectureInterface):
-    def __init__(self):
-        self._nodes: List[Node] = []
-        self._path_aliases: List[PathAlias] = []
-        self._communications: List[Communication] = []
-
-    def export_file(self, file_path: str, file_type: str):
-        assert file_type in ["yml", "yaml"]
-
-        exporter: ArchitectureExporter
-        if file_type in ["yml", "yaml"]:
-            exporter = YamlArchitectureExporter()
-
-        exporter.exec(self, file_path)
-
-    def import_file(
+    def __init__(
         self,
         file_path: str,
         file_type: str,
         latency_composer: Optional[LatencyComposer],
-        ignore_topics=IGNORE_TOPICS,
+        ignore_topics: List[str] = IGNORE_TOPICS,
     ):
-        # 小文字に揃える
+        self._nodes: List[Node] = []
+        self._path_aliases: List[PathAlias] = []
+        self._communications: List[Communication] = []
+        self._import(file_path, file_type, latency_composer, ignore_topics)
+
+    def export(self, file_path: str):
+        exporter: ArchitectureExporter
+        exporter = YamlArchitectureExporter()
+        exporter.exec(self, file_path)
+
+    def _import(
+        self,
+        file_path: str,
+        file_type: str,
+        latency_composer: Optional[LatencyComposer],
+        ignore_topics: List[str],
+    ) -> None:
+        file_type = file_type.lower()
         assert file_type in ["ctf", "lttng", "yml", "yaml"]
 
         importer: ArchitectureImporter
