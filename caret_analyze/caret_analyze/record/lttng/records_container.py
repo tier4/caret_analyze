@@ -199,6 +199,9 @@ class RecordsContainer:
             if "callback_object" not in callback_record.columns:
                 continue
             callback_object = callback_record.get("callback_object")
+            if callback_object not in cb_to_records.keys():
+                print("failed to find callback info: callback object = " + str(callback_object))
+                continue
             records = cb_to_records[callback_object]
             records.append(callback_record)
 
