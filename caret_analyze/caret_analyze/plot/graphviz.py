@@ -15,7 +15,6 @@
 from typing import Optional, List
 from graphviz import Digraph
 import numpy as np
-from numpy.lib.function_base import average
 
 from ..path import Path
 from ..callback import CallbackBase

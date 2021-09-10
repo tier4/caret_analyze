@@ -87,7 +87,6 @@ class CallbackImpl(CallbackInterface):
         self._node_name = node_name
         self._callback_name: str = callback_name
         self._symbol: str = symbol
-        # self._publishes: List[PublisherInterface] = publishes or []
         self._subscription: Optional[SubscriptionInterface] = subscription
 
     @property
@@ -135,7 +134,7 @@ class TimerCallbackImpl(CallbackImpl, TimerCallbackInterface):
         return self._period_ns
 
     def _get_callback_object(
-        self, node_name, symbol, period_ns, dataframe_container: DataframeContainer
+        self, node_name: str, symbol: str, period_ns: int, dataframe_container: DataframeContainer
     ) -> Optional[int]:
         for _, row in dataframe_container.get_timer_info().iterrows():
             if (
@@ -159,11 +158,6 @@ class SubscriptionCallbackImpl(CallbackImpl, SubscriptionCallbackInterface):
     ) -> None:
         subscription = SubscriptionImpl(node_name, topic_name, callback_name)
         super().__init__(node_name, callback_name, symbol, subscription)
-        # self._node_name: str = attr._node_name
-        # self._callback_name: str = attr.callback_name
-        # self._symbol: str = attr.symbol
-        # self._publishes: List[PublisherInterface] = attr.publishes or []
-        # self._subscription: Optional[SubscriptionInterface] = None
 
         self._topic_name: str = topic_name
         self.intra_callback_object = None

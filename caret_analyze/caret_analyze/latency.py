@@ -78,6 +78,9 @@ class LatencyBase(metaclass=ABCMeta):
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        # column_names is used as an argument,
+        # because it is received from the inherited class, but it can be improved.
+
         import math
 
         _, latency_ns = self.to_timeseries(remove_dropped=True, column_names=column_names)

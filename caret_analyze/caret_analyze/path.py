@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 
 from collections import UserList, UserDict
-from collections import namedtuple
 
 import itertools
 
@@ -48,9 +47,9 @@ class TracePoints(NamedTuple):
         TRACE_POINT.CALLBACK_END_TIMESTAMP,
     ]
     INTER_PROCESS_FROM: List[str] = [
-            TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
-            TRACE_POINT.RCL_PUBLISH_TIMESTAMP,
-            TRACE_POINT.DDS_WRITE_TIMESTAMP,
+        TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
+        TRACE_POINT.RCL_PUBLISH_TIMESTAMP,
+        TRACE_POINT.DDS_WRITE_TIMESTAMP,
     ]
     INTER_PROCESS_TO: List[str] = [
         TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
@@ -109,7 +108,7 @@ class ColumnNameCounter(UserDict):
     def _to_key(self, callback: CallbackBase, tracepoint_name: str) -> str:
         return f"{callback.unique_name}/{tracepoint_name}"
 
-    def _to_column_name(self, callback: CallbackBase, tracepoint_name: str):
+    def _to_column_name(self, callback: CallbackBase, tracepoint_name: str) -> str:
         key = self._to_key(callback, tracepoint_name)
         count = self.get(key, 0)
         column_name = f"{key}/{count}"
@@ -117,7 +116,7 @@ class ColumnNameCounter(UserDict):
 
 
 class PathLatencyMerger:
-    def __init__(self, latency: LatencyComponent, column_only: Optional[bool] = None):
+    def __init__(self, latency: LatencyComponent, column_only: Optional[bool] = None) -> None:
         self._column_only = column_only or False
         self._counter = ColumnNameCounter()
         tracepoint_names = latency.to_records().columns
@@ -128,7 +127,9 @@ class PathLatencyMerger:
         self.column_names = UniqueList()
         self.column_names += self._to_ordered_column_names(latency, self.records.columns)
 
-    def _to_ordered_column_names(self, latency: LatencyComponent, tracepoint_names: Set[str]):
+    def _to_ordered_column_names(
+        self, latency: LatencyComponent, tracepoint_names: Set[str]
+    ) -> List[str]:
         if isinstance(latency, CallbackBase) or isinstance(latency, VariablePassing):
             ordered_names = latency.column_names
         elif latency.is_intra_process:
@@ -251,7 +252,7 @@ class Path(UserList, LatencyBase):
         callbacks: List[CallbackBase],
         communications: List[Communication],
         variable_passings: List[VariablePassing],
-    ):
+    ) -> None:
         chain: List[LatencyBase] = self._to_measurement_target_chain(
             callbacks, communications, variable_passings
         )
@@ -259,6 +260,7 @@ class Path(UserList, LatencyBase):
         self.communications = communications
         self.variable_passings = variable_passings
         self._column_names: List[str] = self._to_column_names()
+        return None
 
     def to_records(self) -> RecordsInterface:
         assert len(self) > 0
@@ -269,7 +271,7 @@ class Path(UserList, LatencyBase):
         unique_names = [callback.unique_name for callback in self.callbacks]
         return "\n".join(unique_names)
 
-    def _to_column_names(self):
+    def _to_column_names(self) -> List[str]:
         assert len(self) > 0
         _, column_names = self._merge_path(column_only=True)
         return column_names
@@ -295,11 +297,15 @@ class Path(UserList, LatencyBase):
                 # callback_start -> publish [sequential-merge]
                 if latency_.is_intra_process:
                     merger.merge_sequencial(
-                        latency_, "callback_start_timestamp", "rclcpp_intra_publish_timestamp"
+                        latency_,
+                        "callback_start_timestamp",
+                        "rclcpp_intra_publish_timestamp",
                     )
                 else:
                     merger.merge_sequencial(
-                        latency_, "callback_start_timestamp", "rclcpp_publish_timestamp"
+                        latency_,
+                        "callback_start_timestamp",
+                        "rclcpp_publish_timestamp",
                     )
 
             elif isinstance(latency, CallbackBase) and isinstance(latency_, VariablePassing):
@@ -315,16 +321,19 @@ class Path(UserList, LatencyBase):
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
+        column_names  # use self._column_names instead.
         return super().to_dataframe(remove_dropped, column_names=self._column_names)
 
     def to_timeseries(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use self._column_names instead.
         return super().to_timeseries(remove_dropped, column_names=self._column_names)
 
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use self._column_names instead.
         return super().to_histogram(binsize_ns, column_names=self._column_names)
 
     @property
@@ -356,7 +365,3 @@ class Path(UserList, LatencyBase):
             chain.append(cb_)
 
         return chain
-
-    @property
-    def path_name(self):
-        pass

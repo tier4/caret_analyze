@@ -37,7 +37,7 @@ class CallbackBase(CallbackInterface, LatencyBase):
     def __init__(
         self,
         latency_composer: Optional[LatencyComposer],
-    ):
+    ) -> None:
         self._latency_composer = latency_composer
 
     @property

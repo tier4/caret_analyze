@@ -56,7 +56,7 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         self._dataframe = DataframeContainer(data_util)
         self._records = RecordsContainer(data_util, self._dataframe)
 
-    def _to_local_attr(self, attr):
+    def _to_local_callback(self, attr: CallbackInterface) -> CallbackImpl:
         if isinstance(attr, TimerCallbackInterface):
             return TimerCallbackImpl(
                 attr.node_name, attr.callback_name, attr.symbol, attr.period_ns, self._dataframe
@@ -65,8 +65,7 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
             return SubscriptionCallbackImpl(
                 attr.node_name, attr.callback_name, attr.symbol, attr.topic_name, self._dataframe
             )
-        elif isinstance(attr, PublisherInterface):
-            return PublisherImpl(self._dataframe, attr.node_name, attr.topic_name)
+        assert False, "Not implemented"
 
     def get_node_names(self) -> List[str]:
         return self._dataframe.get_node_names()
@@ -140,16 +139,14 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         subscription_callback: SubscriptionCallbackImpl,
         publisher_handle: int,
         is_intra_process: bool,
-    ):
-        callback_object: Optional[int]
-
+    ) -> RecordsInterface:
         def is_target(record: RecordInterface):
             return record.get("publisher_handle") == publisher_handle
 
         communication_records = self._records.get_communication_records(is_intra_process)
-        communication_records = communication_records.filter(is_target)
-
-        return communication_records
+        communication_records_filtered = communication_records.filter(is_target)
+        assert communication_records_filtered is not None
+        return communication_records_filtered
 
     def _compose_communication_records(
         self,
@@ -173,31 +170,44 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
 
         return communication_records
 
-    def compose_callback_records(self, callback: CallbackInterface):
-        callback_impl = self._to_local_attr(callback)
+    def compose_callback_records(self, callback: CallbackInterface) -> RecordsInterface:
+        callback_impl = self._to_local_callback(callback)
         records = self._records.get_callback_records(callback_impl)
 
         runtime_info_columns = ["callback_object"]
-        return records.drop_columns(runtime_info_columns)
+        records_dropped = records.drop_columns(runtime_info_columns)
+        assert records_dropped is not None
+        return records_dropped
 
-    def compose_inter_process_communication_records(self, subscription_callback, publish_callback):
-        subscription_callback = self._to_local_attr(subscription_callback)
-        publish_callback = self._to_local_attr(publish_callback)
+    def compose_inter_process_communication_records(
+        self,
+        subscription_callback: SubscriptionCallbackInterface,
+        publish_callback: CallbackInterface,
+    ) -> RecordsInterface:
+        subscription_callback_impl: SubscriptionCallbackImpl
+        publish_callback_impl: CallbackImpl
+
+        subscription_callback_impl = self._to_local_callback(subscription_callback)  # type: ignore
+        publish_callback_impl = self._to_local_callback(publish_callback)  # type: ignore
 
         records = self._compose_communication_records(
-            subscription_callback, publish_callback, is_intra_process=False
+            subscription_callback_impl, publish_callback_impl, is_intra_process=False
         )
 
         runtime_info_columns = ["callback_object", "publisher_handle"]
-        return records.drop_columns(runtime_info_columns)
+        records_dropped = records.drop_columns(runtime_info_columns)
+        assert records_dropped is not None
+        return records_dropped
 
     def compose_intra_process_communication_records(
         self,
         subscription_callback: SubscriptionCallbackInterface,
         publish_callback: Optional[CallbackInterface] = None,
-    ):
-        subscription_callback_impl = self._to_local_attr(subscription_callback)
-        publish_callback_impl = self._to_local_attr(publish_callback)
+    ) -> RecordsInterface:
+        subscription_callback_impl: SubscriptionCallbackImpl
+        publish_callback_impl: CallbackImpl
+        subscription_callback_impl = self._to_local_callback(subscription_callback)  # type: ignore
+        publish_callback_impl = self._to_local_callback(publish_callback)  # type: ignore
 
         records = self._compose_communication_records(
             subscription_callback_impl,
@@ -206,15 +216,17 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         )
 
         runtime_info_columns = ["callback_object", "publisher_handle"]
-        return records.drop_columns(runtime_info_columns)
+        records_dropped = records.drop_columns(runtime_info_columns)
+        assert records_dropped is not None
+        return records_dropped
 
     def compose_variable_passing_records(
         self,
         write_callback: CallbackInterface,
         read_callback: CallbackInterface,
-    ):
-        write_callback_impl = self._to_local_attr(write_callback)
-        read_callback_impl = self._to_local_attr(read_callback)
+    ) -> RecordsInterface:
+        write_callback_impl = self._to_local_callback(write_callback)
+        read_callback_impl = self._to_local_callback(read_callback)
 
         read_records = self._records.get_callback_records(read_callback_impl).clone()
         read_records.drop_columns(["callback_end_timestamp"], inplace=True)
@@ -236,5 +248,6 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         merged_records.sort(key="callback_end_timestamp")
 
         runtime_info_columns = ["read_callback_object", "write_callback_object"]
-
-        return merged_records.drop_columns(runtime_info_columns)
+        records_dropped = merged_records.drop_columns(runtime_info_columns)
+        assert records_dropped is not None
+        return records_dropped

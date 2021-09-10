@@ -32,7 +32,9 @@ from .dataframe_container import DataframeContainer
 
 
 class RecordsContainer:
-    def __init__(self, data_util: Ros2DataModelUtil, dataframe_container: DataframeContainer):
+    def __init__(
+        self, data_util: Ros2DataModelUtil, dataframe_container: DataframeContainer
+    ) -> None:
         self._dataframe_coitainer = dataframe_container
         self._data_util = data_util
 
@@ -60,13 +62,13 @@ class RecordsContainer:
 
         return records
 
-    def get_communication_records(self, is_intra_process: bool):
+    def get_communication_records(self, is_intra_process: bool) -> RecordsInterface:
         if is_intra_process:
             return self._compose_intra_process_communication_records_with_cache()
         else:
             return self._compose_inter_process_communication_records_with_cache()
 
-    def get_callback_records(self, callback: CallbackImpl):
+    def get_callback_records(self, callback: CallbackImpl) -> RecordsInterface:
         records: RecordsInterface
 
         if isinstance(callback, SubscriptionCallbackImpl):
@@ -77,7 +79,9 @@ class RecordsContainer:
         records.sort(key="callback_start_timestamp", inplace=True)
         return records
 
-    def _get_subscription_callback_records(self, callback: SubscriptionCallbackImpl):
+    def _get_subscription_callback_records(
+        self, callback: SubscriptionCallbackImpl
+    ) -> RecordsInterface:
         def has_same_intra_callback_object(record: RecordInterface):
             return record.data.get("callback_object") == callback.intra_callback_object
 
@@ -101,12 +105,14 @@ class RecordsContainer:
 
         return records
 
-    def _get_timer_callback_records(self, callback: TimerCallbackImpl):
+    def _get_timer_callback_records(self, callback: TimerCallbackImpl) -> RecordsInterface:
         def has_same_callback_object(record: RecordInterface):
             return record.data.get("callback_object") == callback.callback_object
 
-        timer_callback_records = self._compose_timer_callback_records_with_cache()
-        return timer_callback_records.filter(has_same_callback_object)
+        records = self._compose_timer_callback_records_with_cache()
+        records_filtered = records.filter(has_same_callback_object)
+        assert records_filtered is not None
+        return records_filtered
 
     def _compose_timer_callback_records_with_cache(self) -> RecordsInterface:
         if self._timer_callback_records_cache is None:
@@ -224,7 +230,7 @@ class RecordsContainer:
         self._intra_process_callback_records_cache = subscription_intra_callback_records
         self._inter_process_callback_records_cache = subscription_inter_callback_records
 
-    def _update_intra_process_communication_cache(self):
+    def _update_intra_process_communication_cache(self) -> None:
         intra_process_callback_records = self._compose_intra_process_callback_records_with_cache()
 
         # inter_subscription = self._get_inter_subscription_records(

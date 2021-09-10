@@ -31,12 +31,12 @@ from caret_analyze.record import RecordsInterface
 class CommunicationInterface(metaclass=ABCMeta):
     @property
     @abstractmethod
-    def callback_from(self):
+    def callback_from(self) -> CallbackBase:
         pass
 
     @property
     @abstractmethod
-    def callback_to(self):
+    def callback_to(self) -> CallbackBase:
         pass
 
 
@@ -59,7 +59,7 @@ class Communication(CommunicationInterface, LatencyBase):
         latency_composer: Optional[LatencyComposer],
         callback_publish: CallbackBase,
         callback_subscription: SubscriptionCallback,
-    ):
+    ) -> None:
         self._latency_composer = latency_composer
         self.callback_publish = callback_publish
         self.callback_subscription = callback_subscription
@@ -79,11 +79,11 @@ class Communication(CommunicationInterface, LatencyBase):
             )
 
     @property
-    def callback_from(self):
+    def callback_from(self) -> CallbackBase:
         return self.callback_publish
 
     @property
-    def callback_to(self):
+    def callback_to(self) -> SubscriptionCallback:
         return self.callback_subscription
 
     @property
@@ -93,6 +93,7 @@ class Communication(CommunicationInterface, LatencyBase):
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
+        column_names  # use Communication.column_names instead
         if self.is_intra_process:
             columns = Communication.column_names_intra_process
         else:
@@ -102,6 +103,7 @@ class Communication(CommunicationInterface, LatencyBase):
     def to_timeseries(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use Communication.column_names instead
         if self.is_intra_process:
             columns = Communication.column_names_intra_process
         else:
@@ -111,6 +113,7 @@ class Communication(CommunicationInterface, LatencyBase):
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use Communication.column_names instead
         if self.is_intra_process:
             columns = Communication.column_names_intra_process
         else:
@@ -174,32 +177,35 @@ class PubSubLatency(CommunicationInterface, LatencyBase):
         latency_composer: Optional[LatencyComposer],
         callback_publish: CallbackBase,
         callback_subscription: SubscriptionCallback,
-    ):
+    ) -> None:
         self._latency_composer = latency_composer
         self.callback_publish = callback_publish
         self.callback_subscription = callback_subscription
 
     @property
-    def callback_from(self):
+    def callback_from(self) -> CallbackBase:
         return self.callback_publish
 
     @property
-    def callback_to(self):
+    def callback_to(self) -> CallbackBase:
         return self.callback_subscription
 
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
+        column_names  # use PubSubLatency.column_names instead
         return super().to_dataframe(remove_dropped, column_names=PubSubLatency.column_names)
 
     def to_timeseries(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use PubSubLatency.column_names instead
         return super().to_timeseries(remove_dropped, column_names=PubSubLatency.column_names)
 
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use PubSubLatency.column_names instead
         return super().to_histogram(binsize_ns, column_names=PubSubLatency.column_names)
 
     def to_records(self) -> RecordsInterface:
@@ -224,32 +230,35 @@ class DDSLatency(CommunicationInterface, LatencyBase):
         latency_composer: Optional[LatencyComposer],
         callback_publish: CallbackBase,
         callback_subscription: SubscriptionCallback,
-    ):
+    ) -> None:
         self._latency_composer = latency_composer
         self.callback_publish = callback_publish
         self.callback_subscription = callback_subscription
 
     @property
-    def callback_from(self):
+    def callback_from(self) -> CallbackBase:
         return self.callback_publish
 
     @property
-    def callback_to(self):
+    def callback_to(self) -> CallbackBase:
         return self.callback_subscription
 
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
+        column_names  # use DDSLatency.column_names instead
         return super().to_dataframe(remove_dropped, column_names=DDSLatency.column_names)
 
     def to_timeseries(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use DDSLatency.column_names instead
         return super().to_timeseries(remove_dropped, column_names=DDSLatency.column_names)
 
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use DDSLatency.column_names instead
         return super().to_histogram(binsize_ns, column_names=DDSLatency.column_names)
 
     def to_records(self) -> RecordsInterface:
@@ -277,7 +286,7 @@ class VariablePassing(CommunicationInterface, LatencyBase):
         latency_composer: LatencyComposer,
         callback_write: CallbackBase,
         callback_read: CallbackBase,
-    ):
+    ) -> None:
         self.callback_write = callback_write
         self.callback_read = callback_read
         self._latency_composer = latency_composer
@@ -293,22 +302,25 @@ class VariablePassing(CommunicationInterface, LatencyBase):
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
+        column_names  # use VariablePassing.column_names instead
         return super().to_dataframe(remove_dropped, column_names=VariablePassing.column_names)
 
     def to_timeseries(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use VariablePassing.column_names instead
         return super().to_timeseries(remove_dropped, column_names=VariablePassing.column_names)
 
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
+        column_names  # use VariablePassing.column_names instead
         return super().to_histogram(binsize_ns, column_names=VariablePassing.column_names)
 
     @property
-    def callback_from(self):
+    def callback_from(self) -> CallbackBase:
         return self.callback_write
 
     @property
-    def callback_to(self):
+    def callback_to(self) -> CallbackBase:
         return self.callback_read

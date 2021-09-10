@@ -18,11 +18,9 @@ from typing import Optional, List, Dict
 import pandas as pd
 import numpy as np
 
-from caret_analyze.callback import CallbackBase, SubscriptionCallback, TimerCallback
+from caret_analyze.callback import SubscriptionCallback, TimerCallback
 from caret_analyze.communication import Communication, VariablePassing
 from caret_analyze.path import (
-    TRACE_POINT,
-    TRACE_POINTS,
     ColumnNameCounter,
     PathLatencyMerger,
     Path,
@@ -63,7 +61,9 @@ class LatencyComposerMock(LatencyComposer):
         records = self.callback_records.filter(is_target)
         assert records is not None
         runtime_info_columns = ["callback_object"]
-        return records.drop_columns(runtime_info_columns)
+        records_dropped = records.drop_columns(runtime_info_columns)
+        assert records_dropped is not None
+        return records_dropped
 
     def compose_inter_process_communication_records(
         self,
