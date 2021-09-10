@@ -26,7 +26,7 @@ from caret_analyze.util import Util
 
 
 class GraphNode:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
     def __eq__(self, node: object) -> bool:
@@ -36,7 +36,7 @@ class GraphNode:
 
 
 class GraphBranch:
-    def __init__(self, src_node: GraphNode, dst_node: GraphNode):
+    def __init__(self, src_node: GraphNode, dst_node: GraphNode) -> None:
         self.arrived = False
         self.src_node = src_node
         self.dst_node = dst_node
@@ -65,7 +65,7 @@ class GraphPath(UserList):
 
 
 class GraphSearcher:
-    def __init__(self, branches: List[GraphBranch]):
+    def __init__(self, branches: List[GraphBranch]) -> None:
         self._branches = branches
 
     def search(self, src_node: GraphNode, dst_node: GraphNode) -> List[GraphPath]:

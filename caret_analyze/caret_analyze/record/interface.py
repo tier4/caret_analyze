@@ -78,19 +78,6 @@ class CallbackInterface(metaclass=ABCMeta):
 class TimerCallbackInterface(CallbackInterface):
     TYPE_NAME = "timer_callback"
 
-    # def __init__(
-    #     self,
-    #     node_name: str,
-    #     callback_name: str,
-    #     symbol: str,
-    #     period_ns: int,
-    # ) -> None:
-    #     self._node_name = node_name
-    #     self._callback_name: str = callback_name
-    #     self._symbol: str = symbol
-    #     self._subscription: Optional[SubscriptionInterface] = None
-    #     self._period_ns: int = period_ns
-
     @classmethod
     def to_callback_name(cls, i: int) -> str:
         return f"{cls.TYPE_NAME}_{i}"

@@ -162,7 +162,7 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
         pass
 
     @abstractmethod
-    def clone(self):
+    def clone(self) -> RecordsInterface:
         pass
 
 
@@ -173,7 +173,7 @@ class MergeSideInfo(IntEnum):
 
 # class Record(collections.UserDict, RecordInterface):
 class Record(RecordInterface):
-    def __init__(self, init: Optional[Dict] = None):
+    def __init__(self, init: Optional[Dict] = None) -> None:
         init = init or {}
         self._data = init or {}
         self._columns = set(init.keys())

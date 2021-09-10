@@ -29,7 +29,7 @@ from caret_analyze.graph_search import CallbackPathSercher
 
 
 class Application:
-    def __init__(self, arch: Architecture):
+    def __init__(self, arch: Architecture) -> None:
         self.nodes: List[Node] = arch.nodes
         self.communications: List[Communication] = arch.communications
         self.variable_passings: List[VariablePassing] = arch.variable_passings
@@ -55,10 +55,12 @@ class Application:
     def _to_path(self, callbacks: List[CallbackBase]) -> Path:
         return Path(callbacks, self.communications, self.variable_passings)
 
-    def _to_callback(self, unique_name: str):
-        return Util.find_one(self.callbacks, lambda x: x.unique_name == unique_name)
+    def _to_callback(self, unique_name: str) -> CallbackBase:
+        callback = Util.find_one(self.callbacks, lambda x: x.unique_name == unique_name)
+        assert callback is not None
+        return callback
 
-    def _set_node_paths(self, nodes):
+    def _set_node_paths(self, nodes) -> None:
         for node in nodes:
             for start_callback, end_callback in product(node.callbacks, node.callbacks):
                 node.paths += self.search_paths(
@@ -68,7 +70,9 @@ class Application:
     def _to_paths(self, path_aliases: List[PathAlias]) -> Dict[str, Path]:
         path: Dict[str, Path] = {}
         for alias in path_aliases:
-            callbacks = [self._to_callback(name) for name in alias.callback_names]
+            callbacks: List[CallbackBase] = [
+                self._to_callback(name) for name in alias.callback_names
+            ]
             path[alias.path_name] = self._to_path(callbacks)
         return path
 
