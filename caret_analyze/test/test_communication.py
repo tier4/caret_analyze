@@ -29,8 +29,9 @@ from caret_analyze.callback import SubscriptionCallback
 class TestCommunication:
     def test_to_dataframe(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture()
-        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch = Architecture(
+            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
+        )
         app = Application(arch)
         comm = app.communications[0]
 
@@ -53,8 +54,7 @@ class TestCommunication:
     )
     def test_is_intra_process(self, trace_dir, comm_idx, is_intra_process):
         lttng = Lttng(trace_dir)
-        arch = Architecture()
-        arch.import_file(trace_dir, "lttng", lttng)
+        arch = Architecture(trace_dir, "lttng", lttng)
         app = Application(arch)
         comm = app.communications[comm_idx]
         assert comm.is_intra_process == is_intra_process
@@ -92,8 +92,7 @@ class TestCommunication:
         self, trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len
     ):
         lttng = Lttng(trace_dir)
-        arch = Architecture()
-        arch.import_file(trace_dir, "lttng", lttng)
+        arch = Architecture(trace_dir, "lttng", lttng)
         app = Application(arch)
         comm = app.communications[comm_idx]
 
@@ -105,8 +104,9 @@ class TestCommunication:
 
     def test_to_pubsub_latency(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture()
-        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch = Architecture(
+            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
+        )
         app = Application(arch)
         comm = app.communications[0]
 
@@ -120,8 +120,9 @@ class TestCommunication:
 
     def test_to_dds_latency(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture()
-        arch.import_file("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        arch = Architecture(
+            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
+        )
         app = Application(arch)
         comm = app.communications[0]
 

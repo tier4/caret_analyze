@@ -55,8 +55,7 @@ class TestApplication:
     )
     def test_search_paths(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):
         lttng = Lttng(trace_path)
-        arch = Architecture()
-        arch.import_file(yaml_path, "yaml", lttng)
+        arch = Architecture(yaml_path, "yaml", lttng)
         app = Application(arch)
 
         paths = app.search_paths(start_cb_name, end_cb_name)
@@ -87,8 +86,7 @@ class TestApplication:
     )
     def test_path_latency(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):
         lttng = Lttng(trace_path)
-        arch = Architecture()
-        arch.import_file(yaml_path, "yaml", lttng)
+        arch = Architecture(yaml_path, "yaml", lttng)
         app = Application(arch)
 
         paths = app.search_paths(start_cb_name, end_cb_name)
