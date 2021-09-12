@@ -13,19 +13,22 @@
 # limitations under the License.
 
 from typing import List, Dict, Any, Optional
+import yaml
+import itertools
 
 from caret_analyze.node import Node
 from caret_analyze.callback import CallbackBase, TimerCallback, SubscriptionCallback
 from caret_analyze.communication import Communication
 from caret_analyze.pub_sub import Publisher, Subscription
 from caret_analyze.record.interface import LatencyComposer
-from caret_analyze.architecture.interface import (
+from .interface import (
     ArchitectureInterface,
     ArchitectureExporter,
     ArchitectureImporter,
     PathAlias,
     VariablePassing,
     UNDEFINED_STR,
+    IGNORE_TOPICS,
 )
 from caret_analyze.util import Util
 
@@ -33,12 +36,14 @@ YamlObject = Dict[str, Any]
 
 
 class YamlArchitectureExporter(ArchitectureExporter):
-    def exec(self, architecture: ArchitectureInterface, file_path: str) -> None:
+    def exec(
+        self, architecture: ArchitectureInterface, path_aliases: List[PathAlias], file_path: str
+    ) -> None:
         import yaml
 
         with open(file_path, mode="w") as f:
             obj: Dict[str, Any] = {
-                "path_name_alias": [],
+                "path_name_aliases": [],  # TODO:IMPLEMENT HERE
                 "nodes": self._nodes_to_yaml_objs(architecture.nodes),
             }
             f.write(yaml.dump(obj, indent=2, default_flow_style=False, sort_keys=False))
@@ -135,7 +140,6 @@ class YamlArchitectureImporter(ArchitectureImporter):
         self._nodes: List[Node] = []
         self._path_aliases: List[PathAlias] = []
         self._communications: List[Communication] = []
-        self._variable_passings: List[VariablePassing] = []
 
     @property
     def nodes(self) -> List[Node]:
@@ -151,7 +155,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
 
     @property
     def variable_passings(self) -> List[VariablePassing]:
-        return self._variable_passings
+        return Util.flatten([node.variable_passings for node in self.nodes])
 
     @property
     def latency_composer(self):
@@ -162,7 +166,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
     ) -> Optional[Communication]:
 
         publish_callback_name = publish.callback_name or ""
-        callbacks = Util.flatten([node.callbacks for node in self._nodes])
+        callbacks = Util.flatten([node.callbacks for node in self.nodes])
         callback_publish = Util.find_one(
             callbacks,
             lambda cb: cb.node_name == publish.node_name
@@ -173,29 +177,33 @@ class YamlArchitectureImporter(ArchitectureImporter):
             lambda cb: cb.node_name == subscription.node_name
             and cb.callback_name == subscription.callback_name,
         )
-        if callback_publish is None:
-            print(f"callback_name is UNDEFINED. Ignoring {publish.topic_name} topic.")
-            return None
         if callback_subscription is None or not isinstance(
             callback_subscription, SubscriptionCallback
         ):
             return None
 
-        return Communication(self._latency_composer, callback_publish, callback_subscription)
+        return Communication(
+            self._latency_composer, callback_publish, callback_subscription, publish
+        )
 
     def exec(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
-        ignore_topics = ignore_topics or []
-        import yaml
-        import itertools
+        ignore_topics = ignore_topics or IGNORE_TOPICS
 
         with open(path, "r") as f:
             arch_yaml = yaml.safe_load(f)
 
-        for node_info in arch_yaml["nodes"]:
-            self._nodes.append(self._create_node(node_info))
+        self._create_arch(arch_yaml, ignore_topics)
 
-        publishes = Util.flatten([node.publishes for node in self._nodes])
-        subscriptions = Util.flatten([node.subscriptions for node in self._nodes])
+        return None
+
+    def _create_arch(self, arch_yaml, ignore_topics: Optional[List[str]]) -> ArchitectureInterface:
+        ignore_topics = ignore_topics or IGNORE_TOPICS
+        for node_info in arch_yaml["nodes"]:
+            node = self._create_node(node_info, ignore_topics)
+            self._nodes.append(node)
+
+        publishes = Util.flatten([node.publishes for node in self.nodes])
+        subscriptions = Util.flatten([node.subscriptions for node in self.nodes])
         for publish, subscription in itertools.product(publishes, subscriptions):
             if publish.topic_name != subscription.topic_name:
                 continue
@@ -204,18 +212,15 @@ class YamlArchitectureImporter(ArchitectureImporter):
                 continue
             self._communications.append(communication)
 
-        for alias_dict in arch_yaml["path_name_alias"]:
+        for alias_dict in arch_yaml["path_name_aliases"]:
             self._path_aliases.append(
                 PathAlias(alias=alias_dict["path_name"], callback_names=alias_dict["callbacks"])
             )
-
-        return None
+        return self
 
     def _create_callback_with_empty_publish(
-        self, node_name: str, callback_info
+        self, node_name: str, callback_info, ignore_topics: List[str]
     ) -> Optional[CallbackBase]:
-        ignore_topic_name = ["/rosout", "/parameter_events"]
-
         if callback_info["type"] == "timer_callback":
             return TimerCallback(
                 latency_composer=self._latency_composer,
@@ -225,7 +230,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
                 period_ns=int(callback_info["period_ns"]),
             )
         elif callback_info["type"] == "subscription_callback":
-            if callback_info["topic_name"] in ignore_topic_name:
+            if callback_info["topic_name"] in ignore_topics:
                 return None
             return SubscriptionCallback(
                 latency_composer=self._latency_composer,
@@ -257,12 +262,14 @@ class YamlArchitectureImporter(ArchitectureImporter):
         node.unlinked_publishes.append(publish)
         return None
 
-    def _create_node(self, node_info):
+    def _create_node(self, node_info, ignore_topics: List[str]) -> Node:
         node = Node(node_name=node_info["node_name"])
 
         callbacks_info = node_info.get("callbacks", [])
         for callback_info in callbacks_info:
-            callback = self._create_callback_with_empty_publish(node.node_name, callback_info)
+            callback = self._create_callback_with_empty_publish(
+                node.node_name, callback_info, ignore_topics
+            )
             if callback is None:
                 continue
             node.callbacks.append(callback)

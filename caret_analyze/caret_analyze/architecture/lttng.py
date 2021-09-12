@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import List, Optional
+import itertools
 
 from caret_analyze.record.interface import (
     SubscriptionCallbackInterface,
@@ -20,10 +21,7 @@ from caret_analyze.record.interface import (
 )
 
 from caret_analyze.communication import Communication, VariablePassing
-from caret_analyze.architecture.interface import (
-    ArchitectureImporter,
-    PathAlias,
-)
+from .interface import ArchitectureImporter, PathAlias, IGNORE_TOPICS
 from caret_analyze.record import AppInfoGetter, LatencyComposer
 from caret_analyze.pub_sub import Publisher, Subscription
 from caret_analyze.node import Node
@@ -76,17 +74,17 @@ class LttngArchitectureImporter(ArchitectureImporter):
             subscription.node_name, subscription.callback_name
         )
 
-        if callback_publish is None or callback_subscription is None:
+        if callback_subscription is None:
             return None
         if not isinstance(callback_subscription, SubscriptionCallback):
             return None
 
-        return Communication(self._latency_composer, callback_publish, callback_subscription)
+        return Communication(
+            self._latency_composer, callback_publish, callback_subscription, publish
+        )
 
     def exec(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
-        import itertools
-
-        ignore_topics = ignore_topics or []
+        ignore_topics = ignore_topics or IGNORE_TOPICS
         container = Lttng(path)
         for node_name in container.get_node_names():
             node = self._create_node(node_name, container, ignore_topics)

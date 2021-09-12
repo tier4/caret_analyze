@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import List
+
 from caret_analyze.pub_sub import Publisher, Subscription
 from caret_analyze.callback import (
     CallbackBase,
@@ -23,9 +24,8 @@ from caret_analyze.callback import (
 # from caret_analyze.callback_depend import CallbackDepend, CallbackDependCollection
 from caret_analyze.node import Node
 from caret_analyze.communication import VariablePassing
-from caret_analyze.architecture import YamlArchitectureExporter, YamlArchitectureImporter
-from caret_analyze.architecture.interface import UNDEFINED_STR
-from caret_analyze.architecture.architecture import IGNORE_TOPICS
+from caret_analyze.architecture.yaml import YamlArchitectureExporter, YamlArchitectureImporter
+from caret_analyze.architecture.interface import UNDEFINED_STR, IGNORE_TOPICS
 
 
 class TestYamlExporter:
@@ -183,10 +183,6 @@ class TestYamlExporter:
         assert "publish" in objs[1].keys()
 
 
-# TODO(hsgwa): Implement
-# def test_YamlExporter_aliases_to_yml_objs():
-
-
 class TestYamlImporter:
     def test_create_callback_with_empty_publish(self):
         importer = YamlArchitectureImporter(None)
@@ -201,7 +197,9 @@ class TestYamlImporter:
             "symbol": symbol,
         }
         node_name = "node0"
-        callback = importer._create_callback_with_empty_publish(node_name, callback_obj)
+        callback = importer._create_callback_with_empty_publish(
+            node_name, callback_obj, IGNORE_TOPICS
+        )
         assert callback is not None
         assert isinstance(callback, SubscriptionCallback)
         assert callback.topic_name == topic_name
@@ -210,7 +208,9 @@ class TestYamlImporter:
         assert callback.publishes == []
 
         callback_obj["topic_name"] = IGNORE_TOPICS[0]
-        callback = importer._create_callback_with_empty_publish(node_name, callback_obj)
+        callback = importer._create_callback_with_empty_publish(
+            node_name, callback_obj, IGNORE_TOPICS
+        )
         assert callback is None
 
         period_ns = 100
@@ -224,7 +224,9 @@ class TestYamlImporter:
             "symbol": symbol,
         }
         node_name = "node0"
-        callback = importer._create_callback_with_empty_publish(node_name, callback_obj)
+        callback = importer._create_callback_with_empty_publish(
+            node_name, callback_obj, IGNORE_TOPICS
+        )
         assert callback is not None
         assert isinstance(callback, TimerCallback)
         assert callback.period_ns == period_ns
@@ -314,9 +316,76 @@ class TestYamlImporter:
             ],
         }
 
-        node = importer._create_node(node_obj)
+        node = importer._create_node(node_obj, IGNORE_TOPICS)
 
         assert len(node.variable_passings) == 1
         assert len(node.callbacks) == 2
         assert len(node.publishes) == 2
         assert len(node.subscriptions) == 2
+
+    def test_crate_arch(self):
+        importer = YamlArchitectureImporter(None)
+
+        arch_obj = {"path_name_aliases": [], "nodes": []}
+        arch_obj["nodes"].append(
+            {
+                "node_name": "node0",
+                "callbacks": [
+                    {
+                        "callback_name": SubscriptionCallback.to_callback_name(0),
+                        "type": SubscriptionCallback.TYPE_NAME,
+                        "topic_name": "/topic1",
+                        "symbol": "symbol0",
+                    },
+                    {
+                        "callback_name": SubscriptionCallback.to_callback_name(1),
+                        "type": SubscriptionCallback.TYPE_NAME,
+                        "topic_name": "/topic0",
+                        "symbol": "symbol1",
+                    },
+                ],
+                "callback_dependencies": [
+                    {
+                        "callback_name_from": SubscriptionCallback.to_callback_name(0),
+                        "callback_name_to": SubscriptionCallback.to_callback_name(1),
+                    }
+                ],
+                "publish": [
+                    {
+                        "topic_name": "/topic3",
+                        "callback_name": UNDEFINED_STR,
+                    },
+                    {
+                        "topic_name": "/topic2",
+                        "callback_name": SubscriptionCallback.to_callback_name(0),
+                    },
+                ],
+            }
+        )
+        arch_obj["nodes"].append(
+            {
+                "node_name": "node1",
+                "callbacks": [
+                    {
+                        "callback_name": SubscriptionCallback.to_callback_name(0),
+                        "type": SubscriptionCallback.TYPE_NAME,
+                        "topic_name": "/topic2",
+                        "symbol": "symbol2",
+                    },
+                    {
+                        "callback_name": SubscriptionCallback.to_callback_name(1),
+                        "type": SubscriptionCallback.TYPE_NAME,
+                        "topic_name": "/topic3",
+                        "symbol": "symbol3",
+                    },
+                ],
+                "publish": [],
+            }
+        )
+
+        arch = importer._create_arch(arch_obj, IGNORE_TOPICS)
+
+        assert len(arch.variable_passings) == 1
+        assert len(arch.communications) == 2
+        assert len(arch.nodes) == 2
+        assert len(arch.path_aliases) == 0

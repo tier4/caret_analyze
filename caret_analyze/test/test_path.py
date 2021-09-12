@@ -258,7 +258,8 @@ class TestPathLatencyManager:
         latency_composer_mock.to_callback_object[sub_cb] = sub_cb_callback_object
 
         latency_composer_mock.to_publisher_handle[timer_cb] = timer_cb_publisher_handle
-        communication = Communication(latency_composer_mock, timer_cb, sub_cb)
+        pub = Publisher("/node0", "/topic1", "callback0")
+        communication = Communication(latency_composer_mock, timer_cb, sub_cb, pub)
         communication.is_intra_process = True
 
         merger = PathLatencyMerger(timer_cb)
@@ -291,7 +292,8 @@ class TestColumnNameCounter:
     def test_to_column_name(self):
         callback0 = TimerCallback(None, "/node0", "callback0", "symbol0", 100)
         callback1 = TimerCallback(None, "/node1", "callback1", "symbol1", 100)
-        communication = Communication(None, callback0, callback1)
+        pub = Publisher("node_name", "topic_name", "callback_name")
+        communication = Communication(None, callback0, callback1, pub)
 
         counter = ColumnNameCounter()
 
@@ -439,7 +441,7 @@ class TestPath:
             intra_process_communication_records,
             variable_passing_records,
         )
-        publisher = Publisher("timer_node", "/topic", "timer_cb")
+        publisher = Publisher("/timer_node", "/topic", "timer_cb")
         timer0_cb = TimerCallback(
             latency_composer_mock, "/timer_node", "timer_cb", "pub_symbol", 100, [publisher]
         )
@@ -451,7 +453,7 @@ class TestPath:
 
         latency_composer_mock.to_publisher_handle[timer0_cb] = timer0_pub_handle
         callbacks = [timer0_cb, sub_cb0]
-        comm = Communication(latency_composer_mock, timer0_cb, sub_cb0)
+        comm = Communication(latency_composer_mock, timer0_cb, sub_cb0, publisher)
         comm.is_intra_process = True
         communications = [comm]
         variable_passings = []

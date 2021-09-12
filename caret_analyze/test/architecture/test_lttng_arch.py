@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from caret_analyze.record.lttng import Lttng
 from caret_analyze.architecture.architecture import IGNORE_TOPICS
-from caret_analyze.architecture import LttngArchitectureImporter
+from caret_analyze.architecture.lttng import LttngArchitectureImporter
 
 
 class TestLttngArchitectureImporter:
@@ -54,10 +56,17 @@ class TestLttngArchitectureImporter:
         assert len(node.unlinked_publishes) == 3
         assert len(node.callbacks) == 2
 
-    def test_exec(self):
+    @pytest.mark.parametrize(
+        "path, nodes, aliases, comms, vars",
+        [
+            ("sample/lttng_samples/talker_listener", 2, 0, 1, 0),
+            ("sample/lttng_samples/end_to_end_sample", 6, 0, 5, 0),
+        ],
+    )
+    def test_exec(self, path, nodes, aliases, comms, vars):
         importer = LttngArchitectureImporter(None)
-        importer.exec("sample/lttng_samples/talker_listener", ignore_topics=IGNORE_TOPICS)
-        assert len(importer.nodes) == 2
-        assert len(importer.path_aliases) == 0
-        assert len(importer.communications) == 1
-        assert len(importer.variable_passings) == 0
+        importer.exec(path, ignore_topics=IGNORE_TOPICS)
+        assert len(importer.nodes) == nodes
+        assert len(importer.path_aliases) == aliases
+        assert len(importer.communications) == comms
+        assert len(importer.variable_passings) == vars

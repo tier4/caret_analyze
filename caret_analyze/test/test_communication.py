@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from caret_analyze.pub_sub import Publisher
 import pytest
 
 from typing import List, Optional
@@ -74,7 +75,8 @@ class TestCommunication:
             return df
 
         callback = SubscriptionCallback(None, "", "", "", "")
-        comm = Communication(None, callback, callback)
+        pub = Publisher("node_name", "topic_name", "callback_name")
+        comm = Communication(None, callback, callback, pub)
         mocker.patch.object(comm, "to_dataframe", custom_to_dataframe)
 
         comm.is_intra_process = is_intra_process
@@ -147,7 +149,8 @@ class TestPubSubLatency:
             return df
 
         callback = SubscriptionCallback(None, "", "", "", "")
-        comm = PubSubLatency(None, callback, callback)
+        pub = Publisher("node_name", "topic_name", "callback_name")
+        comm = PubSubLatency(None, callback, callback, pub)
         mocker.patch.object(comm, "to_dataframe", custom_to_dataframe)
 
         comm.to_histogram()
@@ -165,8 +168,9 @@ class TestDDSLatency:
             df = pd.DataFrame(dummy_data, columns=columns)
             return df
 
+        pub = Publisher("node_name", "topic_name", "callback_name")
         callback = SubscriptionCallback(None, "", "", "", "")
-        comm = DDSLatency(None, callback, callback)
+        comm = DDSLatency(None, callback, callback, pub)
         mocker.patch.object(comm, "to_dataframe", custom_to_dataframe)
 
         comm.to_histogram()
