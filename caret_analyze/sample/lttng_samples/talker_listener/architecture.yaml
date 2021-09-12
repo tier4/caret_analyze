@@ -1,4 +1,4 @@
-path_name_alias: []
+path_name_aliases: []
 nodes:
 - node_name: /listener
   callbacks:

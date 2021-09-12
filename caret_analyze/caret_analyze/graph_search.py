@@ -114,7 +114,11 @@ class CallbackPathSercher:
         branches: List[GraphBranch] = []
 
         for communication in self._communications:
-            src_node = GraphNode(communication.callback_publish.unique_name)
+            if communication.callback_publish is None:
+                continue
+            callback_publish = communication.callback_publish
+            assert callback_publish is not None
+            src_node = GraphNode(callback_publish.unique_name)
             dst_node = GraphNode(communication.callback_subscription.unique_name)
             branches.append(GraphBranch(src_node, dst_node))
 

@@ -17,17 +17,17 @@ from __future__ import annotations
 from typing import List, Optional
 from caret_analyze.node import Node
 from caret_analyze.communication import VariablePassing, Communication
-from caret_analyze.architecture.interface import (
+from .interface import (
     ArchitectureImporter,
     ArchitectureExporter,
     PathAlias,
     ArchitectureInterface,
+    IGNORE_TOPICS,
 )
 from caret_analyze.util import Util
-from . import YamlArchitectureExporter, YamlArchitectureImporter, LttngArchitectureImporter
+from .yaml import YamlArchitectureExporter, YamlArchitectureImporter
+from .lttng import LttngArchitectureImporter
 from caret_analyze.record import LatencyComposer
-
-IGNORE_TOPICS = ["/parameter_events", "/rosout", "/clock"]
 
 
 class Architecture(ArchitectureInterface):
@@ -46,7 +46,7 @@ class Architecture(ArchitectureInterface):
     def export(self, file_path: str):
         exporter: ArchitectureExporter
         exporter = YamlArchitectureExporter()
-        exporter.exec(self, file_path)
+        exporter.exec(self, self._path_aliases, file_path)
 
     def _import(
         self,

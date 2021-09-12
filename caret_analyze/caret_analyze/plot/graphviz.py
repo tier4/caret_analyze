@@ -13,15 +13,30 @@
 # limitations under the License.
 
 from typing import Optional, List
-from graphviz import Digraph
+from graphviz import Digraph, Source
 import numpy as np
 
 from ..path import Path
 from ..callback import CallbackBase
 from ..communication import Communication, VariablePassing
+from ..architecture import Architecture
+from ..util import Util
+from ..callback import TimerCallback, SubscriptionCallback
+from ..node import Node
 
 
-def path_latency(path: Path, granularity: Optional[str] = None, **kwargs):
+def callback_grpah(arch: Architecture, png_path: Optional[str] = None):
+    dot = CallbackGraph(arch).to_dot()
+    source = Source(dot)
+    if png_path is not None:
+        file_path_wo_ext = png_path.split(".")[0]
+        ext = png_path.split(".")[-1]
+        source.render(file_path_wo_ext, format=ext)
+        return None
+    return source
+
+
+def path_latency(path: Path, granularity: str = "node", **kwargs) -> Digraph:
     granularity = granularity or "callback"
     assert granularity in ["callback", "node", "end-to-end"]
 
@@ -61,8 +76,11 @@ def path_latency(path: Path, granularity: Optional[str] = None, **kwargs):
             elif isinstance(component, Communication):
                 label = component.topic_name
                 label += "\n" + to_label(latency)
+                callback_from = component.callback_from
+                if callback_from is None:
+                    continue
                 dot.edge(
-                    component.callback_from.unique_name,
+                    callback_from.unique_name,
                     component.callback_to.unique_name,
                     label=label,
                 )
@@ -84,8 +102,11 @@ def path_latency(path: Path, granularity: Optional[str] = None, **kwargs):
         node_names = [path.callbacks[0].node_name for path in node_paths]
 
         for comm_path in path.communications:
+            callback_from = comm_path.callback_from
+            if callback_from is None:
+                continue
             if (
-                comm_path.callback_from.node_name not in node_names
+                callback_from.node_name not in node_names
                 or comm_path.callback_to.node_name not in node_names
             ):
                 continue
@@ -115,8 +136,11 @@ def path_latency(path: Path, granularity: Optional[str] = None, **kwargs):
                     )
                 )
 
+            callback_from = comm_path.callback_from
+            if callback_from is None:
+                continue
             dot.edge(
-                comm_path.callback_from.node_name,
+                callback_from.node_name,
                 comm_path.callback_to.node_name,
                 label=label,
             )
@@ -143,3 +167,175 @@ def path_latency(path: Path, granularity: Optional[str] = None, **kwargs):
         dot.edge(start_node_name, end_node_name, label=to_label(latency))
 
     return dot
+
+
+class CallbackGraph:
+    IGNORE_NODES = ["/rviz2"]
+
+    def __init__(self, arch: Architecture):
+        self._arch = arch
+
+        self._graph = Digraph(format="svg", engine="dot")
+        self._graph.name = "Hover the mouse over a callback."
+        self._graph.attr(compound="true", rankdir="LR", style="rounded")
+
+        self._labelled_edges = []
+        self._labelled_edges.append(self.LabelledEdge(self, "/tf"))
+        self._labelled_edges.append(self.LabelledEdge(self, "/tf_static"))
+
+        self._draw_graph()
+
+    def to_dot(self):
+        return self._graph.source
+
+    def _to_ns(self, node_name: str) -> str:
+        splitted = node_name.split("/")
+        return "/".join(splitted[:-1])
+
+    def _draw_graph(self) -> None:
+        for node in self._arch.nodes:
+            if node.node_name in CallbackGraph.IGNORE_NODES:
+                continue
+            self._draw_node(node)
+
+        for comm in self._arch.communications:
+            self._draw_comm(comm)
+
+        for var in self._arch.variable_passings:
+            head_name = var.callback_to.unique_name
+            tail_name = var.callback_from.unique_name
+            self._graph.edge(tail_name, head_name)
+
+    def _draw_comm(self, comm) -> None:
+        for labelled_edge in self._labelled_edges:
+            if comm.topic_name == labelled_edge.topic_name:
+                labelled_edge.draw(comm)
+                return
+        head_name = comm.callback_to.unique_name
+        head_node_name = comm.callback_to.node_name
+        self._draw_edge(comm, head_name, head_node_name)
+
+    def _get_tooltip(self, callback: CallbackBase) -> str:
+        if isinstance(callback, TimerCallback):
+            period_ns_str = "{:,}".format(callback.period_ns)
+            return f"period ns: {period_ns_str}\n symbol: {callback.symbol}"
+
+        elif isinstance(callback, SubscriptionCallback):
+            return f"topic name: {callback.topic_name}\n symbol: {callback.symbol}"
+
+        assert False, "not implemented"
+
+    def _draw_callbacks(self, node_cluster, node):
+        for callback in node.callbacks:
+            tooltip: str = self._get_tooltip(callback)
+
+            node_cluster.node(
+                callback.unique_name,
+                callback.callback_name,
+                _attributes={"shape": "box", "tooltip": tooltip},
+            )
+
+    def _draw_node(self, node: Node) -> None:
+        ns_color = "gray90"
+        ns = self._to_ns(node.node_name)
+
+        # draw namespace cluster
+        with self._graph.subgraph(
+            name=self._to_cluster_name(ns, prefix="ns_"),
+            graph_attr={"label": ns, "bgcolor": ns_color, "color": ns_color},
+        ) as ns_cluster:
+
+            # draw node cluster
+            with ns_cluster.subgraph(
+                name=self._to_cluster_name(node.node_name, prefix="node_"),
+                graph_attr={"label": node.node_name, "bgcolor": "white", "color": "black"},
+            ) as node_cluster:
+
+                self._draw_callbacks(node_cluster, node)
+
+    def _draw_callback_to_callback(self, comm, head_name, head_node_name):
+        tail_name = comm.callback_from.unique_name
+        tail_node_name = comm.callback_from.node_name
+        if (
+            tail_node_name in CallbackGraph.IGNORE_NODES
+            or head_node_name in CallbackGraph.IGNORE_NODES
+        ):
+            return
+
+        self._graph.edge(tail_name, head_name, label=comm.topic_name)
+
+    def _draw_node_to_callback(self, comm, head_name, head_node_name):
+        tail_node = Util.find_one(
+            self._arch.nodes, lambda x: x.node_name == comm.publisher.node_name
+        )
+        if tail_node is None or len(tail_node.callbacks) == 0:
+            return None
+
+        # Choose only one temporary callback that you need to connect to.
+        tail_callback = tail_node.callbacks[0]
+        tail_name = tail_callback.unique_name
+        tail_node_name = tail_callback.node_name
+        if (
+            tail_node_name in CallbackGraph.IGNORE_NODES
+            or head_node_name in CallbackGraph.IGNORE_NODES
+        ):
+            return None
+
+        publish_node_cluster_name = self._to_cluster_name(comm.publisher.node_name, prefix="node_")
+        tooltip = "The callback to publish is not specified."
+        self._graph.edge(
+            tail_name,
+            head_name,
+            label=comm.topic_name,
+            ltail=publish_node_cluster_name,
+            color="red",
+            dir="both",
+            _attributes={"arrowtail": "dot"},
+            tooltip=tooltip,
+        )
+
+    def _to_cluster_name(self, node_name: str, prefix=""):
+        return "cluster_" + prefix + node_name
+
+    def _draw_edge(self, comm, head_name, head_node_name) -> None:
+        if comm.callback_from is not None:
+            self._draw_callback_to_callback(comm, head_name, head_node_name)
+        else:
+            self._draw_node_to_callback(comm, head_name, head_node_name)
+
+    class LabelledEdge:
+        def __init__(self, callback_graph, topic_name, color="blue"):
+            self._callback_graph = callback_graph
+            self.topic_name = topic_name
+            self._pub_nodes = set()
+            self._sub_nodes = set()
+            self._color = color
+
+        def _to_tail_name(self, comm):
+            return self.topic_name + comm.subscription.node_name
+
+        def _to_head_name(self, comm):
+            return self.topic_name + comm.publisher.node_name
+
+        @property
+        def label(self) -> str:
+            return f"[{self.topic_name}]"
+
+        def draw(self, comm):
+            if comm.publisher.node_name not in self._pub_nodes:
+                self._pub_nodes.add(comm.publisher.node_name)
+                head_name = self._to_head_name(comm)
+
+                self._callback_graph._graph.node(head_name, label=self.label, color=self._color)
+                self._callback_graph._draw_edge(comm, head_name, comm.publisher.node_name)
+
+            if comm.subscription.node_name not in self._sub_nodes:
+                self._sub_nodes.add(comm.subscription.node_name)
+                head_name = comm.callback_to.unique_name
+                tail_name = self._to_tail_name(comm)
+                self._callback_graph._graph.node(
+                    tail_name, color=self._color, shape="cds", label=self.label
+                )
+                self._callback_graph._graph.edge(
+                    tail_name, head_name, color=self._color, label=self.label
+                )

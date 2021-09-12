@@ -83,7 +83,9 @@ class ColumnNameCounter(UserDict):
 
             if isinstance(latency, Communication) or isinstance(latency, VariablePassing):
                 if tracepoint_name in self._tracepoints_from:
-                    key = self._to_key(latency.callback_from, tracepoint_name)
+                    callback_from = latency.callback_from
+                    assert callback_from is not None
+                    key = self._to_key(callback_from, tracepoint_name)
                 else:
                     key = self._to_key(latency.callback_to, tracepoint_name)
 
@@ -101,7 +103,9 @@ class ColumnNameCounter(UserDict):
         if isinstance(latency, CallbackBase):
             return self._to_column_name(latency, tracepoint_name)
         if tracepoint_name in self._tracepoints_from:
-            return self._to_column_name(latency.callback_from, tracepoint_name)
+            callback_from = latency.callback_from
+            assert callback_from is not None
+            return self._to_column_name(callback_from, tracepoint_name)
         else:
             return self._to_column_name(latency.callback_to, tracepoint_name)
 
@@ -174,11 +178,10 @@ class PathLatencyMerger:
 
         if self._column_only:
             return
-
-        record_stamp_key = self._counter.to_column_name(other.callback_from, trace_point_name)
-        sub_record_stamp_key = self._counter.to_column_name(
-            other.callback_from, sub_trace_point_name
-        )
+        callback_from = other.callback_from
+        assert callback_from is not None
+        record_stamp_key = self._counter.to_column_name(callback_from, trace_point_name)
+        sub_record_stamp_key = self._counter.to_column_name(callback_from, sub_trace_point_name)
         self.records = merge_sequencial(
             left_records=self.records,
             right_records=records,

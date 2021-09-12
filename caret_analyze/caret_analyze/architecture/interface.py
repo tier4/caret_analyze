@@ -22,6 +22,7 @@ from caret_analyze.node import Node
 
 
 UNDEFINED_STR = "UNDEFINED"
+IGNORE_TOPICS = ["/parameter_events", "/rosout", "/clock"]
 
 
 class PathAlias:
@@ -38,17 +39,17 @@ class ArchitectureInterface(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def path_aliases(self) -> List[PathAlias]:
-        pass
-
-    @property
-    @abstractmethod
     def communications(self) -> List[Communication]:
         pass
 
     @property
     @abstractmethod
     def variable_passings(self) -> List[VariablePassing]:
+        pass
+
+    @property
+    @abstractmethod
+    def path_aliases(self) -> List[PathAlias]:
         pass
 
 
@@ -64,5 +65,7 @@ class ArchitectureImporter(ArchitectureInterface):
 
 class ArchitectureExporter(metaclass=ABCMeta):
     @abstractmethod
-    def exec(self, architecture: ArchitectureInterface, path) -> None:
+    def exec(
+        self, architecture: ArchitectureInterface, path_aliases: List[PathAlias], path: str
+    ) -> None:
         pass
