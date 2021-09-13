@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .architecture import (
-    Architecture,
-)
 from .application import Application
 from .record.lttng import Lttng
 
-__all__ = ["Architecture", "Application", "Lttng"]
+__all__ = ["Application", "Lttng"]

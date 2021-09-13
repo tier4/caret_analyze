@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.architecture import Architecture
 from caret_analyze.application import Application
 from caret_analyze.record.lttng import Lttng
 
@@ -55,8 +54,7 @@ class TestApplication:
     )
     def test_search_paths(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):
         lttng = Lttng(trace_path)
-        arch = Architecture(yaml_path, "yaml", lttng)
-        app = Application(arch)
+        app = Application(yaml_path, "yaml", lttng)
 
         paths = app.search_paths(start_cb_name, end_cb_name)
         assert len(paths) == paths_len
@@ -86,8 +84,7 @@ class TestApplication:
     )
     def test_path_latency(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):
         lttng = Lttng(trace_path)
-        arch = Architecture(yaml_path, "yaml", lttng)
-        app = Application(arch)
+        app = Application(yaml_path, "yaml", lttng)
 
         paths = app.search_paths(start_cb_name, end_cb_name)
         assert len(paths) == paths_len

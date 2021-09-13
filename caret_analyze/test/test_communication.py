@@ -21,7 +21,6 @@ import numpy as np
 import pandas as pd
 
 from caret_analyze.record.lttng import Lttng
-from caret_analyze.architecture import Architecture
 from caret_analyze.application import Application
 from caret_analyze.communication import Communication, PubSubLatency, DDSLatency, VariablePassing
 from caret_analyze.callback import SubscriptionCallback
@@ -30,10 +29,7 @@ from caret_analyze.callback import SubscriptionCallback
 class TestCommunication:
     def test_to_dataframe(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         comm = app.communications[0]
 
         df = comm.to_dataframe()
@@ -55,8 +51,7 @@ class TestCommunication:
     )
     def test_is_intra_process(self, trace_dir, comm_idx, is_intra_process):
         lttng = Lttng(trace_dir)
-        arch = Architecture(trace_dir, "lttng", lttng)
-        app = Application(arch)
+        app = Application(trace_dir, "lttng", lttng)
         comm = app.communications[comm_idx]
         assert comm.is_intra_process == is_intra_process
 
@@ -94,8 +89,7 @@ class TestCommunication:
         self, trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len
     ):
         lttng = Lttng(trace_dir)
-        arch = Architecture(trace_dir, "lttng", lttng)
-        app = Application(arch)
+        app = Application(trace_dir, "lttng", lttng)
         comm = app.communications[comm_idx]
 
         t, latencies = comm.to_timeseries()
@@ -106,10 +100,7 @@ class TestCommunication:
 
     def test_to_pubsub_latency(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         comm = app.communications[0]
 
         latency = comm.to_pubsub_latency()
@@ -122,10 +113,7 @@ class TestCommunication:
 
     def test_to_dds_latency(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         comm = app.communications[0]
 
         latency = comm.to_dds_latency()
