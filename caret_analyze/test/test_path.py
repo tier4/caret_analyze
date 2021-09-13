@@ -477,3 +477,24 @@ class TestPath:
         assert set(column_names) == set(records_expect.data[0].data.keys())
 
         assert records.equals(records_expect)
+
+    def test_contains(
+        self,
+    ):
+        app = Application(
+            "sample/lttng_samples/end_to_end_sample/architecture_modified.yaml", "yaml", None
+        )
+
+        start_cb_name = "/message_driven_node/subscription_callback_0"
+        end_cb_name = "/timer_driven_node/subscription_callback_0"
+        paths = app.search_paths(start_cb_name, end_cb_name)
+        path = paths[0]
+
+        assert path.contains(path.callbacks[0]) == True
+        assert path.contains(app.callbacks[-1]) == False
+
+        assert path.contains(path.variable_passings[0]) == True
+        assert path.contains(app.variable_passings[-1]) == False
+
+        assert path.contains(path.communications[0]) == True
+        assert path.contains(app.communications[-1]) == False
