@@ -39,15 +39,15 @@ class Application:
         ignore_topics: List[str] = IGNORE_TOPICS,
     ) -> None:
         self._arch = Architecture(file_path, file_type, latency_composer, ignore_topics)
-        self.path: Dict[str, Path] = self._to_paths(self._arch.path_aliases, self._arch)
         self.nodes: List[Node] = self._arch.nodes
         self.communications: List[Communication] = self._arch.communications
         self.variable_passings: List[VariablePassing] = self._arch.variable_passings
+        self.path: Dict[str, Path] = self._to_paths(self._arch.path_aliases, self._arch)
 
         self._path_searcher = CallbackPathSercher(
             self.nodes, self.communications, self.variable_passings
         )
-        self._set_node_paths(self._arch.nodes)
+        self._set_node_paths(self.nodes)
 
     @property
     def paths(self) -> List[Path]:
