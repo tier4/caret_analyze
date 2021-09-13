@@ -16,14 +16,16 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from caret_analyze.callback import CallbackBase
-from caret_analyze.record.interface import LatencyComposer
-from caret_analyze.pub_sub import Publisher, Subscription
-from caret_analyze.communication import VariablePassing
-from caret_analyze.path import Path
+from .callback import CallbackBase
+from .communication import VariablePassing
+from .path import Path
+from .pub_sub import Publisher
+from .pub_sub import Subscription
+from .record.interface import LatencyComposer
 
 
 class Node:
+
     def __init__(self, node_name: str) -> None:
         super().__init__()
         self.node_name: str = node_name

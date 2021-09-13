@@ -12,39 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .interface import (
-    LatencyComposer,
-    AppInfoGetter,
-    PublisherInterface,
-    SubscriptionInterface,
-    CallbackInterface,
-    TimerCallbackInterface,
-    SubscriptionCallbackInterface,
-)
-
-from .record import (
-    RecordInterface,
-    RecordsInterface,
-    Record,
-    Records,
-    merge,
-    merge_sequencial,
-    merge_sequencial_for_addr_track,
-)
+from .interface import AppInfoGetter
+from .interface import CallbackInterface
+from .interface import LatencyComposer
+from .interface import PublisherInterface
+from .interface import SubscriptionCallbackInterface
+from .interface import SubscriptionInterface
+from .interface import TimerCallbackInterface
+from .record import merge
+from .record import merge_sequencial
+from .record import merge_sequencial_for_addr_track
+from .record import Record
+from .record import RecordInterface
+from .record import Records
+from .record import RecordsInterface
 
 __all__ = [
-    "RecordInterface",
-    "RecordsInterface",
-    "Record",
-    "Records",
-    "LatencyComposer",
-    "AppInfoGetter",
-    "PublisherInterface",
-    "SubscriptionInterface",
-    "CallbackInterface",
-    "TimerCallbackInterface",
-    "SubscriptionCallbackInterface",
-    "merge",
-    "merge_sequencial",
-    "merge_sequencial_for_addr_track",
+    'RecordInterface',
+    'RecordsInterface',
+    'Record',
+    'Records',
+    'LatencyComposer',
+    'AppInfoGetter',
+    'PublisherInterface',
+    'SubscriptionInterface',
+    'CallbackInterface',
+    'TimerCallbackInterface',
+    'SubscriptionCallbackInterface',
+    'merge',
+    'merge_sequencial',
+    'merge_sequencial_for_addr_track',
 ]

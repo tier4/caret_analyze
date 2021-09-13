@@ -15,4 +15,4 @@
 from .application import Application
 from .record.lttng import Lttng
 
-__all__ = ["Application", "Lttng"]
+__all__ = ['Application', 'Lttng']

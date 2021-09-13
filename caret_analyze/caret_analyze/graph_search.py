@@ -14,18 +14,19 @@
 
 from __future__ import annotations
 
+from collections import UserList
+from copy import deepcopy
 from typing import List
 
-from collections import UserList
-import copy
-
-from caret_analyze.callback import CallbackBase
-from caret_analyze.node import Node
-from caret_analyze.communication import Communication, VariablePassing
-from caret_analyze.util import Util
+from .callback import CallbackBase
+from .communication import Communication
+from .communication import VariablePassing
+from .node import Node
+from .util import Util
 
 
 class GraphNode:
+
     def __init__(self, name: str) -> None:
         self.name = name
 
@@ -36,6 +37,7 @@ class GraphNode:
 
 
 class GraphBranch:
+
     def __init__(self, src_node: GraphNode, dst_node: GraphNode) -> None:
         self.arrived = False
         self.src_node = src_node
@@ -48,6 +50,7 @@ class GraphBranch:
 
 
 class GraphPath(UserList):
+
     def __init__(self, init: List[GraphBranch] = None):
         init = init or []
         super().__init__(init)
@@ -65,6 +68,7 @@ class GraphPath(UserList):
 
 
 class GraphSearcher:
+
     def __init__(self, branches: List[GraphBranch]) -> None:
         self._branches = branches
 
@@ -79,11 +83,12 @@ class GraphSearcher:
                 if branch.arrived:
                     continue
 
-                branches_ = copy.deepcopy(branches)
-                branch_ = next(filter(lambda branch_: branch_ == branch, branches_))
+                branches_ = deepcopy(branches)
+                branch_ = next(
+                    filter(lambda branch_: branch_ == branch, branches_))
                 branch_.arrived = True
 
-                path_ = copy.deepcopy(path)
+                path_ = deepcopy(path)
                 path_.append(branch)
 
                 search_local(branch_.dst_node, path_, branches_, paths)
@@ -95,13 +100,15 @@ class GraphSearcher:
 
 
 class CallbackPathSercher:
+
     def __init__(
         self,
         nodes: List[Node],
         communications: List[Communication],
         variable_pasisngs: List[VariablePassing],
     ) -> None:
-        self._callbacks: List[CallbackBase] = Util.flatten([node.callbacks for node in nodes])
+        self._callbacks: List[CallbackBase] = Util.flatten(
+            [node.callbacks for node in nodes])
         self._communications = communications
         self._variable_passings = variable_pasisngs
 
@@ -119,7 +126,8 @@ class CallbackPathSercher:
             callback_publish = communication.callback_publish
             assert callback_publish is not None
             src_node = GraphNode(callback_publish.unique_name)
-            dst_node = GraphNode(communication.callback_subscription.unique_name)
+            dst_node = GraphNode(
+                communication.callback_subscription.unique_name)
             branches.append(GraphBranch(src_node, dst_node))
 
         for variable_passing in self._variable_passings:
@@ -133,11 +141,13 @@ class CallbackPathSercher:
         dst_node = GraphNode(end_callback_unique_name)
         graph_paths: List[GraphPath] = searcher.search(src_node, dst_node)
 
-        paths: List[List[CallbackBase]] = [self._to_path(path) for path in graph_paths]
+        paths: List[List[CallbackBase]] = [
+            self._to_path(path) for path in graph_paths]
         return paths
 
     def _to_path(self, graph_path: GraphPath) -> List[CallbackBase]:
-        to_callback = {callback.unique_name: callback for callback in self._callbacks}
+        to_callback = {
+            callback.unique_name: callback for callback in self._callbacks}
         callbacks_path: List[CallbackBase] = [
             to_callback[node.name] for node in graph_path.to_graph_nodes()
         ]

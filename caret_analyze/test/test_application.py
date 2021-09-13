@@ -19,42 +19,43 @@ import pytest
 
 
 class TestApplication:
+
     @pytest.mark.parametrize(
-        "trace_path, yaml_path, start_cb_name, end_cb_name, paths_len",
+        'trace_path, yaml_path, start_cb_name, end_cb_name, paths_len',
         [
             (
-                "sample/lttng_samples/talker_listener/",
-                "sample/lttng_samples/talker_listener/architecture.yaml",
-                "/talker/timer_callback_0",
-                "/listener/subscription_callback_0",
+                'sample/lttng_samples/talker_listener/',
+                'sample/lttng_samples/talker_listener/architecture.yaml',
+                '/talker/timer_callback_0',
+                '/listener/subscription_callback_0',
                 1,
             ),
             (  # cyclic case
-                "sample/lttng_samples/cyclic_pipeline_intra_process",
-                "sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml",
-                "/pipe1/subscription_callback_0",
-                "/pipe1/subscription_callback_0",
+                'sample/lttng_samples/cyclic_pipeline_intra_process',
+                'sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml',
+                '/pipe1/subscription_callback_0',
+                '/pipe1/subscription_callback_0',
                 1,
             ),
             (
-                "sample/lttng_samples/end_to_end_sample",
-                "sample/lttng_samples/end_to_end_sample/architecture.yaml",
-                "/sensor_dummy_node/timer_callback_0",
-                "/actuator_dummy_node/subscription_callback_0",
+                'sample/lttng_samples/end_to_end_sample',
+                'sample/lttng_samples/end_to_end_sample/architecture.yaml',
+                '/sensor_dummy_node/timer_callback_0',
+                '/actuator_dummy_node/subscription_callback_0',
                 0,
             ),
             (  # publisher callback_name and callback depencency added
-                "sample/lttng_samples/end_to_end_sample",
-                "sample/lttng_samples/end_to_end_sample/architecture_modified.yaml",
-                "/sensor_dummy_node/timer_callback_0",
-                "/actuator_dummy_node/subscription_callback_0",
+                'sample/lttng_samples/end_to_end_sample',
+                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml',
+                '/sensor_dummy_node/timer_callback_0',
+                '/actuator_dummy_node/subscription_callback_0',
                 1,
             ),
         ],
     )
     def test_search_paths(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):
         lttng = Lttng(trace_path)
-        app = Application(yaml_path, "yaml", lttng)
+        app = Application(yaml_path, 'yaml', lttng)
 
         paths = app.search_paths(start_cb_name, end_cb_name)
         assert len(paths) == paths_len
@@ -64,27 +65,27 @@ class TestApplication:
             assert path[-1].unique_name == end_cb_name
 
     @pytest.mark.parametrize(
-        "trace_path, yaml_path, start_cb_name, end_cb_name, paths_len",
+        'trace_path, yaml_path, start_cb_name, end_cb_name, paths_len',
         [
             (  # cyclic case
-                "sample/lttng_samples/cyclic_pipeline_intra_process",
-                "sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml",
-                "/pipe1/subscription_callback_0",
-                "/pipe1/subscription_callback_0",
+                'sample/lttng_samples/cyclic_pipeline_intra_process',
+                'sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml',
+                '/pipe1/subscription_callback_0',
+                '/pipe1/subscription_callback_0',
                 1,
             ),
             (  # publisher callback_name and callback depencency added
-                "sample/lttng_samples/end_to_end_sample",
-                "sample/lttng_samples/end_to_end_sample/architecture_modified.yaml",
-                "/sensor_dummy_node/timer_callback_0",
-                "/actuator_dummy_node/subscription_callback_0",
+                'sample/lttng_samples/end_to_end_sample',
+                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml',
+                '/sensor_dummy_node/timer_callback_0',
+                '/actuator_dummy_node/subscription_callback_0',
                 1,
             ),
         ],
     )
     def test_path_latency(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):
         lttng = Lttng(trace_path)
-        app = Application(yaml_path, "yaml", lttng)
+        app = Application(yaml_path, 'yaml', lttng)
 
         paths = app.search_paths(start_cb_name, end_cb_name)
         assert len(paths) == paths_len

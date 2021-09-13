@@ -17,29 +17,33 @@ from caret_analyze.record.lttng import Lttng
 
 
 class TestNode:
+
     def test_init_satus(self):
-        lttng = Lttng("sample/lttng_samples/talker_listener/")
-        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        lttng = Lttng('sample/lttng_samples/talker_listener/')
+        app = Application(
+            'sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
         node = app.nodes[0]
 
         assert len(node.variable_passings) == 0
 
     def test_search_paths(self):
-        lttng = Lttng("sample/lttng_samples/talker_listener/")
-        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        lttng = Lttng('sample/lttng_samples/talker_listener/')
+        app = Application(
+            'sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
         node = app.nodes[0]
 
         assert len(node.variable_passings) == 0
 
     def test_compose_callback_duration(self):
-        lttng = Lttng("sample/lttng_samples/talker_listener/")
+        lttng = Lttng('sample/lttng_samples/talker_listener/')
 
-        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
+        app = Application(
+            'sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
         node = app.nodes[0]
         callback = node.callbacks[0]
 
         df = callback.to_dataframe()
-        columns_exepct = {"callback_start_timestamp", "callback_end_timestamp"}
+        columns_exepct = {'callback_start_timestamp', 'callback_end_timestamp'}
         assert set(df.columns) == columns_exepct
 
         t, latencies = callback.to_timeseries()

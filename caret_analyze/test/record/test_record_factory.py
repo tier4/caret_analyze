@@ -17,6 +17,7 @@ from caret_analyze.record.record_factory import RecordFactory
 
 
 class TestRecordFactory:
+
     def test_is_cpp_impl_valid(self):
         is_valid = RecordFactory.is_cpp_impl_valid()
-        assert is_valid, "Failed to find record_cpp_impl. Skip Cpp package tests."
+        assert is_valid, 'Failed to find record_cpp_impl. Skip Cpp package tests.'

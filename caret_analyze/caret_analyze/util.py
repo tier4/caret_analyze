@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
-from typing import List, Any, Tuple, Callable, Optional, Iterable
 from collections import UserList
 import os
+from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 
 class Util:
+
     @classmethod
     def flatten(cls, x: List[List[Any]]) -> List[Any]:
         import itertools
@@ -46,24 +47,26 @@ class Util:
 
     @classmethod
     def get_ext(cls, path: str) -> str:
-        return os.path.basename(path).split(".")[-1]
+        return os.path.basename(path).split('.')[-1]
 
     @classmethod
     def to_ns_and_name(cls, nodename: str) -> Tuple[str, str]:
-        strs = nodename.split("/")
-        ns = "/".join(strs[:-1]) + "/"
+        strs = nodename.split('/')
+        ns = '/'.join(strs[:-1]) + '/'
         name = strs[-1]
         return ns, name
 
 
 class Singleton(object):
+
     def __new__(cls, *args, **kargs):
-        if not hasattr(cls, "_instance"):
+        if not hasattr(cls, '_instance'):
             cls._instance = super(Singleton, cls).__new__(cls)
         return cls._instance
 
 
 class UniqueList(UserList):
+
     def __init__(self, init=None):
         super().__init__(init)
 

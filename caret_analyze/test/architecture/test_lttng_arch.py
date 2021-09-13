@@ -12,27 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
-from caret_analyze.record.lttng import Lttng
 from caret_analyze.architecture.architecture import IGNORE_TOPICS
 from caret_analyze.architecture.lttng import LttngArchitectureImporter
+from caret_analyze.record.lttng import Lttng
+
+import pytest
 
 
 class TestLttngArchitectureImporter:
+
     def test_create_node(self):
-        container = Lttng("sample/lttng_samples/talker_listener")
+        container = Lttng('sample/lttng_samples/talker_listener')
         importer = LttngArchitectureImporter(None)
 
-        node_name = "/listener"
-        node = importer._create_node(node_name, container, ignore_topics=IGNORE_TOPICS)
+        node_name = '/listener'
+        node = importer._create_node(
+            node_name, container, ignore_topics=IGNORE_TOPICS)
         assert node.node_name == node_name
         assert len(node.variable_passings) == 0
         assert len(node.publishes) == 0
         assert len(node.unlinked_publishes) == 0
         assert len(node.callbacks) == 1
 
-        node_name = "/listener"
+        node_name = '/listener'
         node = importer._create_node(node_name, container, ignore_topics=[])
         assert node.node_name == node_name
         assert len(node.variable_passings) == 0
@@ -40,15 +42,16 @@ class TestLttngArchitectureImporter:
         assert len(node.unlinked_publishes) == 2
         assert len(node.callbacks) == 2
 
-        node_name = "/talker"
-        node = importer._create_node(node_name, container, ignore_topics=IGNORE_TOPICS)
+        node_name = '/talker'
+        node = importer._create_node(
+            node_name, container, ignore_topics=IGNORE_TOPICS)
         assert node.node_name == node_name
         assert len(node.variable_passings) == 0
         assert len(node.publishes) == 1
         assert len(node.unlinked_publishes) == 0
         assert len(node.callbacks) == 1
 
-        node_name = "/talker"
+        node_name = '/talker'
         node = importer._create_node(node_name, container, ignore_topics=[])
         assert node.node_name == node_name
         assert len(node.variable_passings) == 0
@@ -57,16 +60,16 @@ class TestLttngArchitectureImporter:
         assert len(node.callbacks) == 2
 
     @pytest.mark.parametrize(
-        "path, nodes, aliases, comms, vars",
+        'path, nodes, aliases, comms, var_pass',
         [
-            ("sample/lttng_samples/talker_listener", 2, 0, 1, 0),
-            ("sample/lttng_samples/end_to_end_sample", 6, 0, 5, 0),
+            ('sample/lttng_samples/talker_listener', 2, 0, 1, 0),
+            ('sample/lttng_samples/end_to_end_sample', 6, 0, 5, 0),
         ],
     )
-    def test_exec(self, path, nodes, aliases, comms, vars):
+    def test_exece(self, path, nodes, aliases, comms, var_pass):
         importer = LttngArchitectureImporter(None)
-        importer.exec(path, ignore_topics=IGNORE_TOPICS)
+        importer.execute(path, ignore_topics=IGNORE_TOPICS)
         assert len(importer.nodes) == nodes
         assert len(importer.path_aliases) == aliases
         assert len(importer.communications) == comms
-        assert len(importer.variable_passings) == vars
+        assert len(importer.variable_passings) == var_pass
