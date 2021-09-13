@@ -19,7 +19,6 @@ setup(
     license="Apache License 2.0",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": [
-        ],
+        "console_scripts": [f"caret_create = {package_name}.cli:caret_create"],
     },
 )

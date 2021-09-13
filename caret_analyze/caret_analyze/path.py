@@ -262,7 +262,7 @@ class Path(UserList, LatencyBase):
         super().__init__(chain)
         self.communications = communications
         self.variable_passings = variable_passings
-        self._column_names: List[str] = self._to_column_names()
+        self._column_names: List[str] = []
         return None
 
     def to_records(self) -> RecordsInterface:
@@ -270,14 +270,23 @@ class Path(UserList, LatencyBase):
         records, _ = self._merge_path()
         return records
 
+    def _get_column_names(self):
+        # In order to get the list of column names,
+        # information on intra-process and inter-process communication is required.
+        # Since this information is obtained from the actual measurement results,
+        # each LatencyBase needs to have a LatencyComposer.
+        # In cases such as visualization of callback graphs only,
+        # the LatencyComposer (trace results) is not necessary,
+        # so the list of column names is acquired when it becomes necessary.
+
+        if len(self._column_names) == 0:
+            assert len(self) > 0
+            _, self._column_names = self._merge_path(column_only=True)
+        return self._column_names
+
     def __str__(self) -> str:
         unique_names = [callback.unique_name for callback in self.callbacks]
         return "\n".join(unique_names)
-
-    def _to_column_names(self) -> List[str]:
-        assert len(self) > 0
-        _, column_names = self._merge_path(column_only=True)
-        return column_names
 
     def _merge_path(self, column_only=False) -> Tuple[RecordsInterface, List[str]]:
         merger = PathLatencyMerger(self.data[0], column_only)
@@ -316,28 +325,29 @@ class Path(UserList, LatencyBase):
                 # callback_end -> callback_start [merge]
                 merger.merge(latency_, "callback_end_timestamp")
 
+        column_names = merger.column_names.data
         if column_only is False:
-            merger.records.sort(self._column_names[0], inplace=True)
+            merger.records.sort(column_names[0], inplace=True)
 
-        return merger.records, merger.column_names.data
+        return merger.records, column_names
 
     def to_dataframe(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> pd.DataFrame:
         column_names  # use self._column_names instead.
-        return super().to_dataframe(remove_dropped, column_names=self._column_names)
+        return super().to_dataframe(remove_dropped, column_names=self._get_column_names())
 
     def to_timeseries(
         self, remove_dropped=False, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
         column_names  # use self._column_names instead.
-        return super().to_timeseries(remove_dropped, column_names=self._column_names)
+        return super().to_timeseries(remove_dropped, column_names=self._get_column_names())
 
     def to_histogram(
         self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
     ) -> Tuple[np.array, np.array]:
         column_names  # use self._column_names instead.
-        return super().to_histogram(binsize_ns, column_names=self._column_names)
+        return super().to_histogram(binsize_ns, column_names=self._get_column_names())
 
     @property
     def callbacks(self) -> List[CallbackBase]:
