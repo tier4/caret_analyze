@@ -14,25 +14,24 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-from caret_analyze.pub_sub import Publisher, Subscription
-from caret_analyze.latency import LatencyBase
-from caret_analyze.record import LatencyComposer, RecordsInterface
-from caret_analyze.record.interface import (
-    CallbackInterface,
-    SubscriptionCallbackInterface,
-    TimerCallbackInterface,
-)
-
-from abc import abstractmethod
+from .latency import LatencyBase
+from .pub_sub import Publisher
+from .pub_sub import Subscription
+from .record import LatencyComposer
+from .record import RecordsInterface
+from .record.interface import CallbackInterface
+from .record.interface import SubscriptionCallbackInterface
+from .record.interface import TimerCallbackInterface
 
 
 class CallbackBase(CallbackInterface, LatencyBase):
-    column_names = ["callback_start_timestamp", "callback_end_timestamp"]
+    column_names = ['callback_start_timestamp', 'callback_end_timestamp']
 
     def __init__(
         self,
@@ -82,7 +81,7 @@ class CallbackBase(CallbackInterface, LatencyBase):
 
     @property
     def unique_name(self) -> str:
-        return f"{self.node_name}/{self.callback_name}"
+        return f'{self.node_name}/{self.callback_name}'
 
     def to_records(self) -> RecordsInterface:
         assert self._latency_composer is not None

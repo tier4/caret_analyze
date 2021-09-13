@@ -14,21 +14,17 @@
 
 from typing import Optional
 
-from caret_analyze.record import (
-    RecordInterface,
-    RecordsInterface,
-    merge,
-    merge_sequencial,
-    merge_sequencial_for_addr_track,
-)
-from caret_analyze.record.record_factory import RecordsFactory
-from .impl import (
-    CallbackImpl,
-    SubscriptionCallbackImpl,
-    TimerCallbackImpl,
-)
-from .util import Ros2DataModelUtil
 from .dataframe_container import DataframeContainer
+from .impl import CallbackImpl
+from .impl import SubscriptionCallbackImpl
+from .impl import TimerCallbackImpl
+from .util import Ros2DataModelUtil
+from .. import merge
+from .. import merge_sequencial
+from .. import merge_sequencial_for_addr_track
+from .. import RecordInterface
+from .. import RecordsInterface
+from ..record_factory import RecordsFactory
 
 
 class RecordsContainer:
@@ -50,15 +46,17 @@ class RecordsContainer:
 
     def get_publish_records(self, publisher_handle, is_intra_process) -> RecordsInterface:
         def is_target_publish(x):
-            return x["publisher_handle"] == publisher_handle
+            return x['publisher_handle'] == publisher_handle
 
         records: RecordsInterface
         if is_intra_process:
             intra_process_records = self._compose_intra_process_publish_records_with_cache()
-            records = intra_process_records.filter(is_target_publish)  # type: ignore
+            records = intra_process_records.filter_if(
+                is_target_publish)  # type: ignore
         else:
             inter_process_records = self._compose_inter_process_publish_records_with_cache()
-            records = inter_process_records.filter(is_target_publish)  # type: ignore
+            records = inter_process_records.filter_if(
+                is_target_publish)  # type: ignore
 
         return records
 
@@ -76,26 +74,28 @@ class RecordsContainer:
         elif isinstance(callback, TimerCallbackImpl):
             records = self._get_timer_callback_records(callback)
 
-        records.sort(key="callback_start_timestamp", inplace=True)
+        records.sort(key='callback_start_timestamp', inplace=True)
         return records
 
     def _get_subscription_callback_records(
         self, callback: SubscriptionCallbackImpl
     ) -> RecordsInterface:
         def has_same_intra_callback_object(record: RecordInterface):
-            return record.data.get("callback_object") == callback.intra_callback_object
+            return record.data.get('callback_object') == callback.intra_callback_object
 
         def has_same_inter_callback_object(record: RecordInterface):
-            return record.data.get("callback_object") == callback.inter_callback_object
+            return record.data.get('callback_object') == callback.inter_callback_object
 
         records: RecordsInterface
 
         inter_records = self._compose_inter_process_callback_records_with_cache()
-        records = inter_records.filter(has_same_inter_callback_object)  # type: ignore
+        records = inter_records.filter_if(
+            has_same_inter_callback_object)  # type: ignore
 
         if callback.intra_callback_object is not None:
             intra_records = self._compose_intra_process_callback_records_with_cache()
-            callback_records = intra_records.filter(has_same_intra_callback_object)
+            callback_records = intra_records.filter_if(
+                has_same_intra_callback_object)
 
             assert callback_records is not None
             records.concat(
@@ -107,10 +107,10 @@ class RecordsContainer:
 
     def _get_timer_callback_records(self, callback: TimerCallbackImpl) -> RecordsInterface:
         def has_same_callback_object(record: RecordInterface):
-            return record.data.get("callback_object") == callback.callback_object
+            return record.data.get('callback_object') == callback.callback_object
 
         records = self._compose_timer_callback_records_with_cache()
-        records_filtered = records.filter(has_same_callback_object)
+        records_filtered = records.filter_if(has_same_callback_object)
         assert records_filtered is not None
         return records_filtered
 
@@ -138,7 +138,8 @@ class RecordsContainer:
     def _compose_intra_process_publish_records_with_cache(self) -> RecordsInterface:
         if self._intra_process_publish_records_cache is None:
             self._intra_process_publish_records_cache = (
-                self._data_util.data.rcl_publish_instances.drop_columns(["message"])
+                self._data_util.data.rcl_publish_instances.drop_columns([
+                                                                        'message'])
             )
 
         assert self._intra_process_publish_records_cache is not None
@@ -147,7 +148,8 @@ class RecordsContainer:
     def _compose_inter_process_publish_records_with_cache(self) -> RecordsInterface:
         if self._inter_process_publish_records_cache is None:
             self._inter_process_publish_records_cache = (
-                self._data_util.data.rclcpp_publish_instances.drop_columns(["message"])
+                self._data_util.data.rclcpp_publish_instances.drop_columns([
+                                                                           'message'])
             )
 
         assert self._inter_process_publish_records_cache is not None
@@ -171,10 +173,10 @@ class RecordsContainer:
         callback_records = merge_sequencial(
             left_records=self._data_util.data.callback_start_instances,
             right_records=self._data_util.data.callback_end_instances,
-            left_stamp_key="callback_start_timestamp",
-            right_stamp_key="callback_end_timestamp",
-            join_key="callback_object",
-            progress_label="binding: callback_start and callback_end",
+            left_stamp_key='callback_start_timestamp',
+            right_stamp_key='callback_end_timestamp',
+            join_key='callback_object',
+            progress_label='binding: callback_start and callback_end',
         )
 
         timer_callback_records = RecordsFactory.create_instance()
@@ -185,22 +187,23 @@ class RecordsContainer:
         cb_to_records.update(
             {
                 _: timer_callback_records
-                for _ in self._dataframe_coitainer.get_timer_info()["callback_object"]
+                for _ in self._dataframe_coitainer.get_timer_info()['callback_object']
             }
         )
         cb_to_records.update(
             {
                 _: subscription_callback_records
-                for _ in self._dataframe_coitainer.get_subscription_info()["callback_object"]
+                for _ in self._dataframe_coitainer.get_subscription_info()['callback_object']
             }
         )
 
         for callback_record in callback_records.data:
-            if "callback_object" not in callback_record.columns:
+            if 'callback_object' not in callback_record.columns:
                 continue
-            callback_object = callback_record.get("callback_object")
+            callback_object = callback_record.get('callback_object')
             if callback_object not in cb_to_records.keys():
-                print("failed to find callback info: callback object = " + str(callback_object))
+                print('failed to find callback info: callback object = ' +
+                      str(callback_object))
                 continue
             records = cb_to_records[callback_object]
             records.append(callback_record)
@@ -212,7 +215,7 @@ class RecordsContainer:
             [
                 callback_record
                 for callback_record in subscription_callback_records.data
-                if callback_record.get("is_intra_process") == 1
+                if callback_record.get('is_intra_process') == 1
             ]
         )
 
@@ -220,14 +223,17 @@ class RecordsContainer:
             [
                 callback_record
                 for callback_record in subscription_callback_records.data
-                if callback_record.get("is_intra_process") == 0
+                if callback_record.get('is_intra_process') == 0
             ]
         )
 
         if self._drop_inter_mediate_columns:
-            timer_callback_records.drop_columns(["is_intra_process"], inplace=True)
-            subscription_intra_callback_records.drop_columns(["is_intra_process"], inplace=True)
-            subscription_inter_callback_records.drop_columns(["is_intra_process"], inplace=True)
+            timer_callback_records.drop_columns(
+                ['is_intra_process'], inplace=True)
+            subscription_intra_callback_records.drop_columns(
+                ['is_intra_process'], inplace=True)
+            subscription_inter_callback_records.drop_columns(
+                ['is_intra_process'], inplace=True)
 
         self._timer_callback_records_cache = timer_callback_records
         self._intra_process_callback_records_cache = subscription_intra_callback_records
@@ -244,32 +250,32 @@ class RecordsContainer:
             source_records=self._data_util.data.rclcpp_intra_publish_instances,
             copy_records=self._data_util.data.message_construct_instances,
             sink_records=sink_records,
-            source_stamp_key="rclcpp_intra_publish_timestamp",
-            source_key="message",
-            copy_stamp_key="message_construct_timestamp",
-            copy_from_key="original_message",
-            copy_to_key="constructed_message",
-            sink_stamp_key="dispatch_intra_process_subscription_callback_timestamp",
-            sink_from_key="message",
-            progress_label="bindig: rclcpp_intra_publish and message_address",
+            source_stamp_key='rclcpp_intra_publish_timestamp',
+            source_key='message',
+            copy_stamp_key='message_construct_timestamp',
+            copy_from_key='original_message',
+            copy_to_key='constructed_message',
+            sink_stamp_key='dispatch_intra_process_subscription_callback_timestamp',
+            sink_from_key='message',
+            progress_label='bindig: rclcpp_intra_publish and message_address',
         )
 
         intra_records = merge_sequencial(
             left_records=intra_publish_records,
             right_records=intra_process_callback_records,
-            left_stamp_key="dispatch_intra_process_subscription_callback_timestamp",
-            right_stamp_key="callback_start_timestamp",
-            join_key="callback_object",
-            how="left",
-            progress_label="bindig: dispatch_subscription_callback and callback_object",
+            left_stamp_key='dispatch_intra_process_subscription_callback_timestamp',
+            right_stamp_key='callback_start_timestamp',
+            join_key='callback_object',
+            how='left',
+            progress_label='bindig: dispatch_subscription_callback and callback_object',
         )
 
         if self._drop_inter_mediate_columns:
             intra_records.drop_columns(
                 [
-                    "dispatch_intra_process_subscription_callback_timestamp",
-                    "message",
-                    "callback_end_timestamp",
+                    'dispatch_intra_process_subscription_callback_timestamp',
+                    'message',
+                    'callback_end_timestamp',
                 ],
                 inplace=True,
             )
@@ -286,77 +292,77 @@ class RecordsContainer:
             source_records=self._data_util.data.dds_write_instances,
             copy_records=self._data_util.data.dds_bind_addr_to_addr,
             sink_records=self._data_util.data.dds_bind_addr_to_stamp,
-            source_stamp_key="dds_write_timestamp",
-            source_key="message",
-            copy_stamp_key="dds_bind_addr_to_addr_timestamp",
-            copy_from_key="addr_from",
-            copy_to_key="addr_to",
-            sink_stamp_key="dds_bind_addr_to_stamp_timestamp",
-            sink_from_key="addr",
-            progress_label="binding: message_address and source_timestamp",
+            source_stamp_key='dds_write_timestamp',
+            source_key='message',
+            copy_stamp_key='dds_bind_addr_to_addr_timestamp',
+            copy_from_key='addr_from',
+            copy_to_key='addr_to',
+            sink_stamp_key='dds_bind_addr_to_stamp_timestamp',
+            sink_from_key='addr',
+            progress_label='binding: message_address and source_timestamp',
         )
 
         publish = merge_sequencial(
             left_records=self._data_util.data.rclcpp_publish_instances,
             right_records=self._data_util.data.rcl_publish_instances,
-            left_stamp_key="rclcpp_publish_timestamp",
-            right_stamp_key="rcl_publish_timestamp",
-            join_key="message",
-            how="left",
-            progress_label="binding: rclcpp_publish and rcl_publish",
+            left_stamp_key='rclcpp_publish_timestamp',
+            right_stamp_key='rcl_publish_timestamp',
+            join_key='message',
+            how='left',
+            progress_label='binding: rclcpp_publish and rcl_publish',
         )
 
         publish = merge_sequencial(
             left_records=publish,
             right_records=dds_write,
-            left_stamp_key="rcl_publish_timestamp",
-            right_stamp_key="dds_write_timestamp",
-            join_key="message",
-            how="left",
-            progress_label="binding: rcl_publish and dds_write",
+            left_stamp_key='rcl_publish_timestamp',
+            right_stamp_key='dds_write_timestamp',
+            join_key='message',
+            how='left',
+            progress_label='binding: rcl_publish and dds_write',
         )
 
         subscription = self._data_util.data.dispatch_subscription_callback_instances
         inter_process_callback_dropped = inter_process_callback.drop_columns(
-            ["callback_end_timestamp"]
+            ['callback_end_timestamp']
         )
         assert inter_process_callback_dropped is not None
 
         subscription = merge_sequencial(
             left_records=subscription,
             right_records=inter_process_callback_dropped,
-            left_stamp_key="dispatch_subscription_callback_timestamp",
-            right_stamp_key="callback_start_timestamp",
-            join_key="callback_object",
-            how="left",
-            progress_label="binding: dispatch_subscription_callback and callback_start",
+            left_stamp_key='dispatch_subscription_callback_timestamp',
+            right_stamp_key='callback_start_timestamp',
+            join_key='callback_object',
+            how='left',
+            progress_label='binding: dispatch_subscription_callback and callback_start',
         )
 
         communication = merge(
             publish,
             self._data_util.data.on_data_available_instances,
-            join_key="source_timestamp",
-            how="left",
-            progress_label="binding: source_timestamp and on_data_available",
+            join_key='source_timestamp',
+            how='left',
+            progress_label='binding: source_timestamp and on_data_available',
         )
 
         communication = merge(
             communication,
             subscription,
-            join_key="source_timestamp",
-            how="left",
-            progress_label="binding: source_timestamp and callback_start",
+            join_key='source_timestamp',
+            how='left',
+            progress_label='binding: source_timestamp and callback_start',
         )
 
         if self._drop_inter_mediate_columns:
             communication.drop_columns(
                 [
-                    "addr",
-                    "message",
-                    "source_timestamp",
-                    "dds_bind_addr_to_stamp_timestamp",
-                    "take_type_erased_timestamp",
-                    "dispatch_subscription_callback_timestamp",
+                    'addr',
+                    'message',
+                    'source_timestamp',
+                    'dds_bind_addr_to_stamp_timestamp',
+                    'take_type_erased_timestamp',
+                    'dispatch_subscription_callback_timestamp',
                 ],
                 inplace=True,
             )

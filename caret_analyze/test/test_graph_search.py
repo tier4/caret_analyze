@@ -13,34 +13,41 @@
 # limitations under the License.
 
 from typing import List
-from caret_analyze.graph_search import GraphNode, GraphBranch, GraphPath, GraphSearcher
+
+from caret_analyze.graph_search import GraphBranch
+from caret_analyze.graph_search import GraphNode
+from caret_analyze.graph_search import GraphPath
+from caret_analyze.graph_search import GraphSearcher
 
 
 class TestGraphBranch:
+
     def test_eq(self):
-        node0 = GraphNode("/node0/callback0")
-        node1 = GraphNode("/node1/callback1")
+        node0 = GraphNode('/node0/callback0')
+        node1 = GraphNode('/node1/callback1')
 
         assert GraphBranch(node0, node1) == GraphBranch(node0, node1)
         assert GraphBranch(node0, node0) != GraphBranch(node0, node1)
 
 
 class TestGraphNode:
+
     def test_eq(self):
-        assert GraphNode("/node0/callback0") == GraphNode("/node0/callback0")
-        assert GraphNode("/node0/callback0") != GraphNode("/node1/callback1")
+        assert GraphNode('/node0/callback0') == GraphNode('/node0/callback0')
+        assert GraphNode('/node0/callback0') != GraphNode('/node1/callback1')
 
 
 class TestGraphPath:
+
     def test_to_graph_nodes(self):
         path = GraphPath()
         assert len(path) == 0
         assert len(path.to_graph_nodes()) == 0
 
         nodes = [
-            GraphNode("/node0/callback0"),
-            GraphNode("/node1/callback1"),
-            GraphNode("/node2/callback2"),
+            GraphNode('/node0/callback0'),
+            GraphNode('/node1/callback1'),
+            GraphNode('/node2/callback2'),
         ]
         path.append(GraphBranch(nodes[0], nodes[1]))
         path.append(GraphBranch(nodes[1], nodes[2]))
@@ -50,9 +57,10 @@ class TestGraphPath:
 
 
 class TestGraphSearcher:
+
     def test_search(self):
-        node0 = GraphNode("/node0/callback0")
-        node1 = GraphNode("/node1/callback1")
+        node0 = GraphNode('/node0/callback0')
+        node1 = GraphNode('/node1/callback1')
 
         branches: List[GraphBranch] = []
         branches.append(GraphBranch(node0, node1))

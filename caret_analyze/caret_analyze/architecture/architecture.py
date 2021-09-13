@@ -15,19 +15,21 @@
 from __future__ import annotations
 
 from typing import List, Optional
-from caret_analyze.node import Node
-from caret_analyze.communication import VariablePassing, Communication
-from .interface import (
-    ArchitectureImporter,
-    ArchitectureExporter,
-    PathAlias,
-    ArchitectureInterface,
-    IGNORE_TOPICS,
-)
-from caret_analyze.util import Util
-from .yaml import YamlArchitectureExporter, YamlArchitectureImporter
-from .lttng import LttngArchitectureImporter
+
 from caret_analyze.record import LatencyComposer
+from caret_analyze.util import Util
+
+from .interface import ArchitectureExporter
+from .interface import ArchitectureImporter
+from .interface import ArchitectureInterface
+from .interface import IGNORE_TOPICS
+from .interface import PathAlias
+from .lttng import LttngArchitectureImporter
+from .yaml import YamlArchitectureExporter
+from .yaml import YamlArchitectureImporter
+from ..communication import Communication
+from ..communication import VariablePassing
+from ..node import Node
 
 
 class Architecture(ArchitectureInterface):
@@ -46,7 +48,7 @@ class Architecture(ArchitectureInterface):
     def export(self, file_path: str):
         exporter: ArchitectureExporter
         exporter = YamlArchitectureExporter()
-        exporter.exec(self, self._path_aliases, file_path)
+        exporter.execute(self, self._path_aliases, file_path)
 
     def _import(
         self,
@@ -56,15 +58,15 @@ class Architecture(ArchitectureInterface):
         ignore_topics: List[str],
     ) -> None:
         file_type = file_type.lower()
-        assert file_type in ["ctf", "lttng", "yml", "yaml"]
+        assert file_type in ['ctf', 'lttng', 'yml', 'yaml']
 
         importer: ArchitectureImporter
-        if file_type in ["lttng", "ctf"]:
+        if file_type in ['lttng', 'ctf']:
             importer = LttngArchitectureImporter(latency_composer)
-        elif file_type in ["yml", "yaml"]:
+        elif file_type in ['yml', 'yaml']:
             importer = YamlArchitectureImporter(latency_composer)
 
-        importer.exec(file_path, ignore_topics)
+        importer.execute(file_path, ignore_topics)
 
         self._nodes = importer.nodes
         self._path_aliases = importer.path_aliases

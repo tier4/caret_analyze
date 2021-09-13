@@ -14,11 +14,14 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Dict, Callable
-import pandas as pd
+from typing import Callable, Dict, List, Optional
 
-from .record import RecordInterface, RecordsInterface
-from record_cpp_impl import RecordBase, RecordsBase
+import pandas as pd
+from record_cpp_impl import RecordBase
+from record_cpp_impl import RecordsBase
+
+from .record import RecordInterface
+from .record import RecordsInterface
 
 
 class RecordCppImpl(RecordBase, RecordInterface):
@@ -44,6 +47,7 @@ class RecordCppImpl(RecordBase, RecordInterface):
 
 
 class RecordsCppImpl(RecordsBase, RecordsInterface):
+
     def __init__(self, init: Optional[List[RecordCppImpl]] = None):
         super().__init__(init or [])
 
@@ -56,7 +60,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         data_dict = [dic.data for dic in self.data]
         s = json.dumps(data_dict)
 
-        with open(path, mode="w") as f:
+        with open(path, mode='w') as f:
             f.write(s)
         return None
 
@@ -79,11 +83,11 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         self, key: str, sub_key: Optional[str] = None, ascending=True, inplace=False
     ) -> Optional[RecordsCppImpl]:
         if inplace:
-            self._sort(key, sub_key or "", ascending)
+            self._sort(key, sub_key or '', ascending)
             return None
         else:
             records = RecordsCppImpl(self)
-            records._sort(key, sub_key or "", ascending)
+            records._sort(key, sub_key or '', ascending)
             return records
 
     def clone(self) -> RecordsCppImpl:
@@ -113,7 +117,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
             records._rename_columns(columns)
             return records
 
-    def filter(
+    def filter_if(
         self, f: Callable[[RecordInterface], bool], inplace: bool = False
     ) -> Optional[RecordsInterface]:
         if inplace:
@@ -128,13 +132,14 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         self,
         right_records: RecordsCppImpl,
         join_key: str,
-        how: str = "inner",
+        how: str = 'inner',
         *,
         progress_label: Optional[str] = None,
     ) -> RecordsCppImpl:
-        progress_label = progress_label or ""
-        assert how in ["inner", "left", "right", "outer"]
-        merged_cpp_base = self._merge(right_records, join_key, how, progress_label)
+        progress_label = progress_label or ''
+        assert how in ['inner', 'left', 'right', 'outer']
+        merged_cpp_base = self._merge(
+            right_records, join_key, how, progress_label)
         merged = RecordsCppImpl(merged_cpp_base)
         return merged
 
@@ -144,13 +149,13 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         left_stamp_key: str,
         right_stamp_key: str,
         join_key: Optional[str],
-        how: str = "inner",
+        how: str = 'inner',
         *,
         progress_label: Optional[str] = None,
     ) -> RecordsCppImpl:
-        progress_label = progress_label or ""
+        progress_label = progress_label or ''
         merged_cpp_base = self._merge_sequencial(
-            right_records, left_stamp_key, right_stamp_key, join_key or "", how, progress_label
+            right_records, left_stamp_key, right_stamp_key, join_key or '', how, progress_label
         )
 
         merged = RecordsCppImpl(merged_cpp_base)
@@ -170,7 +175,7 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
         *,
         progress_label: Optional[str] = None,
     ) -> RecordsCppImpl:
-        progress_label = progress_label or ""
+        progress_label = progress_label or ''
         merged_cpp_base = self._merge_sequencial_for_addr_track(
             source_stamp_key,
             source_key,

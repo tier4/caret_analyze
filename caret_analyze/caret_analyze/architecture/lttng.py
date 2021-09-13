@@ -12,25 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
 import itertools
+from typing import List, Optional
 
-from caret_analyze.record.interface import (
-    SubscriptionCallbackInterface,
-    TimerCallbackInterface,
-)
+from caret_analyze.record.interface import SubscriptionCallbackInterface
+from caret_analyze.record.interface import TimerCallbackInterface
 
-from caret_analyze.communication import Communication, VariablePassing
-from .interface import ArchitectureImporter, PathAlias, IGNORE_TOPICS
-from caret_analyze.record import AppInfoGetter, LatencyComposer
-from caret_analyze.pub_sub import Publisher, Subscription
-from caret_analyze.node import Node
-from caret_analyze.callback import TimerCallback, SubscriptionCallback, CallbackBase
-from caret_analyze.record.lttng import Lttng
-from caret_analyze.util import Util
+from .interface import ArchitectureImporter
+from .interface import IGNORE_TOPICS
+from .interface import PathAlias
+from ..callback import CallbackBase
+from ..callback import SubscriptionCallback
+from ..callback import TimerCallback
+from ..communication import Communication
+from ..communication import VariablePassing
+from ..node import Node
+from ..pub_sub import Publisher
+from ..pub_sub import Subscription
+from ..record import AppInfoGetter
+from ..record import LatencyComposer
+from ..record.lttng import Lttng
+from ..util import Util
 
 
 class LttngArchitectureImporter(ArchitectureImporter):
+
     def __init__(self, latency_composer: Optional[LatencyComposer]) -> None:
         self._latency_composer = latency_composer
         self._nodes: List[Node] = []
@@ -68,8 +74,9 @@ class LttngArchitectureImporter(ArchitectureImporter):
     def _create_communicateion(
         self, publish: Publisher, subscription: Subscription
     ) -> Optional[Communication]:
-        publish_callback_name = publish.callback_name or ""
-        callback_publish = self._find_callback(publish.node_name, publish_callback_name)
+        publish_callback_name = publish.callback_name or ''
+        callback_publish = self._find_callback(
+            publish.node_name, publish_callback_name)
         callback_subscription = self._find_callback(
             subscription.node_name, subscription.callback_name
         )
@@ -83,7 +90,7 @@ class LttngArchitectureImporter(ArchitectureImporter):
             self._latency_composer, callback_publish, callback_subscription, publish
         )
 
-    def exec(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
+    def execute(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
         ignore_topics = ignore_topics or IGNORE_TOPICS
         container = Lttng(path)
         for node_name in container.get_node_names():
@@ -91,7 +98,8 @@ class LttngArchitectureImporter(ArchitectureImporter):
             self._nodes.append(node)
 
         publishes = Util.flatten([node.publishes for node in self._nodes])
-        subscriptions = Util.flatten([node.subscriptions for node in self._nodes])
+        subscriptions = Util.flatten(
+            [node.subscriptions for node in self._nodes])
         for publish, subscription in itertools.product(publishes, subscriptions):
             if publish.topic_name != subscription.topic_name:
                 continue
@@ -129,12 +137,14 @@ class LttngArchitectureImporter(ArchitectureImporter):
         ):
             if subscription_callback.topic_name in ignore_topics:
                 continue
-            node.callbacks.append(self._to_subscription_callback(subscription_callback))
+            node.callbacks.append(
+                self._to_subscription_callback(subscription_callback))
 
         for timer_callback in container.get_timer_callbacks(node_name=node.node_name):
             node.callbacks.append(self._to_timer_callback(timer_callback))
 
-        publish_topic_names = [_.topic_name for _ in container.get_publishers(node_name)]
+        publish_topic_names = [
+            _.topic_name for _ in container.get_publishers(node_name)]
         for pub_topic in publish_topic_names:
             if pub_topic in ignore_topics:
                 continue
@@ -142,7 +152,8 @@ class LttngArchitectureImporter(ArchitectureImporter):
             if len(node.callbacks) == 1:
                 # automatically assign if there is only one callback.
                 callback = node.callbacks[0]
-                publisher = Publisher(node_name, pub_topic, callback.callback_name)
+                publisher = Publisher(
+                    node_name, pub_topic, callback.callback_name)
                 callback.publishes.append(publisher)
                 continue
 

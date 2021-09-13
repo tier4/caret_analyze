@@ -16,19 +16,14 @@
 
 """Module for ROS data model utils."""
 
-from typing import Any
-from typing import List
-from typing import Mapping
-from typing import Optional
-from typing import Union
+from typing import Any, List, Mapping, Optional, Union
 
 import numpy as np
 from pandas import concat
 from pandas import DataFrame
-
-from tracetools_analysis.utils import DataModelUtil
 from tracetools_analysis.data_model.ros2 import Ros2DataModel
 from tracetools_analysis.processor.ros2 import Ros2Handler
+from tracetools_analysis.utils import DataModelUtil
 
 
 class Ros2DataModelUtil(DataModelUtil):
@@ -65,12 +60,12 @@ class Ros2DataModelUtil(DataModelUtil):
         """
         pretty = original
         # remove spaces
-        pretty = pretty.replace(" ", "")
+        pretty = pretty.replace(' ', '')
         # allocator
-        std_allocator = "_<std::allocator<void>>"
-        pretty = pretty.replace(std_allocator, "")
+        std_allocator = '_<std::allocator<void>>'
+        pretty = pretty.replace(std_allocator, '')
         # default_delete
-        std_defaultdelete = "std::default_delete"
+        std_defaultdelete = 'std::default_delete'
         if std_defaultdelete in pretty:
             dd_start = pretty.find(std_defaultdelete)
             template_param_open = dd_start + len(std_defaultdelete)
@@ -80,32 +75,32 @@ class Ros2DataModelUtil(DataModelUtil):
             done = False
             while not done:
                 template_param_close += 1
-                if pretty[template_param_close] == "<":
+                if pretty[template_param_close] == '<':
                     level += 1
-                elif pretty[template_param_close] == ">":
+                elif pretty[template_param_close] == '>':
                     if level == 0:
                         done = True
                     else:
                         level -= 1
             pretty = pretty[:dd_start] + pretty[(template_param_close + 1):]
         # bind
-        std_bind = "std::_Bind<"
+        std_bind = 'std::_Bind<'
         if pretty.startswith(std_bind):
             # remove bind<>
-            pretty = pretty.replace(std_bind, "")
+            pretty = pretty.replace(std_bind, '')
             pretty = pretty[:-1]
             # remove placeholder stuff
-            placeholder_from = pretty.find("*")
-            placeholder_to = pretty.find(")", placeholder_from)
+            placeholder_from = pretty.find('*')
+            placeholder_to = pretty.find(')', placeholder_from)
             pretty = pretty[:placeholder_from] + \
-                "?" + pretty[(placeholder_to + 1):]
+                '?' + pretty[(placeholder_to + 1):]
         # remove dangling comma
-        pretty = pretty.replace(",>", ">")
+        pretty = pretty.replace(',>', '>')
         # restore meaningful spaces
-        if pretty.startswith("void"):
-            pretty = "void" + " " + pretty[len("void"):]
-        if pretty.endswith("const"):
-            pretty = pretty[: (len(pretty) - len("const"))] + " " + "const"
+        if pretty.startswith('void'):
+            pretty = 'void' + ' ' + pretty[len('void'):]
+        if pretty.endswith('const'):
+            pretty = pretty[: (len(pretty) - len('const'))] + ' ' + 'const'
         return pretty
 
     def get_callback_symbols(self) -> Mapping[int, str]:
@@ -118,13 +113,13 @@ class Ros2DataModelUtil(DataModelUtil):
 
         # Get their symbol
         return {
-            obj: self._prettify(row["symbol"])
+            obj: self._prettify(row['symbol'])
             for obj, row in callback_symbols.iterrows()
         }
 
     def get_tids(self) -> List[str]:
         """Get a list of thread ids corresponding to the nodes."""
-        return self.data.nodes["tid"].unique().tolist()
+        return self.data.nodes['tid'].unique().tolist()
 
     # removed
     # def get_callback_durations(
@@ -143,9 +138,9 @@ class Ros2DataModelUtil(DataModelUtil):
         :return: the tid, or `None` if not found
         """
         # Assuming there is only one row with the given name
-        node_row = self.data.nodes.loc[self.data.nodes["name"] == node_name]
-        assert len(node_row.index) <= 1, "more than 1 node found"
-        return node_row.iloc[0]["tid"] if not node_row.empty else None
+        node_row = self.data.nodes.loc[self.data.nodes['name'] == node_name]
+        assert len(node_row.index) <= 1, 'more than 1 node found'
+        return node_row.iloc[0]['tid'] if not node_row.empty else None
 
     def get_node_names_from_tid(
         self,
@@ -157,7 +152,7 @@ class Ros2DataModelUtil(DataModelUtil):
         :param tid: the tid
         :return: the list of node names, or `None` if not found
         """
-        return self.data.nodes[self.data.nodes["tid"] == tid]["name"].tolist()
+        return self.data.nodes[self.data.nodes['tid'] == tid]['name'].tolist()
 
     def get_callback_owner_info(
         self,
@@ -176,7 +171,7 @@ class Ros2DataModelUtil(DataModelUtil):
         """
         # Get reference corresponding to callback object
         reference = self.data.callback_objects.loc[
-            self.data.callback_objects["callback_object"] == callback_obj
+            self.data.callback_objects['callback_object'] == callback_obj
         ].index.values.astype(int)[0]
 
         type_name = None
@@ -184,24 +179,24 @@ class Ros2DataModelUtil(DataModelUtil):
         # Check if it's a timer first (since it's slightly different than the
         # others)
         if reference in self.data.timers.index:
-            type_name = "Timer"
+            type_name = 'Timer'
             info = self.get_timer_handle_info(reference)
         elif reference in self.data.publishers.index:
-            type_name = "Publisher"
+            type_name = 'Publisher'
             info = self.get_publisher_handle_info(reference)
         elif reference in self.data.subscription_objects.index:
-            type_name = "Subscription"
+            type_name = 'Subscription'
             info = self.get_subscription_reference_info(reference)
         elif reference in self.data.services.index:
-            type_name = "Service"
+            type_name = 'Service'
             info = self.get_service_handle_info(reference)
         elif reference in self.data.clients.index:
-            type_name = "Client"
+            type_name = 'Client'
             info = self.get_client_handle_info(reference)
 
         if info is None:
             return None
-        return f"{type_name} -- {self.format_info_dict(info)}"
+        return f'{type_name} -- {self.format_info_dict(info)}'
 
     def get_timer_handle_info(
         self,
@@ -216,18 +211,18 @@ class Ros2DataModelUtil(DataModelUtil):
         if timer_handle not in self.data.timers.index:
             return None
 
-        node_handle = self.data.timer_node_links.loc[timer_handle, "node_handle"]
+        node_handle = self.data.timer_node_links.loc[timer_handle, 'node_handle']
         node_handle_info = self.get_node_handle_info(node_handle)
         if node_handle_info is None:
             return None
 
-        tid = self.data.timers.loc[timer_handle, "tid"]
-        period_ns = self.data.timers.loc[timer_handle, "period"]
+        tid = self.data.timers.loc[timer_handle, 'tid']
+        period_ns = self.data.timers.loc[timer_handle, 'period']
         period_ms = period_ns / 1000000.0
         return {
             **node_handle_info,
-            "tid": tid,
-            "period": f"{period_ms:.0f} ms"}
+            'tid': tid,
+            'period': f'{period_ms:.0f} ms'}
 
     def get_publisher_handle_info(
         self,
@@ -242,12 +237,12 @@ class Ros2DataModelUtil(DataModelUtil):
         if publisher_handle not in self.data.publishers.index:
             return None
 
-        node_handle = self.data.publishers.loc[publisher_handle, "node_handle"]
+        node_handle = self.data.publishers.loc[publisher_handle, 'node_handle']
         node_handle_info = self.get_node_handle_info(node_handle)
         if node_handle_info is None:
             return None
-        topic_name = self.data.publishers.loc[publisher_handle, "topic_name"]
-        publisher_info = {"topic": topic_name}
+        topic_name = self.data.publishers.loc[publisher_handle, 'topic_name']
+        publisher_info = {'topic': topic_name}
         return {**node_handle_info, **publisher_info}
 
     def get_subscription_reference_info(
@@ -274,34 +269,34 @@ class Ros2DataModelUtil(DataModelUtil):
         #      * node_handle <--> (node info)
         # First, drop unnecessary common columns for debugging simplicity
         subscription_objects_simple = self.data.subscription_objects.drop(
-            columns=["timestamp"],
+            columns=['timestamp'],
             axis=1,
         )
         subscriptions_simple = self.data.subscriptions.drop(
-            columns=["timestamp", "rmw_handle"],
+            columns=['timestamp', 'rmw_handle'],
             inplace=False,
         )
         nodes_simple = self.data.nodes.drop(
-            columns=["timestamp", "rmw_handle"],
+            columns=['timestamp', 'rmw_handle'],
             inplace=False,
         )
         # Then merge the 3 dataframes
         subscriptions_info = subscription_objects_simple.merge(
             subscriptions_simple,
-            left_on="subscription_handle",
+            left_on='subscription_handle',
             right_index=True,
         ).merge(
             nodes_simple,
-            left_on="node_handle",
+            left_on='node_handle',
             right_index=True,
         )
 
-        node_handle = subscriptions_info.loc[subscription_reference, "node_handle"]
+        node_handle = subscriptions_info.loc[subscription_reference, 'node_handle']
         node_handle_info = self.get_node_handle_info(node_handle)
         if node_handle_info is None:
             return None
-        topic_name = subscriptions_info.loc[subscription_reference, "topic_name"]
-        subscription_info = {"topic": topic_name}
+        topic_name = subscriptions_info.loc[subscription_reference, 'topic_name']
+        subscription_info = {'topic': topic_name}
         return {**node_handle_info, **subscription_info}
 
     def get_service_handle_info(
@@ -317,12 +312,12 @@ class Ros2DataModelUtil(DataModelUtil):
         if service_handle not in self.data.services:
             return None
 
-        node_handle = self.data.services.loc[service_handle, "node_handle"]
+        node_handle = self.data.services.loc[service_handle, 'node_handle']
         node_handle_info = self.get_node_handle_info(node_handle)
         if node_handle_info is None:
             return None
-        service_name = self.data.services.loc[service_handle, "service_name"]
-        service_info = {"service": service_name}
+        service_name = self.data.services.loc[service_handle, 'service_name']
+        service_info = {'service': service_name}
         return {**node_handle_info, **service_info}
 
     def get_client_handle_info(
@@ -338,12 +333,12 @@ class Ros2DataModelUtil(DataModelUtil):
         if client_handle not in self.data.clients:
             return None
 
-        node_handle = self.data.clients.loc[client_handle, "node_handle"]
+        node_handle = self.data.clients.loc[client_handle, 'node_handle']
         node_handle_info = self.get_node_handle_info(node_handle)
         if node_handle_info is None:
             return None
-        service_name = self.data.clients.loc[client_handle, "service_name"]
-        service_info = {"service": service_name}
+        service_name = self.data.clients.loc[client_handle, 'service_name']
+        service_info = {'service': service_name}
         return {**node_handle_info, **service_info}
 
     def get_node_handle_info(
@@ -359,9 +354,9 @@ class Ros2DataModelUtil(DataModelUtil):
         if node_handle not in self.data.nodes.index:
             return None
 
-        node_name = self.data.nodes.loc[node_handle, "name"]
-        tid = self.data.nodes.loc[node_handle, "tid"]
-        return {"node": node_name, "tid": tid}
+        node_name = self.data.nodes.loc[node_handle, 'name']
+        tid = self.data.nodes.loc[node_handle, 'tid']
+        return {'node': node_name, 'tid': tid}
 
     def get_lifecycle_node_handle_info(
         self,
@@ -378,7 +373,7 @@ class Ros2DataModelUtil(DataModelUtil):
             return None
         # TODO(christophebedard) validate that it is an actual lifecycle node
         # and not just a node
-        node_info["lifecycle node"] = node_info.pop("node")  # type: ignore
+        node_info['lifecycle node'] = node_info.pop('node')  # type: ignore
         return node_info
 
     def get_lifecycle_node_state_intervals(
@@ -401,57 +396,57 @@ class Ros2DataModelUtil(DataModelUtil):
         data = {}
         lifecycle_transitions = self.data.lifecycle_transitions.copy()
         state_machine_handles = set(
-            lifecycle_transitions["state_machine_handle"])
+            lifecycle_transitions['state_machine_handle'])
         for state_machine_handle in state_machine_handles:
             transitions = lifecycle_transitions.loc[
-                lifecycle_transitions.loc[:, "state_machine_handle"]
+                lifecycle_transitions.loc[:, 'state_machine_handle']
                 == state_machine_handle,
-                ["start_label", "goal_label", "timestamp"],
+                ['start_label', 'goal_label', 'timestamp'],
             ]
             # Get lifecycle node handle from state machine handle
             lifecycle_node_handle = self.data.lifecycle_state_machines.loc[
-                state_machine_handle, "node_handle"
+                state_machine_handle, 'node_handle'
             ]
 
             # Infer first start time from node creation timestamp
             node_creation_timestamp = self.data.nodes.loc[
-                lifecycle_node_handle, "timestamp"
+                lifecycle_node_handle, 'timestamp'
             ]
 
             # Add initial and final timestamps
             # Last states has an unknown end timestamp
-            first_state_label = transitions.loc[0, "start_label"]
+            first_state_label = transitions.loc[0, 'start_label']
             last_state_index = transitions.index[-1]
-            last_state_label = transitions.loc[last_state_index, "goal_label"]
-            transitions.loc[-1] = ["", first_state_label,
+            last_state_label = transitions.loc[last_state_index, 'goal_label']
+            transitions.loc[-1] = ['', first_state_label,
                                    node_creation_timestamp]
             transitions.index = transitions.index + 1
             transitions.sort_index(inplace=True)
             transitions.loc[transitions.index.max() + 1] = [
                 last_state_label,
-                "",
+                '',
                 np.nan,
             ]
 
             # Process transitions to get start/end timestamp of each instance
             # of a state
-            end_timestamps = transitions[["timestamp"]].shift(periods=-1)
+            end_timestamps = transitions[['timestamp']].shift(periods=-1)
             end_timestamps.rename(
                 columns={
-                    end_timestamps.columns[0]: "end_timestamp"},
+                    end_timestamps.columns[0]: 'end_timestamp'},
                 inplace=True)
             states = concat([transitions, end_timestamps], axis=1)
-            states.drop(["start_label"], axis=1, inplace=True)
+            states.drop(['start_label'], axis=1, inplace=True)
             states.rename(
-                columns={"goal_label": "state",
-                         "timestamp": "start_timestamp"},
+                columns={'goal_label': 'state',
+                         'timestamp': 'start_timestamp'},
                 inplace=True,
             )
             states.drop(states.tail(1).index, inplace=True)
 
             # Convert time columns
             self.convert_time_columns(
-                states, [], ["start_timestamp", "end_timestamp"], True
+                states, [], ['start_timestamp', 'end_timestamp'], True
             )
 
             data[lifecycle_node_handle] = states
@@ -461,4 +456,4 @@ class Ros2DataModelUtil(DataModelUtil):
         self,
         info_dict: Mapping[str, Any],
     ) -> str:
-        return ", ".join([f"{key}: {val}" for key, val in info_dict.items()])
+        return ', '.join([f'{key}: {val}' for key, val in info_dict.items()])

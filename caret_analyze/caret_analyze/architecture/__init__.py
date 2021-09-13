@@ -16,6 +16,6 @@ from .architecture import Architecture
 from .interface import PathAlias
 
 __all__ = [
-    "Architecture",
-    "PathAlias",
+    'Architecture',
+    'PathAlias',
 ]

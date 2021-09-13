@@ -13,10 +13,13 @@
 # limitations under the License.
 
 from typing import Optional
-from caret_analyze.record import SubscriptionInterface, PublisherInterface
+
+from caret_analyze.record import PublisherInterface
+from caret_analyze.record import SubscriptionInterface
 
 
 class Subscription(SubscriptionInterface):
+
     def __init__(self, node_name: str, topic_name: str, callback_name: str) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
@@ -36,6 +39,7 @@ class Subscription(SubscriptionInterface):
 
 
 class Publisher(PublisherInterface):
+
     def __init__(self, node_name: str, topic_name: str, callback_name: Optional[str]) -> None:
         self._node_name = node_name
         self._topic_name = topic_name

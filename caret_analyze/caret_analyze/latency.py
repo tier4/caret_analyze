@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABCMeta, abstractmethod
-
-from typing import Tuple, Optional, List
+from abc import ABCMeta
+from abc import abstractmethod
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-from caret_analyze.record import RecordsInterface
+from .record import RecordsInterface
 
 
 class LatencyBase(metaclass=ABCMeta):
+
     @abstractmethod
     def to_records(self) -> RecordsInterface:
         pass
@@ -47,8 +48,8 @@ class LatencyBase(metaclass=ABCMeta):
 
         fully_recorded = df.dropna()
         err_msg = (
-            "Failed to find a record with all columns measured."
-            "All messages may have been lost in the process."
+            'Failed to find a record with all columns measured.'
+            'All messages may have been lost in the process.'
         )
 
         assert len(fully_recorded) > 0, err_msg
@@ -63,8 +64,8 @@ class LatencyBase(metaclass=ABCMeta):
     ) -> Tuple[np.array, np.array]:
         df = self.to_dataframe(remove_dropped, column_names=column_names)
         msg = (
-            "Failed to find any records that went through the path."
-            + "There is a possibility that all records are lost.",
+            'Failed to find any records that went through the path.'
+            + 'There is a possibility that all records are lost.',
         )
 
         assert len(df) > 0, msg
@@ -83,7 +84,8 @@ class LatencyBase(metaclass=ABCMeta):
 
         import math
 
-        _, latency_ns = self.to_timeseries(remove_dropped=True, column_names=column_names)
+        _, latency_ns = self.to_timeseries(
+            remove_dropped=True, column_names=column_names)
 
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns

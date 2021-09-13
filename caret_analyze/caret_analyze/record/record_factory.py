@@ -13,22 +13,25 @@
 # limitations under the License.
 
 
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional
 
-from caret_analyze.record.record import Record, Records, RecordInterface, RecordsInterface
-
+from .record import Record
+from .record import RecordInterface
+from .record import Records
+from .record import RecordsInterface
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl
 
     use_cpp_impl = True
-    print("Succeed to find record_cpp_impl. the C++ version will be used.")
+    print('Succeed to find record_cpp_impl. the C++ version will be used.')
 except ModuleNotFoundError:
     use_cpp_impl = False
-    print("Failed to find record_cpp_impl. the Python version will be used.")
+    print('Failed to find record_cpp_impl. the Python version will be used.')
 
 
 class RecordFactory:
+
     @classmethod
     def is_cpp_impl_valid(cls) -> bool:
         return use_cpp_impl
@@ -49,6 +52,7 @@ class RecordFactory:
 
 
 class RecordsFactory:
+
     @classmethod
     def is_cpp_impl_valid(cls) -> bool:
         return use_cpp_impl

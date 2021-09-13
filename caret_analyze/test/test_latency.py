@@ -12,43 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+from typing import List, Optional, Set, Tuple
 
-from typing import Tuple, Set, List, Optional
-import numpy as np
-
-from caret_analyze.record import Record, Records
 from caret_analyze.latency import LatencyBase
+from caret_analyze.record import Record
+from caret_analyze.record import Records
+
+import numpy as np
+import pytest
 
 
 class LatencyBaseImpl(LatencyBase):
+
     def to_records(self):
         pass
 
 
 class TestLatencyBase:
+
     @pytest.mark.parametrize(
-        "records, df_len, columns",
+        'records, df_len, columns',
         [
             (
                 Records(
                     [
-                        Record({"col0": 1, "col1": 5, "col2": 3}),
+                        Record({'col0': 1, 'col1': 5, 'col2': 3}),
                     ]
                 ),
                 1,
-                set(["col0", "col1", "col2"]),
+                {'col0', 'col1', 'col2'},
             ),
             (
                 Records(
                     [
-                        Record({"col0": 1, "col2": 3}),
-                        Record({"col1": 6, "col2": 4}),
-                        Record({"col0": 2, "col1": 6, "col2": 4}),
+                        Record({'col0': 1, 'col2': 3}),
+                        Record({'col1': 6, 'col2': 4}),
+                        Record({'col0': 2, 'col1': 6, 'col2': 4}),
                     ]
                 ),
                 3,
-                set(["col0", "col1", "col2"]),
+                {'col0', 'col1', 'col2'},
             ),
         ],
     )
@@ -57,7 +60,7 @@ class TestLatencyBase:
             return records
 
         latency = LatencyBaseImpl()
-        mocker.patch.object(latency, "to_records", custom_to_records)
+        mocker.patch.object(latency, 'to_records', custom_to_records)
         df = latency.to_dataframe()
 
         assert len(df) == df_len
@@ -71,13 +74,13 @@ class TestLatencyBase:
                 assert row[i] < row[i + 1]
 
     @pytest.mark.parametrize(
-        "records",
+        'records',
         [
             (
                 Records(
                     [
-                        Record({"col0": 1}),
-                        Record({"col1": 5}),
+                        Record({'col0': 1}),
+                        Record({'col1': 5}),
                     ]
                 )
             )
@@ -89,11 +92,11 @@ class TestLatencyBase:
 
         with pytest.raises(AssertionError):
             latency = LatencyBaseImpl()
-            mocker.patch.object(latency, "to_records", custom_to_records)
+            mocker.patch.object(latency, 'to_records', custom_to_records)
             latency.to_dataframe()
 
     @pytest.mark.parametrize(
-        "latencies, binsize_ns, bins_range",
+        'latencies, binsize_ns, bins_range',
         [
             ([5132, 12385], 1, [5132, 12385]),
             ([5132, 12385], 10, [5130, 12390]),
@@ -110,7 +113,7 @@ class TestLatencyBase:
             return np.array([]), np.array(latencies)
 
         latency = LatencyBaseImpl()
-        mocker.patch.object(latency, "to_timeseries", custom_to_timeseries)
+        mocker.patch.object(latency, 'to_timeseries', custom_to_timeseries)
 
         hist, bins = latency.to_histogram(binsize_ns=binsize_ns)
         assert min(bins) == bins_range[0] and max(bins) == bins_range[1]

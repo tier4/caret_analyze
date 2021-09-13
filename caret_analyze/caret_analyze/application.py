@@ -13,21 +13,20 @@
 # limitations under the License.
 
 
-from typing import List, Dict, Optional
-
 from itertools import product
+from typing import Dict, List, Optional
 
+from .architecture import Architecture
+from .architecture.interface import IGNORE_TOPICS
+from .architecture.interface import PathAlias
+from .callback import CallbackBase
+from .communication import Communication
+from .communication import VariablePassing
+from .graph_search import CallbackPathSercher
+from .node import Node
+from .path import Path
+from .record import LatencyComposer
 from .util import Util
-
-from caret_analyze.architecture import Architecture
-from caret_analyze.node import Node
-from caret_analyze.communication import VariablePassing, Communication
-from caret_analyze.callback import CallbackBase
-from caret_analyze.architecture.interface import PathAlias
-from caret_analyze.path import Path
-from caret_analyze.graph_search import CallbackPathSercher
-from caret_analyze.record import LatencyComposer
-from caret_analyze.architecture.interface import IGNORE_TOPICS
 
 
 class Application:
@@ -38,11 +37,13 @@ class Application:
         latency_composer: Optional[LatencyComposer],
         ignore_topics: List[str] = IGNORE_TOPICS,
     ) -> None:
-        self._arch = Architecture(file_path, file_type, latency_composer, ignore_topics)
+        self._arch = Architecture(
+            file_path, file_type, latency_composer, ignore_topics)
         self.nodes: List[Node] = self._arch.nodes
         self.communications: List[Communication] = self._arch.communications
         self.variable_passings: List[VariablePassing] = self._arch.variable_passings
-        self.path: Dict[str, Path] = self._to_paths(self._arch.path_aliases, self._arch)
+        self.path: Dict[str, Path] = self._to_paths(
+            self._arch.path_aliases, self._arch)
 
         self._path_searcher = CallbackPathSercher(
             self.nodes, self.communications, self.variable_passings
@@ -62,14 +63,16 @@ class Application:
         callbacks_paths: List[List[CallbackBase]] = self._path_searcher.search(
             start_callback_unique_name, end_callback_unique_name
         )
-        paths: List[Path] = [self._to_path(callbacks, self._arch) for callbacks in callbacks_paths]
+        paths: List[Path] = [self._to_path(
+            callbacks, self._arch) for callbacks in callbacks_paths]
         return paths
 
     def _to_path(self, callbacks: List[CallbackBase], arch: Architecture) -> Path:
         return Path(callbacks, arch.communications, arch.variable_passings)
 
     def _to_callback(self, unique_name: str) -> CallbackBase:
-        callback = Util.find_one(self.callbacks, lambda x: x.unique_name == unique_name)
+        callback = Util.find_one(
+            self.callbacks, lambda x: x.unique_name == unique_name)
         assert callback is not None
         return callback
 

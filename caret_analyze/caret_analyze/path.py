@@ -12,30 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Callable, NamedTuple, Union, Optional, Tuple, Set
+from collections import UserDict
+from collections import UserList
+import itertools
+from typing import Callable, List, NamedTuple, Optional, Set, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
-from collections import UserList, UserDict
-
-import itertools
-
-from caret_analyze.latency import LatencyBase
-from caret_analyze.callback import CallbackBase
-from caret_analyze.communication import Communication, VariablePassing, CommunicationInterface
-from caret_analyze.util import Util, UniqueList
-from caret_analyze.record.record import RecordsInterface, merge, merge_sequencial
+from .callback import CallbackBase
+from .communication import Communication
+from .communication import CommunicationInterface
+from .communication import VariablePassing
+from .latency import LatencyBase
+from .record.record import merge
+from .record.record import merge_sequencial
+from .record.record import RecordsInterface
+from .util import UniqueList
+from .util import Util
 
 
 class TracePoint(NamedTuple):
-    CALLBACK_START_TIMESTAMP: str = "callback_start_timestamp"
-    CALLBACK_END_TIMESTAMP: str = "callback_end_timestamp"
-    RCLCPP_PUBLISH_TIMESTAMP: str = "rclcpp_publish_timestamp"
-    RCL_PUBLISH_TIMESTAMP: str = "rcl_publish_timestamp"
-    DDS_WRITE_TIMESTAMP: str = "dds_write_timestamp"
-    ON_DATA_AVAILABLE_TIMESTAMP: str = "on_data_available_timestamp"
-    RCLCPP_INTRA_PUBLISH_TIMESTAMP: str = "rclcpp_intra_publish_timestamp"
+    CALLBACK_START_TIMESTAMP: str = 'callback_start_timestamp'
+    CALLBACK_END_TIMESTAMP: str = 'callback_end_timestamp'
+    RCLCPP_PUBLISH_TIMESTAMP: str = 'rclcpp_publish_timestamp'
+    RCL_PUBLISH_TIMESTAMP: str = 'rcl_publish_timestamp'
+    DDS_WRITE_TIMESTAMP: str = 'dds_write_timestamp'
+    ON_DATA_AVAILABLE_TIMESTAMP: str = 'on_data_available_timestamp'
+    RCLCPP_INTRA_PUBLISH_TIMESTAMP: str = 'rclcpp_intra_publish_timestamp'
 
 
 TRACE_POINT = TracePoint()
@@ -55,7 +59,8 @@ class TracePoints(NamedTuple):
         TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
         TRACE_POINT.CALLBACK_START_TIMESTAMP,
     ]
-    INTRA_PROCESS_FROM: List[str] = [TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP]
+    INTRA_PROCESS_FROM: List[str] = [
+        TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP]
     INTRA_PROCESS_TO: List[str] = [TRACE_POINT.CALLBACK_START_TIMESTAMP]
     VARIABLE_PASSING_FROM: List[str] = [TRACE_POINT.CALLBACK_END_TIMESTAMP]
     VARIABLE_PASSING_TO: List[str] = [TRACE_POINT.CALLBACK_START_TIMESTAMP]
@@ -68,6 +73,7 @@ LatencyComponent = Union[CallbackBase, Communication, VariablePassing]
 
 
 class ColumnNameCounter(UserDict):
+
     def __init__(self) -> None:
         super().__init__()
         self._tracepoints_from = (
@@ -110,16 +116,17 @@ class ColumnNameCounter(UserDict):
             return self._to_column_name(latency.callback_to, tracepoint_name)
 
     def _to_key(self, callback: CallbackBase, tracepoint_name: str) -> str:
-        return f"{callback.unique_name}/{tracepoint_name}"
+        return f'{callback.unique_name}/{tracepoint_name}'
 
     def _to_column_name(self, callback: CallbackBase, tracepoint_name: str) -> str:
         key = self._to_key(callback, tracepoint_name)
         count = self.get(key, 0)
-        column_name = f"{key}/{count}"
+        column_name = f'{key}/{count}'
         return column_name
 
 
 class PathLatencyMerger:
+
     def __init__(self, latency: LatencyComponent, column_only: Optional[bool] = None) -> None:
         self._column_only = column_only or False
         self._counter = ColumnNameCounter()
@@ -129,7 +136,8 @@ class PathLatencyMerger:
         self.records = self._get_records_with_preffix(latency)
 
         self.column_names = UniqueList()
-        self.column_names += self._to_ordered_column_names(latency, self.records.columns)
+        self.column_names += self._to_ordered_column_names(
+            latency, self.records.columns)
 
     def _to_ordered_column_names(
         self, latency: LatencyComponent, tracepoint_names: Set[str]
@@ -148,11 +156,12 @@ class PathLatencyMerger:
         return ordered_columns_names
 
     def merge(self, other: LatencyComponent, join_trace_point_name: str) -> None:
-        increment_keys = other.to_records().columns - set([join_trace_point_name])
+        increment_keys = other.to_records().columns - {join_trace_point_name}
         self._counter.increment_count(other, list(increment_keys))
 
         records = self._get_records_with_preffix(other)
-        self.column_names += self._to_ordered_column_names(other, records.columns)
+        self.column_names += self._to_ordered_column_names(
+            other, records.columns)
         if self._column_only:
             return
 
@@ -161,7 +170,7 @@ class PathLatencyMerger:
             left_records=self.records,
             right_records=records,
             join_key=join_key,
-            how="left",
+            how='left',
         )
 
     def merge_sequencial(
@@ -174,21 +183,24 @@ class PathLatencyMerger:
         self._counter.increment_count(other, list(increment_keys))
 
         records = self._get_records_with_preffix(other)
-        self.column_names += self._to_ordered_column_names(other, records.columns)
+        self.column_names += self._to_ordered_column_names(
+            other, records.columns)
 
         if self._column_only:
             return
         callback_from = other.callback_from
         assert callback_from is not None
-        record_stamp_key = self._counter.to_column_name(callback_from, trace_point_name)
-        sub_record_stamp_key = self._counter.to_column_name(callback_from, sub_trace_point_name)
+        record_stamp_key = self._counter.to_column_name(
+            callback_from, trace_point_name)
+        sub_record_stamp_key = self._counter.to_column_name(
+            callback_from, sub_trace_point_name)
         self.records = merge_sequencial(
             left_records=self.records,
             right_records=records,
             left_stamp_key=record_stamp_key,
             right_stamp_key=sub_record_stamp_key,
             join_key=None,
-            how="left",
+            how='left',
         )
 
     def _get_callback_records(self, callback: CallbackBase) -> RecordsInterface:
@@ -284,7 +296,7 @@ class Path(UserList, LatencyBase):
 
     def __str__(self) -> str:
         unique_names = [callback.unique_name for callback in self.callbacks]
-        return "\n".join(unique_names)
+        return '\n'.join(unique_names)
 
     def _merge_path(self, column_only=False) -> Tuple[RecordsInterface, List[str]]:
         merger = PathLatencyMerger(self.data[0], column_only)
@@ -295,12 +307,12 @@ class Path(UserList, LatencyBase):
             if isinstance(latency, Communication) and isinstance(latency_, CallbackBase):
                 # communication -> callback case
                 # callback_start -> callback_start [merge]
-                merger.merge(latency_, "callback_start_timestamp")
+                merger.merge(latency_, 'callback_start_timestamp')
 
             elif isinstance(latency, VariablePassing) and isinstance(latency_, CallbackBase):
                 # communication -> callback case
                 # callback_start -> callback_start [merge]
-                merger.merge(latency_, "callback_start_timestamp")
+                merger.merge(latency_, 'callback_start_timestamp')
 
             elif isinstance(latency, CallbackBase) and isinstance(latency_, Communication):
                 # callback -> communication case
@@ -308,20 +320,20 @@ class Path(UserList, LatencyBase):
                 if latency_.is_intra_process:
                     merger.merge_sequencial(
                         latency_,
-                        "callback_start_timestamp",
-                        "rclcpp_intra_publish_timestamp",
+                        'callback_start_timestamp',
+                        'rclcpp_intra_publish_timestamp',
                     )
                 else:
                     merger.merge_sequencial(
                         latency_,
-                        "callback_start_timestamp",
-                        "rclcpp_publish_timestamp",
+                        'callback_start_timestamp',
+                        'rclcpp_publish_timestamp',
                     )
 
             elif isinstance(latency, CallbackBase) and isinstance(latency_, VariablePassing):
                 # callback -> variable passing case
                 # callback_end -> callback_start [merge]
-                merger.merge(latency_, "callback_end_timestamp")
+                merger.merge(latency_, 'callback_end_timestamp')
 
         column_names = merger.column_names.data
         if column_only is False:

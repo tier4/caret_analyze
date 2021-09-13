@@ -14,4 +14,4 @@
 
 from .lttng import Lttng
 
-__all__ = ["Lttng"]
+__all__ = ['Lttng']

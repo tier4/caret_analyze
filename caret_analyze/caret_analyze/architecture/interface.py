@@ -12,26 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABCMeta
+from abc import abstractmethod
 from typing import List, Optional
 
+from ..communication import Communication
+from ..communication import VariablePassing
+from ..node import Node
 
-from abc import ABCMeta, abstractmethod
-
-from caret_analyze.communication import VariablePassing, Communication
-from caret_analyze.node import Node
-
-
-UNDEFINED_STR = "UNDEFINED"
-IGNORE_TOPICS = ["/parameter_events", "/rosout", "/clock"]
+UNDEFINED_STR = 'UNDEFINED'
+IGNORE_TOPICS = ['/parameter_events', '/rosout', '/clock']
 
 
 class PathAlias:
+
     def __init__(self, alias: str, callback_names: List[str]):
         self.path_name = alias
         self.callback_names = callback_names
 
 
 class ArchitectureInterface(metaclass=ABCMeta):
+
     @property
     @abstractmethod
     def nodes(self) -> List[Node]:
@@ -54,18 +55,20 @@ class ArchitectureInterface(metaclass=ABCMeta):
 
 
 class ArchitectureImporter(ArchitectureInterface):
+
     @abstractmethod
     def __init__(self) -> None:
         pass
 
     @abstractmethod
-    def exec(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
+    def execute(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
         pass
 
 
 class ArchitectureExporter(metaclass=ABCMeta):
+
     @abstractmethod
-    def exec(
+    def execute(
         self, architecture: ArchitectureInterface, path_aliases: List[PathAlias], path: str
     ) -> None:
         pass
