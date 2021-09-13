@@ -12,7 +12,7 @@ nodes:
     type: subscription_callback
     topic_name: /topic1
     symbol: NoDependencyNode::NoDependencyNode(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>)::{lambda(std::unique_ptr<sensor_msgs::msg::Image>)#1}
-  publish:
+  publishes:
   - topic_name: /topic2
     callback_name: subscription_callback_0
 - node_name: /message_driven_node
@@ -25,10 +25,10 @@ nodes:
     type: subscription_callback
     topic_name: /drive
     symbol: SubDependencyNode::SubDependencyNode(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>)::{lambda(std::unique_ptr<sensor_msgs::msg::Image>)#2}
-  callback_dependencies:
-  - callback_name_from: UNDEFINED
-    callback_name_to: UNDEFINED
-  publish:
+  variable_passings:
+  - callback_name_write: UNDEFINED
+    callback_name_read: UNDEFINED
+  publishes:
   - topic_name: /topic3
     callback_name: UNDEFINED
 - node_name: /timer_driven_node
@@ -41,10 +41,10 @@ nodes:
     type: timer_callback
     period_ns: 100000000
     symbol: TimerDependencyNode::TimerDependencyNode(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,int)::{lambda()#2}
-  callback_dependencies:
-  - callback_name_from: UNDEFINED
-    callback_name_to: UNDEFINED
-  publish:
+  variable_passings:
+  - callback_name_write: UNDEFINED
+    callback_name_read: UNDEFINED
+  publishes:
   - topic_name: /topic4
     callback_name: UNDEFINED
 - node_name: /sensor_dummy_node
@@ -53,7 +53,7 @@ nodes:
     type: timer_callback
     period_ns: 50000000
     symbol: SensorDummy::SensorDummy(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,int)::{lambda()#1}
-  publish:
+  publishes:
   - topic_name: /topic1
     callback_name: timer_callback_0
 - node_name: /drive_node
@@ -62,6 +62,6 @@ nodes:
     type: timer_callback
     period_ns: 100000000
     symbol: SensorDummy::SensorDummy(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,int)::{lambda()#1}
-  publish:
+  publishes:
   - topic_name: /drive
     callback_name: timer_callback_0

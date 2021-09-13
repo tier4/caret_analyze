@@ -6,7 +6,7 @@ nodes:
     type: timer_callback
     period_ns: 1000000000
     symbol: demo_nodes_cpp::Talker::Talker(rclcpp::NodeOptionsconst&)::{lambda()#1}
-  publish:
+  publishes:
   - topic_name: /ns2/chatter
     callback_name: timer_callback_0
 - node_name: /ns1/talker
@@ -15,7 +15,7 @@ nodes:
     type: timer_callback
     period_ns: 1000000000
     symbol: demo_nodes_cpp::Talker::Talker(rclcpp::NodeOptionsconst&)::{lambda()#1}
-  publish:
+  publishes:
   - topic_name: /ns1/chatter
     callback_name: timer_callback_0
 - node_name: /ns1/listener

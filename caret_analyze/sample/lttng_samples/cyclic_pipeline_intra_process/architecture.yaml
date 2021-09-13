@@ -6,7 +6,7 @@ nodes:
     type: subscription_callback
     topic_name: /topic1
     symbol: IncrementerPipe::IncrementerPipe(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&)::{lambda(std::unique_ptr<std_msgs::msg::Int32>)#1}
-  publish:
+  publishes:
   - topic_name: /topic2
     callback_name: subscription_callback_0
 - node_name: /pipe2
@@ -15,6 +15,6 @@ nodes:
     type: subscription_callback
     topic_name: /topic2
     symbol: IncrementerPipe::IncrementerPipe(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&)::{lambda(std::unique_ptr<std_msgs::msg::Int32>)#1}
-  publish:
+  publishes:
   - topic_name: /topic1
     callback_name: subscription_callback_0

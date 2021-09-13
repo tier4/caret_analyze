@@ -56,11 +56,11 @@ class YamlArchitectureExporter(ArchitectureExporter):
             if len(node.callbacks) >= 1:
                 obj["callbacks"] = self._callbacks_to_yaml_objs(node.callbacks)
             if len(node.callbacks) >= 2:
-                obj["callback_dependencies"] = self._variable_passings_to_yaml_objs(
+                obj["variable_passings"] = self._variable_passings_to_yaml_objs(
                     node.variable_passings
                 )
             if len(node.publishes) >= 1:
-                obj["publish"] = self._pubs_to_yaml_objs(node, node.publishes)
+                obj["publishes"] = self._pubs_to_yaml_objs(node, node.publishes)
 
             objs.append(obj)
 
@@ -73,16 +73,16 @@ class YamlArchitectureExporter(ArchitectureExporter):
         for variable_passing in variable_passings:
             objs.append(
                 {
-                    "callback_name_from": variable_passing.callback_write.callback_name,
-                    "callback_name_to": variable_passing.callback_read.callback_name,
+                    "callback_name_write": variable_passing.callback_write.callback_name,
+                    "callback_name_read": variable_passing.callback_read.callback_name,
                 }
             )
 
         if len(objs) == 0:
             objs.append(
                 {
-                    "callback_name_from": UNDEFINED_STR,
-                    "callback_name_to": UNDEFINED_STR,
+                    "callback_name_write": UNDEFINED_STR,
+                    "callback_name_read": UNDEFINED_STR,
                 }
             )
         return objs
@@ -274,27 +274,27 @@ class YamlArchitectureImporter(ArchitectureImporter):
                 continue
             node.callbacks.append(callback)
 
-        callback_dependencies = node_info.get("callback_dependencies", [])
-        for depend in callback_dependencies:
-            callback_from = Util.find_one(
-                node.callbacks, lambda cb: cb.callback_name == depend["callback_name_from"]
+        variable_passings = node_info.get("variable_passings", [])
+        for depend in variable_passings:
+            callback_write = Util.find_one(
+                node.callbacks, lambda cb: cb.callback_name == depend["callback_name_write"]
             )
-            callback_to = Util.find_one(
-                node.callbacks, lambda cb: cb.callback_name == depend["callback_name_to"]
+            callback_read = Util.find_one(
+                node.callbacks, lambda cb: cb.callback_name == depend["callback_name_read"]
             )
 
-            if callback_from is None or callback_to is None:
+            if callback_write is None or callback_read is None:
                 continue
 
             node.variable_passings.append(
                 VariablePassing(
                     self._latency_composer,
-                    callback_write=callback_from,
-                    callback_read=callback_to,
+                    callback_write=callback_write,
+                    callback_read=callback_read,
                 )
             )
 
-        publishes_info = node_info.get("publish", [])
+        publishes_info = node_info.get("publishes", [])
         for publish_info in publishes_info:
             self._attach_publish_to_callback(node, publish_info)
 

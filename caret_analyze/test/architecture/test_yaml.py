@@ -125,7 +125,10 @@ class TestYamlExporter:
         passings: List[VariablePassing] = []
         objs = exporter._variable_passings_to_yaml_objs(passings)
         assert len(objs) == 1
-        assert objs[0] == {"callback_name_from": UNDEFINED_STR, "callback_name_to": UNDEFINED_STR}
+        assert objs[0] == {
+            "callback_name_write": UNDEFINED_STR,
+            "callback_name_read": UNDEFINED_STR,
+        }
         callback_name0 = SubscriptionCallback.to_callback_name(0)
         callback_name1 = SubscriptionCallback.to_callback_name(1)
 
@@ -143,8 +146,8 @@ class TestYamlExporter:
         objs = exporter._variable_passings_to_yaml_objs(passings)
         assert len(objs) == 1
         assert objs[0] == {
-            "callback_name_from": callback_name0,
-            "callback_name_to": callback_name1,
+            "callback_name_write": callback_name0,
+            "callback_name_read": callback_name1,
         }
 
     def test_nodes_to_yml_objs(self):
@@ -157,8 +160,8 @@ class TestYamlExporter:
         nodes.append(Node("name1"))
         objs = exporter._nodes_to_yaml_objs(nodes)
         assert len(objs) == 1
-        assert "callback_dependencies" not in objs[0].keys()
-        assert "publish" not in objs[0].keys()
+        assert "variable_passings" not in objs[0].keys()
+        assert "publishes" not in objs[0].keys()
 
         node = Node("name2")
         node.callbacks.append(
@@ -178,9 +181,9 @@ class TestYamlExporter:
         nodes.append(node)
         objs = exporter._nodes_to_yaml_objs(nodes)
         assert len(objs) == 2
-        assert "callback_dependencies" in objs[1].keys()
-        assert "publish" in objs[1].keys()
-        assert "publish" in objs[1].keys()
+        assert "variable_passings" in objs[1].keys()
+        assert "publishes" in objs[1].keys()
+        assert "publishes" in objs[1].keys()
 
 
 class TestYamlImporter:
@@ -298,13 +301,13 @@ class TestYamlImporter:
                     "symbol": "symbol1",
                 },
             ],
-            "callback_dependencies": [
+            "variable_passings": [
                 {
-                    "callback_name_from": SubscriptionCallback.to_callback_name(0),
-                    "callback_name_to": SubscriptionCallback.to_callback_name(1),
+                    "callback_name_write": SubscriptionCallback.to_callback_name(0),
+                    "callback_name_read": SubscriptionCallback.to_callback_name(1),
                 }
             ],
-            "publish": [
+            "publishes": [
                 {
                     "topic_name": "/topic0",
                     "callback_name": UNDEFINED_STR,
@@ -344,13 +347,13 @@ class TestYamlImporter:
                         "symbol": "symbol1",
                     },
                 ],
-                "callback_dependencies": [
+                "variable_passings": [
                     {
-                        "callback_name_from": SubscriptionCallback.to_callback_name(0),
-                        "callback_name_to": SubscriptionCallback.to_callback_name(1),
+                        "callback_name_write": SubscriptionCallback.to_callback_name(0),
+                        "callback_name_read": SubscriptionCallback.to_callback_name(1),
                     }
                 ],
-                "publish": [
+                "publishes": [
                     {
                         "topic_name": "/topic3",
                         "callback_name": UNDEFINED_STR,
@@ -379,7 +382,7 @@ class TestYamlImporter:
                         "symbol": "symbol3",
                     },
                 ],
-                "publish": [],
+                "publishes": [],
             }
         )
 
