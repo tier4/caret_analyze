@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.architecture import Architecture
 from caret_analyze.application import Application
 from caret_analyze.record.lttng import Lttng
 
@@ -20,20 +19,14 @@ from caret_analyze.record.lttng import Lttng
 class TestNode:
     def test_init_satus(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         node = app.nodes[0]
 
         assert len(node.variable_passings) == 0
 
     def test_search_paths(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         node = app.nodes[0]
 
         assert len(node.variable_passings) == 0
@@ -41,10 +34,7 @@ class TestNode:
     def test_compose_callback_duration(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
 
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         node = app.nodes[0]
         callback = node.callbacks[0]
 

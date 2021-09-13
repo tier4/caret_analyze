@@ -19,7 +19,6 @@ import pandas as pd
 from caret_analyze.callback import TimerCallback, SubscriptionCallback, CallbackBase
 from caret_analyze.record.lttng import Lttng
 from caret_analyze.application import Application
-from caret_analyze.architecture import Architecture
 
 
 class TestTimerCallback:
@@ -29,10 +28,7 @@ class TestTimerCallback:
 
     def test_to_dataframe(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         node = app.nodes[1]
         callback = node.callbacks[0]
 
@@ -44,10 +40,7 @@ class TestTimerCallback:
 
     def test_to_timeseries_and_to_histogram(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         node = app.nodes[1]
         callback = node.callbacks[0]
 
@@ -65,10 +58,7 @@ class TestSubscriptionCallback:
 
     def test_to_dataframe(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         node = app.nodes[0]
         callback = node.callbacks[0]
 
@@ -80,10 +70,7 @@ class TestSubscriptionCallback:
 
     def test_to_timeseries_and_to_histogram(self):
         lttng = Lttng("sample/lttng_samples/talker_listener/")
-        arch = Architecture(
-            "sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng
-        )
-        app = Application(arch)
+        app = Application("sample/lttng_samples/talker_listener/architecture.yaml", "yaml", lttng)
         node = app.nodes[0]
         callback = node.callbacks[0]
 

@@ -26,7 +26,7 @@ from caret_analyze.path import (
     Path,
 )
 from caret_analyze.record import Record, Records
-from caret_analyze import Application, Architecture, Lttng
+from caret_analyze import Application, Lttng
 from caret_analyze.record.interface import (
     LatencyComposer,
     CallbackInterface,
@@ -367,10 +367,9 @@ class TestPath:
             return df
 
         lttng = Lttng("sample/lttng_samples/end_to_end_sample")
-        arch = Architecture(
+        app = Application(
             "sample/lttng_samples/end_to_end_sample/architecture_modified.yaml", "yaml", lttng
         )
-        app = Application(arch)
 
         start_cb_name = "/message_driven_node/subscription_callback_0"
         end_cb_name = "/timer_driven_node/subscription_callback_0"
