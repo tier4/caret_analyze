@@ -12,16 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import fire
+from typing import List
+
+from caret_analyze.callback import CallbackBase
 
 from caret_analyze.plot import callback_grpah
 from caret_analyze import Application, Lttng
+from caret_analyze.util import Util
 
 
 class Create:
-    def callback_graph(self, architecture_path: str, callback_graph_path: str):
+    def callback_graph(
+        self, architecture_path: str, callback_graph_path: str, *callback_names: List[str]
+    ):
         app = Application(architecture_path, "yaml", None)
+
+        callbacks: List[CallbackBase] = []
+        for name in callback_names:
+            callback = Util.find_one(app.callbacks, lambda x: x.unique_name == name)
+            if callback is None:
+                print(f"Failed to find callback: {name}")
+                return
+            callbacks.append(callback)
+
+        callback_grpah(app._arch, callbacks, callback_graph_path)
 
     def architecture(self, trace_dir: str, architecture_path: str):
         lttng = Lttng(trace_dir, force_conversion=True)

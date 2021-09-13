@@ -260,8 +260,6 @@ class Path(UserList, LatencyBase):
             callbacks, communications, variable_passings
         )
         super().__init__(chain)
-        self.communications = communications
-        self.variable_passings = variable_passings
         self._column_names: List[str] = []
         return None
 
@@ -353,6 +351,14 @@ class Path(UserList, LatencyBase):
     def callbacks(self) -> List[CallbackBase]:
         return list(filter(lambda x: isinstance(x, CallbackBase), self))
 
+    @property
+    def communications(self) -> List[Communication]:
+        return list(filter(lambda x: isinstance(x, Communication), self))
+
+    @property
+    def variable_passings(self) -> List[VariablePassing]:
+        return list(filter(lambda x: isinstance(x, VariablePassing), self))
+
     def _to_measurement_target_chain(
         self,
         callbacks: List[CallbackBase],
@@ -360,6 +366,8 @@ class Path(UserList, LatencyBase):
         variable_passings: List[VariablePassing],
     ) -> List[LatencyBase]:
         chain: List[LatencyBase] = []
+        if len(callbacks) == 0:
+            return chain
 
         chain.append(callbacks[0])
         for cb, cb_ in zip(callbacks[:-1], callbacks[1:]):
@@ -378,3 +386,15 @@ class Path(UserList, LatencyBase):
             chain.append(cb_)
 
         return chain
+
+    def contains(self, latency: LatencyBase):
+        if isinstance(latency, CallbackBase):
+            return latency in self.callbacks
+
+        if isinstance(latency, VariablePassing):
+            return latency in self.variable_passings
+
+        if isinstance(latency, Communication):
+            return latency in self.communications
+
+        return False

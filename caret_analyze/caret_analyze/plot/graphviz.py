@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from numpy.lib.arraysetops import isin
+from caret_analyze.latency import LatencyBase
 from typing import Optional, List
 from graphviz import Digraph, Source
 import numpy as np
@@ -21,12 +23,14 @@ from ..callback import CallbackBase
 from ..communication import Communication, VariablePassing
 from ..architecture import Architecture
 from ..util import Util
-from ..callback import TimerCallback, SubscriptionCallback
+from ..callback import TimerCallback, SubscriptionCallback, CallbackBase
 from ..node import Node
 
 
-def callback_grpah(arch: Architecture, png_path: Optional[str] = None):
-    dot = CallbackGraph(arch).to_dot()
+def callback_grpah(
+    arch: Architecture, callbacks: List[CallbackBase], png_path: Optional[str] = None
+):
+    dot = CallbackGraph(arch, callbacks).to_dot()
     source = Source(dot)
     if png_path is not None:
         file_path_wo_ext = png_path.split(".")[0]
@@ -171,9 +175,12 @@ def path_latency(path: Path, granularity: str = "node", **kwargs) -> Digraph:
 
 class CallbackGraph:
     IGNORE_NODES = ["/rviz2"]
+    PATH_HIGHLIGHT_COLOR = "darkgreen"
+    PATH_HIGHLIGHT_FILL_COLOR = "darkseagreen1"
 
-    def __init__(self, arch: Architecture):
+    def __init__(self, arch: Architecture, callbacks: List[CallbackBase]):
         self._arch = arch
+        path = Path(callbacks, arch.communications, arch.variable_passings)
 
         self._graph = Digraph(format="svg", engine="dot")
         self._graph.name = "Hover the mouse over a callback."
@@ -183,7 +190,7 @@ class CallbackGraph:
         self._labelled_edges.append(self.LabelledEdge(self, "/tf"))
         self._labelled_edges.append(self.LabelledEdge(self, "/tf_static"))
 
-        self._draw_graph()
+        self._draw_graph(path)
 
     def to_dot(self):
         return self._graph.source
@@ -192,28 +199,32 @@ class CallbackGraph:
         splitted = node_name.split("/")
         return "/".join(splitted[:-1])
 
-    def _draw_graph(self) -> None:
+    def _draw_graph(self, path: Path) -> None:
         for node in self._arch.nodes:
             if node.node_name in CallbackGraph.IGNORE_NODES:
                 continue
-            self._draw_node(node)
+            self._draw_node(node, path)
 
         for comm in self._arch.communications:
-            self._draw_comm(comm)
+            self._draw_comm(comm, path.contains(comm))  # highlight
 
         for var in self._arch.variable_passings:
             head_name = var.callback_to.unique_name
             tail_name = var.callback_from.unique_name
-            self._graph.edge(tail_name, head_name)
+            if path.contains(var):
+                color = CallbackGraph.PATH_HIGHLIGHT_COLOR
+            else:
+                color = "black"
+            self._graph.edge(tail_name, head_name, color=color)
 
-    def _draw_comm(self, comm) -> None:
+    def _draw_comm(self, comm, highlight: bool) -> None:
         for labelled_edge in self._labelled_edges:
             if comm.topic_name == labelled_edge.topic_name:
                 labelled_edge.draw(comm)
                 return
         head_name = comm.callback_to.unique_name
         head_node_name = comm.callback_to.node_name
-        self._draw_edge(comm, head_name, head_node_name)
+        self._draw_edge(comm, head_name, head_node_name, highlight)
 
     def _get_tooltip(self, callback: CallbackBase) -> str:
         if isinstance(callback, TimerCallback):
@@ -225,17 +236,25 @@ class CallbackGraph:
 
         assert False, "not implemented"
 
-    def _draw_callbacks(self, node_cluster, node):
+    def _draw_callbacks(self, node_cluster, node: Node, path: Path):
         for callback in node.callbacks:
             tooltip: str = self._get_tooltip(callback)
+            if path.contains(callback):
+                color = CallbackGraph.PATH_HIGHLIGHT_COLOR
+                fillcolor = CallbackGraph.PATH_HIGHLIGHT_FILL_COLOR
+            else:
+                color = "black"
+                fillcolor = "white"
 
             node_cluster.node(
                 callback.unique_name,
                 callback.callback_name,
-                _attributes={"shape": "box", "tooltip": tooltip},
+                _attributes={"shape": "box", "tooltip": tooltip, "style": "filled"},
+                color=color,
+                fillcolor=fillcolor,
             )
 
-    def _draw_node(self, node: Node) -> None:
+    def _draw_node(self, node: Node, path: Path) -> None:
         ns_color = "gray90"
         ns = self._to_ns(node.node_name)
 
@@ -251,9 +270,9 @@ class CallbackGraph:
                 graph_attr={"label": node.node_name, "bgcolor": "white", "color": "black"},
             ) as node_cluster:
 
-                self._draw_callbacks(node_cluster, node)
+                self._draw_callbacks(node_cluster, node, path)
 
-    def _draw_callback_to_callback(self, comm, head_name, head_node_name):
+    def _draw_callback_to_callback(self, comm, head_name, head_node_name, highlight: bool):
         tail_name = comm.callback_from.unique_name
         tail_node_name = comm.callback_from.node_name
         if (
@@ -262,7 +281,12 @@ class CallbackGraph:
         ):
             return
 
-        self._graph.edge(tail_name, head_name, label=comm.topic_name)
+        if highlight:
+            color = CallbackGraph.PATH_HIGHLIGHT_COLOR
+        else:
+            color = "black"
+
+        self._graph.edge(tail_name, head_name, label=comm.topic_name, color=color)
 
     def _draw_node_to_callback(self, comm, head_name, head_node_name):
         tail_node = Util.find_one(
@@ -297,9 +321,9 @@ class CallbackGraph:
     def _to_cluster_name(self, node_name: str, prefix=""):
         return "cluster_" + prefix + node_name
 
-    def _draw_edge(self, comm, head_name, head_node_name) -> None:
+    def _draw_edge(self, comm, head_name, head_node_name, highlight: bool) -> None:
         if comm.callback_from is not None:
-            self._draw_callback_to_callback(comm, head_name, head_node_name)
+            self._draw_callback_to_callback(comm, head_name, head_node_name, highlight)
         else:
             self._draw_node_to_callback(comm, head_name, head_node_name)
 
