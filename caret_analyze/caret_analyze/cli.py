@@ -16,13 +16,17 @@
 import fire
 
 from caret_analyze.plot import callback_grpah
-from caret_analyze import Application
+from caret_analyze import Application, Lttng
 
 
 class Create:
     def callback_graph(self, architecture_path: str, callback_graph_path: str):
         app = Application(architecture_path, "yaml", None)
-        callback_grpah(app._arch, callback_graph_path)
+
+    def architecture(self, trace_dir: str, architecture_path: str):
+        lttng = Lttng(trace_dir, force_conversion=True)
+        app = Application(trace_dir, "lttng", lttng)
+        app.export_architecture(architecture_path)
 
 
 def caret_create():
