@@ -16,13 +16,13 @@ from typing import List, Optional
 
 from tracetools_analysis.loading import load_file
 
-from .dataframe_container import DataframeContainer
+from .dataframe_formatter import DataFrameFormatter
 from .impl import CallbackImpl
 from .impl import PublisherImpl
 from .impl import SubscriptionCallbackImpl
 from .impl import TimerCallbackImpl
 from .processor import Ros2Handler
-from .records_container import RecordsContainer
+from .records_formatter import RecordsFormatter
 from .util import Ros2DataModelUtil
 from .. import AppInfoGetter
 from .. import CallbackInterface
@@ -48,8 +48,8 @@ class Lttng(Singleton, LatencyComposer, AppInfoGetter):
         handler = Ros2Handler.process(events)
         data_util = Ros2DataModelUtil(handler.data)
 
-        self._dataframe = DataframeContainer(data_util)
-        self._records = RecordsContainer(data_util, self._dataframe)
+        self._dataframe = DataFrameFormatter(data_util)
+        self._records = RecordsFormatter(data_util, self._dataframe)
 
     def _to_local_callback(self, attr: CallbackInterface) -> CallbackImpl:
         if isinstance(attr, TimerCallbackInterface):

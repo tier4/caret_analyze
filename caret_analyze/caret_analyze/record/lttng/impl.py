@@ -15,7 +15,7 @@
 
 from typing import Optional, Tuple
 
-from .dataframe_container import DataframeContainer
+from .dataframe_formatter import DataFrameFormatter
 from .. import CallbackInterface
 from .. import PublisherInterface
 from .. import SubscriptionCallbackInterface
@@ -26,12 +26,12 @@ from .. import TimerCallbackInterface
 class PublisherImpl(PublisherInterface):
 
     def __init__(
-        self, dataframe_container: DataframeContainer, node_name: str, topic_name: str
+        self, dataframe_formatter: DataFrameFormatter, node_name: str, topic_name: str
     ) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
         self.publisher_handle = self._get_publisher_handle(
-            dataframe_container, node_name, topic_name
+            dataframe_formatter, node_name, topic_name
         )
         assert self.publisher_handle is not None
 
@@ -48,9 +48,9 @@ class PublisherImpl(PublisherInterface):
         return self._topic_name
 
     def _get_publisher_handle(
-        self, dataframe_container: DataframeContainer, node_name: str, topic_name: str
+        self, dataframe_formatter: DataFrameFormatter, node_name: str, topic_name: str
     ):
-        for _, row in dataframe_container.get_publisher_info().iterrows():
+        for _, row in dataframe_formatter.get_publisher_info().iterrows():
             if row['name'] != node_name or row['topic_name'] != topic_name:
                 continue
             return row['publisher_handle']
@@ -115,14 +115,14 @@ class TimerCallbackImpl(CallbackImpl, TimerCallbackInterface):
         callback_name: str,
         symbol: str,
         period_ns: int,
-        dataframe_container: Optional[DataframeContainer] = None,
+        dataframe_formatter: Optional[DataFrameFormatter] = None,
     ) -> None:
         super().__init__(node_name, callback_name, symbol, None)
 
         self._period_ns: int = period_ns
-        if dataframe_container is not None:
+        if dataframe_formatter is not None:
             self.callback_object = self._get_callback_object(
-                node_name, symbol, period_ns, dataframe_container
+                node_name, symbol, period_ns, dataframe_formatter
             )
             err_msg = (
                 'Failed to find callback_object.'
@@ -136,9 +136,9 @@ class TimerCallbackImpl(CallbackImpl, TimerCallbackInterface):
         return self._period_ns
 
     def _get_callback_object(
-        self, node_name: str, symbol: str, period_ns: int, dataframe_container: DataframeContainer
+        self, node_name: str, symbol: str, period_ns: int, dataframe_formatter: DataFrameFormatter
     ) -> Optional[int]:
-        for _, row in dataframe_container.get_timer_info().iterrows():
+        for _, row in dataframe_formatter.get_timer_info().iterrows():
             if (
                 row['name'] != node_name
                 or row['symbol'] != symbol
@@ -157,7 +157,7 @@ class SubscriptionCallbackImpl(CallbackImpl, SubscriptionCallbackInterface):
         callback_name: str,
         symbol: str,
         topic_name: str,
-        dataframe_container: Optional[DataframeContainer] = None,
+        dataframe_formatter: Optional[DataFrameFormatter] = None,
     ) -> None:
         subscription = SubscriptionImpl(node_name, topic_name, callback_name)
         super().__init__(node_name, callback_name, symbol, subscription)
@@ -166,11 +166,11 @@ class SubscriptionCallbackImpl(CallbackImpl, SubscriptionCallbackInterface):
         self.intra_callback_object = None
         self.inter_callback_object = None
 
-        if dataframe_container is not None:
+        if dataframe_formatter is not None:
             (
                 self.intra_callback_object,
                 self.inter_callback_object,
-            ) = self._get_callback_object(node_name, symbol, topic_name, dataframe_container)
+            ) = self._get_callback_object(node_name, symbol, topic_name, dataframe_formatter)
 
     @property
     def topic_name(self) -> str:
@@ -181,10 +181,10 @@ class SubscriptionCallbackImpl(CallbackImpl, SubscriptionCallbackInterface):
         node_name: str,
         symbol: str,
         topic_name: str,
-        dataframe_container: DataframeContainer,
+        dataframe_formatter: DataFrameFormatter,
     ) -> Tuple[Optional[int], Optional[int]]:
         group_columns = ['name', 'symbol', 'topic_name']
-        sub_info_df = dataframe_container.get_subscription_info()
+        sub_info_df = dataframe_formatter.get_subscription_info()
 
         for key, df in sub_info_df.groupby(group_columns):
             node_name_, symbol_, topic_name_ = key[0], key[1], key[2]
