@@ -62,6 +62,9 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
             )
         assert False, 'Not implemented'
 
+    def get_rmw_implementation(self) -> str:
+        return self._dataframe.get_rmw_implementation()
+
     def get_node_names(self) -> List[str]:
         return self._dataframe.get_node_names()
 

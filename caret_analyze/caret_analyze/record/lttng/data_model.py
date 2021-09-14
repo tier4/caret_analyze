@@ -62,6 +62,7 @@ class Ros2DataModel(DataModel):
             RecordsFactory.create_instance()
         )
         self.message_construct_instances = RecordsFactory.create_instance()
+        self.rmw_implementation = ''
 
     def add_context(self, context_handle, timestamp, pid, version) -> None:
         record = {
@@ -337,6 +338,9 @@ class Ros2DataModel(DataModel):
             }
         )
         self.dispatch_subscription_callback_instances.append(record)
+
+    def set_rmw_implementation(self, rmw_impl: str):
+        self.rmw_implementation = rmw_impl
 
     def add_dispatch_intra_process_subscription_callback_instance(
         self,

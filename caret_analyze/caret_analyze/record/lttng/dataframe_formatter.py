@@ -26,6 +26,9 @@ class DataFrameFormatter:
         data_util.data.nodes = self.merge_namespace_and_name_coumn(
             data_util.data.nodes)
 
+    def get_rmw_implementation(self) -> str:
+        return self._data_util.data.rmw_implementation
+
     def merge_namespace_and_name_coumn(self, nodes: pd.DataFrame) -> pd.DataFrame:
         from copy import deepcopy
 

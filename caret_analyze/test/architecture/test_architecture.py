@@ -43,7 +43,7 @@ class TestArchitecture:
             ('sample/lttng_samples/talker_listener'),
             ('sample/lttng_samples/multi_talker_listener'),
             ('sample/lttng_samples/cyclic_pipeline_intra_process'),
-            ('sample/lttng_samples/end_to_end_sample'),
+            ('sample/lttng_samples/end_to_end_sample/fastrtps'),
         ],
     )
     def test_export_and_import_yaml(self, tmpdir, trace_path):
