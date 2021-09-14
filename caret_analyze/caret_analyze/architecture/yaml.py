@@ -44,12 +44,20 @@ class YamlArchitectureExporter(ArchitectureExporter):
         import yaml
 
         with open(file_path, mode='w') as f:
+            aliases = [self._path_alias_to_yaml_obj(
+                alias) for alias in path_aliases]
             obj: Dict[str, Any] = {
-                'path_name_aliases': [],  # TODO:IMPLEMENT HERE
+                'path_name_aliases': aliases,
                 'nodes': self._nodes_to_yaml_objs(architecture.nodes),
             }
             f.write(yaml.dump(obj, indent=2,
                     default_flow_style=False, sort_keys=False))
+
+    def _path_alias_to_yaml_obj(self, alias: PathAlias):
+        obj: YamlObject = {}
+        obj['path_name'] = alias.path_name
+        obj['callbacks'] = alias.callback_names  # type: ignore
+        return obj
 
     def _nodes_to_yaml_objs(self, nodes: List[Node]) -> List[YamlObject]:
         objs: List[YamlObject] = []

@@ -60,3 +60,28 @@ class TestArchitecture:
         assert len(arch.path_aliases) == len(arch_.path_aliases)
         assert len(arch.communications) == len(arch_.communications)
         assert len(arch.variable_passings) == len(arch_.variable_passings)
+
+    def test_add_path_alias(self):
+        yaml_path = 'sample/lttng_samples/talker_listener/architecture.yaml'
+        arch = Architecture(yaml_path, 'yaml', None)
+
+        assert len(arch.path_aliases) == 0
+
+        callback = arch.nodes[0].callbacks[0]
+        arch.add_path_alias('path_name', [callback])
+
+        assert len(arch.path_aliases) == 1
+        alias = arch.path_aliases[0]
+        assert alias.path_name == 'path_name'
+        assert alias.callback_names == [callback.unique_name]
+
+    def test_has_path_alias(self):
+        yaml_path = 'sample/lttng_samples/talker_listener/architecture.yaml'
+        arch = Architecture(yaml_path, 'yaml', None)
+
+        assert arch.has_path_alias('path_name') is False
+
+        callback = arch.nodes[0].callbacks[0]
+        arch.add_path_alias('path_name', [callback])
+
+        assert arch.has_path_alias('path_name') is True

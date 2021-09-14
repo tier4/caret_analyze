@@ -17,6 +17,7 @@ from itertools import product
 from typing import Dict, List, Optional
 
 from .architecture import Architecture
+from .architecture.interface import ArchitectureInterface
 from .architecture.interface import IGNORE_TOPICS
 from .architecture.interface import PathAlias
 from .callback import CallbackBase
@@ -29,7 +30,7 @@ from .record import LatencyComposer
 from .util import Util
 
 
-class Application:
+class Application(ArchitectureInterface):
     def __init__(
         self,
         file_path: str,
@@ -39,9 +40,6 @@ class Application:
     ) -> None:
         self._arch = Architecture(
             file_path, file_type, latency_composer, ignore_topics)
-        self.nodes: List[Node] = self._arch.nodes
-        self.communications: List[Communication] = self._arch.communications
-        self.variable_passings: List[VariablePassing] = self._arch.variable_passings
         self.path: Dict[str, Path] = self._to_paths(
             self._arch.path_aliases, self._arch)
 
@@ -54,8 +52,31 @@ class Application:
     def paths(self) -> List[Path]:
         return list(self.path.values())
 
+    @property
+    def nodes(self) -> List[Node]:
+        return self._arch.nodes
+
+    @property
+    def communications(self) -> List[Communication]:
+        return self._arch.communications
+
+    @property
+    def variable_passings(self) -> List[VariablePassing]:
+        return self._arch.variable_passings
+
+    @property
+    def path_aliases(self) -> List[PathAlias]:
+        return self._arch.path_aliases
+
     def export_architecture(self, file_path: str):
+        for path_name, path in self.path.items():
+            if not self._arch.has_path_alias(path_name):
+                self._arch.add_path_alias(path_name, path.callbacks)
         self._arch.export(file_path)
+
+    def _to_path_alias(self, alias: str, path: Path):
+        callback_names = [callback.unique_name for callback in path.callbacks]
+        return PathAlias(alias, callback_names)
 
     def search_paths(
         self, start_callback_unique_name: str, end_callback_unique_name: str

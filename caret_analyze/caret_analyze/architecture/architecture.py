@@ -27,6 +27,7 @@ from .interface import PathAlias
 from .lttng import LttngArchitectureImporter
 from .yaml import YamlArchitectureExporter
 from .yaml import YamlArchitectureImporter
+from ..callback import CallbackBase
 from ..communication import Communication
 from ..communication import VariablePassing
 from ..node import Node
@@ -72,6 +73,16 @@ class Architecture(ArchitectureInterface):
         self._path_aliases = importer.path_aliases
         self._communications = importer.communications
         self._variable_passings = importer.variable_passings
+
+    def add_path_alias(self, path_name: str, callbacks: List[CallbackBase]):
+        assert path_name not in [
+            alias.path_name for alias in self._path_aliases]
+        callback_names = [callback.unique_name for callback in callbacks]
+        alias = PathAlias(path_name, callback_names)
+        self._path_aliases.append(alias)
+
+    def has_path_alias(self, path_name: str):
+        return path_name in [alias.path_name for alias in self._path_aliases]
 
     @property
     def nodes(self) -> List[Node]:
