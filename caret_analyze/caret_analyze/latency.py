@@ -34,12 +34,16 @@ class LatencyBase(metaclass=ABCMeta):
 
     def to_dataframe(self, remove_dropped=False, treat_drop_as_delay=False) -> pd.DataFrame:
         records = self.to_records()
+        column_names = self._get_column_names()
+
+        if remove_dropped is False and treat_drop_as_delay:
+            records.bind_drop_as_delay(column_names[0])
+
         df = records.to_dataframe()
 
         if remove_dropped:
             df.dropna(inplace=True)
 
-        column_names = self._get_column_names()
         column_names_set = set(column_names)
         df_columns_set = set(df.columns)
         has_columns = column_names_set & df_columns_set == column_names_set

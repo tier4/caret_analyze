@@ -26,13 +26,16 @@ from ..path import Path
 from ..util import Util
 
 
-def message_flow(path: Path, export_path: Optional[str] = None, granularity: Optional[str] = None):
+def message_flow(
+    path: Path, export_path: Optional[str] = None,
+    granularity: Optional[str] = None, treat_drop_as_delay=True
+):
     granularity = granularity or 'raw'
     assert granularity in ['raw', 'callback', 'node']
 
     fig = figure(plot_width=1000, plot_height=400)
 
-    df = path.to_dataframe()
+    df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
     renames = {}
 
     callback: Optional[CallbackBase] = None

@@ -43,7 +43,8 @@ def callback_grpah(
 
 
 def chain_latency(
-    path: Path, export_path: Optional[str] = None, granularity: str = 'node'
+    path: Path, export_path: Optional[str] = None,
+    granularity: str = 'node', treat_drop_as_delay=True
 ) -> Optional[Source]:
     granularity = granularity or 'callback'
     assert granularity in ['callback', 'node', 'end-to-end']
@@ -78,7 +79,8 @@ def chain_latency(
 
     if granularity == 'callback':
         for component in path:
-            _, latency = component.to_timeseries(remove_dropped=True)
+            _, latency = component.to_timeseries(
+                remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
             if isinstance(component, CallbackBase):
                 label = f'{component.node_name}\n{component.callback_name}\n'
                 label += to_label(latency)
@@ -104,7 +106,8 @@ def chain_latency(
     elif granularity == 'node':
         node_paths = to_node_paths(path)
         for node_path in node_paths:
-            _, latency = node_path.to_timeseries(remove_dropped=True)
+            _, latency = node_path.to_timeseries(
+                remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
             node_name = node_path.callbacks[0].node_name
             label = node_name
             label += '\n' + to_label(latency)
@@ -122,7 +125,7 @@ def chain_latency(
                 continue
             if comm_path.is_intra_process:
                 _, pubsub_latency = comm_path.to_timeseries(
-                    remove_dropped=True)
+                    remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
                 label = comm_path.topic_name
                 label += '\n' + (
                     'min: {:.2f} ms\n'.format(np.min(pubsub_latency * 1.0e-6))
@@ -133,7 +136,8 @@ def chain_latency(
                 _, pubsub_latency = comm_path.to_pubsub_latency().to_timeseries(
                     remove_dropped=True
                 )
-                _, dds_latency = comm_path.to_dds_latency().to_timeseries(remove_dropped=True)
+                _, dds_latency = comm_path.to_dds_latency().to_timeseries(
+                    remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
                 label = comm_path.topic_name
                 label += '\n' + (
                     'min: {:.2f} ({:.2f}) ms\n'.format(
@@ -162,7 +166,8 @@ def chain_latency(
         node_paths = to_node_paths(path)
 
         for node_path in [node_paths[0], node_paths[-1]]:
-            _, latency = node_path.to_timeseries(remove_dropped=True)
+            _, latency = node_path.to_timeseries(
+                remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
             node_name = node_path.callbacks[0].node_name
             label = node_name + '\n' + to_label(latency)
             graph.node(node_name, label=label)

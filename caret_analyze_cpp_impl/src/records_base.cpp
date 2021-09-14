@@ -72,6 +72,27 @@ RecordsBase::RecordsBase(std::string json_path)
   }
 }
 
+void RecordsBase::_bind_drop_as_delay(const std::string sort_key)
+{
+  this->_sort(sort_key, "", false);
+
+  std::unordered_map<std::string, uint64_t> oldest_values;
+
+  for (auto & record : *data_) {
+    for (auto & key : *columns_) {
+      bool has_value = record.columns_.count(key) > 0;
+      bool has_value_ = oldest_values.count(key) > 0;
+      if (!has_value && has_value_) {
+        record.add(key, oldest_values[key]);
+      }
+      if (has_value) {
+        oldest_values[key] = record.data_[key];
+      }
+    }
+  }
+
+  this->_sort(sort_key, "", true);
+}
 
 void RecordsBase::append(const RecordBase & other)
 {

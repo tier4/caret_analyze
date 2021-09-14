@@ -167,6 +167,10 @@ class RecordsInterface:  # To avoid conflicts with the pybind metaclass, ABC is 
     def clone(self) -> RecordsInterface:
         pass
 
+    @abstractmethod
+    def bind_drop_as_delay(self, sort_key: str) -> None:
+        pass
+
 
 class MergeSideInfo(IntEnum):
     LEFT = 0
@@ -379,6 +383,20 @@ class Records(RecordsInterface):
         from copy import deepcopy
 
         return deepcopy(self)
+
+    def bind_drop_as_delay(self, sort_key: str) -> None:
+        self.sort(sort_key, sub_key=None, inplace=True, ascending=False)
+
+        oldest_values: Dict[str, int] = {}
+
+        for record in self.data:
+            for key in self.columns:
+                if key not in record.columns and key in oldest_values.keys():
+                    record.add(key, oldest_values[key])
+                if key in record.columns:
+                    oldest_values[key] = record.data[key]
+
+        self.sort(sort_key, sub_key=None, inplace=True, ascending=True)
 
     def merge(
         self,

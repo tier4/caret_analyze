@@ -74,6 +74,7 @@ PYBIND11_MODULE(record_cpp_impl, m) {
   .def("_sort", &RecordsBase::_sort)
   .def("_merge", &RecordsBase::_merge)
   .def("_merge_sequencial", &RecordsBase::_merge_sequencial)
+  .def("_bind_drop_as_delay", &RecordsBase::_bind_drop_as_delay)
   .def(
     "_merge_sequencial_for_addr_track",
     &RecordsBase::_merge_sequencial_for_addr_track)

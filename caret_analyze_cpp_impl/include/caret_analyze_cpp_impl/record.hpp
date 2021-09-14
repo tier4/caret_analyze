@@ -72,6 +72,7 @@ public:
   void _concat(const RecordsBase & other);
   void _filter(std::function<bool(RecordBase)> & f);
   void _sort(std::string key, std::string sub_key = "", bool ascending = true);
+  void _bind_drop_as_delay(const std::string key);
 
   RecordsBase _merge(
     const RecordsBase & right_records,

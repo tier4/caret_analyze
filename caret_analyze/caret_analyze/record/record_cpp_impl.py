@@ -93,6 +93,9 @@ class RecordsCppImpl(RecordsBase, RecordsInterface):
     def clone(self) -> RecordsCppImpl:
         return RecordsCppImpl([RecordCppImpl(record.data) for record in self.data])
 
+    def bind_drop_as_delay(self, sort_key: str) -> None:
+        self._bind_drop_as_delay(sort_key)
+
     def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[RecordsCppImpl]:
         if inplace:
             self._drop_columns(columns)
