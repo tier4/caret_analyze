@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from .dataframe_container import DataframeContainer
+from .dataframe_formatter import DataFrameFormatter
 from .impl import CallbackImpl
 from .impl import SubscriptionCallbackImpl
 from .impl import TimerCallbackImpl
@@ -27,11 +27,11 @@ from .. import RecordsInterface
 from ..record_factory import RecordsFactory
 
 
-class RecordsContainer:
+class RecordsFormatter:
     def __init__(
-        self, data_util: Ros2DataModelUtil, dataframe_container: DataframeContainer
+        self, data_util: Ros2DataModelUtil, dataframe_formatter: DataFrameFormatter
     ) -> None:
-        self._dataframe_coitainer = dataframe_container
+        self._dataframe_coitainer = dataframe_formatter
         self._data_util = data_util
 
         self._drop_inter_mediate_columns = True

@@ -19,7 +19,7 @@ import pandas as pd
 from .util import Ros2DataModelUtil
 
 
-class DataframeContainer:
+class DataFrameFormatter:
 
     def __init__(self, data_util: Ros2DataModelUtil):
         self._data_util = data_util
