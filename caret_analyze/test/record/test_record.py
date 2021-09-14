@@ -346,6 +346,33 @@ class TestRecords:
             records_left.concat(records_right, inplace=True)
             assert records_left.equals(records_expect)
 
+    def test_bind_drop_as_delay(self):
+        for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
+            if not CppImplValid:
+                continue
+
+            records = records_type(
+                [
+                    record_type({'sort_key': 1, 'stamp': 0, 'stamp_': 1}),
+                    record_type({'sort_key': 2, 'stamp': 2}),
+                    record_type({'sort_key': 3, 'stamp_': 5}),
+                    record_type({'sort_key': 4, 'stamp': 6}),
+                    record_type({'sort_key': 5}),
+                ]
+            )
+            records.bind_drop_as_delay('sort_key')
+            records_expect = records_type(
+                [
+                    record_type({'sort_key': 1, 'stamp': 0, 'stamp_': 1}),
+                    record_type({'sort_key': 2, 'stamp': 2, 'stamp_': 5}),
+                    record_type({'sort_key': 3, 'stamp': 6, 'stamp_': 5}),
+                    record_type({'sort_key': 4, 'stamp': 6}),
+                    record_type({'sort_key': 5}),
+                ]
+            )
+
+            assert records.equals(records_expect)
+
     def test_to_df(self):
         key = 'stamp'
         records_py: Records = Records(
