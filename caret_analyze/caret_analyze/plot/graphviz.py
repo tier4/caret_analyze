@@ -133,7 +133,7 @@ def chain_latency(
                     + 'max: {:.2f} ms'.format(np.max(pubsub_latency * 1.0e-6))
                 )
             else:
-                _, pubsub_latency = comm_path.to_pubsub_latency().to_timeseries(
+                _, pubsub_latency = comm_path.to_timeseries(
                     remove_dropped=True
                 )
                 _, dds_latency = comm_path.to_dds_latency().to_timeseries(
