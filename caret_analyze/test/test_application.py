@@ -63,29 +63,3 @@ class TestApplication:
         for path in paths:
             assert path[0].unique_name == start_cb_name
             assert path[-1].unique_name == end_cb_name
-
-    @pytest.mark.parametrize(
-        'trace_path, yaml_path, start_cb_name, end_cb_name, paths_len',
-        [
-            (  # cyclic case
-                'sample/lttng_samples/cyclic_pipeline_intra_process',
-                'sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml',
-                '/pipe1/subscription_callback_0',
-                '/pipe1/subscription_callback_0',
-                1,
-            ),
-            (  # publisher callback_name and callback depencency added
-                'sample/lttng_samples/end_to_end_sample',
-                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml',
-                '/sensor_dummy_node/timer_callback_0',
-                '/actuator_dummy_node/subscription_callback_0',
-                1,
-            ),
-        ],
-    )
-    def test_path_latency(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):
-        lttng = Lttng(trace_path)
-        app = Application(yaml_path, 'yaml', lttng)
-
-        paths = app.search_paths(start_cb_name, end_cb_name)
-        assert len(paths) == paths_len
