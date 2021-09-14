@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .interface import AppInfoGetter
+from .interface import ArchitectureInfoContainer
 from .interface import CallbackInterface
-from .interface import LatencyComposer
 from .interface import PublisherInterface
+from .interface import RecordsContainer
 from .interface import SubscriptionCallbackInterface
 from .interface import SubscriptionInterface
 from .interface import TimerCallbackInterface
@@ -32,8 +32,8 @@ __all__ = [
     'RecordsInterface',
     'Record',
     'Records',
-    'LatencyComposer',
-    'AppInfoGetter',
+    'RecordsContainer',
+    'ArchitectureInfoContainer',
     'PublisherInterface',
     'SubscriptionInterface',
     'CallbackInterface',

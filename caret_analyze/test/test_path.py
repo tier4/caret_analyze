@@ -27,12 +27,12 @@ from caret_analyze.pub_sub import Publisher
 from caret_analyze.record import Record
 from caret_analyze.record import Records
 from caret_analyze.record.interface import CallbackInterface
-from caret_analyze.record.interface import LatencyComposer
+from caret_analyze.record.interface import RecordsContainer
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.record.interface import SubscriptionCallbackInterface
 
 
-class LatencyComposerMock(LatencyComposer):
+class RecordsContainerMock(RecordsContainer):
     def __init__(
         self,
         callback_records: Records,
@@ -241,7 +241,7 @@ class TestPathLatencyManager:
         )
         inter_process_communication_records = Records()
         variable_passing_records = Records()
-        latency_composer_mock = LatencyComposerMock(
+        records_container_mock = RecordsContainerMock(
             callback_records,
             inter_process_communication_records,
             intra_process_communication_records,
@@ -249,17 +249,17 @@ class TestPathLatencyManager:
         )
 
         timer_cb = TimerCallback(
-            latency_composer_mock, '/node0', 'callback0', 'symbol0', 100)
+            records_container_mock, '/node0', 'callback0', 'symbol0', 100)
         sub_cb = SubscriptionCallback(
-            latency_composer_mock, '/node1', 'callback1', 'symbol1', '/topic1'
+            records_container_mock, '/node1', 'callback1', 'symbol1', '/topic1'
         )
-        latency_composer_mock.to_callback_object[timer_cb] = timer_cb_callback_object
-        latency_composer_mock.to_callback_object[sub_cb] = sub_cb_callback_object
+        records_container_mock.to_callback_object[timer_cb] = timer_cb_callback_object
+        records_container_mock.to_callback_object[sub_cb] = sub_cb_callback_object
 
-        latency_composer_mock.to_publisher_handle[timer_cb] = timer_cb_publisher_handle
+        records_container_mock.to_publisher_handle[timer_cb] = timer_cb_publisher_handle
         pub = Publisher('/node0', '/topic1', 'callback0')
         communication = Communication(
-            latency_composer_mock, timer_cb, sub_cb, pub)
+            records_container_mock, timer_cb, sub_cb, pub)
         communication.is_intra_process = True
 
         merger = PathLatencyMerger(timer_cb)
@@ -423,7 +423,7 @@ class TestPath:
         )
         variable_passing_records = Records()
 
-        latency_composer_mock = LatencyComposerMock(
+        records_container_mock = RecordsContainerMock(
             callback_records,
             inter_process_communication_records,
             intra_process_communication_records,
@@ -431,18 +431,18 @@ class TestPath:
         )
         publisher = Publisher('/timer_node', '/topic', 'timer_cb')
         timer0_cb = TimerCallback(
-            latency_composer_mock, '/timer_node', 'timer_cb', 'pub_symbol', 100, [
+            records_container_mock, '/timer_node', 'timer_cb', 'pub_symbol', 100, [
                 publisher]
         )
-        latency_composer_mock.to_callback_object[timer0_cb] = timer0_cb_obj
+        records_container_mock.to_callback_object[timer0_cb] = timer0_cb_obj
         sub_cb0 = SubscriptionCallback(
-            latency_composer_mock, '/sub_node', 'sub_cb', 'sub_symbol', '/topic', []
+            records_container_mock, '/sub_node', 'sub_cb', 'sub_symbol', '/topic', []
         )
-        latency_composer_mock.to_callback_object[sub_cb0] = sub0_cb_obj
+        records_container_mock.to_callback_object[sub_cb0] = sub0_cb_obj
 
-        latency_composer_mock.to_publisher_handle[timer0_cb] = timer0_pub_handle
+        records_container_mock.to_publisher_handle[timer0_cb] = timer0_pub_handle
         callbacks = [timer0_cb, sub_cb0]
-        comm = Communication(latency_composer_mock,
+        comm = Communication(records_container_mock,
                              timer0_cb, sub_cb0, publisher)
         comm.is_intra_process = True
         communications = [comm]

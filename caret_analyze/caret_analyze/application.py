@@ -26,7 +26,7 @@ from .communication import VariablePassing
 from .graph_search import CallbackPathSercher
 from .node import Node
 from .path import Path
-from .record import LatencyComposer
+from .record import RecordsContainer
 from .util import Util
 
 
@@ -35,11 +35,11 @@ class Application(ArchitectureInterface):
         self,
         file_path: str,
         file_type: str,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         ignore_topics: List[str] = IGNORE_TOPICS,
     ) -> None:
         self._arch = Architecture(
-            file_path, file_type, latency_composer, ignore_topics)
+            file_path, file_type, records_container, ignore_topics)
         self.path: Dict[str, Path] = self._to_paths(
             self._arch.path_aliases, self._arch)
 

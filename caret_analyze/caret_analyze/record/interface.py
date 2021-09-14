@@ -106,7 +106,7 @@ class SubscriptionCallbackInterface(CallbackInterface):
         pass
 
 
-class LatencyComposer(metaclass=ABCMeta):
+class RecordsContainer(metaclass=ABCMeta):
     # callback_end_timestamp
     # callback_object
     # callback_start_timestamp
@@ -148,7 +148,7 @@ class LatencyComposer(metaclass=ABCMeta):
         pass
 
 
-class AppInfoGetter(metaclass=ABCMeta):
+class ArchitectureInfoContainer(metaclass=ABCMeta):
 
     @abstractmethod
     def get_node_names(self) -> List[str]:

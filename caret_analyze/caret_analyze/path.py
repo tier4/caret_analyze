@@ -281,9 +281,9 @@ class Path(UserList, LatencyBase):
         # In order to get the list of column names,
         # information on intra-process and inter-process communication is required.
         # Since this information is obtained from the actual measurement results,
-        # each LatencyBase needs to have a LatencyComposer.
+        # each LatencyBase needs to have a RecordsContainer.
         # In cases such as visualization of callback graphs only,
-        # the LatencyComposer (trace results) is not necessary,
+        # the RecordsContainer (trace results) is not necessary,
         # so the list of column names is acquired when it becomes necessary.
 
         if len(self._column_names) == 0:
