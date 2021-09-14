@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
-
 from caret_analyze.application import Application
 from caret_analyze.callback import CallbackBase
 from caret_analyze.callback import SubscriptionCallback
 from caret_analyze.callback import TimerCallback
 from caret_analyze.record.lttng import Lttng
-
-import numpy as np
-import pandas as pd
 
 
 class TestTimerCallback:
@@ -91,17 +86,8 @@ class TestSubscriptionCallback:
         latencies, hist = callback.to_histogram(binsize_ns=100000)
         assert len(latencies) == 4 and len(hist) == 5
 
-    def test_column_names(self, mocker):
+    def test_column_names(self):
         columns = CallbackBase.column_names
 
-        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
-            assert column_names == columns
-            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
-            df = pd.DataFrame(dummy_data, columns=columns)
-            return df
-
         callback = SubscriptionCallback(None, '', '', '', '')
-        mocker.patch.object(callback, 'to_dataframe', custom_to_dataframe)
-
-        callback.to_histogram()
-        callback.to_timeseries()
+        assert callback._get_column_names() == columns

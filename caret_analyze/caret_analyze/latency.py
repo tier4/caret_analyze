@@ -14,7 +14,7 @@
 
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -28,41 +28,30 @@ class LatencyBase(metaclass=ABCMeta):
     def to_records(self) -> RecordsInterface:
         pass
 
-    def to_dataframe(
-        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
-    ) -> pd.DataFrame:
+    @abstractmethod
+    def _get_column_names(self) -> List[str]:
+        pass
+
+    def to_dataframe(self, remove_dropped=False, treat_drop_as_delay=False) -> pd.DataFrame:
         records = self.to_records()
         df = records.to_dataframe()
 
         if remove_dropped:
             df.dropna(inplace=True)
 
-        if column_names is not None:
-            column_names_set = set(column_names)
-            df_columns_set = set(df.columns)
-            has_columns = column_names_set & df_columns_set == column_names_set
-            if has_columns:
-                return df[column_names]
-            else:
-                return pd.DataFrame(columns=column_names)
-
-        fully_recorded = df.dropna()
-        err_msg = (
-            'Failed to find a record with all columns measured.'
-            'All messages may have been lost in the process.'
-        )
-
-        assert len(fully_recorded) > 0, err_msg
-
-        sort_target_index = fully_recorded.index[0]
-        df.sort_values(sort_target_index, axis=1, ascending=True, inplace=True)
-
-        return df
+        column_names = self._get_column_names()
+        column_names_set = set(column_names)
+        df_columns_set = set(df.columns)
+        has_columns = column_names_set & df_columns_set == column_names_set
+        if has_columns:
+            return df[column_names]
+        else:
+            return pd.DataFrame(columns=column_names)
 
     def to_timeseries(
-        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
+        self, remove_dropped=False, treat_drop_as_delay=False
     ) -> Tuple[np.array, np.array]:
-        df = self.to_dataframe(remove_dropped, column_names=column_names)
+        df = self.to_dataframe(remove_dropped, treat_drop_as_delay)
         msg = (
             'Failed to find any records that went through the path.'
             + 'There is a possibility that all records are lost.',
@@ -77,15 +66,11 @@ class LatencyBase(metaclass=ABCMeta):
         return t, latency_ns
 
     def to_histogram(
-        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
+        self, binsize_ns: int = 1000000, treat_drop_as_delay=False
     ) -> Tuple[np.array, np.array]:
-        # column_names is used as an argument,
-        # because it is received from the inherited class, but it can be improved.
-
         import math
 
-        _, latency_ns = self.to_timeseries(
-            remove_dropped=True, column_names=column_names)
+        _, latency_ns = self.to_timeseries(True, treat_drop_as_delay=treat_drop_as_delay)
 
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns

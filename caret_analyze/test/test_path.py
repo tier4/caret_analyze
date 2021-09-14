@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional
+from typing import Dict
 
 from caret_analyze import Application
 from caret_analyze import Lttng
@@ -30,9 +30,6 @@ from caret_analyze.record.interface import CallbackInterface
 from caret_analyze.record.interface import LatencyComposer
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.record.interface import SubscriptionCallbackInterface
-
-import numpy as np
-import pandas as pd
 
 
 class LatencyComposerMock(LatencyComposer):
@@ -346,10 +343,8 @@ class TestColumnNameCounter:
 
 
 class TestPath:
-    def test_column_names(
-        self,
-        mocker,
-    ):
+
+    def test_column_names(self):
         columns = [
             '/message_driven_node/subscription_callback_0/callback_start_timestamp/0',
             '/message_driven_node/subscription_callback_0/callback_end_timestamp/0',
@@ -363,16 +358,6 @@ class TestPath:
             '/timer_driven_node/subscription_callback_0/callback_end_timestamp/0',
         ]
 
-        def custom_to_dataframe(
-            self, remove_dropped=False, *, column_names: Optional[List[str]] = None
-        ) -> pd.DataFrame:
-
-            assert column_names == columns
-
-            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
-            df = pd.DataFrame(dummy_data, columns=columns)
-            return df
-
         lttng = Lttng('sample/lttng_samples/end_to_end_sample')
         app = Application(
             'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml', 'yaml', lttng
@@ -383,10 +368,7 @@ class TestPath:
         paths = app.search_paths(start_cb_name, end_cb_name)
         path = paths[0]
 
-        mocker.patch.object(path, 'to_dataframe', custom_to_dataframe)
-
-        path.to_histogram()
-        path.to_timeseries()
+        assert path._get_column_names() == columns
 
     def test_merge_path(self):
         # callback object にpublisher_handleを紐付けるのを確認。

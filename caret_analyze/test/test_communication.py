@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import List
 
 from caret_analyze.application import Application
 from caret_analyze.callback import SubscriptionCallback
@@ -23,8 +23,6 @@ from caret_analyze.communication import VariablePassing
 from caret_analyze.pub_sub import Publisher
 from caret_analyze.record.lttng import Lttng
 
-import numpy as np
-import pandas as pd
 import pytest
 
 
@@ -65,21 +63,16 @@ class TestCommunication:
             (False, Communication.column_names_inter_process),
         ],
     )
-    def test_column_names(self, mocker, is_intra_process: bool, columns: List[str]):
-        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
-            assert column_names == columns
-            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
-            df = pd.DataFrame(dummy_data, columns=columns)
-            return df
-
+    def test_column_names(self, is_intra_process: bool, columns: List[str]):
         callback = SubscriptionCallback(None, '', '', '', '')
         pub = Publisher('node_name', 'topic_name', 'callback_name')
         comm = Communication(None, callback, callback, pub)
-        mocker.patch.object(comm, 'to_dataframe', custom_to_dataframe)
 
         comm.is_intra_process = is_intra_process
-        comm.to_histogram()
-        comm.to_timeseries()
+        if is_intra_process:
+            assert comm._get_column_names() == Communication.column_names_intra_process
+        else:
+            assert comm._get_column_names() == Communication.column_names_inter_process
 
     @pytest.mark.parametrize(
         'trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len',
@@ -134,57 +127,32 @@ class TestPubSubLatency:
         columns = PubSubLatency.column_names
         Communication.column_names_intra_process
 
-        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
-            assert column_names == columns
-            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
-            df = pd.DataFrame(dummy_data, columns=columns)
-            return df
-
         callback = SubscriptionCallback(None, '', '', '', '')
         pub = Publisher('node_name', 'topic_name', 'callback_name')
         comm = PubSubLatency(None, callback, callback, pub)
-        mocker.patch.object(comm, 'to_dataframe', custom_to_dataframe)
 
-        comm.to_histogram()
-        comm.to_timeseries()
+        assert comm._get_column_names() == columns
 
 
 class TestDDSLatency:
 
-    def test_column_names(self, mocker):
+    def test_column_names(self):
         columns = DDSLatency.column_names
         Communication.column_names_intra_process
-
-        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
-            assert column_names == columns
-            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
-            df = pd.DataFrame(dummy_data, columns=columns)
-            return df
 
         pub = Publisher('node_name', 'topic_name', 'callback_name')
         callback = SubscriptionCallback(None, '', '', '', '')
         comm = DDSLatency(None, callback, callback, pub)
-        mocker.patch.object(comm, 'to_dataframe', custom_to_dataframe)
-
-        comm.to_histogram()
-        comm.to_timeseries()
+        assert comm._get_column_names() == columns
 
 
 class TestVariablePassingLatency:
 
-    def test_column_names(self, mocker):
+    def test_column_names(self):
         columns = VariablePassing.column_names
         Communication.column_names_intra_process
 
-        def custom_to_dataframe(self, *, column_names: Optional[List[str]] = None) -> pd.DataFrame:
-            assert column_names == columns
-            dummy_data = np.arange(5 * len(columns)).reshape(5, len(columns))
-            df = pd.DataFrame(dummy_data, columns=columns)
-            return df
-
         callback = SubscriptionCallback(None, '', '', '', '')
         comm = VariablePassing(None, callback, callback)
-        mocker.patch.object(comm, 'to_dataframe', custom_to_dataframe)
 
-        comm.to_histogram()
-        comm.to_timeseries()
+        assert comm._get_column_names() == columns
