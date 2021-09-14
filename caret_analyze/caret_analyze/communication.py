@@ -97,15 +97,8 @@ class Communication(CommunicationInterface, LatencyBase):
             self.is_intra_process = self._is_intra_process()
 
         self._dds_latency: Optional[DDSLatency] = None
-        self._pubsub_latency: Optional[PubSubLatency] = None
         if self.is_intra_process:
             self._dds_latency = DDSLatency(
-                self._latency_composer,
-                self.callback_publish,
-                self.callback_subscription,
-                publisher,
-            )
-            self._pubsub_latency = PubSubLatency(
                 self._latency_composer,
                 self.callback_publish,
                 self.callback_subscription,
@@ -178,15 +171,6 @@ class Communication(CommunicationInterface, LatencyBase):
 
         return len(intra_records.data) > 0
 
-    def to_pubsub_latency(self) -> PubSubLatency:
-        assert self.is_intra_process is False, 'target is intra process communication'
-        return PubSubLatency(
-            self._latency_composer,
-            self.callback_publish,
-            self.callback_subscription,
-            self._publisher,
-        )
-
     def to_dds_latency(self) -> DDSLatency:
         assert self.is_intra_process is False, 'target is intra process communication'
         return DDSLatency(
@@ -195,66 +179,6 @@ class Communication(CommunicationInterface, LatencyBase):
             self.callback_subscription,
             self._publisher,
         )
-
-
-class PubSubLatency(CommunicationInterface, LatencyBase):
-    column_names = [
-        'rclcpp_publish_timestamp',
-        'rcl_publish_timestamp',
-        'dds_write_timestamp',
-        'on_data_available_timestamp',
-        'callback_start_timestamp',
-    ]
-
-    def __init__(
-        self,
-        latency_composer: Optional[LatencyComposer],
-        callback_publish: Optional[CallbackBase],
-        callback_subscription: SubscriptionCallback,
-        publisher: Publisher,
-    ) -> None:
-        self._latency_composer = latency_composer
-        self._callback_publish = callback_publish
-        self.callback_subscription = callback_subscription
-        self._publisher = publisher
-
-    @property
-    def callback_publish(self) -> CallbackBase:
-        assert self._callback_publish is not None
-        return self._callback_publish
-
-    @property
-    def callback_from(self) -> CallbackBase:
-        assert self.callback_publish is not None
-        return self.callback_publish
-
-    @property
-    def callback_to(self) -> CallbackBase:
-        return self.callback_subscription
-
-    @property
-    def subscription(self) -> Subscription:
-        subscription = self.callback_subscription.subscription
-        assert subscription is not None
-        return subscription
-
-    @property
-    def publisher(self) -> Publisher:
-        return self._publisher
-
-    def _get_column_names(self) -> List[str]:
-        return PubSubLatency.column_names
-
-    def to_records(self) -> RecordsInterface:
-        assert self._latency_composer is not None
-        assert self.callback_publish is not None
-
-        records = self._latency_composer.compose_inter_process_communication_records(
-            self.callback_subscription, self.callback_publish
-        )
-        records.sort(PubSubLatency.column_names[0], inplace=True)
-
-        return records
 
 
 class DDSLatency(CommunicationInterface, LatencyBase):

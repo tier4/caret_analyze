@@ -18,7 +18,6 @@ from caret_analyze.application import Application
 from caret_analyze.callback import SubscriptionCallback
 from caret_analyze.communication import Communication
 from caret_analyze.communication import DDSLatency
-from caret_analyze.communication import PubSubLatency
 from caret_analyze.communication import VariablePassing
 from caret_analyze.pub_sub import Publisher
 from caret_analyze.record.lttng import Lttng
@@ -94,19 +93,6 @@ class TestCommunication:
         latencies, hist = comm.to_histogram(binsize_ns=binsize_ns)
         assert len(latencies) == histogram_len and len(hist) == histogram_len + 1
 
-    def test_to_pubsub_latency(self):
-        lttng = Lttng('sample/lttng_samples/talker_listener/')
-        app = Application('sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
-        comm = app.communications[0]
-
-        latency = comm.to_pubsub_latency()
-
-        t, latencies = latency.to_timeseries()
-        assert len(t) == 5 and len(latencies) == 5
-
-        latencies, hist = latency.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 5 and len(hist) == 6
-
     def test_to_dds_latency(self):
         lttng = Lttng('sample/lttng_samples/talker_listener/')
         app = Application('sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
@@ -119,19 +105,6 @@ class TestCommunication:
 
         latencies, hist = latency.to_histogram(binsize_ns=100000)
         assert len(latencies) == 2 and len(hist) == 3
-
-
-class TestPubSubLatency:
-
-    def test_column_names(self, mocker):
-        columns = PubSubLatency.column_names
-        Communication.column_names_intra_process
-
-        callback = SubscriptionCallback(None, '', '', '', '')
-        pub = Publisher('node_name', 'topic_name', 'callback_name')
-        comm = PubSubLatency(None, callback, callback, pub)
-
-        assert comm._get_column_names() == columns
 
 
 class TestDDSLatency:
