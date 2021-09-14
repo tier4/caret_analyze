@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Set, Tuple
+from typing import List, Set, Tuple
 
 from caret_analyze.latency import LatencyBase
 from caret_analyze.record import Record
@@ -24,8 +24,15 @@ import pytest
 
 class LatencyBaseImpl(LatencyBase):
 
+    def __init__(self, records, columns):
+        self._records = records
+        self._columns = columns
+
     def to_records(self):
-        pass
+        return self._records
+
+    def _get_column_names(self) -> List[str]:
+        return self._columns
 
 
 class TestLatencyBase:
@@ -56,44 +63,14 @@ class TestLatencyBase:
         ],
     )
     def test_to_dataframe(self, mocker, records: Records, df_len: int, columns: Set[str]):
-        def custom_to_records() -> Records:
-            return records
-
-        latency = LatencyBaseImpl()
-        mocker.patch.object(latency, 'to_records', custom_to_records)
+        latency = LatencyBaseImpl(records, list(columns))
         df = latency.to_dataframe()
 
         assert len(df) == df_len
         assert set(df.columns) == columns
 
         # Make sure the columns are in chronological order from left to right.
-        for _, row in df.iterrows():
-            for i in range(len(row) - 1):
-                if np.isnan(row[i]) or np.isnan(row[i + 1]):
-                    continue
-                assert row[i] < row[i + 1]
-
-    @pytest.mark.parametrize(
-        'records',
-        [
-            (
-                Records(
-                    [
-                        Record({'col0': 1}),
-                        Record({'col1': 5}),
-                    ]
-                )
-            )
-        ],
-    )
-    def test_to_dataframe_failed_to_sort_columns(self, mocker, records: Records):
-        def custom_to_records() -> Records:
-            return records
-
-        with pytest.raises(AssertionError):
-            latency = LatencyBaseImpl()
-            mocker.patch.object(latency, 'to_records', custom_to_records)
-            latency.to_dataframe()
+        assert list(df.columns) == list(columns)
 
     @pytest.mark.parametrize(
         'latencies, binsize_ns, bins_range',
@@ -108,11 +85,11 @@ class TestLatencyBase:
         self, mocker, latencies: List[int], binsize_ns: int, bins_range: Tuple[int, int]
     ):
         def custom_to_timeseries(
-            *, remove_dropped: bool = False, column_names: Optional[List[str]] = None
+            remove_dropped: bool = False, treat_drop_as_delay=False
         ) -> Tuple[np.array, np.array]:
             return np.array([]), np.array(latencies)
 
-        latency = LatencyBaseImpl()
+        latency = LatencyBaseImpl(Records(), [])
         mocker.patch.object(latency, 'to_timeseries', custom_to_timeseries)
 
         hist, bins = latency.to_histogram(binsize_ns=binsize_ns)

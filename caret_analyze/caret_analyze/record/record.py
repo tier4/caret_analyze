@@ -221,8 +221,7 @@ class Record(RecordInterface):
         self.columns.add(key)
         self._data[key] = stamp
 
-    # type: ignore
-    def merge(self, other: Record, inplace=False) -> Optional[Record]:
+    def merge(self, other: Record, inplace=False) -> Optional[Record]:  # type: ignore
         if inplace:
             self._data.update(other.data)
             self._columns |= other.columns
@@ -292,8 +291,7 @@ class Records(RecordsInterface):
         self._data.append(other)
         self._columns |= other.columns
 
-    # type: ignore
-    def concat(self, other: Records, inplace=False) -> Optional[Records]:
+    def concat(self, other: Records, inplace=False) -> Optional[Records]:  # type: ignore
         if inplace:
             self._data += other._data
             self._columns |= other.columns

@@ -17,9 +17,6 @@ from collections import UserList
 import itertools
 from typing import Callable, List, NamedTuple, Optional, Set, Tuple, Union
 
-import numpy as np
-import pandas as pd
-
 from .callback import CallbackBase
 from .communication import Communication
 from .communication import CommunicationInterface
@@ -340,24 +337,6 @@ class Path(UserList, LatencyBase):
             merger.records.sort(column_names[0], inplace=True)
 
         return merger.records, column_names
-
-    def to_dataframe(
-        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
-    ) -> pd.DataFrame:
-        column_names  # use self._column_names instead.
-        return super().to_dataframe(remove_dropped, column_names=self._get_column_names())
-
-    def to_timeseries(
-        self, remove_dropped=False, *, column_names: Optional[List[str]] = None
-    ) -> Tuple[np.array, np.array]:
-        column_names  # use self._column_names instead.
-        return super().to_timeseries(remove_dropped, column_names=self._get_column_names())
-
-    def to_histogram(
-        self, binsize_ns: int = 1000000, *, column_names: Optional[List[str]] = None
-    ) -> Tuple[np.array, np.array]:
-        column_names  # use self._column_names instead.
-        return super().to_histogram(binsize_ns, column_names=self._get_column_names())
 
     @property
     def callbacks(self) -> List[CallbackBase]:
