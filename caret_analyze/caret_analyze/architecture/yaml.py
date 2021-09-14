@@ -31,7 +31,7 @@ from ..communication import Communication
 from ..node import Node
 from ..pub_sub import Publisher
 from ..pub_sub import Subscription
-from ..record.interface import LatencyComposer
+from ..record.interface import RecordsContainer
 from ..util import Util
 
 YamlObject = Dict[str, Any]
@@ -149,8 +149,8 @@ class YamlArchitectureExporter(ArchitectureExporter):
 
 class YamlArchitectureImporter(ArchitectureImporter):
 
-    def __init__(self, latency_composer: Optional[LatencyComposer]):
-        self._latency_composer: Optional[LatencyComposer] = latency_composer
+    def __init__(self, records_container: Optional[RecordsContainer]):
+        self._records_container: Optional[RecordsContainer] = records_container
         self._nodes: List[Node] = []
         self._path_aliases: List[PathAlias] = []
         self._communications: List[Communication] = []
@@ -172,8 +172,8 @@ class YamlArchitectureImporter(ArchitectureImporter):
         return Util.flatten([node.variable_passings for node in self.nodes])
 
     @property
-    def latency_composer(self):
-        return self._latency_composer
+    def records_container(self):
+        return self._records_container
 
     def _create_communicateion(
         self, publish: Publisher, subscription: Subscription
@@ -197,7 +197,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
             return None
 
         return Communication(
-            self._latency_composer, callback_publish, callback_subscription, publish
+            self._records_container, callback_publish, callback_subscription, publish
         )
 
     def execute(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
@@ -239,7 +239,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
     ) -> Optional[CallbackBase]:
         if callback_info['type'] == 'timer_callback':
             return TimerCallback(
-                latency_composer=self._latency_composer,
+                records_container=self._records_container,
                 node_name=node_name,
                 callback_name=callback_info['callback_name'],
                 symbol=callback_info['symbol'],
@@ -249,7 +249,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
             if callback_info['topic_name'] in ignore_topics:
                 return None
             return SubscriptionCallback(
-                latency_composer=self._latency_composer,
+                records_container=self._records_container,
                 node_name=node_name,
                 callback_name=callback_info['callback_name'],
                 symbol=callback_info['symbol'],
@@ -306,7 +306,7 @@ class YamlArchitectureImporter(ArchitectureImporter):
 
             node.variable_passings.append(
                 VariablePassing(
-                    self._latency_composer,
+                    self._records_container,
                     callback_write=callback_write,
                     callback_read=callback_read,
                 )

@@ -24,12 +24,12 @@ from .impl import TimerCallbackImpl
 from .processor import Ros2Handler
 from .records_formatter import RecordsFormatter
 from .util import Ros2DataModelUtil
-from .. import AppInfoGetter
+from .. import ArchitectureInfoContainer
 from .. import CallbackInterface
-from .. import LatencyComposer
 from .. import merge_sequencial
 from .. import PublisherInterface
 from .. import RecordInterface
+from .. import RecordsContainer
 from .. import RecordsInterface
 from .. import SubscriptionCallbackInterface
 from .. import TimerCallbackInterface
@@ -37,7 +37,7 @@ from ..record_factory import RecordsFactory
 from ...util import Singleton
 
 
-class Lttng(Singleton, LatencyComposer, AppInfoGetter):
+class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
     load_dir: Optional[str] = None
 
     def __init__(self, trace_dir, force_conversion: bool = False):

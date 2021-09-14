@@ -29,16 +29,16 @@ from ..communication import VariablePassing
 from ..node import Node
 from ..pub_sub import Publisher
 from ..pub_sub import Subscription
-from ..record import AppInfoGetter
-from ..record import LatencyComposer
+from ..record import ArchitectureInfoContainer
+from ..record import RecordsContainer
 from ..record.lttng import Lttng
 from ..util import Util
 
 
 class LttngArchitectureImporter(ArchitectureImporter):
 
-    def __init__(self, latency_composer: Optional[LatencyComposer]) -> None:
-        self._latency_composer = latency_composer
+    def __init__(self, records_container: Optional[RecordsContainer]) -> None:
+        self._records_container = records_container
         self._nodes: List[Node] = []
         self._path_aliases: List[PathAlias] = []
         self._communications: List[Communication] = []
@@ -61,8 +61,8 @@ class LttngArchitectureImporter(ArchitectureImporter):
         return self._variable_passings
 
     @property
-    def latency_composer(self):
-        return self._latency_composer
+    def records_container(self):
+        return self._records_container
 
     def _find_callback(self, node_name: str, callback_name: str) -> Optional[CallbackBase]:
         for node in self._nodes:
@@ -87,7 +87,7 @@ class LttngArchitectureImporter(ArchitectureImporter):
             return None
 
         return Communication(
-            self._latency_composer, callback_publish, callback_subscription, publish
+            self._records_container, callback_publish, callback_subscription, publish
         )
 
     def execute(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
@@ -112,7 +112,7 @@ class LttngArchitectureImporter(ArchitectureImporter):
 
     def _to_timer_callback(self, timer_callback: TimerCallbackInterface):
         return TimerCallback(
-            self._latency_composer,
+            self._records_container,
             timer_callback.node_name,
             timer_callback.callback_name,
             timer_callback.symbol,
@@ -121,14 +121,16 @@ class LttngArchitectureImporter(ArchitectureImporter):
 
     def _to_subscription_callback(self, subscription_callback: SubscriptionCallbackInterface):
         return SubscriptionCallback(
-            self._latency_composer,
+            self._records_container,
             subscription_callback.node_name,
             subscription_callback.callback_name,
             subscription_callback.symbol,
             subscription_callback.topic_name,
         )
 
-    def _create_node(self, node_name, container: AppInfoGetter, ignore_topics=[]) -> Node:
+    def _create_node(
+        self, node_name, container: ArchitectureInfoContainer, ignore_topics=[]
+    ) -> Node:
 
         node: Node = Node(node_name)
 

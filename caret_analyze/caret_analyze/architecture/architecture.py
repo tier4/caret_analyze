@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from caret_analyze.record import LatencyComposer
+from caret_analyze.record import RecordsContainer
 from caret_analyze.util import Util
 
 from .interface import ArchitectureExporter
@@ -38,13 +38,13 @@ class Architecture(ArchitectureInterface):
         self,
         file_path: str,
         file_type: str,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         ignore_topics: List[str] = IGNORE_TOPICS,
     ):
         self._nodes: List[Node] = []
         self._path_aliases: List[PathAlias] = []
         self._communications: List[Communication] = []
-        self._import(file_path, file_type, latency_composer, ignore_topics)
+        self._import(file_path, file_type, records_container, ignore_topics)
 
     def export(self, file_path: str):
         exporter: ArchitectureExporter
@@ -55,7 +55,7 @@ class Architecture(ArchitectureInterface):
         self,
         file_path: str,
         file_type: str,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         ignore_topics: List[str],
     ) -> None:
         file_type = file_type.lower()
@@ -63,9 +63,9 @@ class Architecture(ArchitectureInterface):
 
         importer: ArchitectureImporter
         if file_type in ['lttng', 'ctf']:
-            importer = LttngArchitectureImporter(latency_composer)
+            importer = LttngArchitectureImporter(records_container)
         elif file_type in ['yml', 'yaml']:
-            importer = YamlArchitectureImporter(latency_composer)
+            importer = YamlArchitectureImporter(records_container)
 
         importer.execute(file_path, ignore_topics)
 

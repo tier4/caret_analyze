@@ -24,7 +24,7 @@ from .latency import LatencyBase
 from .pub_sub import Publisher
 from .pub_sub import Subscription
 from .record import RecordsInterface
-from .record.interface import LatencyComposer
+from .record.interface import RecordsContainer
 
 
 class CommunicationInterface(metaclass=ABCMeta):
@@ -79,12 +79,12 @@ class Communication(CommunicationInterface, LatencyBase):
 
     def __init__(
         self,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         callback_publish: Optional[CallbackBase],
         callback_subscription: SubscriptionCallback,
         publisher: Publisher,
     ) -> None:
-        self._latency_composer = latency_composer
+        self._records_container = records_container
         self._callback_publish: Optional[CallbackBase] = callback_publish
         self.callback_subscription = callback_subscription
         self.is_intra_process: Optional[bool] = None
@@ -93,13 +93,13 @@ class Communication(CommunicationInterface, LatencyBase):
         if self._callback_publish is None:
             return
 
-        if latency_composer:
+        if records_container:
             self.is_intra_process = self._is_intra_process()
 
         self._dds_latency: Optional[DDSLatency] = None
         if self.is_intra_process:
             self._dds_latency = DDSLatency(
-                self._latency_composer,
+                self._records_container,
                 self.callback_publish,
                 self.callback_subscription,
                 publisher,
@@ -138,18 +138,18 @@ class Communication(CommunicationInterface, LatencyBase):
             return Communication.column_names_inter_process
 
     def to_records(self) -> RecordsInterface:
-        assert self._latency_composer is not None
+        assert self._records_container is not None
         assert self.callback_publish is not None
 
         records: RecordsInterface
         if self.is_intra_process:
-            records = self._latency_composer.compose_intra_process_communication_records(
+            records = self._records_container.compose_intra_process_communication_records(
                 self.callback_subscription, self.callback_publish
             )
             records.sort(
                 Communication.column_names_intra_process[0], inplace=True)
         else:
-            records = self._latency_composer.compose_inter_process_communication_records(
+            records = self._records_container.compose_inter_process_communication_records(
                 self.callback_subscription, self.callback_publish
             )
             records.sort(
@@ -158,14 +158,14 @@ class Communication(CommunicationInterface, LatencyBase):
         return records
 
     def _is_intra_process(self) -> bool:
-        assert self._latency_composer is not None
+        assert self._records_container is not None
         assert self.callback_publish is not None
 
         # Even if intra-process communication is enabled in the configuration,
         # at least one process from actual publish to callback execution is required.
         # Depending on the measurement results,
         # columns may be unintentionally generated as inter-process communication.
-        intra_records = self._latency_composer.compose_intra_process_communication_records(
+        intra_records = self._records_container.compose_intra_process_communication_records(
             self.callback_subscription, self.callback_publish
         )
 
@@ -174,7 +174,7 @@ class Communication(CommunicationInterface, LatencyBase):
     def to_dds_latency(self) -> DDSLatency:
         assert self.is_intra_process is False, 'target is intra process communication'
         return DDSLatency(
-            self._latency_composer,
+            self._records_container,
             self.callback_publish,
             self.callback_subscription,
             self._publisher,
@@ -189,12 +189,12 @@ class DDSLatency(CommunicationInterface, LatencyBase):
 
     def __init__(
         self,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         callback_publish: Optional[CallbackBase],
         callback_subscription: SubscriptionCallback,
         publisher: Publisher,
     ) -> None:
-        self._latency_composer = latency_composer
+        self._records_container = records_container
         self._callback_publish = callback_publish
         self.callback_subscription = callback_subscription
         self._publisher = publisher
@@ -227,10 +227,10 @@ class DDSLatency(CommunicationInterface, LatencyBase):
         return DDSLatency.column_names
 
     def to_records(self) -> RecordsInterface:
-        assert self._latency_composer is not None
+        assert self._records_container is not None
         assert self.callback_publish is not None
 
-        records = self._latency_composer.compose_inter_process_communication_records(
+        records = self._records_container.compose_inter_process_communication_records(
             self.callback_subscription, self.callback_publish
         )
         rcl_layer_columns = [
@@ -249,17 +249,17 @@ class VariablePassing(VariablePassingInterface, LatencyBase):
 
     def __init__(
         self,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         callback_write: CallbackBase,
         callback_read: CallbackBase,
     ) -> None:
         self.callback_write = callback_write
         self.callback_read = callback_read
-        self._latency_composer = latency_composer
+        self._records_container = records_container
 
     def to_records(self) -> RecordsInterface:
-        assert self._latency_composer is not None
-        records: RecordsInterface = self._latency_composer.compose_variable_passing_records(
+        assert self._records_container is not None
+        records: RecordsInterface = self._records_container.compose_variable_passing_records(
             self.callback_write, self.callback_read
         )
         records.sort(VariablePassing.column_names[0], inplace=True)

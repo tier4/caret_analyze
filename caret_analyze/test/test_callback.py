@@ -32,7 +32,7 @@ class TestTimerCallback:
         node = app.nodes[1]
         callback = node.callbacks[0]
 
-        callback.latency_composer = lttng
+        callback.records_container = lttng
 
         df = callback.to_dataframe()
         columns_expect = {'callback_start_timestamp', 'callback_end_timestamp'}
@@ -67,7 +67,7 @@ class TestSubscriptionCallback:
         node = app.nodes[0]
         callback = node.callbacks[0]
 
-        callback.latency_composer = lttng
+        callback.records_container = lttng
 
         df = callback.to_dataframe()
         columns_expect = {'callback_start_timestamp', 'callback_end_timestamp'}

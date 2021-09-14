@@ -20,7 +20,7 @@ from typing import List, Optional
 from .latency import LatencyBase
 from .pub_sub import Publisher
 from .pub_sub import Subscription
-from .record import LatencyComposer
+from .record import RecordsContainer
 from .record import RecordsInterface
 from .record.interface import CallbackInterface
 from .record.interface import SubscriptionCallbackInterface
@@ -32,9 +32,9 @@ class CallbackBase(CallbackInterface, LatencyBase):
 
     def __init__(
         self,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
     ) -> None:
-        self._latency_composer = latency_composer
+        self._records_container = records_container
 
     @property
     @abstractmethod
@@ -69,8 +69,8 @@ class CallbackBase(CallbackInterface, LatencyBase):
         return f'{self.node_name}/{self.callback_name}'
 
     def to_records(self) -> RecordsInterface:
-        assert self._latency_composer is not None
-        records = self._latency_composer.compose_callback_records(self)
+        assert self._records_container is not None
+        records = self._records_container.compose_callback_records(self)
         records.sort(CallbackBase.column_names[0], inplace=True)
 
         return records
@@ -79,14 +79,14 @@ class CallbackBase(CallbackInterface, LatencyBase):
 class TimerCallback(CallbackBase, TimerCallbackInterface, LatencyBase):
     def __init__(
         self,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         node_name: str,
         callback_name: str,
         symbol: str,
         period_ns: int,
         publishes: Optional[List[Publisher]] = None,
     ) -> None:
-        super().__init__(latency_composer)
+        super().__init__(records_container)
 
         self._node_name: str = node_name
         self._callback_name: str = callback_name
@@ -122,14 +122,14 @@ class TimerCallback(CallbackBase, TimerCallbackInterface, LatencyBase):
 class SubscriptionCallback(CallbackBase, SubscriptionCallbackInterface, LatencyBase):
     def __init__(
         self,
-        latency_composer: Optional[LatencyComposer],
+        records_container: Optional[RecordsContainer],
         node_name: str,
         callback_name: str,
         symbol: str,
         topic_name: str,
         publishes: Optional[List[Publisher]] = None,
     ) -> None:
-        super().__init__(latency_composer)
+        super().__init__(records_container)
         self._subscription = Subscription(node_name, topic_name, callback_name)
         self._node_name: str = node_name
         self._callback_name: str = callback_name

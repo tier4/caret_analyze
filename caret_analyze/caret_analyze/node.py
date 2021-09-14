@@ -21,7 +21,7 @@ from .communication import VariablePassing
 from .path import Path
 from .pub_sub import Publisher
 from .pub_sub import Subscription
-from .record.interface import LatencyComposer
+from .record.interface import RecordsContainer
 
 
 class Node:
@@ -31,7 +31,7 @@ class Node:
         self.node_name: str = node_name
         self.callbacks: List[CallbackBase] = []
         self._unlinked_publishes: List[Publisher] = []
-        self.composer: Optional[LatencyComposer] = None
+        self.composer: Optional[RecordsContainer] = None
         self.variable_passings: List[VariablePassing] = []
         self.paths: List[Path] = []
 
