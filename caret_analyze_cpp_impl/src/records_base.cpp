@@ -355,9 +355,7 @@ RecordsBase RecordsBase::_merge_sequencial(
       if (join_value == UINT16_MAX) {
         continue;
       }
-      if (sub_empty_records.count(join_value) == 0) {
-        sub_empty_records[join_value] = i;
-      }
+      sub_empty_records[join_value] = i;
     } else if (record.get("side") == Right && record.get("has_merge_stamp")) {
       auto join_value = get_join_value(record);
       if (join_value == UINT16_MAX) {

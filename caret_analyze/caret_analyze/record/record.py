@@ -221,7 +221,8 @@ class Record(RecordInterface):
         self.columns.add(key)
         self._data[key] = stamp
 
-    def merge(self, other: Record, inplace=False) -> Optional[Record]:  # type: ignore
+    # type: ignore
+    def merge(self, other: Record, inplace=False) -> Optional[Record]:
         if inplace:
             self._data.update(other.data)
             self._columns |= other.columns
@@ -291,7 +292,8 @@ class Records(RecordsInterface):
         self._data.append(other)
         self._columns |= other.columns
 
-    def concat(self, other: Records, inplace=False) -> Optional[Records]:  # type: ignore
+    # type: ignore
+    def concat(self, other: Records, inplace=False) -> Optional[Records]:
         if inplace:
             self._data += other._data
             self._columns |= other.columns
@@ -523,8 +525,7 @@ class Records(RecordsInterface):
                 join_value = get_join_value(record)
                 if join_value is None:
                     continue
-                if join_value not in left_records_with_empty_sub_record.keys():
-                    left_records_with_empty_sub_record[join_value] = record
+                left_records_with_empty_sub_record[join_value] = record
             elif record.get('side') == MergeSideInfo.RIGHT and record.get('has_merge_stamp'):
                 join_value = get_join_value(record)
                 if join_value is None:
