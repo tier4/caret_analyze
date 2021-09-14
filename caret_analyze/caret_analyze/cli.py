@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import List, Tuple
 
 import fire
 
-from . import Application
-from . import Lttng
+from . import Application, Lttng
 from .callback import CallbackBase
-from .plot import callback_grpah
+from .plot import callback_grpah, chain_latency, message_flow
 from .util import Util
 
 
 class Create:
+
     def callback_graph(
-        self, architecture_path: str, callback_graph_path: str, *callback_names: List[str]
+        self, architecture_path: str, export_path: str, *callback_names: Tuple[str]
     ):
         app = Application(architecture_path, 'yaml', None)
 
@@ -38,12 +38,40 @@ class Create:
                 return
             callbacks.append(callback)
 
-        callback_grpah(app._arch, callbacks, callback_graph_path)
+        callback_grpah(app._arch, callbacks, export_path)
 
-    def architecture(self, trace_dir: str, architecture_path: str):
+    def architecture(self, trace_dir: str, export_path: str):
         lttng = Lttng(trace_dir, force_conversion=True)
         app = Application(trace_dir, 'lttng', lttng)
-        app.export_architecture(architecture_path)
+        app.export_architecture(export_path)
+
+    def chain_latency(
+        self,
+        trace_dir: str,
+        architecture_path: str,
+        path_name: str,
+        export_path: str,
+        granularity='node'
+    ):
+        lttng = Lttng(trace_dir, force_conversion=True)
+        app = Application(architecture_path, 'yaml', lttng)
+        path = app.path[path_name]
+        chain_latency(path, export_path=export_path,
+                      granularity=granularity)
+
+    def message_flow(
+        self,
+        trace_dir: str,
+        architecture_path: str,
+        path_name: str,
+        export_path: str,
+        granularity='node'
+    ):
+        lttng = Lttng(trace_dir, force_conversion=True)
+        app = Application(architecture_path, 'yaml', lttng)
+        path = app.path[path_name]
+        message_flow(path, export_path=export_path,
+                     granularity=granularity)
 
 
 def caret_create():

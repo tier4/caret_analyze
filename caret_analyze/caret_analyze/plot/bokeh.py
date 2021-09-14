@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from bokeh.io import show
+from bokeh.io import save, show
 from bokeh.models import CrosshairTool
 from bokeh.palettes import Bokeh8
 from bokeh.plotting import figure
@@ -26,7 +26,7 @@ from ..path import Path
 from ..util import Util
 
 
-def message_flow(path: Path, granularity: Optional[str] = None):
+def message_flow(path: Path, export_path: Optional[str] = None, granularity: Optional[str] = None):
     granularity = granularity or 'raw'
     assert granularity in ['raw', 'callback', 'node']
 
@@ -148,4 +148,8 @@ def message_flow(path: Path, granularity: Optional[str] = None):
     fig.yaxis.major_label_overrides = tick_labels
 
     fig.add_tools(CrosshairTool(line_alpha=0.4))
-    show(fig)
+
+    if export_path is None:
+        show(fig)
+    else:
+        save(fig, export_path)

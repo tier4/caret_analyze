@@ -30,26 +30,28 @@ from ..util import Util
 
 
 def callback_grpah(
-    arch: Architecture, callbacks: List[CallbackBase], png_path: Optional[str] = None
-):
+    arch: Architecture, callbacks: List[CallbackBase], export_path: Optional[str] = None
+) -> Optional[Source]:
     dot = CallbackGraph(arch, callbacks).to_dot()
     source = Source(dot)
-    if png_path is not None:
-        file_path_wo_ext = png_path.split('.')[0]
-        ext = png_path.split('.')[-1]
+    if export_path is not None:
+        file_path_wo_ext = export_path.split('.')[0]
+        ext = export_path.split('.')[-1]
         source.render(file_path_wo_ext, format=ext)
         return None
     return source
 
 
-def path_latency(path: Path, granularity: str = 'node', **kwargs) -> Digraph:
+def chain_latency(
+    path: Path, export_path: Optional[str] = None, granularity: str = 'node'
+) -> Optional[Source]:
     granularity = granularity or 'callback'
     assert granularity in ['callback', 'node', 'end-to-end']
 
-    dot = Digraph()
-    dot.engine = kwargs.get('engine', 'dot')
+    graph = Digraph()
+    graph.engine = 'dot'
 
-    dot.attr('node', shape='box')
+    graph.attr('node', shape='box')
 
     def to_node_paths(path) -> List[Path]:
         callbacks: List[CallbackBase] = []
@@ -66,7 +68,7 @@ def path_latency(path: Path, granularity: str = 'node', **kwargs) -> Digraph:
         )
         return paths
 
-    def to_label(latensy):
+    def to_label(latency):
         label = (
             'min: {:.2f} ms\n'.format(np.min(latency * 1.0e-6))
             + 'avg: {:.2f} ms\n'.format(np.average(latency * 1.0e-6))
@@ -80,21 +82,21 @@ def path_latency(path: Path, granularity: str = 'node', **kwargs) -> Digraph:
             if isinstance(component, CallbackBase):
                 label = f'{component.node_name}\n{component.callback_name}\n'
                 label += to_label(latency)
-                dot.node(component.unique_name, label=label)
+                graph.node(component.unique_name, label=label)
             elif isinstance(component, Communication):
                 label = component.topic_name
                 label += '\n' + to_label(latency)
                 callback_from = component.callback_from
                 if callback_from is None:
                     continue
-                dot.edge(
+                graph.edge(
                     callback_from.unique_name,
                     component.callback_to.unique_name,
                     label=label,
                 )
             elif isinstance(component, VariablePassing):
                 # label = to_label(latency)
-                dot.edge(
+                graph.edge(
                     component.callback_from.unique_name,
                     component.callback_to.unique_name,
                     label=label,
@@ -106,7 +108,7 @@ def path_latency(path: Path, granularity: str = 'node', **kwargs) -> Digraph:
             node_name = node_path.callbacks[0].node_name
             label = node_name
             label += '\n' + to_label(latency)
-            dot.node(node_name, label=label)
+            graph.node(node_name, label=label)
         node_names = [path.callbacks[0].node_name for path in node_paths]
 
         for comm_path in path.communications:
@@ -151,7 +153,7 @@ def path_latency(path: Path, granularity: str = 'node', **kwargs) -> Digraph:
             callback_from = comm_path.callback_from
             if callback_from is None:
                 continue
-            dot.edge(
+            graph.edge(
                 callback_from.node_name,
                 comm_path.callback_to.node_name,
                 label=label,
@@ -163,7 +165,7 @@ def path_latency(path: Path, granularity: str = 'node', **kwargs) -> Digraph:
             _, latency = node_path.to_timeseries(remove_dropped=True)
             node_name = node_path.callbacks[0].node_name
             label = node_name + '\n' + to_label(latency)
-            dot.node(node_name, label=label)
+            graph.node(node_name, label=label)
 
         inter_mediate_callbacks = []
         terminal_callbacks = node_paths[0].callbacks + node_paths[-1].callbacks
@@ -177,9 +179,16 @@ def path_latency(path: Path, granularity: str = 'node', **kwargs) -> Digraph:
 
         start_node_name = node_paths[0].callbacks[0].node_name
         end_node_name = node_paths[-1].callbacks[0].node_name
-        dot.edge(start_node_name, end_node_name, label=to_label(latency))
+        graph.edge(start_node_name, end_node_name, label=to_label(latency))
 
-    return dot
+    source = Source(graph.source)
+    if export_path is not None:
+        file_path_wo_ext = export_path.split('.')[0]
+        ext = export_path.split('.')[-1]
+        source.render(file_path_wo_ext, format=ext)
+        return None
+
+    return graph
 
 
 class CallbackGraph:

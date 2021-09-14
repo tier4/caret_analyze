@@ -15,6 +15,6 @@
 
 from .bokeh import message_flow
 from .graphviz import callback_grpah
-from .graphviz import path_latency
+from .graphviz import chain_latency
 
-__all__ = ['message_flow', 'path_latency', 'callback_grpah']
+__all__ = ['message_flow', 'chain_latency', 'callback_grpah']
