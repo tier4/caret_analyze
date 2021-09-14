@@ -63,10 +63,10 @@ class TestLttngArchitectureImporter:
         'path, nodes, aliases, comms, var_pass',
         [
             ('sample/lttng_samples/talker_listener', 2, 0, 1, 0),
-            ('sample/lttng_samples/end_to_end_sample', 6, 0, 5, 0),
+            ('sample/lttng_samples/end_to_end_sample/fastrtps', 6, 0, 5, 0),
         ],
     )
-    def test_exece(self, path, nodes, aliases, comms, var_pass):
+    def test_execute(self, path, nodes, aliases, comms, var_pass):
         importer = LttngArchitectureImporter(None)
         importer.execute(path, ignore_topics=IGNORE_TOPICS)
         assert len(importer.nodes) == nodes

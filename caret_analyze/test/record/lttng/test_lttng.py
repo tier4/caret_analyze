@@ -14,6 +14,7 @@
 
 
 from caret_analyze.callback import SubscriptionCallback
+from caret_analyze.record import Record
 from caret_analyze.record.lttng import Lttng
 
 import pytest
@@ -48,7 +49,7 @@ class TestLttng:
                 ['/ns1/talker', '/ns1/listener', '/ns2/talker', '/ns2/listener'],
             ),
             (
-                'sample/lttng_samples/end_to_end_sample',
+                'sample/lttng_samples/end_to_end_sample/fastrtps',
                 [
                     '/actuator_dummy_node',
                     '/filter_node',
@@ -109,7 +110,7 @@ class TestLttng:
             ('sample/lttng_samples/talker_listener', '/talker', 1000000000, 1),
             ('sample/lttng_samples/cyclic_pipeline_intra_process', None, None, 0),
             ('sample/lttng_samples/multi_talker_listener', None, None, 2),
-            ('sample/lttng_samples/end_to_end_sample', None, None, 3),
+            ('sample/lttng_samples/end_to_end_sample/fastrtps', None, None, 3),
         ],
     )
     def test_get_timer_callback_attrs_with_empty_publish(
@@ -137,7 +138,7 @@ class TestLttng:
             ('sample/lttng_samples/talker_listener',
              '/listener', '/talker', '/chatter', 5),
             (
-                'sample/lttng_samples/end_to_end_sample',
+                'sample/lttng_samples/end_to_end_sample/fastrtps',
                 '/filter_node',
                 '/sensor_dummy_node',
                 '/topic1',
@@ -155,13 +156,25 @@ class TestLttng:
     ):
         lttng = Lttng(path)
 
-        sub_cb = lttng.get_subscription_callbacks(node_name=sub_node_name, topic_name=topic_name)[
-            0
-        ]
+        sub_cb = lttng.get_subscription_callbacks(
+            node_name=sub_node_name, topic_name=topic_name)[0]
+
         pub_cb = lttng.get_timer_callbacks(node_name=pub_node_name)[0]
-        records = lttng.compose_inter_process_communication_records(
-            sub_cb, pub_cb)
-        assert len(records.data) == records_len
+        records = lttng.compose_inter_process_communication_records(sub_cb, pub_cb)
+
+        lttng._records._data_util.data.rclcpp_publish_instances
+        publish_instances = lttng._records._data_util.data.rclcpp_publish_instances
+
+        publish_handlers = lttng._dataframe.get_publisher_handles(
+            sub_cb.topic_name, pub_cb.node_name)
+        inter_publish_handle = publish_handlers[0]
+
+        def is_target_instance(instance: Record):
+            return instance.get('publisher_handle') == inter_publish_handle
+        target_publish_instances = list(filter(
+            is_target_instance, publish_instances.data))
+
+        assert len(records.data) == len(target_publish_instances)
 
     @pytest.mark.parametrize(
         'path, pub_node_name, sub_node_name, records_len',
@@ -185,12 +198,12 @@ class TestLttng:
         assert len(records.data) == records_len
 
     @pytest.mark.parametrize(
-        'path, attr, records_len',
+        'path',
         [
-            ('sample/lttng_samples/end_to_end_sample', listener_callback, 97),
+            ('sample/lttng_samples/end_to_end_sample/fastrtps'),
         ],
     )
-    def test_compose_variable_passing_records(self, path, attr, records_len):
+    def test_compose_variable_passing_records(self, path):
         lttng = Lttng(path)
 
         callback_write = SubscriptionCallback(
@@ -211,4 +224,24 @@ class TestLttng:
 
         records = lttng.compose_variable_passing_records(
             callback_write, callback_read)
-        assert len(records.data) == records_len
+        callback_instances = lttng._records._data_util.data.callback_end_instances
+        callback_object = lttng._to_local_callback(callback_write).inter_callback_object
+
+        def is_target_callback(record: Record):
+            return record.get('callback_object') == callback_object
+
+        target_callbacks = list(filter(is_target_callback, callback_instances.data))
+
+        assert len(records.data) == len(target_callbacks)
+
+    @pytest.mark.parametrize(
+        'path, expect',
+        [
+            ('sample/lttng_samples/end_to_end_sample/fastrtps', 'rmw_fastrtps_cpp'),
+            ('sample/lttng_samples/end_to_end_sample/cyclonedds', 'rmw_cyclonedds_cpp'),
+        ],
+    )
+    def test_rmw_implementation(self, path, expect):
+        lttng = Lttng(path)
+
+        assert lttng.get_rmw_implementation() == expect

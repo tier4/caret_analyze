@@ -78,6 +78,7 @@ class Ros2Handler(EventHandler):
         handler_map['ros2_caret:dds_write'] = self._handle_dds_write
         handler_map['ros2_caret:dds_bind_addr_to_stamp'] = self._handle_dds_bind_addr_to_stamp
         handler_map['ros2_caret:dds_bind_addr_to_addr'] = self._handle_dds_bind_addr_to_addr
+        handler_map['ros2_caret:rmw_implementation'] = self._handle_rmw_implementation
 
         super().__init__(
             handler_map=handler_map,
@@ -414,3 +415,13 @@ class Ros2Handler(EventHandler):
         rostime = get_field(event, 'stamp')
         stamp = metadata.timestamp
         self.data.add_ros_time(stamp, rostime)
+
+    def _handle_rmw_implementation(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        metadata
+        rmw_impl = get_field(event, 'rmw_impl')
+        self.data.set_rmw_implementation(rmw_impl)
+        pass

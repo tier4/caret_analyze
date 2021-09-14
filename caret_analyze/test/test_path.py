@@ -96,6 +96,9 @@ class RecordsContainerMock(RecordsContainer):
         assert False, 'not implemented'
         return self.variable_passing_records
 
+    def get_rmw_implementation(self) -> str:
+        return ''
+
 
 class TestPathLatencyManager:
 
@@ -358,7 +361,7 @@ class TestPath:
             '/timer_driven_node/subscription_callback_0/callback_end_timestamp/0',
         ]
 
-        lttng = Lttng('sample/lttng_samples/end_to_end_sample')
+        lttng = Lttng('sample/lttng_samples/end_to_end_sample/fastrtps')
         app = Application(
             'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml', 'yaml', lttng
         )

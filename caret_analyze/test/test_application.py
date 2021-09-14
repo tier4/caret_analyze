@@ -38,14 +38,14 @@ class TestApplication:
                 1,
             ),
             (
-                'sample/lttng_samples/end_to_end_sample',
+                'sample/lttng_samples/end_to_end_sample/fastrtps',
                 'sample/lttng_samples/end_to_end_sample/architecture.yaml',
                 '/sensor_dummy_node/timer_callback_0',
                 '/actuator_dummy_node/subscription_callback_0',
                 0,
             ),
             (  # publisher callback_name and callback depencency added
-                'sample/lttng_samples/end_to_end_sample',
+                'sample/lttng_samples/end_to_end_sample/fastrtps',
                 'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml',
                 '/sensor_dummy_node/timer_callback_0',
                 '/actuator_dummy_node/subscription_callback_0',

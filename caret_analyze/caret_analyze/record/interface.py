@@ -147,6 +147,10 @@ class RecordsContainer(metaclass=ABCMeta):
     ) -> RecordsInterface:
         pass
 
+    @abstractmethod
+    def get_rmw_implementation(self) -> str:
+        pass
+
 
 class ArchitectureInfoContainer(metaclass=ABCMeta):
 
