@@ -3,7 +3,7 @@
 <package format="3">
   <name>ros2caret</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>ROS 2 CLI package for caret</description>
   <maintainer email="hasegawa@isp.co.jp">hsgwa</maintainer>
   <license>Apache License 2.0</license>
 
