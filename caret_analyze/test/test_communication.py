@@ -27,20 +27,38 @@ import pytest
 
 class TestCommunication:
 
-    def test_to_dataframe(self):
-        lttng = Lttng('sample/lttng_samples/talker_listener/')
-        app = Application('sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
+    @pytest.mark.parametrize(
+        'trace_dir, arch_path, expect', [
+            (
+                'sample/lttng_samples/end_to_end_sample/fastrtps',
+                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml',
+                {
+                    'callback_start_timestamp',
+                    'dds_write_timestamp',
+                    'on_data_available_timestamp',
+                    'rcl_publish_timestamp',
+                    'rclcpp_publish_timestamp',
+                }
+            ),
+            (
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml',
+                {
+                    'callback_start_timestamp',
+                    'dds_write_timestamp',
+                    'rcl_publish_timestamp',
+                    'rclcpp_publish_timestamp',
+                }
+            )
+        ]
+    )
+    def test_to_dataframe(self, trace_dir, arch_path, expect):
+        lttng = Lttng(trace_dir)
+        app = Application(arch_path, 'yaml', lttng)
         comm = app.communications[0]
 
         df = comm.to_dataframe()
-        columns_expect = {
-            'callback_start_timestamp',
-            'dds_write_timestamp',
-            'on_data_available_timestamp',
-            'rcl_publish_timestamp',
-            'rclcpp_publish_timestamp',
-        }
-        assert set(df.columns) == columns_expect
+        assert set(df.columns) == expect
 
     @pytest.mark.parametrize(
         'trace_dir, comm_idx, is_intra_process',
@@ -69,63 +87,75 @@ class TestCommunication:
 
         comm.is_intra_process = is_intra_process
         if is_intra_process:
-            assert comm._get_column_names() == Communication.column_names_intra_process
+            assert comm.column_names == Communication.column_names_intra_process
         else:
-            assert comm._get_column_names() == Communication.column_names_inter_process
+            comm.rmw_implementation = 'rmw_fastrtps_cpp'
+            expect = Communication.column_names_inter_process_dds_latency_support
+            assert comm.column_names == expect
+            comm.rmw_implementation = 'rmw_cyclonedds_cpp'
+            assert comm.column_names == Communication.column_names_inter_process
 
     @pytest.mark.parametrize(
-        'trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len',
+        'trace_dir',
         [
-            ('sample/lttng_samples/talker_listener/', 0, 100000, 5, 5),
-            ('sample/lttng_samples/cyclic_pipeline_intra_process', 0, 100000, 5, 23),
+            ('sample/lttng_samples/talker_listener/'),
+            ('sample/lttng_samples/cyclic_pipeline_intra_process'),
+            ('sample/lttng_samples/end_to_end_sample/fastrtps'),
+            ('sample/lttng_samples/end_to_end_sample/cyclonedds'),
         ],
     )
-    def test_to_timeseries_and_to_histogram(
-        self, trace_dir, comm_idx, binsize_ns, timeseries_len, histogram_len
+    def test_to_timeseries(
+        self, trace_dir
     ):
         lttng = Lttng(trace_dir)
         app = Application(trace_dir, 'lttng', lttng)
-        comm = app.communications[comm_idx]
+        comm = app.communications[0]
 
         t, latencies = comm.to_timeseries()
-        assert len(t) == timeseries_len and len(latencies) == timeseries_len
+        records_len = len(comm.to_records().data)
+        assert len(t) == records_len and len(latencies) == records_len
 
-        latencies, hist = comm.to_histogram(binsize_ns=binsize_ns)
-        assert len(latencies) == histogram_len and len(hist) == histogram_len + 1
-
-    def test_to_dds_latency(self):
-        lttng = Lttng('sample/lttng_samples/talker_listener/')
-        app = Application('sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
+    def test_to_dds_latency_fastrtps(self):
+        lttng = Lttng('sample/lttng_samples/end_to_end_sample/fastrtps')
+        app = Application(
+            'sample/lttng_samples/end_to_end_sample/architecture.yaml', 'yaml', lttng)
         comm = app.communications[0]
 
         latency = comm.to_dds_latency()
 
         t, latencies = latency.to_timeseries()
-        assert len(t) == 5 and len(latencies) == 5
+        records_len = len(comm.to_records().data)
+        assert len(t) == records_len and len(latencies) == records_len
 
-        latencies, hist = latency.to_histogram(binsize_ns=100000)
-        assert len(latencies) == 2 and len(hist) == 3
+    def test_to_dds_latency_cyclonedds(self):
+        lttng = Lttng('sample/lttng_samples/end_to_end_sample/cyclonedds')
+        app = Application(
+            'sample/lttng_samples/end_to_end_sample/architecture.yaml', 'yaml', lttng)
+        comm = app.communications[0]
+
+        with pytest.raises(AssertionError):
+            comm.to_dds_latency()
 
 
 class TestDDSLatency:
 
     def test_column_names(self):
-        columns = DDSLatency.column_names
+        columns = DDSLatency._column_names
         Communication.column_names_intra_process
 
         pub = Publisher('node_name', 'topic_name', 'callback_name')
         callback = SubscriptionCallback(None, '', '', '', '')
         comm = DDSLatency(None, callback, callback, pub)
-        assert comm._get_column_names() == columns
+        assert comm.column_names == columns
 
 
 class TestVariablePassingLatency:
 
     def test_column_names(self):
-        columns = VariablePassing.column_names
+        columns = VariablePassing._column_names
         Communication.column_names_intra_process
 
         callback = SubscriptionCallback(None, '', '', '', '')
         comm = VariablePassing(None, callback, callback)
 
-        assert comm._get_column_names() == columns
+        assert comm.column_names == columns

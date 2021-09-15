@@ -59,6 +59,17 @@ class TestLttng:
                     '/drive_node',
                 ],
             ),
+            (
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                [
+                    '/actuator_dummy_node',
+                    '/filter_node',
+                    '/message_driven_node',
+                    '/timer_driven_node',
+                    '/sensor_dummy_node',
+                    '/drive_node',
+                ],
+            ),
         ],
     )
     def test_get_node_names(self, path, node_names_expect):
@@ -111,6 +122,7 @@ class TestLttng:
             ('sample/lttng_samples/cyclic_pipeline_intra_process', None, None, 0),
             ('sample/lttng_samples/multi_talker_listener', None, None, 2),
             ('sample/lttng_samples/end_to_end_sample/fastrtps', None, None, 3),
+            ('sample/lttng_samples/end_to_end_sample/cyclonedds', None, None, 3),
         ],
     )
     def test_get_timer_callback_attrs_with_empty_publish(
@@ -133,16 +145,21 @@ class TestLttng:
         assert len(records.data) == records_len
 
     @pytest.mark.parametrize(
-        'path, sub_node_name, pub_node_name, topic_name, records_len',
+        'path, sub_node_name, pub_node_name, topic_name',
         [
             ('sample/lttng_samples/talker_listener',
-             '/listener', '/talker', '/chatter', 5),
+             '/listener', '/talker', '/chatter'),
             (
                 'sample/lttng_samples/end_to_end_sample/fastrtps',
                 '/filter_node',
                 '/sensor_dummy_node',
                 '/topic1',
-                117,
+            ),
+            (
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                '/filter_node',
+                '/sensor_dummy_node',
+                '/topic1',
             ),
         ],
     )
@@ -152,7 +169,6 @@ class TestLttng:
         sub_node_name: str,
         pub_node_name: str,
         topic_name: str,
-        records_len: int,
     ):
         lttng = Lttng(path)
 
@@ -201,6 +217,7 @@ class TestLttng:
         'path',
         [
             ('sample/lttng_samples/end_to_end_sample/fastrtps'),
+            ('sample/lttng_samples/end_to_end_sample/cyclonedds'),
         ],
     )
     def test_compose_variable_passing_records(self, path):

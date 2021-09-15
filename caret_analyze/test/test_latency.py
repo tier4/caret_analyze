@@ -31,7 +31,8 @@ class LatencyBaseImpl(LatencyBase):
     def to_records(self):
         return self._records
 
-    def _get_column_names(self) -> List[str]:
+    @property
+    def column_names(self) -> List[str]:
         return self._columns
 
 

@@ -142,9 +142,9 @@ class PathLatencyMerger:
         if isinstance(latency, CallbackBase) or isinstance(latency, VariablePassing):
             ordered_names = latency.column_names
         elif latency.is_intra_process:
-            ordered_names = latency.column_names_intra_process
+            ordered_names = latency.column_names
         else:
-            ordered_names = latency.column_names_inter_process
+            ordered_names = latency.column_names
 
         ordered_columns_names = []
         for ordered_name, column_name in itertools.product(ordered_names, tracepoint_names):
@@ -277,7 +277,8 @@ class Path(UserList, LatencyBase):
         records, _ = self._merge_path()
         return records
 
-    def _get_column_names(self):
+    @property
+    def column_names(self):
         # In order to get the list of column names,
         # information on intra-process and inter-process communication is required.
         # Since this information is obtained from the actual measurement results,

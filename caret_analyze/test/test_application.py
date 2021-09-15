@@ -51,6 +51,20 @@ class TestApplication:
                 '/actuator_dummy_node/subscription_callback_0',
                 1,
             ),
+            (
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                'sample/lttng_samples/end_to_end_sample/architecture.yaml',
+                '/sensor_dummy_node/timer_callback_0',
+                '/actuator_dummy_node/subscription_callback_0',
+                0,
+            ),
+            (  # publisher callback_name and callback depencency added
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml',
+                '/sensor_dummy_node/timer_callback_0',
+                '/actuator_dummy_node/subscription_callback_0',
+                1,
+            ),
         ],
     )
     def test_search_paths(self, trace_path, yaml_path, start_cb_name, end_cb_name, paths_len):

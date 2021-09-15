@@ -28,7 +28,7 @@ from .record.interface import TimerCallbackInterface
 
 
 class CallbackBase(CallbackInterface, LatencyBase):
-    column_names = ['callback_start_timestamp', 'callback_end_timestamp']
+    _column_names = ['callback_start_timestamp', 'callback_end_timestamp']
 
     def __init__(
         self,
@@ -61,8 +61,9 @@ class CallbackBase(CallbackInterface, LatencyBase):
     def subscription(self) -> Optional[Subscription]:
         pass
 
-    def _get_column_names(self) -> List[str]:
-        return CallbackBase.column_names
+    @property
+    def column_names(self) -> List[str]:
+        return CallbackBase._column_names
 
     @property
     def unique_name(self) -> str:
@@ -71,7 +72,7 @@ class CallbackBase(CallbackInterface, LatencyBase):
     def to_records(self) -> RecordsInterface:
         assert self._records_container is not None
         records = self._records_container.compose_callback_records(self)
-        records.sort(CallbackBase.column_names[0], inplace=True)
+        records.sort(self.column_names[0], inplace=True)
 
         return records
 

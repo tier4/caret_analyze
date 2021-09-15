@@ -136,23 +136,28 @@ def chain_latency(
                 _, pubsub_latency = comm_path.to_timeseries(
                     remove_dropped=True
                 )
-                _, dds_latency = comm_path.to_dds_latency().to_timeseries(
-                    remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
-                label = comm_path.topic_name
-                label += '\n' + (
-                    'min: {:.2f} ({:.2f}) ms\n'.format(
-                        np.min(pubsub_latency *
-                               1.0e-6), np.min(dds_latency * 1.0e-6)
+                if comm_path.rmw_implementation == 'rmw_fastrtps_cpp':
+                    _, dds_latency = comm_path.to_dds_latency().to_timeseries(
+                        remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
+                    label = comm_path.topic_name
+                    label += '\n' + (
+                        'min: {:.2f} ({:.2f}) ms\n'.format(
+                            np.min(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                        )
+                        + 'avg: {:.2f} ({:.2f}) ms\n'.format(
+                            np.average(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                        )
+                        + 'max: {:.2f} ({:.2f}) ms'.format(
+                            np.max(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                        )
                     )
-                    + 'avg: {:.2f} ({:.2f}) ms\n'.format(
-                        np.average(pubsub_latency *
-                                   1.0e-6), np.min(dds_latency * 1.0e-6)
+                else:
+                    label = comm_path.topic_name
+                    label += '\n' + (
+                        'min: {:.2f}  ms\n'.format(np.min(pubsub_latency * 1.0e-6))
+                        + 'avg: {:.2f} ms\n'.format(np.average(pubsub_latency * 1.0e-6))
+                        + 'max: {:.2f} ms'.format(np.max(pubsub_latency * 1.0e-6))
                     )
-                    + 'max: {:.2f} ({:.2f}) ms'.format(
-                        np.max(pubsub_latency *
-                               1.0e-6), np.min(dds_latency * 1.0e-6)
-                    )
-                )
 
             callback_from = comm_path.callback_from
             if callback_from is None:
