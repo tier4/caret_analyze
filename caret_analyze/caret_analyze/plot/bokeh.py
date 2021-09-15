@@ -88,7 +88,7 @@ def message_flow(
                 callback = Util.find_one(
                     path.callbacks, lambda x: x.unique_name == unique_name)
                 assert callback is not None
-                if 'subscription_callback' in unique_name:
+                if 'subscription_callback' in unique_name and tracepoint_name == 'callback_start':
                     assert isinstance(callback, SubscriptionCallback)
                     topic_name = callback.topic_name
 
