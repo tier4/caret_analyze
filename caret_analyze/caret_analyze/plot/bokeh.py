@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Dict, List, Optional
 
 from bokeh.io import save, show
 from bokeh.models import CrosshairTool
@@ -20,7 +20,6 @@ from bokeh.palettes import Bokeh8
 from bokeh.plotting import figure
 import numpy as np
 
-from ..callback import CallbackBase
 from ..callback import SubscriptionCallback
 from ..path import Path
 from ..util import Util
@@ -30,110 +29,106 @@ def message_flow(
     path: Path, export_path: Optional[str] = None,
     granularity: Optional[str] = None, treat_drop_as_delay=True
 ):
+    class ColumnNameParser:
+
+        def __init__(self, column_name):
+            split_text = column_name.split('/')
+            tracepoint_name = split_text[-2]
+            self.tracepoint_name = tracepoint_name[:-len('_timestamp')]
+            self.unique_name = '/'.join(split_text[:-2])
+            self.node_name = '/'.join(split_text[:-3])
+
     granularity = granularity or 'raw'
     assert granularity in ['raw', 'callback', 'node']
 
     fig = figure(plot_width=1000, plot_height=400)
 
     df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
-    renames = {}
 
-    callback: Optional[CallbackBase] = None
-
+    # カラムの削除
     # 購読側のtopic_nameから扱うため、逆順で処理
-    if granularity == 'raw':
-        topic_name = ''
-        for column_name in df.columns[::-1]:
-            split_text = column_name.split('/')
-            tracepoint_name = split_text[-2]
-            unique_name = '/'.join(split_text[:-2])
+    drop_columns = []
+    if granularity in ['callback', 'node']:
+        for column_name in df.columns:
+            parser = ColumnNameParser(column_name)
+            tracepoint_name = parser.tracepoint_name
+            if tracepoint_name not in ['on_data_available', 'callback_start', 'callback_end']:
+                drop_columns.append(column_name)
 
-            callback = Util.find_one(
-                path.callbacks, lambda x: x.unique_name == unique_name)
-            assert callback is not None
-            if tracepoint_name == 'on_data_available_timestamp':
-                assert isinstance(callback, SubscriptionCallback)
-                topic_name = callback.topic_name
-                renames[column_name] = f'{topic_name}/{tracepoint_name}'
-            elif tracepoint_name == 'dds_write_timestamp':
-                renames[column_name] = f'{topic_name}/{tracepoint_name}'
-    elif granularity == 'callback':
-        topic_name = ''
-        for column_name in df.columns[::-1]:
-            split_text = column_name.split('/')
-            tracepoint_name = split_text[-2]
-            unique_name = '/'.join(split_text[:-2])
-            if tracepoint_name not in [
-                'on_data_available_timestamp',
-                'dds_write_timestamp',
-                'callback_start_timestamp',
-                'callback_end_timestamp',
-            ]:
-                df.drop(column_name, axis=1, inplace=True)
+    df.drop(drop_columns, axis=1, inplace=True)
+    drop_columns = []
 
-            callback = Util.find_one(
-                path.callbacks, lambda x: x.unique_name == unique_name)
-            assert callback is not None
-            if tracepoint_name == 'on_data_available_timestamp':
-                assert isinstance(callback, SubscriptionCallback)
-                topic_name = callback.topic_name
-                renames[column_name] = f'{topic_name}/{tracepoint_name}'
-            elif tracepoint_name == 'dds_write_timestamp':
-                renames[column_name] = f'{topic_name}/{tracepoint_name}'
-            elif tracepoint_name in ['callback_start_timestamp', 'callback_end_timestamp']:
-                renames[column_name] = unique_name
-    elif granularity == 'node':
-        topic_name = ''
-        columns_inverted = df.columns[::-1]
-        for i, column_name in enumerate(columns_inverted):
-            split_text = column_name.split('/')
-            tracepoint_name = split_text[-2]
-            unique_name = '/'.join(split_text[:-2])
-            node_name = '/'.join(split_text[:-3])
+    if granularity == 'node':
+        for i, column_name in enumerate(df.columns):
+            parser = ColumnNameParser(column_name)
+            tracepoint_name = parser.tracepoint_name
 
-            is_last_tracepoint_callback_end = False
-            is_next_tracepoint_callback_start = False
-            if i + 1 < len(columns_inverted):
-                is_next_tracepoint_callback_start = (
-                    columns_inverted[i +
-                                     1].split('/')[-2] == 'callback_start_timestamp'
-                )
-            elif i - 1 >= 0:
-                is_last_tracepoint_callback_end = (
-                    columns_inverted[i -
-                                     1].split('/')[-2] == 'callback_end_timestamp'
-                )
+            is_next_same_node = False
+            is_before_same_node = False
+            if i+1 < len(df.columns):
+                parser_ = ColumnNameParser(df.columns[i+1])
+                is_next_same_node = parser.node_name == parser_.node_name
+            if i-1 >= 0:
+                parser_ = ColumnNameParser(df.columns[i-1])
+                is_before_same_node = parser.node_name == parser_.node_name
 
-            if (
-                tracepoint_name
-                not in [
-                    'on_data_available_timestamp',
-                    'dds_write_timestamp',
-                    'callback_start_timestamp',
-                    'callback_end_timestamp',
-                ]
-                or is_last_tracepoint_callback_end
-                and tracepoint_name == 'callback_start_timestamp'
-                or is_next_tracepoint_callback_start
-                and tracepoint_name == 'callback_end_timestamp'
-            ):
-                df.drop(column_name, axis=1, inplace=True)
+            if is_next_same_node and is_before_same_node:
+                drop_columns.append(column_name)
+    df.drop(drop_columns, axis=1, inplace=True)
 
-            callback = Util.find_one(
-                path.callbacks, lambda x: x.unique_name == unique_name)
-            assert callback is not None
-            if tracepoint_name == 'on_data_available_timestamp':
-                assert isinstance(callback, SubscriptionCallback)
-                topic_name = callback.topic_name
-                renames[column_name] = f'{topic_name}/{tracepoint_name}'
-            elif tracepoint_name == 'dds_write_timestamp':
-                renames[column_name] = f'{topic_name}/{tracepoint_name}'
-            elif tracepoint_name in ['callback_start_timestamp', 'callback_end_timestamp']:
-                renames[column_name] = node_name
+    def rename_columns(df, granularity):
+        renames = {}
+        if granularity == 'raw':
+            topic_name = ''
+            for column_name in df.columns[::-1]:
+                parser = ColumnNameParser(column_name)
+                tracepoint_name = parser.tracepoint_name
+                unique_name = parser.unique_name
 
-    df.rename(columns=renames, inplace=True)
+                callback = Util.find_one(
+                    path.callbacks, lambda x: x.unique_name == unique_name)
+                assert callback is not None
+                if 'subscription_callback' in unique_name:
+                    assert isinstance(callback, SubscriptionCallback)
+                    topic_name = callback.topic_name
 
-    y = np.arange(len(df.T)) * -1
+                if tracepoint_name == 'on_data_available':
+                    renames[column_name] = f'{topic_name}/{tracepoint_name}'
+                elif tracepoint_name in ['dds_write', 'rcl_publish', 'rclcpp_publish',
+                                         'rclcpp_intra_publish']:
+                    renames[column_name] = f'{topic_name}/{tracepoint_name}'
+                else:
+                    renames[column_name] = f'{unique_name}/{tracepoint_name}'
+
+        elif granularity == 'callback':
+            for column_name in df.columns:
+                parser = ColumnNameParser(column_name)
+                if parser.tracepoint_name == 'callback_start':
+                    renames[column_name] = parser.unique_name + ' [start]'
+                if parser.tracepoint_name == 'callback_end':
+                    renames[column_name] = parser.unique_name + ' [end]'
+        elif granularity == 'node':
+            for column_name in df.columns:
+                parser = ColumnNameParser(column_name)
+                if parser.tracepoint_name == 'callback_start':
+                    renames[column_name] = parser.node_name + ' [start]'
+                if parser.tracepoint_name == 'callback_end':
+                    renames[column_name] = parser.node_name + ' [end]'
+        df.rename(columns=renames, inplace=True)
+
+    rename_columns(df, granularity)
+
+    # カラムの圧縮
+    y_list: List[int] = []
+    column_names: Dict[int, str] = {}
+    for i, column_name in enumerate(df.columns):
+        if i == 0:
+            y_list.append(0)
+        else:
+            y_list.append(y_list[-1]-1)
+        column_names[y_list[-1]] = column_name
+
+    y = np.array(y_list)
     for i, row in df.iterrows():
         x = row.values
         fig.line(
@@ -146,8 +141,8 @@ def message_flow(
 
     fig.yaxis.ticker = y
     tick_labels = {}
-    for y_value, column_name in zip(y, df.columns):
-        tick_labels[str(y_value)] = column_name
+    for y_value in y_list:
+        tick_labels[str(y_value)] = column_names[y_value]
     fig.yaxis.major_label_overrides = tick_labels
 
     fig.add_tools(CrosshairTool(line_alpha=0.4))
