@@ -87,7 +87,7 @@ class TestSubscriptionCallback:
         assert len(latencies) == 4 and len(hist) == 5
 
     def test_column_names(self):
-        columns = CallbackBase.column_names
+        columns = CallbackBase._column_names
 
         callback = SubscriptionCallback(None, '', '', '', '')
-        assert callback._get_column_names() == columns
+        assert callback.column_names == columns

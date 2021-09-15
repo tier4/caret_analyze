@@ -31,8 +31,11 @@ from caret_analyze.record.interface import RecordsContainer
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.record.interface import SubscriptionCallbackInterface
 
+import pytest
+
 
 class RecordsContainerMock(RecordsContainer):
+
     def __init__(
         self,
         callback_records: Records,
@@ -347,31 +350,50 @@ class TestColumnNameCounter:
 
 class TestPath:
 
-    def test_column_names(self):
-        columns = [
-            '/message_driven_node/subscription_callback_0/callback_start_timestamp/0',
-            '/message_driven_node/subscription_callback_0/callback_end_timestamp/0',
-            '/message_driven_node/subscription_callback_1/callback_start_timestamp/0',
-            '/message_driven_node/subscription_callback_1/callback_end_timestamp/0',
-            '/message_driven_node/subscription_callback_1/rclcpp_publish_timestamp/0',
-            '/message_driven_node/subscription_callback_1/rcl_publish_timestamp/0',
-            '/message_driven_node/subscription_callback_1/dds_write_timestamp/0',
-            '/timer_driven_node/subscription_callback_0/on_data_available_timestamp/0',
-            '/timer_driven_node/subscription_callback_0/callback_start_timestamp/0',
-            '/timer_driven_node/subscription_callback_0/callback_end_timestamp/0',
+    @pytest.mark.parametrize(
+        'trace_dir, expect', [
+            (
+                'sample/lttng_samples/end_to_end_sample/fastrtps',
+                [
+                    '/message_driven_node/subscription_callback_0/callback_start_timestamp/0',
+                    '/message_driven_node/subscription_callback_0/callback_end_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/callback_start_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/callback_end_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/rclcpp_publish_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/rcl_publish_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/dds_write_timestamp/0',
+                    '/timer_driven_node/subscription_callback_0/on_data_available_timestamp/0',
+                    '/timer_driven_node/subscription_callback_0/callback_start_timestamp/0',
+                    '/timer_driven_node/subscription_callback_0/callback_end_timestamp/0',
+                ]
+            ),
+            (
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                [
+                    '/message_driven_node/subscription_callback_0/callback_start_timestamp/0',
+                    '/message_driven_node/subscription_callback_0/callback_end_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/callback_start_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/callback_end_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/rclcpp_publish_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/rcl_publish_timestamp/0',
+                    '/message_driven_node/subscription_callback_1/dds_write_timestamp/0',
+                    '/timer_driven_node/subscription_callback_0/callback_start_timestamp/0',
+                    '/timer_driven_node/subscription_callback_0/callback_end_timestamp/0',
+                ]
+            )
         ]
-
-        lttng = Lttng('sample/lttng_samples/end_to_end_sample/fastrtps')
-        app = Application(
-            'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml', 'yaml', lttng
-        )
+    )
+    def test_column_names(self, trace_dir,  expect):
+        lttng = Lttng(trace_dir)
+        arch_path = 'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml'
+        app = Application(arch_path, 'yaml', lttng)
 
         start_cb_name = '/message_driven_node/subscription_callback_0'
         end_cb_name = '/timer_driven_node/subscription_callback_0'
         paths = app.search_paths(start_cb_name, end_cb_name)
         path = paths[0]
 
-        assert path._get_column_names() == columns
+        assert path.column_names == expect
 
     def test_merge_path(self):
         # callback object にpublisher_handleを紐付けるのを確認。

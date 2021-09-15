@@ -17,6 +17,8 @@ import os
 
 from caret_analyze.cli import Create
 
+import pytest
+
 
 class TestCreate:
 
@@ -55,17 +57,28 @@ class TestCreate:
         create.architecture(trace_dir, export_path)
         assert os.path.exists(export_path)
 
-    def test_chain_latency(self, tmpdir):
+    @pytest.mark.parametrize(
+        'trace_dir, arch_path', [
+            (
+                'sample/lttng_samples/end_to_end_sample/fastrtps',
+                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml'
+            ),
+            (
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml'
+            ),
+        ]
+    )
+    def test_chain_latency(self, tmpdir, trace_dir, arch_path):
         create = Create()
-        trace_dir = 'sample/lttng_samples/end_to_end_sample/fastrtps'
-        architecture_path = 'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml'
 
         result_dir = tmpdir.mkdir('cli_test')
         export_path = result_dir.join('chain_latency.svg').strpath
 
-        create.chain_latency(trace_dir, architecture_path, 'end_to_end', export_path)
+        create.chain_latency(trace_dir, arch_path, 'end_to_end', export_path)
 
         assert os.path.exists(export_path)
+        os.remove(export_path)
 
     def test_message_flow(self, tmpdir):
         create = Create()

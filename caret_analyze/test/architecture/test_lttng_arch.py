@@ -64,6 +64,7 @@ class TestLttngArchitectureImporter:
         [
             ('sample/lttng_samples/talker_listener', 2, 0, 1, 0),
             ('sample/lttng_samples/end_to_end_sample/fastrtps', 6, 0, 5, 0),
+            ('sample/lttng_samples/end_to_end_sample/cyclonedds', 6, 0, 5, 0),
         ],
     )
     def test_execute(self, path, nodes, aliases, comms, var_pass):

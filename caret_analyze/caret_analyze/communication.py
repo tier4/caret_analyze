@@ -64,11 +64,17 @@ class VariablePassingInterface(metaclass=ABCMeta):
 
 
 class Communication(CommunicationInterface, LatencyBase):
-    column_names_inter_process = [
+    column_names_inter_process_dds_latency_support = [
         'rclcpp_publish_timestamp',
         'rcl_publish_timestamp',
         'dds_write_timestamp',
         'on_data_available_timestamp',
+        'callback_start_timestamp',
+    ]
+    column_names_inter_process = [
+        'rclcpp_publish_timestamp',
+        'rcl_publish_timestamp',
+        'dds_write_timestamp',
         'callback_start_timestamp',
     ]
 
@@ -88,6 +94,7 @@ class Communication(CommunicationInterface, LatencyBase):
         self._callback_publish: Optional[CallbackBase] = callback_publish
         self.callback_subscription = callback_subscription
         self.is_intra_process: Optional[bool] = None
+        self.rmw_implementation: Optional[str] = None
         self._publisher = publisher
 
         if self._callback_publish is None:
@@ -95,6 +102,7 @@ class Communication(CommunicationInterface, LatencyBase):
 
         if records_container:
             self.is_intra_process = self._is_intra_process()
+            self.rmw_implementation = records_container.get_rmw_implementation()
 
         self._dds_latency: Optional[DDSLatency] = None
         if self.is_intra_process:
@@ -131,11 +139,14 @@ class Communication(CommunicationInterface, LatencyBase):
     def topic_name(self) -> str:
         return self.callback_to.topic_name
 
-    def _get_column_names(self) -> List[str]:
+    @property
+    def column_names(self) -> List[str]:
         if self.is_intra_process:
             return Communication.column_names_intra_process
         else:
-            return Communication.column_names_inter_process
+            if self.rmw_implementation == 'rmw_cyclonedds_cpp':
+                return Communication.column_names_inter_process
+            return Communication.column_names_inter_process_dds_latency_support
 
     def to_records(self) -> RecordsInterface:
         assert self._records_container is not None
@@ -173,6 +184,8 @@ class Communication(CommunicationInterface, LatencyBase):
 
     def to_dds_latency(self) -> DDSLatency:
         assert self.is_intra_process is False, 'target is intra process communication'
+        assert self.rmw_implementation == 'rmw_fastrtps_cpp', \
+            'dds latency is rmw_fastrtps_cpp only.'
         return DDSLatency(
             self._records_container,
             self.callback_publish,
@@ -182,7 +195,7 @@ class Communication(CommunicationInterface, LatencyBase):
 
 
 class DDSLatency(CommunicationInterface, LatencyBase):
-    column_names = [
+    _column_names = [
         'dds_write_timestamp',
         'on_data_available_timestamp',
     ]
@@ -223,8 +236,9 @@ class DDSLatency(CommunicationInterface, LatencyBase):
     def publisher(self) -> Publisher:
         return self._publisher
 
-    def _get_column_names(self) -> List[str]:
-        return DDSLatency.column_names
+    @property
+    def column_names(self) -> List[str]:
+        return DDSLatency._column_names
 
     def to_records(self) -> RecordsInterface:
         assert self._records_container is not None
@@ -239,13 +253,13 @@ class DDSLatency(CommunicationInterface, LatencyBase):
             'rclcpp_publish_timestamp',
         ]
         records.drop_columns(rcl_layer_columns, inplace=True)
-        records.sort(DDSLatency.column_names[0], inplace=True)
+        records.sort(self.column_names[0], inplace=True)
 
         return records
 
 
 class VariablePassing(VariablePassingInterface, LatencyBase):
-    column_names = ['callback_end_timestamp', 'callback_start_timestamp']
+    _column_names = ['callback_end_timestamp', 'callback_start_timestamp']
 
     def __init__(
         self,
@@ -262,11 +276,12 @@ class VariablePassing(VariablePassingInterface, LatencyBase):
         records: RecordsInterface = self._records_container.compose_variable_passing_records(
             self.callback_write, self.callback_read
         )
-        records.sort(VariablePassing.column_names[0], inplace=True)
+        records.sort(self.column_names[0], inplace=True)
         return records
 
-    def _get_column_names(self) -> List[str]:
-        return VariablePassing.column_names
+    @property
+    def column_names(self) -> List[str]:
+        return VariablePassing._column_names
 
     @property
     def callback_from(self) -> CallbackBase:
