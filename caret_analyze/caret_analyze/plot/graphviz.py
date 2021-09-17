@@ -29,7 +29,7 @@ from ..path import Path
 from ..util import Util
 
 
-def callback_grpah(
+def callback_graph(
     arch: Architecture, callbacks: List[CallbackBase], export_path: Optional[str] = None
 ) -> Optional[Source]:
     dot = CallbackGraph(arch, callbacks).to_dot()
