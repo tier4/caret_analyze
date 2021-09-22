@@ -18,8 +18,8 @@ from bokeh.io import save, show
 from bokeh.models import CrosshairTool
 from bokeh.palettes import Bokeh8
 from bokeh.plotting import figure
-import numpy as np
 from bokeh.resources import CDN
+import numpy as np
 
 from ..callback import SubscriptionCallback
 from ..path import Path
