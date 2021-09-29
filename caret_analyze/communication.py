@@ -25,6 +25,7 @@ from .pub_sub import Publisher
 from .pub_sub import Subscription
 from .record import RecordsInterface
 from .record.interface import RecordsContainer
+from .record.trace_points import TRACE_POINT
 
 
 class CommunicationInterface(metaclass=ABCMeta):
@@ -65,22 +66,22 @@ class VariablePassingInterface(metaclass=ABCMeta):
 
 class Communication(CommunicationInterface, LatencyBase):
     column_names_inter_process_dds_latency_support = [
-        'rclcpp_publish_timestamp',
-        'rcl_publish_timestamp',
-        'dds_write_timestamp',
-        'on_data_available_timestamp',
-        'callback_start_timestamp',
+        TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
+        TRACE_POINT.RCL_PUBLISH_TIMESTAMP,
+        TRACE_POINT.DDS_WRITE_TIMESTAMP,
+        TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
+        TRACE_POINT.CALLBACK_START_TIMESTAMP,
     ]
     column_names_inter_process = [
-        'rclcpp_publish_timestamp',
-        'rcl_publish_timestamp',
-        'dds_write_timestamp',
-        'callback_start_timestamp',
+        TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
+        TRACE_POINT.RCL_PUBLISH_TIMESTAMP,
+        TRACE_POINT.DDS_WRITE_TIMESTAMP,
+        TRACE_POINT.CALLBACK_START_TIMESTAMP,
     ]
 
     column_names_intra_process = [
-        'rclcpp_intra_publish_timestamp',
-        'callback_start_timestamp',
+        TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+        TRACE_POINT.CALLBACK_START_TIMESTAMP,
     ]
 
     def __init__(
@@ -196,8 +197,8 @@ class Communication(CommunicationInterface, LatencyBase):
 
 class DDSLatency(CommunicationInterface, LatencyBase):
     _column_names = [
-        'dds_write_timestamp',
-        'on_data_available_timestamp',
+        TRACE_POINT.DDS_WRITE_TIMESTAMP,
+        TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
     ]
 
     def __init__(
@@ -248,9 +249,9 @@ class DDSLatency(CommunicationInterface, LatencyBase):
             self.callback_subscription, self.callback_publish
         )
         rcl_layer_columns = [
-            'callback_start_timestamp',
-            'rcl_publish_timestamp',
-            'rclcpp_publish_timestamp',
+            TRACE_POINT.CALLBACK_START_TIMESTAMP,
+            TRACE_POINT.RCL_PUBLISH_TIMESTAMP,
+            TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
         ]
         records.drop_columns(rcl_layer_columns, inplace=True)
         records.sort(self.column_names[0], inplace=True)
@@ -259,7 +260,10 @@ class DDSLatency(CommunicationInterface, LatencyBase):
 
 
 class VariablePassing(VariablePassingInterface, LatencyBase):
-    _column_names = ['callback_end_timestamp', 'callback_start_timestamp']
+    _column_names = [
+        TRACE_POINT.CALLBACK_END_TIMESTAMP,
+        TRACE_POINT.CALLBACK_START_TIMESTAMP,
+        ]
 
     def __init__(
         self,

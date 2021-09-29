@@ -25,10 +25,15 @@ from .record import RecordsInterface
 from .record.interface import CallbackInterface
 from .record.interface import SubscriptionCallbackInterface
 from .record.interface import TimerCallbackInterface
+from .record.trace_points import TRACE_POINT
 
 
 class CallbackBase(CallbackInterface, LatencyBase):
-    _column_names = ['callback_start_timestamp', 'callback_end_timestamp']
+
+    _column_names = [
+        TRACE_POINT.CALLBACK_START_TIMESTAMP,
+        TRACE_POINT.CALLBACK_END_TIMESTAMP
+    ]
 
     def __init__(
         self,

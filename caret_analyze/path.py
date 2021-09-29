@@ -25,21 +25,9 @@ from .latency import LatencyBase
 from .record.record import merge
 from .record.record import merge_sequencial
 from .record.record import RecordsInterface
+from .record.trace_points import TRACE_POINT
 from .util import UniqueList
 from .util import Util
-
-
-class TracePoint(NamedTuple):
-    CALLBACK_START_TIMESTAMP: str = 'callback_start_timestamp'
-    CALLBACK_END_TIMESTAMP: str = 'callback_end_timestamp'
-    RCLCPP_PUBLISH_TIMESTAMP: str = 'rclcpp_publish_timestamp'
-    RCL_PUBLISH_TIMESTAMP: str = 'rcl_publish_timestamp'
-    DDS_WRITE_TIMESTAMP: str = 'dds_write_timestamp'
-    ON_DATA_AVAILABLE_TIMESTAMP: str = 'on_data_available_timestamp'
-    RCLCPP_INTRA_PUBLISH_TIMESTAMP: str = 'rclcpp_intra_publish_timestamp'
-
-
-TRACE_POINT = TracePoint()
 
 
 class TracePoints(NamedTuple):
@@ -305,12 +293,13 @@ class Path(UserList, LatencyBase):
             if isinstance(latency, Communication) and isinstance(latency_, CallbackBase):
                 # communication -> callback case
                 # callback_start -> callback_start [merge]
-                merger.merge(latency_, 'callback_start_timestamp')
+
+                merger.merge(latency_, TRACE_POINT.CALLBACK_START_TIMESTAMP)
 
             elif isinstance(latency, VariablePassing) and isinstance(latency_, CallbackBase):
                 # communication -> callback case
                 # callback_start -> callback_start [merge]
-                merger.merge(latency_, 'callback_start_timestamp')
+                merger.merge(latency_, TRACE_POINT.CALLBACK_START_TIMESTAMP)
 
             elif isinstance(latency, CallbackBase) and isinstance(latency_, Communication):
                 # callback -> communication case
@@ -318,20 +307,20 @@ class Path(UserList, LatencyBase):
                 if latency_.is_intra_process:
                     merger.merge_sequencial(
                         latency_,
-                        'callback_start_timestamp',
-                        'rclcpp_intra_publish_timestamp',
+                        TRACE_POINT.CALLBACK_START_TIMESTAMP,
+                        TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
                     )
                 else:
                     merger.merge_sequencial(
                         latency_,
-                        'callback_start_timestamp',
-                        'rclcpp_publish_timestamp',
+                        TRACE_POINT.CALLBACK_START_TIMESTAMP,
+                        TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
                     )
 
             elif isinstance(latency, CallbackBase) and isinstance(latency_, VariablePassing):
                 # callback -> variable passing case
                 # callback_end -> callback_start [merge]
-                merger.merge(latency_, 'callback_end_timestamp')
+                merger.merge(latency_, TRACE_POINT.CALLBACK_END_TIMESTAMP)
 
         column_names = merger.column_names.data
         if column_only is False:
