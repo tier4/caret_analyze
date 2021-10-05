@@ -387,7 +387,7 @@ class CallbackGraph:
                 self._callback_graph._graph.node(
                     head_name, label=self.label, color=self._color)
                 self._callback_graph._draw_edge(
-                    comm, head_name, comm.publisher.node_name)
+                    comm, head_name, comm.publisher.node_name, False)
 
             if comm.subscription.node_name not in self._sub_nodes:
                 self._sub_nodes.add(comm.subscription.node_name)
