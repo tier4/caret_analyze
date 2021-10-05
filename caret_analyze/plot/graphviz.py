@@ -265,6 +265,16 @@ class CallbackGraph:
         assert False, 'not implemented'
 
     def _draw_callbacks(self, node_cluster, node: Node, path: Path):
+        if len(node.callbacks) == 0:
+            node_cluster.node(
+                node.node_name,
+                ' ',
+                _attributes={'shape': 'box', 'style': 'filled'},
+                color='white',
+                fillcolor='white',
+            )
+            return
+
         for callback in node.callbacks:
             tooltip: str = self._get_tooltip(callback)
             if path.contains(callback):
