@@ -30,9 +30,12 @@ from ..util import Util
 
 
 def callback_graph(
-    arch: Architecture, callbacks: List[CallbackBase], export_path: Optional[str] = None
+    arch: Architecture,
+    callbacks: List[CallbackBase],
+    export_path: Optional[str] = None,
+    separate: bool = False
 ) -> Optional[Source]:
-    dot = CallbackGraph(arch, callbacks).to_dot()
+    dot = CallbackGraph(arch, callbacks, separate).to_dot()
     source = Source(dot)
     if export_path is not None:
         file_path_wo_ext = export_path.split('.')[0]
@@ -206,7 +209,7 @@ class CallbackGraph:
     PATH_HIGHLIGHT_COLOR = 'darkgreen'
     PATH_HIGHLIGHT_FILL_COLOR = 'darkseagreen1'
 
-    def __init__(self, arch: Architecture, callbacks: List[CallbackBase]):
+    def __init__(self, arch: Architecture, callbacks: List[CallbackBase], separate: bool):
         self._arch = arch
         path = Path(callbacks, arch.communications, arch.variable_passings)
 
@@ -217,6 +220,13 @@ class CallbackGraph:
         self._labelled_edges = []
         self._labelled_edges.append(self.LabelledEdge(self, '/tf'))
         self._labelled_edges.append(self.LabelledEdge(self, '/tf_static'))
+
+        if separate:
+            for comm in arch.communications:
+                if comm.topic_name in [_.topic_name for _ in self._labelled_edges]:
+                    continue
+                self._labelled_edges.append(
+                    self.LabelledEdge(self, comm.topic_name))
 
         self._draw_graph(path)
 
