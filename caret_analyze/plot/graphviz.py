@@ -294,23 +294,17 @@ class CallbackGraph:
             )
 
     def _draw_node(self, node: Node, path: Path) -> None:
-        ns_color = 'gray90'
-        ns = self._to_ns(node.node_name)
+        # Nesting clusters is not available due to an error in graphviz.
+        # Graphviz-2.49.1 used for verification.
 
-        # draw namespace cluster
+        # draw node cluster
         with self._graph.subgraph(
-            name=self._to_cluster_name(ns, prefix='ns_'),
-            graph_attr={'label': ns, 'bgcolor': ns_color, 'color': ns_color},
-        ) as ns_cluster:
+            name=self._to_cluster_name(node.node_name, prefix='node_'),
+            graph_attr={'label': node.node_name,
+                        'bgcolor': 'white', 'color': 'black'},
+        ) as node_cluster:
 
-            # draw node cluster
-            with ns_cluster.subgraph(
-                name=self._to_cluster_name(node.node_name, prefix='node_'),
-                graph_attr={'label': node.node_name,
-                            'bgcolor': 'white', 'color': 'black'},
-            ) as node_cluster:
-
-                self._draw_callbacks(node_cluster, node, path)
+            self._draw_callbacks(node_cluster, node, path)
 
     def _draw_callback_to_callback(self, comm, head_name, head_node_name, highlight: bool):
         tail_name = comm.callback_from.unique_name
