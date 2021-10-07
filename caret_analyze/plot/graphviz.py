@@ -215,7 +215,8 @@ class CallbackGraph:
 
         self._graph = Digraph(format='svg', engine='dot')
         self._graph.name = 'Hover the mouse over a callback.'
-        self._graph.attr(compound='true', rankdir='LR', style='rounded', newrank='true')
+        self._graph.attr(compound='true', rankdir='LR',
+                         style='rounded', newrank='true')
 
         self._labelled_edges = []
         self._labelled_edges.append(self.LabelledEdge(self, '/tf'))

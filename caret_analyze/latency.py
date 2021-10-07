@@ -45,13 +45,10 @@ class LatencyBase(metaclass=ABCMeta):
         if remove_dropped:
             df.dropna(inplace=True)
 
-        column_names_set = set(column_names)
-        df_columns_set = set(df.columns)
-        has_columns = column_names_set & df_columns_set == column_names_set
-        if has_columns:
-            return df[column_names]
-        else:
-            return pd.DataFrame(columns=column_names)
+        for missing_column in set(column_names) - set(df.columns):
+            df.insert(0, missing_column, [])
+
+        return df[column_names]
 
     def to_timeseries(
         self, remove_dropped=False, treat_drop_as_delay=False
