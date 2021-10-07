@@ -28,7 +28,7 @@ from ..util import Util
 
 def message_flow(
     path: Path, export_path: Optional[str] = None,
-    granularity: Optional[str] = None, treat_drop_as_delay=True
+    granularity: Optional[str] = None, treat_drop_as_delay=False
 ):
     class ColumnNameParser:
 
