@@ -46,7 +46,7 @@ class LatencyBase(metaclass=ABCMeta):
             df.dropna(inplace=True)
 
         for missing_column in set(column_names) - set(df.columns):
-            df.insert(0, missing_column, [])
+            df[missing_column] = np.nan
 
         return df[column_names]
 
