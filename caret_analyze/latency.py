@@ -23,17 +23,52 @@ from .record import RecordsInterface
 
 
 class LatencyBase(metaclass=ABCMeta):
+    """Base class for Latency."""
 
     @abstractmethod
     def to_records(self) -> RecordsInterface:
+        """
+        Convert to records.
+
+        Returns
+        -------
+        RecordsInterface
+            Information for each delay.
+
+        """
         pass
 
     @property
     @abstractmethod
     def column_names(self) -> List[str]:
+        """
+        Get column names.
+
+        Returns
+        -------
+        List[str]
+            column names
+
+        """
         pass
 
     def to_dataframe(self, remove_dropped=False, treat_drop_as_delay=False) -> pd.DataFrame:
+        """
+        Convert to dataframe.
+
+        Parameters
+        ----------
+        remove_dropped: bool
+            If true, eliminate the records that caused the drop.
+            treat_drop_as_delay: Convert dropped records as a delay.
+            Valid only when remove_dropped=false.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Information for each delay.
+
+        """
         records = self.to_records()
         column_names = self.column_names
 
@@ -53,6 +88,23 @@ class LatencyBase(metaclass=ABCMeta):
     def to_timeseries(
         self, remove_dropped=False, treat_drop_as_delay=False
     ) -> Tuple[np.array, np.array]:
+        """
+        Convert to timeseries data.
+
+        Parameters
+        ----------
+        remove_dropped : bool
+            If true, eliminate the records that caused the drop.
+        treat_drop_as_delay : bool
+            Convert dropped records as a delay.
+            Valid only when remove_dropped=false.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Information for each delay.
+
+        """
         df = self.to_dataframe(remove_dropped, treat_drop_as_delay)
         msg = (
             'Failed to find any records that went through the path.'
@@ -70,6 +122,22 @@ class LatencyBase(metaclass=ABCMeta):
     def to_histogram(
         self, binsize_ns: int = 1000000, treat_drop_as_delay=False
     ) -> Tuple[np.array, np.array]:
+        """
+        Convert to histogram data.
+
+        Parameters
+        ----------
+        binsize_ns : int
+            bin size for histogram. default 1ms.
+        treat_drop_as_delay : bool
+            Convert dropped records as a delay.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Information for each delay.
+
+        """
         import math
 
         _, latency_ns = self.to_timeseries(True, treat_drop_as_delay=treat_drop_as_delay)
