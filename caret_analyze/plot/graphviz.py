@@ -100,7 +100,7 @@ def chain_latency(
                     label=label,
                 )
             elif isinstance(component, VariablePassing):
-                # label = to_label(latency)
+                label = to_label(latency)
                 graph.edge(
                     component.callback_from.unique_name,
                     component.callback_to.unique_name,
