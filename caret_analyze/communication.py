@@ -20,6 +20,7 @@ from typing import List, Optional
 
 from .callback import CallbackBase
 from .callback import SubscriptionCallback
+from .exceptions import TraceResultAanalyzeError
 from .latency import LatencyBase
 from .pub_sub import Publisher
 from .pub_sub import Subscription
@@ -102,7 +103,7 @@ class Communication(CommunicationInterface, LatencyBase):
             return
 
         if records_container:
-            self.is_intra_process = self._is_intra_process()
+            self.is_intra_process = self._is_intra_process(records_container)
             self.rmw_implementation = records_container.get_rmw_implementation()
 
         self._dds_latency: Optional[DDSLatency] = None
@@ -169,19 +170,22 @@ class Communication(CommunicationInterface, LatencyBase):
 
         return records
 
-    def _is_intra_process(self) -> bool:
-        assert self._records_container is not None
+    def _is_intra_process(self, records_container: RecordsContainer) -> Optional[bool]:
         assert self.callback_publish is not None
 
         # Even if intra-process communication is enabled in the configuration,
         # at least one process from actual publish to callback execution is required.
         # Depending on the measurement results,
         # columns may be unintentionally generated as inter-process communication.
-        intra_records = self._records_container.compose_intra_process_communication_records(
-            self.callback_subscription, self.callback_publish
-        )
+        try:
+            intra_records = records_container.compose_intra_process_communication_records(
+                self.callback_subscription, self.callback_publish
+            )
 
-        return len(intra_records.data) > 0
+            return len(intra_records.data) > 0
+        except TraceResultAanalyzeError as e:
+            print(e)  # TODO: use logger
+            return None
 
     def to_dds_latency(self) -> DDSLatency:
         assert self.is_intra_process is False, 'target is intra process communication'

@@ -21,6 +21,7 @@ from .. import PublisherInterface
 from .. import SubscriptionCallbackInterface
 from .. import SubscriptionInterface
 from .. import TimerCallbackInterface
+from ...exceptions import TraceResultAanalyzeError
 
 
 class PublisherImpl(PublisherInterface):
@@ -116,6 +117,8 @@ class TimerCallbackImpl(CallbackImpl, TimerCallbackInterface):
         symbol: str,
         period_ns: int,
         dataframe_formatter: Optional[DataFrameFormatter] = None,
+        *,
+        logger=None
     ) -> None:
         super().__init__(node_name, callback_name, symbol, None)
 
@@ -124,12 +127,13 @@ class TimerCallbackImpl(CallbackImpl, TimerCallbackInterface):
             self.callback_object = self._get_callback_object(
                 node_name, symbol, period_ns, dataframe_formatter
             )
-            err_msg = (
-                'Failed to find callback_object.'
-                f'node_name: {node_name}, callback_name: {callback_name},'
-                f' period_ns: {period_ns}, symbol: {symbol}'
-            )
-            assert self.callback_object is not None, err_msg
+            if self.callback_object is None:
+                err_msg = (
+                    'Failed to find callback_object.'
+                    f'node_name: {node_name}, callback_name: {callback_name},'
+                    f' period_ns: {period_ns}, symbol: {symbol}'
+                )
+                raise TraceResultAanalyzeError(err_msg)
 
     @property
     def period_ns(self) -> int:

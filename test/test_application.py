@@ -77,3 +77,41 @@ class TestApplication:
         for path in paths:
             assert path[0].unique_name == start_cb_name
             assert path[-1].unique_name == end_cb_name
+
+    @pytest.mark.parametrize(
+        'trace_path, yaml_path, start_cb_name, end_cb_name, paths_len',
+        [
+            (
+                'sample/lttng_samples/talker_listener/',
+                'sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml',
+                '/talker/timer_callback_0',
+                '/listener/subscription_callback_0',
+                0,
+            ),
+            (
+                'sample/lttng_samples/end_to_end_sample/cyclonedds',
+                'sample/lttng_samples/end_to_end_sample/architecture.yaml',
+                '/sensor_dummy_node/timer_callback_0',
+                '/actuator_dummy_node/subscription_callback_0',
+                0,
+            ),
+        ],
+    )
+    def test_architecture_miss_match(
+        self,
+        trace_path,
+        yaml_path,
+        start_cb_name,
+        end_cb_name,
+        paths_len
+    ):
+        """Test if the architecture file and measurement results do not match."""
+        trace_path = 'sample/lttng_samples/talker_listener/'
+        yaml_path = 'sample/lttng_samples/end_to_end_sample/architecture.yaml'
+        start_cb_name = '/talker/timer_callback_0'
+        end_cb_name = '/listener/subscription_callback_0'
+        lttng = Lttng(trace_path)
+        app = Application(yaml_path, 'yaml', lttng)
+
+        paths = app.search_paths(start_cb_name, end_cb_name)
+        assert len(paths) == paths_len
