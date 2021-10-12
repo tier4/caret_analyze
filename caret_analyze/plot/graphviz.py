@@ -36,6 +36,10 @@ def callback_graph(
     separate: bool = False,
     plot_target_path_only: bool = False
 ) -> Optional[Source]:
+    if plot_target_path_only and len(callbacks) == 0:
+        print('Failed to find specified path. Ignore plot_target_path_only argument.')
+        plot_target_path_only = False
+
     dot = CallbackGraph(arch, callbacks, separate, plot_target_path_only).to_dot()
     source = Source(dot)
     if export_path is not None:
