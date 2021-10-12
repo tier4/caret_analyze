@@ -277,9 +277,11 @@ class CallbackGraph:
             tail_name = var.callback_from.unique_name
             if path.contains(var):
                 color = CallbackGraph.PATH_HIGHLIGHT_COLOR
+                penwidth = '4.0'
             else:
                 color = 'black'
-            self._graph.edge(tail_name, head_name, color=color)
+                penwidth = '1.0'
+            self._graph.edge(tail_name, head_name, color=color, penwidth=penwidth)
 
     def _contain(self, node: Node, path: Path) -> bool:
         for callback in node.callbacks:
@@ -359,11 +361,15 @@ class CallbackGraph:
 
         if highlight:
             color = CallbackGraph.PATH_HIGHLIGHT_COLOR
+            penwidth = '4.0'
         else:
             color = 'black'
+            penwidth = '1.0'
 
         self._graph.edge(tail_name, head_name,
-                         label=comm.topic_name, color=color)
+                         label=comm.topic_name,
+                         color=color,
+                         penwidth=penwidth)
 
     def _draw_node_to_callback(self, comm, head_name, head_node_name):
         tail_node = Util.find_one(
