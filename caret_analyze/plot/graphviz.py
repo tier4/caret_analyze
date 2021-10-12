@@ -33,9 +33,10 @@ def callback_graph(
     arch: Architecture,
     callbacks: List[CallbackBase],
     export_path: Optional[str] = None,
-    separate: bool = False
+    separate: bool = False,
+    plot_target_path_only: bool = False
 ) -> Optional[Source]:
-    dot = CallbackGraph(arch, callbacks, separate).to_dot()
+    dot = CallbackGraph(arch, callbacks, separate, plot_target_path_only).to_dot()
     source = Source(dot)
     if export_path is not None:
         file_path_wo_ext = export_path.split('.')[0]
@@ -209,7 +210,13 @@ class CallbackGraph:
     PATH_HIGHLIGHT_COLOR = 'darkgreen'
     PATH_HIGHLIGHT_FILL_COLOR = 'darkseagreen1'
 
-    def __init__(self, arch: Architecture, callbacks: List[CallbackBase], separate: bool):
+    def __init__(
+        self,
+        arch: Architecture,
+        callbacks: List[CallbackBase],
+        separate: bool,
+        plot_target_path_only: bool
+    ):
         self._arch = arch
         path = Path(callbacks, arch.communications, arch.variable_passings)
 
@@ -229,7 +236,7 @@ class CallbackGraph:
                 self._labelled_edges.append(
                     self.LabelledEdge(self, comm.topic_name))
 
-        self._draw_graph(path)
+        self._draw_graph(path, plot_target_path_only)
 
     def to_dot(self):
         return self._graph.source
@@ -238,16 +245,34 @@ class CallbackGraph:
         splitted = node_name.split('/')
         return '/'.join(splitted[:-1])
 
-    def _draw_graph(self, path: Path) -> None:
+    def _draw_graph(self, path: Path, plot_target_path_only: bool) -> None:
         for node in self._arch.nodes:
             if node.node_name in CallbackGraph.IGNORE_NODES:
+                continue
+            if plot_target_path_only and not self._contain(node, path):
                 continue
             self._draw_node(node, path)
 
         for comm in self._arch.communications:
+            pub_node: Node = Util.find_one(
+                self._arch.nodes, lambda x: x.node_name == comm.publisher.node_name
+            )
+            sub_node: Node = Util.find_one(
+                self._arch.nodes, lambda x: x.node_name == comm.subscription.node_name
+            )
+
+            if plot_target_path_only and \
+               (not self._contain(pub_node, path) or not self._contain(sub_node, path)):
+                continue
             self._draw_comm(comm, path.contains(comm))  # highlight
 
         for var in self._arch.variable_passings:
+            node: Node = Util.find_one(
+                self._arch.nodes, lambda x: x.node_name == var.callback_to.node_name
+            )
+            if plot_target_path_only and not self._contain(node, path):
+                continue
+
             head_name = var.callback_to.unique_name
             tail_name = var.callback_from.unique_name
             if path.contains(var):
@@ -255,6 +280,12 @@ class CallbackGraph:
             else:
                 color = 'black'
             self._graph.edge(tail_name, head_name, color=color)
+
+    def _contain(self, node: Node, path: Path) -> bool:
+        for callback in node.callbacks:
+            if path.contains(callback):
+                return True
+        return False
 
     def _draw_comm(self, comm, highlight: bool) -> None:
         for labelled_edge in self._labelled_edges:
