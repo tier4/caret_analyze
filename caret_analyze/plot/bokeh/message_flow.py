@@ -21,23 +21,15 @@ from bokeh.plotting import figure
 from bokeh.resources import CDN
 import numpy as np
 
-from ..callback import SubscriptionCallback
-from ..path import Path
-from ..util import Util
+from ...callback import SubscriptionCallback
+from ...path import Path
+from ...util import Util
 
 
 def message_flow(
     path: Path, export_path: Optional[str] = None,
     granularity: Optional[str] = None, treat_drop_as_delay=False
 ):
-    class ColumnNameParser:
-
-        def __init__(self, column_name):
-            split_text = column_name.split('/')
-            tracepoint_name = split_text[-2]
-            self.tracepoint_name = tracepoint_name[:-len('_timestamp')]
-            self.unique_name = '/'.join(split_text[:-2])
-            self.node_name = '/'.join(split_text[:-3])
 
     granularity = granularity or 'raw'
     assert granularity in ['raw', 'callback', 'node']
@@ -152,3 +144,13 @@ def message_flow(
         show(fig)
     else:
         save(fig, export_path, title='time vs tracepoint', resources=CDN)
+
+
+class ColumnNameParser:
+
+    def __init__(self, column_name):
+        split_text = column_name.split('/')
+        tracepoint_name = split_text[-2]
+        self.tracepoint_name = tracepoint_name[:-len('_timestamp')]
+        self.unique_name = '/'.join(split_text[:-2])
+        self.node_name = '/'.join(split_text[:-3])
