@@ -35,7 +35,7 @@ class TestApplication:
                 'sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml',
                 '/pipe1/subscription_callback_0',
                 '/pipe1/subscription_callback_0',
-                1,
+                2,  # [pipe1 -> pipe2] -> pipe1 and [pipe1]
             ),
             (
                 'sample/lttng_samples/end_to_end_sample/fastrtps',

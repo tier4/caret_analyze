@@ -27,12 +27,11 @@ class TestNode:
         assert len(node.variable_passings) == 0
 
     def test_search_paths(self):
-        lttng = Lttng('sample/lttng_samples/talker_listener/')
+        lttng = Lttng('sample/lttng_samples/end_to_end_sample/cyclonedds')
         app = Application(
-            'sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)
-        node = app.nodes[0]
-
-        assert len(node.variable_passings) == 0
+            'sample/lttng_samples/end_to_end_sample/architecture_modified.yaml', 'yaml', lttng)
+        node = next(filter(lambda x: x.node_name == '/message_driven_node', app.nodes))
+        assert len(node.paths) == len(app.paths) + len(node.callbacks)
 
     def test_compose_callback_duration(self):
         lttng = Lttng('sample/lttng_samples/talker_listener/')

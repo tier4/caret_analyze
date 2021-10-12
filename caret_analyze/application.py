@@ -86,6 +86,15 @@ class Application(ArchitectureInterface):
         )
         paths: List[Path] = [self._to_path(
             callbacks, self._arch) for callbacks in callbacks_paths]
+
+        # Add callback itself as a path.
+        if start_callback_unique_name == end_callback_unique_name:
+            callback = Util.find_one(
+                self.callbacks, lambda x: x.unique_name == start_callback_unique_name)
+            assert callback is not None
+            path = self._to_path([callback], self._arch)
+            paths.append(path)
+
         return paths
 
     def _to_path(self, callbacks: List[CallbackBase], arch: Architecture) -> Path:
