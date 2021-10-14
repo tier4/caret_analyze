@@ -18,8 +18,9 @@ from typing import Dict, Optional
 from bokeh.io import save, show
 from bokeh.models import CrosshairTool
 from bokeh.palettes import Bokeh8
-from bokeh.plotting import figure
+from bokeh.plotting import ColumnDataSource, figure
 from bokeh.resources import CDN
+import numpy as np
 import pandas as pd
 
 from ...callback import SubscriptionCallback
@@ -38,7 +39,21 @@ def message_flow(
     granularity = granularity or 'raw'
     assert granularity in ['raw', 'callback', 'node']
 
-    fig = figure(plot_width=1000, plot_height=400)
+    TOOLTIPS = """
+    <div style="width:400px; word-wrap: break-word;">
+    t = @x [ns] <br>
+    t_start = @x_min [ns] <br>
+    t_end = @x_max [ns] <br>
+    latency = @width [ns] <br>
+    @desc
+    </div>
+    """
+    fig = figure(
+        plot_width=1000,
+        plot_height=400,
+        active_scroll='wheel_zoom',
+        tooltips=TOOLTIPS
+        )
     color_palette = ColorPalette(Bokeh8)
 
     df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
@@ -49,13 +64,67 @@ def message_flow(
 
     tick_labels = TickLabels(df)
 
+    rect_source = ColumnDataSource(data={
+        'x': [],
+        'y': [],
+        'x_min': [],
+        'x_max': [],
+        'desc': [],
+        'width': [],
+        'height': []
+    })
+
+    column_values = ColumnValues(df.columns)
+    for callback in path.callbacks:
+        if granularity == 'raw':
+            search_name = callback.unique_name
+        elif granularity == 'callback':
+            search_name = callback.unique_name
+        elif granularity == 'node':
+            search_name = callback.node_name
+
+        y_maxs = column_values.get_start_indexes(search_name)
+        y_mins = column_values.get_end_indexes(search_name)
+
+        for y_min, y_max in zip(y_mins, y_maxs):
+            for _, row in callback.to_dataframe().iterrows():
+                callback_start = row[TRACE_POINT.CALLBACK_START_TIMESTAMP]
+                callback_end = row[TRACE_POINT.CALLBACK_END_TIMESTAMP]
+                rect = CallbackRect(callback_start, callback_end, y_min, y_max)
+                new_data = {
+                    'x': [rect.x],
+                    'y': [rect.y],
+                    'x_min': [callback_start],
+                    'x_max': [callback_end],
+                    'width': [rect.width],
+                    'height': [rect.height],
+                    'desc': ['symbol: ' + callback.symbol],
+                }
+                rect_source.stream(new_data)
+
+    fig.rect('x', 'y', 'width', 'height', source=rect_source, color='black', alpha=0.15)
+
     for i, row in df.iterrows():
+        x_min = min(row.values)
+        x_max = max(row.values)
+        width = x_max - x_min
+
+        line_source = ColumnDataSource({
+            'x': row.values,
+            'y': tick_labels.values,
+            'x_min': [x_min]*len(row.values),
+            'x_max': [x_max]*len(row.values),
+            'width': [width]*len(row.values),
+            'height': [0]*len(row.values),
+            'desc': ['']*len(row.values),
+        })
         fig.line(
-            x=row.values,
-            y=tick_labels.values,
+            x='x',
+            y='y',
             line_width=1.5,
             line_color=color_palette.get_index_color(i),
             line_alpha=1,
+            source=line_source,
         )
 
     fig.yaxis.ticker = tick_labels.values
@@ -170,10 +239,12 @@ class RawLevelFormatter(DataFrameFormatter):
                 TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             ]:
                 new_column_name = f'{topic_name}/{tracepoint_name}'
-            else:
-                new_column_name = f'{unique_name}/{tracepoint_name}'
+                new_column_name = new_column_name[:-(len('_timestamp'))]
+            elif tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
+                new_column_name = f'{unique_name} [start]'
+            elif tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
+                new_column_name = f'{unique_name} [end]'
 
-            new_column_name = new_column_name[:-(len('_timestamp'))]
             renames[column_name] = new_column_name
 
         df.rename(columns=renames, inplace=True)
@@ -182,21 +253,27 @@ class RawLevelFormatter(DataFrameFormatter):
 class CallbackLevelFormatter(DataFrameFormatter):
 
     def remove_columns(self, df: pd.DataFrame) -> None:
-        # 購読側のtopic_nameから扱うため、逆順で処理
         drop_columns = []
-        for column_name in df.columns:
-            parser = ColumnNameParser(column_name)
-            tracepoint_name = parser.tracepoint_name
+        for column_name_, column_name in zip(df.columns[:-1], df.columns[1:]):
+            # For variable passing, callback_end, calllback_start
+            # In case of communication, callback_end,rclcpp_publish/rclcpp_intra_publish
+            tracepoint_name_ = ColumnNameParser(column_name_).tracepoint_name
+            tracepoint_name = ColumnNameParser(column_name).tracepoint_name
 
-            if tracepoint_name not in [
-                TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
+            is_callback_end = tracepoint_name_ == TRACE_POINT.CALLBACK_END_TIMESTAMP
+            is_variable_pasisng = tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP
+
+            if is_callback_end and is_variable_pasisng:
+                continue
+
+            if tracepoint_name_ not in [
                 TRACE_POINT.CALLBACK_START_TIMESTAMP,
-                TRACE_POINT.CALLBACK_END_TIMESTAMP,
+                TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
             ]:
-                drop_columns.append(column_name)
+                drop_columns.append(column_name_)
 
         df.drop(drop_columns, axis=1, inplace=True)
-        drop_columns = []
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
         renames = {}
@@ -204,29 +281,26 @@ class CallbackLevelFormatter(DataFrameFormatter):
             parser = ColumnNameParser(column_name)
             if parser.tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
                 renames[column_name] = parser.unique_name + ' [start]'
-            if parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
+            elif parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
                 renames[column_name] = parser.unique_name + ' [end]'
+            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP:
+                renames[column_name] = parser.unique_name + ' [publish]'
+            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP:
+                renames[column_name] = parser.unique_name + ' [publish]'
         df.rename(columns=renames, inplace=True)
 
 
 class NodeLevelFormatter(DataFrameFormatter):
 
     def remove_columns(self, df: pd.DataFrame) -> None:
+        callback_level_formatter = CallbackLevelFormatter()
+        callback_level_formatter.remove_columns(df)
+
         drop_columns = []
-        for column_name in df.columns:
-            parser = ColumnNameParser(column_name)
-            tracepoint_name = parser.tracepoint_name
 
-            if tracepoint_name not in [
-                TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
-                TRACE_POINT.CALLBACK_START_TIMESTAMP,
-                TRACE_POINT.CALLBACK_END_TIMESTAMP,
-            ]:
-                drop_columns.append(column_name)
-
+        # remove callbacks in the same node
         for i, column_name in enumerate(df.columns):
             parser = ColumnNameParser(column_name)
-            tracepoint_name = parser.tracepoint_name
 
             is_next_same_node = False
             is_before_same_node = False
@@ -247,7 +321,60 @@ class NodeLevelFormatter(DataFrameFormatter):
             parser = ColumnNameParser(column_name)
             if parser.tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
                 renames[column_name] = parser.node_name + ' [start]'
-            if parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
+            elif parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
                 renames[column_name] = parser.node_name + ' [end]'
+            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP:
+                renames[column_name] = parser.node_name + ' [publish]'
 
         df.rename(columns=renames, inplace=True)
+
+
+class CallbackRect():
+    def __init__(
+        self,
+        callback_start: float,
+        callback_end: float,
+        y_min: int,
+        y_max: int
+    ) -> None:
+        self._y = [y_min, y_max]
+        self._x = [callback_start, callback_end]
+
+    @property
+    def x(self) -> float:
+        return np.mean(self._x)
+
+    @property
+    def y(self) -> float:
+        return np.mean(self._y)
+
+    @property
+    def width(self) -> float:
+        return abs(self._x[0] - self._x[1])
+
+    @property
+    def height(self) -> float:
+        return abs(self._y[0] - self._y[1])
+
+
+class ColumnValues:
+
+    def __init__(self, column_names):
+        self._column_names = column_names
+
+    def _search_index(self, search_name):
+        indexes = np.array([], dtype=int)
+        for i, column_name in enumerate(self._column_names):
+            if '[end]' in column_name or '[publish]' in column_name:
+                continue
+            if search_name in column_name:
+                indexes = np.append(indexes, i)
+        return indexes
+
+    def get_start_indexes(self, search_name):
+        indexes = self._search_index(search_name)
+        return (indexes) * -1
+
+    def get_end_indexes(self, search_name):
+        indexes = self._search_index(search_name)
+        return (indexes + 1) * -1
