@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Optional
 
@@ -24,6 +26,7 @@ import numpy as np
 import pandas as pd
 
 from ...callback import SubscriptionCallback
+from ...data_frame_shaper import Clip, Strip
 from ...path import Path
 from ...record.trace_points import TRACE_POINT
 from ...util import Util
@@ -33,7 +36,9 @@ def message_flow(
     path: Path,
     export_path: Optional[str] = None,
     granularity: Optional[str] = None,
-    treat_drop_as_delay=False
+    treat_drop_as_delay=False,
+    lstrip_s: float = 0,
+    rstrip_s: float = 0,
 ) -> None:
     granularity = granularity or 'raw'
     assert granularity in ['raw', 'callback', 'node']
@@ -60,15 +65,22 @@ def message_flow(
 
     df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
 
+    clip = None
+    if lstrip_s > 0 or rstrip_s > 0:
+        strip = Strip(lstrip_s, rstrip_s)
+        clip = strip.to_clip(df)
+        df = clip.execute(df)
+
     formatter = FormatterFactory.create(granularity)
     formatter.remove_columns(df)
     formatter.rename_columns(df, path)
 
     yaxis_property = YAxisProperty(df)
+    yaxis_values = YAxisValues(df)
     fig.yaxis.ticker = yaxis_property.values
     fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
-    rect_source = get_callback_rects(df, path, granularity)
+    rect_source = get_callback_rects(path, yaxis_values, granularity, clip)
     fig.rect('x', 'y', 'width', 'height', source=rect_source, color='black', alpha=0.15)
 
     line_sources = get_flow_lines(df)
@@ -88,7 +100,12 @@ def message_flow(
         save(fig, export_path, title='time vs tracepoint', resources=CDN)
 
 
-def get_callback_rects(df: pd.DataFrame, path: Path, granularity: str) -> ColumnDataSource:
+def get_callback_rects(
+    path: Path,
+    y_axi_values: YAxisValues,
+    granularity: str,
+    clip: Optional[Clip]
+) -> ColumnDataSource:
     rect_source = ColumnDataSource(data={
         'x': [],
         'y': [],
@@ -99,7 +116,6 @@ def get_callback_rects(df: pd.DataFrame, path: Path, granularity: str) -> Column
         'height': []
     })
 
-    column_values = YAxisValues(df.columns)
     for callback in path.callbacks:
         if granularity == 'raw':
             search_name = callback.unique_name
@@ -108,11 +124,11 @@ def get_callback_rects(df: pd.DataFrame, path: Path, granularity: str) -> Column
         elif granularity == 'node':
             search_name = callback.node_name
 
-        y_maxs = column_values.get_start_indexes(search_name)
-        y_mins = column_values.get_end_values(search_name)
+        y_maxs = y_axi_values.get_start_indexes(search_name)
+        y_mins = y_axi_values.get_end_values(search_name)
 
         for y_min, y_max in zip(y_mins, y_maxs):
-            for _, row in callback.to_dataframe().iterrows():
+            for _, row in callback.to_dataframe(shaper=clip).iterrows():
                 callback_start = row[TRACE_POINT.CALLBACK_START_TIMESTAMP]
                 callback_end = row[TRACE_POINT.CALLBACK_END_TIMESTAMP]
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
@@ -198,6 +214,29 @@ class YAxisProperty:
     @property
     def labels_dict(self) -> Dict[int, str]:
         return self._tick_labels
+
+
+class YAxisValues:
+
+    def __init__(self, column_names) -> None:
+        self._column_names = column_names
+
+    def _search_values(self, search_name) -> np.array:
+        indexes = np.array([], dtype=int)
+        for i, column_name in enumerate(self._column_names):
+            if '[end]' in column_name or '[publish]' in column_name:
+                continue
+            if search_name in column_name:
+                indexes = np.append(indexes, i)
+        return indexes
+
+    def get_start_indexes(self, search_name) -> List[int]:
+        indexes = self._search_values(search_name)
+        return list((indexes) * -1)
+
+    def get_end_values(self, search_name) -> List[int]:
+        indexes = self._search_values(search_name)
+        return list((indexes + 1) * -1)
 
 
 class DataFrameFormatter(metaclass=ABCMeta):
@@ -374,26 +413,3 @@ class RectValues():
     @property
     def height(self) -> float:
         return abs(self._y[0] - self._y[1])
-
-
-class YAxisValues:
-
-    def __init__(self, column_names) -> None:
-        self._column_names = column_names
-
-    def _search_values(self, search_name) -> np.array:
-        indexes = np.array([], dtype=int)
-        for i, column_name in enumerate(self._column_names):
-            if '[end]' in column_name or '[publish]' in column_name:
-                continue
-            if search_name in column_name:
-                indexes = np.append(indexes, i)
-        return indexes
-
-    def get_start_indexes(self, search_name) -> List[int]:
-        indexes = self._search_values(search_name)
-        return list((indexes) * -1)
-
-    def get_end_values(self, search_name) -> List[int]:
-        indexes = self._search_values(search_name)
-        return list((indexes + 1) * -1)

@@ -86,7 +86,12 @@ class TestLatencyBase:
         self, mocker, latencies: List[int], binsize_ns: int, bins_range: Tuple[int, int]
     ):
         def custom_to_timeseries(
-            remove_dropped: bool = False, treat_drop_as_delay=False
+            remove_dropped: bool = False,
+            treat_drop_as_delay=False,
+            lstrip=0,
+            rstrip=0,
+            *,
+            shaper=None
         ) -> Tuple[np.array, np.array]:
             return np.array([]), np.array(latencies)
 

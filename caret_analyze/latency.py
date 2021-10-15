@@ -14,10 +14,13 @@
 
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import List, Tuple
+from typing import List, Optional, Tuple
+
+from caret_analyze.data_frame_shaper import DataFrameShaper, Strip
 
 import numpy as np
 import pandas as pd
+
 
 from .record import RecordsInterface
 
@@ -52,7 +55,15 @@ class LatencyBase(metaclass=ABCMeta):
         """
         pass
 
-    def to_dataframe(self, remove_dropped=False, treat_drop_as_delay=False) -> pd.DataFrame:
+    def to_dataframe(
+        self,
+        remove_dropped=False,
+        treat_drop_as_delay=False,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0,
+        *,
+        shaper: Optional[DataFrameShaper] = None,
+    ) -> pd.DataFrame:
         """
         Convert to dataframe.
 
@@ -60,8 +71,13 @@ class LatencyBase(metaclass=ABCMeta):
         ----------
         remove_dropped: bool
             If true, eliminate the records that caused the drop.
-            treat_drop_as_delay: Convert dropped records as a delay.
+        treat_drop_as_delay: bool
+            Convert dropped records as a delay.
             Valid only when remove_dropped=false.
+        lstrip: Optional[float]
+            Remove from beginning. [s]
+        rstrip: Optional[float]
+            Remove from end [s]
 
         Returns
         -------
@@ -75,7 +91,13 @@ class LatencyBase(metaclass=ABCMeta):
         if remove_dropped is False and treat_drop_as_delay:
             records.bind_drop_as_delay(column_names[0])
 
-        df = records.to_dataframe()
+        df = records.to_dataframe()[column_names]
+
+        if lstrip_s > 0 or rstrip_s > 0:
+            strip = Strip(lstrip_s, rstrip_s)
+            df = strip.execute(df)
+        if shaper:
+            df = shaper.execute(df)
 
         if remove_dropped:
             df.dropna(inplace=True)
@@ -83,10 +105,16 @@ class LatencyBase(metaclass=ABCMeta):
         for missing_column in set(column_names) - set(df.columns):
             df[missing_column] = np.nan
 
-        return df[column_names]
+        return df
 
     def to_timeseries(
-        self, remove_dropped=False, treat_drop_as_delay=False
+        self,
+        remove_dropped=False,
+        treat_drop_as_delay=False,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0,
+        *,
+        shaper: Optional[DataFrameShaper] = None,
     ) -> Tuple[np.array, np.array]:
         """
         Convert to timeseries data.
@@ -98,6 +126,10 @@ class LatencyBase(metaclass=ABCMeta):
         treat_drop_as_delay : bool
             Convert dropped records as a delay.
             Valid only when remove_dropped=false.
+        lstrip: Optional[float]
+            Remove from beginning. [s]
+        rstrip: Optional[float]
+            Remove from end [s]
 
         Returns
         -------
@@ -105,7 +137,8 @@ class LatencyBase(metaclass=ABCMeta):
             Information for each delay.
 
         """
-        df = self.to_dataframe(remove_dropped, treat_drop_as_delay)
+        df = self.to_dataframe(
+            remove_dropped, treat_drop_as_delay, lstrip_s, rstrip_s, shaper=shaper)
         msg = (
             'Failed to find any records that went through the path.'
             + 'There is a possibility that all records are lost.',
@@ -120,7 +153,13 @@ class LatencyBase(metaclass=ABCMeta):
         return t, latency_ns
 
     def to_histogram(
-        self, binsize_ns: int = 1000000, treat_drop_as_delay=False
+        self,
+        binsize_ns: int = 1000000,
+        treat_drop_as_delay=False,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0,
+        *,
+        shaper: Optional[DataFrameShaper] = None,
     ) -> Tuple[np.array, np.array]:
         """
         Convert to histogram data.
@@ -131,6 +170,10 @@ class LatencyBase(metaclass=ABCMeta):
             bin size for histogram. default 1ms.
         treat_drop_as_delay : bool
             Convert dropped records as a delay.
+        lstrip: Optional[float]
+            Remove from beginning. [s]
+        rstrip: Optional[float]
+            Remove from end [s]
 
         Returns
         -------
@@ -140,7 +183,8 @@ class LatencyBase(metaclass=ABCMeta):
         """
         import math
 
-        _, latency_ns = self.to_timeseries(True, treat_drop_as_delay=treat_drop_as_delay)
+        _, latency_ns = self.to_timeseries(
+            True, treat_drop_as_delay, lstrip_s, rstrip_s, shaper=shaper)
 
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
