@@ -383,6 +383,8 @@ class NodeLevelFormatter(DataFrameFormatter):
                 renames[column_name] = parser.node_name + ' [end]'
             elif parser.tracepoint_name == TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP:
                 renames[column_name] = parser.node_name + ' [publish]'
+            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP:
+                renames[column_name] = parser.node_name + ' [publish]'
 
         df.rename(columns=renames, inplace=True)
 
