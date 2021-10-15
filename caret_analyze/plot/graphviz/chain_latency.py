@@ -25,8 +25,10 @@ from ...path import Path
 
 
 def chain_latency(
-    path: Path, export_path: Optional[str] = None,
-    granularity: str = 'node', treat_drop_as_delay=True
+    path: Path,
+    export_path: Optional[str] = None,
+    granularity: str = 'node',
+    treat_drop_as_delay=True
 ) -> Optional[Source]:
     granularity = granularity or 'callback'
     assert granularity in ['callback', 'node', 'end-to-end']
@@ -36,142 +38,17 @@ def chain_latency(
 
     graph.attr('node', shape='box')
 
-    def to_node_paths(path) -> List[Path]:
-        callbacks: List[CallbackBase] = []
-        paths: List[Path] = []
-        for cb, cb_ in zip(path.callbacks[:-1], path.callbacks[1:]):
-            callbacks.append(cb)
-            if cb.node_name != cb_.node_name:
-                paths.append(
-                    Path(callbacks, path.communications, path.variable_passings))
-                callbacks.clear()
-        paths.append(
-            Path(callbacks + [path.callbacks[-1]],
-                 path.communications, path.variable_passings)
-        )
-        return paths
-
-    def to_label(latency):
-        label = (
-            'min: {:.2f} ms\n'.format(np.min(latency * 1.0e-6))
-            + 'avg: {:.2f} ms\n'.format(np.average(latency * 1.0e-6))
-            + 'max: {:.2f} ms'.format(np.max(latency * 1.0e-6))
-        )
-        return label
-
     if granularity == 'callback':
-        for component in path:
-            _, latency = component.to_timeseries(
-                remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
-            if isinstance(component, CallbackBase):
-                label = f'{component.node_name}\n{component.callback_name}\n'
-                label += to_label(latency)
-                graph.node(component.unique_name, label=label)
-            elif isinstance(component, Communication):
-                label = component.topic_name
-                label += '\n' + to_label(latency)
-                callback_from = component.callback_from
-                if callback_from is None:
-                    continue
-                graph.edge(
-                    callback_from.unique_name,
-                    component.callback_to.unique_name,
-                    label=label,
-                )
-            elif isinstance(component, VariablePassing):
-                label = to_label(latency)
-                graph.edge(
-                    component.callback_from.unique_name,
-                    component.callback_to.unique_name,
-                    label=label,
-                )
+        graph_attr = get_attr_callback(path, treat_drop_as_delay)
     elif granularity == 'node':
-        node_paths = to_node_paths(path)
-        for node_path in node_paths:
-            _, latency = node_path.to_timeseries(
-                remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
-            node_name = node_path.callbacks[0].node_name
-            label = node_name
-            label += '\n' + to_label(latency)
-            graph.node(node_name, label=label)
-        node_names = [path.callbacks[0].node_name for path in node_paths]
-
-        for comm_path in path.communications:
-            callback_from = comm_path.callback_from
-            if callback_from is None:
-                continue
-            if (
-                callback_from.node_name not in node_names
-                or comm_path.callback_to.node_name not in node_names
-            ):
-                continue
-            if comm_path.is_intra_process:
-                _, pubsub_latency = comm_path.to_timeseries(
-                    remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
-                label = comm_path.topic_name
-                label += '\n' + (
-                    'min: {:.2f} ms\n'.format(np.min(pubsub_latency * 1.0e-6))
-                    + 'avg: {:.2f} ms\n'.format(np.average(pubsub_latency * 1.0e-6))
-                    + 'max: {:.2f} ms'.format(np.max(pubsub_latency * 1.0e-6))
-                )
-            else:
-                _, pubsub_latency = comm_path.to_timeseries(
-                    remove_dropped=True
-                )
-                if comm_path.rmw_implementation == 'rmw_fastrtps_cpp':
-                    _, dds_latency = comm_path.to_dds_latency().to_timeseries(
-                        remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
-                    label = comm_path.topic_name
-                    label += '\n' + (
-                        'min: {:.2f} ({:.2f}) ms\n'.format(
-                            np.min(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
-                        )
-                        + 'avg: {:.2f} ({:.2f}) ms\n'.format(
-                            np.average(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
-                        )
-                        + 'max: {:.2f} ({:.2f}) ms'.format(
-                            np.max(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
-                        )
-                    )
-                else:
-                    label = comm_path.topic_name
-                    label += '\n' + (
-                        'min: {:.2f}  ms\n'.format(np.min(pubsub_latency * 1.0e-6))
-                        + 'avg: {:.2f} ms\n'.format(np.average(pubsub_latency * 1.0e-6))
-                        + 'max: {:.2f} ms'.format(np.max(pubsub_latency * 1.0e-6))
-                    )
-
-            callback_from = comm_path.callback_from
-            if callback_from is None:
-                continue
-            graph.edge(
-                callback_from.node_name,
-                comm_path.callback_to.node_name,
-                label=label,
-            )
+        graph_attr = get_attr_node(path, treat_drop_as_delay)
     elif granularity == 'end-to-end':
-        node_paths = to_node_paths(path)
+        graph_attr = get_attr_end_to_end(path, treat_drop_as_delay)
 
-        for node_path in [node_paths[0], node_paths[-1]]:
-            _, latency = node_path.to_timeseries(
-                remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
-            node_name = node_path.callbacks[0].node_name
-            label = node_name + '\n' + to_label(latency)
-            graph.node(node_name, label=label)
-
-        inter_mediate_callbacks = []
-        terminal_callbacks = node_paths[0].callbacks + node_paths[-1].callbacks
-        for callback in path.callbacks:
-            if callback not in terminal_callbacks:
-                inter_mediate_callbacks.append(callback)
-
-        path = Path(inter_mediate_callbacks,
-                    path.communications, path.variable_passings)
-        _, latency = path.to_timeseries(remove_dropped=True)
-
-        start_node_name = node_paths[0].callbacks[0].node_name
-        end_node_name = node_paths[-1].callbacks[0].node_name
-        graph.edge(start_node_name, end_node_name, label=to_label(latency))
+    for node_attr in graph_attr.nodes:
+        graph.node(node_attr.node, node_attr.label)
+    for edge_attr in graph_attr.edges:
+        graph.edge(edge_attr.node_from, edge_attr.node_to, edge_attr.label)
 
     source = Source(graph.source)
     if export_path is not None:
@@ -181,3 +58,182 @@ def chain_latency(
         return None
 
     return graph
+
+
+class GraphNode:
+
+    def __init__(self, node: str, label: str) -> None:
+        self.node = node
+        self.label = label
+
+
+class GraphEdge:
+
+    def __init__(self, node_from: str, node_to: str, label: str) -> None:
+        self.node_from = node_from
+        self.node_to = node_to
+        self.label = label
+
+
+class GraphAttr:
+
+    def __init__(self, nodes: List[GraphNode], edges: List[GraphEdge]):
+        self.nodes = nodes
+        self.edges = edges
+
+
+def to_label(latency: np.array) -> str:
+    label = (
+        'min: {:.2f} ms\n'.format(np.min(latency * 1.0e-6))
+        + 'avg: {:.2f} ms\n'.format(np.average(latency * 1.0e-6))
+        + 'max: {:.2f} ms'.format(np.max(latency * 1.0e-6))
+    )
+    return label
+
+
+def to_node_paths(path: Path) -> List[Path]:
+    callbacks: List[CallbackBase] = []
+    paths: List[Path] = []
+    for cb, cb_ in zip(path.callbacks[:-1], path.callbacks[1:]):
+        callbacks.append(cb)
+        if cb.node_name != cb_.node_name:
+            paths.append(
+                Path(callbacks, path.communications, path.variable_passings))
+            callbacks.clear()
+
+    paths.append(
+        Path(callbacks + [path.callbacks[-1]],
+             path.communications, path.variable_passings))
+
+    return paths
+
+
+def get_attr_callback(path, treat_drop_as_delay) -> GraphAttr:
+    graph_nodes: List[GraphNode] = []
+    graph_edges: List[GraphEdge] = []
+
+    for component in path:
+        _, latency = component.to_timeseries(
+            remove_dropped=True,
+            treat_drop_as_delay=treat_drop_as_delay)
+
+        if isinstance(component, CallbackBase):
+            label = f'{component.node_name}\n{component.callback_name}\n'
+            label += to_label(latency)
+            graph_nodes.append(GraphNode(component.unique_name, label))
+
+        elif isinstance(component, Communication):
+            label = component.topic_name
+            label += '\n' + to_label(latency)
+
+            if component.callback_from is None:
+                continue
+
+            graph_edges.append(GraphEdge(
+                component.callback_from.unique_name,
+                component.callback_to.unique_name,
+                label,
+            ))
+
+        elif isinstance(component, VariablePassing):
+            label = to_label(latency)
+            graph_edges.append(
+                GraphEdge(
+                    component.callback_from.unique_name,
+                    component.callback_to.unique_name,
+                    label,
+                ))
+
+    return GraphAttr(graph_nodes, graph_edges)
+
+
+def get_attr_node(path, treat_drop_as_delay) -> GraphAttr:
+    node_paths = to_node_paths(path)
+    graph_nodes: List[GraphNode] = []
+    for node_path in node_paths:
+        _, latency = node_path.to_timeseries(
+            remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
+        node_name = node_path.callbacks[0].node_name
+        label = node_name
+        label += '\n' + to_label(latency)
+        graph_nodes.append(GraphNode(node_name, label))
+    node_names = [path.callbacks[0].node_name for path in node_paths]
+
+    graph_edges: List[GraphEdge] = []
+    for comm_path in path.communications:
+        callback_from = comm_path.callback_from
+        if callback_from is None:
+            continue
+        if (
+            callback_from.node_name not in node_names
+            or comm_path.callback_to.node_name not in node_names
+        ):
+            continue
+        if comm_path.is_intra_process:
+            _, pubsub_latency = comm_path.to_timeseries(
+                remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
+            label = comm_path.topic_name
+            label += '\n' + to_label(pubsub_latency)
+        else:
+            _, pubsub_latency = comm_path.to_timeseries(
+                remove_dropped=True
+            )
+            if comm_path.rmw_implementation == 'rmw_fastrtps_cpp':
+                _, dds_latency = comm_path.to_dds_latency().to_timeseries(
+                    remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
+                label = comm_path.topic_name
+                label += '\n' + (
+                    'min: {:.2f} ({:.2f}) ms\n'.format(
+                        np.min(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                    )
+                    + 'avg: {:.2f} ({:.2f}) ms\n'.format(
+                        np.average(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                    )
+                    + 'max: {:.2f} ({:.2f}) ms'.format(
+                        np.max(pubsub_latency * 1.0e-6), np.min(dds_latency * 1.0e-6)
+                    )
+                )
+            else:
+                label = comm_path.topic_name
+                label += '\n' + to_label(pubsub_latency)
+
+        callback_from = comm_path.callback_from
+        if callback_from is None:
+            continue
+
+        graph_edges.append(
+            GraphEdge(callback_from.node_name, comm_path.callback_to.node_name, label))
+
+    return GraphAttr(graph_nodes, graph_edges)
+
+
+def get_attr_end_to_end(path, treat_drop_as_delay) -> GraphAttr:
+    node_paths = to_node_paths(path)
+
+    graph_nodes: List[GraphNode] = []
+
+    for node_path in [node_paths[0], node_paths[-1]]:
+        _, latency = node_path.to_timeseries(
+            remove_dropped=True, treat_drop_as_delay=treat_drop_as_delay)
+        node_name = node_path.callbacks[0].node_name
+        label = node_name + '\n' + to_label(latency)
+        graph_nodes.append(GraphNode(node_name, label))
+
+    inter_mediate_callbacks = []
+    terminal_callbacks = node_paths[0].callbacks + node_paths[-1].callbacks
+    for callback in path.callbacks:
+        if callback not in terminal_callbacks:
+            inter_mediate_callbacks.append(callback)
+
+    path = Path(inter_mediate_callbacks, path.communications, path.variable_passings)
+
+    _, latency = path.to_timeseries(remove_dropped=True)
+
+    start_node_name = node_paths[0].callbacks[0].node_name
+    end_node_name = node_paths[-1].callbacks[0].node_name
+    graph_edges: List[GraphEdge] = []
+    graph_edges.append(
+        GraphEdge(start_node_name, end_node_name, to_label(latency))
+    )
+
+    return GraphAttr(graph_nodes, graph_edges)
