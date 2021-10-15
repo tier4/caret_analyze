@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from bokeh.io import save, show
 from bokeh.models import CrosshairTool
@@ -34,8 +34,7 @@ def message_flow(
     export_path: Optional[str] = None,
     granularity: Optional[str] = None,
     treat_drop_as_delay=False
-):
-
+) -> None:
     granularity = granularity or 'raw'
     assert granularity in ['raw', 'callback', 'node']
 
@@ -48,12 +47,15 @@ def message_flow(
     @desc
     </div>
     """
+
     fig = figure(
         plot_width=1000,
         plot_height=400,
         active_scroll='wheel_zoom',
-        tooltips=TOOLTIPS
-        )
+        tooltips=TOOLTIPS,
+    )
+    fig.add_tools(CrosshairTool(line_alpha=0.4))
+
     color_palette = ColorPalette(Bokeh8)
 
     df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
@@ -62,8 +64,31 @@ def message_flow(
     formatter.remove_columns(df)
     formatter.rename_columns(df, path)
 
-    tick_labels = TickLabels(df)
+    yaxis_property = YAxisProperty(df)
+    fig.yaxis.ticker = yaxis_property.values
+    fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
+    rect_source = get_callback_rects(df, path, granularity)
+    fig.rect('x', 'y', 'width', 'height', source=rect_source, color='black', alpha=0.15)
+
+    line_sources = get_flow_lines(df)
+    for i, line_source in enumerate(line_sources):
+        fig.line(
+            x='x',
+            y='y',
+            line_width=1.5,
+            line_color=color_palette.get_index_color(i),
+            line_alpha=1,
+            source=line_source,
+        )
+
+    if export_path is None:
+        show(fig)
+    else:
+        save(fig, export_path, title='time vs tracepoint', resources=CDN)
+
+
+def get_callback_rects(df: pd.DataFrame, path: Path, granularity: str) -> ColumnDataSource:
     rect_source = ColumnDataSource(data={
         'x': [],
         'y': [],
@@ -74,7 +99,7 @@ def message_flow(
         'height': []
     })
 
-    column_values = ColumnValues(df.columns)
+    column_values = YAxisValues(df.columns)
     for callback in path.callbacks:
         if granularity == 'raw':
             search_name = callback.unique_name
@@ -84,13 +109,13 @@ def message_flow(
             search_name = callback.node_name
 
         y_maxs = column_values.get_start_indexes(search_name)
-        y_mins = column_values.get_end_indexes(search_name)
+        y_mins = column_values.get_end_values(search_name)
 
         for y_min, y_max in zip(y_mins, y_maxs):
             for _, row in callback.to_dataframe().iterrows():
                 callback_start = row[TRACE_POINT.CALLBACK_START_TIMESTAMP]
                 callback_end = row[TRACE_POINT.CALLBACK_END_TIMESTAMP]
-                rect = CallbackRect(callback_start, callback_end, y_min, y_max)
+                rect = RectValues(callback_start, callback_end, y_min, y_max)
                 new_data = {
                     'x': [rect.x],
                     'y': [rect.y],
@@ -102,9 +127,14 @@ def message_flow(
                 }
                 rect_source.stream(new_data)
 
-    fig.rect('x', 'y', 'width', 'height', source=rect_source, color='black', alpha=0.15)
+    return rect_source
 
-    for i, row in df.iterrows():
+
+def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
+    tick_labels = YAxisProperty(df)
+    line_sources = []
+
+    for _, row in df.iterrows():
         x_min = min(row.values)
         x_max = max(row.values)
         width = x_max - x_min
@@ -118,28 +148,15 @@ def message_flow(
             'height': [0]*len(row.values),
             'desc': ['']*len(row.values),
         })
-        fig.line(
-            x='x',
-            y='y',
-            line_width=1.5,
-            line_color=color_palette.get_index_color(i),
-            line_alpha=1,
-            source=line_source,
-        )
 
-    fig.yaxis.ticker = tick_labels.values
-    fig.yaxis.major_label_overrides = tick_labels.labels_dict
-    fig.add_tools(CrosshairTool(line_alpha=0.4))
+        line_sources.append(line_source)
 
-    if export_path is None:
-        show(fig)
-    else:
-        save(fig, export_path, title='time vs tracepoint', resources=CDN)
+    return line_sources
 
 
-class ColumnNameParser:
+class DataFrameColumnNameParser:
 
-    def __init__(self, column_name):
+    def __init__(self, column_name) -> None:
         split_text = column_name.split('/')
         tracepoint_name = split_text[-2]
         self.tracepoint_name = tracepoint_name
@@ -157,7 +174,7 @@ class ColorPalette:
         return self._color_palette[i % self._palette_size]
 
 
-class TickLabels:
+class YAxisProperty:
 
     def __init__(self, df) -> None:
         self._tick_labels: Dict[int, str] = {}
@@ -218,7 +235,7 @@ class RawLevelFormatter(DataFrameFormatter):
         renames = {}
         topic_name = ''
         for column_name in df.columns[::-1]:
-            parser = ColumnNameParser(column_name)
+            parser = DataFrameColumnNameParser(column_name)
             tracepoint_name = parser.tracepoint_name
             unique_name = parser.unique_name
 
@@ -257,8 +274,8 @@ class CallbackLevelFormatter(DataFrameFormatter):
         for column_name_, column_name in zip(df.columns[:-1], df.columns[1:]):
             # For variable passing, callback_end, calllback_start
             # In case of communication, callback_end,rclcpp_publish/rclcpp_intra_publish
-            tracepoint_name_ = ColumnNameParser(column_name_).tracepoint_name
-            tracepoint_name = ColumnNameParser(column_name).tracepoint_name
+            tracepoint_name_ = DataFrameColumnNameParser(column_name_).tracepoint_name
+            tracepoint_name = DataFrameColumnNameParser(column_name).tracepoint_name
 
             is_callback_end = tracepoint_name_ == TRACE_POINT.CALLBACK_END_TIMESTAMP
             is_variable_pasisng = tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP
@@ -278,7 +295,7 @@ class CallbackLevelFormatter(DataFrameFormatter):
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
         renames = {}
         for column_name in df.columns:
-            parser = ColumnNameParser(column_name)
+            parser = DataFrameColumnNameParser(column_name)
             if parser.tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
                 renames[column_name] = parser.unique_name + ' [start]'
             elif parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
@@ -300,15 +317,15 @@ class NodeLevelFormatter(DataFrameFormatter):
 
         # remove callbacks in the same node
         for i, column_name in enumerate(df.columns):
-            parser = ColumnNameParser(column_name)
+            parser = DataFrameColumnNameParser(column_name)
 
             is_next_same_node = False
             is_before_same_node = False
             if i+1 < len(df.columns):
-                parser_ = ColumnNameParser(df.columns[i+1])
+                parser_ = DataFrameColumnNameParser(df.columns[i+1])
                 is_next_same_node = parser.node_name == parser_.node_name
             if i-1 >= 0:
-                parser_ = ColumnNameParser(df.columns[i-1])
+                parser_ = DataFrameColumnNameParser(df.columns[i-1])
                 is_before_same_node = parser.node_name == parser_.node_name
 
             if is_next_same_node and is_before_same_node:
@@ -316,9 +333,11 @@ class NodeLevelFormatter(DataFrameFormatter):
         df.drop(drop_columns, axis=1, inplace=True)
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
+        path
+
         renames = {}
         for column_name in df.columns:
-            parser = ColumnNameParser(column_name)
+            parser = DataFrameColumnNameParser(column_name)
             if parser.tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
                 renames[column_name] = parser.node_name + ' [start]'
             elif parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
@@ -329,7 +348,7 @@ class NodeLevelFormatter(DataFrameFormatter):
         df.rename(columns=renames, inplace=True)
 
 
-class CallbackRect():
+class RectValues():
     def __init__(
         self,
         callback_start: float,
@@ -357,12 +376,12 @@ class CallbackRect():
         return abs(self._y[0] - self._y[1])
 
 
-class ColumnValues:
+class YAxisValues:
 
-    def __init__(self, column_names):
+    def __init__(self, column_names) -> None:
         self._column_names = column_names
 
-    def _search_index(self, search_name):
+    def _search_values(self, search_name) -> np.array:
         indexes = np.array([], dtype=int)
         for i, column_name in enumerate(self._column_names):
             if '[end]' in column_name or '[publish]' in column_name:
@@ -371,10 +390,10 @@ class ColumnValues:
                 indexes = np.append(indexes, i)
         return indexes
 
-    def get_start_indexes(self, search_name):
-        indexes = self._search_index(search_name)
-        return (indexes) * -1
+    def get_start_indexes(self, search_name) -> List[int]:
+        indexes = self._search_values(search_name)
+        return list((indexes) * -1)
 
-    def get_end_indexes(self, search_name):
-        indexes = self._search_index(search_name)
-        return (indexes + 1) * -1
+    def get_end_values(self, search_name) -> List[int]:
+        indexes = self._search_values(search_name)
+        return list((indexes + 1) * -1)
