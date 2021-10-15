@@ -242,14 +242,6 @@ def get_attr_end_to_end(path, treat_drop_as_delay, lstrip_s, rstrip_s) -> GraphA
         label = node_name + '\n' + to_label(latency)
         graph_nodes.append(GraphNode(node_name, label))
 
-    inter_mediate_callbacks = []
-    terminal_callbacks = node_paths[0].callbacks + node_paths[-1].callbacks
-    for callback in path.callbacks:
-        if callback not in terminal_callbacks:
-            inter_mediate_callbacks.append(callback)
-
-    path = Path(inter_mediate_callbacks, path.communications, path.variable_passings)
-
     _, latency = path.to_timeseries(
         remove_dropped=True,
         lstrip_s=lstrip_s,
