@@ -16,8 +16,6 @@
 from itertools import product
 from typing import Dict, List, Optional
 
-from caret_analyze.record.lttng.lttng import Lttng
-
 from .architecture import Architecture
 from .architecture.interface import ArchitectureReader, IGNORE_TOPICS
 from .architecture.lttng import ArchitectureLttng
@@ -28,6 +26,7 @@ from .graph_search import CallbackPathSercher
 from .node import Node
 from .path import Path
 from .record import RecordsContainer
+from .trace.lttng import Lttng
 from .util import Util
 from .value_objects.path_alias import PathAlias
 

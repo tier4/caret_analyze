@@ -15,7 +15,7 @@
 from typing import List
 
 from .interface import ArchitectureReader
-from ..record.lttng import Lttng
+from ..trace.lttng import Lttng
 from ..value_objects.callback_info import SubscriptionCallbackInfo, TimerCallbackInfo
 from ..value_objects.path_alias import PathAlias
 from ..value_objects.publisher import Publisher

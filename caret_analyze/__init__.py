@@ -13,6 +13,6 @@
 # limitations under the License.
 
 from .application import Application
-from .record.lttng import Lttng
+from .trace.lttng import Lttng
 
 __all__ = ['Application', 'Lttng']

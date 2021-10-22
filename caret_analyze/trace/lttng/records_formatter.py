@@ -19,12 +19,12 @@ from .objects_with_runtime_info import CallbackWithRuntime
 from .objects_with_runtime_info import SubscriptionCallbackWithRuntime
 from .objects_with_runtime_info import TimerCallbackWithRuntime
 from .util import Ros2DataModelUtil
-from .. import merge
-from .. import merge_sequencial
-from .. import merge_sequencial_for_addr_track
-from .. import RecordInterface
-from .. import RecordsInterface
-from ..record_factory import RecordsFactory
+from ...record import merge
+from ...record import merge_sequencial
+from ...record import merge_sequencial_for_addr_track
+from ...record import RecordInterface
+from ...record import RecordsInterface
+from ...record.record_factory import RecordsFactory
 
 
 class RecordsFormatter:

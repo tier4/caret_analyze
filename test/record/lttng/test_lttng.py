@@ -14,7 +14,7 @@
 
 
 from caret_analyze.record import Record
-from caret_analyze.record.lttng import Lttng
+from caret_analyze.trace.lttng import Lttng
 from caret_analyze.value_objects.callback_info import SubscriptionCallbackInfo
 
 import pytest

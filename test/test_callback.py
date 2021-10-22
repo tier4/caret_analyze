@@ -14,7 +14,7 @@
 
 from caret_analyze.application import Application
 from caret_analyze.callback import CallbackBase, SubscriptionCallback
-from caret_analyze.record.lttng import Lttng
+from caret_analyze.trace.lttng import Lttng
 from caret_analyze.value_objects.callback_info import (
     SubscriptionCallbackInfo, TimerCallbackInfo)
 

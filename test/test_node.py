@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from caret_analyze.application import Application
-from caret_analyze.record.lttng import Lttng
+from caret_analyze.trace.lttng import Lttng
 
 
 class TestNode:

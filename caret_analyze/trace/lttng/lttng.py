@@ -24,8 +24,8 @@ from .objects_with_runtime_info import (CallbackWithRuntime,
 from .processor import Ros2Handler
 from .records_formatter import RecordsFormatter
 from .util import Ros2DataModelUtil
-from .. import merge_sequencial, RecordInterface, RecordsContainer, RecordsInterface
-from ..record_factory import RecordsFactory
+from ...record import merge_sequencial, RecordInterface, RecordsContainer, RecordsInterface
+from ...record.record_factory import RecordsFactory
 from ...util import Singleton
 from ...value_objects.callback_info import (CallbackInfo,
                                             SubscriptionCallbackInfo,
