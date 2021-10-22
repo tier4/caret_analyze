@@ -12,22 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import UserDict
-from collections import UserList
-import itertools
+from collections import UserDict, UserList
+from itertools import product
 from typing import Callable, List, NamedTuple, Optional, Set, Tuple, Union
 
+
 from .callback import CallbackBase
-from .communication import Communication
-from .communication import CommunicationInterface
-from .communication import VariablePassing
+from .communication import Communication, CommunicationInterface, VariablePassing
+from .exceptions import ItemNotFoundError
 from .latency import LatencyBase
-from .record.record import merge
-from .record.record import merge_sequencial
-from .record.record import RecordsInterface
+from .record.record import merge, merge_sequencial, RecordsInterface
 from .record.trace_points import TRACE_POINT
-from .util import UniqueList
-from .util import Util
+from .util import UniqueList, Util
 
 
 class TracePoints(NamedTuple):
@@ -101,7 +97,7 @@ class ColumnNameCounter(UserDict):
             return self._to_column_name(latency.callback_to, tracepoint_name)
 
     def _to_key(self, callback: CallbackBase, tracepoint_name: str) -> str:
-        return f'{callback.unique_name}/{tracepoint_name}'
+        return f'{callback.callback_unique_name}/{tracepoint_name}'
 
     def _to_column_name(self, callback: CallbackBase, tracepoint_name: str) -> str:
         key = self._to_key(callback, tracepoint_name)
@@ -135,7 +131,7 @@ class PathLatencyMerger:
             ordered_names = latency.column_names
 
         ordered_columns_names = []
-        for ordered_name, column_name in itertools.product(ordered_names, tracepoint_names):
+        for ordered_name, column_name in product(ordered_names, tracepoint_names):
             if ordered_name in column_name:
                 ordered_columns_names.append(column_name)
         return ordered_columns_names
@@ -281,7 +277,7 @@ class Path(UserList, LatencyBase):
         return self._column_names
 
     def __str__(self) -> str:
-        unique_names = [callback.unique_name for callback in self.callbacks]
+        unique_names = [callback.callback_unique_name for callback in self.callbacks]
         return '\n'.join(unique_names)
 
     def _merge_path(self, column_only=False) -> Tuple[RecordsInterface, List[str]]:
@@ -356,13 +352,17 @@ class Path(UserList, LatencyBase):
                 lambda x: x.callback_from == cb and x.callback_to == cb_
             )
 
-            communication = Util.find_one(communications, matched)
-            if communication is not None:
+            try:
+                communication = Util.find_one(communications, matched)
                 chain.append(communication)
+            except ItemNotFoundError:
+                pass
 
-            variable_passing = Util.find_one(variable_passings, matched)
-            if variable_passing is not None:
+            try:
+                variable_passing = Util.find_one(variable_passings, matched)
                 chain.append(variable_passing)
+            except ItemNotFoundError:
+                pass
 
             chain.append(cb_)
 

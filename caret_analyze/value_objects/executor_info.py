@@ -12,22 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .interface import RecordsContainer
-from .record import merge
-from .record import merge_sequencial
-from .record import merge_sequencial_for_addr_track
-from .record import Record
-from .record import RecordInterface
-from .record import Records
-from .record import RecordsInterface
 
-__all__ = [
-    'RecordInterface',
-    'RecordsInterface',
-    'Record',
-    'Records',
-    'RecordsContainer',
-    'merge',
-    'merge_sequencial',
-    'merge_sequencial_for_addr_track',
-]
+from typing import Tuple
+
+from .executor_type import ExecutorType
+from .value_object import ValueObject
+
+
+class ExecutorInfo(ValueObject):
+    """Executor info for architecture."""
+
+    def __init__(
+        self,
+        executor_type: ExecutorType,
+        *callbacks: str
+    ) -> None:
+        self._executor_type = executor_type
+        self._callbacks = callbacks
+
+    @property
+    def callbacks(self) -> Tuple[str, ...]:
+        return self._callbacks
+
+    @property
+    def executor_type(self) -> ExecutorType:
+        return self._executor_type

@@ -14,19 +14,17 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import List, Optional
 
-from .callback import CallbackBase
-from .callback import SubscriptionCallback
+from .callback import CallbackBase, SubscriptionCallback
 from .exceptions import TraceResultAanalyzeError
 from .latency import LatencyBase
-from .pub_sub import Publisher
-from .pub_sub import Subscription
 from .record import RecordsInterface
 from .record.interface import RecordsContainer
 from .record.trace_points import TRACE_POINT
+from .value_objects.publisher import Publisher
+from .value_objects.subscription import Subscription
 
 
 class CommunicationInterface(metaclass=ABCMeta):
@@ -157,13 +155,13 @@ class Communication(CommunicationInterface, LatencyBase):
         records: RecordsInterface
         if self.is_intra_process:
             records = self._records_container.compose_intra_process_communication_records(
-                self.callback_subscription, self.callback_publish
+                self.callback_subscription.info, self.callback_publish.info
             )
             records.sort(
                 Communication.column_names_intra_process[0], inplace=True)
         else:
             records = self._records_container.compose_inter_process_communication_records(
-                self.callback_subscription, self.callback_publish
+                self.callback_subscription.info, self.callback_publish.info
             )
             records.sort(
                 Communication.column_names_inter_process[0], inplace=True)
@@ -179,7 +177,7 @@ class Communication(CommunicationInterface, LatencyBase):
         # columns may be unintentionally generated as inter-process communication.
         try:
             intra_records = records_container.compose_intra_process_communication_records(
-                self.callback_subscription, self.callback_publish
+                self.callback_subscription.info, self.callback_publish.info
             )
 
             return len(intra_records.data) > 0
@@ -250,7 +248,7 @@ class DDSLatency(CommunicationInterface, LatencyBase):
         assert self.callback_publish is not None
 
         records = self._records_container.compose_inter_process_communication_records(
-            self.callback_subscription, self.callback_publish
+            self.callback_subscription.info, self.callback_publish.info
         )
         rcl_layer_columns = [
             TRACE_POINT.CALLBACK_START_TIMESTAMP,
@@ -282,7 +280,7 @@ class VariablePassing(VariablePassingInterface, LatencyBase):
     def to_records(self) -> RecordsInterface:
         assert self._records_container is not None
         records: RecordsInterface = self._records_container.compose_variable_passing_records(
-            self.callback_write, self.callback_read
+            self.callback_write.info, self.callback_read.info
         )
         records.sort(self.column_names[0], inplace=True)
         return records

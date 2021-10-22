@@ -17,27 +17,23 @@ from typing import List, Optional
 from tracetools_analysis.loading import load_file
 
 from .dataframe_formatter import DataFrameFormatter
-from .impl import CallbackImpl
-from .impl import PublisherImpl
-from .impl import SubscriptionCallbackImpl
-from .impl import TimerCallbackImpl
+from .objects_with_runtime_info import (CallbackWithRuntime,
+                                        PublisherWithRuntime,
+                                        SubscriptionCallbackWithRuntime,
+                                        TimerCallbackWithRuntime)
 from .processor import Ros2Handler
 from .records_formatter import RecordsFormatter
 from .util import Ros2DataModelUtil
-from .. import ArchitectureInfoContainer
-from .. import CallbackInterface
-from .. import merge_sequencial
-from .. import PublisherInterface
-from .. import RecordInterface
-from .. import RecordsContainer
-from .. import RecordsInterface
-from .. import SubscriptionCallbackInterface
-from .. import TimerCallbackInterface
+from .. import merge_sequencial, RecordInterface, RecordsContainer, RecordsInterface
 from ..record_factory import RecordsFactory
 from ...util import Singleton
+from ...value_objects.callback_info import (CallbackInfo,
+                                            SubscriptionCallbackInfo,
+                                            TimerCallbackInfo)
+from ...value_objects.publisher import Publisher
 
 
-class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
+class Lttng(Singleton, RecordsContainer):
     load_dir: Optional[str] = None
 
     def __init__(self, trace_dir, force_conversion: bool = False):
@@ -51,13 +47,12 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
         self._dataframe = DataFrameFormatter(data_util)
         self._records = RecordsFormatter(data_util, self._dataframe)
 
-    def _to_local_callback(self, attr: CallbackInterface) -> CallbackImpl:
-        if isinstance(attr, TimerCallbackInterface):
-            return TimerCallbackImpl(
-                attr.node_name, attr.callback_name, attr.symbol, attr.period_ns, self._dataframe
-            )
-        elif isinstance(attr, SubscriptionCallbackInterface):
-            return SubscriptionCallbackImpl(
+    def _to_local_callback(self, attr: CallbackInfo) -> CallbackWithRuntime:
+        if isinstance(attr, TimerCallbackInfo):
+            return TimerCallbackWithRuntime(
+                attr.node_name, attr.callback_name, attr.symbol, attr.period_ns, self._dataframe)
+        elif isinstance(attr, SubscriptionCallbackInfo):
+            return SubscriptionCallbackWithRuntime(
                 attr.node_name, attr.callback_name, attr.symbol, attr.topic_name, self._dataframe
             )
         assert False, 'Not implemented'
@@ -70,22 +65,24 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
     def get_publishers(
         self, node_name: str = None, topic_name: str = None
-    ) -> List[PublisherInterface]:
-        pub_attrs: List[PublisherInterface] = []
+    ) -> List[Publisher]:
+        pub_attrs: List[Publisher] = []
         for _, row in self._dataframe.get_publisher_info().iterrows():
             if (node_name is None or node_name == row['name']) and (
                 topic_name is None or topic_name == row['topic_name']
             ):
-                attr = PublisherImpl(
-                    self._dataframe, node_name=row['name'], topic_name=row['topic_name']
+                attr = PublisherWithRuntime(
+                    self._dataframe,
+                    node_name=row['name'],
+                    topic_name=row['topic_name']
                 )
                 pub_attrs.append(attr)
         return pub_attrs
 
     def get_timer_callbacks(
         self, node_name: str = None, period_ns: int = None
-    ) -> List[TimerCallbackInterface]:
-        timer_attrs: list[TimerCallbackInterface] = []
+    ) -> List[TimerCallbackInfo]:
+        timer_attrs: list[TimerCallbackInfo] = []
         sort_columns = ['name', 'symbol', 'period_ns']
 
         timer_info_df = self._dataframe.get_timer_info()
@@ -97,7 +94,7 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
                     period_ns is None or period_ns == row['period_ns']
                 ):
                     callback_name = f'timer_callback_{idx}'
-                    attr = TimerCallbackImpl(
+                    attr = TimerCallbackInfo(
                         node_name=row['name'],
                         callback_name=callback_name,
                         symbol=row['symbol'],
@@ -108,8 +105,8 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
     def get_subscription_callbacks(
         self, node_name: str = None, topic_name: str = None
-    ) -> List[SubscriptionCallbackInterface]:
-        attrs: List[SubscriptionCallbackInterface] = []
+    ) -> List[SubscriptionCallbackInfo]:
+        attrs: List[SubscriptionCallbackInfo] = []
         # プロセス内とプロセス間で２つのcallback objectが生成される
         group_columns = ['name', 'symbol', 'topic_name']
 
@@ -123,7 +120,7 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
                     topic_name is None or topic_name == row['topic_name']
                 ):
                     callback_name = f'subscription_callback_{idx}'
-                    attr = SubscriptionCallbackImpl(
+                    attr = SubscriptionCallbackInfo(
                         node_name=row['name'],
                         callback_name=callback_name,
                         symbol=row['symbol'],
@@ -134,7 +131,7 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
     def _compose_specific_communication_records(
         self,
-        subscription_callback: SubscriptionCallbackImpl,
+        subscription_callback: SubscriptionCallbackWithRuntime,
         publisher_handle: int,
         is_intra_process: bool,
     ) -> RecordsInterface:
@@ -148,8 +145,8 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
     def _compose_communication_records(
         self,
-        subscription_callback: SubscriptionCallbackImpl,
-        publish_callback: CallbackImpl,
+        subscription_callback: SubscriptionCallbackWithRuntime,
+        publish_callback: CallbackWithRuntime,
         is_intra_process: bool,
     ) -> RecordsInterface:
 
@@ -168,7 +165,7 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
         return communication_records
 
-    def compose_callback_records(self, callback: CallbackInterface) -> RecordsInterface:
+    def compose_callback_records(self, callback: CallbackInfo) -> RecordsInterface:
         callback_impl = self._to_local_callback(callback)
         records = self._records.get_callback_records(callback_impl)
 
@@ -179,11 +176,11 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
     def compose_inter_process_communication_records(
         self,
-        subscription_callback: SubscriptionCallbackInterface,
-        publish_callback: CallbackInterface,
+        subscription_callback: SubscriptionCallbackInfo,
+        publish_callback: CallbackInfo,
     ) -> RecordsInterface:
-        subscription_callback_impl: SubscriptionCallbackImpl
-        publish_callback_impl: CallbackImpl
+        subscription_callback_impl: SubscriptionCallbackWithRuntime
+        publish_callback_impl: CallbackWithRuntime
 
         subscription_callback_impl = self._to_local_callback(
             subscription_callback)  # type: ignore
@@ -201,11 +198,11 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
     def compose_intra_process_communication_records(
         self,
-        subscription_callback: SubscriptionCallbackInterface,
-        publish_callback: Optional[CallbackInterface] = None,
+        subscription_callback: SubscriptionCallbackInfo,
+        publish_callback: Optional[CallbackInfo] = None,
     ) -> RecordsInterface:
-        subscription_callback_impl: SubscriptionCallbackImpl
-        publish_callback_impl: CallbackImpl
+        subscription_callback_impl: SubscriptionCallbackWithRuntime
+        publish_callback_impl: CallbackWithRuntime
         subscription_callback_impl = self._to_local_callback(
             subscription_callback)  # type: ignore
         publish_callback_impl = self._to_local_callback(
@@ -224,8 +221,8 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
 
     def compose_variable_passing_records(
         self,
-        write_callback: CallbackInterface,
-        read_callback: CallbackInterface,
+        write_callback: CallbackInfo,
+        read_callback: CallbackInfo,
     ) -> RecordsInterface:
         write_callback_impl = self._to_local_callback(write_callback)
         read_callback_impl = self._to_local_callback(read_callback)

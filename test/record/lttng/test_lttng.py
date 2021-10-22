@@ -13,25 +13,22 @@
 # limitations under the License.
 
 
-from caret_analyze.callback import SubscriptionCallback
 from caret_analyze.record import Record
 from caret_analyze.record.lttng import Lttng
+from caret_analyze.value_objects.callback_info import SubscriptionCallbackInfo
 
 import pytest
 
-
-listener_callback = SubscriptionCallback(
-    None,
+listener_callback = SubscriptionCallbackInfo(
     '/listener',
-    SubscriptionCallback.to_callback_name(0),
+    SubscriptionCallbackInfo.to_indexed_callback_name(0),
     'demo_nodes_cpp::Listener::Listener(rclcpp::NodeOptionsconst&)::{lambda(std::shared_ptr<std_msgs::msg::String>)#1}',  # noqa: 501
     '/chatter',
 )
 
-pipe2_callback = SubscriptionCallback(
-    None,
+pipe2_callback = SubscriptionCallbackInfo(
     '/pipe2',
-    SubscriptionCallback.to_callback_name(0),
+    SubscriptionCallbackInfo.to_indexed_callback_name(0),
     'IncrementerPipe::IncrementerPipe(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&)::{lambda(std::unique_ptr<std_msgs::msg::Int32>)#1}',  # noqa: 501
     '/topic2',
 )
@@ -223,18 +220,16 @@ class TestLttng:
     def test_compose_variable_passing_records(self, path):
         lttng = Lttng(path)
 
-        callback_write = SubscriptionCallback(
-            None,
+        callback_write = SubscriptionCallbackInfo(
             '/message_driven_node',
-            SubscriptionCallback.to_callback_name(0),
+            SubscriptionCallbackInfo.to_indexed_callback_name(0),
             'SubDependencyNode::SubDependencyNode(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>)::{lambda(std::unique_ptr<sensor_msgs::msg::Image>)#1}',  # noqa: 501
             '/topic2',
         )
 
-        callback_read = SubscriptionCallback(
-            None,
+        callback_read = SubscriptionCallbackInfo(
             '/message_driven_node',
-            SubscriptionCallback.to_callback_name(1),
+            SubscriptionCallbackInfo.to_indexed_callback_name(1),
             'SubDependencyNode::SubDependencyNode(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>)::{lambda(std::unique_ptr<sensor_msgs::msg::Image>)#2}',  # noqa: 501
             '/drive',
         )

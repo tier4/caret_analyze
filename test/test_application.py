@@ -75,8 +75,8 @@ class TestApplication:
         assert len(paths) == paths_len
 
         for path in paths:
-            assert path[0].unique_name == start_cb_name
-            assert path[-1].unique_name == end_cb_name
+            assert path[0].callback_unique_name == start_cb_name
+            assert path[-1].callback_unique_name == end_cb_name
 
     @pytest.mark.parametrize(
         'trace_path, yaml_path, start_cb_name, end_cb_name, paths_len',
@@ -115,3 +115,64 @@ class TestApplication:
 
         paths = app.search_paths(start_cb_name, end_cb_name)
         assert len(paths) == paths_len
+
+    # def test_analysis_senario(self):
+    #     """
+    #     test for v.0.2.0
+    #     解析
+    #     """
+
+    #     lttng = Lttng('')
+    #     trace_result = TraceResult(lttng)
+    #     architecture_reader = ArchitectureReaderFactory.YamlFile('')
+    #     architecture = Architecture(architecture_file)
+    #     app = Application(architecture, trace_result)
+
+    #     app.paths
+    #     path = app.named_path['aa']
+    #     executor = app.executors
+    #     executor.callbacks
+    #     executor.nodes
+
+    # def test_architecture_reader(self):
+    #     reader = ArchitectureReaderFactory.YamlFile('')
+    #     reader.get_node_names()
+    #     reader.get_timer_callbacks()
+    #     reader.get_subscription_callbacks()
+    #     reader.get_publishers()
+
+    # def test_architecture_file_create_senario(self):
+    #     lttng = Lttng('')
+    #     trace_result = TraceResult(lttng)  # 今後トレースのペアは増える見込みがあるので、ここを抽象化する。
+    #     architecture__reader = ArchitectureReaderFactory.lttng(lttng)
+    #     architecture = Architecture(architecture_reader)
+    #     architecture.export('')
+
+    # def test_set_named_path(self):
+    #     lttng = Lttng('')
+    #     trace_result = TraceResult(lttng)  # 今後トレースのペアは増える見込みがあるので、ここを抽象化する。
+    #     architecture_reader = ArchitectureReaderFactory.YamlFile('')
+    #     architecture = Architecture(architecture_file)
+    #     architecture = Architecture('', type='')
+    #     app = Application(architecture, trace_result)
+    #     paths = app.search_paths('', '')
+    #     app.named_path['aa'] == paths[0]
+    #     app.architecture.export('')
+
+    # def test_analyze_executor_behavior(self):
+
+    #     architecture_reader = ArchitectureReaderFactory.YamlFile('')
+    #     architecture = Architecture(architecture_file)
+    #     app = Application(architecture)
+
+    #     synario_config = {
+    #         'callback_unique_name': 10,
+    #         'executor_priority': 2,
+    #         'executor_core': 0
+    #     }
+
+    #     senario_analyzer = WorstCaseAnalyzer(app)
+    #     trace_result = senario_analyzer.analyze(synario_config)
+    #     wc_app = Application(architecture, trace_result)
+    #     path = wc_app._named_path['aaa']
+    #     path

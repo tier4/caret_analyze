@@ -13,17 +13,17 @@
 # limitations under the License.
 
 from caret_analyze.application import Application
-from caret_analyze.callback import CallbackBase
-from caret_analyze.callback import SubscriptionCallback
-from caret_analyze.callback import TimerCallback
+from caret_analyze.callback import CallbackBase, SubscriptionCallback
 from caret_analyze.record.lttng import Lttng
+from caret_analyze.value_objects.callback_info import (
+    SubscriptionCallbackInfo, TimerCallbackInfo)
 
 
 class TestTimerCallback:
 
     def test_to_callback_name(self):
-        assert TimerCallback.to_callback_name(0) == 'timer_callback_0'
-        assert TimerCallback.to_callback_name(1) == 'timer_callback_1'
+        assert TimerCallbackInfo.to_indexed_callback_name(0) == 'timer_callback_0'
+        assert TimerCallbackInfo.to_indexed_callback_name(1) == 'timer_callback_1'
 
     def test_to_dataframe(self):
         lttng = Lttng('sample/lttng_samples/talker_listener/')
@@ -55,9 +55,9 @@ class TestTimerCallback:
 class TestSubscriptionCallback:
 
     def test_to_callback_name(self):
-        assert SubscriptionCallback.to_callback_name(
+        assert SubscriptionCallbackInfo.to_indexed_callback_name(
             0) == 'subscription_callback_0'
-        assert SubscriptionCallback.to_callback_name(
+        assert SubscriptionCallbackInfo.to_indexed_callback_name(
             1) == 'subscription_callback_1'
 
     def test_to_dataframe(self):

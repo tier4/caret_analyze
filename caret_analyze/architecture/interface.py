@@ -12,63 +12,160 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABCMeta
-from abc import abstractmethod
-from typing import List, Optional
+from __future__ import annotations
 
-from ..communication import Communication
-from ..communication import VariablePassing
-from ..node import Node
+from abc import ABCMeta, abstractmethod
+from typing import List
+
+from ..value_objects.callback_info import SubscriptionCallbackInfo, TimerCallbackInfo
+from ..value_objects.path_alias import PathAlias
+from ..value_objects.publisher import Publisher
+from ..value_objects.variable_passing_info import VariablePassingInfo
 
 UNDEFINED_STR = 'UNDEFINED'
 IGNORE_TOPICS = ['/parameter_events', '/rosout', '/clock']
 
 
-class PathAlias:
-
-    def __init__(self, alias: str, callback_names: List[str]):
-        self.path_name = alias
-        self.callback_names = callback_names
-
-
-class ArchitectureInterface(metaclass=ABCMeta):
-
-    @property
-    @abstractmethod
-    def nodes(self) -> List[Node]:
-        pass
-
-    @property
-    @abstractmethod
-    def communications(self) -> List[Communication]:
-        pass
-
-    @property
-    @abstractmethod
-    def variable_passings(self) -> List[VariablePassing]:
-        pass
-
-    @property
-    @abstractmethod
-    def path_aliases(self) -> List[PathAlias]:
-        pass
-
-
-class ArchitectureImporter(ArchitectureInterface):
+class ArchitectureReader(metaclass=ABCMeta):
+    """Architecture reader base class."""
 
     @abstractmethod
-    def __init__(self) -> None:
+    def get_node_names(
+        self
+    ) -> List[str]:
+        """
+        Get node names.
+
+        Returns
+        -------
+        List[str]
+            node names.
+
+        """
         pass
 
     @abstractmethod
-    def execute(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
+    def get_timer_callbacks(
+        self,
+        node_name: str
+    ) -> List[TimerCallbackInfo]:
+        """
+        Get timer callbacks info.
+
+        Parameters
+        ----------
+        node_name : str
+            target node name
+
+        Returns
+        -------
+        List[TimerCallbackInfo]
+            timer callback info
+
+        """
         pass
-
-
-class ArchitectureExporter(metaclass=ABCMeta):
 
     @abstractmethod
-    def execute(
-        self, architecture: ArchitectureInterface, path_aliases: List[PathAlias], path: str
-    ) -> None:
+    def get_subscription_callbacks(
+        self,
+        node_name: str
+    ) -> List[SubscriptionCallbackInfo]:
+        """
+        Get subscription callbacks info.
+
+        Parameters
+        ----------
+        node_name : str
+            target node name
+
+        Returns
+        -------
+        List[SubscriptionCallbackInfo]
+            subscription callback inro
+
+        """
         pass
+
+    @abstractmethod
+    def get_publishers(
+        self,
+        node_name: str
+    ) -> List[Publisher]:
+        """
+        Get publishers info.
+
+        Parameters
+        ----------
+        node_name : str
+            target node name.
+
+        Returns
+        -------
+        List[PublishInfo]
+            publisher info
+
+        """
+        pass
+
+    @abstractmethod
+    def get_path_aliases(self) -> List[PathAlias]:
+        """
+        Get callback path alias.
+
+        Returns
+        -------
+        List[PathAlias]
+            path alias
+
+        """
+        pass
+
+    @abstractmethod
+    def get_variable_passings(
+        self,
+        node_name: str
+    ) -> List[VariablePassingInfo]:
+        """
+        Get variable passing info.
+
+        Parameters
+        ----------
+        node_name : str
+
+        Returns
+        -------
+        List[VariablePassingInfo]
+
+        """
+
+    # @abstractmethod
+    # def get_executors(self) -> List[ExecutorInfo]:
+    #     """Get executors info.
+
+    #     Returns
+    #     -------
+    #     List[ExecutorInfo]
+    #         executor info
+
+    #     """
+    #     pass
+
+    # @abstractmethod
+    # def get_callback_groups(
+    #     self,
+    #     node_name: str
+    # ) -> List[CallbackGroupInfo]:
+    #     """Get callback groups info.
+
+    #     Parameters
+    #     ----------
+    #     node_name : str
+    #         target node name
+
+    #     Returns
+    #     -------
+    #     List[CallbackGroupInfo]
+    #         callback group info
+
+    #     """
+    #     pass

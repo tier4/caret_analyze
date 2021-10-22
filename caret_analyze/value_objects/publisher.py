@@ -14,36 +14,23 @@
 
 from typing import Optional
 
-from caret_analyze.record import PublisherInterface
-from caret_analyze.record import SubscriptionInterface
+from .callback_name import CallbackName
+from .value_object import ValueObject
 
 
-class Subscription(SubscriptionInterface):
+class Publisher(ValueObject):
 
-    def __init__(self, node_name: str, topic_name: str, callback_name: str) -> None:
+    def __init__(
+        self,
+        node_name: str,
+        topic_name: str,
+        callback_name: Optional[str]
+    ) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
-        self._callback_name = callback_name
-
-    @property
-    def node_name(self) -> str:
-        return self._node_name
-
-    @property
-    def topic_name(self) -> str:
-        return self._topic_name
-
-    @property
-    def callback_name(self) -> str:
-        return self._callback_name
-
-
-class Publisher(PublisherInterface):
-
-    def __init__(self, node_name: str, topic_name: str, callback_name: Optional[str]) -> None:
-        self._node_name = node_name
-        self._topic_name = topic_name
-        self._callback_name = callback_name
+        self._callback_name = None
+        if callback_name is not None:
+            self._callback_name = CallbackName(node_name, callback_name)
 
     @property
     def node_name(self) -> str:
@@ -55,4 +42,12 @@ class Publisher(PublisherInterface):
 
     @property
     def callback_name(self) -> Optional[str]:
-        return self._callback_name
+        if self._callback_name is None:
+            return None
+        return self._callback_name.name
+
+    @property
+    def callback_unique_name(self) -> Optional[str]:
+        if self._callback_name is None:
+            return None
+        return self._callback_name.unique_name

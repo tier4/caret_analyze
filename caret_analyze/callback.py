@@ -18,17 +18,14 @@ from abc import abstractmethod
 from typing import List, Optional
 
 from .latency import LatencyBase
-from .pub_sub import Publisher
-from .pub_sub import Subscription
-from .record import RecordsContainer
-from .record import RecordsInterface
-from .record.interface import CallbackInterface
-from .record.interface import SubscriptionCallbackInterface
-from .record.interface import TimerCallbackInterface
+from .record import RecordsContainer, RecordsInterface
 from .record.trace_points import TRACE_POINT
+from .value_objects.callback_info import CallbackInfo, SubscriptionCallbackInfo, TimerCallbackInfo
+from .value_objects.publisher import Publisher
+from .value_objects.subscription import Subscription
 
 
-class CallbackBase(CallbackInterface, LatencyBase):
+class CallbackBase(LatencyBase):
 
     _column_names = [
         TRACE_POINT.CALLBACK_START_TIMESTAMP,
@@ -37,24 +34,23 @@ class CallbackBase(CallbackInterface, LatencyBase):
 
     def __init__(
         self,
+        info: CallbackInfo,
         records_container: Optional[RecordsContainer],
     ) -> None:
+        self.__info = info
         self._records_container = records_container
 
     @property
-    @abstractmethod
     def node_name(self) -> str:
-        pass
+        return self.__info.node_name
 
     @property
-    @abstractmethod
     def symbol(self) -> str:
-        pass
+        return self.__info.symbol
 
     @property
-    @abstractmethod
     def callback_name(self) -> str:
-        pass
+        return self.__info.callback_name
 
     @property
     @abstractmethod
@@ -62,27 +58,31 @@ class CallbackBase(CallbackInterface, LatencyBase):
         pass
 
     @property
-    @abstractmethod
     def subscription(self) -> Optional[Subscription]:
-        pass
+        return self.__info.subscription
 
     @property
     def column_names(self) -> List[str]:
         return CallbackBase._column_names
 
     @property
-    def unique_name(self) -> str:
-        return f'{self.node_name}/{self.callback_name}'
+    def callback_unique_name(self) -> str:
+        return self.__info.callback_unique_name
+
+    @property
+    @abstractmethod
+    def info(self):
+        pass
 
     def to_records(self) -> RecordsInterface:
         assert self._records_container is not None
-        records = self._records_container.compose_callback_records(self)
+        records = self._records_container.compose_callback_records(self.info)
         records.sort(self.column_names[0], inplace=True)
 
         return records
 
 
-class TimerCallback(CallbackBase, TimerCallbackInterface, LatencyBase):
+class TimerCallback(CallbackBase, LatencyBase):
     def __init__(
         self,
         records_container: Optional[RecordsContainer],
@@ -92,40 +92,27 @@ class TimerCallback(CallbackBase, TimerCallbackInterface, LatencyBase):
         period_ns: int,
         publishes: Optional[List[Publisher]] = None,
     ) -> None:
-        super().__init__(records_container)
+        self.__info = TimerCallbackInfo(
+            node_name, callback_name, symbol, period_ns
+        )
+        super().__init__(self.__info, records_container)
 
-        self._node_name: str = node_name
-        self._callback_name: str = callback_name
-        self._symbol: str = symbol
         self._publishes: List[Publisher] = publishes or []
-        self._period_ns: int = period_ns
-
-    @property
-    def node_name(self) -> str:
-        return self._node_name
-
-    @property
-    def symbol(self) -> str:
-        return self._symbol
-
-    @property
-    def callback_name(self) -> str:
-        return self._callback_name
 
     @property
     def publishes(self) -> List[Publisher]:
         return self._publishes
 
     @property
-    def subscription(self) -> Optional[Subscription]:
-        return None
+    def period_ns(self) -> int:
+        return self.__info.period_ns
 
     @property
-    def period_ns(self) -> int:
-        return self._period_ns
+    def info(self) -> TimerCallbackInfo:
+        return self.__info
 
 
-class SubscriptionCallback(CallbackBase, SubscriptionCallbackInterface, LatencyBase):
+class SubscriptionCallback(CallbackBase, LatencyBase):
     def __init__(
         self,
         records_container: Optional[RecordsContainer],
@@ -135,34 +122,18 @@ class SubscriptionCallback(CallbackBase, SubscriptionCallbackInterface, LatencyB
         topic_name: str,
         publishes: Optional[List[Publisher]] = None,
     ) -> None:
-        super().__init__(records_container)
-        self._subscription = Subscription(node_name, topic_name, callback_name)
-        self._node_name: str = node_name
-        self._callback_name: str = callback_name
-        self._symbol: str = symbol
+        self.__info = SubscriptionCallbackInfo(node_name, callback_name, symbol, topic_name)
+        super().__init__(self.__info, records_container)
         self._publishes: List[Publisher] = publishes or []
-        self._topic_name: str = topic_name
-
-    @property
-    def node_name(self) -> str:
-        return self._node_name
-
-    @property
-    def symbol(self) -> str:
-        return self._symbol
-
-    @property
-    def callback_name(self) -> str:
-        return self._callback_name
 
     @property
     def publishes(self) -> List[Publisher]:
         return self._publishes
 
     @property
-    def subscription(self) -> Optional[Subscription]:
-        return self._subscription
+    def topic_name(self) -> str:
+        return self.__info.topic_name
 
     @property
-    def topic_name(self) -> str:
-        return self._topic_name
+    def info(self) -> SubscriptionCallbackInfo:
+        return self.__info

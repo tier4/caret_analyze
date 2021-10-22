@@ -12,384 +12,125 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-
-from caret_analyze.architecture.interface import IGNORE_TOPICS
-from caret_analyze.architecture.interface import UNDEFINED_STR
-from caret_analyze.architecture.yaml import YamlArchitectureExporter
-from caret_analyze.architecture.yaml import YamlArchitectureImporter
-from caret_analyze.callback import CallbackBase
-from caret_analyze.callback import SubscriptionCallback
-from caret_analyze.callback import TimerCallback
-from caret_analyze.communication import VariablePassing
-from caret_analyze.node import Node
-from caret_analyze.pub_sub import Publisher
-from caret_analyze.pub_sub import Subscription
+from caret_analyze.architecture.yaml import ArchitectureYaml
+from caret_analyze.value_objects.callback_info import SubscriptionCallbackInfo, TimerCallbackInfo
+from caret_analyze.value_objects.callback_type import CallbackType
+from caret_analyze.value_objects.subscription import Subscription
+from pytest_mock import MockerFixture
 
 
-class TestYamlExporter:
+class TestArchitectureYaml:
 
-    def test_pub_to_yml_obj(self):
-        exporter = YamlArchitectureExporter()
-        pubs: List[Publisher] = []
-        node = Node('node')
-        publisher = Publisher(node.node_name, '/topic', None)
-        pubs.append(publisher)
-        callback_name = SubscriptionCallback.to_callback_name(0)
+    def test_empty_architecture(self, mocker: MockerFixture):
+        archtecture_text = """
+path_name_aliases: []
+nodes: []
+        """
 
-        objs = exporter._pubs_to_yaml_objs(node, pubs)
-        assert len(objs) == 1
-        assert objs[0] == {'topic_name': publisher.topic_name, 'callback_name': UNDEFINED_STR}
+        mocker.patch('builtins.open', mocker.mock_open(read_data=archtecture_text))
+        reader = ArchitectureYaml('file_name')
 
-        cb = SubscriptionCallback(None, node.node_name, callback_name, 'symbol0', '/topic0')
-        cb.publishes.append(publisher)
-        node.callbacks.append(cb)
+        node_names = reader.get_node_names()
+        assert len(node_names) == 0
 
-        objs = exporter._pubs_to_yaml_objs(node, pubs)
-        assert len(objs) == 1
-        assert objs[0] == {'topic_name': publisher.topic_name, 'callback_name': callback_name}
+        timer_cbs = reader.get_timer_callbacks('')
+        assert len(timer_cbs) == 0
 
-    def test_timer_cb_to_yml_obj(self):
-        exporter = YamlArchitectureExporter()
+        sub_cbs = reader.get_subscription_callbacks('')
+        assert len(sub_cbs) == 0
 
-        symbol_name = 'symbol0'
-        callback_name = TimerCallback.to_callback_name(0)
-        node_name = 'node0'
-        period_ns = 100
-        cb = TimerCallback(None, node_name, callback_name, symbol_name, period_ns)
-        obj = exporter._timer_cb_to_yaml_obj(cb)
-        obj_expect = {
-            'callback_name': callback_name,
-            'type': TimerCallback.TYPE_NAME,
-            'period_ns': period_ns,
-            'symbol': symbol_name,
-        }
-        assert obj == obj_expect
+    def test_full_architecture(self, mocker: MockerFixture):
+        architecture_text = """
+path_name_aliases:
+- path_name: target_path
+  callbacks:
+  - /talker/timer_callback_0
+  - /listener/subscription_callback_0
+nodes:
+- node_name: /listener
+  callbacks:
+  - callback_name: subscription_callback_0
+    type: subscription_callback
+    topic_name: /chatter
+    symbol: listener_sub_symbol
+  - callback_name: timer_callback_0
+    type: timer_callback
+    period_ns: 1
+    symbol: listener_timer_symbol
+  variable_passings:
+  - callback_name_write: subscription_callback_0
+    callback_name_read: timer_callback_0
+  publishes:
+  - topic_name: /xxx
+    callback_name: timer_callback_0
+- node_name: /talker
+  callbacks:
+  - callback_name: timer_callback_0
+    type: timer_callback
+    period_ns: 2
+    symbol: talker_symbol
+  publishes:
+  - topic_name: /chatter
+    callback_name: timer_callback_0
+        """
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        reader = ArchitectureYaml('file_name')
 
-    def test_subscription_cb_to_yml_obj(self):
-        exporter = YamlArchitectureExporter()
-        symbol_name = 'symbol0'
-        callback_name = SubscriptionCallback.to_callback_name(0)
-        node_name = 'node0'
-        topic_name = '/topic'
-        cb = SubscriptionCallback(None, node_name, callback_name, symbol_name, topic_name)
-        obj = exporter._sub_cb_to_yaml_obj(cb)
-        obj_expect = {
-            'callback_name': callback_name,
-            'type': 'subscription_callback',
-            'topic_name': topic_name,
-            'symbol': symbol_name,
-        }
-        assert obj == obj_expect
+        node_names = reader.get_node_names()
+        assert len(node_names) == 2
+        assert '/talker' in node_names
+        assert '/listener' in node_names
 
-    def test_create_node(self):
-        exporter = YamlArchitectureExporter()
-        symbol_name = 'symbol0'
-        callback_name = SubscriptionCallback.to_callback_name(0)
-        topic_name = '/topic'
-        node_name = 'node0'
-        cb = SubscriptionCallback(None, node_name, callback_name, symbol_name, topic_name)
-        obj = exporter._sub_cb_to_yaml_obj(cb)
-        obj_expect = {
-            'callback_name': callback_name,
-            'type': SubscriptionCallback.TYPE_NAME,
-            'topic_name': topic_name,
-            'symbol': symbol_name,
-        }
-        assert obj == obj_expect
+        timer_cbs = reader.get_timer_callbacks('/talker')
+        assert len(timer_cbs) == 1
+        timer_cb = timer_cbs[0]
+        assert isinstance(timer_cb, TimerCallbackInfo)
+        assert timer_cb.callback_type == CallbackType.Timer
+        assert timer_cb.symbol == 'talker_symbol'
+        assert timer_cb.node_name == '/talker'
+        assert timer_cb.subscription is None
+        assert timer_cb.period_ns == 2
 
-    def test_callbacks_to_yml_obj(self):
-        exporter = YamlArchitectureExporter()
+        timer_pubs = reader.get_publishers('/talker')
+        assert len(timer_pubs) == 1
+        timer_pub = timer_pubs[0]
+        assert timer_pub.node_name == '/talker'
+        assert timer_pub.topic_name == '/chatter'
+        assert timer_pub.callback_name == 'timer_callback_0'
+        assert timer_pub.callback_unique_name == '/talker/timer_callback_0'
 
-        cbs: List[CallbackBase] = []
+        sub_cbs = reader.get_subscription_callbacks('/listener')
+        assert len(sub_cbs) == 1
+        sub_cb = sub_cbs[0]
+        assert isinstance(sub_cb, SubscriptionCallbackInfo)
+        assert sub_cb.callback_type == CallbackType.Subscription
+        assert sub_cb.symbol == 'listener_sub_symbol'
+        assert sub_cb.node_name == '/listener'
+        assert sub_cb.topic_name == '/chatter'
+        subscription_expect = Subscription('/listener', '/chatter', 'subscription_callback_0')
+        assert sub_cb.subscription == subscription_expect
+        assert sub_cb.subscription.callback_name == subscription_expect.callback_name
+        assert sub_cb.subscription.topic_name == subscription_expect.topic_name
+        assert sub_cb.subscription.node_name == subscription_expect.node_name
 
-        objs = exporter._callbacks_to_yaml_objs(cbs)
-        assert len(objs) == 0
+        var_passes = reader.get_variable_passings('/listener')
+        assert len(var_passes) == 1
+        var_pass = var_passes[0]
+        assert var_pass.node_name == '/listener'
+        assert var_pass.write_callback_unique_name == '/listener/subscription_callback_0'
+        assert var_pass.read_callback_unique_name == '/listener/timer_callback_0'
 
-        cbs.clear()
-        cbs.append(TimerCallback(None, '', '', '', 0))
-        objs = exporter._callbacks_to_yaml_objs(cbs)
-        assert len(objs) == 1
-        assert objs[0]['type'] == TimerCallback.TYPE_NAME
+        path_aliases = reader.get_path_aliases()
+        assert len(path_aliases) == 1
+        alias = path_aliases[0]
+        assert len(alias.callback_unique_names) == 2
+        assert alias.callback_unique_names[0] == '/talker/timer_callback_0'
+        assert alias.callback_unique_names[1] == '/listener/subscription_callback_0'
 
-        cbs.clear()
-        sub = Subscription('', '', '')
-        cbs.append(SubscriptionCallback(None, '', '', '', sub))
-        objs = exporter._callbacks_to_yaml_objs(cbs)
-        assert len(objs) == 1
-        assert objs[0]['type'] == SubscriptionCallback.TYPE_NAME
-
-    def test_variable_passings_to_yml_objs(self):
-        exporter = YamlArchitectureExporter()
-
-        passings: List[VariablePassing] = []
-        objs = exporter._variable_passings_to_yaml_objs(passings)
-        assert len(objs) == 1
-        assert objs[0] == {
-            'callback_name_write': UNDEFINED_STR,
-            'callback_name_read': UNDEFINED_STR,
-        }
-        callback_name0 = SubscriptionCallback.to_callback_name(0)
-        callback_name1 = SubscriptionCallback.to_callback_name(1)
-
-        passing = VariablePassing(
-            None,
-            callback_write=SubscriptionCallback(
-                None, 'node0', callback_name0, 'symbol0', '/topic0'
-            ),
-            callback_read=SubscriptionCallback(
-                None, 'node1', callback_name1, 'symbol1', '/topic1'
-            ),
-        )
-        passings.append(passing)
-
-        objs = exporter._variable_passings_to_yaml_objs(passings)
-        assert len(objs) == 1
-        assert objs[0] == {
-            'callback_name_write': callback_name0,
-            'callback_name_read': callback_name1,
-        }
-
-    def test_nodes_to_yml_objs(self):
-        exporter = YamlArchitectureExporter()
-
-        nodes: List[Node] = []
-        objs = exporter._nodes_to_yaml_objs(nodes)
-        assert len(objs) == 0
-
-        nodes.append(Node('name1'))
-        objs = exporter._nodes_to_yaml_objs(nodes)
-        assert len(objs) == 1
-        assert 'variable_passings' not in objs[0].keys()
-        assert 'publishes' not in objs[0].keys()
-
-        node = Node('name2')
-        node.callbacks.append(
-            SubscriptionCallback(
-                None,
-                node.node_name,
-                'callback1',
-                'symbol1',
-                '/topic1',
-                [Publisher(node.node_name, '/topic_name1', None)],
-            )
-        )
-
-        node.callbacks.append(
-            SubscriptionCallback(None, node.node_name, 'callback2', 'symbol2', '/topic2')
-        )
-        nodes.append(node)
-        objs = exporter._nodes_to_yaml_objs(nodes)
-        assert len(objs) == 2
-        assert 'variable_passings' in objs[1].keys()
-        assert 'publishes' in objs[1].keys()
-        assert 'publishes' in objs[1].keys()
-
-
-class TestYamlImporter:
-
-    def test_create_callback_with_empty_publish(self):
-        importer = YamlArchitectureImporter(None)
-
-        topic_name = 'topic0'
-        callback_name = SubscriptionCallback.to_callback_name(0)
-        symbol = 'symbol0'
-        callback_obj = {
-            'callback_name': callback_name,
-            'type': SubscriptionCallback.TYPE_NAME,
-            'topic_name': topic_name,
-            'symbol': symbol,
-        }
-        node_name = 'node0'
-        callback = importer._create_callback_with_empty_publish(
-            node_name, callback_obj, IGNORE_TOPICS
-        )
-        assert callback is not None
-        assert isinstance(callback, SubscriptionCallback)
-        assert callback.topic_name == topic_name
-        assert callback.callback_name == callback_name
-        assert callback.symbol == symbol
-        assert callback.publishes == []
-
-        callback_obj['topic_name'] = IGNORE_TOPICS[0]
-        callback = importer._create_callback_with_empty_publish(
-            node_name, callback_obj, IGNORE_TOPICS
-        )
-        assert callback is None
-
-        period_ns = 100
-        callback_name = TimerCallback.to_callback_name(0)
-        symbol = 'symbol0'
-        callback_obj = {
-            'callback_name': callback_name,
-            'type': TimerCallback.TYPE_NAME,
-            'period_ns': str(period_ns),
-            'topic_name': topic_name,
-            'symbol': symbol,
-        }
-        node_name = 'node0'
-        callback = importer._create_callback_with_empty_publish(
-            node_name, callback_obj, IGNORE_TOPICS
-        )
-        assert callback is not None
-        assert isinstance(callback, TimerCallback)
-        assert callback.period_ns == period_ns
-        assert callback.callback_name == callback_name
-        assert callback.symbol == symbol
-        assert callback.publishes == []
-
-    def test_attach_publish_to_callback(self):
-        importer = YamlArchitectureImporter(None)
-
-        publish_info = {
-            'topic_name': '/topic0',
-            'callback_name': UNDEFINED_STR,
-        }
-
-        node = Node('node0')
-
-        node.callbacks.append(
-            SubscriptionCallback(None, 'node0', 'callback0', 'symbol0', '/topic0')
-        )
-        importer._attach_publish_to_callback(node, publish_info)
-        assert len(node.unlinked_publishes) == 0
-        assert len(node.callbacks[0].publishes) == 1
-
-        node = Node('node0')
-        node.callbacks.append(
-            SubscriptionCallback(None, 'node0', 'callback0', 'symbol0', '/topic0')
-        )
-        node.callbacks.append(
-            SubscriptionCallback(None, 'node1', 'callback1', 'symbol1', '/topic1')
-        )
-        importer._attach_publish_to_callback(node, publish_info)
-        assert len(node.unlinked_publishes) == 1
-        assert len(node.callbacks[0].publishes) == 0
-        assert len(node.callbacks[1].publishes) == 0
-
-        publish_info = {
-            'topic_name': '/topic0',
-            'callback_name': 'callback0',
-        }
-        node = Node('node0')
-        node.callbacks.append(
-            SubscriptionCallback(None, 'node0', 'callback0', 'symbol0', '/topic0')
-        )
-        node.callbacks.append(
-            SubscriptionCallback(None, 'node1', 'callback1', 'symbol1', '/topic1')
-        )
-        importer._attach_publish_to_callback(node, publish_info)
-        assert len(node.unlinked_publishes) == 0
-        assert len(node.callbacks[0].publishes) == 1
-        assert len(node.callbacks[1].publishes) == 0
-
-    def test_create_node(self):
-        importer = YamlArchitectureImporter(None)
-
-        node_obj = {
-            'node_name': 'node0',
-            'callbacks': [
-                {
-                    'callback_name': SubscriptionCallback.to_callback_name(0),
-                    'type': SubscriptionCallback.TYPE_NAME,
-                    'topic_name': '/topic1',
-                    'symbol': 'symbol0',
-                },
-                {
-                    'callback_name': SubscriptionCallback.to_callback_name(1),
-                    'type': SubscriptionCallback.TYPE_NAME,
-                    'topic_name': '/topic0',
-                    'symbol': 'symbol1',
-                },
-            ],
-            'variable_passings': [
-                {
-                    'callback_name_write': SubscriptionCallback.to_callback_name(0),
-                    'callback_name_read': SubscriptionCallback.to_callback_name(1),
-                }
-            ],
-            'publishes': [
-                {
-                    'topic_name': '/topic0',
-                    'callback_name': UNDEFINED_STR,
-                },
-                {
-                    'topic_name': '/topic1',
-                    'callback_name': SubscriptionCallback.to_callback_name(0),
-                },
-            ],
-        }
-
-        node = importer._create_node(node_obj, IGNORE_TOPICS)
-
-        assert len(node.variable_passings) == 1
-        assert len(node.callbacks) == 2
-        assert len(node.publishes) == 2
-        assert len(node.subscriptions) == 2
-
-    def test_crate_arch(self):
-        importer = YamlArchitectureImporter(None)
-
-        arch_obj = {'path_name_aliases': [], 'nodes': []}
-        arch_obj['nodes'].append(
-            {
-                'node_name': 'node0',
-                'callbacks': [
-                    {
-                        'callback_name': SubscriptionCallback.to_callback_name(0),
-                        'type': SubscriptionCallback.TYPE_NAME,
-                        'topic_name': '/topic1',
-                        'symbol': 'symbol0',
-                    },
-                    {
-                        'callback_name': SubscriptionCallback.to_callback_name(1),
-                        'type': SubscriptionCallback.TYPE_NAME,
-                        'topic_name': '/topic0',
-                        'symbol': 'symbol1',
-                    },
-                ],
-                'variable_passings': [
-                    {
-                        'callback_name_write': SubscriptionCallback.to_callback_name(0),
-                        'callback_name_read': SubscriptionCallback.to_callback_name(1),
-                    }
-                ],
-                'publishes': [
-                    {
-                        'topic_name': '/topic3',
-                        'callback_name': UNDEFINED_STR,
-                    },
-                    {
-                        'topic_name': '/topic2',
-                        'callback_name': SubscriptionCallback.to_callback_name(0),
-                    },
-                ],
-            }
-        )
-        arch_obj['nodes'].append(
-            {
-                'node_name': 'node1',
-                'callbacks': [
-                    {
-                        'callback_name': SubscriptionCallback.to_callback_name(0),
-                        'type': SubscriptionCallback.TYPE_NAME,
-                        'topic_name': '/topic2',
-                        'symbol': 'symbol2',
-                    },
-                    {
-                        'callback_name': SubscriptionCallback.to_callback_name(1),
-                        'type': SubscriptionCallback.TYPE_NAME,
-                        'topic_name': '/topic3',
-                        'symbol': 'symbol3',
-                    },
-                ],
-                'publishes': [],
-            }
-        )
-
-        arch = importer._create_arch(arch_obj, IGNORE_TOPICS)
-
-        assert len(arch.variable_passings) == 1
-        assert len(arch.communications) == 2
-        assert len(arch.nodes) == 2
-        assert len(arch.path_aliases) == 0
+        timer_pubs = reader.get_publishers('/listener')
+        assert len(timer_pubs) == 1
+        timer_pub = timer_pubs[0]
+        assert timer_pub.node_name == '/listener'
+        assert timer_pub.topic_name == '/xxx'
+        assert timer_pub.callback_name == 'timer_callback_0'
+        assert timer_pub.callback_unique_name == '/listener/timer_callback_0'

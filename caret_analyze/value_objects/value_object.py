@@ -12,22 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .interface import RecordsContainer
-from .record import merge
-from .record import merge_sequencial
-from .record import merge_sequencial_for_addr_track
-from .record import Record
-from .record import RecordInterface
-from .record import Records
-from .record import RecordsInterface
 
-__all__ = [
-    'RecordInterface',
-    'RecordsInterface',
-    'Record',
-    'Records',
-    'RecordsContainer',
-    'merge',
-    'merge_sequencial',
-    'merge_sequencial_for_addr_track',
-]
+class ValueObject():
+    """Value object base class."""
+
+    def __eq__(self, right):
+        if type(self) != type(right):
+            return False
+
+        for p in self.__dict__.keys():
+            if getattr(self,  p) != getattr(right, p):
+                return False
+        return True
+
+    def __hash__(self):
+        hash_value = 17
+
+        hash_value += hash_value * 31 + hash(self.__class__)
+
+        for p in self.__dict__.keys():
+            v = getattr(self,  p)
+            hash_value += hash_value * 31 + hash(v)
+
+        return hash_value

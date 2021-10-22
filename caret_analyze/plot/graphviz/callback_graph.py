@@ -114,8 +114,8 @@ class CallbackGraph:
             if plot_target_path_only and not self._contain(node_var, path):
                 continue
 
-            head_name = var.callback_to.unique_name
-            tail_name = var.callback_from.unique_name
+            head_name = var.callback_to.callback_unique_name
+            tail_name = var.callback_from.callback_unique_name
             if path.contains(var):
                 color = CallbackGraph.PATH_HIGHLIGHT_COLOR
                 penwidth = '4.0'
@@ -170,7 +170,7 @@ class CallbackGraph:
                 fillcolor = 'white'
 
             node_cluster.node(
-                callback.unique_name,
+                callback.callback_unique_name,
                 callback.callback_name,
                 _attributes={'shape': 'box',
                              'tooltip': tooltip, 'style': 'filled'},

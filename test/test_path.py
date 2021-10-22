@@ -14,22 +14,14 @@
 
 from typing import Dict
 
-from caret_analyze import Application
-from caret_analyze import Lttng
-from caret_analyze.callback import SubscriptionCallback
-from caret_analyze.callback import TimerCallback
-from caret_analyze.communication import Communication
-from caret_analyze.communication import VariablePassing
-from caret_analyze.path import ColumnNameCounter
-from caret_analyze.path import Path
-from caret_analyze.path import PathLatencyMerger
-from caret_analyze.pub_sub import Publisher
-from caret_analyze.record import Record
-from caret_analyze.record import Records
-from caret_analyze.record.interface import CallbackInterface
-from caret_analyze.record.interface import RecordsContainer
-from caret_analyze.record.interface import RecordsInterface
-from caret_analyze.record.interface import SubscriptionCallbackInterface
+from caret_analyze import Application, Lttng
+from caret_analyze.callback import SubscriptionCallback, TimerCallback
+from caret_analyze.communication import Communication, VariablePassing
+from caret_analyze.path import ColumnNameCounter, Path, PathLatencyMerger
+from caret_analyze.record import Record, Records
+from caret_analyze.record.interface import RecordsContainer, RecordsInterface
+from caret_analyze.value_objects.callback_info import CallbackInfo, SubscriptionCallbackInfo
+from caret_analyze.value_objects.publisher import Publisher
 
 import pytest
 
@@ -47,10 +39,10 @@ class RecordsContainerMock(RecordsContainer):
         self.inter_process_communication_records = inter_process_communication_records
         self.intra_process_communication_records = intra_process_communication_records
         self.variable_passing_records = variable_passing_records
-        self.to_callback_object: Dict[CallbackInterface, int] = {}
-        self.to_publisher_handle: Dict[CallbackInterface, int] = {}
+        self.to_callback_object: Dict[CallbackInfo, int] = {}
+        self.to_publisher_handle: Dict[CallbackInfo, int] = {}
 
-    def compose_callback_records(self, callback_attr: CallbackInterface) -> RecordsInterface:
+    def compose_callback_records(self, callback_attr: CallbackInfo) -> RecordsInterface:
         callback_object = self.to_callback_object[callback_attr]
 
         def is_target(record: Record):
@@ -67,16 +59,16 @@ class RecordsContainerMock(RecordsContainer):
 
     def compose_inter_process_communication_records(
         self,
-        subscription_callback_attr: SubscriptionCallbackInterface,
-        publish_callback_attr: CallbackInterface,
+        subscription_callback_attr: SubscriptionCallbackInfo,
+        publish_callback_attr: CallbackInfo,
     ) -> RecordsInterface:
         subscription_callback_attr
         assert False, 'not implemented'
 
     def compose_intra_process_communication_records(
         self,
-        subscription_callback_attr: SubscriptionCallbackInterface,
-        publish_callback_attr: CallbackInterface,
+        subscription_callback_attr: SubscriptionCallbackInfo,
+        publish_callback_attr: CallbackInfo,
     ) -> RecordsInterface:
         subscription_callback_attr
         publisher_handle = self.to_publisher_handle[publish_callback_attr]
@@ -92,7 +84,7 @@ class RecordsContainerMock(RecordsContainer):
         return records
 
     def compose_variable_passing_records(
-        self, callback_write_attr: CallbackInterface, callback_read_attr: CallbackInterface
+        self, callback_write_attr: CallbackInfo, callback_read_attr: CallbackInfo
     ) -> RecordsInterface:
         callback_write_attr
         callback_read_attr
@@ -259,10 +251,10 @@ class TestPathLatencyManager:
         sub_cb = SubscriptionCallback(
             records_container_mock, '/node1', 'callback1', 'symbol1', '/topic1'
         )
-        records_container_mock.to_callback_object[timer_cb] = timer_cb_callback_object
-        records_container_mock.to_callback_object[sub_cb] = sub_cb_callback_object
+        records_container_mock.to_callback_object[timer_cb.info] = timer_cb_callback_object
+        records_container_mock.to_callback_object[sub_cb.info] = sub_cb_callback_object
 
-        records_container_mock.to_publisher_handle[timer_cb] = timer_cb_publisher_handle
+        records_container_mock.to_publisher_handle[timer_cb.info] = timer_cb_publisher_handle
         pub = Publisher('/node0', '/topic1', 'callback0')
         communication = Communication(
             records_container_mock, timer_cb, sub_cb, pub)
@@ -459,16 +451,15 @@ class TestPath:
             records_container_mock, '/timer_node', 'timer_cb', 'pub_symbol', 100, [
                 publisher]
         )
-        records_container_mock.to_callback_object[timer0_cb] = timer0_cb_obj
+        records_container_mock.to_callback_object[timer0_cb.info] = timer0_cb_obj
         sub_cb0 = SubscriptionCallback(
             records_container_mock, '/sub_node', 'sub_cb', 'sub_symbol', '/topic', []
         )
-        records_container_mock.to_callback_object[sub_cb0] = sub0_cb_obj
+        records_container_mock.to_callback_object[sub_cb0.info] = sub0_cb_obj
 
-        records_container_mock.to_publisher_handle[timer0_cb] = timer0_pub_handle
+        records_container_mock.to_publisher_handle[timer0_cb.info] = timer0_pub_handle
         callbacks = [timer0_cb, sub_cb0]
-        comm = Communication(records_container_mock,
-                             timer0_cb, sub_cb0, publisher)
+        comm = Communication(records_container_mock, timer0_cb, sub_cb0, publisher)
         comm.is_intra_process = True
         communications = [comm]
         variable_passings = []

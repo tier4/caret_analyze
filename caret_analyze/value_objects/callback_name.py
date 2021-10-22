@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .interface import RecordsContainer
-from .record import merge
-from .record import merge_sequencial
-from .record import merge_sequencial_for_addr_track
-from .record import Record
-from .record import RecordInterface
-from .record import Records
-from .record import RecordsInterface
+from __future__ import annotations
 
-__all__ = [
-    'RecordInterface',
-    'RecordsInterface',
-    'Record',
-    'Records',
-    'RecordsContainer',
-    'merge',
-    'merge_sequencial',
-    'merge_sequencial_for_addr_track',
-]
+from .value_object import ValueObject
+
+
+class CallbackName(ValueObject):
+    """Callback name class."""
+
+    def __init__(self, node_name: str, callback_name: str) -> None:
+        self._node_name = node_name
+        self._callback_name = callback_name
+
+    @property
+    def name(self) -> str:
+        return self._callback_name
+
+    @property
+    def unique_name(self) -> str:
+        return f'{self._node_name}/{self._callback_name}'

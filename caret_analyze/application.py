@@ -16,21 +16,23 @@
 from itertools import product
 from typing import Dict, List, Optional
 
+from caret_analyze.record.lttng.lttng import Lttng
+
 from .architecture import Architecture
-from .architecture.interface import ArchitectureInterface
-from .architecture.interface import IGNORE_TOPICS
-from .architecture.interface import PathAlias
+from .architecture.interface import ArchitectureReader, IGNORE_TOPICS
+from .architecture.lttng import ArchitectureLttng
+from .architecture.yaml import ArchitectureYaml
 from .callback import CallbackBase
-from .communication import Communication
-from .communication import VariablePassing
+from .communication import Communication, VariablePassing
 from .graph_search import CallbackPathSercher
 from .node import Node
 from .path import Path
 from .record import RecordsContainer
 from .util import Util
+from .value_objects.path_alias import PathAlias
 
 
-class Application(ArchitectureInterface):
+class Application():
     def __init__(
         self,
         file_path: str,
@@ -38,8 +40,19 @@ class Application(ArchitectureInterface):
         records_container: Optional[RecordsContainer],
         ignore_topics: List[str] = IGNORE_TOPICS,
     ) -> None:
-        self._arch = Architecture(
-            file_path, file_type, records_container, ignore_topics)
+
+        reader: ArchitectureReader
+        if file_type in ['yaml', 'yml']:
+            reader = ArchitectureYaml(file_path)
+        elif file_type in ['lttng', 'ctf']:
+            if isinstance(records_container, Lttng):
+                reader = ArchitectureLttng(records_container)
+            else:
+                raise ValueError('unsupported file_type and records_container')
+        else:
+            raise ValueError(f'unsupported file_type: {file_type}')
+
+        self._arch = Architecture(reader, records_container, ignore_topics)
         self.path: Dict[str, Path] = self._to_paths(
             self._arch.path_aliases, self._arch)
 
@@ -75,7 +88,7 @@ class Application(ArchitectureInterface):
         self._arch.export(file_path)
 
     def _to_path_alias(self, alias: str, path: Path):
-        callback_names = [callback.unique_name for callback in path.callbacks]
+        callback_names = [callback.callback_unique_name for callback in path.callbacks]
         return PathAlias(alias, callback_names)
 
     def search_paths(
@@ -90,8 +103,7 @@ class Application(ArchitectureInterface):
         # Add callback itself as a path.
         if start_callback_unique_name == end_callback_unique_name:
             callback = Util.find_one(
-                self.callbacks, lambda x: x.unique_name == start_callback_unique_name)
-            assert callback is not None
+                self.callbacks, lambda x: x.callback_unique_name == start_callback_unique_name)
             path = self._to_path([callback], self._arch)
             paths.append(path)
 
@@ -102,7 +114,7 @@ class Application(ArchitectureInterface):
 
     def _to_callback(self, unique_name: str) -> CallbackBase:
         callback = Util.find_one(
-            self.callbacks, lambda x: x.unique_name == unique_name)
+            self.callbacks, lambda x: x.callback_unique_name == unique_name)
         assert callback is not None
         return callback
 
@@ -110,14 +122,14 @@ class Application(ArchitectureInterface):
         for node in nodes:
             for start_callback, end_callback in product(node.callbacks, node.callbacks):
                 node.paths += self.search_paths(
-                    start_callback.unique_name, end_callback.unique_name
+                    start_callback.callback_unique_name, end_callback.callback_unique_name
                 )
 
     def _to_paths(self, path_aliases: List[PathAlias], arch: Architecture) -> Dict[str, Path]:
         path: Dict[str, Path] = {}
         for alias in path_aliases:
             callbacks: List[CallbackBase] = [
-                self._to_callback(name) for name in alias.callback_names
+                self._to_callback(name) for name in alias.callback_unique_names
             ]
             path[alias.path_name] = self._to_path(callbacks, arch)
         return path

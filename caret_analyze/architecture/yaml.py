@@ -12,308 +12,165 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import yaml
 
-from .interface import ArchitectureExporter
-from .interface import ArchitectureImporter
-from .interface import ArchitectureInterface
-from .interface import IGNORE_TOPICS
-from .interface import PathAlias
-from .interface import UNDEFINED_STR
-from .interface import VariablePassing
-from ..callback import CallbackBase
-from ..callback import SubscriptionCallback
-from ..callback import TimerCallback
-from ..communication import Communication
-from ..node import Node
-from ..pub_sub import Publisher
-from ..pub_sub import Subscription
-from ..record.interface import RecordsContainer
-from ..util import Util
+from .interface import ArchitectureReader
+from ..exceptions import Error, WrongYamlFormatError
+from ..value_objects.callback_info import SubscriptionCallbackInfo, TimerCallbackInfo
+from ..value_objects.callback_type import CallbackType
+from ..value_objects.path_alias import PathAlias
+from ..value_objects.publisher import Publisher
+from ..value_objects.variable_passing_info import VariablePassingInfo
 
 YamlObject = Dict[str, Any]
 
 
-class YamlArchitectureExporter(ArchitectureExporter):
-    def execute(
-        self, architecture: ArchitectureInterface, path_aliases: List[PathAlias], file_path: str
-    ) -> None:
-        import yaml
+class ArchitectureYaml(ArchitectureReader):
 
-        with open(file_path, mode='w') as f:
-            aliases = [self._path_alias_to_yaml_obj(
-                alias) for alias in path_aliases]
-            obj: Dict[str, Any] = {
-                'path_name_aliases': aliases,
-                'nodes': self._nodes_to_yaml_objs(architecture.nodes),
-            }
-            f.write(yaml.dump(obj, indent=2,
-                    default_flow_style=False, sort_keys=False))
+    def __init__(self, file_path: str):
+        with open(file_path, 'r') as f:
+            yaml_str = f.read()
+            self._arch = yaml.safe_load(yaml_str)
 
-    def _path_alias_to_yaml_obj(self, alias: PathAlias):
-        obj: YamlObject = {}
-        obj['path_name'] = alias.path_name
-        obj['callbacks'] = alias.callback_names  # type: ignore
-        return obj
+    def get_node_names(self) -> List[str]:
+        nodes = self._arch['nodes']
+        return [node['node_name'] for node in nodes]
 
-    def _nodes_to_yaml_objs(self, nodes: List[Node]) -> List[YamlObject]:
-        objs: List[YamlObject] = []
-        for node in nodes:
-            obj: YamlObject = {'node_name': f'{node.node_name}'}
+    def get_timer_callbacks(
+        self,
+        node_name: str
+    ) -> List[TimerCallbackInfo]:
+        try:
+            node = self._get_node_info(node_name)
+            callbacks_info = filter(
+                lambda x: x['type'] == CallbackType.Timer.name, node['callbacks'])
 
-            if len(node.callbacks) >= 1:
-                obj['callbacks'] = self._callbacks_to_yaml_objs(node.callbacks)
-            if len(node.callbacks) >= 2:
-                obj['variable_passings'] = self._variable_passings_to_yaml_objs(
-                    node.variable_passings
+            callbacks = []
+            for info in callbacks_info:
+                callbacks.append(
+                    TimerCallbackInfo(
+                        node['node_name'],
+                        info['callback_name'],
+                        info['symbol'],
+                        info['period_ns'],
+                    )
                 )
-            if len(node.publishes) >= 1:
-                obj['publishes'] = self._pubs_to_yaml_objs(
-                    node, node.publishes)
+            return callbacks
+        except Error:
+            return []
 
-            objs.append(obj)
+    def get_path_aliases(self) -> List[PathAlias]:
+        aliases_info = self._arch['path_name_aliases']
 
-        return objs
-
-    def _variable_passings_to_yaml_objs(
-        self, variable_passings: List[VariablePassing]
-    ) -> List[YamlObject]:
-        objs: List[YamlObject] = []
-        for variable_passing in variable_passings:
-            objs.append(
-                {
-                    'callback_name_write': variable_passing.callback_write.callback_name,
-                    'callback_name_read': variable_passing.callback_read.callback_name,
-                }
+        aliases = []
+        for alias in aliases_info:
+            aliases.append(
+                PathAlias(alias['path_name'], *alias['callbacks'])
             )
+        return aliases
 
-        if len(objs) == 0:
-            objs.append(
-                {
-                    'callback_name_write': UNDEFINED_STR,
-                    'callback_name_read': UNDEFINED_STR,
-                }
-            )
-        return objs
+    def get_variable_passings(self, node_name: str) -> List[VariablePassingInfo]:
+        try:
+            node = self._get_node_info(node_name)
 
-    def _get_publish_callback(self, node: Node, publish: Publisher) -> Optional[CallbackBase]:
-        for callback in node.callbacks:
-            if publish in callback.publishes:
-                return callback
-        return None
+            if 'variable_passings' not in node.keys():
+                return []
 
-    def _pubs_to_yaml_objs(self, node: Node, pubs: List[Publisher]) -> List[YamlObject]:
-        objs: List[YamlObject] = []
-        for pub in pubs:
-            obj: Dict[str, Any] = {
-                'topic_name': pub.topic_name, 'callback_name': None}
-
-            cb = self._get_publish_callback(node, pub)
-            if cb is None:
-                obj['callback_name'] = UNDEFINED_STR
-            else:
-                obj['callback_name'] = cb.callback_name
-            objs.append(obj)
-
-        return objs
-
-    def _timer_cb_to_yaml_obj(self, timer_callback: TimerCallback) -> YamlObject:
-        return {
-            'callback_name': timer_callback.callback_name,
-            'type': 'timer_callback',
-            'period_ns': timer_callback.period_ns,
-            'symbol': timer_callback.symbol,
-        }
-
-    def _sub_cb_to_yaml_obj(self, subscription_callback: SubscriptionCallback) -> YamlObject:
-        return {
-            'callback_name': subscription_callback.callback_name,
-            'type': 'subscription_callback',
-            'topic_name': subscription_callback.topic_name,
-            'symbol': subscription_callback.symbol,
-        }
-
-    def _callbacks_to_yaml_objs(self, callbacks: List[CallbackBase]) -> List[YamlObject]:
-        objs: List[YamlObject] = []
-        for callback in callbacks:
-            if isinstance(callback, TimerCallback):
-                objs.append(self._timer_cb_to_yaml_obj(callback))
-            elif isinstance(callback, SubscriptionCallback):
-                objs.append(self._sub_cb_to_yaml_obj(callback))
-
-        return objs
-
-
-class YamlArchitectureImporter(ArchitectureImporter):
-
-    def __init__(self, records_container: Optional[RecordsContainer]):
-        self._records_container: Optional[RecordsContainer] = records_container
-        self._nodes: List[Node] = []
-        self._path_aliases: List[PathAlias] = []
-        self._communications: List[Communication] = []
-
-    @property
-    def nodes(self) -> List[Node]:
-        return self._nodes
-
-    @property
-    def path_aliases(self) -> List[PathAlias]:
-        return self._path_aliases
-
-    @property
-    def communications(self) -> List[Communication]:
-        return self._communications
-
-    @property
-    def variable_passings(self) -> List[VariablePassing]:
-        return Util.flatten([node.variable_passings for node in self.nodes])
-
-    @property
-    def records_container(self):
-        return self._records_container
-
-    def _create_communicateion(
-        self, publish: Publisher, subscription: Subscription
-    ) -> Optional[Communication]:
-
-        publish_callback_name = publish.callback_name or ''
-        callbacks = Util.flatten([node.callbacks for node in self.nodes])
-        callback_publish = Util.find_one(
-            callbacks,
-            lambda cb: cb.node_name == publish.node_name
-            and cb.callback_name == publish_callback_name,
-        )
-        callback_subscription = Util.find_one(
-            callbacks,
-            lambda cb: cb.node_name == subscription.node_name
-            and cb.callback_name == subscription.callback_name,
-        )
-        if callback_subscription is None or not isinstance(
-            callback_subscription, SubscriptionCallback
-        ):
-            return None
-
-        return Communication(
-            self._records_container, callback_publish, callback_subscription, publish
-        )
-
-    def execute(self, path: str, ignore_topics: Optional[List[str]] = None) -> None:
-        ignore_topics = ignore_topics or IGNORE_TOPICS
-
-        with open(path, 'r') as f:
-            arch_yaml = yaml.safe_load(f)
-
-        self._create_arch(arch_yaml, ignore_topics)
-
-        return None
-
-    def _create_arch(self, arch_yaml, ignore_topics: Optional[List[str]]) -> ArchitectureInterface:
-        ignore_topics = ignore_topics or IGNORE_TOPICS
-        for node_info in arch_yaml['nodes']:
-            node = self._create_node(node_info, ignore_topics)
-            self._nodes.append(node)
-
-        publishes = Util.flatten([node.publishes for node in self.nodes])
-        subscriptions = Util.flatten(
-            [node.subscriptions for node in self.nodes])
-        for publish, subscription in itertools.product(publishes, subscriptions):
-            if publish.topic_name != subscription.topic_name:
-                continue
-            communication = self._create_communicateion(publish, subscription)
-            if communication is None:
-                continue
-            self._communications.append(communication)
-
-        for alias_dict in arch_yaml['path_name_aliases']:
-            self._path_aliases.append(
-                PathAlias(alias=alias_dict['path_name'],
-                          callback_names=alias_dict['callbacks'])
-            )
-        return self
-
-    def _create_callback_with_empty_publish(
-        self, node_name: str, callback_info, ignore_topics: List[str]
-    ) -> Optional[CallbackBase]:
-        if callback_info['type'] == 'timer_callback':
-            return TimerCallback(
-                records_container=self._records_container,
-                node_name=node_name,
-                callback_name=callback_info['callback_name'],
-                symbol=callback_info['symbol'],
-                period_ns=int(callback_info['period_ns']),
-            )
-        elif callback_info['type'] == 'subscription_callback':
-            if callback_info['topic_name'] in ignore_topics:
-                return None
-            return SubscriptionCallback(
-                records_container=self._records_container,
-                node_name=node_name,
-                callback_name=callback_info['callback_name'],
-                symbol=callback_info['symbol'],
-                topic_name=callback_info['topic_name'],
-            )
-        return None
-
-    def _attach_publish_to_callback(self, node, publish_info) -> None:
-        callback = Util.find_one(
-            node.callbacks,
-            lambda callback: callback.callback_name == publish_info['callback_name'],
-        )
-
-        if callback is not None:
-            publish = Publisher(
-                node.node_name, publish_info['topic_name'], callback.callback_name)
-            callback.publishes.append(publish)
-            return None
-
-        if len(node.callbacks) == 1:
-            callback = node.callbacks[0]
-            publish = Publisher(
-                node.node_name, publish_info['topic_name'], callback.callback_name)
-            callback.publishes.append(publish)
-            return None
-
-        publish = Publisher(node.node_name, publish_info['topic_name'], None)
-        node.unlinked_publishes.append(publish)
-        return None
-
-    def _create_node(self, node_info, ignore_topics: List[str]) -> Node:
-        node = Node(node_name=node_info['node_name'])
-
-        callbacks_info = node_info.get('callbacks', [])
-        for callback_info in callbacks_info:
-            callback = self._create_callback_with_empty_publish(
-                node.node_name, callback_info, ignore_topics
-            )
-            if callback is None:
-                continue
-            node.callbacks.append(callback)
-
-        variable_passings = node_info.get('variable_passings', [])
-        for depend in variable_passings:
-            callback_write = Util.find_one(
-                node.callbacks, lambda cb: cb.callback_name == depend['callback_name_write']
-            )
-            callback_read = Util.find_one(
-                node.callbacks, lambda cb: cb.callback_name == depend['callback_name_read']
-            )
-
-            if callback_write is None or callback_read is None:
-                continue
-
-            node.variable_passings.append(
-                VariablePassing(
-                    self._records_container,
-                    callback_write=callback_write,
-                    callback_read=callback_read,
+            var_passes = []
+            for info in node['variable_passings']:
+                var_passes.append(
+                    VariablePassingInfo(
+                        node_name,
+                        info['callback_name_write'],
+                        info['callback_name_read']
+                    )
                 )
-            )
+            return var_passes
+        except Error:
+            return []
 
-        publishes_info = node_info.get('publishes', [])
-        for publish_info in publishes_info:
-            self._attach_publish_to_callback(node, publish_info)
+    # def get_executors(self) -> List[ExecutorInfo]:
+    #     executors = []
+    #     for executor in self._arch['executors']:
+    #         executors.append(ExecutorInfo(
+    #             executor['type'],
+    #             *executor['callbacks']
+    #         ))
+    #     return executors
 
-        return node
+    # def get_callback_groups(self, node_name: str) -> List[CallbackGroupInfo]:
+    #     try:
+    #         node = self._get_node_info(node_name)
+    #         cbgs = []
+    #         for cbg in node['callback_groups']:
+    #             cb_type = CallbackGroupType(cbg['type'])
+    #             cbgs.append(CallbackGroupInfo(
+    #                 cb_type, node_name, *cbg['callbacks']))
+    #         return cbgs
+
+    #     except Error:
+    #         return []
+
+    def get_subscription_callbacks(
+        self,
+        node_name: str,
+    ) -> List[SubscriptionCallbackInfo]:
+        try:
+            node = self._get_node_info(node_name)
+            callbacks_info = filter(
+                lambda x: x['type'] == CallbackType.Subscription.name, node['callbacks'])
+
+            callbacks = []
+            for info in callbacks_info:
+                callbacks.append(
+                    SubscriptionCallbackInfo(
+                        node['node_name'],
+                        info['callback_name'],
+                        info['symbol'],
+                        info['topic_name']
+                    )
+                )
+
+            return callbacks
+        except Error:
+            return []
+
+    def get_publishers(
+        self,
+        node_name: str,
+    ) -> List[Publisher]:
+        try:
+            node = self._get_node_info(node_name)
+            publishers = []
+
+            if 'publishes' not in node.keys():
+                return []
+
+            for pub in node['publishes']:
+
+                publishers.append(
+                    Publisher(
+                        node_name, pub['topic_name'], pub['callback_name']
+                    )
+                )
+            return publishers
+        except Error:
+            return []
+
+    def _get_node_info(self, node_name: str) -> YamlObject:
+        nodes = self._arch['nodes']
+        nodes = list(filter(lambda x: x['node_name'] == node_name, nodes))
+
+        if len(nodes) == 0:
+            message = f'Failed to find node by node_name. target node name = {node_name}'
+            raise WrongYamlFormatError(message)
+
+        if len(nodes) >= 2:
+            message = (
+                'Failed to specify node by node_name. same node_name are exist.'
+                f'target node name = {node_name}')
+            raise WrongYamlFormatError(message)
+
+        return nodes[0]

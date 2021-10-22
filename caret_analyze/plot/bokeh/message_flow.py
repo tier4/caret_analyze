@@ -118,9 +118,9 @@ def get_callback_rects(
 
     for callback in path.callbacks:
         if granularity == 'raw':
-            search_name = callback.unique_name
+            search_name = callback.callback_unique_name
         elif granularity == 'callback':
-            search_name = callback.unique_name
+            search_name = callback.callback_unique_name
         elif granularity == 'node':
             search_name = callback.node_name
 

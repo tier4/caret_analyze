@@ -125,7 +125,7 @@ def get_attr_callback(path, treat_drop_as_delay, lstrip_s, rstrip_s) -> GraphAtt
         if isinstance(component, CallbackBase):
             label = f'{component.node_name}\n{component.callback_name}\n'
             label += to_label(latency)
-            graph_nodes.append(GraphNode(component.unique_name, label))
+            graph_nodes.append(GraphNode(component.callback_unique_name, label))
 
         elif isinstance(component, Communication):
             label = component.topic_name
@@ -135,8 +135,8 @@ def get_attr_callback(path, treat_drop_as_delay, lstrip_s, rstrip_s) -> GraphAtt
                 continue
 
             graph_edges.append(GraphEdge(
-                component.callback_from.unique_name,
-                component.callback_to.unique_name,
+                component.callback_from.callback_unique_name,
+                component.callback_to.callback_unique_name,
                 label,
             ))
 
@@ -144,8 +144,8 @@ def get_attr_callback(path, treat_drop_as_delay, lstrip_s, rstrip_s) -> GraphAtt
             label = to_label(latency)
             graph_edges.append(
                 GraphEdge(
-                    component.callback_from.unique_name,
-                    component.callback_to.unique_name,
+                    component.callback_from.callback_unique_name,
+                    component.callback_to.callback_unique_name,
                     label,
                 ))
 

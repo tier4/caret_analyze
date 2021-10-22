@@ -17,9 +17,23 @@ class Error(Exception):
     """Base class for exception in this module."""
 
 
-class TraceResultAanalyzeError(Exception):
+class TraceResultAanalyzeError(Error):
     """Failed to parse trace results."""
 
     def __init__(self, *args: object) -> None:
         """Construct exception instance."""
         super().__init__(*args)
+
+
+class WrongYamlFormatError(Error):
+    """Failed to load yaml."""
+
+    def __init__(self, message) -> None:
+        self.message = message
+
+
+class ItemNotFoundError(Error):
+    """Failed to identify item that match the condition."""
+
+    def __init__(self, message) -> None:
+        self.message = message

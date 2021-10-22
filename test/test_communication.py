@@ -19,8 +19,8 @@ from caret_analyze.callback import SubscriptionCallback
 from caret_analyze.communication import Communication
 from caret_analyze.communication import DDSLatency
 from caret_analyze.communication import VariablePassing
-from caret_analyze.pub_sub import Publisher
 from caret_analyze.record.lttng import Lttng
+from caret_analyze.value_objects.publisher import Publisher
 
 import pytest
 

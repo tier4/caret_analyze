@@ -79,7 +79,8 @@ class GraphSearcher:
             if node == dst_node and len(path) > 0:
                 paths.append(path)
 
-            for branch in filter(lambda x: x.src_node == node, branches):
+            target_branches = list(filter(lambda x: x.src_node == node, branches))
+            for branch in target_branches:
                 if branch.arrived:
                     continue
 
@@ -125,14 +126,14 @@ class CallbackPathSercher:
                 continue
             callback_publish = communication.callback_publish
             assert callback_publish is not None
-            src_node = GraphNode(callback_publish.unique_name)
+            src_node = GraphNode(callback_publish.callback_unique_name)
             dst_node = GraphNode(
-                communication.callback_subscription.unique_name)
+                communication.callback_subscription.callback_unique_name)
             branches.append(GraphBranch(src_node, dst_node))
 
         for variable_passing in self._variable_passings:
-            src_node = GraphNode(variable_passing.callback_write.unique_name)
-            dst_node = GraphNode(variable_passing.callback_read.unique_name)
+            src_node = GraphNode(variable_passing.callback_write.callback_unique_name)
+            dst_node = GraphNode(variable_passing.callback_read.callback_unique_name)
             branches.append(GraphBranch(src_node, dst_node))
 
         searcher = GraphSearcher(branches)
@@ -147,7 +148,7 @@ class CallbackPathSercher:
 
     def _to_path(self, graph_path: GraphPath) -> List[CallbackBase]:
         to_callback = {
-            callback.unique_name: callback for callback in self._callbacks}
+            callback.callback_unique_name: callback for callback in self._callbacks}
         callbacks_path: List[CallbackBase] = [
             to_callback[node.name] for node in graph_path.to_graph_nodes()
         ]

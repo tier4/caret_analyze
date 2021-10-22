@@ -15,9 +15,9 @@
 from typing import Optional
 
 from .dataframe_formatter import DataFrameFormatter
-from .impl import CallbackImpl
-from .impl import SubscriptionCallbackImpl
-from .impl import TimerCallbackImpl
+from .objects_with_runtime_info import CallbackWithRuntime
+from .objects_with_runtime_info import SubscriptionCallbackWithRuntime
+from .objects_with_runtime_info import TimerCallbackWithRuntime
 from .util import Ros2DataModelUtil
 from .. import merge
 from .. import merge_sequencial
@@ -66,19 +66,19 @@ class RecordsFormatter:
         else:
             return self._compose_inter_process_communication_records_with_cache()
 
-    def get_callback_records(self, callback: CallbackImpl) -> RecordsInterface:
+    def get_callback_records(self, callback: CallbackWithRuntime) -> RecordsInterface:
         records: RecordsInterface
 
-        if isinstance(callback, SubscriptionCallbackImpl):
+        if isinstance(callback, SubscriptionCallbackWithRuntime):
             records = self._get_subscription_callback_records(callback)
-        elif isinstance(callback, TimerCallbackImpl):
+        elif isinstance(callback, TimerCallbackWithRuntime):
             records = self._get_timer_callback_records(callback)
 
         records.sort(key='callback_start_timestamp', inplace=True)
         return records
 
     def _get_subscription_callback_records(
-        self, callback: SubscriptionCallbackImpl
+        self, callback: SubscriptionCallbackWithRuntime
     ) -> RecordsInterface:
         def has_same_intra_callback_object(record: RecordInterface):
             return record.data.get('callback_object') == callback.intra_callback_object
@@ -105,7 +105,7 @@ class RecordsFormatter:
 
         return records
 
-    def _get_timer_callback_records(self, callback: TimerCallbackImpl) -> RecordsInterface:
+    def _get_timer_callback_records(self, callback: TimerCallbackWithRuntime) -> RecordsInterface:
         def has_same_callback_object(record: RecordInterface):
             return record.data.get('callback_object') == callback.callback_object
 

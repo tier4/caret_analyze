@@ -16,7 +16,9 @@ from __future__ import annotations
 
 from collections import UserList
 import os
-from typing import Any, Callable, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Iterable, List, Tuple
+
+from .exceptions import ItemNotFoundError
 
 
 class Util:
@@ -35,11 +37,11 @@ class Util:
         return ext[1:]
 
     @classmethod
-    def find_one(self, items: Iterable[Any], f: Callable[[Any], bool]) -> Optional[Any]:
+    def find_one(self, items: Iterable[Any], f: Callable[[Any], bool]) -> Any:
         try:
             return next(filter(f, items))
         except StopIteration:
-            return None
+            raise ItemNotFoundError('Failed to find one item.')
 
     @classmethod
     def ns_to_ms(cls, x: float) -> float:

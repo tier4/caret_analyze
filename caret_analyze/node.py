@@ -19,9 +19,9 @@ from typing import List, Optional
 from .callback import CallbackBase
 from .communication import VariablePassing
 from .path import Path
-from .pub_sub import Publisher
-from .pub_sub import Subscription
 from .record.interface import RecordsContainer
+from .value_objects.publisher import Publisher
+from .value_objects.subscription import Subscription
 
 
 class Node:
