@@ -19,7 +19,7 @@ import pandas as pd
 from tracetools_analysis.data_model import DataModel
 from tracetools_analysis.data_model import DataModelIntermediateStorage
 
-from ...record.record_factory import RecordFactory, RecordsFactory
+from ....record.record_factory import RecordFactory, RecordsFactory
 
 
 class Ros2DataModel(DataModel):

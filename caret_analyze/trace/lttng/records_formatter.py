@@ -18,7 +18,7 @@ from .dataframe_formatter import DataFrameFormatter
 from .objects_with_runtime_info import CallbackWithRuntime
 from .objects_with_runtime_info import SubscriptionCallbackWithRuntime
 from .objects_with_runtime_info import TimerCallbackWithRuntime
-from .util import Ros2DataModelUtil
+from .ros2_tracing.util import Ros2DataModelUtil
 from ...record import merge
 from ...record import merge_sequencial
 from ...record import merge_sequencial_for_addr_track

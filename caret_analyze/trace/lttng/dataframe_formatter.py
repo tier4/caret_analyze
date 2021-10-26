@@ -16,7 +16,7 @@ from typing import List
 
 import pandas as pd
 
-from .util import Ros2DataModelUtil
+from .ros2_tracing.util import Ros2DataModelUtil
 
 
 class DataFrameFormatter:
