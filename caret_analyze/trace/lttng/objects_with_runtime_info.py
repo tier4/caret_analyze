@@ -15,7 +15,7 @@
 
 from typing import Optional, Tuple
 
-from .dataframe_formatter import DataFrameFormatter
+from .lttng_info import DataFrameFormatter
 from ...exceptions import TraceResultAanalyzeError
 from ...value_objects.callback_info import (CallbackInfo,
                                             SubscriptionCallbackInfo,

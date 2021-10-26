@@ -16,14 +16,14 @@ from typing import List, Optional
 
 from tracetools_analysis.loading import load_file
 
-from .dataframe_formatter import DataFrameFormatter
+from .lttng_info import DataFrameFormatter
 from .objects_with_runtime_info import (CallbackWithRuntime,
                                         PublisherWithRuntime,
                                         SubscriptionCallbackWithRuntime,
                                         TimerCallbackWithRuntime)
-from .processor import Ros2Handler
-from .records_formatter import RecordsFormatter
-from .util import Ros2DataModelUtil
+from .lttng_records_source import RecordsFormatter
+from .ros2_tracing.processor import Ros2Handler
+from .ros2_tracing.util import Ros2DataModelUtil
 from ...record import merge_sequencial, RecordInterface, RecordsContainer, RecordsInterface
 from ...record.record_factory import RecordsFactory
 from ...util import Singleton

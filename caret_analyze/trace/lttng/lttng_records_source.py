@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from .dataframe_formatter import DataFrameFormatter
+from .lttng_info import DataFrameFormatter
 from .objects_with_runtime_info import CallbackWithRuntime
 from .objects_with_runtime_info import SubscriptionCallbackWithRuntime
 from .objects_with_runtime_info import TimerCallbackWithRuntime
