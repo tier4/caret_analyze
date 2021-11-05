@@ -46,9 +46,11 @@ class Ros2DataModel(DataModel):
         self._callback_objects: DataModelIntermediateStorage = []
         self._callback_symbols: DataModelIntermediateStorage = []
         self._lifecycle_state_machines: DataModelIntermediateStorage = []
+        # Events (multiple instances, may not have a meaningful index)
+        # string argument
+        self._lifecycle_transitions: DataModelIntermediateStorage = []
 
         # Events (multiple instances, may not have a meaningful index)
-        self.lifecycle_transitions = RecordsFactory.create_instance()
         self.callback_start_instances = RecordsFactory.create_instance()
         self.callback_end_instances = RecordsFactory.create_instance()
         self.dds_write_instances = RecordsFactory.create_instance()
@@ -182,15 +184,13 @@ class Ros2DataModel(DataModel):
     def add_lifecycle_state_transition(
         self, state_machine_handle, start_label, goal_label, timestamp
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'state_machine_handle': state_machine_handle,
-                'start_label': start_label,
-                'goal_label': goal_label,
-                'timestamp': timestamp,
-            }
-        )
-        self.lifecycle_transitions.append(record)
+        record = {
+            'state_machine_handle': state_machine_handle,
+            'start_label': start_label,
+            'goal_label': goal_label,
+            'timestamp': timestamp,
+        }
+        self._lifecycle_transitions.append(record)
 
     def add_callback_start_instance(
         self, timestamp: int, callback: int, is_intra_process: bool
@@ -406,6 +406,8 @@ class Ros2DataModel(DataModel):
             self.lifecycle_state_machines.set_index(
                 'state_machine_handle', inplace=True, drop=True
             )
+        self.lifecycle_transitions = pd.DataFrame.from_dict(
+            self._lifecycle_transitions)
 
     def print_data(self) -> None:
         print('====================ROS 2 DATA MODEL===================')
