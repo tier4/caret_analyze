@@ -91,7 +91,12 @@ class LatencyBase(metaclass=ABCMeta):
         if remove_dropped is False and treat_drop_as_delay:
             records.bind_drop_as_delay(column_names[0])
 
-        df = records.to_dataframe()[column_names]
+        df = records.to_dataframe()
+        for column in column_names:
+            if column in df.columns:
+                continue
+            df[column] = np.nan
+        df = df[column_names]
 
         if lstrip_s > 0 or rstrip_s > 0:
             strip = Strip(lstrip_s, rstrip_s)
