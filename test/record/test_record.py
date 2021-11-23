@@ -789,7 +789,9 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 4}),
                         Record({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
+                        Record({'key': 2, 'stamp': 1, 'sub_stamp': 5}),
                     ]
                 ),
             ),
@@ -798,7 +800,9 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 4}),
                         Record({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
+                        Record({'key': 2, 'stamp': 1, 'sub_stamp': 5}),
                         Record({'key': 1, 'stamp': 6}),
                         Record({'key': 2, 'stamp': 7}),
                     ]
@@ -809,9 +813,9 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 4}),
                         Record({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
-                        Record({'key': 1, 'sub_stamp': 4}),
-                        Record({'key': 2, 'sub_stamp': 5}),
+                        Record({'key': 2, 'stamp': 1, 'sub_stamp': 5}),
                     ]
                 ),
             ),
@@ -820,9 +824,9 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 4}),
                         Record({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
-                        Record({'key': 1, 'sub_stamp': 4}),
-                        Record({'key': 2, 'sub_stamp': 5}),
+                        Record({'key': 2, 'stamp': 1, 'sub_stamp': 5}),
                         Record({'key': 1, 'stamp': 6}),
                         Record({'key': 2, 'stamp': 7}),
                     ]
@@ -876,6 +880,7 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'sub_stamp': 1}),
                         Record({'stamp': 5, 'sub_stamp': 6}),
+                        Record({'stamp': 5, 'sub_stamp': 7}),
                     ]
                 ),
             ),
@@ -887,6 +892,7 @@ class TestRecords:
                         Record({'stamp': 3}),
                         Record({'stamp': 4}),
                         Record({'stamp': 5, 'sub_stamp': 6}),
+                        Record({'stamp': 5, 'sub_stamp': 7}),
                         Record({'stamp': 8}),
                     ]
                 ),
@@ -897,7 +903,7 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'sub_stamp': 1}),
                         Record({'stamp': 5, 'sub_stamp': 6}),
-                        Record({'sub_stamp': 7}),
+                        Record({'stamp': 5, 'sub_stamp': 7}),
                     ]
                 ),
             ),
@@ -909,7 +915,7 @@ class TestRecords:
                         Record({'stamp': 3}),
                         Record({'stamp': 4}),
                         Record({'stamp': 5, 'sub_stamp': 6}),
-                        Record({'sub_stamp': 7}),
+                        Record({'stamp': 5, 'sub_stamp': 7}),
                         Record({'stamp': 8}),
                     ]
                 ),
@@ -953,6 +959,7 @@ class TestRecords:
 
             assert merged.equals(expect_records)
 
+
     @pytest.mark.parametrize(
         'how, expect_records_py',
         [
@@ -961,6 +968,7 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
                         Record({'key': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ]
                 ),
@@ -970,6 +978,7 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
                         Record({'key': 1, 'stamp': 4}),
                         Record({'key': 1, 'stamp': 5}),
                         Record({'key': 1, 'stamp': 6, 'sub_stamp': 7}),
@@ -981,8 +990,8 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
                         Record({'key': 3, 'sub_stamp': 1}),
-                        Record({'key': 1, 'sub_stamp': 3}),
                         Record({'key': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ]
                 ),
@@ -992,8 +1001,8 @@ class TestRecords:
                 Records(
                     [
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 2}),
+                        Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
                         Record({'key': 3, 'sub_stamp': 1}),  # stamp lost
-                        Record({'key': 1, 'sub_stamp': 3}),  # stamp lost
                         Record({'key': 1, 'stamp': 4}),  # sub_stamp lost
                         Record({'key': 1, 'stamp': 5}),  # sub_stamp lost
                         Record({'key': 1, 'stamp': 6, 'sub_stamp': 7}),
@@ -1026,7 +1035,7 @@ class TestRecords:
             [right_records_py, to_cpp_records(right_records_py)],
             [expect_records_py, to_cpp_records(expect_records_py)],
         ):
-            if not CppImplValid:
+            if left_records is None and not CppImplValid:
                 continue
 
             merged = left_records.merge_sequencial(
@@ -1054,6 +1063,15 @@ class TestRecords:
                                 'stamp_': 3,
                                 'value': 1,
                             }
+                        ),
+                        Record(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
+                                'value': 1,
+                            }
                         )
                     ]
                 ),
@@ -1068,6 +1086,15 @@ class TestRecords:
                                 'other_stamp_': 2,
                                 'stamp': 1,
                                 'stamp_': 3,
+                                'value': 1,
+                            }
+                        ),
+                        Record(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
                                 'value': 1,
                             }
                         ),
@@ -1090,7 +1117,15 @@ class TestRecords:
                                 'value': 1,
                             }
                         ),
-                        Record({'other_stamp_': 6, 'stamp_': 7, 'value': 1}),
+                        Record(
+                            {
+                                'other_stamp': 4,
+                                'other_stamp_': 6,
+                                'stamp': 1,
+                                'stamp_': 7,
+                                'value': 1,
+                            }
+                        ),
                         Record({'other_stamp_': 10, 'stamp_': 10}),
                         Record({'other_stamp_': 14, 'value': 2}),
                     ]

@@ -962,23 +962,23 @@ class Records(RecordsInterface):
             else:
                 return None
 
-        left_records_with_empty_sub_record: Dict[int, Record] = {}
+        to_left_records_: Dict[int, Record] = {}
         for record in records._data:
             if record.get('side') == MergeSideInfo.LEFT and record.get('has_merge_stamp'):
-                record.add('sub_record', None)  # type: ignore
+                record.add('sub_records', [])  # type: ignore
 
                 join_value = get_join_value(record)
                 if join_value is None:
                     continue
-                left_records_with_empty_sub_record[join_value] = record
+                to_left_records_[join_value] = record
             elif record.get('side') == MergeSideInfo.RIGHT and record.get('has_merge_stamp'):
                 join_value = get_join_value(record)
                 if join_value is None:
                     continue
-                if join_value in left_records_with_empty_sub_record.keys():
-                    left_record_to_be_bind = left_records_with_empty_sub_record[join_value]
-                    left_record_to_be_bind._data['sub_record'] = record
-                    del left_records_with_empty_sub_record[join_value]
+                if join_value not in to_left_records_.keys():
+                    continue
+                left_record_to_be_bind = to_left_records_[join_value]
+                left_record_to_be_bind._data['sub_records'].append(record)
 
         added: Set[Record] = set()
         for i, current_record in enumerate(records._data):
@@ -1004,27 +1004,34 @@ class Records(RecordsInterface):
                     added.add(current_record)
                 continue
 
-            sub_record: Optional[Record] = current_record._data['sub_record']
+            sub_records: List[Record] = current_record._data['sub_records']
 
-            if sub_record is None or sub_record in added:
+            if sub_records == []:
                 if merge_left:
                     merged_records.append(current_record)
                     added.add(current_record)
                 continue
 
-            merged_record = Record()
-            merged_record.merge(current_record, inplace=True)
-            merged_record.merge(sub_record, inplace=True)
-            merged_records.append(merged_record)
-            added.add(current_record)
-            added.add(sub_record)
+            for sub_record in sub_records:
+                if sub_record in added:
+                    if merge_left:
+                        merged_records.append(current_record)
+                        added.add(current_record)
+                    continue
+
+                merged_record = Record()
+                merged_record.merge(current_record, inplace=True)
+                merged_record.merge(sub_record, inplace=True)
+                merged_records.append(merged_record)
+                added.add(current_record)
+                added.add(sub_record)
 
         temporay_columns = [
             'side',
             'merge_stamp',
             'has_merge_stamp',
             'has_valid_join_key',
-            'sub_record',
+            'sub_records',
         ]
         merged_records.drop_columns(temporay_columns, inplace=True)
         left_records.drop_columns(temporay_columns, inplace=True)
