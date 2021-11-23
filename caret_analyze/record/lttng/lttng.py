@@ -138,8 +138,23 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
         publisher_handle: int,
         is_intra_process: bool,
     ) -> RecordsInterface:
-        def is_target(record: RecordInterface):
-            return record.get('publisher_handle') == publisher_handle
+        if is_intra_process:
+            def is_target(record: RecordInterface):
+                # There is no column for the case where an unknown callback is receiving the message.
+                if 'callback_object' not in record.columns:
+                    return False
+                return record.get('publisher_handle') == publisher_handle and \
+                    record.get(
+                        'callback_object') == subscription_callback.intra_callback_object
+        else:
+            def is_target(record: RecordInterface):
+                # There is no column for the case where an unknown callback is receiving the message.
+                if 'callback_object' not in record.columns:
+                    return False
+                return record.get('publisher_handle') == publisher_handle and \
+                    record.get(
+                        'callback_object') == subscription_callback.inter_callback_object
+
 
         communication_records = self._records.get_communication_records(is_intra_process)
         communication_records_filtered = communication_records.filter_if(is_target)
@@ -236,7 +251,8 @@ class Lttng(Singleton, RecordsContainer, ArchitectureInfoContainer):
         read_records.rename_columns(
             {'callback_object': 'read_callback_object'}, inplace=True)
 
-        write_records = self._records.get_callback_records(write_callback_impl)
+        write_records = self._records.get_callback_records(
+            write_callback_impl).clone()
         write_records.rename_columns(
             {'callback_object': 'write_callback_object'}, inplace=True)
         write_records.drop_columns(['callback_start_timestamp'], inplace=True)
