@@ -24,6 +24,7 @@ from bokeh.plotting import ColumnDataSource, figure
 from bokeh.resources import CDN
 import numpy as np
 import pandas as pd
+from ...record import RecordInterface
 
 from ...callback import SubscriptionCallback
 from ...data_frame_shaper import Clip, Strip
@@ -83,7 +84,7 @@ def message_flow(
     rect_source = get_callback_rects(path, yaxis_values, granularity, clip)
     fig.rect('x', 'y', 'width', 'height', source=rect_source, color='black', alpha=0.15)
 
-    line_sources = get_flow_lines(df)
+    line_sources = get_flow_lines(df, path)
     for i, line_source in enumerate(line_sources):
         fig.line(
             x='x',
@@ -127,16 +128,18 @@ def get_callback_rects(
         y_maxs = y_axi_values.get_start_indexes(search_name)
         y_mins = y_axi_values.get_end_values(search_name)
 
+        data = callback.to_records().data
         for y_min, y_max in zip(y_mins, y_maxs):
-            for _, row in callback.to_dataframe(shaper=clip).iterrows():
-                callback_start = row[TRACE_POINT.CALLBACK_START_TIMESTAMP]
-                callback_end = row[TRACE_POINT.CALLBACK_END_TIMESTAMP]
+            for record in data:
+                callback_start = record.get(
+                    TRACE_POINT.CALLBACK_START_TIMESTAMP)
+                callback_end = record.get(TRACE_POINT.CALLBACK_END_TIMESTAMP)
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
                 new_data = {
                     'x': [rect.x],
                     'y': [rect.y],
-                    'x_min': [callback_start],
-                    'x_max': [callback_end],
+                    'x_min': [str(callback_start)],
+                    'x_max': [str(callback_end)],
                     'width': [rect.width],
                     'height': [rect.height],
                     'desc': ['symbol: ' + callback.symbol],
@@ -146,23 +149,39 @@ def get_callback_rects(
     return rect_source
 
 
-def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
+def get_path_end_time(record: RecordInterface, columns: List[str]) -> int:
+    x_max = 0
+    for column in columns:
+        if column not in record.columns:
+            continue
+        if TRACE_POINT.CALLBACK_END_TIMESTAMP in column and column != columns[-1]:
+            continue
+        time = record.get(column)
+        x_max = max(x_max, time)
+    return x_max
+
+
+def get_flow_lines(df: pd.DataFrame, path: Path) -> ColumnDataSource:
     tick_labels = YAxisProperty(df)
     line_sources = []
 
-    for _, row in df.iterrows():
-        x_min = min(row.values)
-        x_max = max(row.values)
+    records = path.to_records()
+
+    for i, record in enumerate(records.data):
+        x = np.array([record.get(c)
+                     for c in path.column_names if c in record.columns])
+        x_min = min(x)
+        x_max = get_path_end_time(record, path.column_names)
         width = x_max - x_min
 
         line_source = ColumnDataSource({
-            'x': row.values,
-            'y': tick_labels.values,
-            'x_min': [x_min]*len(row.values),
-            'x_max': [x_max]*len(row.values),
-            'width': [width]*len(row.values),
-            'height': [0]*len(row.values),
-            'desc': ['']*len(row.values),
+            'x': x,
+            'y': tick_labels.values[:len(x)],
+            'x_min': [str(x_min)]*len(x),
+            'x_max': [str(x_max)]*len(x),
+            'width': [width]*len(x),
+            'height': [0]*len(x),
+            'desc': [f'record index: {i}']*len(x),
         })
 
         line_sources.append(line_source)
