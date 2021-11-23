@@ -785,6 +785,9 @@ class Records(RecordsInterface):
             return None
 
     def equals(self, records: Records) -> bool:  # type: ignore
+        if len(self.data) != len(records.data):
+            return False
+
         for r, r_ in zip(self.data, records.data):
             if r.equals(r_) is False:
                 return False
