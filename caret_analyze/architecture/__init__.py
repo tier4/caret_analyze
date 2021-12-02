@@ -13,9 +13,7 @@
 # limitations under the License.
 
 from .architecture import Architecture
-from .interface import PathAlias
 
 __all__ = [
     'Architecture',
-    'PathAlias',
 ]

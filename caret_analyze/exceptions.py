@@ -25,15 +25,64 @@ class TraceResultAanalyzeError(Error):
         super().__init__(*args)
 
 
-class WrongYamlFormatError(Error):
+class InvalidYamlFormatError(Error):
     """Failed to load yaml."""
 
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidTraceFormatError(Error):
+    """Failed to load trace data."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidReaderError(Error):
+    """Failed to load architecutre."""
+
+    def __init__(self, message: str) -> None:
         self.message = message
 
 
 class ItemNotFoundError(Error):
     """Failed to identify item that match the condition."""
 
-    def __init__(self, message) -> None:
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class MultipleItemFoundError(Error):
+    """Failed to identify item that match the condition."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidArgumentError(Error):
+    """Failed to process function."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class UnsupportedTypeError(Error):
+    """Given type is unsupported."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidRecordsError(Error):
+    """Given Records does not have the necessary columns."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class UnsupportedNodeRecordsError(Error):
+    """Failed to calculate node path records."""
+
+    def __init__(self, message: str) -> None:
         self.message = message

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
+from typing import Dict
 
 class ValueObject():
     """Value object base class."""
@@ -20,8 +22,8 @@ class ValueObject():
         if type(self) != type(right):
             return False
 
-        for p in self.__dict__.keys():
-            if getattr(self,  p) != getattr(right, p):
+        for attr in self.__generate_public_attrs():
+            if getattr(self,  attr) != getattr(right, attr):
                 return False
         return True
 
@@ -30,8 +32,40 @@ class ValueObject():
 
         hash_value += hash_value * 31 + hash(self.__class__)
 
-        for p in self.__dict__.keys():
-            v = getattr(self,  p)
+        for attr in self.__generate_public_attrs():
+            v = getattr(self,  attr)
             hash_value += hash_value * 31 + hash(v)
 
         return hash_value
+
+    def __str__(self) -> str:
+        from yaml import dump
+        d = self._to_dict()
+        return dump(d)
+
+    def _to_dict(self) -> Dict:
+        d = {}
+        for attr in self.__generate_public_attrs():
+            value = getattr(self, attr)
+            if isinstance(value, ValueObject):
+                d[attr] = value._to_dict()
+            else:
+                if isinstance(value, tuple):
+                    d[attr] = list(value)
+                else:
+                    d[attr] = value
+        return d
+
+    def __generate_public_attrs(self):
+        attrs = inspect.getmembers(self)
+
+        # ignore private variables and Constant variables
+        attrs = list(filter(
+            lambda x: x[0][0] != '_' and x[0][0].islower(), attrs
+        ))
+        for attr in attrs:
+            key, value = attr[0], attr[1]
+            # ignore callable
+            if callable(value):
+                continue
+            yield key

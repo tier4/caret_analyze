@@ -12,22 +12,56 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback_name import CallbackName
+from typing import Optional
+
 from .value_object import ValueObject
+from .callback import SubscriptionCallbackStructValue
 
 
-class Subscription(ValueObject):
+class SubscriptionValue(ValueObject):
     """Subscription info."""
 
     def __init__(
         self,
         node_name: str,
         topic_name: str,
-        callback_name: str
+        node_id: str,
+        callback_id: Optional[str],
+    ) -> None:
+        self._node_name: str = node_name
+        self._node_id: str = node_id
+        self._topic_name: str = topic_name
+        self._callback_id = callback_id
+
+    @property
+    def node_name(self) -> str:
+        return self._node_name
+
+    @property
+    def node_id(self) -> str:
+        return self._node_name
+
+    @property
+    def topic_name(self) -> str:
+        return self._topic_name
+
+    @property
+    def callback_id(self) -> Optional[str]:
+        return self._callback_id
+
+
+class SubscriptionStructValue(ValueObject):
+    """Subscription info."""
+
+    def __init__(
+        self,
+        node_name: str,
+        topic_name: str,
+        callback_info: Optional[SubscriptionCallbackStructValue],
     ) -> None:
         self._node_name: str = node_name
         self._topic_name: str = topic_name
-        self._callback_name = CallbackName(node_name,  callback_name)
+        self._callback_value = callback_info
 
     @property
     def node_name(self) -> str:
@@ -38,9 +72,12 @@ class Subscription(ValueObject):
         return self._topic_name
 
     @property
-    def callback_name(self) -> str:
-        return self._callback_name.name
+    def callback_name(self) -> Optional[str]:
+        if self._callback_value is None:
+            return None
+
+        return self._callback_value.callback_name
 
     @property
-    def callback_unique_name(self) -> str:
-        return self._callback_name.unique_name
+    def callback(self) -> Optional[SubscriptionCallbackStructValue]:
+        return self._callback_value

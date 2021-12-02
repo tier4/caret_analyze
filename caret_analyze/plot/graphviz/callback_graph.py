@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
-from graphviz import Digraph
-from graphviz import Source
+from graphviz import Digraph, Source
 
 from ...architecture import Architecture
-from ...callback import CallbackBase
-from ...callback import SubscriptionCallback
-from ...callback import TimerCallback
-from ...node import Node
-from ...path import Path
-from ...util import Util
+from ...runtime.callback import CallbackBase, SubscriptionCallback, TimerCallback
+from ...runtime.node import Node
+from ...runtime.path import Path
+from ...common import Util
 
 
 def callback_graph(
@@ -114,8 +111,8 @@ class CallbackGraph:
             if plot_target_path_only and not self._contain(node_var, path):
                 continue
 
-            head_name = var.callback_to.callback_unique_name
-            tail_name = var.callback_from.callback_unique_name
+            head_name = var.callback_to.callback_name
+            tail_name = var.callback_from.callback_name
             if path.contains(var):
                 color = CallbackGraph.PATH_HIGHLIGHT_COLOR
                 penwidth = '4.0'
@@ -135,7 +132,7 @@ class CallbackGraph:
             if comm.topic_name == labelled_edge.topic_name:
                 labelled_edge.draw(comm)
                 return
-        head_name = comm.callback_to.unique_name
+        head_name = comm.callback_to.name
         head_node_name = comm.callback_to.node_name
         self._draw_edge(comm, head_name, head_node_name, highlight)
 
@@ -170,7 +167,7 @@ class CallbackGraph:
                 fillcolor = 'white'
 
             node_cluster.node(
-                callback.callback_unique_name,
+                callback.callback_name,
                 callback.callback_name,
                 _attributes={'shape': 'box',
                              'tooltip': tooltip, 'style': 'filled'},
@@ -192,7 +189,7 @@ class CallbackGraph:
             self._draw_callbacks(node_cluster, node, path)
 
     def _draw_callback_to_callback(self, comm, head_name, head_node_name, highlight: bool):
-        tail_name = comm.callback_from.unique_name
+        tail_name = comm.callback_from.name
         tail_node_name = comm.callback_from.node_name
         if (
             tail_node_name in CallbackGraph.IGNORE_NODES
@@ -221,7 +218,7 @@ class CallbackGraph:
 
         # Choose only one temporary callback that you need to connect to.
         tail_callback = tail_node.callbacks[0]
-        tail_name = tail_callback.unique_name
+        tail_name = tail_callback.name
         tail_node_name = tail_callback.node_name
         if (
             tail_node_name in CallbackGraph.IGNORE_NODES
@@ -285,7 +282,7 @@ class LabelledEdge:
 
         if comm.subscription.node_name not in self._sub_nodes:
             self._sub_nodes.add(comm.subscription.node_name)
-            head_name = comm.callback_to.unique_name
+            head_name = comm.callback_to.name
             tail_name = self._to_tail_name(comm)
             self._callback_graph._graph.node(
                 tail_name, color=self._color, shape='cds', label=self.label

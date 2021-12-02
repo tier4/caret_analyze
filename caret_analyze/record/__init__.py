@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .interface import RecordsContainer
 from .record import merge
 from .record import merge_sequencial
 from .record import merge_sequencial_for_addr_track
@@ -26,7 +25,6 @@ __all__ = [
     'RecordsInterface',
     'Record',
     'Records',
-    'RecordsContainer',
     'merge',
     'merge_sequencial',
     'merge_sequencial_for_addr_track',

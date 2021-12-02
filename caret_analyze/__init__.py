@@ -12,7 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .application import Application
-from .trace.lttng import Lttng
+from .runtime.application import Application
+from .infra.lttng.lttng import Lttng
+from .architecture import Architecture
 
-__all__ = ['Application', 'Lttng']
+__all__ = [
+    'Application',
+    'Architecture',
+    'Lttng'
+]
+
+from logging import getLogger, StreamHandler, DEBUG, WARN, Formatter
+
+handler = StreamHandler()
+handler.setLevel(WARN)
+
+formatter = Formatter(
+    '%(levelname)-8s: %(asctime)s | %(filename)-12s - %(funcName)-12s : %(lineno)-4s -- %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S')
+handler.setFormatter(formatter)
+
+logger = getLogger()
+logger.setLevel(DEBUG)
+logger.addHandler(handler)
