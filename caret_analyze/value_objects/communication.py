@@ -44,12 +44,12 @@ class CommunicationStructValue(ValueObject):
     def _find_publish_value(self, node: NodeStructValue, topic_name: str):
         def is_target(pub: PublisherStructValue):
             return pub.topic_name == topic_name
-        return Util.find_one(is_target, node.publisher)
+        return Util.find_one(is_target, node.publishers)
 
     def _find_subscription_value(self, node: NodeStructValue, topic_name: str):
         def is_target(sub: SubscriptionStructValue):
             return sub.topic_name == topic_name
-        return Util.find_one(is_target, node.subscription_values)
+        return Util.find_one(is_target, node.subscriptions)
 
     @property
     def subscribe_node(self) -> NodeStructValue:

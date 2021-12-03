@@ -117,7 +117,7 @@ class CommValuesLoaded():
         node_pub: NodeStructValue
         node_sub: NodeStructValue
         for node_pub, node_sub in tqdm(pub_sub_pair, 'Loading communications.'):
-            for pub, sub in product(node_pub.publisher, node_sub.subscription_values):
+            for pub, sub in product(node_pub.publishers, node_sub.subscriptions):
                 if pub.topic_name != sub.topic_name:
                     continue
                 data.append(
@@ -384,7 +384,7 @@ class NodeValuesLoaded():
         node_paths = NodeValuesLoaded._search_node_paths(node_struct)
 
         node_path_added = NodeStructValue(
-            node_struct.node_name, node_struct.publisher, node_struct.subscription_values,
+            node_struct.node_name, node_struct.publishers, node_struct.subscriptions,
             tuple(node_paths), node_struct.callback_groups,
             node_struct.variable_passings,
             node_struct.message_contexts
@@ -424,8 +424,8 @@ class NodeValuesLoaded():
         node_paths += list(CallbackPathSearched(node).data)
 
         # add pub-sub pair graph paths
-        pubs = node.publisher
-        subs = node.subscription_values
+        pubs = node.publishers
+        subs = node.subscriptions
         node_path_pub_sub_pairs = NodePathCreated(subs, pubs).data
         for node_path in node_path_pub_sub_pairs:
             pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name) for n in node_paths]
@@ -434,7 +434,7 @@ class NodeValuesLoaded():
                 node_paths.append(node_path)
 
         # add dummy node paths
-        for pub in node.publisher:
+        for pub in node.publishers:
             pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name) for n in node_paths]
             node_path = NodePathStructValue(
                     node.node_name,
@@ -447,7 +447,7 @@ class NodeValuesLoaded():
             if pub_sub_pair not in pub_sub_pairs:
                 node_paths.append(node_path)
 
-        for sub in node.subscription_values:
+        for sub in node.subscriptions:
             pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name) for n in node_paths]
             node_path = NodePathStructValue(
                     node.node_name,

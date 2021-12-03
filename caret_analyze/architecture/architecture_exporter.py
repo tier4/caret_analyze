@@ -247,13 +247,13 @@ class NodesDicts:
                 obj['variable_passings'] = VarPassDicts(
                     node_value.variable_passings).data
 
-        if len(node_value.publisher) >= 1:
-            obj['publishes'] = PubDicts(node_value.publisher).data
+        if len(node_value.publishers) >= 1:
+            obj['publishes'] = PubDicts(node_value.publishers).data
 
-        if len(node_value.subscription_values) >= 1:
-            obj['subscribes'] = SubDicts(node_value.subscription_values).data
+        if len(node_value.subscriptions) >= 1:
+            obj['subscribes'] = SubDicts(node_value.subscriptions).data
 
-        if len(node_value.subscription_values) >= 1 or len(node_value.publisher) >= 1:
+        if len(node_value.subscriptions) >= 1 or len(node_value.publishers) >= 1:
             obj['message_contexts'] = MessageContextDicts(node_value.message_contexts).data
 
         return obj

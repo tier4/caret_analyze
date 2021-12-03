@@ -133,11 +133,11 @@ class NodesLoaded:
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Node:
         publishers_loaded = PublishersLoaded(
-            node_value.publisher, provider)
+            node_value.publishers, provider)
         publishsers = publishers_loaded.data
 
         subscriptions_loaded = SubscriptionsLoaded(
-            node_value.subscription_values, provider)
+            node_value.subscriptions, provider)
         subscriptions = subscriptions_loaded.data
 
         cbgs: List[CallbackGroup] = []
