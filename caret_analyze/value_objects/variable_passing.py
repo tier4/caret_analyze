@@ -16,6 +16,7 @@
 
 from .value_object import ValueObject
 from .callback import CallbackStructValue
+from ..common import CustomDict
 
 
 class VariablePassingValue(ValueObject):
@@ -132,3 +133,11 @@ class VariablePassingStructValue(ValueObject):
     @property
     def callback_value_read(self) -> CallbackStructValue:
         return self._cb_read
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'node': self.node_name,
+            'write': self.callback_name_write,
+            'read': self.callback_name_read,
+        })

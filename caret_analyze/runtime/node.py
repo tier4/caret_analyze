@@ -98,18 +98,7 @@ class Node:
 
     @property
     def summary(self) -> CustomDict:
-        d: CustomDict = CustomDict()
-        d['node'] = self.node_name
-        d['callbacks'] = self._val.callback_names
-        d['callback_groups'] = self._val.callback_group_names
-        d['publishers'] = [_.summary for _ in self.publishers]
-        d['subscriptions'] = [_.summary for _ in self.subscriptions]
-        d['variable_passings'] = []
-        if self.variable_passings is not None:
-            d['variable_passings'] = [_.summary for _ in self.variable_passings]
-        d['paths'] = [_.summary for _ in self.paths]
-
-        return d
+        return self._val.summary
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroup:
         if self._callback_groups is None:

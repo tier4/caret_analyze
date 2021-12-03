@@ -19,7 +19,7 @@ from typing import Optional, Tuple
 
 from .callback_group import CallbackGroupValue
 from .value_object import ValueObject
-from ..common import Util
+from ..common import Util, CustomDict
 from .callback_group import CallbackGroupStructValue
 from .callback import CallbackStructValue
 
@@ -95,6 +95,14 @@ class ExecutorStructValue(ValueObject):
     def callback_group_names(self) -> Tuple[str, ...]:
         cbg_names = [cbg.callback_group_name for cbg in self._cbg_values]
         return tuple(cbg_names)
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'name': self.executor_name,
+            'type': self.executor_type_name,
+            'callback_groups': [_.summary for _ in self.callback_groups]
+        })
 
 
 class ExecutorValue(ValueObject):

@@ -51,22 +51,14 @@ class Communication(PathBase):
         self._rmw_implementation: Optional[str] = None
         self._publisher = publisher
         self._subscription = subscription
-        topic_name = communication_value.topic_name
 
     @property
     def rmw_implementation(self) -> Optional[str]:
         return self._rmw_implementation
 
-    def clear_cache(self) -> None:
-        raise NotImplementedError('')
-
     @property
     def summary(self) -> CustomDict:
-        return CustomDict({
-            'topic_name': self._val.topic_name,
-            'publish_node': self._val.publish_node_name,
-            'subscirbe_node': self._val.subscribe_node_name,
-        })
+        return self._val.summary
 
     @property
     def is_intra_proc_comm(self) -> Optional[bool]:

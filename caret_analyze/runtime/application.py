@@ -22,7 +22,7 @@ from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
 from ..infra.interface import RuntimeDataProvider, RecordsProvider
 from ..infra.lttng.lttng import Lttng
 
-from ..common import Util
+from ..common import Util, CustomDict
 from .callback import CallbackBase
 from .communication import Communication
 from .callback_group import CallbackGroup
@@ -157,3 +157,9 @@ class Application():
     @property
     def node_names(self) -> List[str]:
         return [c.node_name for c in self.nodes]
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'nodes': self.node_names
+        })

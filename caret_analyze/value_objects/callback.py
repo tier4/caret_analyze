@@ -18,6 +18,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple
 
 from .value_object import ValueObject
+from ..common import CustomDict
 
 
 class CallbackType(ValueObject):
@@ -315,12 +316,21 @@ class CallbackStructValue(metaclass=ABCMeta):
         pass
 
     @property
+    def callback_type_name(self) -> str:
+        return str(self.callback_type)
+
+    @property
     def subscribe_topic_name(self) -> Optional[str]:
         return self._subscribe_topic_name
 
     @property
     def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
         return self._publish_topic_names
+
+    @property
+    @abstractmethod
+    def summary(self) -> CustomDict:
+        pass
 
 
 class TimerCallbackStructValue(CallbackStructValue, ValueObject):
@@ -350,6 +360,14 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
     def period_ns(self) -> int:
         return self._period_ns
 
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'name': self.callback_name,
+            'type': self.callback_type_name,
+            'period_ns': self.period_ns
+        })
+
 
 class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
     """Structured subscription callback value."""
@@ -368,3 +386,11 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
     @property
     def callback_type(self) -> CallbackType:
         return CallbackType.SUBSCRIPTION
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'name': self.callback_name,
+            'type': self.callback_type_name,
+            'topic': self.subscribe_topic_name
+        })

@@ -55,12 +55,7 @@ class NodePath(PathBase):
 
     @property
     def summary(self) -> CustomDict:
-        return CustomDict({
-            'node': self.node_name,
-            'message_context': str(self._val.message_context),
-            'subscribe_topic_name': self._val.subscribe_topic_name,
-            'publish_topic_name': self._val.publish_topic_name,
-        })
+        return self._val.summary
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.node_records(self._val)

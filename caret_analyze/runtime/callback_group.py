@@ -18,7 +18,7 @@ from typing import List
 
 from caret_analyze.value_objects import CallbackGroupStructValue, CallbackGroupType
 
-from ..common import Util
+from ..common import Util, CustomDict
 from .callback import CallbackBase
 
 
@@ -29,7 +29,7 @@ class CallbackGroup:
         callback_group_info: CallbackGroupStructValue,
         callbacks: List[CallbackBase],
     ) -> None:
-        self._info = callback_group_info
+        self._val = callback_group_info
         self._callbacks: List[CallbackBase] = callbacks
 
     @property
@@ -42,7 +42,7 @@ class CallbackGroup:
         CallbackGroupType
 
         """
-        return self._info.callback_group_type
+        return self._val.callback_group_type
 
     @property
     def callback_group_type_name(self) -> str:
@@ -54,11 +54,11 @@ class CallbackGroup:
         CallbackGroupType name
 
         """
-        return self._info.callback_group_type_name
+        return self._val.callback_group_type_name
 
     @property
     def callback_group_name(self) -> str:
-        return self._info.callback_group_name
+        return self._val.callback_group_name
 
     @property
     def node_name(self) -> str:
@@ -71,11 +71,15 @@ class CallbackGroup:
             node name
 
         """
-        return self._info.node_name
+        return self._val.node_name
 
     @property
     def callbacks(self) -> List[CallbackBase]:
         return self._callbacks
+
+    @property
+    def summary(self) -> CustomDict:
+        return self._val.summary
 
     def get_callback(self, callback_name: str) -> CallbackBase:
         return Util.find_one(

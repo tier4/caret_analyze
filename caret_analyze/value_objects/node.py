@@ -25,6 +25,7 @@ from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
 from .message_context import MessageContext
+from ..common import CustomDict
 
 
 class NodeValue(ValueObject):
@@ -71,7 +72,7 @@ class NodeStructValue(ValueObject):
         return self._node_name
 
     @property
-    def publisher(self) -> Tuple[PublisherStructValue, ...]:
+    def publishers(self) -> Tuple[PublisherStructValue, ...]:
         return self._publishers
 
     @property
@@ -83,7 +84,7 @@ class NodeStructValue(ValueObject):
         return tuple(s.topic_name for s in self._subscriptions)
 
     @property
-    def subscription_values(self) -> Tuple[SubscriptionStructValue, ...]:
+    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
         return self._subscriptions
 
     @property
@@ -146,3 +147,18 @@ class NodeStructValue(ValueObject):
             msg = 'Failed to find publisher info. '
             msg += f'topic_name: {publish_topic_name}'
             raise ItemNotFoundError(msg)
+
+    @property
+    def summary(self) -> CustomDict:
+        d: CustomDict = CustomDict()
+        d['node'] = self.node_name
+        d['callbacks'] = self.callback_names
+        d['callback_groups'] = self.callback_group_names
+        d['publishers'] = [_.summary for _ in self.publishers]
+        d['subscriptions'] = [_.summary for _ in self.subscriptions]
+        d['variable_passings'] = []
+        if self.variable_passings is not None:
+            d['variable_passings'] = [_.summary for _ in self.variable_passings]
+        d['paths'] = [_.summary for _ in self.paths]
+
+        return d

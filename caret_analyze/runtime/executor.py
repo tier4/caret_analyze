@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import List
 
-from ..common import Util
+from ..common import Util, CustomDict
 from ..value_objects import ExecutorStructValue, ExecutorType
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -69,3 +69,7 @@ class Executor:
     @property
     def callback_group_names(self) -> List[str]:
         return [cbg.callback_group_name for cbg in self.callback_groups]
+
+    @property
+    def summary(self) -> CustomDict:
+        return self._val.summary

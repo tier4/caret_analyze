@@ -24,6 +24,7 @@ from ..value_objects import (CallbackStructValue,
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
+from ..common import CustomDict
 
 
 class CallbackBase(PathBase):
@@ -36,22 +37,22 @@ class CallbackBase(PathBase):
         publishers: Optional[List[Publisher]],
     ) -> None:
         super().__init__()
-        self.__info = info
+        self.__val = info
         self._provider = records_provider
         self._sub = subscription
         self._pub = publishers
 
     @property
     def node_name(self) -> str:
-        return self.__info.node_name
+        return self.__val.node_name
 
     @property
     def symbol(self) -> str:
-        return self.__info.symbol
+        return self.__val.symbol
 
     @property
     def callback_name(self) -> str:
-        return self.__info.callback_name
+        return self.__val.callback_name
 
     @property
     def subscription(self) -> Optional[Subscription]:
@@ -63,16 +64,20 @@ class CallbackBase(PathBase):
 
     @property
     def publish_topic_names(self) -> Optional[List[str]]:
-        if self.__info.publish_topic_names is None:
+        if self.__val.publish_topic_names is None:
             return None
-        return list(self.__info.publish_topic_names)
+        return list(self.__val.publish_topic_names)
 
     @property
     def subscribe_topic_name(self) -> Optional[str]:
-        return self.__info.subscribe_topic_name
+        return self.__val.subscribe_topic_name
+
+    @property
+    def summary(self) -> CustomDict:
+        return self.__val.summary
 
     def _to_records_core(self) -> RecordsInterface:
-        records = self._provider.callback_records(self.__info)
+        records = self._provider.callback_records(self.__val)
         records.sort(records.columns[0])
 
         return records
@@ -81,16 +86,16 @@ class CallbackBase(PathBase):
 class TimerCallback(CallbackBase):
     def __init__(
         self,
-        callback_info: TimerCallbackStructValue,
+        callback: TimerCallbackStructValue,
         records_provider: RecordsProvider,
         publishers: Optional[List[Publisher]],
     ) -> None:
-        super().__init__(callback_info, records_provider, None, publishers)
-        self.__info: TimerCallbackStructValue = callback_info
+        super().__init__(callback, records_provider, None, publishers)
+        self.__val: TimerCallbackStructValue = callback
 
     @property
     def period_ns(self) -> int:
-        return self.__info.period_ns
+        return self.__val.period_ns
 
 
 class SubscriptionCallback(CallbackBase):

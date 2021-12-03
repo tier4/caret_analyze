@@ -23,6 +23,7 @@ from .variable_passing import VariablePassingStructValue
 from .value_object import ValueObject
 from ..common import Util
 from .message_context import MessageContext
+from ..common import CustomDict
 
 
 class NodePathValue(ValueObject):
@@ -78,6 +79,15 @@ class NodePathStructValue(ValueObject):
             self._child
         )
         return tuple(cb_values)
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'node': self.node_name,
+            'message_context': str(self.message_context),
+            'subscribe_topic_name': self.subscribe_topic_name,
+            'publish_topic_name': self.publish_topic_name,
+        })
 
     @property
     def callback_names(self) -> Optional[Tuple[str, ...]]:

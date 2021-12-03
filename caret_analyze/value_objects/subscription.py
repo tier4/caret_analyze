@@ -16,6 +16,7 @@ from typing import Optional
 
 from .value_object import ValueObject
 from .callback import SubscriptionCallbackStructValue
+from ..common import CustomDict
 
 
 class SubscriptionValue(ValueObject):
@@ -77,6 +78,13 @@ class SubscriptionStructValue(ValueObject):
             return None
 
         return self._callback_value.callback_name
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'topic_name': self.topic_name,
+            'callback': self.callback_name
+        })
 
     @property
     def callback(self) -> Optional[SubscriptionCallbackStructValue]:

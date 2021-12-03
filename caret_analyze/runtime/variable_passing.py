@@ -40,11 +40,7 @@ class VariablePassing(PathBase):
 
     @property
     def summary(self) -> CustomDict:
-        return CustomDict({
-            'node': self.node_name,
-            'write': self.callback_name_write,
-            'read': self.callback_name_read,
-        })
+        return self._val.summary
 
     @property
     def node_name(self) -> str:

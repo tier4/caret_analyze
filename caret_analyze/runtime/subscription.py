@@ -34,10 +34,7 @@ class Subscription:
 
     @property
     def summary(self) -> CustomDict:
-        return CustomDict({
-            'topic_name': self._val.topic_name,
-            'callback': self._val.callback_name
-        })
+        return self._val.summary
 
     @property
     def topic_name(self) -> str:

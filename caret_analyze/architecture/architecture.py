@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import Dict, List, Tuple, Optional
 
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
-from ..common import Util
+from ..common import Util, CustomDict
 from ..value_objects import (CommunicationStructValue, ExecutorStructValue, NodeStructValue,
                              PathStructValue, CallbackGroupStructValue, CallbackStructValue)
 from .architecture_exporter import ArchitectureExporter
@@ -132,6 +132,12 @@ class Architecture():
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
         return self._communications
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'nodes': self.node_names
+        })
 
     def export(self, file_path: str):
         exporter = ArchitectureExporter(self.nodes, self.executors, self.paths)

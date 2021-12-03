@@ -19,6 +19,7 @@ from typing import Optional, Tuple
 
 from .value_object import ValueObject
 from .callback import CallbackStructValue
+from ..common import CustomDict
 
 
 class CallbackGroupType(ValueObject):
@@ -206,3 +207,12 @@ class CallbackGroupStructValue(ValueObject):
     @property
     def callback_names(self) -> Tuple[str, ...]:
         return tuple(i.callback_name for i in self._callback_values)
+
+    @property
+    def summary(self) -> CustomDict:
+        return CustomDict({
+            'name': self.callback_group_name,
+            'type': self.callback_group_type_name,
+            'node': self.node_name,
+            'callbacks': [_.summary for _ in self.callbacks]
+        })
