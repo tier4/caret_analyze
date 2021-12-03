@@ -18,7 +18,7 @@ from typing import Dict, List, Union
 
 class CustomDict(UserDict):
 
-    def pretty_print(self):
+    def pprint(self):
         print((self))
 
     def __str__(self) -> str:

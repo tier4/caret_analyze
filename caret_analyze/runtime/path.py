@@ -236,7 +236,7 @@ class Path(PathBase):
                 continue
             msg = 'Detected dummy_records. Correct these node_path definitions. \n'
             msg += 'To see node definition,'
-            msg += f'execute [ app.get_node(\'{child.node_name}\').summary.pretty_print() ] \n'
+            msg += f'execute [ app.get_node(\'{child.node_name}\').summary.pprint() ] \n'
             msg += str(child.summary)
             logger.warning(msg)
             return False
