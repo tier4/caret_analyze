@@ -21,8 +21,6 @@ from typing import List, Optional, Tuple, Union, Dict, Set, DefaultDict
 from logging import getLogger
 from collections import defaultdict
 
-from caret_analyze.value_objects.message_context import MessageContext
-
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, MultipleItemFoundError
 from ..common import Util
 from ..value_objects import (CallbackStructValue,
@@ -419,7 +417,7 @@ class CallbackPathSearcher:
 
         callbacks = Util.filter(lambda x: isinstance(x, CallbackStructValue), child)
         callback_names = tuple(_.callback_name for _ in callbacks)
-        message_context=CallbackChain(
+        message_context = CallbackChain(
             subscribe_topic_name, publish_topic_name, callback_names)
         return NodePathStructValue(
             self._node.node_name,

@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Dict
-
 from ..common import CustomDict
 from ..record import RecordsInterface
 from ..infra.interface import RecordsProvider
@@ -35,9 +33,8 @@ class VariablePassing(PathBase):
         self._provider = records_provider
 
     def _to_records_core(self) -> RecordsInterface:
-        assert self._provider is not None
-        records = self._provider.compose_callback_records(self.info)
-        records.sort(self.column_names[0], inplace=True)
+        records = self._provider.variable_passing_records(self._val)
+        records.sort(self.column_names[0])
 
         return records
 

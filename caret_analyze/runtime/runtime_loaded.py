@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from typing import List, Union, Optional, Tuple
 
-from caret_analyze.value_objects.node import NodeValue
-
 from ..architecture import Architecture
 from ..exceptions import ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
@@ -29,7 +27,9 @@ from ..value_objects import (CommunicationStructValue,
                              PathStructValue,
                              CallbackGroupStructValue,
                              VariablePassingStructValue,
-                             CallbackStructValue, TimerCallbackStructValue, SubscriptionCallbackStructValue,
+                             CallbackStructValue,
+                             TimerCallbackStructValue,
+                             SubscriptionCallbackStructValue,
                              PublisherStructValue,
                              SubscriptionStructValue)
 from .callback import CallbackBase, SubscriptionCallback, TimerCallback
@@ -121,7 +121,7 @@ class NodesLoaded:
         node_values: Tuple[NodeStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider]
     ) -> None:
-        self._nodes: List[NodeStructValue] = [
+        self._nodes: List[Node] = [
             self._to_runtime(node_value, provider)
             for node_value
             in node_values
@@ -168,7 +168,7 @@ class NodesLoaded:
 
     @property
     def callback_groups(self) -> List[CallbackGroup]:
-        cbgs = []
+        cbgs: List[CallbackGroup] = []
         for node in self._nodes:
             if node.callback_groups is not None:
                 cbgs += node.callback_groups
@@ -459,7 +459,7 @@ class NodePathsLoaded:
         except MultipleItemFoundError:
             pass
 
-        return NodePath(node_path_value, provider, publisher, subscription, callbacks)
+        return NodePath(node_path_value, provider, subscription, publisher, callbacks)
 
     @property
     def data(self) -> List[NodePath]:
@@ -534,7 +534,9 @@ class PathsLoaded:
     ) -> Union[NodePath, Communication]:
         if isinstance(path_element, NodePathStructValue):
             return nodes_loaded.find_node_path(
-                path_element.node_name, path_element.subscribe_topic_name, path_element.publish_topic_name
+                path_element.node_name,
+                path_element.subscribe_topic_name,
+                path_element.publish_topic_name
             )
 
         if isinstance(path_element, CommunicationStructValue):
@@ -702,4 +704,3 @@ class CallbackGroupsLoaded:
     @property
     def data(self) -> List[CallbackGroup]:
         return self._data
-

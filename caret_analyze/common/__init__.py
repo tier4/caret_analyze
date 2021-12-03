@@ -15,13 +15,11 @@
 from .util import Util
 from .singleton import Singleton
 from .columns import Columns
-from .flyweight import Flyweight
 from .custom_dict import CustomDict
 
 __all__ = [
     'Util',
     'Singleton',
     'Columns',
-    'Flyweight'
     'CustomDict',
 ]

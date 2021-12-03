@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Dict, Union
+from typing import List, Optional
 
 from caret_analyze.infra.interface import RecordsProvider
 
@@ -21,9 +21,8 @@ from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from .callback import CallbackBase
-from .variable_passing import VariablePassing
-from ..value_objects import MessageContext, NodePathStructValue, VariablePassingStructValue
-from ..common import Util, CustomDict
+from ..value_objects import MessageContext, NodePathStructValue
+from ..common import CustomDict
 
 
 class NodePath(PathBase):

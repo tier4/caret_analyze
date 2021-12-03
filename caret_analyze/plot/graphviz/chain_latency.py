@@ -17,10 +17,7 @@ from typing import List, Optional
 import numpy as np
 from graphviz import Digraph, Source
 
-from ...runtime.callback import CallbackBase
-from ...runtime.communication import Communication
 from ...runtime.path import Path
-from ...runtime.variable_passing import VariablePassing
 from ...exceptions import InvalidArgumentError
 
 
@@ -90,65 +87,6 @@ def to_label(latency: np.array) -> str:
         + 'max: {:.2f} ms'.format(np.max(latency * 1.0e-6))
     )
     return label
-
-
-def to_node_paths(path: Path) -> List[Path]:
-    callbacks: List[CallbackBase] = []
-    paths: List[Path] = []
-    for cb, cb_ in zip(path.callbacks[:-1], path.callbacks[1:]):
-        callbacks.append(cb)
-        if cb.node_name != cb_.node_name:
-            paths.append(
-                Path(callbacks, path.communications, path.variable_passings))
-            callbacks.clear()
-
-    paths.append(
-        Path(callbacks + [path.callbacks[-1]],
-             path.communications, path.variable_passings))
-
-    return paths
-
-
-def get_attr_callback(path, treat_drop_as_delay, lstrip_s, rstrip_s) -> GraphAttr:
-    graph_nodes: List[GraphNode] = []
-    graph_edges: List[GraphEdge] = []
-
-    for component in path:
-        _, latency = component.to_timeseries(
-            remove_dropped=True,
-            treat_drop_as_delay=treat_drop_as_delay,
-            lstrip_s=lstrip_s,
-            rstrip_s=rstrip_s,
-        )
-
-        if isinstance(component, CallbackBase):
-            label = f'{component.node_name}\n{component.callback_name}\n'
-            label += to_label(latency)
-            graph_nodes.append(GraphNode(component.callback_name, label))
-
-        elif isinstance(component, Communication):
-            label = component.topic_name
-            label += '\n' + to_label(latency)
-
-            if component.callback_from is None:
-                continue
-
-            graph_edges.append(GraphEdge(
-                component.callback_from.callback_name,
-                component.callback_to.callback_name,
-                label,
-            ))
-
-        elif isinstance(component, VariablePassing):
-            label = to_label(latency)
-            graph_edges.append(
-                GraphEdge(
-                    component.callback_from.callback_name,
-                    component.callback_to.callback_name,
-                    label,
-                ))
-
-    return GraphAttr(graph_nodes, graph_edges)
 
 
 def get_attr_node(

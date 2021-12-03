@@ -108,11 +108,11 @@ class UseLatestMessage(MessageContext):
         return subscription_value.topic_name == self._sub_topic_name and \
             publisher_value.topic_name == self._pub_topic_name
 
-    def to_dict(self) -> CustomDict:
-        return Custom({
+    def to_dict(self) -> Dict:
+        return {
             'context_type': self.TYPE_NAME,
             'subscription_topic_name': self.subscription_topic_name
-        })
+        }
 
     @staticmethod
     def create_instance_from_dict(context_dict: Dict) -> MessageContext:
@@ -171,7 +171,7 @@ class InheritUniqueStamp(MessageContext):
         return {
             'context_type': self.TYPE_NAME,
             'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name
+            'publisher_topic_name': self.publisher_topic_name,
         }
 
     @staticmethod
@@ -248,4 +248,5 @@ class CallbackChain(MessageContext):
         return CallbackChain(
             context_dict['subscription_topic_name'],
             context_dict['publisher_topic_name'],
+            context_dict['callback_names'],
         )

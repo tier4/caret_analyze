@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import inspect
-from typing import Dict
+from typing import Dict, Any
+
 
 class ValueObject():
     """Value object base class."""
@@ -44,7 +45,7 @@ class ValueObject():
         return dump(d)
 
     def _to_dict(self) -> Dict:
-        d = {}
+        d: Dict[Any, Any] = {}
         for attr in self.__generate_public_attrs():
             value = getattr(self, attr)
             if isinstance(value, ValueObject):

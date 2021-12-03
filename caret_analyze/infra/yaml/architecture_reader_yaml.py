@@ -46,6 +46,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         nodes = []
         for node_dict in nodes_dict:
             node_name = self._get_value(node_dict, 'node_name')
+            #  In yaml reader, node_name is used as node_id.
             nodes.append(NodeValue(node_name, node_name))
         return nodes
 
@@ -155,7 +156,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
             cbg = CallbackGroupValue(
                 callback_group_type_name=self._get_value(cbg_dict, 'callback_group_type'),
                 node_name=node.node_name,
-                node_id=node.node_id,
+                node_id=node.node_name,
                 callback_ids=self._get_value(cbg_dict, 'callback_names'),
                 callback_group_id=cbg_name,
                 callback_group_name=cbg_name
@@ -293,7 +294,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
             subscriptions.append(
                 SubscriptionValue(
                     node_name=node.node_name,
-                    node_id=node.node_id,
+                    node_id=node.node_name,
                     topic_name=self._get_value(pub, 'topic_name'),
                     callback_id=self._get_value(pub, 'callback_name'),
                 )

@@ -27,8 +27,11 @@ from logging import getLogger, StreamHandler, DEBUG, WARN, Formatter
 handler = StreamHandler()
 handler.setLevel(WARN)
 
+fmt = '%(levelname)-8s: %(asctime)s | ' \
+    + '%(filename)-12s - %(funcName)-12s : ' \
+    + '%(lineno)-4s -- %(message)s'
 formatter = Formatter(
-    '%(levelname)-8s: %(asctime)s | %(filename)-12s - %(funcName)-12s : %(lineno)-4s -- %(message)s',
+    fmt,
     datefmt='%Y-%m-%d %H:%M:%S')
 handler.setFormatter(formatter)
 

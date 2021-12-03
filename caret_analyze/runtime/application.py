@@ -94,7 +94,12 @@ class Application():
     def callback_groups(
         self,
     ) -> List[CallbackGroup]:
-        return Util.flatten([node.callback_groups for node in self.nodes])
+        cbgs: List[CallbackGroup] = []
+        for node in self.nodes:
+            if node.callback_groups is None:
+                continue
+            cbgs += node.callback_groups
+        return cbgs
 
     def get_callback_group(
         self,
@@ -118,12 +123,8 @@ class Application():
         return Util.find_one(is_target_comm, self.communications)
 
     @property
-    def path_names(self) -> List[str]:
-        return [_.path_name for _ in self.path]
-
-    @property
     def topic_names(self) -> List[str]:
-        return list(set([_.topic_name for _ in self.communications]))
+        return list(set(_.topic_name for _ in self.communications))
 
     @property
     def executor_names(self) -> List[str]:
@@ -152,10 +153,6 @@ class Application():
             return callback.callback_name == callback_name
 
         return Util.find_one(is_target_callback, self.callbacks)
-
-    @property
-    def topic_names(self) -> List[str]:
-        return [c.topic_name for c in self.communications]
 
     @property
     def node_names(self) -> List[str]:

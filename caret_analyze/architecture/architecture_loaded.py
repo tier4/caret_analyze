@@ -1059,7 +1059,7 @@ class TopicIgnoredReader(ArchitectureReader):
         nodes = reader.get_nodes()
         from tqdm import tqdm
         for node in tqdm(nodes, 'Loading callbacks'):
-            node = NodeValue(node.node_name, None)
+            node = NodeValue(node.node_name, node.node_id)
 
             sub = reader.get_subscriptions(node)
             for sub_val in sub:

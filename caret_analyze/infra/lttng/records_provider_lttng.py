@@ -689,7 +689,8 @@ class NodeRecordsCallbackChain:
         if node_path.callbacks is None:
             raise UnsupportedNodeRecordsError('callback values is None.')
         if not isinstance(node_path.message_context, CallbackChain):
-            raise UnsupportedNodeRecordsError('node_path.message context is not InheritUniqueStamp')
+            msg = 'node_path.message context is not InheritUniqueStamp'
+            raise UnsupportedNodeRecordsError(msg)
 
         self._provider = provider
         self._validate(node_path)
@@ -816,7 +817,8 @@ class NodeRecordsCallbackChain:
         tail_callback = node_path.callbacks[-1]
 
         if node_path.publish_topic_name is not None and \
-            tail_callback.publish_topic_names is not () and \
+            tail_callback.publish_topic_names is not None and \
+            len(tail_callback.publish_topic_names) != 0 and \
                 node_path.publish_topic_name not in tail_callback.publish_topic_names:
             raise UnsupportedNodeRecordsError('')
 
@@ -834,7 +836,8 @@ class NodeRecordsInheritUniqueTimestamp:
         if node_path.message_context is None:
             raise UnsupportedNodeRecordsError('node_path.message context is None')
         if not isinstance(node_path.message_context, InheritUniqueStamp):
-            raise UnsupportedNodeRecordsError('node_path.message context is not InheritUniqueStamp')
+            msg = 'node_path.message context is not InheritUniqueStamp'
+            raise UnsupportedNodeRecordsError(msg)
 
         self._provider = provider
         self._context: InheritUniqueStamp = node_path.message_context
@@ -928,7 +931,7 @@ class NodeRecordsUseLatestMessage:
             raise UnsupportedNodeRecordsError('node_path.message context is not UseLatestMessage')
 
         self._provider = provider
-        self._context: NodeRecordsUseLatestMessage = node_path.message_context
+        self._context: UseLatestMessage = node_path.message_context
         self._validate(node_path, self._context)
         self._node_path = node_path
 
@@ -1005,5 +1008,3 @@ class NodeRecordsUseLatestMessage:
 
         msg = f'UseLatest cannot build records. \n{node_path} \n{context}'
         raise UnsupportedNodeRecordsError(msg)
-
-

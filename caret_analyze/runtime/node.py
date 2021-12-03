@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 from caret_analyze.value_objects import NodeStructValue
 
@@ -91,7 +91,9 @@ class Node:
         return [_.topic_name for _ in self._subscriptions]
 
     @property
-    def callback_group_names(self) -> List[str]:
+    def callback_group_names(self) -> Optional[List[str]]:
+        if self.callback_groups is None:
+            return None
         return [_.callback_group_name for _ in self.callback_groups]
 
     @property
@@ -105,7 +107,6 @@ class Node:
         d['variable_passings'] = []
         if self.variable_passings is not None:
             d['variable_passings'] = [_.summary for _ in self.variable_passings]
-
         d['paths'] = [_.summary for _ in self.paths]
 
         return d
