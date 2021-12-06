@@ -16,7 +16,7 @@ from .callback import CallbackValue, CallbackStructValue, CallbackType, TimerCal
 from .callback_group import CallbackGroupValue, CallbackGroupStructValue, CallbackGroupType
 from .communication import CommunicationStructValue
 from .executor import ExecutorStructValue, ExecutorValue, ExecutorType
-from .message_context import MessageContext, UseLatestMessage, InheritUniqueStamp, CallbackChain
+from .message_context import MessageContextType, UseLatestMessage, InheritUniqueStamp, CallbackChain, MessageContext
 from .node_path import NodePathValue, NodePathStructValue
 from .node import NodeStructValue, NodeValue
 from .path import PathValue, PathStructValue
@@ -41,6 +41,7 @@ __all__ = [
     'ExecutorStructValue',
     'ExecutorValue',
     'ExecutorType',
+    'MessageContextType',
     'MessageContext',
     'UseLatestMessage',
     'InheritUniqueStamp',

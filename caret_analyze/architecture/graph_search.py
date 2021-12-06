@@ -21,7 +21,7 @@ from typing import List, Optional, Tuple, Union, Dict, Set, DefaultDict
 from logging import getLogger
 from collections import defaultdict
 
-from ..exceptions import InvalidArgumentError, ItemNotFoundError, MultipleItemFoundError
+from ..exceptions import InvalidArgumentError, ItemNotFoundError, MultipleItemFoundError, Error
 from ..common import Util
 from ..value_objects import (CallbackStructValue,
                              CommunicationStructValue,
@@ -30,8 +30,7 @@ from ..value_objects import (CallbackStructValue,
                              PathStructValue,
                              PublisherStructValue,
                              SubscriptionStructValue,
-                             VariablePassingStructValue,
-                             CallbackChain)
+                             VariablePassingStructValue)
 
 from ..value_objects.value_object import ValueObject
 
@@ -384,12 +383,12 @@ class CallbackPathSearcher:
                 graph_node_from, graph_node_to)
             child.append(cb_or_varpass)
 
-        sub_info: Optional[SubscriptionStructValue] = None
-        pub_info: Optional[PublisherStructValue] = None
+        sub: Optional[SubscriptionStructValue] = None
+        pub: Optional[PublisherStructValue] = None
 
         if subscribe_topic_name is not None:
             try:
-                sub_info = self._node.get_subscription(subscribe_topic_name)
+                sub = self._node.get_subscription(subscribe_topic_name)
             except ItemNotFoundError:
                 msg = 'Failed to find subscription. '
                 msg += f'node_name: {self._node.node_name}, '
@@ -403,7 +402,7 @@ class CallbackPathSearcher:
 
         if publish_topic_name is not None:
             try:
-                pub_info = self._node.get_publisher(publish_topic_name)
+                pub = self._node.get_publisher(publish_topic_name)
             except ItemNotFoundError:
                 msg = 'Failed to find publisher. '
                 msg += f'node_name: {self._node.node_name}'
@@ -415,16 +414,12 @@ class CallbackPathSearcher:
                 msg += f'topic_name: {publish_topic_name}'
                 logger.warning(msg)
 
-        callbacks = Util.filter(lambda x: isinstance(x, CallbackStructValue), child)
-        callback_names = tuple(_.callback_name for _ in callbacks)
-        message_context = CallbackChain(
-            subscribe_topic_name, publish_topic_name, callback_names)
         return NodePathStructValue(
             self._node.node_name,
-            sub_info,
-            pub_info,
+            sub,
+            pub,
             tuple(child),
-            message_context)
+            None)
 
     def _find_cb_or_varpass(
         self,
@@ -509,7 +504,7 @@ class NodePathSearcher:
 
         for node in self._nodes:
             node_name = node.node_name
-            for node_path in node._node_path_values:
+            for node_path in node._node_paths:
                 pub_topic_name = node_path.publish_topic_name or ''
                 sub_topic_name = node_path.subscribe_topic_name or ''
                 pub_name = NodePathSearcher._to_node_point_name(
@@ -555,11 +550,11 @@ class NodePathSearcher:
                 GraphNode(dst_node),
                 max_search_depth)
 
-            paths += [
-                self._to_path(graph_path)
-                for graph_path
-                in graph_paths
-            ]
+            for graph_path in graph_paths:
+                try:
+                    paths.append(self._to_path(graph_path))
+                except Error as e:
+                    logger.warning(f'skip path adding. {e}')
 
         return paths
 

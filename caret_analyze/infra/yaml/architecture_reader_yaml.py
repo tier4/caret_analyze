@@ -28,7 +28,7 @@ from ...value_objects import (CallbackGroupValue,
                               PublisherValue,
                               SubscriptionValue,
                               VariablePassingValue,
-                              MessageContext,
+                              MessageContextType,
                               NodeValue)
 
 
@@ -122,24 +122,18 @@ class ArchitectureReaderYaml(ArchitectureReader):
     def get_message_contexts(
         self,
         node: NodeValue
-    ) -> List[MessageContext]:
+    ) -> List[Dict]:
         node_dict = self._get_node_dict(node.node_name)
         if 'message_contexts' not in node_dict.keys():
             return []
 
-        message_contexts: List[MessageContext] = []
-        message_context_dicts = self._get_value(node_dict, 'message_contexts')
-        for context_dict in message_context_dicts:
-            context_type = self._get_value(context_dict, 'context_type')
-            if context_type == UNDEFINED_STR:
-                continue
-            try:
-                context = MessageContext.create_instance_from_dict(context_dict)
-                message_contexts.append(context)
-            except KeyError as e:
-                msg = f'Failed to parse message context. \n{node}'
-                raise InvalidYamlFormatError(msg) from e
-        return message_contexts
+        context_dicts = self._get_value(node_dict, 'message_contexts')
+        for context in context_dicts:
+            # Verify the existence of the required key.
+            self._get_value(context, 'context_type')
+            self._get_value(context, 'publisher_topic_name')
+            self._get_value(context, 'subscription_topic_name')
+        return context_dicts
 
     def get_callback_groups(
         self,

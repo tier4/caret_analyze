@@ -16,11 +16,15 @@
 from __future__ import annotations
 
 from typing import Optional, Tuple, Union
+from logging import getLogger
 
 from .node_path import NodePathValue, NodePathStructValue
 from .value_object import ValueObject
 from ..common import Util, CustomDict
 from .communication import CommunicationStructValue
+from ..exceptions import InvalidArgumentError
+
+logger = getLogger(__name__)
 
 
 class PathValue(ValueObject):
@@ -51,6 +55,7 @@ class PathStructValue(ValueObject):
     ) -> None:
         self._path_name = path_name
         self._child = child
+        self._validate(child)
 
     @property
     def path_name(self) -> Optional[str]:
@@ -59,6 +64,11 @@ class PathStructValue(ValueObject):
     @property
     def node_names(self) -> Tuple[str, ...]:
         return tuple(_.node_name for _ in self.node_paths)
+
+    @property
+    def topic_names(self) -> Tuple[str, ...]:
+        return tuple(_.topic_name for _ in self.communications)
+
 
     @property
     def child_names(self) -> Tuple[str, ...]:
@@ -90,7 +100,14 @@ class PathStructValue(ValueObject):
         d['path'] = []
         for child in self.child:
             if isinstance(child, NodePathStructValue):
-                d['path'].append({'node': child.node_name})
+                context = None
+                if child.message_context is not None:
+                    context = child.message_context.summary
+
+                d['path'].append({
+                    'node': child.node_name,
+                    'message_context': context
+                })
             if isinstance(child, CommunicationStructValue):
                 d['path'].append({'topic': child.topic_name})
 
@@ -99,3 +116,41 @@ class PathStructValue(ValueObject):
     @property
     def child(self) -> Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]:
         return self._child
+
+    @staticmethod
+    def _validate(path_elements: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]):
+        if len(path_elements) == 0:
+            return
+
+        t = NodePathStructValue \
+            if isinstance(path_elements[0], NodePathStructValue) \
+            else CommunicationStructValue
+
+        for e in path_elements[1:]:
+            if t == CommunicationStructValue:
+                t = NodePathStructValue
+            else:
+                t = CommunicationStructValue
+            if isinstance(e, t):
+                continue
+            msg = 'NodePath and Communication should be alternated.'
+            raise InvalidArgumentError(msg)
+
+    def verify(self) -> bool:
+        is_valid = True
+
+        for child in self.node_paths[1:-1]:
+            if child.message_context is None:
+                is_valid = False
+                msg = 'Detected "message_contest is None". Correct these node_path definitions. \n'
+                msg += 'To see node definition and procedure,'
+                msg += f'execute :\n' \
+                    f'>> check_procedure(\'yaml\', \'/path/to/yaml\', arch, \'{child.node_name}\') \n'
+                msg += str(child.summary)
+                logger.warning(msg)
+                continue
+
+            if child.message_context.verify() is False:
+                is_valid = False
+
+        return is_valid

@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from .architecture import Architecture
+from .util import check_procedure
 
 __all__ = [
     'Architecture',
+    'check_procedure'
 ]

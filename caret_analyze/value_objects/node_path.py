@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from typing import Optional, Tuple, Union
+from logging import getLogger
 
 from .callback import CallbackStructValue
 from .publisher import PublisherStructValue
@@ -24,6 +25,9 @@ from .value_object import ValueObject
 from ..common import Util
 from .message_context import MessageContext
 from ..common import CustomDict
+
+
+logger = getLogger(__name__)
 
 
 class NodePathValue(ValueObject):
@@ -82,9 +86,12 @@ class NodePathStructValue(ValueObject):
 
     @property
     def summary(self) -> CustomDict:
+        context = None
+        if self.message_context is not None:
+            context = self.message_context.summary
         return CustomDict({
             'node': self.node_name,
-            'message_context': str(self.message_context),
+            'message_context': context,
             'subscribe_topic_name': self.subscribe_topic_name,
             'publish_topic_name': self.publish_topic_name,
         })
@@ -121,7 +128,7 @@ class NodePathStructValue(ValueObject):
         return tuple(self._child)
 
     @property
-    def publisher_value(self) -> Optional[PublisherStructValue]:
+    def publisher(self) -> Optional[PublisherStructValue]:
         return self._publisher
 
     @property

@@ -70,7 +70,7 @@ def message_flow(
         clip = strip.to_clip(df)
         df = clip.execute(df)
 
-    formatter = FormatterFactory.create(granularity)
+    formatter = FormatterFactory.create(path, granularity)
     formatter.remove_columns(df)
     formatter.rename_columns(df, path)
 
@@ -122,8 +122,6 @@ def get_callback_rects(
     for callback in path.callbacks:
         if granularity == 'raw':
             search_name = callback.callback_name
-        elif granularity == 'callback':
-            search_name = callback.callback_name
         elif granularity == 'node':
             search_name = callback.node_name
 
@@ -143,7 +141,7 @@ def get_callback_rects(
                     'width': [rect.width],
                     'latency': [(callback_end-callback_start)*1.0e-6],
                     'height': [rect.height],
-                    'desc': ['symbol: ' + callback.symbol],
+                    'desc': [f'symbol: {callback.symbol}'],
                 }
                 rect_source.stream(new_data)
 
@@ -154,7 +152,7 @@ def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
     tick_labels = YAxisProperty(df)
     line_sources = []
 
-    for _, row in df.iterrows():
+    for i, row in df.iterrows():
         x_min = min(row.values)
         x_max = max(row.values)
         width = x_max - x_min
@@ -167,7 +165,7 @@ def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
             'width': [width]*len(row.values),
             'height': [0]*len(row.values),
             'latency': [width*1.0e-6]*len(row.values),
-            'desc': ['']*len(row.values),
+            'desc': [f'index: {i}']*len(row.values),
         })
 
         line_sources.append(line_source)
@@ -177,12 +175,33 @@ def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
 
 class DataFrameColumnNameParsed:
 
-    def __init__(self, column_name) -> None:
+    def __init__(self, path: Path, column_name) -> None:
         split_text = column_name.split('/')
         tracepoint_name = split_text[-2]
         self.tracepoint_name = tracepoint_name
+
+        self.loop_index = split_text[-1]
         self.name = '/'.join(split_text[:-2])
-        self.node_name = '/'.join(split_text[:-3])
+        self.node_name = None
+        self.topic_name = None
+        if self._has_node_name(path.node_names, column_name):
+            self.node_name = '/'.join(split_text[:-3])
+        if self._has_topic_name(path.topic_names, column_name):
+            self.topic_name = '/'.join(split_text[:-3])
+
+    @staticmethod
+    def _has_topic_name(topic_names, column_name):
+        for topic_name in topic_names:
+            if topic_name in column_name:
+                return True
+        return False
+
+    @staticmethod
+    def _has_node_name(topic_names, column_name):
+        for topic_name in topic_names:
+            if topic_name in column_name:
+                return True
+        return False
 
 
 class ColorPalette:
@@ -258,16 +277,19 @@ class DataFrameFormatter(metaclass=ABCMeta):
 class FormatterFactory():
 
     @classmethod
-    def create(self, granularity: str) -> DataFrameFormatter:
+    def create(self, path: Path, granularity: str) -> DataFrameFormatter:
         if granularity == 'raw':
-            return RawLevelFormatter()
+            return RawLevelFormatter(path)
         elif granularity == 'node':
-            return NodeLevelFormatter()
+            return NodeLevelFormatter(path)
 
         raise NotImplementedError()
 
 
 class RawLevelFormatter(DataFrameFormatter):
+
+    def __init__(self, path: Path) -> None:
+        pass
 
     def remove_columns(self, df: pd.DataFrame) -> None:
         df
@@ -285,22 +307,28 @@ class RawLevelFormatter(DataFrameFormatter):
 
 
 class NodeLevelFormatter(DataFrameFormatter):
+    def __init__(self, path: Path) -> None:
+        self._path = path
 
     def remove_columns(self, df: pd.DataFrame) -> None:
-        raw_level_formatter = RawLevelFormatter()
+        raw_level_formatter = RawLevelFormatter(self._path)
         raw_level_formatter.remove_columns(df)
 
         drop_columns = []
 
         # remove callbacks in the same node
         for column_name_, column_name in zip(df.columns[:-1], df.columns[1:]):
-            parsed_before = DataFrameColumnNameParsed(column_name_)
-            parsed = DataFrameColumnNameParsed(column_name)
+            parsed_before = DataFrameColumnNameParsed(self._path, column_name_)
+            parsed = DataFrameColumnNameParsed(self._path, column_name)
 
-            is_before_same_node = parsed.node_name == parsed_before.node_name
-
-            if is_before_same_node:
+            if parsed_before.node_name is not None and parsed.node_name is not None and \
+                    parsed_before.node_name == parsed.node_name:
                 drop_columns.append(column_name)
+
+            if parsed_before.topic_name is not None and parsed.topic_name is not None and \
+                    parsed_before.topic_name == parsed.topic_name:
+                drop_columns.append(column_name)
+
         df.drop(drop_columns, axis=1, inplace=True)
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:

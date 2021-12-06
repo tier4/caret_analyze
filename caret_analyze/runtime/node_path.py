@@ -21,8 +21,9 @@ from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from .callback import CallbackBase
-from ..value_objects import MessageContext, NodePathStructValue
+from ..value_objects import MessageContextType, NodePathStructValue
 from ..common import CustomDict
+from ..record.record_factory import RecordsFactory
 
 
 class NodePath(PathBase):
@@ -50,7 +51,7 @@ class NodePath(PathBase):
         return self._callbacks
 
     @property
-    def message_context(self) -> Optional[MessageContext]:
+    def message_context(self) -> Optional[MessageContextType]:
         return self._val.message_context
 
     @property
@@ -58,9 +59,11 @@ class NodePath(PathBase):
         return self._val.summary
 
     def _to_records_core(self) -> RecordsInterface:
+        if self.message_context is None:
+            return RecordsFactory.create_instance()
+
         records = self._provider.node_records(self._val)
-        if len(records.columns) > 0:
-            records.sort(records.columns[0])
+        records.sort(records.columns[0])
         return records
 
     @property

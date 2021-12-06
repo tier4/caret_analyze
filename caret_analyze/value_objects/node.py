@@ -19,7 +19,7 @@ from ..exceptions import ItemNotFoundError
 from ..common import Util
 from .callback_group import CallbackGroupStructValue
 from .callback import CallbackStructValue
-from .node_path import NodePathStructValue
+from .node_path import NodePathStructValue, NodePathValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
@@ -52,20 +52,18 @@ class NodeStructValue(ValueObject):
     def __init__(
         self,
         node_name: str,
-        publisher_values: Tuple[PublisherStructValue, ...],
+        publishers: Tuple[PublisherStructValue, ...],
         subscriptions_info: Tuple[SubscriptionStructValue, ...],
-        node_path_values: Tuple[NodePathStructValue, ...],
-        callback_group_values: Optional[Tuple[CallbackGroupStructValue, ...]],
-        variable_passing_values: Optional[Tuple[VariablePassingStructValue, ...]],
-        message_contexts: Tuple[MessageContext, ...]
+        node_paths: Tuple[NodePathStructValue, ...],
+        callback_groups: Optional[Tuple[CallbackGroupStructValue, ...]],
+        variable_passings: Optional[Tuple[VariablePassingStructValue, ...]],
     ) -> None:
         self._node_name = node_name
-        self._publishers = publisher_values
+        self._publishers = publishers
         self._subscriptions = subscriptions_info
-        self._callback_groups = callback_group_values
-        self._node_path_values = node_path_values
-        self._variable_passings_info = variable_passing_values
-        self._message_contexts = message_contexts
+        self._callback_groups = callback_groups
+        self._node_paths = node_paths
+        self._variable_passings_info = variable_passings
 
     @property
     def node_name(self) -> str:
@@ -111,15 +109,11 @@ class NodeStructValue(ValueObject):
 
     @property
     def paths(self) -> Tuple[NodePathStructValue, ...]:
-        return self._node_path_values
+        return self._node_paths
 
     @property
     def variable_passings(self) -> Optional[Tuple[VariablePassingStructValue, ...]]:
         return self._variable_passings_info
-
-    @property
-    def message_contexts(self) -> Tuple[MessageContext, ...]:
-        return self._message_contexts
 
     def get_subscription(
         self,

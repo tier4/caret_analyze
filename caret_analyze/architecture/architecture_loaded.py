@@ -18,8 +18,11 @@ from itertools import product
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 from logging import getLogger
 
+from caret_analyze.value_objects.message_context import CallbackChain, MessageContext
+
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
-                          ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError)
+                          ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError,
+                          InvalidYamlFormatError)
 from ..common import Util
 from ..value_objects import (CallbackGroupValue,
                              CallbackGroupStructValue,
@@ -43,8 +46,7 @@ from ..value_objects import (CallbackGroupValue,
                              SubscriptionValue,
                              SubscriptionStructValue,
                              VariablePassingValue,
-                             VariablePassingStructValue,
-                             MessageContext)
+                             VariablePassingStructValue)
 from .reader_interface import UNDEFINED_STR, ArchitectureReader
 
 
@@ -238,8 +240,7 @@ class NodeValuesLoaded():
                 self._cb_loaded.append(cb_loaded)
                 self._cbg_loaded.append(cbg_loaded)
             except Error as e:
-                logger.warn(f'Failed to load node. node_name = {node.node_name}')
-                logger.info(e)
+                logger.warn(f'Failed to load node. node_name = {node.node_name}, {e}')
 
         nodes_struct = sorted(nodes_struct, key=lambda x: x.node_name)
         self._data = tuple(nodes_struct)
@@ -313,6 +314,13 @@ class NodeValuesLoaded():
             msg += f' publish_topic_name: {node_path_value.publish_topic_name}'
             msg += f' subscribe_topic_name: {node_path_value.subscribe_topic_name}'
             raise ItemNotFoundError(msg)
+        except MultipleItemFoundError as e:
+            raise MultipleItemFoundError(
+                f'{e}'
+                f' node_name: {node_path_value.node_name}'
+                f' publish_topic_name: {node_path_value.publish_topic_name}'
+                f' subscribe_topic_name: {node_path_value.subscribe_topic_name}'
+            )
 
     def find_callback_group(
         self,
@@ -373,28 +381,30 @@ class NodeValuesLoaded():
         variable_passings = VariablePassingsLoaded(
             reader, callbacks_loaded, node).data
 
-        message_contexts: Sequence[MessageContext]
-        message_contexts = reader.get_message_contexts(node)
-
         node_struct = NodeStructValue(
             node.node_name, publishers, subscriptions, (),
-            callback_groups, variable_passings, tuple(message_contexts)
+            callback_groups, variable_passings
         )
 
-        node_paths = NodeValuesLoaded._search_node_paths(node_struct)
+        try:
+            node_paths = NodeValuesLoaded._search_node_paths(node_struct, reader)
+            node_path_added = NodeStructValue(
+                node_struct.node_name, node_struct.publishers, node_struct.subscriptions,
+                tuple(node_paths), node_struct.callback_groups,
+                node_struct.variable_passings
+            )
 
-        node_path_added = NodeStructValue(
-            node_struct.node_name, node_struct.publishers, node_struct.subscriptions,
-            tuple(node_paths), node_struct.callback_groups,
-            node_struct.variable_passings,
-            node_struct.message_contexts
-        )
-
-        return node_path_added, callbacks_loaded, cbg_loaded
+            return node_path_added, callbacks_loaded, cbg_loaded
+        except Error as e:
+            # If the node path registration fails,
+            # it returns with empty node path.
+            logger.warning(e)
+            return node_struct, callbacks_loaded, cbg_loaded
 
     @staticmethod
     def _search_node_paths(
-        node: NodeStructValue
+        node: NodeStructValue,
+        reader: ArchitectureReader
     ) -> Tuple[NodePathStructValue, ...]:
 
         node_paths: List[NodePathStructValue] = []
@@ -421,47 +431,91 @@ class NodeValuesLoaded():
         #             node_paths.append(path)
 
         # add callback-graph paths
+        logger.info('[callback_chain]')
         node_paths += list(CallbackPathSearched(node).data)
 
         # add pub-sub pair graph paths
+        logger.info('\n[pub-sub pair]')
         pubs = node.publishers
         subs = node.subscriptions
         node_path_pub_sub_pairs = NodePathCreated(subs, pubs).data
         for node_path in node_path_pub_sub_pairs:
-            pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name) for n in node_paths]
-            pub_sub_pair = (node_path.publish_topic_name, node_path.subscribe_topic_name)
-            if pub_sub_pair not in pub_sub_pairs:
+            added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
+                                   for n in node_paths]
+            pub_sub_pair = (node_path.publish_topic_name,
+                            node_path.subscribe_topic_name)
+
+            if pub_sub_pair not in added_pub_sub_pairs:
                 node_paths.append(node_path)
+
+                logger.info(
+                    'Path Added: '
+                    f'subscribe: {node_path.subscribe_topic_name}, '
+                    f'publish: {node_path.publish_topic_name}, '
+                )
 
         # add dummy node paths
+        logger.info('\n[dummy paths]')
         for pub in node.publishers:
-            pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name) for n in node_paths]
+            added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
+                                   for n in node_paths]
             node_path = NodePathStructValue(
-                    node.node_name,
-                    None,
-                    pub,
-                    None,
-                    None
-                )
-            pub_sub_pair = (node_path.publish_topic_name, node_path.subscribe_topic_name)
-            if pub_sub_pair not in pub_sub_pairs:
+                node.node_name,
+                None,
+                pub,
+                None,
+                None
+            )
+            pub_sub_pair = (node_path.publish_topic_name,
+                            node_path.subscribe_topic_name)
+            if pub_sub_pair not in added_pub_sub_pairs:
                 node_paths.append(node_path)
+                logger.info(
+                    'Path Added: '
+                    f'subscribe: {node_path.subscribe_topic_name}, '
+                    f'publish: {node_path.publish_topic_name}, '
+                )
 
         for sub in node.subscriptions:
-            pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name) for n in node_paths]
+            added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
+                                   for n in node_paths]
             node_path = NodePathStructValue(
-                    node.node_name,
-                    sub,
-                    None,
-                    None,
-                    None
-                )
-            pub_sub_pair = (node_path.publish_topic_name, node_path.subscribe_topic_name)
-            if pub_sub_pair not in pub_sub_pairs:
+                node.node_name,
+                sub,
+                None,
+                None,
+                None
+            )
+            pub_sub_pair = (node_path.publish_topic_name,
+                            node_path.subscribe_topic_name)
+            if pub_sub_pair not in added_pub_sub_pairs:
                 node_paths.append(node_path)
+                logger.info(
+                    'Path Added: '
+                    f'subscribe: {node_path.subscribe_topic_name}, '
+                    f'publish: {node_path.publish_topic_name}'
+                )
+
+        message_contexts: List[MessageContext] = []
+        message_contexts += list(MessageContextsLoaded(reader, node, node_paths).data)
 
         # assign message context to each node paths
-        node_paths = NodeValuesLoaded._message_context_assigned(node_paths, node.message_contexts)
+        node_paths = NodeValuesLoaded._message_context_assigned(
+            node_paths, message_contexts)
+
+        logger.info(f'\n{len(node_paths)} paths found in {node.node_name}.')
+
+        logger.info('\n-----\n[message context assigned]')
+        for path in node_paths:
+            message_context = None
+            if path.message_context is not None:
+                message_context = path.message_context.type_name
+
+            logger.info(
+                f'subscribe: {path.subscribe_topic_name}, '
+                f'publish: {path.publish_topic_name}, '
+                f'message_context: {message_context}'
+            )
 
         return tuple(node_paths)
 
@@ -474,23 +528,108 @@ class NodeValuesLoaded():
         for i, node_path in enumerate(node_paths_):
             for context in message_contexts:
                 if node_path.subscription is None or \
-                        node_path.publisher_value is None:
+                        node_path.publisher is None:
                     continue
 
                 if not context.is_applicable_path(
                     node_path.subscription,
-                    node_path.publisher_value
+                    node_path.publisher,
+                    node_path.callbacks
                 ):
                     continue
 
                 node_paths_[i] = NodePathStructValue(
                     node_path.node_name,
                     node_path.subscription,
-                    node_path.publisher_value,
+                    node_path.publisher,
                     node_path.child,
                     context
                 )
         return node_paths_
+
+
+class MessageContextsLoaded:
+    def __init__(
+        self,
+        reader: ArchitectureReader,
+        node: NodeStructValue,
+        node_paths: Sequence[NodePathStructValue]
+    ) -> None:
+        self._data: Tuple[MessageContext, ...]
+        data: List[MessageContext] = []
+
+        context_dicts = reader.get_message_contexts(NodeValue(node.node_name, None))
+        for context_dict in context_dicts:
+            try:
+                context_type = context_dict['context_type']
+                if context_type == UNDEFINED_STR:
+                    logger.info(f'message context is UNDEFINED. {context_dict}')
+                    continue
+                node_path = self.get_node_path(node_paths,
+                                               context_dict['publisher_topic_name'],
+                                               context_dict['subscription_topic_name'])
+                data.append(self._to_struct(context_dict, node_path))
+            except Error as e:
+                logger.warning(e)
+
+        for context in self._create_callack_chain(node_paths):
+            if context not in data:
+                data.append(context)
+
+        self._data = tuple(data)
+
+    @staticmethod
+    def get_node_path(
+        node_paths: Sequence[NodePathStructValue],
+        publisher_topic_name: str,
+        subscription_topic_name: str
+    ) -> NodePathStructValue:
+        def is_target(path: NodePathValue):
+            return path.publish_topic_name == publisher_topic_name and \
+                path.subscribe_topic_name == subscription_topic_name
+        return Util.find_one(is_target, node_paths)
+
+    @property
+    def data(self) -> Tuple[MessageContext, ...]:
+        return self._data
+
+    @staticmethod
+    def _create_callack_chain(
+        node_paths: Sequence[NodePathStructValue]
+    ) -> List[MessageContext]:
+        chains: List[MessageContext] = []
+        for path in node_paths:
+            if path.callbacks is not None:
+                chains.append(
+                    CallbackChain(
+                        path.node_name,
+                        {},
+                        path.subscription,
+                        path.publisher,
+                        path.callbacks)
+                )
+        return chains
+
+    @staticmethod
+    def _to_struct(
+        context_dict: Dict,
+        node_path: NodePathStructValue
+    ) -> MessageContext:
+        type_name = context_dict['context_type']
+
+        try:
+            return MessageContext.create_instance(
+                type_name,
+                context_dict,
+                node_path.node_name,
+                node_path.subscription,
+                node_path.publisher,
+                node_path.callbacks)
+        except UnsupportedTypeError:
+            raise InvalidYamlFormatError(
+                'Failed to load message context. '
+                f'node_name: {node_path.node_name}, '
+                f'context: {context_dict}')
 
 
 class NodePathCreated:
@@ -534,7 +673,8 @@ class PublishersLoaded:
             for callback_id in publisher_value.callback_ids:
                 if callback_id == UNDEFINED_STR:
                     continue
-                pub_callbacks.append(callbacks_loaded.find_callback(callback_id))
+                pub_callbacks.append(
+                    callbacks_loaded.find_callback(callback_id))
 
         callbacks = PublishersLoaded._get_callbacks(callbacks_loaded)
         if len(pub_callbacks) == 0 and len(callbacks) == 1:
@@ -590,7 +730,8 @@ class SubscriptionsLoaded:
         sub_callback: Optional[CallbackStructValue] = None
 
         if subscription_value.callback_id is not None:
-            sub_callback = callbacks_loaded.find_callback(subscription_value.callback_id)
+            sub_callback = callbacks_loaded.find_callback(
+                subscription_value.callback_id)
 
         assert isinstance(sub_callback, SubscriptionCallbackStructValue)
 
@@ -707,7 +848,8 @@ class CallbacksLoaded():
 
         callback_num = Util.num_digit(len(callbacks))
         for callback in callbacks:
-            self._cb_dict[callback.callback_id] = self._to_struct(callback, callback_num)
+            self._cb_dict[callback.callback_id] = self._to_struct(
+                callback, callback_num)
 
     @property
     def node_name(self) -> str:
@@ -727,7 +869,8 @@ class CallbacksLoaded():
             self._callback_count[callback] = self._callback_count.get(
                 callback, len(self._callback_count))
             callback_count = self._callback_count[callback]
-            indexed = indexed_name(f'{self.node_name}/callback', callback_count, callback_num)
+            indexed = indexed_name(
+                f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
 
             return TimerCallbackStructValue(
@@ -742,7 +885,8 @@ class CallbacksLoaded():
             self._callback_count[callback] = self._callback_count.get(
                 callback, len(self._callback_count))
             callback_count = self._callback_count[callback]
-            indexed = indexed_name(f'{self.node_name}/callback', callback_count, callback_num)
+            indexed = indexed_name(
+                f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
             return SubscriptionCallbackStructValue(
                 node_name=callback.node_name,
@@ -835,9 +979,14 @@ class ExecutorValuesLoaded():
 
         for i, executor in enumerate(exec_vals):
             executor_name = indexed_name('executor', i, num_digit)
-            execs.append(
-                self._to_struct(executor_name, executor, nodes_loaded)
-            )
+            try:
+                execs.append(
+                    self._to_struct(executor_name, executor, nodes_loaded)
+                )
+            except Error as e:
+                logger.warning(
+                    'Failed to load executor. skip loading. '
+                    f'executor_name = {executor_name}. {e}')
 
         self._data = tuple(execs)
 
@@ -849,15 +998,15 @@ class ExecutorValuesLoaded():
     ) -> ExecutorStructValue:
         callback_group_values: List[CallbackGroupStructValue] = []
 
-        executor_value
-        nodes_loaded.find_callback_group
         for cbg_id in executor_value.callback_group_ids:
             try:
                 callback_group_values.append(
-                    ExecutorValuesLoaded._find_struct_callback_group(cbg_id, nodes_loaded)
+                    ExecutorValuesLoaded._find_struct_callback_group(
+                        cbg_id, nodes_loaded)
                 )
             except Error as e:
-                logger.info(f'Failed to load executor. executor_name: {executor_name}')
+                logger.info(
+                    f'Failed to load executor. executor_name: {executor_name}')
                 logger.warn(e)
 
         return ExecutorStructValue(
@@ -886,10 +1035,13 @@ class PathValuesLoaded():
         communications_loaded: CommValuesLoaded,
     ) -> None:
         paths: List[PathStructValue] = []
-        for path_info in reader.get_named_paths():
-            paths.append(
-                self._to_struct(path_info, nodes_loaded, communications_loaded)
-            )
+        for path in reader.get_named_paths():
+            try:
+                paths.append(
+                    self._to_struct(path, nodes_loaded, communications_loaded)
+                )
+            except Error as e:
+                logger.warning(f'Failed to load path. path_name={path.path_name}. {e}')
 
         self._data = tuple(paths)
 
@@ -986,7 +1138,14 @@ class CallbackPathSearched():
 
         if callbacks is not None:
             for write_callback, read_callback in product(callbacks, callbacks):
-                paths += searcher.search(write_callback, read_callback)
+                searched_paths = searcher.search(write_callback, read_callback)
+                for path in searched_paths:
+                    msg = 'Path Added: '
+                    msg += f'subscribe: {path.subscribe_topic_name}, '
+                    msg += f'publish: {path.publish_topic_name}, '
+                    msg += f'callbacks: {path.callback_names}'
+                    logger.info(msg)
+                paths += searched_paths
 
         self._data = tuple(paths)
 
@@ -1036,7 +1195,7 @@ class TopicIgnoredReader(ArchitectureReader):
     def get_message_contexts(
         self,
         node: NodeValue
-    ) -> Sequence[MessageContext]:
+    ) -> Sequence[Dict]:
         return self._reader.get_message_contexts(node)
 
     def _filter_callback_id(

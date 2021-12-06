@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, List, Sequence, Union, Optional, Tuple, Dict
+from typing import Callable, List, Sequence, Union, Optional, Tuple, Dict, Set
 
 import numpy as np
 import pandas as pd
@@ -49,6 +49,7 @@ class LttngInfo:
         self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
         self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
 
+        self._id_to_topic: Dict[str, str] = {}
         self._sub_cb_cache_without_pub: Dict[str,
                                              List[SubscriptionCallbackValueLttng]]
         self._sub_cb_cache_without_pub = self._get_sub_cbs_without_pub()
@@ -180,6 +181,7 @@ class LttngInfo:
                 callback_object_intra = None
             else:
                 callback_object_intra = int(record_callback_object_intra)
+            self._id_to_topic[row['callback_id']] = row['topic_name']
 
             sub_cbs_info[node_id].append(
                 SubscriptionCallbackValueLttng(
@@ -348,6 +350,16 @@ class LttngInfo:
 
         return pubs_info
 
+    def _is_user_made_callback(
+        self,
+        callback_id: str
+    ) -> bool:
+        is_subscription = callback_id in self._id_to_topic.keys()
+        if not is_subscription:
+            return False
+        topic_name = self._id_to_topic[callback_id]
+        return topic_name not in ['/clock', '/parameter_events']
+
     def _get_callback_groups(
         self,
         node_id: str
@@ -375,6 +387,8 @@ class LttngInfo:
                     continue
 
                 callback_ids = tuple(group_df['callback_id'].values)
+                callback_ids = tuple(Util.filter(self._is_user_made_callback, callback_ids))
+
                 cbgs.append(
                     CallbackGroupValueLttng(
                         callback_group_type_name=row['group_type_name'],
@@ -475,17 +489,31 @@ class PublisherBinder:
         bool
             [description]
         """
+        # implementation is mostly done, but the processing time is huge, so it is not practical.
+        # Disable it until the speedup is complete.
+        return False
 
         cbgs: Sequence[CallbackGroupValueLttng]
         cbgs = self._info.get_callback_groups(node)
 
+
+        # TODO: ignore /parameter_events, /clock
+        # Ignore callback groups that have no callbacks added,
+        # as they are irrelevant to performance.
+        # if len(callback_ids) == 0:
+        #     self._ignored_callback_groups.add(row['callback_group_id'])
+        #     continue
+
         if len(cbgs) != 1:
+            print('false')
             return False
 
         cbg = cbgs[0]
         if cbg.callback_group_type is CallbackGroupType.REENTRANT:
+            print('false')
             return False
 
+        print('true')
         return True
 
     def bind_pub_topics_and_timer_cbs(
@@ -523,18 +551,20 @@ class PublisherBinder:
             publishers
         )
 
-        for publisher_info in publishers:
-            for cb in callbacks:
-                if not self._is_consistent(publisher_info, cb):
-                    continue
+        from itertools import product
+        from tqdm import tqdm
+        it = list(product(publishers, callbacks))
+        for publisher, cb in tqdm(it):
+            if not self._is_consistent(publisher, cb):
+                continue
 
-                topic_names: Tuple[str, ...] = (publisher_info.topic_name,)
-                if cb.publish_topic_names is not None:
-                    topic_names = topic_names + cb.publish_topic_names
+            topic_names: Tuple[str, ...] = (publisher.topic_name,)
+            if cb.publish_topic_names is not None:
+                topic_names = topic_names + cb.publish_topic_names
 
-                self._update_timer_cb_publish_topics(
-                    callback_list, cb, topic_names)
-                break
+            self._update_timer_cb_publish_topics(
+                callback_list, cb, topic_names)
+            break
 
         return callback_list
 
@@ -560,30 +590,31 @@ class PublisherBinder:
             publisher binded callback values.
 
         """
+        system_topics = ['/parameter_events', '/rosout', '/clock']
         callback_list: List[SubscriptionCallbackValueLttng]
         callback_list = list(callbacks_info)
+        callback_list = Util.filter(lambda x: x.subscribe_topic_name not in system_topics, callback_list)
 
         # insert empty tuple
         for cb_info in callback_list:
             self._update_sub_cb_publish_topics(callback_list, cb_info, ())
 
         publishers = self._info.get_publishers_without_cb_bind(node_name)
-        publishers = Util.filter(
-            lambda x: x.topic_name not in ['/parameter_events', '/rosout'],
-            publishers
-        )
+        publishers = Util.filter(lambda x: x.topic_name not in system_topics, publishers)
 
-        for publisher_info in publishers:
-            for cb_info in callback_list:
-                if not self._is_consistent(publisher_info, cb_info):
-                    continue
-                topic_names: Tuple[str, ...] = (publisher_info.topic_name,)
-                if cb_info.publish_topic_names is not None:
-                    topic_names = topic_names + cb_info.publish_topic_names
+        from itertools import product
+        from tqdm import tqdm
+        it = list(product(publishers, callback_list))
+        for publisher, cb_info in tqdm(it):
+            if not self._is_consistent(publisher, cb_info):
+                continue
+            topic_names: Tuple[str, ...] = (publisher.topic_name,)
+            if cb_info.publish_topic_names is not None:
+                topic_names = topic_names + cb_info.publish_topic_names
 
-                self._update_sub_cb_publish_topics(
-                    callback_list, cb_info, topic_names)
-                break
+            self._update_sub_cb_publish_topics(
+                callback_list, cb_info, topic_names)
+            break
 
         return callback_list
 

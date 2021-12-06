@@ -64,21 +64,27 @@ class RecordsCppImpl(RecordsInterface):
     def concat(
         self, other: RecordsInterface
     ) -> None:
-        self._records.concat(other)
+        assert isinstance(other, RecordsCppImpl)
+        self._records.concat(other._records)
         return None
-
-    # @property
-    # def data(self) -> List[RecordCppImpl]:
-    #     return [RecordCppImpl(record_base.data) for record_base in self._data]
 
     def sort(
         self, key: str, sub_key: Optional[str] = None, ascending=True
     ) -> None:
+        if key not in self.columns:
+            raise InvalidArgumentError(f'column [{key}] not found.')
         self._records.sort(key, sub_key or '', ascending)
         return None
 
-    def bind_drop_as_delay(self, sort_key: str) -> None:
-        self._records.bind_drop_as_delay(sort_key)
+    def sort_column_order(
+        self,
+        ascending: bool = True,
+        put_none_at_top=True,
+    ) -> None:
+        self._records.sort_column_order(ascending, put_none_at_top)
+
+    def bind_drop_as_delay(self) -> None:
+        self._records.bind_drop_as_delay()
 
     def to_dataframe(self):
         data_dict = [record.data for record in self.data]
@@ -134,8 +140,11 @@ class RecordsCppImpl(RecordsInterface):
     def _insert_records(self, records: RecordsBase) -> None:
         self._records = records
 
-    def append_column(self, column: str) -> None:
-        self._records.append_column(column)
+    def append_column(self, column: str, values: List[int]) -> None:
+        if len(values) != len(self):
+            raise InvalidArgumentError('len(values) != len(records)')
+
+        self._records.append_column(column, values)
 
     def drop_columns(self, columns: List[str]) -> None:
         self._records.drop_columns(columns)

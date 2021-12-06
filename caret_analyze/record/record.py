@@ -42,6 +42,9 @@ class Record(RecordInterface):
     def get(self, key: str) -> int:
         return self._data[key]
 
+    def get_with_default(self, key: str, v: int) -> int:
+        return self._data.get(key, v)
+
     @property
     def data(self) -> Dict[str, int]:
         return self._data
@@ -150,6 +153,29 @@ class Records(RecordsInterface):
 
         return None
 
+    def sort_column_order(
+        self,
+        ascending=True,
+        put_none_at_top=True,
+    ) -> None:
+        data_ = self.data
+        maxsize = 2**64 - 1
+
+        if ascending:
+            default_value = maxsize if put_none_at_top else 0
+
+            def sort_func(record: RecordInterface):
+                return tuple(record.get_with_default(k, default_value) for k in self.columns)
+        else:
+            default_value = 0 if put_none_at_top else maxsize
+
+            def sort_func(record: RecordInterface):
+                return tuple(-record.get_with_default(k, default_value) for k in self.columns)
+
+        data_.sort(key=sort_func)
+
+        return None
+
     @property
     def data(self) -> List[RecordInterface]:
         return self._data
@@ -194,8 +220,13 @@ class Records(RecordsInterface):
             self._columns[index] = new
         return None
 
-    def append_column(self, column: str) -> None:
+    def append_column(self, column: str, values: List[int]) -> None:
+        if len(values) != len(self):
+            raise InvalidArgumentError('len(values) != len(records)')
+
         self._columns += [column]
+        for record, value in zip(self.data, values):
+            record.add(column, value)
 
     def filter_if(self, f: Callable[[RecordInterface], bool]) -> None:
         records = Records(None, self.columns)
@@ -249,8 +280,8 @@ class Records(RecordsInterface):
 
         return deepcopy(self)
 
-    def bind_drop_as_delay(self, sort_key: str) -> None:
-        self.sort(sort_key, sub_key=None, ascending=False)
+    def bind_drop_as_delay(self) -> None:
+        self.sort_column_order(ascending=False, put_none_at_top=False)
 
         oldest_values: Dict[str, int] = {}
 
@@ -261,7 +292,7 @@ class Records(RecordsInterface):
                 if key in record.columns:
                     oldest_values[key] = record.get(key)
 
-        self.sort(sort_key, sub_key=None, ascending=True)
+        self.sort_column_order(ascending=True, put_none_at_top=True)
 
     def merge(
         self,
@@ -273,9 +304,10 @@ class Records(RecordsInterface):
         *,
         progress_label: Optional[str] = None  # unused
     ) -> Records:
+        maxsize = 2**64 - 1
         self._validate(None, columns)
 
-        left_records = self
+        left_records = self.clone()
         merge_left = how in ['left', 'outer']
         merge_right = how in ['right', 'outer']
 
@@ -287,14 +319,8 @@ class Records(RecordsInterface):
         column_join_key = '_tmp_join_key'
         column_found_right_record = '_tmp_found_right_record'
 
-        left_records.append_column(column_side)
-        left_records.append_column(column_merge_stamp)
-
-        for left in left_records.data:
-            left.add(column_side, MergeSide.LEFT)
-
-        for right in right_records.data:
-            right.add(column_side, MergeSide.RIGHT)
+        left_records.append_column(column_side, [MergeSide.LEFT]*len(left_records))
+        right_records.append_column(column_side, [MergeSide.RIGHT]*len(right_records))
 
         concat_columns = Columns(left_records.columns + right_records.columns +
                                  [column_side, column_has_valid_join_key,
@@ -319,7 +345,7 @@ class Records(RecordsInterface):
                 record.add(column_join_key, record.get(
                     join_key))  # type: ignore
             else:
-                record.add(column_merge_stamp, sys.maxsize)
+                record.add(column_merge_stamp, maxsize)
 
         concat_records.sort(key=column_merge_stamp, sub_key=column_side)
 
@@ -391,6 +417,7 @@ class Records(RecordsInterface):
         *,
         progress_label: Optional[str] = None  # unused
     ) -> RecordsInterface:
+        maxsize = 2**64 - 1
         self._validate(None, columns)
 
         assert how in ['inner', 'left', 'right', 'outer', 'left_use_latest']
@@ -406,22 +433,16 @@ class Records(RecordsInterface):
         column_has_merge_stamp = '_tmp_has_merge_stamp'
         column_sub_records = '_tmp_sub_records'
 
-        left_records.append_column(column_side)
-        right_records.append_column(column_side)
+        left_records.append_column(column_side, [MergeSide.LEFT]*len(left_records))
+        right_records.append_column(column_side, [MergeSide.RIGHT]*len(right_records))
 
-        for left in left_records.data:
-            left.add(column_side, MergeSide.LEFT)
-
-        for right in right_records.data:
-            right.add(column_side, MergeSide.RIGHT)
-
-        concat_columns = Columns(left_records.columns + right_records.columns).as_list()
+        concat_columns = Columns(
+            left_records.columns + right_records.columns
+            + [column_has_valid_join_key, column_merge_stamp, column_has_merge_stamp]
+            ).as_list()
         concat_records = Records(None, concat_columns)
         concat_records.concat(left_records)
         concat_records.concat(right_records)
-        concat_records.append_column(column_has_valid_join_key)
-        concat_records.append_column(column_merge_stamp)
-        concat_records.append_column(column_has_merge_stamp)
 
         for record in concat_records.data:
             if record.get(column_side) == MergeSide.LEFT:
@@ -438,7 +459,7 @@ class Records(RecordsInterface):
                 record.add(column_has_merge_stamp, True)
                 record.add(column_merge_stamp, record.get(right_stamp_key))
             else:
-                record.add(column_merge_stamp, sys.maxsize)
+                record.add(column_merge_stamp, maxsize)
                 record.add(column_has_merge_stamp, False)
 
         def get_join_value(record: RecordInterface) -> Optional[int]:
@@ -563,33 +584,24 @@ class Records(RecordsInterface):
         column_type = '_tmp_type'
         column_timestamp = '_tmp_timestamp'
 
-        source_records = deepcopy(self)
-        copy_records = deepcopy(copy_records)
-        sink_records = deepcopy(sink_records)
+        source_records = self.clone()
+        copy_records = copy_records.clone()
+        sink_records = sink_records.clone()
 
-        source_records.append_column(column_type)
-        source_records.append_column(column_timestamp)
+        source_records.append_column(column_type, [RecordType.SOURCE]*len(source_records))
+        copy_records.append_column(column_type, [RecordType.COPY]*len(copy_records))
+        sink_records.append_column(column_type, [RecordType.SINK]*len(sink_records))
 
-        copy_records.append_column(column_type)
-        copy_records.append_column(column_timestamp)
-
-        sink_records.append_column(column_type)
-        sink_records.append_column(column_timestamp)
+        source_timestamps = [r.get(source_stamp_key) for r in source_records.data]
+        source_records.append_column(column_timestamp, source_timestamps)
+        copy_records.rename_columns({copy_stamp_key: column_timestamp})
+        sink_timestamps = [r.get(sink_stamp_key) for r in sink_records.data]
+        sink_records.append_column(column_timestamp, sink_timestamps)
 
         merged_records_column = Columns(source_records.columns)
         merged_records_column += copy_records.columns
         merged_records_column += sink_records.columns
         merged_records: Records = Records(None, merged_records_column.as_list())
-
-        for record in source_records.data:
-            record.add(column_type, RecordType.SOURCE)  # type: ignore
-            record.add(column_timestamp, record.get(source_stamp_key))
-        for record in copy_records.data:
-            record.add(column_type, RecordType.COPY)  # type: ignore
-            record.add(column_timestamp, record.get(copy_stamp_key))
-        for record in sink_records.data:
-            record.add(column_type, RecordType.SINK)  # type: ignore
-            record.add(column_timestamp, record.get(sink_stamp_key))
 
         concat_records = Records(source_records._data + copy_records._data + sink_records._data,
                                  merged_records_column.as_list())
@@ -645,7 +657,7 @@ class Records(RecordsInterface):
         # Deleting an added key
         merged_records.drop_columns(
             [column_type, column_timestamp, sink_from_key,
-            copy_from_key, copy_to_key, copy_stamp_key])
+             copy_from_key, copy_to_key, copy_stamp_key])
 
         merged_records.reindex(columns)
 

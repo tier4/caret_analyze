@@ -14,12 +14,13 @@
 
 from .runtime.application import Application
 from .infra.lttng.lttng import Lttng
-from .architecture import Architecture
+from .architecture import Architecture, check_procedure
 
 __all__ = [
     'Application',
     'Architecture',
-    'Lttng'
+    'Lttng',
+    'check_procedure'
 ]
 
 from logging import getLogger, StreamHandler, DEBUG, WARN, Formatter
@@ -27,9 +28,11 @@ from logging import getLogger, StreamHandler, DEBUG, WARN, Formatter
 handler = StreamHandler()
 handler.setLevel(WARN)
 
-fmt = '%(levelname)-8s: %(asctime)s | ' \
-    + '%(filename)-12s - %(funcName)-12s : ' \
-    + '%(lineno)-4s -- %(message)s'
+# fmt = '%(levelname)-8s: %(asctime)s | ' \
+#     + '%(filename)-12s - %(funcName)-12s : ' \
+#     + '%(lineno)-4s -- %(message)s'
+
+fmt = '%(levelname)-8s: %(asctime)s | %(message)s'
 formatter = Formatter(
     fmt,
     datefmt='%Y-%m-%d %H:%M:%S')

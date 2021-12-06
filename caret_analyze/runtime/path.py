@@ -134,7 +134,8 @@ class RecordsMerged:
             # drop callback end
             left_records.drop_columns([first_element.columns[-1]])
 
-        rename_rule = column_merger.append_columns_and_return_rename_rule(left_records)
+        rename_rule = column_merger.append_columns_and_return_rename_rule(
+            left_records)
         left_records.rename_columns(rename_rule)
 
         first_column = first_element.columns[0]
@@ -153,7 +154,8 @@ class RecordsMerged:
                     msg = 'Detected dummy_records before merging end_records. merge terminated.'
                     logger.warn(msg)
                 break
-            rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
+            rename_rule = column_merger.append_columns_and_return_rename_rule(
+                right_records)
             right_records.rename_columns(rename_rule)
 
             # todo: refactor
@@ -174,7 +176,8 @@ class RecordsMerged:
                     right_records=right_records,
                     join_left_key=left_stamp_key,
                     join_right_key=right_stamp_key,
-                    columns=Columns(left_records.columns + right_records.columns).as_list(),
+                    columns=Columns(left_records.columns +
+                                    right_records.columns).as_list(),
                     how='left'
                 )
             else:
@@ -190,7 +193,8 @@ class RecordsMerged:
                     join_right_key=None,
                     left_stamp_key=left_stamp_key,
                     right_stamp_key=right_stamp_key,
-                    columns=Columns(left_records.columns + right_records.columns).as_list(),
+                    columns=Columns(left_records.columns +
+                                    right_records.columns).as_list(),
                     how='left_use_latest'
                 )
 
@@ -204,21 +208,21 @@ class Path(PathBase):
     def __init__(
         self,
         path_info: PathStructValue,
-        path_elements: List[Union[NodePath, Communication]],
+        child: List[Union[NodePath, Communication]],
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
         super().__init__()
 
         self._value = path_info
-        self._validate(path_elements)
-        self._path_elements = path_elements
+        self._validate(child)
+        self._child = child
         self._columns_cache: Optional[List[str]] = None
         self._callbacks = callbacks
         return None
 
     def _to_records_core(self) -> RecordsInterface:
         self._verify_path(self.node_paths)
-        records = [e.to_records() for e in self._path_elements]
+        records = [e.to_records() for e in self._child]
         return RecordsMerged(records).data
 
     @staticmethod
@@ -231,16 +235,17 @@ class Path(PathBase):
                 logger.warning(msg)
 
     def verify(self) -> bool:
+        is_valid = True
         for child in self.node_paths[1:-1]:
             if child.message_context is not None:
                 continue
-            msg = 'Detected dummy_records. Correct these node_path definitions. \n'
+            msg = 'Detected invalid message context. Correct these node_path definitions. \n'
             msg += 'To see node definition,'
             msg += f'execute [ app.get_node(\'{child.node_name}\').summary.pprint() ] \n'
             msg += str(child.summary)
             logger.warning(msg)
-            return False
-        return True
+            is_valid = False
+        return is_valid
 
     def get_child(self, name: str):
         def is_target(child: Union[NodePath, Communication]):
@@ -289,15 +294,19 @@ class Path(PathBase):
 
     @property
     def communications(self) -> List[Communication]:
-        return Util.filter(lambda x: isinstance(x, Communication), self._path_elements)
+        return Util.filter(lambda x: isinstance(x, Communication), self._child)
 
     @property
     def node_paths(self) -> List[NodePath]:
-        return Util.filter(lambda x: isinstance(x, NodePath), self._path_elements)
+        return Util.filter(lambda x: isinstance(x, NodePath), self._child)
+
+    @property
+    def topic_names(self) -> List[str]:
+        return list(self._value.topic_names)
 
     @property
     def child(self) -> List[Union[NodePath, Communication]]:
-        return self._path_elements
+        return self._child
 
     @property
     def child_names(self) -> List[str]:

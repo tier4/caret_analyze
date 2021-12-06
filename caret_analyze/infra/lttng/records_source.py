@@ -106,7 +106,7 @@ class RecordsSource():
             join_left_key=COLUMN_NAME.MESSAGE,
             join_right_key=COLUMN_NAME.MESSAGE,
             columns=Columns(publish.columns + dds_write.columns).as_list(),
-            how='left_use_latest',
+            how='left',
             progress_label='binding: rcl_publish and dds_write',
         )
 

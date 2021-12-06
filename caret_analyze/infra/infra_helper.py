@@ -18,27 +18,27 @@ from ..value_objects import CallbackStructValue, PublisherStructValue, Subscript
 class InfraHelper():
     @staticmethod
     def cb_to_column(
-        callback_value: CallbackStructValue,
+        callback: CallbackStructValue,
         trace_point_name: str
     ) -> str:
-        cb_name = callback_value.callback_name
+        cb_name = callback.callback_name
 
         return f'{cb_name}/{trace_point_name}'
 
     @staticmethod
     def sub_to_column(
-        subscription_value: SubscriptionStructValue,
+        subscription: SubscriptionStructValue,
         trace_point_name: str
     ) -> str:
-        cb_name = subscription_value.callback_name
+        topic_name = subscription.topic_name
 
-        return f'{cb_name}/{trace_point_name}'
+        return f'{topic_name}/{trace_point_name}'
 
     @staticmethod
     def pub_to_column(
-        publisher_value: PublisherStructValue,
+        publisher: PublisherStructValue,
         trace_point_name: str
     ) -> str:
-        topic_name = publisher_value.topic_name
+        topic_name = publisher.topic_name
 
         return f'{topic_name}/{trace_point_name}'

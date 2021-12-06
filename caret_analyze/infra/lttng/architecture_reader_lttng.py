@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence
+from typing import List, Sequence, Dict
 
 from ...architecture.reader_interface import ArchitectureReader
 from ...value_objects import (CallbackGroupValue,
@@ -23,7 +23,6 @@ from ...value_objects import (CallbackGroupValue,
                               PublisherValue,
                               SubscriptionValue,
                               VariablePassingValue,
-                              MessageContext,
                               NodeValue)
 
 
@@ -53,7 +52,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
     def get_message_contexts(
         self,
         node: NodeValue
-    ) -> Sequence[MessageContext]:
+    ) -> Sequence[Dict]:
         return []
 
     def get_executors(

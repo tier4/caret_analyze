@@ -109,7 +109,7 @@ class PathBase(metaclass=ABCMeta):
         column_names = self.column_names
 
         if remove_dropped is False and treat_drop_as_delay:
-            records.bind_drop_as_delay(column_names[0])
+            records.bind_drop_as_delay()
 
         df = records.to_dataframe()
         for column in column_names:

@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Tuple
 
 from caret_analyze.value_objects.message_context import MessageContext
+from caret_analyze.value_objects.node_path import NodePathStructValue
 
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..value_objects import (CallbackStructValue,
@@ -228,45 +229,57 @@ class NodesDicts:
 
     def _to_dict(
         self,
-        node_value: NodeStructValue,
+        node: NodeStructValue,
     ) -> Dict:
         obj: Dict = {}
-        obj['node_name'] = f'{node_value.node_name}'
+        obj['node_name'] = f'{node.node_name}'
 
-        if node_value.callback_groups is not None:
+        if node.callback_groups is not None:
             obj['callback_groups'] = [{
                 'callback_group_type': cbg.callback_group_type_name,
                 'callback_group_name': cbg.callback_group_name,
                 'callback_names': sorted(list(cbg.callback_names))
-            } for cbg in node_value.callback_groups]
+            } for cbg in node.callback_groups]
 
-        if node_value.callbacks is not None:
-            if len(node_value.callbacks) >= 1:
-                obj['callbacks'] = CallbackDicts(node_value.callbacks).data
-            if len(node_value.callbacks) >= 2:
+        if node.callbacks is not None:
+            if len(node.callbacks) >= 1:
+                obj['callbacks'] = CallbackDicts(node.callbacks).data
+            if len(node.callbacks) >= 2:
                 obj['variable_passings'] = VarPassDicts(
-                    node_value.variable_passings).data
+                    node.variable_passings).data
 
-        if len(node_value.publishers) >= 1:
-            obj['publishes'] = PubDicts(node_value.publishers).data
+        if len(node.publishers) >= 1:
+            obj['publishes'] = PubDicts(node.publishers).data
 
-        if len(node_value.subscriptions) >= 1:
-            obj['subscribes'] = SubDicts(node_value.subscriptions).data
+        if len(node.subscriptions) >= 1:
+            obj['subscribes'] = SubDicts(node.subscriptions).data
 
-        if len(node_value.subscriptions) >= 1 or len(node_value.publishers) >= 1:
-            obj['message_contexts'] = MessageContextDicts(node_value.message_contexts).data
+        if len(node.subscriptions) >= 1 and len(node.publishers) >= 1:
+            obj['message_contexts'] = MessageContextDicts(node.paths).data
 
         return obj
 
 
 class MessageContextDicts:
-    def __init__(self, message_contexts: Tuple[MessageContext, ...]) -> None:
-        if len(message_contexts) == 0:
-            self._data = [
-                {'context_type': UNDEFINED_STR}
-            ]
-        else:
-            self._data = [c.to_dict() for c in message_contexts]
+    def __init__(
+        self,
+        paths: Tuple[NodePathStructValue, ...],
+    ) -> None:
+        self._data = []
+        for path in paths:
+            if path.publish_topic_name is None or path.subscribe_topic_name is None:
+                continue
+            message_context = path.message_context
+            if message_context is None:
+                self._data.append(
+                    {
+                        'context_type': UNDEFINED_STR,
+                        'subscription_topic_name': path.subscribe_topic_name,
+                        'publisher_topic_name': path.publish_topic_name
+                    }
+                )
+            else:
+                self._data.append(message_context.to_dict())
 
     @property
     def data(self) -> List[Dict]:

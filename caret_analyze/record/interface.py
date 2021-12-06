@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import sys
 from abc import abstractmethod
 from typing import Callable, Dict, List, Optional, Sequence, Set
 
@@ -127,6 +128,26 @@ class RecordInterface:
         """
         pass
 
+    @abstractmethod
+    def get_with_default(self, key: str, v: int) -> int:
+        """
+        Get value for specific column.
+
+        Parameters
+        ----------
+        key : str
+            key name to get.
+        v : int
+            default value.
+
+        Returns
+        -------
+        int
+            Value for selected key.
+
+        """
+        pass
+
     @property
     @abstractmethod
     def data(self) -> Dict[str, int]:
@@ -227,6 +248,24 @@ class RecordsInterface:
             second key name to used for sort.
         ascending : bool
             ascending if True, descending if false.
+
+        """
+        pass
+
+    @abstractmethod
+    def sort_column_order(
+        self,
+        ascending: bool = True,
+        put_none_at_top=True,
+    ) -> None:
+        """
+        Sort records by ordered columns.
+
+        Parameters
+        ----------
+        ascending : bool
+            ascending if True, descending if false.
+        put_none_at_top : bool
 
         """
         pass
@@ -520,13 +559,15 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def append_column(self, column: str) -> None:
+    def append_column(self, column: str, values: List[int]) -> None:
         """
         Append column to records
 
         Parameters
         ----------
         column : str
+        values: List[int]
+
         """
 
     @abstractmethod
@@ -543,6 +584,6 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def bind_drop_as_delay(self, sort_key: str) -> None:
+    def bind_drop_as_delay(self) -> None:
         """Convert the dropped points to records converted as delay."""
         pass

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Sequence
+from typing import Sequence, Dict
 
 from ..value_objects import (CallbackGroupValue,
                              SubscriptionCallbackValue,
@@ -25,7 +25,6 @@ from ..value_objects import (CallbackGroupValue,
                              PublisherValue,
                              SubscriptionValue,
                              VariablePassingValue,
-                             MessageContext,
                              NodeValue)
 
 UNDEFINED_STR = 'UNDEFINED'
@@ -151,7 +150,7 @@ class ArchitectureReader(metaclass=ABCMeta):
     def get_message_contexts(
         self,
         node: NodeValue
-    ) -> Sequence[MessageContext]:
+    ) -> Sequence[Dict]:
         """
         Get message contexts.
 
@@ -162,7 +161,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Returns
         -------
-        Sequence[MessageContext]
+        Sequence[Dict]
 
         """
         pass

@@ -18,54 +18,139 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from typing import Dict, Optional, Tuple
+from logging import getLogger
 
 from ..common import CustomDict
 from .value_object import ValueObject
-from ..exceptions import InvalidYamlFormatError
+from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
+from .callback import CallbackStructValue
 
 
-class MessageContext(ValueObject):
-    """Message context info."""
-    pass
+logger = getLogger(__name__)
+
+
+class MessageContextType(ValueObject):
+    """Message context type."""
+
+    USE_LATEST_MESSAGE: MessageContextType
+    CALLBACK_CHAIN: MessageContextType
+    INHERIT_UNIQUE_STAMP:  MessageContextType
+
+    def __init__(
+        self,
+        type_name: str
+    ) -> None:
+        self._type_name = type_name
 
     @property
-    @abstractmethod
     def type_name(self) -> str:
-        pass
-
-    @abstractmethod
-    def to_dict(self) -> Dict:
-        pass
+        return self._type_name
 
     def __str__(self) -> str:
         return self.type_name
 
-    @abstractmethod
-    def is_applicable_path(
+
+MessageContextType.USE_LATEST_MESSAGE = MessageContextType('use_latest_message')
+MessageContextType.INHERIT_UNIQUE_STAMP = MessageContextType('inherit_unique_stamp')
+MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
+
+
+class MessageContext(ValueObject):
+    """Structured message context value."""
+
+    def __init__(
         self,
-        subscription_info: SubscriptionStructValue,
-        publisher_info: PublisherStructValue,
-    ) -> bool:
+        node_name: str,
+        message_context_dict: Dict,
+        subscription: Optional[SubscriptionStructValue],
+        publisher: Optional[PublisherStructValue],
+        child: Optional[Tuple[CallbackStructValue, ...]],
+    ) -> None:
+        # Since it is used as a value object,
+        # mutable types such as dict should not be used.
+        self._node_name = node_name
+        self._sub = subscription
+        self._pub = publisher
+        self._callbacks = child
+
+    @property
+    def type_name(self) -> str:
+        return self.context_type.type_name
+
+    @property
+    @abstractmethod
+    def context_type(self) -> MessageContextType:
         pass
 
-    @abstractmethod
+    @property
+    def node_name(self) -> str:
+        return self._node_name
+
+    @property
+    def callbacks(
+        self
+    ) -> Optional[Tuple[CallbackStructValue, ...]]:
+        return self._callbacks
+
+    def to_dict(self) -> Dict:
+        return {
+            'context_type': str(self.type_name),
+            'subscription_topic_name': self.subscription_topic_name,
+            'publisher_topic_name': self.publisher_topic_name
+        }
+
+    def is_applicable_path(
+        self,
+        subscription: Optional[SubscriptionStructValue],
+        publisher: Optional[PublisherStructValue],
+        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+    ) -> bool:
+        return self._sub == subscription and self._pub == publisher
+
+    @property
+    def publisher_topic_name(self) -> Optional[str]:
+        if self._pub is None:
+            return None
+        return self._pub.topic_name
+
+    @property
+    def subscription_topic_name(self) -> Optional[str]:
+        if self._sub is None:
+            return None
+        return self._sub.topic_name
+
+    @property
     def summary(self) -> CustomDict:
+        return CustomDict({
+            'subscription_topic_name': self.subscription_topic_name,
+            'publisher_topic_name': self.publisher_topic_name,
+            'type': str(self.type_name)
+        })
+
+    @abstractmethod
+    def verify(self) -> bool:
         pass
 
     @staticmethod
-    def create_instance_from_dict(context_dict: Dict) -> MessageContext:
-        context_type = context_dict['context_type']
-        if context_type == UseLatestMessage.TYPE_NAME:
-            return UseLatestMessage.create_instance_from_dict(context_dict)
-        if context_type == InheritUniqueStamp.TYPE_NAME:
-            return InheritUniqueStamp.create_instance_from_dict(context_dict)
-        if context_type == CallbackChain.TYPE_NAME:
-            return CallbackChain.create_instance_from_dict(context_dict)
+    def create_instance(
+        context_type_name: str,
+        context_dict: Dict,
+        node_name: str,
+        subscription: Optional[SubscriptionStructValue],
+        publisher: Optional[PublisherStructValue],
+        child: Optional[Tuple[CallbackStructValue, ...]]
+    ) -> MessageContext:
+        if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
+            return CallbackChain(node_name, context_dict, subscription, publisher, child)
+        if context_type_name == str(MessageContextType.INHERIT_UNIQUE_STAMP):
+            return InheritUniqueStamp(node_name, context_dict, subscription, publisher, child)
+        if context_type_name == str(MessageContextType.USE_LATEST_MESSAGE):
+            return UseLatestMessage(node_name, context_dict, subscription, publisher, child)
 
-        raise InvalidYamlFormatError(
-            f'Failed to parse message context. {context_dict}')
+        raise UnsupportedTypeError(
+            f'Failed to load message context. message_context={context_type_name}')
 
 
 class UseLatestMessage(MessageContext):
@@ -73,53 +158,12 @@ class UseLatestMessage(MessageContext):
 
     """Use messsage context"""
 
-    def __init__(
-        self,
-        subscription_topic_name: str,
-        publisher_topic_name: str,
-    ) -> None:
-        self._sub_topic_name = subscription_topic_name
-        self._pub_topic_name = publisher_topic_name
+    def verify(self) -> bool:
+        return True
 
     @property
-    def subscription_topic_name(self) -> str:
-        return self._sub_topic_name
-
-    @property
-    def publisher_topic_name(self) -> str:
-        return self._pub_topic_name
-
-    @property
-    def type_name(self) -> str:
-        return self.TYPE_NAME
-
-    @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name,
-        })
-
-    def is_applicable_path(
-        self,
-        subscription_value: SubscriptionStructValue,
-        publisher_value: PublisherStructValue,
-    ) -> bool:
-        return subscription_value.topic_name == self._sub_topic_name and \
-            publisher_value.topic_name == self._pub_topic_name
-
-    def to_dict(self) -> Dict:
-        return {
-            'context_type': self.TYPE_NAME,
-            'subscription_topic_name': self.subscription_topic_name
-        }
-
-    @staticmethod
-    def create_instance_from_dict(context_dict: Dict) -> MessageContext:
-        return UseLatestMessage(
-            context_dict['subscription_topic_name'],
-            context_dict['publisher_topic_name'],
-        )
+    def context_type(self) -> MessageContextType:
+        return MessageContextType.USE_LATEST_MESSAGE
 
 
 class InheritUniqueStamp(MessageContext):
@@ -132,54 +176,12 @@ class InheritUniqueStamp(MessageContext):
     If the input timestamp is not unique, it may calculate an incorrect value.
     """
 
-    def __init__(
-        self,
-        subscription_topic_name: str,
-        publisher_topic_name: str,
-    ) -> None:
-        self._sub_topic_name = subscription_topic_name
-        self._pub_topic_name = publisher_topic_name
-
     @property
-    def publisher_topic_name(self) -> str:
-        return self._pub_topic_name
+    def context_type(self) -> MessageContextType:
+        return MessageContextType.INHERIT_UNIQUE_STAMP
 
-    @property
-    def subscription_topic_name(self) -> str:
-        return self._sub_topic_name
-
-    @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name,
-        })
-
-    def is_applicable_path(
-        self,
-        subscription_value: SubscriptionStructValue,
-        publisher_value: PublisherStructValue,
-    ) -> bool:
-        return subscription_value.topic_name == self._sub_topic_name and \
-            publisher_value.topic_name == self._pub_topic_name
-
-    @property
-    def type_name(self) -> str:
-        return self.TYPE_NAME
-
-    def to_dict(self) -> Dict:
-        return {
-            'context_type': self.TYPE_NAME,
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name,
-        }
-
-    @staticmethod
-    def create_instance_from_dict(context_dict: Dict) -> MessageContext:
-        return InheritUniqueStamp(
-            context_dict['subscription_topic_name'],
-            context_dict['publisher_topic_name'],
-        )
+    def verify(self) -> bool:
+        pass
 
 
 class CallbackChain(MessageContext):
@@ -198,55 +200,40 @@ class CallbackChain(MessageContext):
 
     def __init__(
         self,
-        subscription_topic_name: Optional[str],
-        publisher_topic_name: Optional[str],
-        callbacks: Tuple[str, ...]
+        node_name: str,
+        message_context_dict: Dict,
+        subscription: Optional[SubscriptionStructValue],
+        publisher: Optional[PublisherStructValue],
+        callbacks: Optional[Tuple[CallbackStructValue, ...]]
     ) -> None:
-        self._sub_topic_name = subscription_topic_name
-        self._pub_topic_name = publisher_topic_name
-        self._callbacks = callbacks
+        super().__init__(node_name, message_context_dict, subscription, publisher, callbacks)
 
     @property
-    def publisher_topic_name(self) -> Optional[str]:
-        return self._pub_topic_name
-
-    @property
-    def callbacks(self) -> Tuple[str, ...]:
-        return self._callbacks
-
-    @property
-    def subscription_topic_name(self) -> Optional[str]:
-        return self._sub_topic_name
-
-    @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name,
-            'callbacks': self.callbacks
-        })
+    def context_type(self) -> MessageContextType:
+        return MessageContextType.CALLBACK_CHAIN
 
     def is_applicable_path(
         self,
-        subscription_value: SubscriptionStructValue,
-        publisher_value: PublisherStructValue,
+        subscription: Optional[SubscriptionStructValue],
+        publisher: Optional[PublisherStructValue],
+        callbacks: Optional[Tuple[CallbackStructValue, ...]]
     ) -> bool:
-        return subscription_value.topic_name == self._sub_topic_name and \
-            publisher_value.topic_name == self._pub_topic_name
-
-    @property
-    def type_name(self) -> str:
-        return self.TYPE_NAME
+        if not super().is_applicable_path(subscription, publisher, callbacks):
+            return False
+        return self.callbacks == callbacks
 
     def to_dict(self) -> Dict:
-        return {
-            'context_type': self.TYPE_NAME,
-        }
+        d = super().to_dict()
+        if self.callbacks is not None:
+            d['callbacks'] = [_.callback_name for _ in self.callbacks]
+        return d
 
-    @staticmethod
-    def create_instance_from_dict(context_dict: Dict) -> MessageContext:
-        return CallbackChain(
-            context_dict['subscription_topic_name'],
-            context_dict['publisher_topic_name'],
-            context_dict['callback_names'],
-        )
+    def verify(self) -> bool:
+        is_valid = True
+        if self.callbacks is None or len(self.callbacks) == 0:
+            is_valid = False
+            logger.warning(
+                'callback-chain is empty. variable_passings may be not set.'
+                f'{self.node_name}')
+
+        return is_valid

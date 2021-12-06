@@ -99,11 +99,11 @@ class Architecture():
     def add_path(self, path_name: str, path_info: PathStructValue) -> None:
         self._path_manager.add_named_path(path_name, path_info)
 
-    def remove_named_path(self, path_name: str) -> None:
+    def remove_path(self, path_name: str) -> None:
         self._path_manager.remove_named_path(path_name)
 
-    def update_named_path(self, path_name: str, path_info: PathStructValue) -> None:
-        self._path_manager.update_named_path(path_name, path_info)
+    def update_path(self, path_name: str, path: PathStructValue) -> None:
+        self._path_manager.update_named_path(path_name, path)
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
