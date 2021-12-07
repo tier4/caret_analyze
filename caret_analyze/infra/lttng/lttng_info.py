@@ -356,7 +356,7 @@ class LttngInfo:
     ) -> bool:
         is_subscription = callback_id in self._id_to_topic.keys()
         if not is_subscription:
-            return False
+            return True
         topic_name = self._id_to_topic[callback_id]
         return topic_name not in ['/clock', '/parameter_events']
 
