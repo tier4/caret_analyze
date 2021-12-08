@@ -17,9 +17,14 @@ from typing import Dict, List, Union
 
 
 class CustomDict(UserDict):
+    """Temporary dictionary to use when outputting summaries. """
 
     def pprint(self):
         print((self))
+
+    def __hash__(self):
+        # ignore hash value
+        return 0
 
     def __str__(self) -> str:
         from yaml import dump

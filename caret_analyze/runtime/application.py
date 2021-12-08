@@ -14,7 +14,7 @@
 
 from __future__ import annotations, unicode_literals
 
-from typing import List, Union
+from typing import List, Union, Optional
 
 from ..infra.infra_base import InfraBase
 from ..architecture import Architecture
@@ -30,6 +30,7 @@ from .executor import Executor
 from .node import Node
 from .path import Path
 from ..exceptions import UnsupportedTypeError
+from ..value_objects import NodePathStructValue
 
 
 class Application():
@@ -141,6 +142,22 @@ class Application():
     @property
     def callback_names(self) -> List[str]:
         return [_.callback_name for _ in self.callbacks]
+
+    def get_node_path(
+        self,
+        node_name: str,
+        subscribe_topic_name: Optional[str],
+        publish_topic_name: Optional[str]
+    ) -> NodePathStructValue:
+        return Util.find_one(
+            lambda x: x.node_name == node_name and
+            x.publish_topic_name == publish_topic_name and
+            x.subscribe_topic_name == subscribe_topic_name, self.node_paths
+        )
+
+    @property
+    def node_paths(self) -> List[NodePathStructValue]:
+        return Util.flatten([_.paths for _ in self.nodes])
 
     def get_node(self, node_name: str) -> Node:
         def is_target_node(node: Node):

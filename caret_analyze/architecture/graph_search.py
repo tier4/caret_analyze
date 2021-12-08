@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections import UserList
 from copy import deepcopy
 from itertools import product
-from typing import List, Optional, Tuple, Union, Dict, Set, DefaultDict
+from typing import List, Optional, Tuple, Union, Dict, Set, DefaultDict, Callable
 from logging import getLogger
 from collections import defaultdict
 
@@ -43,7 +43,7 @@ class GraphEdgeCore(ValueObject):
     def __init__(self, i_from: int, i_to: int, label: Optional[str] = None):
         self.i_from = i_from
         self.i_to = i_to
-        self.label = label
+        self.label = label or ''
 
 
 class GraphPathCore(UserList):
@@ -151,8 +151,6 @@ class GraphCore:
                 path.append(edge)
                 edges_cache.append(deepcopy(self._graph[u]))
                 forward = True
-                # self._search_paths_recursion(i, d, edge, visited, path, paths)
-                # visited[u, i] = False
             else:
                 forward = False
                 edges_cache.pop()
@@ -199,9 +197,17 @@ class GraphEdge(ValueObject):
         node_to: GraphNode,
         label: Optional[str] = None
     ) -> None:
-        self.node_from = node_from
-        self.node_to = node_to
-        self.label = label
+        self._node_from = node_from
+        self._node_to = node_to
+        self.label = label or ''
+
+    @property
+    def node_from(self) -> GraphNode:
+        return self._node_from
+
+    @property
+    def node_to(self) -> GraphNode:
+        return self._node_to
 
 
 class GraphPath(UserList):
@@ -211,7 +217,7 @@ class GraphPath(UserList):
         super().__init__(init)
 
     @property
-    def path(self) -> Tuple[GraphEdge, ...]:
+    def edges(self) -> Tuple[GraphEdge, ...]:
         return tuple(self.data)
 
     def to_graph_nodes(self) -> List[GraphNode]:
@@ -496,35 +502,68 @@ class NodePathSearcher:
         self,
         nodes: Tuple[NodeStructValue, ...],
         communications: Tuple[CommunicationStructValue, ...],
+        node_filter: Optional[Callable[[str], bool]] = None,
+        communication_filter: Optional[Callable[[str], bool]] = None,
     ) -> None:
         self._nodes = nodes
         self._comms = communications
 
         self._graph = Graph()
 
-        for node in self._nodes:
-            node_name = node.node_name
-            for node_path in node._node_paths:
-                pub_topic_name = node_path.publish_topic_name or ''
-                sub_topic_name = node_path.subscribe_topic_name or ''
-                pub_name = NodePathSearcher._to_node_point_name(
-                    node_name, pub_topic_name, 'pub')
-                sub_name = NodePathSearcher._to_node_point_name(
-                    node_name, sub_topic_name, 'sub')
+        self._node_path_dict: Dict[Tuple[Optional[str], Optional[str], Optional[str]], NodePathStructValue] = {}
+        self._comm_dict: Dict[Tuple[str, str, str], CommunicationStructValue] = {}
 
-                self._graph.add_edge(GraphNode(sub_name), GraphNode(pub_name))
+        node_paths: List[NodePathStructValue] = Util.flatten([n.paths for n in self._nodes])
+        for node_path in node_paths:
+            key = self._node_path_key(
+                node_path.subscribe_topic_name, node_path.publish_topic_name, node_path.node_name
+            )
+            if key not in self._node_path_dict:
+                self._node_path_dict[key] = node_path
+            else:
+                logger.warning(
+                    'duplicated node_path found. skip adding. '
+                    f'node_name: {node_path.node_name}, '
+                    f'subscribe_topic_name: {node_path.subscribe_topic_name}, '
+                    f'publish_topic_name: {node_path.publish_topic_name}')
 
         for comm in communications:
-            pub_name = NodePathSearcher._to_node_point_name(
-                comm.publish_node_name, comm.topic_name, 'pub')
-            sub_name = NodePathSearcher._to_node_point_name(
-                comm.subscribe_node_name, comm.topic_name, 'sub')
+            if communication_filter is not None and \
+                    not communication_filter(comm.topic_name):
+                continue
+            if node_filter is not None and not node_filter(comm.publish_node_name):
+                continue
+            if node_filter is not None and not node_filter(comm.subscribe_node_name):
+                continue
+
+            key = self._comm_key(comm.publish_node_name, comm.subscribe_node_name, comm.topic_name)
+            if key not in self._comm_dict:
+                self._comm_dict[key] = comm
+            else:
+                logger.warning(
+                    'duplicated communication found. skip adding.'
+                    f'topic_name: {comm.topic_name}, '
+                    f'publish_node_name: {comm.publish_node_name}, '
+                    f'subscribe_node_name: {comm.subscribe_node_name}, ')
+                continue
 
             self._graph.add_edge(
-                GraphNode(pub_name),
-                GraphNode(sub_name),
+                GraphNode(comm.publish_node_name),
+                GraphNode(comm.subscribe_node_name),
                 comm.topic_name
             )
+
+    @staticmethod
+    def _comm_key(publish_node_name: str, subscribe_node_name: str, topic_name: str) -> Tuple[str, str, str]:
+        return (publish_node_name, subscribe_node_name, topic_name)
+
+    @staticmethod
+    def _node_path_key(
+        subscribe_topic_name: Optional[str],
+        publish_topic_name: Optional[str],
+        node_name: Optional[str]
+    ) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+        return (subscribe_topic_name, publish_topic_name, node_name)
 
     def search(
         self,
@@ -534,43 +573,17 @@ class NodePathSearcher:
     ) -> List[PathStructValue]:
         paths: List[PathStructValue] = []
 
-        # Create a graph node that is the search startpoint.
-        # There are a number of start_node publishers.
-        src_graph_nodes = self._to_src_graph_nodes(start_node_name)
+        max_search_depth = max_node_depth or 0
 
-        # Create a graph node that is the search endpoint.
-        # There are a number of end_node subscriptions.
-        dst_graph_nodes = self._to_dst_graph_nodes(end_node_name)
+        graph_paths = self._graph.search_paths(
+            GraphNode(start_node_name),
+            GraphNode(end_node_name),
+            max_search_depth)
 
-        max_search_depth = (max_node_depth or 0) * 2
-
-        for src_node, dst_node in product(src_graph_nodes, dst_graph_nodes):
-            graph_paths = self._graph.search_paths(
-                GraphNode(src_node),
-                GraphNode(dst_node),
-                max_search_depth)
-
-            for graph_path in graph_paths:
-                try:
-                    paths.append(self._to_path(graph_path))
-                except Error as e:
-                    logger.warning(f'skip path adding. {e}')
+        for graph_path in graph_paths:
+            paths.append(self._to_path(graph_path))
 
         return paths
-
-    def _to_src_graph_nodes(self, node_name: str) -> List[str]:
-        src_ros_node = self._find_node(node_name)
-        return [
-            self._to_node_point_name(node_name, topic_name, 'pub')
-            for topic_name
-            in src_ros_node.publish_topic_names]
-
-    def _to_dst_graph_nodes(self, node_name: str) -> List[str]:
-        node = self._find_node(node_name)
-        return [
-            self._to_node_point_name(node_name, topic_name, 'sub')
-            for topic_name
-            in node.subscribe_topic_names]
 
     def _find_node(self, node_name: str) -> NodeStructValue:
         try:
@@ -604,28 +617,44 @@ class NodePathSearcher:
     ) -> PathStructValue:
         child: List[Union[NodePathStructValue, CommunicationStructValue]] = []
 
-        graph_nodes = node_graph_path.to_graph_nodes()
-        graph_node_names = [_.node_name for _ in graph_nodes]
-
         # add head node path
-        head_node_name = self._point_name_to_node_name(graph_node_names[0])
-        head_topic_name = self._point_name_to_topic_name(graph_node_names[0])
+        head_edge = node_graph_path.edges[0]
+        head_node_name = head_edge.node_from.node_name
+        head_topic_name = head_edge.label
         child.append(
             NodePathStructValue(
-                head_node_name,
+                head_edge.node_from.node_name,
                 None,
                 self._get_publisher(head_node_name, head_topic_name),
                 None, None
             )
         )
 
-        for graph_node_from, graph_node_to in zip(graph_node_names[:-1], graph_node_names[1:]):
-            node_or_comm = self._find_comm_or_node(graph_node_from, graph_node_to)
-            child.append(node_or_comm)
+        for edge_, edge in zip(node_graph_path.edges[:-1], node_graph_path.edges[1:]):
+            comm = self._find_comm(
+                edge_.node_from.node_name,
+                edge_.node_to.node_name,
+                edge_.label)
+            child.append(comm)
 
+            node = self._find_node_path(
+                edge_.label,
+                edge.label,
+                edge_.node_to.node_name,
+            )
+
+            child.append(node)
+
+        # add tail comm
+        tail_edge = node_graph_path.edges[-1]
+        comm = self._find_comm(
+            tail_edge.node_from.node_name,
+            tail_edge.node_to.node_name,
+            tail_edge.label)
+        child.append(comm)
         # add tail node path
-        tail_node_name = self._point_name_to_node_name(graph_node_names[-1])
-        tail_topic_name = self._point_name_to_topic_name(graph_node_names[-1])
+        tail_node_name = tail_edge.node_to.node_name
+        tail_topic_name: str = tail_edge.label
         child.append(
             NodePathStructValue(
                 tail_node_name,
@@ -640,74 +669,21 @@ class NodePathSearcher:
         )
         return path_info
 
-    def _find_comm_or_node(
-        self,
-        graph_node_from: str,
-        graph_node_to: str,
-    ) -> Union[NodePathStructValue, CommunicationStructValue]:
-        pub_sub_name_, pub_sub_name = None, None
-
-        if graph_node_from is not None:
-            pub_sub_name_ = self._point_name_to_pub_sub_name(graph_node_from)
-        if graph_node_to is not None:
-            pub_sub_name = self._point_name_to_pub_sub_name(graph_node_to)
-
-        if pub_sub_name_ == 'pub' or pub_sub_name == 'sub':
-            # communication case
-            pub_node_name, sub_node_name, topic_name = None, None, None
-
-            if graph_node_from is not None:
-                pub_node_name = self._point_name_to_node_name(graph_node_from)
-                topic_name = self._point_name_to_topic_name(graph_node_from)
-
-            if graph_node_to is not None:
-                sub_node_name = self._point_name_to_node_name(graph_node_to)
-                topic_name = self._point_name_to_topic_name(graph_node_to)
-
-            return self._find_comm(sub_node_name, pub_node_name, topic_name)
-
-        elif pub_sub_name_ == 'sub' or pub_sub_name == 'pub':
-            # node path case
-            sub_topic_name, pub_topic_name, node_name = None, None, None
-
-            if graph_node_from is not None:
-                node_name = self._point_name_to_node_name(graph_node_from)
-                sub_topic_name = self._point_name_to_topic_name(graph_node_from)
-
-            if graph_node_to is not None:
-                node_name = self._point_name_to_node_name(graph_node_to)
-                pub_topic_name = self._point_name_to_topic_name(graph_node_to)
-
-            return self._find_node_path(sub_topic_name, pub_topic_name, node_name)
-
-        else:
-            msg = 'Unexpected arguments were given. '
-            node_from = str(None) if graph_node_from is None else graph_node_from
-            msg += f'node_from: {node_from}. '
-            node_to = str(None) if graph_node_to is None else graph_node_to
-            msg += f'node_to: {node_to}. '
-            raise InvalidArgumentError(msg)
-
     def _find_comm(
         self,
-        sub_node_name: str,
-        pub_node_name: str,
-        topic_name: str,
+        node_from: str,
+        node_to: str,
+        topic_name: str
     ) -> CommunicationStructValue:
-        def is_target(comm: CommunicationStructValue):
-            pub_match = comm.publish_node_name == pub_node_name
-            sub_match = comm.subscribe_node_name == sub_node_name
-            topic_match = comm.topic_name == topic_name
-            return pub_match and sub_match and topic_match
-
-        try:
-            return Util.find_one(is_target, self._comms)
-        except ItemNotFoundError:
+        key = self._comm_key(node_from, node_to, topic_name)
+        if key not in self._comm_dict:
             msg = 'Failed to find communication path. '
-            msg += f'publish node name: {pub_node_name}, '
-            msg += f'subscription node name: {sub_node_name}, '
+            msg += f'publish node name: {node_from}, '
+            msg += f'subscription node name: {node_to}, '
             msg += f'topic name: {topic_name}, '
             raise ItemNotFoundError(msg)
+
+        return self._comm_dict[key]
 
     def _find_node_path(
         self,
@@ -715,40 +691,11 @@ class NodePathSearcher:
         pub_topic_name: str,
         node_name: str,
     ) -> NodePathStructValue:
-        def is_target(node_path: NodePathStructValue):
-            sub_match = node_path.subscribe_topic_name == sub_topic_name
-            if sub_topic_name is None:
-                sub_match = True
-            pub_match = node_path.publish_topic_name == pub_topic_name
-            if pub_topic_name is None:
-                pub_match = True
-            node_match = node_path.node_name == node_name
-            if node_name is None:
-                node_match = True
-            return sub_match and pub_match and node_match
-
-        try:
-            node_paths = Util.flatten([n.paths for n in self._nodes])
-            return Util.find_one(is_target, node_paths)
-        except ItemNotFoundError:
+        key = self._node_path_key(sub_topic_name, pub_topic_name, node_name)
+        if key not in self._node_path_dict:
             msg = 'Failed to find node path. '
             msg += f'publish topic name: {pub_topic_name}, '
             msg += f'subscription topic name: {sub_topic_name}, '
             msg += f'node name: {node_name}, '
             raise ItemNotFoundError(msg)
-
-    @staticmethod
-    def _to_node_point_name(node_name: str, topic_name: str, pub_or_sub: str) -> str:
-        return f'{node_name}@{topic_name}@{pub_or_sub}'
-
-    @staticmethod
-    def _point_name_to_node_name(point_name: str) -> str:
-        return point_name.split('@')[0]
-
-    @staticmethod
-    def _point_name_to_topic_name(point_name: str) -> str:
-        return point_name.split('@')[1]
-
-    @staticmethod
-    def _point_name_to_pub_sub_name(point_name: str) -> str:
-        return point_name.split('@')[2]
+        return self._node_path_dict[key]

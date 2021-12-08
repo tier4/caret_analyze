@@ -85,6 +85,17 @@ class NodeStructValue(ValueObject):
     def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
         return self._subscriptions
 
+    def get_path(
+        self,
+        subscribe_topic_name: str,
+        publish_topic_name: str
+    ) -> NodePathStructValue:
+        def is_target(path: NodePathStructValue):
+            return path.publish_topic_name == publish_topic_name and \
+                path.subscribe_topic_name == subscribe_topic_name
+
+        return Util.find_one(is_target, self.paths)
+
     @property
     def callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
         if self._callback_groups is None:

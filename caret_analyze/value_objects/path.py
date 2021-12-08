@@ -69,7 +69,6 @@ class PathStructValue(ValueObject):
     def topic_names(self) -> Tuple[str, ...]:
         return tuple(_.topic_name for _ in self.communications)
 
-
     @property
     def child_names(self) -> Tuple[str, ...]:
         names = []

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Callable
 
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..common import Util, CustomDict
@@ -32,7 +32,6 @@ class Architecture():
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
-        from .graph_search import NodePathSearcher
 
         # /parameter events and /rosout measurements are not yet supported.
         ignore_topics: List[str] = IGNORE_TOPICS
@@ -44,7 +43,6 @@ class Architecture():
         self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
         self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
         self._path_manager = NamedPathManager(loaded.named_paths)
-        self._path_searcher = NodePathSearcher(self._nodes, self._communications)
 
     def get_node(self, node_name: str) -> NodeStructValue:
         try:
@@ -147,9 +145,19 @@ class Architecture():
         self,
         start_node_name: str,
         end_node_name: str,
-        max_node_depth: Optional[int] = None
+        max_node_depth: Optional[int] = None,
+        node_filter: Optional[Callable[[str], bool]] = None,
+        communication_filter: Optional[Callable[[str], bool]] = None,
     ) -> List[PathStructValue]:
-        return self._path_searcher.search(start_node_name, end_node_name, max_node_depth)
+        from .graph_search import NodePathSearcher
+        if start_node_name not in self.node_names:
+            raise InvalidArgumentError(f'Failed to find node. {start_node_name}')
+        if end_node_name not in self.node_names:
+            raise InvalidArgumentError(f'Failed to find node. node_name: {end_node_name}')
+
+        path_searcher = NodePathSearcher(
+            self._nodes, self._communications, node_filter, communication_filter)
+        return path_searcher.search(start_node_name, end_node_name, max_node_depth)
 
 
 class NamedPathManager():

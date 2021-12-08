@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, List, Sequence, Union, Optional, Tuple, Dict, Set
+from typing import Callable, List, Sequence, Union, Optional, Tuple, Dict
 
 import numpy as np
 import pandas as pd
@@ -495,7 +495,6 @@ class PublisherBinder:
 
         cbgs: Sequence[CallbackGroupValueLttng]
         cbgs = self._info.get_callback_groups(node)
-
 
         # TODO: ignore /parameter_events, /clock
         # Ignore callback groups that have no callbacks added,

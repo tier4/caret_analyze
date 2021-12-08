@@ -59,6 +59,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._callback_records_cache: Optional[RecordsInterface] = None
         self._inter_comm_records_cache: Optional[RecordsInterface] = None
         self._intra_comm_records_cache: Optional[RecordsInterface] = None
+        self._inter_sub_callback_records_cache: Optional[RecordsInterface] = None
+        self._intra_sub_callback_records_cache: Optional[RecordsInterface] = None
 
     def communication_records(
         self,
@@ -231,6 +233,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         def is_target_record(record: RecordInterface):
             return record.get(COLUMN_NAME.CALLBACK_OBJECT) == callback_object
 
+        # TODO: intra callback recordsも追加する。
         inter_sub_records = self._compose_inter_sub_callback_records()
         inter_sub_records.filter_if(is_target_record)
 
@@ -321,29 +324,39 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/message_timestamp
 
         """
-        if self._inter_comm_records_cache is None:
-            self._inter_comm_records_cache = self._lttng.compose_inter_proc_comm_records()
-
         publisher_handles = self._helper.get_publisher_handles(publisher)
 
         def is_target(record: RecordInterface):
             return record.get('publisher_handle') in publisher_handles
 
-        records = self._inter_comm_records_cache.clone()
-        records.filter_if(is_target)
+        records_inter = self._inter_comm_records.clone()
+        records_inter.filter_if(is_target)
+
+        records_intra = self._intra_comm_records.clone()
+        records_intra.filter_if(is_target)
+
+        records = merge_sequencial(
+            left_records=records_inter,
+            right_records=records_intra,
+            left_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            join_left_key=None,
+            join_right_key=None,
+            columns=Columns(records_inter.columns + records_intra.columns).as_list(),
+            how='outer'
+        )
 
         columns = [
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
-            InfraHelper.pub_to_column(publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP),
-            InfraHelper.pub_to_column( publisher, COLUMN_NAME.MESSAGE_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.MESSAGE_TIMESTAMP),
         ]
         records.rename_columns({
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: columns[0],
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: columns[1],
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP: columns[2],
-            COLUMN_NAME.MESSAGE_TIMESTAMP: columns[3],
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: columns[1],
+            COLUMN_NAME.MESSAGE_TIMESTAMP: columns[2],
         })
+
         drop_columns = list(set(records.columns) - set(columns))
         records.drop_columns(drop_columns)  # type: ignore
         records.reindex(columns)
@@ -405,6 +418,18 @@ class RecordsProviderLttng(RuntimeDataProvider):
     ) -> Qos:
         raise NotImplementedError()
 
+    @property
+    def _inter_comm_records(self) -> RecordsInterface:
+        if self._inter_comm_records_cache is None:
+            self._inter_comm_records_cache = self._lttng.compose_inter_proc_comm_records()
+        return self._inter_comm_records_cache
+
+    @property
+    def _intra_comm_records(self) -> RecordsInterface:
+        if self._intra_comm_records_cache is None:
+            self._intra_comm_records_cache = self._lttng.compose_intra_proc_comm_records()
+        return self._intra_comm_records_cache
+
     def _compose_inter_proc_comm_records(
         self,
         comm_value: CommunicationStructValue
@@ -427,9 +452,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - callback_start_timestamp
 
         """
-        if self._inter_comm_records_cache is None:
-            self._inter_comm_records_cache = self._lttng.compose_inter_proc_comm_records()
-
         publisher = comm_value.publisher
         subscription_cb = comm_value.subscribe_callback
 
@@ -447,7 +469,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             return record.get('publisher_handle') in publisher_handles and \
                 record.get('callback_object') == callback_object
 
-        records = self._inter_comm_records_cache.clone()
+        records = self._inter_comm_records.clone()
         records.filter_if(is_target)
 
         columns = [
@@ -463,7 +485,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def _compose_intra_sub_callback_records(
         self,
-        subscription_callback_value: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
         """
         Compose intra process subscription callback records.
@@ -485,6 +506,19 @@ class RecordsProviderLttng(RuntimeDataProvider):
             self._intra_comm_records_cache = self._lttng.compose_intra_proc_comm_records()
         self._intra_comm_records_cache.clone()
         raise NotImplementedError('')
+
+    @property
+    def inter_sub_callback_records(self) -> RecordsInterface:
+        if self._inter_sub_callback_records_cache is None:
+            self._inter_sub_callback_records_cache = self._compose_inter_sub_callback_records(self)
+
+        return self._inter_sub_callback_records_cache
+
+    @property
+    def intra_sub_callback_records(self) -> RecordsInterface:
+        if self._intra_sub_callback_records_cache is None:
+            self._intra_sub_callback_records_cache = self._compose_intra_sub_callback_records(self)
+        return self._intra_sub_callback_records_cache
 
     def _compose_inter_sub_callback_records(
         self,
@@ -577,7 +611,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         columns = [
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            # COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
         ]
         runtime_info_columns = list(set(records.columns) - set(columns))
