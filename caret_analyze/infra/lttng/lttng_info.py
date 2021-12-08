@@ -1106,8 +1106,12 @@ class DataFrameFormatted:
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
             else:
-                msg = 'More than three callbacks are registered in one subscription_handle.'
-                raise InvalidArgumentError(msg)
+                cb_objs = group['callback_object'].values
+                logger.warning(
+                    'More than three callbacks are registered in one subscription_handle. '
+                    'Skip loading callback info. The following callbacks cannot be measured.'
+                    f'subscription_handle = {key}, '
+                    f'callback_objects = {cb_objs}')
             dicts.append(record)
         df = pd.DataFrame.from_dict(dicts, dtype=int)
         return df
