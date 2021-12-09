@@ -60,7 +60,7 @@ class Executor:
 
     @property
     def callback_names(self) -> List[str]:
-        return [c.callback_name for c in self.callbacks]
+        return sorted(c.callback_name for c in self.callbacks)
 
     @property
     def callback_groups(self) -> List[CallbackGroup]:
@@ -68,7 +68,7 @@ class Executor:
 
     @property
     def callback_group_names(self) -> List[str]:
-        return [cbg.callback_group_name for cbg in self.callback_groups]
+        return sorted(cbg.callback_group_name for cbg in self.callback_groups)
 
     @property
     def summary(self) -> CustomDict:

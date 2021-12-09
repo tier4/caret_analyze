@@ -125,23 +125,23 @@ class Application():
 
     @property
     def topic_names(self) -> List[str]:
-        return list(set(_.topic_name for _ in self.communications))
+        return sorted({_.topic_name for _ in self.communications})
 
     @property
     def executor_names(self) -> List[str]:
-        return [_.executor_name for _ in self.executors]
+        return sorted(_.executor_name for _ in self.executors)
 
     @property
     def callback_group_names(self) -> List[str]:
-        return [_.callback_group_name for _ in self.callback_groups]
+        return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
     def path_names(self) -> List[str]:
-        return [_.path_name for _ in self.paths]
+        return sorted(_.path_name for _ in self.paths)
 
     @property
     def callback_names(self) -> List[str]:
-        return [_.callback_name for _ in self.callbacks]
+        return sorted(_.callback_name for _ in self.callbacks)
 
     def get_node_path(
         self,
@@ -173,7 +173,7 @@ class Application():
 
     @property
     def node_names(self) -> List[str]:
-        return [c.node_name for c in self.nodes]
+        return sorted(c.node_name for c in self.nodes)
 
     @property
     def summary(self) -> CustomDict:

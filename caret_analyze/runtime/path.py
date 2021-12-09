@@ -302,7 +302,7 @@ class Path(PathBase):
 
     @property
     def topic_names(self) -> List[str]:
-        return list(self._value.topic_names)
+        return sorted(self._value.topic_names)
 
     @property
     def child(self) -> List[Union[NodePath, Communication]]:
@@ -310,8 +310,8 @@ class Path(PathBase):
 
     @property
     def child_names(self) -> List[str]:
-        return list(self._value.child_names)
+        return sorted(self._value.child_names)
 
     @property
     def node_names(self) -> List[str]:
-        return list(self._value.node_names)
+        return sorted(self._value.node_names)

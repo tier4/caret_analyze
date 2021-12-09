@@ -44,4 +44,4 @@ class Publisher:
         names = self._val.callback_names
         if names is None:
             return None
-        return list(names)
+        return sorted(names)

@@ -64,7 +64,7 @@ class Node:
     def callback_names(self) -> Optional[List[str]]:
         if self.callbacks is None:
             return None
-        return [c.callback_name for c in self.callbacks]
+        return sorted(c.callback_name for c in self.callbacks)
 
     @property
     def variable_passings(self) -> Optional[List[VariablePassing]]:
@@ -76,7 +76,7 @@ class Node:
 
     @property
     def publish_topics(self) -> List[str]:
-        return [_.topic_name for _ in self._publishers]
+        return sorted(_.topic_name for _ in self._publishers)
 
     @property
     def paths(self) -> List[NodePath]:
@@ -88,13 +88,13 @@ class Node:
 
     @property
     def subscribe_topics(self) -> List[str]:
-        return [_.topic_name for _ in self._subscriptions]
+        return sorted(_.topic_name for _ in self._subscriptions)
 
     @property
     def callback_group_names(self) -> Optional[List[str]]:
         if self.callback_groups is None:
             return None
-        return [_.callback_group_name for _ in self.callback_groups]
+        return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
     def summary(self) -> CustomDict:

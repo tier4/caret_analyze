@@ -66,7 +66,7 @@ class CallbackBase(PathBase):
     def publish_topic_names(self) -> Optional[List[str]]:
         if self.__val.publish_topic_names is None:
             return None
-        return list(self.__val.publish_topic_names)
+        return sorted(self.__val.publish_topic_names)
 
     @property
     def subscribe_topic_name(self) -> Optional[str]:

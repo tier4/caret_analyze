@@ -65,11 +65,11 @@ class Architecture():
 
     @property
     def callback_group_names(self) -> Tuple[CallbackGroupStructValue, ...]:
-        return tuple(_.callback_group_name for _ in self.callback_groups)
+        return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
 
     @property
     def topic_names(self) -> Tuple[str, ...]:
-        return tuple(set([_.topic_name for _ in self.communications]))
+        return tuple(sorted({_.topic_name for _ in self.communications}))
 
     def get_callback(self, callback_name: str) -> CallbackStructValue:
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
@@ -109,7 +109,7 @@ class Architecture():
 
     @property
     def node_names(self) -> Tuple[str, ...]:
-        return tuple(_.node_name for _ in self._nodes)
+        return tuple(sorted(_.node_name for _ in self._nodes))
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
@@ -117,7 +117,7 @@ class Architecture():
 
     @property
     def executor_names(self) -> Tuple[ExecutorStructValue, ...]:
-        return tuple(_.executor_name for _ in self._executors)
+        return tuple(sorted(_.executor_name for _ in self._executors))
 
     @property
     def paths(self) -> Tuple[PathStructValue, ...]:
@@ -125,7 +125,7 @@ class Architecture():
 
     @property
     def path_names(self) -> Tuple[str, ...]:
-        return tuple(_.path_name for _ in self._path_manager.named_paths)
+        return tuple(sorted(_.path_name for _ in self._path_manager.named_paths))
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
