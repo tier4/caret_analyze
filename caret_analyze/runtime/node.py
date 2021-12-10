@@ -25,7 +25,7 @@ from .publisher import Publisher
 from .node_path import NodePath
 from .subscription import Subscription
 from .variable_passing import VariablePassing
-from ..exceptions import ItemNotFoundError
+from ..exceptions import ItemNotFoundError, InvalidArgumentError
 
 
 class Node:
@@ -101,6 +101,9 @@ class Node:
         return self._val.summary
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroup:
+        if not isinstance(callback_group_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         if self._callback_groups is None:
             raise ItemNotFoundError('Callback group is None.')
 
@@ -112,6 +115,12 @@ class Node:
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
     ) -> NodePath:
+        if not isinstance(subscribe_topic_name, str) and subscribe_topic_name is not None:
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        if not isinstance(publish_topic_name, str) and publish_topic_name is not None:
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target(path: NodePath):
             return path.publish_topic_name == publish_topic_name and \
                 path.subscribe_topic_name == subscribe_topic_name
@@ -119,13 +128,22 @@ class Node:
         return Util.find_one(is_target, self.paths)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        if not isinstance(callback_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         if self.callbacks is None:
             raise ItemNotFoundError('Callback is None.')
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
     def get_subscription(self, topic_name: str) -> Subscription:
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         return Util.find_one(lambda x: x.topic_name == topic_name, self._subscriptions)
 
     def get_publisher(self, topic_name: str) -> Publisher:
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         return Util.find_one(lambda x: x.topic_name == topic_name, self._publishers)

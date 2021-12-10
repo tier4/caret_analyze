@@ -20,6 +20,7 @@ from caret_analyze.value_objects import CallbackGroupStructValue, CallbackGroupT
 
 from ..common import Util, CustomDict
 from .callback import CallbackBase
+from ..exceptions import InvalidArgumentError
 
 
 class CallbackGroup:
@@ -82,6 +83,9 @@ class CallbackGroup:
         return self._val.summary
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        if not isinstance(callback_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         return Util.find_one(
             lambda x: x.callback_name == callback_name,
             self._callbacks

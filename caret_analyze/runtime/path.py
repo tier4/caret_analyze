@@ -248,6 +248,9 @@ class Path(PathBase):
         return is_valid
 
     def get_child(self, name: str):
+        if not isinstance(name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target(child: Union[NodePath, Communication]):
             if isinstance(child, NodePath):
                 return child.node_name == name

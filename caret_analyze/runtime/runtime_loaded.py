@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import List, Union, Optional, Tuple
 
 from ..architecture import Architecture
-from ..exceptions import ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError
+from ..exceptions import ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError, Error
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..common import Util
 from ..value_objects import (CommunicationStructValue,

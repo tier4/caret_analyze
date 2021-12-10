@@ -48,11 +48,17 @@ class Executor:
         self,
         callback_group_name: str
     ) -> CallbackGroup:
+        if not isinstance(callback_group_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target(x: CallbackGroup):
             return x.callback_group_name == callback_group_name
         return Util.find_one(is_target, self.callback_groups)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        if not isinstance(callback_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target_callback(callback: CallbackBase):
             return callback.callback_name == callback_name
 
