@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from ..common import Summary
-from ..infra.interface import RuntimeDataProvider
+from ..infra.interface import RuntimeDataProvider, RecordsProvider
+from ..record import RecordsInterface
 from ..value_objects import PublisherStructValue
+from .path_base import PathBase
 
 
-class Publisher:
+class Publisher(PathBase):
     def __init__(
         self,
         publisher: PublisherStructValue,
-        provider: Optional[RuntimeDataProvider],
+        provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
+        super().__init__()
         self._val = publisher
         self._provider = provider
 
@@ -46,3 +49,7 @@ class Publisher:
         if names is None:
             return None
         return sorted(names)
+
+    def _to_records_core(self) -> RecordsInterface:
+        records = self._provider.publish_records(self._val)
+        return records

@@ -91,6 +91,20 @@ class RecordsProvider(metaclass=ABCMeta):
     ) -> RecordsInterface:
         pass
 
+    @abstractmethod
+    def subscribe_records(
+        self,
+        subscription: SubscriptionStructValue
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def publish_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        pass
+
 
 class RuntimeDataProvider(RecordsProvider):
 

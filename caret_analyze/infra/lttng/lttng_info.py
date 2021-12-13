@@ -645,14 +645,14 @@ class PublisherBinder:
 
         publisher_handle = publisher_info.publisher_handle
 
-        publisher_records = self._inter_comm_records.clone()
+        publisher_records = self._source.inter_proc_comm_records.clone()
         publisher_records.filter_if(lambda x: x.get(
             'publisher_handle') == publisher_handle)
         if len(publisher_records) > 0:
             publish_index = select_record_index(publisher_records)
             return publisher_records.data[publish_index].get('rclcpp_publish_timestamp')
 
-        publisher_records = self._intra_comm_records.clone()
+        publisher_records = self._source.intra_proc_comm_records.clone()
         publisher_records.filter_if(lambda x: x.get(
             'publisher_handle') == publisher_handle)
         if len(publisher_records) > 0:
@@ -668,7 +668,7 @@ class PublisherBinder:
                              SubscriptionCallbackValueLttng]
     ) -> Optional[bool]:
         callback_object = callback_info.callback_object
-        cb_records = self._callback_records.clone()
+        cb_records = self._source.callback_records.clone()
         cb_records.filter_if(lambda x: x.get(
             'callback_object') == callback_object)
 
@@ -691,7 +691,7 @@ class PublisherBinder:
         callback: SubscriptionCallbackValueLttng
     ) -> bool:
         callback_object = callback.callback_object_intra
-        cb_records = self._callback_records.clone()
+        cb_records = self._source.callback_records.clone()
         cb_records.filter_if(lambda x: x.get(
             'callback_object') == callback_object)
 
@@ -707,24 +707,6 @@ class PublisherBinder:
                     data.get('callback_end_timestamp') > publish_time:
                 return False
         return False
-
-    @property
-    def _inter_comm_records(self) -> RecordsInterface:
-        if self._inter_comm_records_cache is None:
-            self._inter_comm_records_cache = self._source.compose_inter_proc_comm_records()
-        return self._inter_comm_records_cache
-
-    @property
-    def _callback_records(self) -> RecordsInterface:
-        if self._callback_records_cache is None:
-            self._callback_records_cache = self._source.compose_callback_records()
-        return self._callback_records_cache
-
-    @property
-    def _intra_comm_records(self) -> RecordsInterface:
-        if self._intra_comm_records_cache is None:
-            self._intra_comm_records_cache = self._source.compose_intra_proc_comm_records()
-        return self._intra_comm_records_cache
 
     def _is_consistent(
         self,

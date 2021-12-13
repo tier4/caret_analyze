@@ -21,8 +21,7 @@ from caret_analyze.infra.yaml.architecture_reader_yaml import \
 from caret_analyze.value_objects import (CallbackGroupType, CallbackType,
                                          ExecutorType, InheritUniqueStamp,
                                          SubscriptionCallbackValue,
-                                         SubscriptionValue, TimerCallbackValue,
-                                         UseLatestMessage)
+                                         TimerCallbackValue)
 from caret_analyze.value_objects.node import NodeValue
 
 

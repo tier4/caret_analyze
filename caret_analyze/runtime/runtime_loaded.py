@@ -268,9 +268,7 @@ class PublishersLoaded:
         publisher_info: PublisherStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Publisher:
-        if isinstance(provider, RuntimeDataProvider):
-            return Publisher(publisher_info, provider)
-        return Publisher(publisher_info, None)
+        return Publisher(publisher_info, provider)
 
     @property
     def data(self) -> List[Publisher]:
@@ -347,9 +345,7 @@ class SubscriptionsLoaded:
         subscription_info: SubscriptionStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Subscription:
-        if isinstance(provider, RuntimeDataProvider):
-            return Subscription(subscription_info, provider)
-        return Subscription(subscription_info, None)
+        return Subscription(subscription_info, provider)
 
     @property
     def data(self) -> List[Subscription]:

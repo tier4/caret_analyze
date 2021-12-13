@@ -12,20 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, Union
 
 from ..common import Summary
-from ..infra.interface import RuntimeDataProvider
+from ..infra.interface import RuntimeDataProvider, RecordsProvider
+from ..record import RecordsInterface
 from ..value_objects import SubscriptionStructValue
+from .path_base import PathBase
 
 
-class Subscription:
+class Subscription(PathBase):
 
     def __init__(
         self,
         val: SubscriptionStructValue,
-        data_provider: Optional[RuntimeDataProvider],
+        data_provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
+        super().__init__()
         self._val = val
         self._provider = data_provider
 
@@ -44,3 +47,7 @@ class Subscription:
     @property
     def callback_name(self) -> Optional[str]:
         return self._val.callback_name
+
+    def _to_records_core(self) -> RecordsInterface:
+        records = self._provider.subscribe_records(self._val)
+        return records

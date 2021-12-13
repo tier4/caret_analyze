@@ -51,8 +51,8 @@ class Lttng(InfraBase):
 
         Lttng._last_load_dir = trace_dir
         data = self._parse_lttng_data(trace_dir, force_conversion)
-        self._records: RecordsSource = RecordsSource(data)
-        self._info = LttngInfo(data, self._records)
+        self._source: RecordsSource = RecordsSource(data)
+        self._info = LttngInfo(data, self._source)
 
     def clear_singleton_cache(self) -> None:
         self._last_load_dir = None
@@ -216,7 +216,7 @@ class Lttng(InfraBase):
             - dds_write_timestamp
 
         """
-        return self._records.compose_inter_proc_comm_records()
+        return self._source.inter_proc_comm_records.clone()
 
     def compose_intra_proc_comm_records(
         self,
@@ -234,7 +234,7 @@ class Lttng(InfraBase):
             - rclcpp_intra_publish_timestamp
 
         """
-        return self._records.compose_intra_proc_comm_records()
+        return self._source.intra_proc_comm_records.clone()
 
     def compose_callback_records(
         self,
@@ -252,4 +252,14 @@ class Lttng(InfraBase):
             - callback_object
 
         """
-        return self._records.compose_callback_records()
+        return self._source.callback_records.clone()
+
+    def compose_publish_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.publish_records.clone()
+
+    def compose_subscribe_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.subscribe_records.clone()

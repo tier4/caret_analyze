@@ -270,7 +270,7 @@ class TestRecordsProviderLttng:
         mocker.patch(
             'caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
             return_value=helper_mock)
-        mocker.patch.object(helper_mock, 'get_subscription_callback_object',
+        mocker.patch.object(helper_mock, 'get_subscription_callback_object_inter',
                             return_value=cb_object)
         mocker.patch.object(helper_mock, 'get_publisher_handles',
                             return_value=[pub_handle])
@@ -319,51 +319,32 @@ class TestRecordsProviderLttng:
                     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 1,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 2,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 3,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 4,
                     COLUMN_NAME.PUBLISHER_HANDLE: pub_handle,
-                    COLUMN_NAME.CALLBACK_OBJECT: cb_object,
                     COLUMN_NAME.MESSAGE_TIMESTAMP: 8,
                 }),
                 Record({
                     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 2,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 3,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 4,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 5,
                     COLUMN_NAME.PUBLISHER_HANDLE: pub_handle + 999,
-                    COLUMN_NAME.CALLBACK_OBJECT: cb_object,
                     COLUMN_NAME.MESSAGE_TIMESTAMP: 9,
                 }),
                 Record({
                     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 3,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 4,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 5,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 6,
                     COLUMN_NAME.PUBLISHER_HANDLE: pub_handle,
-                    COLUMN_NAME.CALLBACK_OBJECT: cb_object + 999,
                     COLUMN_NAME.MESSAGE_TIMESTAMP: 9,
                 })
             ],
             [
                 COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.CALLBACK_OBJECT,
                 COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.DDS_WRITE_TIMESTAMP,
                 COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.MESSAGE_TIMESTAMP,
-            ]
-        )
-
-        intra_records = Records(
-            None,
-            [
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.CALLBACK_OBJECT,
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 COLUMN_NAME.MESSAGE_TIMESTAMP,
+                COLUMN_NAME.SOURCE_TIMESTAMP,
             ]
         )
 
@@ -371,15 +352,13 @@ class TestRecordsProviderLttng:
         mocker.patch(
             'caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
             return_value=helper_mock)
-        mocker.patch.object(helper_mock, 'get_subscription_callback_object',
+        mocker.patch.object(helper_mock, 'get_subscription_callback_object_inter',
                             return_value=cb_object)
         mocker.patch.object(helper_mock, 'get_publisher_handles',
                             return_value=[pub_handle])
 
         mocker.patch.object(
-            lttng_mock, 'compose_inter_proc_comm_records', return_value=records)
-        mocker.patch.object(
-            lttng_mock, 'compose_intra_proc_comm_records', return_value=intra_records)
+            lttng_mock, 'compose_publish_records', return_value=records)
         provider = RecordsProviderLttng(lttng_mock)
 
         records = provider.publish_records(pub_mock)
@@ -547,7 +526,7 @@ class TestRecordsProviderLttngHelper:
 
         helper = RecordsProviderLttngHelper(lttng_mock)
 
-        obj = helper.get_subscription_callback_object(sub_cb_info_mock)
+        obj = helper.get_subscription_callback_object_inter(sub_cb_info_mock)
         assert obj == callback_object
 
     def test_get_subscription_callback_object_intra(self, mocker: MockerFixture):
