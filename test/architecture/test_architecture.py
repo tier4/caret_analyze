@@ -34,7 +34,7 @@ class TestArchiteture:
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
         mocker.patch.object(loaded_mock, 'nodes', [])
-        mocker.patch.object(loaded_mock, 'named_paths', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
@@ -52,7 +52,7 @@ class TestArchiteture:
         mocker.patch.object(loaded_mock, 'nodes', [])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
-        mocker.patch.object(loaded_mock, 'named_paths', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
         arch = Architecture('file_type', 'file_path')
 
         assert len(arch.nodes) == 0
@@ -72,7 +72,7 @@ class TestArchiteture:
         node_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock, 'node_name', 'node_name')
 
-        mocker.patch.object(loaded_mock, 'named_paths', ())
+        mocker.patch.object(loaded_mock, 'paths', ())
         mocker.patch.object(loaded_mock, 'nodes', (node_mock,))
         mocker.patch.object(loaded_mock, 'communications', ())
 
@@ -97,7 +97,7 @@ class TestArchiteture:
         comm_mock = mocker.Mock(spec=CommunicationStructValue)
 
         mocker.patch.object(loaded_mock, 'nodes', [node_mock])
-        mocker.patch.object(loaded_mock, 'named_paths', [path_mock])
+        mocker.patch.object(loaded_mock, 'paths', [path_mock])
         mocker.patch.object(loaded_mock, 'communications', [comm_mock])
         mocker.patch.object(loaded_mock, 'executors', [executor_mock])
         mocker.patch.object(path_mock, 'path_name', 'path')
@@ -126,14 +126,14 @@ class TestArchiteture:
         assert len(arch.communications) == 1
         assert arch.communications[0] == comm_mock
 
-    def test_named_path(self, mocker: MockerFixture):
+    def test_path(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
         path = PathStructValue('path0', ())
 
         mocker.patch.object(loaded_mock, 'nodes', [])
-        mocker.patch.object(loaded_mock, 'named_paths', [path])
+        mocker.patch.object(loaded_mock, 'paths', [path])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
@@ -180,7 +180,7 @@ class TestArchiteture:
         mocker.patch.object(end_node_mock, 'node_name', 'end_node')
 
         mocker.patch.object(loaded_mock, 'nodes', [start_node_mock, end_node_mock])
-        mocker.patch.object(loaded_mock, 'named_paths', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 

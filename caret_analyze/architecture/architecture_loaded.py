@@ -71,13 +71,13 @@ class ArchitectureLoaded():
         paths_loaded = PathValuesLoaded(
             topic_ignored_reader, nodes_loaded, comms_loaded)
         self._named_paths: Tuple[PathStructValue, ...]
-        self._named_paths = paths_loaded.data
+        self._paths = paths_loaded.data
 
         return None
 
     @property
-    def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return self._named_paths
+    def paths(self) -> Tuple[PathStructValue, ...]:
+        return self._paths
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
@@ -1030,7 +1030,7 @@ class PathValuesLoaded():
         communications_loaded: CommValuesLoaded,
     ) -> None:
         paths: List[PathStructValue] = []
-        for path in reader.get_named_paths():
+        for path in reader.get_paths():
             try:
                 paths.append(
                     self._to_struct(path, nodes_loaded, communications_loaded)
@@ -1227,8 +1227,8 @@ class TopicIgnoredReader(ArchitectureReader):
 
         return set(ignore_callback_ids)
 
-    def get_named_paths(self) -> Sequence[PathValue]:
-        return self._reader.get_named_paths()
+    def get_paths(self) -> Sequence[PathValue]:
+        return self._reader.get_paths()
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._reader.get_nodes()

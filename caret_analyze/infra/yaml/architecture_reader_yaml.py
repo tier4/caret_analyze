@@ -153,7 +153,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         return cbgs
 
-    def get_named_paths(self) -> List[PathValue]:
+    def get_paths(self) -> List[PathValue]:
         aliases_info = self._get_value(self._arch, 'named_paths')
 
         paths_info = []

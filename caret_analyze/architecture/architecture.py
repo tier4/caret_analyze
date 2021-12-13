@@ -43,7 +43,7 @@ class Architecture():
         self._nodes: Tuple[NodeStructValue, ...] = loaded.nodes
         self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
         self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
-        self._path_manager = NamedPathManager(loaded.named_paths)
+        self._path_manager = NamedPathManager(loaded.paths)
 
     def get_node(self, node_name: str) -> NodeStructValue:
         try:

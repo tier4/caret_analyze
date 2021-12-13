@@ -129,7 +129,7 @@ class ArchitectureReader(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_named_paths(self) -> Sequence[PathValue]:
+    def get_paths(self) -> Sequence[PathValue]:
         """
         Get path value.
 

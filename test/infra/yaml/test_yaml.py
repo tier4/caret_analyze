@@ -54,7 +54,7 @@ class TestArchitectureReaderYaml:
             reader.get_subscriptions(node)
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_named_paths()
+            reader.get_paths()
 
         with pytest.raises(InvalidYamlFormatError):
             reader.get_variable_passings(node)
@@ -80,7 +80,7 @@ nodes: []
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        paths_info = reader.get_named_paths()
+        paths_info = reader.get_paths()
 
         assert len(paths_info) == 1
         path_info = paths_info[0]

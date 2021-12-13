@@ -74,7 +74,7 @@ class RuntimeLoaded():
         return self._comms
 
     @property
-    def named_paths(self) -> List[Path]:
+    def paths(self) -> List[Path]:
         return self._paths
 
 

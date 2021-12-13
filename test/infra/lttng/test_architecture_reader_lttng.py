@@ -110,7 +110,7 @@ class TestArchitectureReaderLttng:
         lttng_mock = mocker.Mock(spec=Lttng)
         mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
         reader = ArchitectureReaderLttng('trace_dir')
-        assert reader.get_named_paths() == []
+        assert reader.get_paths() == []
 
     def test_get_subscriptions(self, mocker: MockerFixture):
         lttng_mock = mocker.Mock(spec=Lttng)

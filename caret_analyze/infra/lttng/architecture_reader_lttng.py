@@ -75,7 +75,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
     ) -> Sequence[CallbackGroupValue]:
         return self._lttng.get_callback_groups(node)
 
-    def get_named_paths(
+    def get_paths(
         self
     ) -> Sequence[PathValue]:
         return []

@@ -63,7 +63,7 @@ class TestRuntimeLoaded:
         assert loaded.nodes == []
         assert loaded.executors == []
         assert loaded.communications == []
-        assert loaded.named_paths == []
+        assert loaded.paths == []
 
     def test_full_architecture(self, mocker: MockerFixture):
         node_info_mock = mocker.Mock(spec=NodePathStructValue)
@@ -108,7 +108,7 @@ class TestRuntimeLoaded:
         assert loaded.nodes == [node_mock]
         assert loaded.executors == [exec_mock]
         assert loaded.communications == [comm_mock]
-        assert loaded.named_paths == [path_mock]
+        assert loaded.paths == [path_mock]
 
 
 class TestNodesLoaded:

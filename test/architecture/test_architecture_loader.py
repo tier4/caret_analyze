@@ -59,7 +59,7 @@ class TestArchitectureLoaded:
     def test_empty_reader(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         mocker.patch.object(
-            reader_mock, 'get_named_paths', return_value=[])
+            reader_mock, 'get_paths', return_value=[])
         mocker.patch.object(reader_mock, 'get_executors', return_value=[])
         mocker.patch.object(reader_mock, 'get_nodes', return_value=[])
 
@@ -83,7 +83,7 @@ class TestArchitectureLoaded:
         mocker.patch.object(path_loaded, 'data', [])
 
         arch = ArchitectureLoaded(reader_mock, [])
-        assert len(arch.named_paths) == 0
+        assert len(arch.paths) == 0
         assert len(arch.executors) == 0
         assert len(arch.nodes) == 0
         assert len(arch.communications) == 0
@@ -104,7 +104,7 @@ class TestArchitectureLoaded:
         mocker.patch.object(node_mock, 'publishers', [pub_mock])
         mocker.patch.object(node_mock, 'subscriptions', [sub_mock, sub_mock_])
 
-        mocker.patch.object(reader_mock, 'get_named_paths', return_value=[path_mock])
+        mocker.patch.object(reader_mock, 'get_paths', return_value=[path_mock])
         mocker.patch.object(reader_mock, 'get_executors', return_value=[executor_mock])
         mocker.patch.object(reader_mock, 'get_nodes', return_value=[NodeValue('node', 'node')])
 
@@ -130,7 +130,7 @@ class TestArchitectureLoaded:
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
                      return_value=reader_mock)
         arch = ArchitectureLoaded(reader_mock, [])
-        assert len(arch.named_paths) == 1
+        assert len(arch.paths) == 1
         assert len(arch.executors) == 1
         assert len(arch.nodes) == 1
         assert len(arch.communications) == 1
@@ -782,7 +782,7 @@ class TestCallbacksLoaded:
         with pytest.raises(InvalidReaderError):
             CallbacksLoaded(reader_mock, node)
 
-    def test_find_named_callback(self, mocker: MockerFixture):
+    def test_find_callback(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_name = ['callback_name0', 'callback_name1']
         period_ns = 4
@@ -1235,7 +1235,7 @@ class TestPathInfoLoaded:
         comm_loaded_mock = mocker.Mock(spec=CommValuesLoaded)
 
         mocker.patch.object(
-            reader_mock, 'get_named_paths', return_value=())
+            reader_mock, 'get_paths', return_value=())
         loaded = PathValuesLoaded(
             reader_mock, nodes_loaded_mock, comm_loaded_mock)
         paths_info = loaded.data
@@ -1247,7 +1247,7 @@ class TestPathInfoLoaded:
         comm_loaded_mock = mocker.Mock(spec=CommValuesLoaded)
 
         path_info_mock = mocker.Mock(spec=PathValue)
-        mocker.patch.object(reader_mock, 'get_named_paths',
+        mocker.patch.object(reader_mock, 'get_paths',
                             return_value=(path_info_mock,))
         path_mock = mocker.Mock(spec=PathStructValue)
         mocker.patch.object(PathValuesLoaded, '_to_struct',

@@ -52,7 +52,7 @@ class Application():
         self._nodes: List[Node] = loaded.nodes
         self._executors: List[Executor] = loaded.executors
         self._communications: List[Communication] = loaded.communications
-        self._paths: List[Path] = loaded.named_paths
+        self._paths: List[Path] = loaded.paths
 
     @property
     def executors(self) -> List[Executor]:
