@@ -16,7 +16,8 @@ from __future__ import annotations
 
 from typing import List
 
-from ..common import Util, CustomDict
+from ..common import Summary, Util
+from ..exceptions import InvalidArgumentError
 from ..value_objects import ExecutorStructValue, ExecutorType
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -77,5 +78,5 @@ class Executor:
         return sorted(cbg.callback_group_name for cbg in self.callback_groups)
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary

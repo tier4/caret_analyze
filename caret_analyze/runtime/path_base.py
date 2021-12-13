@@ -13,15 +13,15 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
+from copy import deepcopy
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from copy import deepcopy
 
+from ..exceptions import InvalidRecordsError
 from ..record import RecordsInterface
 from ..record.data_frame_shaper import DataFrameShaper, Strip
-from ..exceptions import InvalidRecordsError
 
 
 class PathBase(metaclass=ABCMeta):

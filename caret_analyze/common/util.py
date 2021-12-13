@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, Iterable, List, Tuple, Optional
+from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 from ..exceptions import ItemNotFoundError, MultipleItemFoundError
 
@@ -29,7 +29,7 @@ class Util:
         return list(itertools.chain.from_iterable(x))
 
     @staticmethod
-    def filter(f: Callable[[Any], bool], x: Optional[Iterable[Any]]) -> List[Any]:
+    def filter_items(f: Callable[[Any], bool], x: Optional[Iterable[Any]]) -> List[Any]:
         if x is None:
             return []
         return list(filter(f, x))
@@ -71,7 +71,7 @@ class Util:
         if items is None:
             raise ItemNotFoundError('Failed find item.')
 
-        filtered = Util.filter(condition, items)
+        filtered = Util.filter_items(condition, items)
         if len(filtered) == 0:
             raise ItemNotFoundError('Failed find item.')
         if len(filtered) >= 2:

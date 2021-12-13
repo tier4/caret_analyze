@@ -21,4 +21,3 @@ class Qos(ValueObject):
     @property
     def depth(self) -> int:
         raise NotImplementedError()
-

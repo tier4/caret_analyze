@@ -14,13 +14,12 @@
 
 from typing import Optional, Tuple
 
-from ..common import Util
+from ..common import Summary, Util
 from .callback import CallbackStructValue
 from .node import NodeStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
-from ..common import CustomDict
 
 
 class CommunicationStructValue(ValueObject):
@@ -101,8 +100,8 @@ class CommunicationStructValue(ValueObject):
         return self._node_pub.node_name
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'topic_name': self.topic_name,
             'publish_node': self.publish_node_name,
             'subscirbe_node': self.subscribe_node_name,

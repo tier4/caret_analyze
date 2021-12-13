@@ -15,17 +15,13 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-
-from typing import Union, Optional
+from typing import Optional, Union
 
 from ..record.interface import RecordsInterface
-from ..value_objects import (CallbackStructValue,
-                             CommunicationStructValue,
-                             NodePathStructValue,
-                             PublisherStructValue,
+from ..value_objects import (CallbackStructValue, CommunicationStructValue,
+                             NodePathStructValue, PublisherStructValue, Qos,
                              SubscriptionStructValue,
-                             VariablePassingStructValue,
-                             Qos)
+                             VariablePassingStructValue)
 
 
 class RecordsProvider(metaclass=ABCMeta):
@@ -37,7 +33,8 @@ class RecordsProvider(metaclass=ABCMeta):
         self,
         callback_info: CallbackStructValue
     ) -> RecordsInterface:
-        """[summary]
+        """
+        Compose callback records.
 
         Parameters
         ----------
@@ -48,6 +45,7 @@ class RecordsProvider(metaclass=ABCMeta):
         -------
         RecordsInterface
             [description]
+
         """
         pass
 

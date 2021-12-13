@@ -21,9 +21,9 @@ from typing import Callable, Dict, List, Optional, Set
 
 import pandas as pd
 
+from ..common import Columns
 from ..exceptions import InvalidArgumentError
 from .interface import RecordInterface, RecordsInterface
-from ..common import Columns
 
 
 class MergeSide(IntEnum):

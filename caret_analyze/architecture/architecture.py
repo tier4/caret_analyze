@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Optional, Callable
+from typing import Callable, Dict, List, Optional, Tuple
 
+from ..common import Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
-from ..common import Util, CustomDict
-from ..value_objects import (CommunicationStructValue, ExecutorStructValue, NodeStructValue,
-                             PathStructValue, CallbackGroupStructValue, CallbackStructValue)
+from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
+                             CommunicationStructValue, ExecutorStructValue,
+                             NodeStructValue, PathStructValue)
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 
@@ -132,8 +133,8 @@ class Architecture():
         return self._communications
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'nodes': self.node_names
         })
 

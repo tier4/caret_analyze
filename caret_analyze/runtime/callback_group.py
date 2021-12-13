@@ -16,11 +16,12 @@ from __future__ import annotations
 
 from typing import List
 
-from caret_analyze.value_objects import CallbackGroupStructValue, CallbackGroupType
+from caret_analyze.value_objects import (CallbackGroupStructValue,
+                                         CallbackGroupType)
 
-from ..common import Util, CustomDict
-from .callback import CallbackBase
+from ..common import Summary, Util
 from ..exceptions import InvalidArgumentError
+from .callback import CallbackBase
 
 
 class CallbackGroup:
@@ -79,7 +80,7 @@ class CallbackGroup:
         return self._callbacks
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     def get_callback(self, callback_name: str) -> CallbackBase:

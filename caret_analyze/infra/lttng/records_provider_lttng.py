@@ -12,42 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Optional, Union
 
-from ...exceptions import InvalidArgumentError, UnsupportedTypeError, UnsupportedNodeRecordsError
-from ...infra.lttng.column_names import COLUMN_NAME
-from ...record.interface import (RecordInterface, RecordsInterface)
-from ...record.record import merge_sequencial, merge
-from ...record.record_factory import RecordsFactory
-from ...infra.interface import RuntimeDataProvider
-from ...infra.infra_helper import InfraHelper
-from ...value_objects import (CallbackStructValue,
-                              SubscriptionCallbackStructValue,
-                              TimerCallbackStructValue,
-                              CommunicationStructValue,
-                              NodePathStructValue,
-                              PublisherStructValue,
-                              SubscriptionStructValue,
-                              VariablePassingStructValue,
-                              CallbackChain,
-                              InheritUniqueStamp,
-                              UseLatestMessage,
-                              Qos)
 from .lttng import Lttng
 from ...common import Columns
-from logging import getLogger
+from ...exceptions import (InvalidArgumentError,
+                           UnsupportedNodeRecordsError,
+                           UnsupportedTypeError)
+from ...infra.infra_helper import InfraHelper
+from ...infra.interface import RuntimeDataProvider
+from ...infra.lttng.column_names import COLUMN_NAME
+from ...record.interface import RecordInterface, RecordsInterface
+from ...record.record import merge, merge_sequencial
+from ...record.record_factory import RecordsFactory
+from ...value_objects import (CallbackChain, CallbackStructValue,
+                              CommunicationStructValue, InheritUniqueStamp,
+                              NodePathStructValue, PublisherStructValue, Qos,
+                              SubscriptionCallbackStructValue,
+                              SubscriptionStructValue,
+                              TimerCallbackStructValue, UseLatestMessage,
+                              VariablePassingStructValue)
 
 logger = getLogger(__name__)
 
 
 class RecordsProviderLttng(RuntimeDataProvider):
-    """Recordsを加工して、測定結果を算出する。
-    マージに加えて、フィルタリングなどはここで行う。
+    """
+    Records are processed and measurement results are calculated.
+
+    In addition to merging, filtering and other operations are performed here.
 
     Parameters
     ----------
     RecordsContainer : [type]
-        [description]ol
+        [description]
+
     """
 
     def __init__(
@@ -67,7 +67,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         comm_val: CommunicationStructValue
     ) -> RecordsInterface:
         """
-        Provide communication records
+        Provide communication records.
 
         Parameters
         ----------
@@ -91,37 +91,37 @@ class RecordsProviderLttng(RuntimeDataProvider):
         """
         if self.is_intra_process_communication(comm_val):
             records = self._compose_intra_proc_comm_records(comm_val)
-            records.rename_columns({
-                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-                # COLUMN_NAME.MESSAGE_TIMESTAMP:
-                #     InfraHelper.pub_to_column(
-                #         comm_val.publisher_value, COLUMN_NAME.MESSAGE_TIMESTAMP),
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP:
+            rename_dict = {}
+
+            rename_dict[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+
+            if comm_val.subscribe_callback is not None:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
                     InfraHelper.cb_to_column(
-                        comm_val.subscription.callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-            })
+                        comm_val.subscribe_callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+
+            records.rename_columns(rename_dict)
             return records
         else:
             records = self._compose_inter_proc_comm_records(comm_val)
-            records.rename_columns({
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
-                COLUMN_NAME.DDS_WRITE_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP),
-                # COLUMN_NAME.MESSAGE_TIMESTAMP:
-                #     InfraHelper.pub_to_column(
-                #         comm_val.publisher_value, COLUMN_NAME.MESSAGE_TIMESTAMP),
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP:
+            rename_dict = {}
+            rename_dict[COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+            rename_dict[COLUMN_NAME.RCL_PUBLISH_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+            rename_dict[COLUMN_NAME.DDS_WRITE_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+
+            if comm_val.subscribe_callback is not None:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
                     InfraHelper.cb_to_column(
-                        comm_val.subscription.callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-            })
+                    comm_val.subscribe_callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+            records.rename_columns(rename_dict)
             return records
 
     def node_records(
@@ -170,6 +170,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
             - [callback_name]/callback_start_timestamp
             - [callback_name]/callback_end_timestamp
+
         """
         if self._callback_records_cache is None:
             self._callback_records_cache = self._lttng.compose_callback_records()
@@ -201,7 +202,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         subscription_value: SubscriptionStructValue
     ) -> RecordsInterface:
         """
-        Provide subscription records
+        Provide subscription records.
 
         Parameters
         ----------
@@ -219,6 +220,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Raises
         ------
         InvalidArgumentError
+
         """
         callback = subscription_value.callback
         if callback is None:
@@ -260,7 +262,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         subscription_value: SubscriptionStructValue
     ) -> RecordsInterface:
         """
-        Provide subscription records
+        Provide subscription records.
 
         Parameters
         ----------
@@ -309,7 +311,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         publisher: PublisherStructValue
     ) -> RecordsInterface:
         """
-        Return publish records
+        Return publish records.
 
         Parameters
         ----------
@@ -367,7 +369,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         publisher: PublisherStructValue
     ) -> RecordsInterface:
         """
-        Return intra publish records
+        Return intra publish records.
 
         Parameters
         ----------
@@ -501,6 +503,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - source_timestamp
             - message_timestamp
             - callback_start_timestamp
+
         """
         if self._intra_comm_records_cache is None:
             self._intra_comm_records_cache = self._lttng.compose_intra_proc_comm_records()
@@ -510,14 +513,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
     @property
     def inter_sub_callback_records(self) -> RecordsInterface:
         if self._inter_sub_callback_records_cache is None:
-            self._inter_sub_callback_records_cache = self._compose_inter_sub_callback_records(self)
+            self._inter_sub_callback_records_cache = self._compose_inter_sub_callback_records()
 
         return self._inter_sub_callback_records_cache
 
     @property
     def intra_sub_callback_records(self) -> RecordsInterface:
         if self._intra_sub_callback_records_cache is None:
-            self._intra_sub_callback_records_cache = self._compose_intra_sub_callback_records(self)
+            self._intra_sub_callback_records_cache = self._compose_intra_sub_callback_records()
         return self._intra_sub_callback_records_cache
 
     def _compose_inter_sub_callback_records(
@@ -539,6 +542,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - message_timestamp
             - callback_start_timestamp
             - callback_object
+
         """
         if self._inter_comm_records_cache is None:
             self._inter_comm_records_cache = self._lttng.compose_inter_proc_comm_records()
@@ -641,9 +645,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         read_records: RecordsInterface = self.callback_records(
-            variable_passing_info.callback_value_read)
+            variable_passing_info.callback_read)
         write_records: RecordsInterface = self.callback_records(
-            variable_passing_info.callback_value_write)
+            variable_passing_info.callback_write)
 
         read_records.drop_columns([read_records.columns[-1]])  # callback end
         write_records.drop_columns([write_records.columns[0]])  # callback_start
@@ -707,28 +711,28 @@ class RecordsProviderLttngHelper:
         self,
         callback: TimerCallbackStructValue
     ) -> int:
-        callback_lttng = self._bridge.get_timer_callback_value(callback)
+        callback_lttng = self._bridge.get_timer_callback(callback)
         return callback_lttng.callback_object
 
     def get_subscription_callback_object(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> int:
-        callback_lttng = self._bridge.get_subscription_callback_value(callback)
+        callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object
 
     def get_subscription_callback_object_intra(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> Optional[int]:
-        callback_lttng = self._bridge.get_subscription_callback_value(callback)
+        callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object_intra
 
     def get_publisher_handles(
         self,
         publisher_info: PublisherStructValue
     ) -> List[int]:
-        publisher_lttng = self._bridge.get_publisher_values(publisher_info)
+        publisher_lttng = self._bridge.get_publishers(publisher_info)
         return [pub_info.publisher_handle
                 for pub_info
                 in publisher_lttng]
@@ -740,11 +744,6 @@ class NodeRecordsCallbackChain:
         provider: RecordsProviderLttng,
         node_path: NodePathStructValue,
     ) -> None:
-        if node_path.callbacks is None:
-            raise UnsupportedNodeRecordsError('callback values is None.')
-        if not isinstance(node_path.message_context, CallbackChain):
-            msg = 'node_path.message context is not InheritUniqueStamp'
-            raise UnsupportedNodeRecordsError(msg)
 
         self._provider = provider
         self._validate(node_path)
@@ -769,8 +768,8 @@ class NodeRecordsCallbackChain:
         records: RecordsInterface,
         var_pass: VariablePassingStructValue
     ) -> None:
-        callback_read = var_pass.callback_value_read
-        callback_write = var_pass.callback_value_write
+        callback_read = var_pass.callback_read
+        callback_write = var_pass.callback_write
         records.rename_columns(
             {
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP:
@@ -810,7 +809,7 @@ class NodeRecordsCallbackChain:
         for chain_element in chain_info[1:]:
             if isinstance(chain_element, CallbackStructValue):
                 records_ = self._provider.callback_records(chain_element)
-                self._rename_callback_records(records_, chain_element)
+                # self._rename_callback_records(records_, chain_element)
                 join_key = records_.columns[0]
                 records = merge(
                     left_records=records,
@@ -866,6 +865,13 @@ class NodeRecordsCallbackChain:
     ) -> None:
         if node_path.callbacks is None:
             raise UnsupportedNodeRecordsError('')
+
+        if node_path.callbacks is None:
+            raise UnsupportedNodeRecordsError('callback values is None.')
+
+        if not isinstance(node_path.message_context, CallbackChain):
+            msg = 'node_path.message context is not CallbackChain'
+            raise UnsupportedNodeRecordsError(msg)
 
         head_callback = node_path.callbacks[0]
         tail_callback = node_path.callbacks[-1]

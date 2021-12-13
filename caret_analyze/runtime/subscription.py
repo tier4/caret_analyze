@@ -14,9 +14,10 @@
 
 from typing import Optional
 
-from ..value_objects import SubscriptionStructValue
+from ..common import Summary
 from ..infra.interface import RuntimeDataProvider
-from ..common import CustomDict
+from ..value_objects import SubscriptionStructValue
+
 
 class Subscription:
 
@@ -33,7 +34,7 @@ class Subscription:
         return self._val.node_name
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     @property

@@ -14,9 +14,10 @@
 
 from typing import List, Optional
 
-from ..value_objects import PublisherStructValue
+from ..common import Summary
 from ..infra.interface import RuntimeDataProvider
-from ..common import CustomDict
+from ..value_objects import PublisherStructValue
+
 
 class Publisher:
     def __init__(
@@ -32,7 +33,7 @@ class Publisher:
         return self._val.node_name
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     @property

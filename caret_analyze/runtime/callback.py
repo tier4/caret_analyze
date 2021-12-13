@@ -16,15 +16,15 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from ..record import RecordsInterface
+from ..common import Summary
 from ..infra.interface import RecordsProvider
+from ..record import RecordsInterface
 from ..value_objects import (CallbackStructValue,
                              SubscriptionCallbackStructValue,
                              TimerCallbackStructValue)
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
-from ..common import CustomDict
 
 
 class CallbackBase(PathBase):
@@ -73,7 +73,7 @@ class CallbackBase(PathBase):
         return self.__val.subscribe_topic_name
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self.__val.summary
 
     def _to_records_core(self) -> RecordsInterface:

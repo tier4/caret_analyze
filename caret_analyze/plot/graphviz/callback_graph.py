@@ -17,10 +17,11 @@ from typing import List, Optional
 from graphviz import Digraph, Source
 
 from ...architecture import Architecture
-from ...runtime.callback import CallbackBase, SubscriptionCallback, TimerCallback
+from ...common import Util
+from ...runtime.callback import (CallbackBase, SubscriptionCallback,
+                                 TimerCallback)
 from ...runtime.node import Node
 from ...runtime.path import Path
-from ...common import Util
 
 
 def callback_graph(

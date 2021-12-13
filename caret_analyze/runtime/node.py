@@ -18,14 +18,14 @@ from typing import List, Optional
 
 from caret_analyze.value_objects import NodeStructValue
 
-from ..common import Util, CustomDict
+from ..common import Summary, Util
+from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
-from .publisher import Publisher
 from .node_path import NodePath
+from .publisher import Publisher
 from .subscription import Subscription
 from .variable_passing import VariablePassing
-from ..exceptions import ItemNotFoundError, InvalidArgumentError
 
 
 class Node:
@@ -97,7 +97,7 @@ class Node:
         return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroup:

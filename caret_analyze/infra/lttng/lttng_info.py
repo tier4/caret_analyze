@@ -14,24 +14,21 @@
 
 from __future__ import annotations
 
-from typing import Callable, List, Sequence, Union, Optional, Tuple, Dict
+from logging import getLogger
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from logging import getLogger
 
-
-from caret_analyze.value_objects import (CallbackGroupType, ExecutorValue)
-from ...exceptions import InvalidArgumentError
-from ...common import Util
-from .ros2_tracing.data_model import Ros2DataModel
 from .records_source import RecordsSource
+from .ros2_tracing.data_model import Ros2DataModel
+from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
+                            PublisherValueLttng,
+                            SubscriptionCallbackValueLttng,
+                            TimerCallbackValueLttng)
+from ...common import Util
 from ...record.interface import RecordsInterface
-from .value_objects import (TimerCallbackValueLttng, PublisherValueLttng,
-                            SubscriptionCallbackValueLttng, CallbackGroupValueLttng,
-                            NodeValueLttng)
-from ...value_objects import NodeValue
-
+from ...value_objects import CallbackGroupType, ExecutorValue, NodeValue
 
 logger = getLogger(__name__)
 
@@ -50,13 +47,29 @@ class LttngInfo:
         self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
 
         self._id_to_topic: Dict[str, str] = {}
-        self._sub_cb_cache_without_pub: Dict[str,
-                                             List[SubscriptionCallbackValueLttng]]
-        self._sub_cb_cache_without_pub = self._get_sub_cbs_without_pub()
+        self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
+        self._sub_cb_cache_without_pub = None
 
-        self._timer_cb_cache_without_pub: Dict[str,
-                                               List[TimerCallbackValueLttng]]
-        self._timer_cb_cache_without_pub = self._get_timer_cbs_info_without_pub()
+        self._timer_cb_cache_without_pub: Optional[Dict[str, List[TimerCallbackValueLttng]]]
+        self._timer_cb_cache_without_pub = None
+
+    def _get_timer_cbs_without_pub(self, node_id: str) -> List[TimerCallbackValueLttng]:
+        if self._timer_cb_cache_without_pub is None:
+            self._timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
+
+        if node_id not in self._timer_cb_cache_without_pub:
+            return []
+
+        return self._timer_cb_cache_without_pub[node_id]
+
+    def _get_sub_cbs_without_pub(self, node_id: str) -> List[SubscriptionCallbackValueLttng]:
+        if self._sub_cb_cache_without_pub is None:
+            self._sub_cb_cache_without_pub = self._load_sub_cbs_without_pub()
+
+        if node_id not in self._sub_cb_cache_without_pub:
+            return []
+
+        return self._sub_cb_cache_without_pub[node_id]
 
     def get_rmw_impl(self) -> str:
         """
@@ -70,7 +83,7 @@ class LttngInfo:
         """
         return self._rmw_implementation
 
-    def _get_timer_cbs_info_without_pub(self) -> Dict[str, List[TimerCallbackValueLttng]]:
+    def _load_timer_cbs_without_pub(self) -> Dict[str, List[TimerCallbackValueLttng]]:
         timer_cbs_info: Dict[str, List[TimerCallbackValueLttng]] = {}
 
         for node in self.get_nodes():
@@ -89,7 +102,7 @@ class LttngInfo:
                     node_id=row['node_id'],
                     symbol=row['symbol'],
                     period_ns=row['period_ns'],
-                    publish_topic_names=(),
+                    publish_topic_names=None,
                     callback_object=row['callback_object']
                 )
             )
@@ -100,7 +113,7 @@ class LttngInfo:
         node_id = node.node_id
         assert node_id is not None
 
-        timer_cbs = self._timer_cb_cache_without_pub[node_id]
+        timer_cbs = self._get_timer_cbs_without_pub(node_id)
 
         if node_id not in self._binder_cache.keys():
             self._binder_cache[node_id] = PublisherBinder(self, self._source)
@@ -160,7 +173,7 @@ class LttngInfo:
 
         return nodes
 
-    def _get_sub_cbs_without_pub(
+    def _load_sub_cbs_without_pub(
         self
     ) -> Dict[str, List[SubscriptionCallbackValueLttng]]:
         sub_cbs_info: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
@@ -190,7 +203,7 @@ class LttngInfo:
                     node_name=node_name,
                     symbol=row['symbol'],
                     subscribe_topic_name=row['topic_name'],
-                    publish_topic_names=(),
+                    publish_topic_names=None,
                     callback_object=row['callback_object'],
                     callback_object_intra=callback_object_intra,
                 )
@@ -205,7 +218,7 @@ class LttngInfo:
         assert node_id is not None
 
         sub_cbs_info: List[SubscriptionCallbackValueLttng]
-        sub_cbs_info = self._sub_cb_cache_without_pub[node_id]
+        sub_cbs_info = self._get_sub_cbs_without_pub(node_id)
 
         if node_id not in self._binder_cache.keys():
             self._binder_cache[node_id] = PublisherBinder(self, self._source)
@@ -266,7 +279,7 @@ class LttngInfo:
 
         for i, pub_info in enumerate(pubs_info):
             topic_name = pub_info.topic_name
-            cbs_pubs = Util.filter(
+            cbs_pubs = Util.filter_items(
                 lambda x: topic_name in x.publish_topic_names, cbs)
             cb_ids = tuple(c.callback_id for c in cbs_pubs)
             pubs_info[i] = PublisherValueLttng(
@@ -315,7 +328,7 @@ class LttngInfo:
         self,
         node_name: str
     ) -> Sequence[NodeValueLttng]:
-        return Util.filter(lambda x: x.node_name == node_name, self.get_nodes())
+        return Util.filter_items(lambda x: x.node_name == node_name, self.get_nodes())
 
     def get_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
         """
@@ -387,7 +400,7 @@ class LttngInfo:
                     continue
 
                 callback_ids = tuple(group_df['callback_id'].values)
-                callback_ids = tuple(Util.filter(self._is_user_made_callback, callback_ids))
+                callback_ids = tuple(Util.filter_items(self._is_user_made_callback, callback_ids))
 
                 cbgs.append(
                     CallbackGroupValueLttng(
@@ -444,7 +457,6 @@ class LttngInfo:
         List[ExecutorInfo]
 
         """
-
         exec_df = self._formatted.executor_df
         cbg_df = self._formatted.callback_groups_df
         exec_df = merge(exec_df, cbg_df, 'executor_addr')
@@ -476,8 +488,7 @@ class PublisherBinder:
 
     def can_bind(self, node: NodeValue) -> bool:
         """
-        If all callbacks in a node are exclusive,
-        the publisher can be tied to the callback.
+        If all callbacks in a node are exclusive, the publisher can be tied to the callback.
 
         Parameters
         ----------
@@ -487,7 +498,7 @@ class PublisherBinder:
         Returns
         -------
         bool
-            [description]
+
         """
         # implementation is mostly done, but the processing time is huge, so it is not practical.
         # Disable it until the speedup is complete.
@@ -545,13 +556,15 @@ class PublisherBinder:
             self._update_timer_cb_publish_topics(callback_list, cb, ())
 
         publishers = self._info.get_publishers_without_cb_bind(node_name)
-        publishers = Util.filter(
+        publishers = Util.filter_items(
             lambda x: x.topic_name not in ['/parameter_events', '/rosout'],
             publishers
         )
 
         from itertools import product
+
         from tqdm import tqdm
+
         it = list(product(publishers, callbacks))
         for publisher, cb in tqdm(it):
             if not self._is_consistent(publisher, cb):
@@ -592,17 +605,20 @@ class PublisherBinder:
         system_topics = ['/parameter_events', '/rosout', '/clock']
         callback_list: List[SubscriptionCallbackValueLttng]
         callback_list = list(callbacks_info)
-        callback_list = Util.filter(lambda x: x.subscribe_topic_name not in system_topics, callback_list)
+        callback_list = Util.filter_items(
+            lambda x: x.subscribe_topic_name not in system_topics, callback_list)
 
         # insert empty tuple
         for cb_info in callback_list:
             self._update_sub_cb_publish_topics(callback_list, cb_info, ())
 
         publishers = self._info.get_publishers_without_cb_bind(node_name)
-        publishers = Util.filter(lambda x: x.topic_name not in system_topics, publishers)
+        publishers = Util.filter_items(lambda x: x.topic_name not in system_topics, publishers)
 
         from itertools import product
+
         from tqdm import tqdm
+
         it = list(product(publishers, callback_list))
         for publisher, cb_info in tqdm(it):
             if not self._is_consistent(publisher, cb_info):
@@ -876,7 +892,7 @@ class DataFrameFormatted:
     @property
     def executor_df(self) -> pd.DataFrame:
         """
-        Get executor info table
+        Get executor info table.
 
         Returns
         -------
@@ -902,7 +918,6 @@ class DataFrameFormatted:
             - group_type_name
 
         """
-
         return self._cbg_df
 
     @staticmethod
@@ -1070,6 +1085,7 @@ class DataFrameFormatted:
     ) -> pd.DataFrame:
         """
         Split the callback_object of the subscription callback.
+
         into callback_object and callback_object_intra.
 
         Parameters

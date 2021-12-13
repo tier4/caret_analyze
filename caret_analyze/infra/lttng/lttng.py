@@ -13,16 +13,17 @@
 # limitations under the License.
 
 from typing import Optional, Sequence
+
 from tracetools_analysis.loading import load_file
 
-from ...record import RecordsInterface
-from ...value_objects import ExecutorValue
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
-from .value_objects import (SubscriptionCallbackValueLttng,
-                            TimerCallbackValueLttng, PublisherValueLttng)
-from ...value_objects import NodeValue, CallbackGroupValue
+from .value_objects import (PublisherValueLttng,
+                            SubscriptionCallbackValueLttng,
+                            TimerCallbackValueLttng)
 from ..infra_base import InfraBase
+from ...record import RecordsInterface
+from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId
 
 
 class Lttng(InfraBase):
@@ -87,13 +88,13 @@ class Lttng(InfraBase):
 
     def get_nodes(
         self
-    ) -> Sequence[NodeValue]:
+    ) -> Sequence[NodeValueWithId]:
         """
-        Get nodes
+        Get nodes.
 
         Returns
         -------
-        Sequence[InodeInfo]
+        Sequence[NodeValueWithId]
             nodes info.
 
         """

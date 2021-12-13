@@ -28,16 +28,13 @@ from caret_analyze.architecture.architecture_exporter import (ArchitectureExport
 from caret_analyze.architecture.reader_interface import UNDEFINED_STR
 from caret_analyze.exceptions import UnsupportedTypeError
 from caret_analyze.value_objects import (CallbackGroupStructValue,
-                                         MessageContext,
                                          CallbackStructValue,
-                                         SubscriptionCallbackStructValue,
-                                         TimerCallbackStructValue,
                                          ExecutorStructValue,
-                                         NodePathStructValue,
-                                         NodeStructValue,
-                                         PathStructValue,
-                                         PublisherStructValue,
+                                         NodePathStructValue, NodeStructValue,
+                                         PathStructValue, PublisherStructValue,
+                                         SubscriptionCallbackStructValue,
                                          SubscriptionStructValue,
+                                         TimerCallbackStructValue,
                                          VariablePassingStructValue)
 
 
@@ -111,7 +108,7 @@ class TestArchitectureExporter:
         mocker.patch.object(node_mock, 'data', [])
 
         expected = \
-'''named_paths: []
+            '''named_paths: []
 executors: []
 nodes: []
 '''
@@ -132,7 +129,7 @@ class TestNamedPathsDicts:
 
         mocker.patch.object(path_info_mock, 'path_name', 'target_path')
         mocker.patch.object(
-            path_info_mock, 'node_paths_info', [node_path_mock])
+            path_info_mock, 'node_paths', [node_path_mock])
 
         mocker.patch.object(node_path_mock, 'node_name', 'node')
         mocker.patch.object(node_path_mock, 'publish_topic_name', 'pub_topic')
@@ -160,7 +157,7 @@ class TestNamedPathsDicts:
 
         mocker.patch.object(path_info_mock, 'path_name', 'target_path')
         mocker.patch.object(
-            path_info_mock, 'node_paths_info', [node_path_mock])
+            path_info_mock, 'node_paths', [node_path_mock])
 
         mocker.patch.object(node_path_mock, 'node_name', 'node')
         mocker.patch.object(node_path_mock, 'publish_topic_name', None)
@@ -207,7 +204,7 @@ class TestExecutorDicts:
         mocker.patch.object(
             exclusive_cbg_mock, 'callback_names', ['/talker/timer_callback_0'])
         mocker.patch.object(
-            single_threaded_exec_mock, 'callback_groups_info',
+            single_threaded_exec_mock, 'callback_groups',
             [exclusive_cbg_mock])
         mocker.patch.object(
             single_threaded_exec_mock, 'executor_name', 'single_threaded_executor_0')
@@ -224,7 +221,7 @@ class TestExecutorDicts:
         mocker.patch.object(
             multi_threaded_exec_mock, 'executor_type_name', 'multi_threaded_executor')
         mocker.patch.object(
-            multi_threaded_exec_mock, 'callback_groups_info', [reentrant_cbg_mock])
+            multi_threaded_exec_mock, 'callback_groups', [reentrant_cbg_mock])
         mocker.patch.object(
             multi_threaded_exec_mock, 'executor_name', 'multi_threaded_executor_0')
 
@@ -236,29 +233,15 @@ class TestExecutorDicts:
             {
                 'executor_type': 'multi_threaded_executor',
                 'executor_name': 'multi_threaded_executor_0',
-                'callback_groups': [
-                    {
-                        'node_name': '/listener',
-                        'callback_group_type': 'reentrant',
-                        'callback_group_name': 'callback_group_0',
-                        'callbacks': [
-                            '/listener/subscription_callback_0'
-                        ]
-                    }
+                'callback_group_names': [
+                    'callback_group_0',
                 ]
             },
             {
                 'executor_type': 'single_threaded_executor',
                 'executor_name': 'single_threaded_executor_0',
-                'callback_groups': [
-                    {
-                        'node_name': '/talker',
-                        'callback_group_type': 'mutually_exclusive',
-                        'callback_group_name': 'callback_group_1',
-                        'callbacks': [
-                            '/talker/timer_callback_0'
-                        ]
-                    }
+                'callback_group_names': [
+                    'callback_group_1'
                 ]
             },
         ]
@@ -281,10 +264,10 @@ class TestExecutorDicts:
         mocker.patch.object(exec_2, 'executor_type_name', 'single_threaded_executor')
         mocker.patch.object(exec_3, 'executor_type_name', 'single_threaded_executor')
 
-        mocker.patch.object(exec_0, 'callback_groups_info', [])
-        mocker.patch.object(exec_1, 'callback_groups_info', [])
-        mocker.patch.object(exec_2, 'callback_groups_info', [])
-        mocker.patch.object(exec_3, 'callback_groups_info', [])
+        mocker.patch.object(exec_0, 'callback_groups', [])
+        mocker.patch.object(exec_1, 'callback_groups', [])
+        mocker.patch.object(exec_2, 'callback_groups', [])
+        mocker.patch.object(exec_3, 'callback_groups', [])
 
         exec_dicts = ExecutorsDicts(
             [exec_3, exec_0, exec_1, exec_2]
@@ -294,22 +277,22 @@ class TestExecutorDicts:
             {
                 'executor_name': 'multi_threaded_executor_0',
                 'executor_type': 'multi_threaded_executor',
-                'callback_groups': []
+                'callback_group_names': []
             },
             {
                 'executor_name': 'multi_threaded_executor_1',
                 'executor_type': 'multi_threaded_executor',
-                'callback_groups': []
+                'callback_group_names': []
             },
             {
                 'executor_name': 'single_threaded_executor_0',
                 'executor_type': 'single_threaded_executor',
-                'callback_groups': []
+                'callback_group_names': []
             },
             {
                 'executor_name': 'single_threaded_executor_1',
                 'executor_type': 'single_threaded_executor',
-                'callback_groups': []
+                'callback_group_names': []
             },
         ]
 
@@ -329,12 +312,12 @@ class TestNodeDicts:
         mocker.patch('caret_analyze.architecture.architecture_exporter.CallbackDicts',
                      return_value=callback_dict_mock)
 
-        mocker.patch.object(node_info, 'callbacks_info', [callback_dict_mock])
-        mocker.patch.object(node_info, 'variable_passings_info', [])
-        mocker.patch.object(node_info, 'publishers_info', [])
-        mocker.patch.object(node_info, 'subscriptions_info', [])
+        mocker.patch.object(node_info, 'callbacks', [callback_dict_mock])
+        mocker.patch.object(node_info, 'variable_passings', [])
+        mocker.patch.object(node_info, 'publishers', [])
+        mocker.patch.object(node_info, 'subscriptions', [])
+        mocker.patch.object(node_info, 'callback_groups', [])
         mocker.patch.object(node_info, 'node_name', 'node')
-        mocker.patch.object(node_info, 'message_contexts', [])
 
         node_dict = NodesDicts([node_info])
 
@@ -342,9 +325,7 @@ class TestNodeDicts:
             {
                 'node_name': 'node',
                 'callbacks': ['callback_dict'],
-                'message_contexts': [{
-                    'context_type': UNDEFINED_STR
-                }]
+                'callback_groups': []
             }
         ]
         assert node_dict.data == expect
@@ -362,12 +343,12 @@ class TestNodeDicts:
         mocker.patch('caret_analyze.architecture.architecture_exporter.VarPassDicts',
                      return_value=var_pass_dicts_mock)
 
-        mocker.patch.object(node_info, 'callbacks_info', [callback_dict_mock, callback_dict_mock])
-        mocker.patch.object(node_info, 'variable_passings_info', [var_pass_dicts_mock])
-        mocker.patch.object(node_info, 'publishers_info', [])
-        mocker.patch.object(node_info, 'subscriptions_info', [])
+        mocker.patch.object(node_info, 'callbacks', [callback_dict_mock, callback_dict_mock])
+        mocker.patch.object(node_info, 'callback_groups', [])
+        mocker.patch.object(node_info, 'variable_passings', [var_pass_dicts_mock])
+        mocker.patch.object(node_info, 'publishers', [])
+        mocker.patch.object(node_info, 'subscriptions', [])
         mocker.patch.object(node_info, 'node_name', 'node')
-        mocker.patch.object(node_info, 'message_contexts', [])
 
         node_dict = NodesDicts([node_info])
 
@@ -375,10 +356,8 @@ class TestNodeDicts:
             {
                 'node_name': 'node',
                 'callbacks': ['callback_dict', 'callback_dict'],
+                'callback_groups': [],
                 'variable_passings': ['var_pass_dict'],
-                'message_contexts': [{
-                    'context_type': UNDEFINED_STR
-                }]
             }
         ]
         assert node_dict.data == expect
@@ -391,12 +370,12 @@ class TestNodeDicts:
         mocker.patch('caret_analyze.architecture.architecture_exporter.PubDicts',
                      return_value=pub_dict_mock)
 
-        mocker.patch.object(node_info, 'callbacks_info', [])
-        mocker.patch.object(node_info, 'variable_passings_info', [])
-        mocker.patch.object(node_info, 'publishers_info', [pub_dict_mock])
-        mocker.patch.object(node_info, 'subscriptions_info', [])
+        mocker.patch.object(node_info, 'callbacks', [])
+        mocker.patch.object(node_info, 'variable_passings', [])
+        mocker.patch.object(node_info, 'publishers', [pub_dict_mock])
+        mocker.patch.object(node_info, 'callback_groups', [])
+        mocker.patch.object(node_info, 'subscriptions', [])
         mocker.patch.object(node_info, 'node_name', 'node')
-        mocker.patch.object(node_info, 'message_contexts', [])
 
         node_dict = NodesDicts([node_info])
 
@@ -404,9 +383,7 @@ class TestNodeDicts:
             {
                 'node_name': 'node',
                 'publishes': ['pub_dict'],
-                'message_contexts': [{
-                    'context_type': UNDEFINED_STR
-                }]
+                'callback_groups': []
             }
         ]
         assert node_dict.data == expect
@@ -419,12 +396,12 @@ class TestNodeDicts:
         mocker.patch('caret_analyze.architecture.architecture_exporter.SubDicts',
                      return_value=sub_dict_mock)
 
-        mocker.patch.object(node_info, 'callbacks_info', [])
-        mocker.patch.object(node_info, 'variable_passings_info', [])
-        mocker.patch.object(node_info, 'publishers_info', [])
-        mocker.patch.object(node_info, 'subscriptions_info', [sub_dict_mock])
+        mocker.patch.object(node_info, 'callbacks', [])
+        mocker.patch.object(node_info, 'variable_passings', [])
+        mocker.patch.object(node_info, 'publishers', [])
+        mocker.patch.object(node_info, 'subscriptions', [sub_dict_mock])
         mocker.patch.object(node_info, 'node_name', 'node')
-        mocker.patch.object(node_info, 'message_contexts', [])
+        mocker.patch.object(node_info, 'callback_groups', [])
 
         node_dict = NodesDicts([node_info])
 
@@ -432,9 +409,7 @@ class TestNodeDicts:
             {
                 'node_name': 'node',
                 'subscribes': ['sub_dict'],
-                'message_contexts': [{
-                    'context_type': UNDEFINED_STR
-                }]
+                'callback_groups': []
             }
         ]
         assert node_dict.data == expect
@@ -450,28 +425,33 @@ class TestNodeDicts:
         mocker.patch.object(node_2, 'node_name', 'node_2')
         mocker.patch.object(node_3, 'node_name', 'node_3')
 
-        mocker.patch.object(node_0, 'callbacks_info', [])
-        mocker.patch.object(node_1, 'callbacks_info', [])
-        mocker.patch.object(node_2, 'callbacks_info', [])
-        mocker.patch.object(node_3, 'callbacks_info', [])
+        mocker.patch.object(node_0, 'callbacks', [])
+        mocker.patch.object(node_1, 'callbacks', [])
+        mocker.patch.object(node_2, 'callbacks', [])
+        mocker.patch.object(node_3, 'callbacks', [])
 
-        mocker.patch.object(node_0, 'publishers_info', [])
-        mocker.patch.object(node_1, 'publishers_info', [])
-        mocker.patch.object(node_2, 'publishers_info', [])
-        mocker.patch.object(node_3, 'publishers_info', [])
+        mocker.patch.object(node_0, 'callback_groups', [])
+        mocker.patch.object(node_1, 'callback_groups', [])
+        mocker.patch.object(node_2, 'callback_groups', [])
+        mocker.patch.object(node_3, 'callback_groups', [])
 
-        mocker.patch.object(node_0, 'subscriptions_info', [])
-        mocker.patch.object(node_1, 'subscriptions_info', [])
-        mocker.patch.object(node_2, 'subscriptions_info', [])
-        mocker.patch.object(node_3, 'subscriptions_info', [])
+        mocker.patch.object(node_0, 'publishers', [])
+        mocker.patch.object(node_1, 'publishers', [])
+        mocker.patch.object(node_2, 'publishers', [])
+        mocker.patch.object(node_3, 'publishers', [])
+
+        mocker.patch.object(node_0, 'subscriptions', [])
+        mocker.patch.object(node_1, 'subscriptions', [])
+        mocker.patch.object(node_2, 'subscriptions', [])
+        mocker.patch.object(node_3, 'subscriptions', [])
 
         node_dicts = NodesDicts([node_2, node_3, node_1, node_0])
 
         expect = [
-            {'node_name': 'node_0'},
-            {'node_name': 'node_1'},
-            {'node_name': 'node_2'},
-            {'node_name': 'node_3'},
+            {'node_name': 'node_0', 'callback_groups': []},
+            {'node_name': 'node_1', 'callback_groups': []},
+            {'node_name': 'node_2', 'callback_groups': []},
+            {'node_name': 'node_3', 'callback_groups': []},
         ]
 
         assert node_dicts.data == expect
@@ -533,9 +513,7 @@ class TestPubDicts:
         pub_info = mocker.Mock(spec=PublisherStructValue)
         mocker.patch.object(pub_info, 'topic_name', 'topic')
         mocker.patch.object(pub_info, 'callback_names', ('callback',))
-        context_mock = mocker.Mock(MessageContext)
-        mocker.patch.object(context_mock, 'to_dict', return_value={'context_type': 'aaa'})
-        pub_dict = PubDicts([pub_info])
+        pub_dict = PubDicts((pub_info,))
 
         expect = [{
             'topic_name': 'topic',
@@ -570,7 +548,7 @@ class TestPubDicts:
         mocker.patch.object(pub_mock_1, 'callback_names', None)
         mocker.patch.object(pub_mock_2, 'callback_names', None)
 
-        pub_dict = PubDicts([pub_mock_1, pub_mock_2, pub_mock_0])
+        pub_dict = PubDicts((pub_mock_1, pub_mock_2, pub_mock_0))
 
         expect = [
             {'topic_name': 'A', 'callback_names': [UNDEFINED_STR]},
@@ -671,7 +649,6 @@ class TestCallbackDicts:
         ]
 
         assert callback_dict.data == expect
-
 
 
 class TestVarPassDicts:

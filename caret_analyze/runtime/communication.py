@@ -14,15 +14,15 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Dict
+from typing import List, Optional
 
-from ..record import RecordsInterface
+from ..common import Summary
 from ..infra.interface import RecordsProvider
+from ..record import RecordsInterface
 from ..value_objects import CommunicationStructValue
-from ..common import CustomDict
 from .callback import CallbackBase
-from .path_base import PathBase
 from .node import Node
+from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 
@@ -57,7 +57,7 @@ class Communication(PathBase):
         return self._rmw_implementation
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     @property

@@ -13,22 +13,13 @@
 # limitations under the License.
 
 
-# from caret_analyze.record import Record
-# from caret_analyze.record.record import Records, RecordsInterface
-# from caret_analyze.trace.lttng import Lttng
-# from caret_analyze.value_objects.callback_info import SubscriptionCallbackStructInfo
-# from caret_analyze.value_objects.callback_type import CallbackType
-# from caret_analyze.value_objects.executor_type import ExecutorType
-# from caret_analyze.trace.lttng.lttng_info import LttngInfo
-# from caret_analyze.trace.lttng.lttng_records_source import LttngRecordsSourse
-# from caret_analyze.value_objects.publisher_info import PublisherInfo
-# from caret_analyze.value_objects.callback_info import TimerCallbackStructInfo, SubscriptionCallbackStructInfo
-# from caret_analyze.value_objects.executor_info import ExecutorInfo
-# from caret_analyze.trace.lttng.ros2_tracing.data_model import Ros2DataModel
-# from caret_analyze.trace.lttng.column_names import COLUMN_NAME
+# from caret_analyze.record.record import RecordsInterface
+# from caret_analyze.infra.lttng.lttng_info import LttngInfo
+# from caret_analyze.infra.lttng.records_source import RecordsSource
+# from caret_analyze.value_objects import TimerCallbackStructValue
+# from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
+# from caret_analyze.infra.lttng.column_names import COLUMN_NAME
 
-# import pytest
-# from pytest_mock import MockerFixture
 
 # class TestLttngRecordsSource:
 
@@ -41,10 +32,10 @@
 #         data.add_callback_end_instance(2, callback_object)
 #         data.finalize()
 
-#         info = LttngInfo(data)
-#         source = LttngRecordsSourse(data)
+#         source = RecordsSource(data)
+#         info = LttngInfo(data, source)
 
-#         callback_info = TimerCallbackStructInfo(
+#         callback = TimerCallbackStructValue(
 #             '/node',
 #             'timer_callback_0',
 #             'symbol',
@@ -90,7 +81,7 @@
 #         )
 #         data.finalize()
 
-#         source = LttngRecordsSourse(data)
+#         source = RecordsSourse(data)
 
 #         records = source.compose_intra_process_communication_records()
 
@@ -111,7 +102,6 @@
 #         assert record.get(COLUMN_NAME.CALLBACK_START_TIMESTAMP) == 4
 #         assert record.get(COLUMN_NAME.PUBLISHER_HANDLE) == publisher_handle
 #         assert record.get(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP) == 1
-
 
 #     def test_compose_inter_process_communication_records(self):
 #         callback_object = 2
@@ -146,7 +136,7 @@
 #         )
 #         data.finalize()
 
-#         source = LttngRecordsSourse(data)
+#         source = RecordsSourse(data)
 
 #         records = source.compose_inter_process_communication_records()
 

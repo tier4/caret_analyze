@@ -13,42 +13,23 @@
 # limitations under the License.
 
 
-import pytest
 from pytest_mock import MockerFixture
 
-from caret_analyze.infra.lttng import Lttng, lttng_info
-from caret_analyze.infra.lttng.architecture_reader_lttng import \
-    ArchitectureReaderLttng
+from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.records_source import RecordsSource
 from caret_analyze.infra.lttng.ros2_tracing.data_model import DataModel
-from caret_analyze.infra.lttng.value_objects import (SubscriptionCallbackValueLttng,
-                                                                         TimerCallbackValueLttng, PublisherValueLttng)
-from caret_analyze.record import Record, Records
+from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
+                                                     SubscriptionCallbackValueLttng,
+                                                     TimerCallbackValueLttng)
 from caret_analyze.record.interface import RecordsInterface
-from caret_analyze.value_objects import (SubscriptionCallbackStructValue,
-                                         TimerCallbackStructValue,
-                                         CallbackType,
-                                         ExecutorValue,
-                                         ExecutorType)
+from caret_analyze.value_objects import ExecutorValue
+from caret_analyze.value_objects.node import NodeValue
 
-# listener_callback = SubscriptionCallbackStructInfo(
-#     '/listener',
-#     CallbackType.SUBSCRIPTION.to_indexed_callback_name(0),
-#     'demo_nodes_cpp::Listener::Listener(rclcpp::NodeOptionsconst&)::{lambda(std::shared_ptr<std_msgs::msg::String>)#1}',  # noqa: 501
-#     '/chatter',
-# )
-
-# pipe2_callback = SubscriptionCallbackStructInfo(
-#     '/pipe2',
-#     CallbackType.SUBSCRIPTION.to_indexed_callback_name(0),
-#     'IncrementerPipe::IncrementerPipe(std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&,std::__cxx11::basic_string<char,std::char_traits<char>,std::allocator<char>>const&)::{lambda(std::unique_ptr<std_msgs::msg::Int32>)#1}',  # noqa: 501
-#     '/topic2',
-# )
 
 class TestLttng:
 
-    def test_get_node_names(self, mocker: MockerFixture):
+    def test_get_nodes(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
 
@@ -58,10 +39,10 @@ class TestLttng:
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
-        mocker.patch.object(lttng_info_mock, 'get_node_names', return_value=['/node'])
-        node_names = lttng.get_nodes()
-        assert len(node_names) == 1
-        assert node_names[0] == '/node'
+        node = NodeValue('/node', None)
+        mocker.patch.object(lttng_info_mock, 'get_nodes', return_value=[node])
+        nodes = lttng.get_nodes()
+        assert nodes == [node]
 
     def test_get_rmw_implementation(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
@@ -73,8 +54,7 @@ class TestLttng:
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
-        mocker.patch.object(lttng_info_mock, 'get_rmw_implementation', return_value='rmw')
-        a = lttng.get_rmw_impl()
+        mocker.patch.object(lttng_info_mock, 'get_rmw_impl', return_value='rmw')
         assert lttng.get_rmw_impl() == 'rmw'
 
     def test_get_publishers(self, mocker: MockerFixture):
@@ -88,8 +68,8 @@ class TestLttng:
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
         pub_mock = mocker.Mock(spec=PublisherValueLttng)
-        mocker.patch.object(lttng_info_mock, 'get_publishers_info', return_value=[pub_mock])
-        assert lttng.get_publishers('node_name') == [pub_mock]
+        mocker.patch.object(lttng_info_mock, 'get_publishers', return_value=[pub_mock])
+        assert lttng.get_publishers(NodeValue('node', None)) == [pub_mock]
 
     def test_get_timer_callbacks(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
@@ -102,9 +82,9 @@ class TestLttng:
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
         timer_cb_mock = mocker.Mock(spec=TimerCallbackValueLttng)
-        mocker.patch.object(lttng_info_mock, 'get_timer_callbacks_info',
+        mocker.patch.object(lttng_info_mock, 'get_timer_callbacks',
                             return_value=[timer_cb_mock])
-        assert lttng.get_timers('node_name') == [timer_cb_mock]
+        assert lttng.get_timer_callbacks(NodeValue('node', None)) == [timer_cb_mock]
 
     def test_get_subscription_callbacks(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
@@ -117,9 +97,9 @@ class TestLttng:
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
         sub_cb_mock = mocker.Mock(spec=SubscriptionCallbackValueLttng)
-        mocker.patch.object(lttng_info_mock, 'get_subscription_callbacks_info',
+        mocker.patch.object(lttng_info_mock, 'get_subscription_callbacks',
                             return_value=[sub_cb_mock])
-        assert lttng.get_subscription_callbacks('node_name') == [sub_cb_mock]
+        assert lttng.get_subscription_callbacks(NodeValue('node', None)) == [sub_cb_mock]
 
     def test_get_executors(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
@@ -132,7 +112,7 @@ class TestLttng:
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
         exec_info_mock = mocker.Mock(spec=ExecutorValue)
-        mocker.patch.object(lttng_info_mock, 'get_executors_info',
+        mocker.patch.object(lttng_info_mock, 'get_executors',
                             return_value=[exec_info_mock])
         assert lttng.get_executors() == [exec_info_mock]
 

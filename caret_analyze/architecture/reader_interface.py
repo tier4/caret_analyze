@@ -15,17 +15,12 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Sequence, Dict
+from typing import Dict, Sequence
 
-from ..value_objects import (CallbackGroupValue,
-                             SubscriptionCallbackValue,
-                             TimerCallbackValue,
-                             ExecutorValue,
-                             PathValue,
-                             PublisherValue,
-                             SubscriptionValue,
-                             VariablePassingValue,
-                             NodeValue)
+from ..value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
+                             NodeValueWithId, PathValue, PublisherValue,
+                             SubscriptionCallbackValue, SubscriptionValue,
+                             TimerCallbackValue, VariablePassingValue)
 
 UNDEFINED_STR = 'UNDEFINED'
 IGNORE_TOPICS = ['/parameter_events', '/rosout', '/clock']
@@ -37,7 +32,7 @@ class ArchitectureReader(metaclass=ABCMeta):
     @abstractmethod
     def get_nodes(
         self
-    ) -> Sequence[NodeValue]:
+    ) -> Sequence[NodeValueWithId]:
         """
         Get nodes.
 

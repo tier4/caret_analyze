@@ -17,16 +17,15 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Dict, Optional, Tuple
 from logging import getLogger
+from typing import Dict, Optional, Tuple
 
-from ..common import CustomDict
-from .value_object import ValueObject
+from ..common import Summary
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
+from .callback import CallbackStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
-from .callback import CallbackStructValue
-
+from .value_object import ValueObject
 
 logger = getLogger(__name__)
 
@@ -122,8 +121,8 @@ class MessageContext(ValueObject):
         return self._sub.topic_name
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'subscription_topic_name': self.subscription_topic_name,
             'publisher_topic_name': self.publisher_topic_name,
             'type': str(self.type_name)

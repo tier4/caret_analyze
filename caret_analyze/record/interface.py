@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import sys
 from abc import abstractmethod
 from typing import Callable, Dict, List, Optional, Sequence, Set
 
@@ -306,11 +305,12 @@ class RecordsInterface:
 
     def reindex(self, columns: List[str]) -> None:
         """
-        Reindex columns
+        Reindex columns.
 
         Parameters
         ----------
         columns : List[str]
+
         """
         pass
 
@@ -561,7 +561,7 @@ class RecordsInterface:
     @abstractmethod
     def append_column(self, column: str, values: List[int]) -> None:
         """
-        Append column to records
+        Append column to records.
 
         Parameters
         ----------

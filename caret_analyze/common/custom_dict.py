@@ -13,11 +13,11 @@
 # limitations under the License.
 
 from collections import UserDict
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 
-class CustomDict(UserDict):
-    """Temporary dictionary to use when outputting summaries. """
+class Summary(UserDict):
+    """Temporary dictionary to use when outputting summaries."""
 
     def pprint(self):
         print((self))
@@ -26,6 +26,10 @@ class CustomDict(UserDict):
         # ignore hash value
         return 0
 
+    def __eq__(self, other: Any):
+        # ignore equal
+        return True
+
     def __str__(self) -> str:
         from yaml import dump
         return dump(self._convert_safe(self.data))
@@ -33,13 +37,13 @@ class CustomDict(UserDict):
     @staticmethod
     def _convert_safe(obj) -> Union[List, Dict]:
         if isinstance(obj, tuple) or isinstance(obj, list):
-            return [CustomDict._convert_safe(_) for _ in obj]
+            return [Summary._convert_safe(_) for _ in obj]
 
-        if isinstance(obj, CustomDict) or isinstance(obj, dict):
+        if isinstance(obj, Summary) or isinstance(obj, dict):
             dic = {}
             for k, v in obj.items():
-                k_ = CustomDict._convert_safe(k)
-                v_ = CustomDict._convert_safe(v)
+                k_ = Summary._convert_safe(k)
+                v_ = Summary._convert_safe(v)
                 dic[k_] = v_
             return dic
 

@@ -14,11 +14,11 @@
 
 from typing import Optional
 
-from ...record import (RecordsInterface, merge,
-                       merge_sequencial, merge_sequencial_for_addr_track)
 from .column_names import COLUMN_NAME
 from .ros2_tracing.data_model import Ros2DataModel
 from ...common import Columns
+from ...record import (merge, merge_sequencial,
+                       merge_sequencial_for_addr_track, RecordsInterface)
 
 
 class RecordsSource():
@@ -56,8 +56,8 @@ class RecordsSource():
             - dds_write_timestamp
             - message_timestamp
             - source_timestamp
-        """
 
+        """
         dds_write = merge_sequencial_for_addr_track(
             source_records=self._data.dds_write_instances,
             copy_records=self._data.dds_bind_addr_to_addr,

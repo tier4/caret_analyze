@@ -14,23 +14,22 @@
 
 from __future__ import annotations, unicode_literals
 
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
-from ..infra.infra_base import InfraBase
 from ..architecture import Architecture
-from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
-from ..infra.interface import RuntimeDataProvider, RecordsProvider
+from ..common import Summary, Util
+from ..exceptions import InvalidArgumentError, UnsupportedTypeError
+from ..infra.infra_base import InfraBase
+from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..infra.lttng.lttng import Lttng
-
-from ..common import Util, CustomDict
+from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
+from ..value_objects import NodePathStructValue
 from .callback import CallbackBase
-from .communication import Communication
 from .callback_group import CallbackGroup
+from .communication import Communication
 from .executor import Executor
 from .node import Node
 from .path import Path
-from ..exceptions import InvalidArgumentError, UnsupportedTypeError
-from ..value_objects import NodePathStructValue
 
 
 class Application():
@@ -181,7 +180,7 @@ class Application():
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.filter(
+        return Util.filter_items(
             lambda x: x.topic_name == topic_name,
             self.communications
         )
@@ -193,7 +192,7 @@ class Application():
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.filter(
+        return Util.filter_items(
             lambda x: x.node_name == node_name,
             self.node_paths
         )
@@ -225,7 +224,7 @@ class Application():
         return sorted(c.node_name for c in self.nodes)
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'nodes': self.node_names
         })

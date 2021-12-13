@@ -25,9 +25,9 @@ from bokeh.palettes import Bokeh8
 from bokeh.plotting import ColumnDataSource, figure
 from bokeh.resources import CDN
 
+from ...exceptions import InvalidArgumentError
 from ...record.data_frame_shaper import Clip, Strip
 from ...runtime.path import Path
-from ...exceptions import InvalidArgumentError
 
 
 def message_flow(

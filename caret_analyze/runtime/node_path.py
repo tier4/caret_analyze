@@ -16,14 +16,14 @@ from typing import List, Optional
 
 from caret_analyze.infra.interface import RecordsProvider
 
+from ..common import Summary
 from ..record.record import RecordsInterface
+from ..record.record_factory import RecordsFactory
+from ..value_objects import MessageContext, NodePathStructValue
+from .callback import CallbackBase
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
-from .callback import CallbackBase
-from ..value_objects import MessageContextType, NodePathStructValue
-from ..common import CustomDict
-from ..record.record_factory import RecordsFactory
 
 
 class NodePath(PathBase):
@@ -51,11 +51,11 @@ class NodePath(PathBase):
         return self._callbacks
 
     @property
-    def message_context(self) -> Optional[MessageContextType]:
+    def message_context(self) -> Optional[MessageContext]:
         return self._val.message_context
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     def _to_records_core(self) -> RecordsInterface:

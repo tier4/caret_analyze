@@ -14,9 +14,9 @@
 # limitations under the License.
 
 
-from .value_object import ValueObject
+from ..common import Summary
 from .callback import CallbackStructValue
-from ..common import CustomDict
+from .value_object import ValueObject
 
 
 class VariablePassingValue(ValueObject):
@@ -127,16 +127,16 @@ class VariablePassingStructValue(ValueObject):
         return self._cb_read.callback_name
 
     @property
-    def callback_value_write(self) -> CallbackStructValue:
+    def callback_write(self) -> CallbackStructValue:
         return self._cb_write
 
     @property
-    def callback_value_read(self) -> CallbackStructValue:
+    def callback_read(self) -> CallbackStructValue:
         return self._cb_read
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'node': self.node_name,
             'write': self.callback_name_write,
             'read': self.callback_name_read,

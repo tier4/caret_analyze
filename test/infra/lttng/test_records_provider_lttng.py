@@ -12,32 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List
+
+
+from caret_analyze.exceptions import UnsupportedNodeRecordsError
+from caret_analyze.infra.infra_helper import InfraHelper
+from caret_analyze.infra.lttng import Lttng
+from caret_analyze.infra.lttng.bridge import LttngBridge
+from caret_analyze.infra.lttng.column_names import COLUMN_NAME
+from caret_analyze.infra.lttng.records_provider_lttng import (NodeRecordsCallbackChain,
+                                                              NodeRecordsInheritUniqueTimestamp,
+                                                              RecordsProviderLttng,
+                                                              RecordsProviderLttngHelper)
+from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
+                                                     SubscriptionCallbackValueLttng,
+                                                     TimerCallbackValueLttng)
+from caret_analyze.record import Record, Records, RecordsInterface
+from caret_analyze.record.interface import RecordInterface
+from caret_analyze.value_objects import (CallbackChain, CallbackStructValue,
+                                         CommunicationStructValue,
+                                         NodePathStructValue,
+                                         PublisherStructValue,
+                                         SubscriptionCallbackStructValue,
+                                         TimerCallbackStructValue,
+                                         VariablePassingStructValue)
 
 from pytest_mock import MockerFixture
 
-from caret_analyze.infra.lttng import Lttng
-from caret_analyze.infra.lttng.column_names import COLUMN_NAME
-from caret_analyze.infra.lttng.records_provider_lttng import (RecordsProviderLttng,
-                                                              RecordsProviderLttngHelper,
-                                                              NodeRecordsCallbackChain,
-                                                              NodeRecordsInheritUniqueTimestamp)
-from caret_analyze.infra.lttng.value_objects import \
-    SubscriptionCallbackValueLttng, TimerCallbackValueLttng, PublisherValueLttng
-from caret_analyze.infra.lttng.column_names import COLUMN_NAME
-from caret_analyze.infra.lttng.bridge import LttngBridge
-from caret_analyze.record import Record, Records, RecordsInterface
-from caret_analyze.record.interface import RecordInterface
-from caret_analyze.value_objects import (SubscriptionCallbackValue,
-                                         VariablePassingStructValue,
-                                         CallbackStructValue, SubscriptionCallbackStructValue, TimerCallbackStructValue,
-                                         CommunicationStructValue,
-                                         PublisherStructValue,
-                                         SubscriptionStructValue)
-from caret_analyze.exceptions import UnsupportedNodeRecordsError
-from caret_analyze.infra.infra_helper import InfraHelper
-
 
 class TestRecordsProviderLttng:
+
     def test_timer_callback_records(self, mocker: MockerFixture):
         period_ns = 10
 
@@ -46,7 +50,8 @@ class TestRecordsProviderLttng:
             'node', 'symbol', period_ns, None, 'callback_0')
         callback_object = 5
         callback_info_lttng = TimerCallbackValueLttng(
-            'callback_id', callback_info.node_name, callback_info.symbol, callback_info.period_ns,
+            'callback_id', 'node_id', callback_info.node_name,
+            callback_info.symbol, callback_info.period_ns,
             callback_info.publish_topic_names, callback_object)
 
         records_mock = mocker.Mock(spec=RecordsInterface)
@@ -70,7 +75,7 @@ class TestRecordsProviderLttng:
 
         mocker.patch.object(records_mock, 'filter_if', side_effect=filter_if)
         mocker.patch.object(records_mock, 'clone', return_value=records_mock)
-        mocker.patch.object(lttng_mock, 'get_timer_callbacks_info', return_value=[
+        mocker.patch.object(lttng_mock, 'get_timer_callbacks', return_value=[
                             callback_info_lttng])
         mocker.patch.object(
             lttng_mock, 'compose_callback_records', return_value=records_mock)
@@ -124,10 +129,10 @@ class TestRecordsProviderLttng:
                             return_value=[callback_object, callback_object_intra])
 
         callback_info_lttng = SubscriptionCallbackValueLttng(
-            '', callback_info.node_name, symbol,
+            'callback_id', 'node_id', callback_info.node_name, symbol,
             topic_name, callback_info.publish_topic_names,
             callback_object, callback_object_intra)
-        mocker.patch.object(lttng_mock, 'get_subscription_callbacks_info', return_value=[
+        mocker.patch.object(lttng_mock, 'get_subscription_callbacks', return_value=[
                             callback_info_lttng])
         mocker.patch.object(
             lttng_mock, 'compose_callback_records', return_value=records)
@@ -181,9 +186,9 @@ class TestRecordsProviderLttng:
                             return_value=[callback_object])
 
         callback_info_lttng = SubscriptionCallbackValueLttng(
-            '', node_name, symbol, topic_name, pub_topic_names,
+            'callback_id', 'node_id', node_name, symbol, topic_name, pub_topic_names,
             callback_object, callback_object_intra)
-        mocker.patch.object(lttng_mock, 'get_subscription_callbacks_info', return_value=[
+        mocker.patch.object(lttng_mock, 'get_subscription_callbacks', return_value=[
                             callback_info_lttng])
         mocker.patch.object(
             lttng_mock, 'compose_callback_records', return_value=records)
@@ -195,7 +200,7 @@ class TestRecordsProviderLttng:
 
     def test_node_records_callback_chain(self, mocker: MockerFixture):
         lttng_mock = mocker.Mock(spec=Lttng)
-        node_path_info_mock = mocker.Mock(spec=NodePathStructInfo)
+        node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
         records_mock = mocker.Mock(spec=RecordsInterface)
 
         node_records_cb_chain_mock = mocker.Mock(spec=NodeRecordsCallbackChain)
@@ -258,8 +263,8 @@ class TestRecordsProviderLttng:
             ]
         )
 
-        mocker.patch.object(comm_mock, 'publisher_info', pub_mock)
-        mocker.patch.object(comm_mock, 'subscribe_callback_info', sub_cb_mock)
+        mocker.patch.object(comm_mock, 'publisher', pub_mock)
+        mocker.patch.object(comm_mock, 'subscribe_callback', sub_cb_mock)
 
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch(
@@ -279,7 +284,7 @@ class TestRecordsProviderLttng:
 
     def test_node_records_inherit_timestamp(self, mocker: MockerFixture):
         lttng_mock = mocker.Mock(spec=Lttng)
-        node_path_info_mock = mocker.Mock(spec=NodePathStructInfo)
+        node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
         records_mock = mocker.Mock(spec=RecordsInterface)
 
         mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.NodeRecordsCallbackChain',
@@ -287,8 +292,9 @@ class TestRecordsProviderLttng:
 
         node_records_inherit_timestamp_mock = mocker.Mock(
             spec=NodeRecordsInheritUniqueTimestamp)
-        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.NodeRecordsInheritTimestamp',
-                     return_value=node_records_inherit_timestamp_mock)
+        mocker.patch(
+            'caret_analyze.infra.lttng.records_provider_lttng.NodeRecordsInheritUniqueTimestamp',
+            return_value=node_records_inherit_timestamp_mock)
 
         mocker.patch.object(node_records_inherit_timestamp_mock,
                             'to_records', return_value=records_mock)
@@ -348,6 +354,19 @@ class TestRecordsProviderLttng:
             ]
         )
 
+        intra_records = Records(
+            None,
+            [
+                COLUMN_NAME.PUBLISHER_HANDLE,
+                COLUMN_NAME.CALLBACK_OBJECT,
+                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.MESSAGE_TIMESTAMP,
+            ]
+        )
+
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch(
             'caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
@@ -359,6 +378,8 @@ class TestRecordsProviderLttng:
 
         mocker.patch.object(
             lttng_mock, 'compose_inter_proc_comm_records', return_value=records)
+        mocker.patch.object(
+            lttng_mock, 'compose_intra_proc_comm_records', return_value=intra_records)
         provider = RecordsProviderLttng(lttng_mock)
 
         records = provider.publish_records(pub_mock)
@@ -367,7 +388,7 @@ class TestRecordsProviderLttng:
     def test_get_rmw_impl(self, mocker: MockerFixture):
         lttng_mock = mocker.Mock(spec=Lttng)
         mocker.patch.object(
-            lttng_mock, 'get_rmw_implementation', return_value='rmw')
+            lttng_mock, 'get_rmw_impl', return_value='rmw')
         provider = RecordsProviderLttng(lttng_mock)
 
         assert provider.get_rmw_implementation() == 'rmw'
@@ -417,8 +438,8 @@ class TestRecordsProviderLttng:
             ]
         )
 
-        mocker.patch.object(comm_mock, 'publisher_info', pub_mock)
-        mocker.patch.object(comm_mock, 'subscribe_callback_info', sub_cb_mock)
+        mocker.patch.object(comm_mock, 'publisher', pub_mock)
+        mocker.patch.object(comm_mock, 'subscribe_callback', sub_cb_mock)
 
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch(
@@ -463,7 +484,7 @@ class TestRecordsProviderLttngHelper:
         mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
-            lttng_bridge_mock, 'get_timer_callback_info', return_value=cb_info_mock)
+            lttng_bridge_mock, 'get_timer_callback', return_value=cb_info_mock)
         mocker.patch.object(cb_info_mock, 'callback_object', callback_object)
 
         helper = RecordsProviderLttngHelper(lttng_mock)
@@ -482,7 +503,7 @@ class TestRecordsProviderLttngHelper:
         mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
-            lttng_bridge_mock, 'get_timer_callback_info', return_value=cb_info_mock)
+            lttng_bridge_mock, 'get_timer_callback', return_value=cb_info_mock)
         mocker.patch.object(cb_info_mock, 'callback_object', callback_object)
 
         helper = RecordsProviderLttngHelper(lttng_mock)
@@ -502,7 +523,7 @@ class TestRecordsProviderLttngHelper:
         mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
-            lttng_bridge_mock, 'get_subscription_callback_info', return_value=cb_info_mock)
+            lttng_bridge_mock, 'get_subscription_callback', return_value=cb_info_mock)
         mocker.patch.object(cb_info_mock, 'callback_object', callback_object)
         mocker.patch.object(cb_info_mock, 'callback_object_intra', callback_object_intra)
         helper = RecordsProviderLttngHelper(lttng_mock)
@@ -521,7 +542,7 @@ class TestRecordsProviderLttngHelper:
         mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
-            lttng_bridge_mock, 'get_subscription_callback_info', return_value=cb_info_mock)
+            lttng_bridge_mock, 'get_subscription_callback', return_value=cb_info_mock)
         mocker.patch.object(cb_info_mock, 'callback_object', callback_object)
 
         helper = RecordsProviderLttngHelper(lttng_mock)
@@ -540,7 +561,7 @@ class TestRecordsProviderLttngHelper:
         mocker.patch('caret_analyze.infra.lttng.bridge.LttngBridge',
                      return_value=lttng_bridge_mock)
         mocker.patch.object(
-            lttng_bridge_mock, 'get_subscription_callback_info', return_value=cb_info_mock)
+            lttng_bridge_mock, 'get_subscription_callback', return_value=cb_info_mock)
         mocker.patch.object(cb_info_mock, 'callback_object_intra', callback_object)
 
         helper = RecordsProviderLttngHelper(lttng_mock)
@@ -563,7 +584,7 @@ class TestRecordsProviderLttngHelper:
         pub_info_lttng_mock = mocker.Mock(spec=PublisherValueLttng)
         mocker.patch.object(pub_info_lttng_mock,
                             'publisher_handle', pub_handle)
-        mocker.patch.object(lttng_bridge_mock, 'get_publishers_info', return_value=[
+        mocker.patch.object(lttng_bridge_mock, 'get_publishers', return_value=[
                             pub_info_lttng_mock])
         pub_handles = helper.get_publisher_handles(pub_info_mock)
         assert pub_handles == [pub_handle]
@@ -573,9 +594,10 @@ class TestNodeRecordsCallbackChain:
 
     def test_single_callback(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
-        path_info_mock = mocker.Mock(spec=NodePathStructInfo)
+        path_info_mock = mocker.Mock(spec=NodePathStructValue)
         cb_info_mock = mocker.Mock(spec=CallbackStructValue)
 
+        records_data: List[RecordInterface]
         records_data = [
             Record({
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 0,
@@ -594,26 +616,20 @@ class TestNodeRecordsCallbackChain:
             ]
         )
         mocker.patch.object(provider_mock, 'callback_records', return_value=cb_records)
-        mocker.patch.object(path_info_mock, 'callbacks_info', return_value=[cb_info_mock])
+        mocker.patch.object(path_info_mock, 'callbacks', return_value=[cb_info_mock])
         mocker.patch.object(cb_info_mock, 'publish_topic_names', None)
         mocker.patch.object(cb_info_mock, 'callback_name', 'cb')
         mocker.patch.object(cb_info_mock, 'node_name', 'node')
         mocker.patch.object(path_info_mock, 'publish_topic_name', None)
-        mocker.patch.object(path_info_mock, 'publisher_info', None)
+        mocker.patch.object(path_info_mock, 'publisher', None)
         mocker.patch.object(path_info_mock, 'subscribe_topic_name', None)
-        mocker.patch.object(path_info_mock, 'chain_info', [cb_info_mock])
+        mocker.patch.object(path_info_mock, 'child', [cb_info_mock])
+        callback_chain = mocker.Mock(spec=CallbackChain)
+        mocker.patch.object(path_info_mock, 'message_context', callback_chain)
 
         # to_records changes the column name of cb_records,
         # so create expect before execution.
         expect = cb_records.clone()
-        expect.rename_columns(
-            {
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP:
-                    InfraHelper.cb_to_column(cb_info_mock, COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP:
-                    InfraHelper.cb_to_column(cb_info_mock, COLUMN_NAME.CALLBACK_END_TIMESTAMP),
-            }
-        )
 
         node_records = NodeRecordsCallbackChain(provider_mock, path_info_mock)
 
@@ -622,9 +638,10 @@ class TestNodeRecordsCallbackChain:
 
     def test_single_variable_passing(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
-        path_info_mock = mocker.Mock(spec=NodePathStructInfo)
+        path_info_mock = mocker.Mock(spec=NodePathStructValue)
         vp_info_mock = mocker.Mock(spec=VariablePassingStructValue)
 
+        records_data: List[RecordInterface]
         records_data = [
                 Record({
                     COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
@@ -643,11 +660,13 @@ class TestNodeRecordsCallbackChain:
             ]
         )
         mocker.patch.object(provider_mock, 'variable_passing_records', return_value=vp_records)
-        mocker.patch.object(path_info_mock, 'callbacks_info', return_value=[])
+        mocker.patch.object(path_info_mock, 'callbacks', return_value=[])
         mocker.patch.object(path_info_mock, 'publish_topic_name', None)
-        mocker.patch.object(path_info_mock, 'publisher_info', None)
+        mocker.patch.object(path_info_mock, 'publisher', None)
         mocker.patch.object(path_info_mock, 'subscribe_topic_name', None)
-        mocker.patch.object(path_info_mock, 'chain_info', [vp_info_mock])
+        mocker.patch.object(path_info_mock, 'child', [vp_info_mock])
+        callback_chain = mocker.Mock(spec=CallbackChain)
+        mocker.patch.object(path_info_mock, 'message_context', callback_chain)
 
         cb_write_mock = mocker.Mock(spec=CallbackStructValue)
         cb_read_mock = mocker.Mock(spec=CallbackStructValue)
@@ -655,22 +674,12 @@ class TestNodeRecordsCallbackChain:
         mocker.patch.object(cb_write_mock, 'node_name', 'node')
         mocker.patch.object(cb_read_mock, 'callback_name', 'cb1')
         mocker.patch.object(cb_read_mock, 'node_name', 'node')
-        mocker.patch.object(vp_info_mock, 'callback_info_write', cb_write_mock)
-        mocker.patch.object(vp_info_mock, 'callback_info_read', cb_read_mock)
+        mocker.patch.object(vp_info_mock, 'callback_write', cb_write_mock)
+        mocker.patch.object(vp_info_mock, 'callback_read', cb_read_mock)
 
         # to_records changes the column name of cb_records,
         # so create expect before execution.
         expect = vp_records.clone()
-        expect.rename_columns(
-            {
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP:
-                InfraHelper.cb_to_column(
-                    vp_info_mock.callback_info_write, COLUMN_NAME.CALLBACK_END_TIMESTAMP),
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP:
-                InfraHelper.cb_to_column(
-                    vp_info_mock.callback_info_read, COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-            }
-        )
 
         node_records = NodeRecordsCallbackChain(provider_mock, path_info_mock)
         records = node_records.to_records()
@@ -678,7 +687,7 @@ class TestNodeRecordsCallbackChain:
 
     def test_multi_callback(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
-        path_info_mock = mocker.Mock(spec=NodePathStructInfo)
+        path_info_mock = mocker.Mock(spec=NodePathStructValue)
 
         vp_info_mock = mocker.Mock(spec=VariablePassingStructValue)
         cb0_info_mock = mocker.Mock(spec=CallbackStructValue)
@@ -687,49 +696,49 @@ class TestNodeRecordsCallbackChain:
         cb0_records = Records(
             [
                 Record({
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 0,
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
+                    f'cb0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 0,
+                    f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 1,
                 }),
                 Record({
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 3,
+                    f'cb0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
+                    f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 3,
                 }),
             ],
             [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+                f'cb0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}',
+                f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}',
             ]
         )
         vp_records = Records(
             [
                 Record({
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,
+                    f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 1,
+                    f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
                 }),
                 Record({
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 3,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 4,
+                    f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 3,
+                    f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 4,
                 }),
             ],
             [
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}',
+                f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}',
             ]
         )
         cb1_records = Records(
             [
                 Record({
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 3,
+                    f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 2,
+                    f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 3,
                 }),
                 Record({
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 4,
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 5,
+                    f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}': 4,
+                    f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}': 5,
                 }),
             ],
             [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+                f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}',
+                f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}',
             ]
         )
 
@@ -740,20 +749,22 @@ class TestNodeRecordsCallbackChain:
 
         mocker.patch.object(provider_mock, 'callback_records', side_effect=callback_records)
         mocker.patch.object(provider_mock, 'variable_passing_records', return_value=vp_records)
-        mocker.patch.object(path_info_mock, 'callbacks_info', return_value=[vp_info_mock])
+        mocker.patch.object(path_info_mock, 'callbacks', return_value=[vp_info_mock])
         mocker.patch.object(path_info_mock, 'publish_topic_name', None)
-        mocker.patch.object(path_info_mock, 'publisher_info', None)
+        mocker.patch.object(path_info_mock, 'publisher', None)
         mocker.patch.object(path_info_mock, 'subscribe_topic_name', None)
         mocker.patch.object(
-            path_info_mock, 'chain_info', [cb0_info_mock, vp_info_mock, cb1_info_mock])
+            path_info_mock, 'child', [cb0_info_mock, vp_info_mock, cb1_info_mock])
+        callback_chain = mocker.Mock(spec=CallbackChain)
+        mocker.patch.object(path_info_mock, 'message_context', callback_chain)
 
         mocker.patch.object(cb0_info_mock, 'node_name', 'node')
         mocker.patch.object(cb1_info_mock, 'node_name', 'node')
         mocker.patch.object(cb0_info_mock, 'callback_name', 'cb0')
         mocker.patch.object(cb1_info_mock, 'callback_name', 'cb1')
 
-        mocker.patch.object(vp_info_mock, 'callback_info_write', cb0_info_mock)
-        mocker.patch.object(vp_info_mock, 'callback_info_read', cb1_info_mock)
+        mocker.patch.object(vp_info_mock, 'callback_write', cb0_info_mock)
+        mocker.patch.object(vp_info_mock, 'callback_read', cb1_info_mock)
 
         node_records = NodeRecordsCallbackChain(provider_mock, path_info_mock)
 
@@ -782,84 +793,3 @@ class TestNodeRecordsCallbackChain:
             column_names
         )
         assert records.equals(expect)
-
-
-    # comm と node を seq mergeに変更したため不要。
-    # def test_with_publish(self, mocker: MockerFixture):
-    #     provider_mock = mocker.Mock(spec=RecordsProviderLttng)
-    #     path_info_mock = mocker.Mock(spec=NodePathStructInfo)
-    #     cb_info_mock = mocker.Mock(spec=CallbackStructInfo)
-
-    #     cb_records = Records(
-    #         [
-    #             Record({
-    #                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 0,
-    #                 COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
-    #             }),
-    #             Record({
-    #                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 1,
-    #                 COLUMN_NAME.CALLBACK_END_TIMESTAMP: 2,
-    #             }),
-    #         ],
-    #         [
-    #             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-    #             COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-    #         ]
-    #     )
-
-    #     pub_records = Records(
-    #         [
-    #             Record({
-    #                 COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 0.5,
-    #             }),
-    #             Record({
-    #                 COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 1.5,
-    #             }),
-    #         ],
-    #         [
-    #             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-    #         ]
-    #     )
-    #     pub_info_mock = mocker.Mock(spec=PublisherStructInfo)
-
-    #     topic_name = '/pub'
-
-    #     mocker.patch.object(pub_info_mock, 'topic_name', topic_name)
-    #     mocker.patch.object(provider_mock, 'callback_records', return_value=cb_records)
-    #     mocker.patch.object(provider_mock, 'publish_records', return_value=pub_records)
-    #     mocker.patch.object(path_info_mock, 'callbacks_info', return_value=[cb_info_mock])
-    #     mocker.patch.object(cb_info_mock, 'publish_topic_names', [topic_name])
-    #     mocker.patch.object(cb_info_mock, 'callback_name', 'cb')
-    #     mocker.patch.object(cb_info_mock, 'node_name', 'node')
-    #     mocker.patch.object(path_info_mock, 'publish_topic_name', None)
-    #     mocker.patch.object(path_info_mock, 'subscribe_topic_name', None)
-    #     mocker.patch.object(path_info_mock, 'chain_info', [cb_info_mock])
-
-    #     mocker.patch.object(path_info_mock, 'publisher_info', pub_info_mock)
-
-    #     columns = [
-    #         InfraHelper.cb_to_column(cb_info_mock, COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-    #         InfraHelper.pub_to_column(pub_info_mock, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-    #     ]
-    #     expect = Records(
-    #         [
-    #             Record(
-    #                 {
-    #                     columns[0]: 0,
-    #                     columns[1]: 0.5,
-    #                 }
-    #             ),
-    #             Record(
-    #                 {
-    #                     columns[0]: 1,
-    #                     columns[1]: 1.5,
-    #                 }
-    #             ),
-    #         ],
-    #         columns
-    #     )
-
-    #     node_records = NodeRecordsCallbackChain(provider_mock, path_info_mock)
-
-    #     records = node_records.to_records()
-    #     assert records.equals(expect)

@@ -19,7 +19,8 @@ import pandas as pd
 import pytest
 
 from caret_analyze.exceptions import InvalidArgumentError
-from caret_analyze.record.record import Record, Records, merge, RecordInterface, RecordsInterface
+from caret_analyze.record.record import (Record, RecordInterface, Records,
+                                         RecordsInterface, merge)
 
 RecordCppImpl: Any
 RecordsCppImpl: Any
@@ -119,6 +120,16 @@ class TestRecord:
             record = record_type(dic)
             assert record.get('stamp') == 0
             assert record.get('value') == 1
+
+    def test_get_with_default(self):
+        dic = {'stamp': 0}
+        for record_type in [Record, RecordCppImpl]:
+            if not CppImplEnabled:
+                continue
+            record = record_type(dic)
+            assert record.get_with_default('stamp', 0) == 0
+            assert record.get_with_default('value', 0) == 0
+            assert record.get_with_default('value', 1) == 1
 
     def test_add(self):
         for record_type in [Record, RecordCppImpl]:
@@ -238,6 +249,7 @@ class TestRecords:
             records.append(expects.data[1])
             assert records.equals(expects)
             assert records.columns == expects.columns
+
 
     def test_drop_columns(self):
         key = 'stamp'
@@ -363,7 +375,7 @@ class TestRecords:
                 continue
 
             records_ = records.clone()
-            records_.append_column('aaa')
+            records_.append_column('aaa', [9])
             assert records_.columns == ['stamp', 'aaa']
             assert records.columns == ['stamp']
 
@@ -437,7 +449,7 @@ class TestRecords:
                     record_type({'sort_key': 5}),
                 ], ['sort_key', 'stamp', 'stamp_']
             )
-            records.bind_drop_as_delay('sort_key')
+            records.bind_drop_as_delay()
             records_expect = records_type(
                 [
                     record_type({'sort_key': 1, 'stamp': 0, 'stamp_': 1}),
@@ -471,15 +483,22 @@ class TestRecords:
             assert df.equals(expect_df)
 
     def test_append_column(self):
-        for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
+        expects_py = Records(
+            [
+                Record({'value': 0}),
+            ],
+            ['value']
+        )
+
+        expects_cpp = to_cpp_records(expects_py)
+        for expects, record_type, records_type in \
+                zip([expects_py, expects_cpp], [Record, RecordCppImpl], [Records, RecordsCppImpl]):
             if records_type == RecordsCppImpl and not CppImplEnabled:
                 continue
-
-            records = records_type()
-            records.append_column('a')
-            assert records.columns == ['a']
-            records.append_column('b')
-            assert records.columns == ['a', 'b']
+            records = records_type([record_type()], [])
+            assert records.columns == []
+            records.append_column('value', [0])
+            assert records.equals(expects)
 
     def test_sort(self):
         key = 'stamp'
@@ -519,6 +538,57 @@ class TestRecords:
             records_ = records.clone()
             records_.sort(key, ascending=False)
             assert records_.equals(records_desc)
+
+    def test_sort_column_order(self):
+        key = 'stamp'
+        key_ = 'stamp_'
+        key__ = 'stamp__'
+
+        for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
+            if records_type == RecordsCppImpl and not CppImplEnabled:
+                continue
+
+            records = records_type(
+                [
+                    record_type({key: 2, key_: 2, key__: 6}),
+                    record_type({key: 2, key_: 2}),
+                    record_type({key: 1, key__: 5}),
+                    record_type({key: 2, key_: 1, key__: 5}),
+                    record_type({key: 0, key_: 5, key__: 5}),
+                    record_type({key: 1}),
+                ],
+                [key, key_, key__]
+            )
+            records_asc = records_type(
+                [
+                    record_type({key: 0, key_: 5, key__: 5}),
+                    record_type({key: 1, key__: 5}),
+                    record_type({key: 1}),
+                    record_type({key: 2, key_: 1, key__: 5}),
+                    record_type({key: 2, key_: 2, key__: 6}),
+                    record_type({key: 2, key_: 2}),
+                ],
+                [key, key_, key__]
+            )
+            records_desc = records_type(
+                [
+                    record_type({key: 2, key_: 2}),
+                    record_type({key: 2, key_: 2, key__: 6}),
+                    record_type({key: 2, key_: 1, key__: 5}),
+                    record_type({key: 1}),
+                    record_type({key: 1, key__: 5}),
+                    record_type({key: 0, key_: 5, key__: 5}),
+                ],
+                [key, key_, key__]
+            )
+            records_ = records.clone()
+            records_.sort_column_order(ascending=True, put_none_at_top=True)
+            assert records_.equals(records_asc)
+
+            records_ = records.clone()
+            records_.sort_column_order(ascending=False, put_none_at_top=False)
+            assert records_.equals(records_desc)
+
 
     def test_sort_with_sub_key(self):
         key = 'stamp'

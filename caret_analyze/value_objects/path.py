@@ -15,14 +15,14 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple, Union
 from logging import getLogger
+from typing import Optional, Tuple, Union
 
-from .node_path import NodePathValue, NodePathStructValue
-from .value_object import ValueObject
-from ..common import Util, CustomDict
-from .communication import CommunicationStructValue
+from ..common import Summary, Util
 from ..exceptions import InvalidArgumentError
+from .communication import CommunicationStructValue
+from .node_path import NodePathStructValue, NodePathValue
+from .value_object import ValueObject
 
 logger = getLogger(__name__)
 
@@ -81,21 +81,21 @@ class PathStructValue(ValueObject):
 
     @property
     def node_paths(self) -> Tuple[NodePathStructValue, ...]:
-        node_paths = Util.filter(
+        node_paths = Util.filter_items(
             lambda x: isinstance(x, NodePathStructValue),
             self._child)
         return tuple(node_paths)
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
-        comm_paths = Util.filter(
+        comm_paths = Util.filter_items(
             lambda x: isinstance(x, CommunicationStructValue),
             self._child)
         return tuple(comm_paths)
 
     @property
-    def summary(self) -> CustomDict:
-        d: CustomDict = CustomDict()
+    def summary(self) -> Summary:
+        d: Summary = Summary()
         d['path'] = []
         for child in self.child:
             if isinstance(child, NodePathStructValue):

@@ -17,19 +17,13 @@ from typing import Any, Dict, List, Sequence
 import yaml
 
 from ...architecture.reader_interface import UNDEFINED_STR, ArchitectureReader
-from ...exceptions import InvalidYamlFormatError
 from ...common import Util
-from ...value_objects import (CallbackGroupValue,
-                              SubscriptionCallbackValue, TimerCallbackValue,
-                              CallbackType,
-                              ExecutorValue,
-                              NodePathValue,
-                              PathValue,
-                              PublisherValue,
-                              SubscriptionValue,
-                              VariablePassingValue,
-                              MessageContextType,
-                              NodeValue)
+from ...exceptions import InvalidYamlFormatError
+from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
+                              NodePathValue, NodeValue, NodeValueWithId,
+                              PathValue, PublisherValue,
+                              SubscriptionCallbackValue, SubscriptionValue,
+                              TimerCallbackValue, VariablePassingValue)
 
 
 class ArchitectureReaderYaml(ArchitectureReader):
@@ -41,13 +35,13 @@ class ArchitectureReaderYaml(ArchitectureReader):
         if self._arch is None:
             raise InvalidYamlFormatError('Failed to parse yaml.')
 
-    def get_nodes(self) -> Sequence[NodeValue]:
+    def get_nodes(self) -> Sequence[NodeValueWithId]:
         nodes_dict = self._get_value(self._arch, 'nodes')
         nodes = []
         for node_dict in nodes_dict:
             node_name = self._get_value(node_dict, 'node_name')
             #  In yaml reader, node_name is used as node_id.
-            nodes.append(NodeValue(node_name, node_name))
+            nodes.append(NodeValueWithId(node_name, node_name))
         return nodes
 
     def _get_value(self, obj: Dict, key_name: str):
@@ -95,7 +89,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
             return []
 
         cbs_dict = self._get_value(node_dict, 'callbacks')
-        cbs_dict = Util.filter(
+        cbs_dict = Util.filter_items(
             lambda x: self._get_value(x, 'callback_type') == str(CallbackType.TIMER),
             cbs_dict
         )
@@ -151,7 +145,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                 callback_group_type_name=self._get_value(cbg_dict, 'callback_group_type'),
                 node_name=node.node_name,
                 node_id=node.node_name,
-                callback_ids=self._get_value(cbg_dict, 'callback_names'),
+                callback_ids=tuple(self._get_value(cbg_dict, 'callback_names')),
                 callback_group_id=cbg_name,
                 callback_group_name=cbg_name
             )

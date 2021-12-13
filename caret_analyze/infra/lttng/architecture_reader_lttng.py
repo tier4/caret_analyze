@@ -12,18 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Dict
+from typing import Dict, List, Sequence
+
+from caret_analyze.value_objects.node import NodeValueWithId
 
 from ...architecture.reader_interface import ArchitectureReader
-from ...value_objects import (CallbackGroupValue,
-                              SubscriptionCallbackValue,
-                              TimerCallbackValue,
-                              ExecutorValue,
-                              PathValue,
-                              PublisherValue,
-                              SubscriptionValue,
-                              VariablePassingValue,
-                              NodeValue)
+from ...value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
+                              PathValue, PublisherValue,
+                              SubscriptionCallbackValue, SubscriptionValue,
+                              TimerCallbackValue, VariablePassingValue)
 
 
 class ArchitectureReaderLttng(ArchitectureReader):
@@ -34,7 +31,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
         from .lttng import Lttng
         self._lttng = Lttng(trace_dir)
 
-    def get_nodes(self) -> Sequence[NodeValue]:
+    def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._lttng.get_nodes()
 
     def get_timer_callbacks(
@@ -85,15 +82,15 @@ class ArchitectureReaderLttng(ArchitectureReader):
 
     def get_subscriptions(
         self,
-        node_info: NodeValue
+        node: NodeValue
     ) -> Sequence[SubscriptionValue]:
         info: List[SubscriptionValue] = []
-        for sub_cb in self.get_subscription_callbacks(node_info):
+        for sub_cb in self.get_subscription_callbacks(node):
             topic_name = sub_cb.subscribe_topic_name
             assert topic_name is not None
             info.append(SubscriptionValue(
-                sub_cb.node_name,
                 topic_name,
+                sub_cb.node_name,
                 sub_cb.node_id,
                 sub_cb.callback_id
             ))
