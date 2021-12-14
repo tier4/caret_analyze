@@ -231,13 +231,29 @@ class RecordsSource():
             columns=Columns(inter_proc_publish.columns + intra_proc_publish.columns).as_list(),
             how='outer'
         )
+        publish.rename_columns(
+            {COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 'rclcpp_inter_publish_timestamp'})
+
+        publish_stamps = []
+        maxsize = 2**64-1
+        for record in publish.data:
+            rclcpp_publish, rclcpp_intra_publish = maxsize, maxsize
+            if 'rclcpp_inter_publish_timestamp' in record.columns:
+                rclcpp_publish = record.get('rclcpp_inter_publish_timestamp')
+            if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.columns:
+                rclcpp_intra_publish = record.get(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
+            inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
+            publish_stamps.append(inter_intra_publish)
+
+        publish.append_column('rclcpp_publish_timestamp', publish_stamps)
         publish.reindex([
             COLUMN_NAME.PUBLISHER_HANDLE,
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            'rclcpp_publish_timestamp',
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            'rclcpp_inter_publish_timestamp',
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.MESSAGE,
+            COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
         ])
 

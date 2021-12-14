@@ -249,7 +249,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return sub_records
 
-
     def publish_records(
         self,
         publisher: PublisherStructValue
@@ -284,27 +283,29 @@ class RecordsProviderLttng(RuntimeDataProvider):
         records.filter_if(is_target)
 
         columns = [
-            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, 'rclcpp_publish_timestamp'),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, 'rclcpp_inter_publish_timestamp'),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP),
-            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.MESSAGE_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.SOURCE_TIMESTAMP),
         ]
         records.rename_columns({
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: columns[0],
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: columns[1],
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP: columns[2],
-            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: columns[3],
-            COLUMN_NAME.MESSAGE_TIMESTAMP: columns[4],
-            COLUMN_NAME.SOURCE_TIMESTAMP: columns[5],
+            'rclcpp_publish_timestamp': columns[0],
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: columns[1],
+            'rclcpp_inter_publish_timestamp': columns[2],
+            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: columns[3],
+            COLUMN_NAME.DDS_WRITE_TIMESTAMP: columns[4],
+            COLUMN_NAME.MESSAGE_TIMESTAMP: columns[5],
+            COLUMN_NAME.SOURCE_TIMESTAMP: columns[6],
         })
 
         drop_columns = list(set(records.columns) - set(columns))
         records.drop_columns(drop_columns)
         records.reindex(columns)
-        return records
 
+        return records
 
     def get_rmw_implementation(self) -> str:
         return self._lttng.get_rmw_impl()
@@ -743,33 +744,12 @@ class NodeRecordsInheritUniqueTimestamp:
         sub_records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
 
         pub_records = self._provider.publish_records(self._node_path.publisher)
-        # pub_records_intra = self._provider.intra_publish_records(self._node_path.publisher)
-        # pub_merged = merge_sequencial(
-        #     left_records=pub_records,
-        #     right_records=pub_records_intra,
-        #     left_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-        #     right_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-        #     join_left_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-        #     join_right_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-        #     columns=Columns(pub_records.columns+pub_records_intra.columns),
-        #     how='outer'
-        # )
-
-        # pub_merged.append_column(inter_intra_publish_timestamp)
-        for record in pub_records.data:
-            rclcpp_publish, rclcpp_intra_publish = maxsize, maxsize
-            if COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in record.columns:
-                rclcpp_publish = record.get(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
-            if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.columns:
-                rclcpp_intra_publish = record.get(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
-            inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
-            record.add(inter_intra_publish_timestamp, inter_intra_publish)
 
         pub_sub_records = merge_sequencial(
             left_records=sub_records,
             right_records=pub_records,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            right_stamp_key=inter_intra_publish_timestamp,
+            right_stamp_key='rclcpp_publish_timestamp',
             join_left_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
             join_right_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
             columns=Columns(sub_records.columns + pub_records.columns).as_list(),
@@ -818,41 +798,19 @@ class NodeRecordsUseLatestMessage:
         self._node_path = node_path
 
     def to_records(self):
-        maxsize = 2**64-1
-
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
-        rclcpp_publish_column = \
-            f'{self._node_path.publish_topic_name}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
-        rclcpp_intra_publish_column = \
-            f'{self._node_path.publish_topic_name}/{COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP}'
-        # for record in pub_merged.data:
-        inter_intra_publish_timestamps = []
-        for i in range(len(pub_records)):
-            record = pub_records.data[i]
-            rclcpp_publish, rclcpp_intra_publish = maxsize, maxsize
-            if rclcpp_publish_column in record.columns:
-                rclcpp_publish = record.get(rclcpp_publish_column)
-            if rclcpp_intra_publish_column in record.columns:
-                rclcpp_intra_publish = record.get(rclcpp_intra_publish_column)
-            inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
-            inter_intra_publish_timestamps.append(inter_intra_publish)
-            # pub_merged.data[i].add(inter_intra_publish_timestamp, inter_intra_publish)
-            []
-
         columns = [
             sub_records.columns[0],
-            f'{self._node_path.publish_topic_name}/rclcpp_inter_intra_publish_timestamp',
+            f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
-
-        pub_records.append_column(columns[1], inter_intra_publish_timestamps)
 
         pub_sub_records = merge_sequencial(
             left_records=sub_records,
             right_records=pub_records,
             left_stamp_key=sub_records.columns[0],
-            right_stamp_key=columns[1],
+            right_stamp_key='rclcpp_publish_timestamp',
             join_left_key=None,
             join_right_key=None,
             columns=Columns(sub_records.columns + pub_records.columns).as_list(),
