@@ -269,7 +269,7 @@ class Records(RecordsInterface):
         df_dict: List[Dict[str, int]],
         columns: List[str]
     ) -> pd.DataFrame:
-        df = pd.DataFrame.from_dict(df_dict)
+        df = pd.DataFrame.from_dict(df_dict, dtype='Int64')
         missing_columns = set(columns) - set(df.columns)
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
