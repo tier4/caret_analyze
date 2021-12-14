@@ -37,9 +37,6 @@ class RecordsCppImpl(RecordsInterface):
         Records._validate(init, columns)
         self._records = RecordsBase(init or [], columns or [])
 
-    def to_string(self) -> str:
-        return self.to_dataframe().to_string()
-
     def export_json(self, path: str) -> None:
         import json
 
