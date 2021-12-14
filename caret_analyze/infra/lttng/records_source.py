@@ -153,6 +153,23 @@ class RecordsSource():
 
     @cached_property
     def publish_records(self) -> RecordsInterface:
+        """
+        Compose publish records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - publisher_handle
+            - rclcpp_publish_timestamp
+            - rclcpp_intra_publish_timestamp
+            - rclcpp_inter_publish_timestamp
+            - rcl_publish_timestamp
+            - dds_write_timestamp
+            - message_timestamp
+            - source_timestamp
+
+        """
         dds_write = merge_sequencial_for_addr_track(
             source_records=self._data.dds_write_instances,
             copy_records=self._data.dds_bind_addr_to_addr,

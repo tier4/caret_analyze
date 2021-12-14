@@ -473,7 +473,9 @@ class TestRecords:
         )
         records_cpp = to_cpp_records(records_py)
         expect_dict = [record.data for record in records_py.data]
-        expect_df = pd.DataFrame.from_dict(expect_dict).reindex(columns=['b', 'a', 'c'])
+        expect_df = pd.DataFrame.from_dict(
+            expect_dict, dtype='Int64'
+        ).reindex(columns=['b', 'a', 'c'])
 
         for records in [records_py, records_cpp]:
             if records is None and not CppImplEnabled:

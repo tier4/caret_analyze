@@ -317,6 +317,7 @@ class TestRecordsProviderLttng:
             [
                 Record({
                     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 1,
+                    'rclcpp_inter_publish_timestamp': 1,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 2,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 3,
                     COLUMN_NAME.PUBLISHER_HANDLE: pub_handle,
@@ -324,6 +325,7 @@ class TestRecordsProviderLttng:
                 }),
                 Record({
                     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 2,
+                    'rclcpp_inter_publish_timestamp': 2,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 3,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 4,
                     COLUMN_NAME.PUBLISHER_HANDLE: pub_handle + 999,
@@ -331,6 +333,7 @@ class TestRecordsProviderLttng:
                 }),
                 Record({
                     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 3,
+                    'rclcpp_inter_publish_timestamp': 3,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 4,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 5,
                     COLUMN_NAME.PUBLISHER_HANDLE: pub_handle,
@@ -339,7 +342,8 @@ class TestRecordsProviderLttng:
             ],
             [
                 COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                'rclcpp_publish_timestamp',
+                'rclcpp_inter_publish_timestamp',
                 COLUMN_NAME.DDS_WRITE_TIMESTAMP,
                 COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
@@ -360,6 +364,8 @@ class TestRecordsProviderLttng:
         mocker.patch.object(
             lttng_mock, 'compose_publish_records', return_value=records)
         provider = RecordsProviderLttng(lttng_mock)
+
+        mocker.patch.object(pub_mock, 'topic_name', '/topic')
 
         records = provider.publish_records(pub_mock)
         assert len(records.data) == 2
