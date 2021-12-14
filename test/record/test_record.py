@@ -482,6 +482,25 @@ class TestRecords:
             df = records.to_dataframe()
             assert df.equals(expect_df)
 
+    def test_iter(self):
+        records_py: Records = Records(
+            [
+                Record({'a': 0}),
+                Record({'a': 3}),
+                Record({'a': 5}),
+            ],
+            ['a']
+        )
+        records_cpp = to_cpp_records(records_py)
+
+        for records in [records_py, records_cpp]:
+            if records is None and not CppImplEnabled:
+                continue
+
+            for i, record in enumerate(records):
+                assert record.get('a') == records_py.data[i].get('a')
+
+
     def test_append_column(self):
         expects_py = Records(
             [

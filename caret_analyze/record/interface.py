@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Callable, Dict, List, Optional, Sequence, Set
+from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set
 
 import pandas as pd
 
@@ -302,6 +302,9 @@ class RecordsInterface:
 
     def __len__(self) -> int:
         return len(self.data)
+
+    def __iter__(self) -> Iterator:
+        return iter(self.data)
 
     def reindex(self, columns: List[str]) -> None:
         """
