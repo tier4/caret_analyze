@@ -12,22 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, List
+from typing import List, Union
 
-from ...value_objects import (SubscriptionCallbackValue,
-                              TimerCallbackValue,
-                              SubscriptionCallbackStructValue,
-                              TimerCallbackStructValue,
-                              PublisherValue,
-                              PublisherStructValue,
-                              NodeValue)
-from .value_objects import (SubscriptionCallbackValueLttng,
-                            TimerCallbackValueLttng,
-                            PublisherValueLttng)
-
-from ...exceptions import ItemNotFoundError, MultipleItemFoundError
-from ...common import Util
 from .lttng import Lttng
+from .value_objects import (PublisherValueLttng,
+                            SubscriptionCallbackValueLttng,
+                            TimerCallbackValueLttng)
+from ...common import Util
+from ...exceptions import ItemNotFoundError, MultipleItemFoundError
+from ...value_objects import (NodeValue, PublisherStructValue, PublisherValue,
+                              SubscriptionCallbackStructValue,
+                              SubscriptionCallbackValue,
+                              TimerCallbackStructValue, TimerCallbackValue)
 
 
 class LttngBridge:
@@ -37,7 +33,7 @@ class LttngBridge:
     ) -> None:
         self._lttng = lttng
 
-    def get_timer_callback_value(
+    def get_timer_callback(
         self,
         callback: TimerCallbackStructValue
     ) -> TimerCallbackValueLttng:
@@ -84,7 +80,7 @@ class LttngBridge:
 
         return timer_callback
 
-    def get_subscription_callback_value(
+    def get_subscription_callback(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> SubscriptionCallbackValueLttng:
@@ -115,7 +111,6 @@ class LttngBridge:
             Multiple pieces of values matching the search condition are found.
 
         """
-
         try:
             node = NodeValue(callback.node_name, None)
             sub_callbacks = self._lttng.get_subscription_callbacks(node)
@@ -132,7 +127,7 @@ class LttngBridge:
 
         return sub_callback
 
-    def get_publisher_values(
+    def get_publishers(
         self,
         publisher_value: PublisherStructValue
     ) -> List[PublisherValueLttng]:
@@ -148,13 +143,13 @@ class LttngBridge:
         -------
         List[PublisherValueLttng]
             publisher values that matches the condition
-        """
 
+        """
         try:
             condition = PublisherBindCondition(publisher_value)
             node = NodeValue(publisher_value.node_name, None)
             pubs = self._lttng.get_publishers(node)
-            pubs_filtered = Util.filter(condition, pubs)
+            pubs_filtered = Util.filter_items(condition, pubs)
         except ItemNotFoundError:
             msg = 'Failed to find publisher instance. '
             msg += str(condition)
@@ -174,6 +169,7 @@ class TimerCallbackBindCondition:
     - publish topic names
 
     """
+
     def __init__(
         self,
         target_condition: Union[TimerCallbackValue, TimerCallbackStructValue]

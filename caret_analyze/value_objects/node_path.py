@@ -14,18 +14,16 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple, Union
 from logging import getLogger
+from typing import Optional, Tuple, Union
 
+from ..common import Summary, Util
 from .callback import CallbackStructValue
+from .message_context import MessageContext
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
-from .variable_passing import VariablePassingStructValue
 from .value_object import ValueObject
-from ..common import Util
-from .message_context import MessageContext
-from ..common import CustomDict
-
+from .variable_passing import VariablePassingStructValue
 
 logger = getLogger(__name__)
 
@@ -78,18 +76,18 @@ class NodePathStructValue(ValueObject):
         if self._child is None:
             return None
 
-        cb_values = Util.filter(
+        cb_values = Util.filter_items(
             lambda x: isinstance(x, CallbackStructValue),
             self._child
         )
         return tuple(cb_values)
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         context = None
         if self.message_context is not None:
             context = self.message_context.summary
-        return CustomDict({
+        return Summary({
             'node': self.node_name,
             'message_context': context,
             'subscribe_topic_name': self.subscribe_topic_name,
@@ -108,7 +106,7 @@ class NodePathStructValue(ValueObject):
         if self._child is None:
             return None
 
-        cbs_info = Util.filter(
+        cbs_info = Util.filter_items(
             lambda x: isinstance(x, VariablePassingStructValue),
             self._child
         )

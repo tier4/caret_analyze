@@ -17,11 +17,10 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from .callback_group import CallbackGroupValue
-from .value_object import ValueObject
-from ..common import Util, CustomDict
-from .callback_group import CallbackGroupStructValue
+from ..common import Summary, Util
 from .callback import CallbackStructValue
+from .callback_group import CallbackGroupStructValue, CallbackGroupValue
+from .value_object import ValueObject
 
 
 class ExecutorType(ValueObject):
@@ -97,8 +96,8 @@ class ExecutorStructValue(ValueObject):
         return tuple(cbg_names)
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'name': self.executor_name,
             'type': self.executor_type_name,
             'callback_groups': [_.summary for _ in self.callback_groups]

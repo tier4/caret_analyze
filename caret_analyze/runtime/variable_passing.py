@@ -14,9 +14,9 @@
 
 from __future__ import annotations
 
-from ..common import CustomDict
-from ..record import RecordsInterface
+from ..common import Summary
 from ..infra.interface import RecordsProvider
+from ..record import RecordsInterface
 from ..value_objects import VariablePassingStructValue
 from .path_base import PathBase
 
@@ -34,12 +34,12 @@ class VariablePassing(PathBase):
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.variable_passing_records(self._val)
-        records.sort(self.column_names[0])
+        records.sort(records.columns[0])
 
         return records
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     @property

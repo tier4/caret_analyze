@@ -14,24 +14,20 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from ..architecture import Architecture
-from ..exceptions import ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError
-from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..common import Util
-from ..value_objects import (CommunicationStructValue,
-                             ExecutorStructValue,
-                             NodePathStructValue,
-                             NodeStructValue,
-                             PathStructValue,
-                             CallbackGroupStructValue,
-                             VariablePassingStructValue,
-                             CallbackStructValue,
-                             TimerCallbackStructValue,
+from ..exceptions import (ItemNotFoundError, MultipleItemFoundError,
+                          UnsupportedTypeError)
+from ..infra.interface import RecordsProvider, RuntimeDataProvider
+from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
+                             CommunicationStructValue, ExecutorStructValue,
+                             NodePathStructValue, NodeStructValue,
+                             PathStructValue, PublisherStructValue,
                              SubscriptionCallbackStructValue,
-                             PublisherStructValue,
-                             SubscriptionStructValue)
+                             SubscriptionStructValue, TimerCallbackStructValue,
+                             VariablePassingStructValue)
 from .callback import CallbackBase, SubscriptionCallback, TimerCallback
 from .callback_group import CallbackGroup
 from .communication import Communication
@@ -39,9 +35,9 @@ from .executor import Executor
 from .node import Node
 from .node_path import NodePath
 from .path import Path
-from .variable_passing import VariablePassing
 from .publisher import Publisher
 from .subscription import Subscription
+from .variable_passing import VariablePassing
 
 
 class RuntimeLoaded():
@@ -78,7 +74,7 @@ class RuntimeLoaded():
         return self._comms
 
     @property
-    def named_paths(self) -> List[Path]:
+    def paths(self) -> List[Path]:
         return self._paths
 
 
@@ -272,9 +268,7 @@ class PublishersLoaded:
         publisher_info: PublisherStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Publisher:
-        if isinstance(provider, RuntimeDataProvider):
-            return Publisher(publisher_info, provider)
-        return Publisher(publisher_info, None)
+        return Publisher(publisher_info, provider)
 
     @property
     def data(self) -> List[Publisher]:
@@ -287,7 +281,7 @@ class PublishersLoaded:
         topic_name: Optional[str],
     ) -> List[Publisher]:
         is_target = PublishersLoaded.IsTarget(node_name, callback_name, topic_name)
-        return Util.filter(is_target, self._pubs)
+        return Util.filter_items(is_target, self._pubs)
 
     def get_publisher(
         self,
@@ -351,9 +345,7 @@ class SubscriptionsLoaded:
         subscription_info: SubscriptionStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Subscription:
-        if isinstance(provider, RuntimeDataProvider):
-            return Subscription(subscription_info, provider)
-        return Subscription(subscription_info, None)
+        return Subscription(subscription_info, provider)
 
     @property
     def data(self) -> List[Subscription]:
@@ -366,7 +358,7 @@ class SubscriptionsLoaded:
         topic_name: Optional[str],
     ) -> List[Subscription]:
         is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
-        return Util.filter(is_target, self._subs)
+        return Util.filter_items(is_target, self._subs)
 
     def get_subscription(
         self,

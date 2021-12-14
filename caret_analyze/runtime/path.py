@@ -14,18 +14,17 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence, Union
 from logging import getLogger
+from typing import Dict, List, Optional, Sequence, Union
 
-from ..exceptions import InvalidArgumentError
-from ..record.record import RecordsInterface, merge, merge_sequencial
-from ..common import Util, Columns, CustomDict
+from .callback import CallbackBase
 from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
-from .callback import CallbackBase
+from ..common import Columns, Summary, Util
+from ..exceptions import InvalidArgumentError
+from ..record.record import merge, merge_sequencial, RecordsInterface
 from ..value_objects import PathStructValue
-
 
 logger = getLogger(__name__)
 
@@ -207,13 +206,13 @@ class RecordsMerged:
 class Path(PathBase):
     def __init__(
         self,
-        path_info: PathStructValue,
+        path: PathStructValue,
         child: List[Union[NodePath, Communication]],
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
         super().__init__()
 
-        self._value = path_info
+        self._value = path
         self._validate(child)
         self._child = child
         self._columns_cache: Optional[List[str]] = None
@@ -241,13 +240,16 @@ class Path(PathBase):
                 continue
             msg = 'Detected invalid message context. Correct these node_path definitions. \n'
             msg += 'To see node definition,'
-            msg += f'execute [ app.get_node(\'{child.node_name}\').summary.pprint() ] \n'
+            msg += f"execute [ app.get_node('{child.node_name}').summary.pprint() ] \n"
             msg += str(child.summary)
             logger.warning(msg)
             is_valid = False
         return is_valid
 
     def get_child(self, name: str):
+        if not isinstance(name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target(child: Union[NodePath, Communication]):
             if isinstance(child, NodePath):
                 return child.node_name == name
@@ -257,7 +259,7 @@ class Path(PathBase):
         return Util.find_one(is_target, self.child)
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._value.summary
 
     @property
@@ -294,15 +296,15 @@ class Path(PathBase):
 
     @property
     def communications(self) -> List[Communication]:
-        return Util.filter(lambda x: isinstance(x, Communication), self._child)
+        return Util.filter_items(lambda x: isinstance(x, Communication), self._child)
 
     @property
     def node_paths(self) -> List[NodePath]:
-        return Util.filter(lambda x: isinstance(x, NodePath), self._child)
+        return Util.filter_items(lambda x: isinstance(x, NodePath), self._child)
 
     @property
     def topic_names(self) -> List[str]:
-        return list(self._value.topic_names)
+        return sorted(self._value.topic_names)
 
     @property
     def child(self) -> List[Union[NodePath, Communication]]:
@@ -310,8 +312,8 @@ class Path(PathBase):
 
     @property
     def child_names(self) -> List[str]:
-        return list(self._value.child_names)
+        return sorted(self._value.child_names)
 
     @property
     def node_names(self) -> List[str]:
-        return list(self._value.node_names)
+        return sorted(self._value.node_names)

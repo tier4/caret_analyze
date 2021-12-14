@@ -16,8 +16,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ....value_objects import (SubscriptionCallbackValue,
-                               TimerCallbackValue)
+from ....value_objects import SubscriptionCallbackValue, TimerCallbackValue
 
 
 class TimerCallbackValueLttng(TimerCallbackValue):
@@ -28,16 +27,16 @@ class TimerCallbackValueLttng(TimerCallbackValue):
         node_name: str,
         symbol: str,
         period_ns: int,
-        publish_topic_names: Tuple[str, ...],
+        publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
     ) -> None:
         super().__init__(
-            callback_id,
-            node_id,
-            node_name,
-            symbol,
-            period_ns,
-            publish_topic_names,
+            callback_id=callback_id,
+            node_id=node_id,
+            node_name=node_name,
+            symbol=symbol,
+            period_ns=period_ns,
+            publish_topic_names=publish_topic_names,
         )
         self._callback_object = callback_object
 
@@ -54,7 +53,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
-        publish_topic_names: Tuple[str, ...],
+        publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
         callback_object_intra: Optional[int],
     ) -> None:

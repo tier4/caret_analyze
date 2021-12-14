@@ -14,26 +14,22 @@
 
 from __future__ import annotations
 
-from collections import UserList
+from collections import UserList, defaultdict
 from copy import deepcopy
 from itertools import product
-from typing import List, Optional, Tuple, Union, Dict, Set, DefaultDict, Callable
 from logging import getLogger
-from collections import defaultdict
+from typing import (Callable, DefaultDict, Dict, List, Optional, Set, Tuple,
+                    Union)
 
-from ..exceptions import InvalidArgumentError, ItemNotFoundError, MultipleItemFoundError, Error
 from ..common import Util
-from ..value_objects import (CallbackStructValue,
-                             CommunicationStructValue,
-                             NodePathStructValue,
-                             NodeStructValue,
-                             PathStructValue,
-                             PublisherStructValue,
+from ..exceptions import (InvalidArgumentError, ItemNotFoundError,
+                          MultipleItemFoundError)
+from ..value_objects import (CallbackStructValue, CommunicationStructValue,
+                             NodePathStructValue, NodeStructValue,
+                             PathStructValue, PublisherStructValue,
                              SubscriptionStructValue,
                              VariablePassingStructValue)
-
 from ..value_objects.value_object import ValueObject
-
 
 logger = getLogger(__name__)
 
@@ -139,7 +135,7 @@ class GraphCore:
 
         edges_cache.append(deepcopy(self._graph[u]))
         while True:
-            if u == d and forward:
+            if u == d and forward and len(path) > 0:
                 paths.append(deepcopy(path))
 
             edge = get_next_edge(u, edges_cache)
@@ -199,15 +195,27 @@ class GraphEdge(ValueObject):
     ) -> None:
         self._node_from = node_from
         self._node_to = node_to
-        self.label = label or ''
+        self._label = label or ''
+
+    @property
+    def label(self) -> str:
+        return self._label
 
     @property
     def node_from(self) -> GraphNode:
         return self._node_from
 
     @property
+    def node_name_from(self) -> str:
+        return self.node_from.node_name
+
+    @property
     def node_to(self) -> GraphNode:
         return self._node_to
+
+    @property
+    def node_name_to(self) -> str:
+        return self.node_to.node_name
 
 
 class GraphPath(UserList):
@@ -217,10 +225,11 @@ class GraphPath(UserList):
         super().__init__(init)
 
     @property
-    def edges(self) -> Tuple[GraphEdge, ...]:
-        return tuple(self.data)
+    def edges(self) -> List[GraphEdge]:
+        return self.data
 
-    def to_graph_nodes(self) -> List[GraphNode]:
+    @property
+    def nodes(self) -> List[GraphNode]:
         if len(self) == 0:
             return []
 
@@ -381,7 +390,7 @@ class CallbackPathSearcher:
     ) -> NodePathStructValue:
         child: List[Union[CallbackStructValue, VariablePassingStructValue]] = []
 
-        graph_nodes = callbacks_graph_path.to_graph_nodes()
+        graph_nodes = callbacks_graph_path.nodes
         graph_node_names = [_.node_name for _ in graph_nodes]
 
         for graph_node_from, graph_node_to in zip(graph_node_names[:-1], graph_node_names[1:]):
@@ -496,6 +505,9 @@ class CallbackPathSearcher:
         return point_name.split('@')[1]
 
 
+NodePathKey = Tuple[Optional[str], Optional[str], Optional[str]]
+
+
 class NodePathSearcher:
 
     def __init__(
@@ -510,7 +522,7 @@ class NodePathSearcher:
 
         self._graph = Graph()
 
-        self._node_path_dict: Dict[Tuple[Optional[str], Optional[str], Optional[str]], NodePathStructValue] = {}
+        self._node_path_dict: Dict[NodePathKey, NodePathStructValue] = {}
         self._comm_dict: Dict[Tuple[str, str, str], CommunicationStructValue] = {}
 
         node_paths: List[NodePathStructValue] = Util.flatten([n.paths for n in self._nodes])
@@ -554,7 +566,11 @@ class NodePathSearcher:
             )
 
     @staticmethod
-    def _comm_key(publish_node_name: str, subscribe_node_name: str, topic_name: str) -> Tuple[str, str, str]:
+    def _comm_key(
+        publish_node_name: str,
+        subscribe_node_name: str,
+        topic_name: str
+    ) -> Tuple[str, str, str]:
         return (publish_node_name, subscribe_node_name, topic_name)
 
     @staticmethod
@@ -569,7 +585,7 @@ class NodePathSearcher:
         self,
         start_node_name: str,
         end_node_name: str,
-        max_node_depth: Optional[int]
+        max_node_depth: Optional[int] = None
     ) -> List[PathStructValue]:
         paths: List[PathStructValue] = []
 
@@ -593,23 +609,45 @@ class NodePathSearcher:
             msg += f'node_name: {node_name}. '
             raise ItemNotFoundError(msg)
 
+    @staticmethod
     def _get_publisher(
-        self,
+        nodes: Tuple[NodeStructValue, ...],
         node_name: str,
         topic_name: str
     ) -> PublisherStructValue:
         node: NodeStructValue
-        node = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+        node = Util.find_one(lambda x: x.node_name == node_name, nodes)
         return node.get_publisher(topic_name)
 
+    @staticmethod
     def _get_subscription(
-        self,
+        nodes: Tuple[NodeStructValue, ...],
         node_name: str,
         topic_name: str
     ) -> SubscriptionStructValue:
         node: NodeStructValue
-        node = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+        node = Util.find_one(lambda x: x.node_name == node_name, nodes)
         return node.get_subscription(topic_name)
+
+    @staticmethod
+    def _create_head_dummy_node_path(
+        nodes: Tuple[NodeStructValue, ...],
+        head_edge: GraphEdge
+    ) -> NodePathStructValue:
+        node_name = head_edge.node_name_from
+        topic_name = head_edge.label
+        publisher = NodePathSearcher._get_publisher(nodes, node_name, topic_name)
+        return NodePathStructValue(node_name, None, publisher, None, None)
+
+    @staticmethod
+    def _create_tail_dummy_node_path(
+        nodes: Tuple[NodeStructValue, ...],
+        tail_edge: GraphEdge,
+    ) -> NodePathStructValue:
+        node_name = tail_edge.node_name_to
+        topic_name: str = tail_edge.label
+        sub = NodePathSearcher._get_subscription(nodes, node_name, topic_name)
+        return NodePathStructValue(node_name, sub, None, None, None)
 
     def _to_path(
         self,
@@ -618,17 +656,10 @@ class NodePathSearcher:
         child: List[Union[NodePathStructValue, CommunicationStructValue]] = []
 
         # add head node path
-        head_edge = node_graph_path.edges[0]
-        head_node_name = head_edge.node_from.node_name
-        head_topic_name = head_edge.label
-        child.append(
-            NodePathStructValue(
-                head_edge.node_from.node_name,
-                None,
-                self._get_publisher(head_node_name, head_topic_name),
-                None, None
-            )
-        )
+        if len(node_graph_path.edges) == 0:
+            raise InvalidArgumentError("path doesn't have any edges")
+        head_node_path = self._create_head_dummy_node_path(self._nodes, node_graph_path.edges[0])
+        child.append(head_node_path)
 
         for edge_, edge in zip(node_graph_path.edges[:-1], node_graph_path.edges[1:]):
             comm = self._find_comm(
@@ -648,20 +679,14 @@ class NodePathSearcher:
         # add tail comm
         tail_edge = node_graph_path.edges[-1]
         comm = self._find_comm(
-            tail_edge.node_from.node_name,
-            tail_edge.node_to.node_name,
+            tail_edge.node_name_from,
+            tail_edge.node_name_to,
             tail_edge.label)
         child.append(comm)
+
         # add tail node path
-        tail_node_name = tail_edge.node_to.node_name
-        tail_topic_name: str = tail_edge.label
-        child.append(
-            NodePathStructValue(
-                tail_node_name,
-                self._get_subscription(tail_node_name, tail_topic_name),
-                None, None, None
-            )
-        )
+        tail_node_path = self._create_tail_dummy_node_path(self._nodes, tail_edge)
+        child.append(tail_node_path)
 
         path_info = PathStructValue(
             None,

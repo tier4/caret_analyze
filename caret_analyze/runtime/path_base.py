@@ -13,15 +13,15 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
+from copy import deepcopy
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from copy import deepcopy
 
+from ..exceptions import InvalidRecordsError
 from ..record import RecordsInterface
 from ..record.data_frame_shaper import DataFrameShaper, Strip
-from ..exceptions import InvalidRecordsError
 
 
 class PathBase(metaclass=ABCMeta):
@@ -40,10 +40,7 @@ class PathBase(metaclass=ABCMeta):
             Information for each delay.
 
         """
-        if self.__records_cache is None:
-            self.__records_cache = self._to_records_core()
-
-        return self.__records_cache.clone()
+        return self.__records.clone()
 
     @abstractmethod
     def _to_records_core(self) -> RecordsInterface:
@@ -61,6 +58,12 @@ class PathBase(metaclass=ABCMeta):
         self.__records_cache = None
 
     @property
+    def __records(self) -> RecordsInterface:
+        if self.__records_cache is None:
+            self.__records_cache = self._to_records_core()
+        return self.__records_cache
+
+    @property
     def column_names(self) -> List[str]:
         """
         Get column names.
@@ -71,9 +74,7 @@ class PathBase(metaclass=ABCMeta):
             column names
 
         """
-        if self.__records_cache is None:
-            self.__records_cache = self._to_records_core()
-        return deepcopy(self.__records_cache.columns)
+        return deepcopy(self.__records.columns)
 
     def to_dataframe(
         self,

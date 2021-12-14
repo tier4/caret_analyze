@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import inspect
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class ValueObject():
@@ -24,6 +24,7 @@ class ValueObject():
             return False
 
         for attr in self.__generate_public_attrs():
+            # assert getattr(self,  attr) == getattr(right, attr)
             if getattr(self,  attr) != getattr(right, attr):
                 return False
         return True

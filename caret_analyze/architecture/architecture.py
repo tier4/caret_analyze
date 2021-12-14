@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Optional, Callable
+from typing import Callable, Dict, List, Optional, Tuple
 
+from ..common import Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
-from ..common import Util, CustomDict
-from ..value_objects import (CommunicationStructValue, ExecutorStructValue, NodeStructValue,
-                             PathStructValue, CallbackGroupStructValue, CallbackStructValue)
+from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
+                             CommunicationStructValue, ExecutorStructValue,
+                             NodeStructValue, PathStructValue)
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 
@@ -42,7 +43,7 @@ class Architecture():
         self._nodes: Tuple[NodeStructValue, ...] = loaded.nodes
         self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
         self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
-        self._path_manager = NamedPathManager(loaded.named_paths)
+        self._path_manager = NamedPathManager(loaded.paths)
 
     def get_node(self, node_name: str) -> NodeStructValue:
         try:
@@ -65,11 +66,11 @@ class Architecture():
 
     @property
     def callback_group_names(self) -> Tuple[CallbackGroupStructValue, ...]:
-        return tuple(_.callback_group_name for _ in self.callback_groups)
+        return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
 
     @property
     def topic_names(self) -> Tuple[str, ...]:
-        return tuple(set([_.topic_name for _ in self.communications]))
+        return tuple(sorted({_.topic_name for _ in self.communications}))
 
     def get_callback(self, callback_name: str) -> CallbackStructValue:
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
@@ -109,7 +110,7 @@ class Architecture():
 
     @property
     def node_names(self) -> Tuple[str, ...]:
-        return tuple(_.node_name for _ in self._nodes)
+        return tuple(sorted(_.node_name for _ in self._nodes))
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
@@ -117,7 +118,7 @@ class Architecture():
 
     @property
     def executor_names(self) -> Tuple[ExecutorStructValue, ...]:
-        return tuple(_.executor_name for _ in self._executors)
+        return tuple(sorted(_.executor_name for _ in self._executors))
 
     @property
     def paths(self) -> Tuple[PathStructValue, ...]:
@@ -125,15 +126,15 @@ class Architecture():
 
     @property
     def path_names(self) -> Tuple[str, ...]:
-        return tuple(_.path_name for _ in self._path_manager.named_paths)
+        return tuple(sorted(_.path_name for _ in self._path_manager.named_paths))
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
         return self._communications
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'nodes': self.node_names
         })
 

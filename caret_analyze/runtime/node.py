@@ -18,14 +18,14 @@ from typing import List, Optional
 
 from caret_analyze.value_objects import NodeStructValue
 
-from ..common import Util, CustomDict
+from ..common import Summary, Util
+from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
-from .publisher import Publisher
 from .node_path import NodePath
+from .publisher import Publisher
 from .subscription import Subscription
 from .variable_passing import VariablePassing
-from ..exceptions import ItemNotFoundError
 
 
 class Node:
@@ -64,7 +64,7 @@ class Node:
     def callback_names(self) -> Optional[List[str]]:
         if self.callbacks is None:
             return None
-        return [c.callback_name for c in self.callbacks]
+        return sorted(c.callback_name for c in self.callbacks)
 
     @property
     def variable_passings(self) -> Optional[List[VariablePassing]]:
@@ -76,7 +76,7 @@ class Node:
 
     @property
     def publish_topics(self) -> List[str]:
-        return [_.topic_name for _ in self._publishers]
+        return sorted(_.topic_name for _ in self._publishers)
 
     @property
     def paths(self) -> List[NodePath]:
@@ -88,19 +88,22 @@ class Node:
 
     @property
     def subscribe_topics(self) -> List[str]:
-        return [_.topic_name for _ in self._subscriptions]
+        return sorted(_.topic_name for _ in self._subscriptions)
 
     @property
     def callback_group_names(self) -> Optional[List[str]]:
         if self.callback_groups is None:
             return None
-        return [_.callback_group_name for _ in self.callback_groups]
+        return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroup:
+        if not isinstance(callback_group_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         if self._callback_groups is None:
             raise ItemNotFoundError('Callback group is None.')
 
@@ -112,6 +115,12 @@ class Node:
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
     ) -> NodePath:
+        if not isinstance(subscribe_topic_name, str) and subscribe_topic_name is not None:
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        if not isinstance(publish_topic_name, str) and publish_topic_name is not None:
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target(path: NodePath):
             return path.publish_topic_name == publish_topic_name and \
                 path.subscribe_topic_name == subscribe_topic_name
@@ -119,13 +128,22 @@ class Node:
         return Util.find_one(is_target, self.paths)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        if not isinstance(callback_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         if self.callbacks is None:
             raise ItemNotFoundError('Callback is None.')
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
     def get_subscription(self, topic_name: str) -> Subscription:
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         return Util.find_one(lambda x: x.topic_name == topic_name, self._subscriptions)
 
     def get_publisher(self, topic_name: str) -> Publisher:
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         return Util.find_one(lambda x: x.topic_name == topic_name, self._publishers)

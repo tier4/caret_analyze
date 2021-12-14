@@ -14,12 +14,13 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Callable, Sequence
+from typing import Callable, Dict, List, Optional, Sequence
 
 from record_cpp_impl import RecordBase, RecordsBase
 
-from .record import RecordInterface, RecordsInterface, validate_rename_rule, Records
 from ..exceptions import InvalidArgumentError
+from .record import (RecordInterface, Records, RecordsInterface,
+                     validate_rename_rule)
 
 
 class RecordCppImpl(RecordBase, RecordInterface):
@@ -35,9 +36,6 @@ class RecordsCppImpl(RecordsInterface):
     ):
         Records._validate(init, columns)
         self._records = RecordsBase(init or [], columns or [])
-
-    def to_string(self) -> str:
-        return self.to_dataframe().to_string()
 
     def export_json(self, path: str) -> None:
         import json

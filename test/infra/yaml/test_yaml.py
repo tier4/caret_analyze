@@ -18,20 +18,18 @@ from pytest_mock import MockerFixture
 from caret_analyze.exceptions import InvalidYamlFormatError
 from caret_analyze.infra.yaml.architecture_reader_yaml import \
     ArchitectureReaderYaml
-from caret_analyze.value_objects import (CallbackGroupType,
+from caret_analyze.value_objects import (CallbackGroupType, CallbackType,
+                                         ExecutorType, InheritUniqueStamp,
                                          SubscriptionCallbackValue,
-                                         TimerCallbackValue,
-                                         CallbackType,
-                                         ExecutorType,
-                                         SubscriptionValue,
-                                         UseLatestMessage,
-                                         InheritUniqueStamp)
+                                         TimerCallbackValue)
+from caret_analyze.value_objects.node import NodeValue
 
 
 class TestArchitectureReaderYaml:
 
     def test_empty_yaml(self, mocker: MockerFixture):
         mocker.patch('builtins.open', mocker.mock_open(read_data=''))
+        node = NodeValue('node_name', None)
 
         with pytest.raises(InvalidYamlFormatError):
             reader = ArchitectureReaderYaml('file_name')
@@ -43,30 +41,30 @@ class TestArchitectureReaderYaml:
             reader.get_nodes()
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_timer_callbacks('')
+            reader.get_timer_callbacks(node)
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_subscription_callbacks('')
+            reader.get_subscription_callbacks(node)
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_publishers('')
+            reader.get_publishers(node)
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_subscriptions('')
+            reader.get_subscriptions(node)
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_named_paths()
+            reader.get_paths()
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_variable_passings('')
+            reader.get_variable_passings(node)
 
         with pytest.raises(InvalidYamlFormatError):
             reader.get_executors()
 
         with pytest.raises(InvalidYamlFormatError):
-            reader.get_callback_groups('')
+            reader.get_callback_groups(node)
 
-    def test_get_named_path_info(self, mocker: MockerFixture):
+    def test_get_named_paths(self, mocker: MockerFixture):
         architecture_text = """
 named_paths:
 - path_name: target_path
@@ -81,7 +79,7 @@ nodes: []
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        paths_info = reader.get_named_paths()
+        paths_info = reader.get_paths()
 
         assert len(paths_info) == 1
         path_info = paths_info[0]
@@ -104,17 +102,9 @@ named_paths: []
 executors:
 - executor_type: single_threaded_executor
   executor_name: executor_0
-  callback_groups:
-  - node_name: /listener
-    callback_group_name: callback_group_0
-    callback_group_type: reentrant
-    callbacks:
-    - /listener/timer_callback_0
-  - node_name: /talker
-    callback_group_name: callback_group_1
-    callback_group_type: mutually_exclusive
-    callbacks:
-    - /listener/timer_callback_1
+  callback_group_names:
+  - /talker/callback_group_0
+  - /listener/callback_group_0
 nodes: []
         """
         mocker.patch('builtins.open', mocker.mock_open(
@@ -126,49 +116,46 @@ nodes: []
         executor = executors[0]
         assert executor.executor_name == 'executor_0'
         assert executor.executor_type == ExecutorType.SINGLE_THREADED_EXECUTOR
-        assert len(executor.callback_group_values) == 2
+        assert executor.callback_group_ids == (
+            '/talker/callback_group_0',
+            '/listener/callback_group_0',
+        )
 
-        cbg = executor.callback_group_values[0]
-        assert cbg.node_name == '/listener'
-        assert cbg.callback_group_type == CallbackGroupType.REENTRANT
-        assert cbg.callback_ids == ['/listener/timer_callback_0']
-        assert cbg.callback_group_name == 'callback_group_0'
-
-        cbg = executor.callback_group_values[1]
-        assert cbg.node_name == '/talker'
-        assert cbg.callback_group_type == CallbackGroupType.MUTUALLY_EXCLUSIVE
-        assert cbg.callback_ids == ['/listener/timer_callback_1']
-        assert cbg.callback_group_name == 'callback_group_1'
-
-    def test_get_callback_groups_info(self, mocker: MockerFixture):
+    def test_get_callback_groups(self, mocker: MockerFixture):
         architecture_text = """
 named_paths: []
-executors:
-- executor_type: single_threaded_executor
-  executor_name: executor_0
+executors: []
+nodes:
+- node_name: /listener
   callback_groups:
-  - node_name: /listener
-    callback_group_type: reentrant
+  - callback_group_type: reentrant
     callback_group_name: callback_group_0
-    callbacks:
+    callback_names:
     - /listener/timer_callback_0
-  - node_name: /talker
-    callback_group_type: mutually_exclusive
+- node_name: /talker
+  callback_groups:
+  - callback_group_type: mutually_exclusive
     callback_group_name: callback_group_1
-    callbacks:
-    - /listener/timer_callback_1
-nodes: []
+    callback_names:
+    - /talker/timer_callback_1
         """
         mocker.patch('builtins.open', mocker.mock_open(
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        cbgs = reader.get_callback_groups('/listener')
+        cbgs = reader.get_callback_groups(NodeValue('/listener', None))
         assert len(cbgs) == 1
         cbg = cbgs[0]
         assert cbg.node_name == '/listener'
         assert cbg.callback_group_type == CallbackGroupType.REENTRANT
-        assert cbg.callback_ids == ['/listener/timer_callback_0']
+        assert cbg.callback_ids == ('/listener/timer_callback_0',)
+
+        cbgs = reader.get_callback_groups(NodeValue('/talker', None))
+        assert len(cbgs) == 1
+        cbg = cbgs[0]
+        assert cbg.node_name == '/talker'
+        assert cbg.callback_group_type == CallbackGroupType.MUTUALLY_EXCLUSIVE
+        assert cbg.callback_ids == ('/talker/timer_callback_1',)
 
     def test_node_callback(self, mocker: MockerFixture):
         architecture_text = """
@@ -198,7 +185,7 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        timer_cbs = reader.get_timer_callbacks('/node')
+        timer_cbs = reader.get_timer_callbacks(NodeValue('/node', None))
         assert len(timer_cbs) == 1
         timer_cb = timer_cbs[0]
         assert isinstance(timer_cb, TimerCallbackValue)
@@ -209,7 +196,7 @@ nodes:
         assert timer_cb.publish_topic_names == ('/chatter',)
         assert timer_cb.period_ns == 1
 
-        sub_cbs = reader.get_subscription_callbacks('/node')
+        sub_cbs = reader.get_subscription_callbacks(NodeValue('/node', None))
         assert len(sub_cbs) == 1
         sub_cb = sub_cbs[0]
         assert isinstance(sub_cb, SubscriptionCallbackValue)
@@ -218,14 +205,14 @@ nodes:
         assert sub_cb.node_id == '/node'
         assert sub_cb.subscribe_topic_name == '/chatter'
 
-    def test_message_contexts_info(self, mocker: MockerFixture):
+    def test_message_contexts(self, mocker: MockerFixture):
         architecture_text = """
 path_name_aliases: []
 executors: []
 nodes:
 - node_name: /ping_pong
   message_contexts:
-  - context_type: inherit_stamp
+  - context_type: inherit_unique_stamp
     publisher_topic_name: /pong
     subscription_topic_name: /ping
         """
@@ -234,14 +221,13 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        contexts = reader.get_message_contexts('/ping_pong')
+        contexts = reader.get_message_contexts(NodeValue('/ping_pong', None))
         assert len(contexts) == 1
 
         context = contexts[0]
-        assert context.type_name == InheritUniqueStamp.TYPE_NAME
-        assert isinstance(context, InheritUniqueStamp)
-        assert context.subscription_topic_name == '/ping'
-        assert context.publisher_topic_name == '/pong'
+        assert context['context_type'] == InheritUniqueStamp.TYPE_NAME
+        assert context['publisher_topic_name'] == '/pong'
+        assert context['subscription_topic_name'] == '/ping'
 
     def test_publishers_info(self, mocker: MockerFixture):
         architecture_text = """
@@ -260,7 +246,7 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        timer_pubs = reader.get_publishers('/listener')
+        timer_pubs = reader.get_publishers(NodeValue('/listener', None))
         assert len(timer_pubs) == 1
         timer_pub = timer_pubs[0]
         assert timer_pub.node_id == '/listener'
@@ -284,14 +270,14 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        subs = reader.get_subscriptions('/listener')
+        subs = reader.get_subscriptions(NodeValue('/listener', None))
         assert len(subs) == 1
         sub = subs[0]
         assert sub.node_name == '/listener'
         assert sub.topic_name == '/xxx'
         assert sub.callback_id == '/listener/timer_callback_0'
 
-    def test_node_names(self, mocker: MockerFixture):
+    def test_nodes(self, mocker: MockerFixture):
         architecture_text = """
 path_name_aliases: []
 executors: []
@@ -303,8 +289,8 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        node_names = reader.get_nodes()
-        assert node_names == ['/listener']
+        nodes = reader.get_nodes()
+        nodes == (NodeValue('/listener', '/listener'),)
 
     def test_get_variable_passings_info(self, mocker: MockerFixture):
         architecture_text = """
@@ -322,11 +308,11 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        var_passes_info = reader.get_variable_passings('/listener')
+        var_passes_info = reader.get_variable_passings(NodeValue('/listener', None))
         assert len(var_passes_info) == 1
         var_pass_info = var_passes_info[0]
         assert var_pass_info.node_name == '/listener'
         assert var_pass_info.callback_id_write == '/listener/timer_callback_0'
         assert var_pass_info.callback_id_read == '/listener/timer_callback_1'
 
-        assert reader.get_variable_passings('/talker') == []
+        assert reader.get_variable_passings(NodeValue('/talker', None)) == []

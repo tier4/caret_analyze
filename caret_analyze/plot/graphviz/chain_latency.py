@@ -17,8 +17,8 @@ from typing import List, Optional
 import numpy as np
 from graphviz import Digraph, Source
 
-from ...runtime.path import Path
 from ...exceptions import InvalidArgumentError
+from ...runtime.path import Path
 
 
 def chain_latency(

@@ -17,8 +17,8 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple
 
+from ..common import Summary
 from .value_object import ValueObject
-from ..common import CustomDict
 
 
 class CallbackType(ValueObject):
@@ -73,7 +73,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         node_id: str,
         symbol: str,
         subscribe_topic_name: Optional[str],
-        publish_topic_names: Tuple[str, ...],
+        publish_topic_names: Optional[Tuple[str, ...]],
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -185,11 +185,11 @@ class TimerCallbackValue(CallbackValue):
     def __init__(
         self,
         callback_id: str,
-        node_id: str,
         node_name: str,
+        node_id: str,
         symbol: str,
         period_ns: int,
-        publish_topic_names: Tuple[str, ...],
+        publish_topic_names: Optional[Tuple[str, ...]],
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -222,7 +222,7 @@ class SubscriptionCallbackValue(CallbackValue):
         node_id: str,
         symbol: str,
         subscribe_topic_name: str,
-        publish_topic_names: Tuple[str, ...],
+        publish_topic_names: Optional[Tuple[str, ...]],
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -329,7 +329,7 @@ class CallbackStructValue(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         pass
 
 
@@ -361,8 +361,8 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
         return self._period_ns
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'name': self.callback_name,
             'type': self.callback_type_name,
             'period_ns': self.period_ns
@@ -388,8 +388,8 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
         return CallbackType.SUBSCRIPTION
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'name': self.callback_name,
             'type': self.callback_type_name,
             'topic': self.subscribe_topic_name

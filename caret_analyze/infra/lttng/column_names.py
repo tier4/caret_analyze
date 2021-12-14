@@ -19,6 +19,7 @@ class ColumnName(NamedTuple):
     CALLBACK_START_TIMESTAMP: str = 'callback_start_timestamp'
     CALLBACK_END_TIMESTAMP: str = 'callback_end_timestamp'
     RCLCPP_PUBLISH_TIMESTAMP: str = 'rclcpp_publish_timestamp'
+    RCLCPP_INTER_PUBLISH_TIMESTAMP: str = 'rclcpp_inter_publish_timestamp'
     RCL_PUBLISH_TIMESTAMP: str = 'rcl_publish_timestamp'
     DDS_WRITE_TIMESTAMP: str = 'dds_write_timestamp'
     ON_DATA_AVAILABLE_TIMESTAMP: str = 'on_data_available_timestamp'

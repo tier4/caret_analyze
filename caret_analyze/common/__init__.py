@@ -15,11 +15,11 @@
 from .util import Util
 from .singleton import Singleton
 from .columns import Columns
-from .custom_dict import CustomDict
+from .custom_dict import Summary
 
 __all__ = [
     'Util',
     'Singleton',
     'Columns',
-    'CustomDict',
+    'Summary',
 ]

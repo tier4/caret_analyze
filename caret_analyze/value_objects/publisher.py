@@ -14,9 +14,10 @@
 
 from typing import Optional, Tuple
 
+from ..common import Summary
 from .callback import CallbackStructValue
 from .value_object import ValueObject
-from ..common import CustomDict
+
 
 class PublisherValue(ValueObject):
     """Publisher value."""
@@ -94,8 +95,8 @@ class PublisherStructValue(ValueObject):
         return tuple(c.callback_name for c in self._callbacks)
 
     @property
-    def summary(self) -> CustomDict:
-        return CustomDict({
+    def summary(self) -> Summary:
+        return Summary({
             'topic_name': self.topic_name,
             'callbacks': self.callback_names
         })
