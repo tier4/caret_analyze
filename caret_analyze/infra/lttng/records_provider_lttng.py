@@ -723,28 +723,21 @@ class NodeRecordsInheritUniqueTimestamp:
         self._node_path = node_path
 
     def to_records(self):
-        inter_intra_publish_timestamp = 'rclcpp_inter_intra_publish_timestamp'
-        columns = [
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            inter_intra_publish_timestamp,
-        ]
-
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
-        sub_records_intra = self._provider.intra_subscription_records(
-            self._node_path.subscription)
-        sub_records.drop_columns([COLUMN_NAME.SOURCE_TIMESTAMP])
-        sub_records.concat(sub_records_intra)
-        sub_records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-
         pub_records = self._provider.publish_records(self._node_path.publisher)
+
+        columns = [
+            sub_records.columns[0],
+            pub_records.columns[0],
+        ]
 
         pub_sub_records = merge_sequencial(
             left_records=sub_records,
             right_records=pub_records,
-            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            right_stamp_key='rclcpp_publish_timestamp',
-            join_left_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            join_right_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
+            left_stamp_key=sub_records.columns[0],
+            right_stamp_key=pub_records.columns[0],
+            join_left_key=f'{self._node_path.subscribe_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}',
+            join_right_key=f'{self._node_path.publish_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}',
             columns=Columns(sub_records.columns + pub_records.columns).as_list(),
             how='left_use_latest'
         )

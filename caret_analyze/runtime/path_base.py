@@ -180,6 +180,9 @@ class PathBase(metaclass=ABCMeta):
         t = source_stamps_ns
 
         latency_ns = dest_stamps_ns - source_stamps_ns
+        if remove_dropped:
+            t = t.astype('int64')
+            latency_ns = latency_ns.astype('int64')
         return t, latency_ns
 
     def to_histogram(
