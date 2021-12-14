@@ -118,35 +118,25 @@ class RecordsMerged:
         logger.info('Started merging path records.')
 
         column_merger = ColumnMerger()
-        idx: int
-        if len(targets[0].data) > 0:
-            idx = 0
-        else:
-            idx = 1
+        if len(targets[0].data) == 0:
+            targets = targets[1:]
 
-        first_element = targets[idx]
-
+        first_element = targets[0]
         left_records = first_element
-
-        # todo: refactor
-        if 'callback_end' in first_element.columns[-1] and first_element != targets[-1]:
-            # drop callback end
-            left_records.drop_columns([first_element.columns[-1]])
 
         rename_rule = column_merger.append_columns_and_return_rename_rule(
             left_records)
-        left_records.rename_columns(rename_rule)
 
+        left_records.rename_columns(rename_rule)
         first_column = first_element.columns[0]
 
-        merge_targets = targets[idx+1:]
-        for target in merge_targets:
+        for target in targets[1:]:
             right_records = target
 
             is_dummy_records = len(right_records.columns) == 0
 
             if is_dummy_records:
-                if target == merge_targets[-1]:
+                if target == targets[-1]:
                     msg = 'Detected dummy_records. merge terminated.'
                     logger.info(msg)
                 else:
@@ -157,45 +147,30 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            # todo: refactor
-            if 'callback_end' in right_records.columns[-1] and target != targets[-1]:
-                # drop callback end
-                right_records.drop_columns([right_records.columns[-1]])
-
+            assert left_records.columns[-1] == right_records.columns[0]
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
-            if left_stamp_key == right_stamp_key:
-                msg = '\n[merge]\n'
-                msg += f'- left_column: {left_stamp_key} \n'
-                msg += f'- right_column: {right_stamp_key}. \n'
-                logger.info(msg)
-                left_records = merge(
-                    left_records=left_records,
-                    right_records=right_records,
-                    join_left_key=left_stamp_key,
-                    join_right_key=right_stamp_key,
-                    columns=Columns(left_records.columns +
-                                    right_records.columns).as_list(),
-                    how='left'
-                )
-            else:
-                msg = '\n[merge_sequencial] \n'
-                msg += f'- left_column: {left_stamp_key} \n'
-                msg += f'- right_column: {right_stamp_key} \n'
-                logger.info(msg)
+            right_records.drop_columns([left_records.columns[0]])
+            right_stamp_key = right_records.columns[0]
 
-                left_records = merge_sequencial(
-                    left_records=left_records,
-                    right_records=right_records,
-                    join_left_key=None,
-                    join_right_key=None,
-                    left_stamp_key=left_stamp_key,
-                    right_stamp_key=right_stamp_key,
-                    columns=Columns(left_records.columns +
-                                    right_records.columns).as_list(),
-                    how='left_use_latest'
-                )
+            logger.info(
+                '\n[merge_sequencial] \n'
+                f'- left_column: {left_stamp_key} \n'
+                f'- right_column: {right_stamp_key} \n'
+            )
+
+            left_records = merge_sequencial(
+                left_records=left_records,
+                right_records=right_records,
+                join_left_key=None,
+                join_right_key=None,
+                left_stamp_key=left_stamp_key,
+                right_stamp_key=right_stamp_key,
+                columns=Columns(left_records.columns +
+                                right_records.columns).as_list(),
+                how='left_use_latest'
+            )
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
