@@ -548,6 +548,7 @@ class MessageContextsLoaded:
         data: List[MessageContext] = []
 
         context_dicts = reader.get_message_contexts(NodeValue(node.node_name, None))
+        pub_sub_pairs = []
         for context_dict in context_dicts:
             try:
                 context_type = context_dict['context_type']
@@ -558,11 +559,13 @@ class MessageContextsLoaded:
                                                context_dict['publisher_topic_name'],
                                                context_dict['subscription_topic_name'])
                 data.append(self._to_struct(context_dict, node_path))
+                pub_sub_pairs.append((node_path.publish_topic_name, node_path.subscribe_topic_name))
             except Error as e:
                 logger.warning(e)
 
         for context in self._create_callack_chain(node_paths):
-            if context not in data:
+            pub_sub_pair = (context.publisher_topic_name, context.subscription_topic_name)
+            if context not in data and pub_sub_pair not in pub_sub_pairs:
                 data.append(context)
 
         self._data = tuple(data)
