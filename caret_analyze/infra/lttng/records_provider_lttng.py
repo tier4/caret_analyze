@@ -27,6 +27,7 @@ from ...infra.lttng.column_names import COLUMN_NAME
 from ...record.interface import RecordInterface, RecordsInterface
 from ...record.record import merge, merge_sequencial
 from ...record.record_factory import RecordsFactory
+from ...common import Util
 from ...value_objects import (CallbackChain, CallbackStructValue,
                               CommunicationStructValue, InheritUniqueStamp,
                               NodePathStructValue, PublisherStructValue, Qos,
@@ -565,7 +566,7 @@ class NodeRecordsCallbackChain:
 
         self._provider = provider
         self._validate(node_path)
-        self._info = node_path
+        self._val = node_path
 
     @staticmethod
     def _rename_callback_records(
@@ -613,7 +614,7 @@ class NodeRecordsCallbackChain:
         )
 
     def to_records(self):
-        chain_info = self._info.child
+        chain_info = self._val.child
 
         if isinstance(chain_info[0], CallbackStructValue):
             cb_info = chain_info[0]
@@ -653,28 +654,29 @@ class NodeRecordsCallbackChain:
                 )
                 continue
 
-        # last_element = chain_info[-1]
-        # if isinstance(last_element, CallbackStructInfo)
-        # and self._info.publisher_info is not None:
-        #     last_callback_end = Util.filter(lambda x: 'callback_end' in x, records.columns)[-1]
-        #     records.drop_columns([last_callback_end])
+        last_element = chain_info[-1]
+        if isinstance(last_element, CallbackStructValue) \
+                and self._val.publisher is not None:
+            last_callback_end_name = Util.filter_items(
+                lambda x: COLUMN_NAME.CALLBACK_END_TIMESTAMP in x, records.columns)[-1]
+            records.drop_columns([last_callback_end_name])
+            last_callback_start_name = Util.filter_items(
+                lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns)[-1]
 
-        #     last_callback_start = Util.filter(
-        # lambda x: 'callback_start' in x, records.columns)[-1]
-        #     publish_records = self._provider.publish_records(self._info.publisher_info)
-        #     self._rename_publish_records(publish_records, self._info.publisher_info)
-        #     publish_column = publish_records.columns[0]
-        #     columns = records.columns + [publish_column]
-        #     records = merge_sequencial(
-        #         left_records=records,
-        #         right_records=publish_records,
-        #         join_left_key=None,
-        #         join_right_key=None,
-        #         left_stamp_key=last_callback_start,
-        #         right_stamp_key=publish_column,
-        #         columns=columns,
-        #         how='left'
-        #     )
+            publish_records = self._provider.publish_records(self._val.publisher)
+            self._rename_publish_records(publish_records, self._val.publisher)
+            publish_column = publish_records.columns[0]
+            columns = records.columns + [publish_column]
+            records = merge_sequencial(
+                left_records=records,
+                right_records=publish_records,
+                join_left_key=None,
+                join_right_key=None,
+                left_stamp_key=last_callback_start_name,
+                right_stamp_key=publish_column,
+                columns=columns,
+                how='left'
+            )
         return records
 
     @staticmethod
