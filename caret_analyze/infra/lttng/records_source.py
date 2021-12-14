@@ -216,11 +216,16 @@ class RecordsSource():
         )
         intra_proc_publish = self._data.rclcpp_intra_publish_instances
 
+        # When publishing to both intra-process and inter-process,
+        # intra-process communication is done first.
+        # On the other hand,
+        # there are cases where only one or the other is done, so we use outer join.
+        # https://github.com/ros2/rclcpp/blob/galactic/rclcpp/include/rclcpp/publisher.hpp#L203
         publish = merge_sequencial(
-            left_records=inter_proc_publish,
-            right_records=intra_proc_publish,
-            left_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            left_records=intra_proc_publish,
+            right_records=inter_proc_publish,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
             join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
             columns=Columns(inter_proc_publish.columns + intra_proc_publish.columns).as_list(),
