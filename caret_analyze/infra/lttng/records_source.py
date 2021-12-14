@@ -31,6 +31,9 @@ class RecordsSource():
         data: Ros2DataModel,
     ) -> None:
         self._data = data
+        self._data.rclcpp_publish_instances.rename_columns(
+            {COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP}
+        )
 
     @cached_property
     def inter_proc_comm_records(self) -> RecordsInterface:
@@ -44,7 +47,7 @@ class RecordsSource():
             - callback_object
             - callback_start_timestamp
             - publisher_handle
-            - rclcpp_publish_timestamp
+            - rclcpp_inter_publish_timestamp
             - rcl_publish_timestamp
             - dds_write_timestamp
             - message_timestamp
@@ -76,13 +79,13 @@ class RecordsSource():
         publish = merge_sequencial(
             left_records=self._data.rclcpp_publish_instances,
             right_records=rcl_publish_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.MESSAGE,
             join_right_key=COLUMN_NAME.MESSAGE,
             how='left_use_latest',
             columns=[
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.MESSAGE,
@@ -195,13 +198,13 @@ class RecordsSource():
         inter_proc_publish = merge_sequencial(
             left_records=self._data.rclcpp_publish_instances,
             right_records=rcl_publish_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.MESSAGE,
             join_right_key=COLUMN_NAME.MESSAGE,
             how='left_use_latest',
             columns=[
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.MESSAGE,
@@ -242,32 +245,31 @@ class RecordsSource():
             left_records=intra_proc_publish,
             right_records=inter_proc_publish,
             left_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
             join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
             columns=Columns(inter_proc_publish.columns + intra_proc_publish.columns).as_list(),
             how='outer'
         )
-        publish.rename_columns(
-            {COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 'rclcpp_inter_publish_timestamp'})
 
         publish_stamps = []
         maxsize = 2**64-1
         for record in publish.data:
             rclcpp_publish, rclcpp_intra_publish = maxsize, maxsize
-            if 'rclcpp_inter_publish_timestamp' in record.columns:
-                rclcpp_publish = record.get('rclcpp_inter_publish_timestamp')
+            if COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP in record.columns:
+                rclcpp_publish = record.get(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
             if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.columns:
                 rclcpp_intra_publish = record.get(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
             inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
             publish_stamps.append(inter_intra_publish)
 
-        publish.append_column('rclcpp_publish_timestamp', publish_stamps)
+        publish.append_column(
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, publish_stamps)
         publish.reindex([
             COLUMN_NAME.PUBLISHER_HANDLE,
-            'rclcpp_publish_timestamp',
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            'rclcpp_inter_publish_timestamp',
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             COLUMN_NAME.DDS_WRITE_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP,

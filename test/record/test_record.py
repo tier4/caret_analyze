@@ -250,7 +250,6 @@ class TestRecords:
             assert records.equals(expects)
             assert records.columns == expects.columns
 
-
     def test_drop_columns(self):
         key = 'stamp'
         value = 'value'
@@ -502,7 +501,6 @@ class TestRecords:
             for i, record in enumerate(records):
                 assert record.get('a') == records_py.data[i].get('a')
 
-
     def test_append_column(self):
         expects_py = Records(
             [
@@ -609,7 +607,6 @@ class TestRecords:
             records_ = records.clone()
             records_.sort_column_order(ascending=False, put_none_at_top=False)
             assert records_.equals(records_desc)
-
 
     def test_sort_with_sub_key(self):
         key = 'stamp'

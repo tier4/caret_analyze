@@ -103,7 +103,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         else:
             records = self._compose_inter_proc_comm_records(comm_val)
             rename_dict = {}
-            rename_dict[COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP] = \
+            rename_dict[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP] = \
                 InfraHelper.pub_to_column(
                 comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
             rename_dict[COLUMN_NAME.RCL_PUBLISH_TIMESTAMP] = \
@@ -283,18 +283,18 @@ class RecordsProviderLttng(RuntimeDataProvider):
         records.filter_if(is_target)
 
         columns = [
-            InfraHelper.pub_to_column(publisher, 'rclcpp_publish_timestamp'),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
-            InfraHelper.pub_to_column(publisher, 'rclcpp_inter_publish_timestamp'),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.MESSAGE_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.SOURCE_TIMESTAMP),
         ]
         records.rename_columns({
-            'rclcpp_publish_timestamp': columns[0],
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: columns[0],
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: columns[1],
-            'rclcpp_inter_publish_timestamp': columns[2],
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: columns[2],
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: columns[3],
             COLUMN_NAME.DDS_WRITE_TIMESTAMP: columns[4],
             COLUMN_NAME.MESSAGE_TIMESTAMP: columns[5],
@@ -340,7 +340,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
-            - rclcpp_publish_timestamp
+            - rclcpp_inter_publish_timestamp
             - rcl_publish_timestamp
             - dds_write_timestamp
             - callback_start_timestamp
@@ -360,14 +360,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 return False
             if COLUMN_NAME.PUBLISHER_HANDLE not in record.columns:
                 return False
-            return record.get('publisher_handle') in publisher_handles and \
-                record.get('callback_object') == callback_object
+            return record.get(COLUMN_NAME.PUBLISHER_HANDLE) in publisher_handles and \
+                record.get(COLUMN_NAME.CALLBACK_OBJECT) == callback_object
 
         records = self._inter_comm_records.clone()
         records.filter_if(is_target)
 
         columns = [
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             COLUMN_NAME.DDS_WRITE_TIMESTAMP,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP
@@ -376,11 +376,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
         records.drop_columns(drop_columns)
         records.reindex(columns)
         return records
-
-    # @cached_property
-    # def inter_sub_callback_records(self) -> RecordsInterface:
-    #     return self._compose_inter_sub_callback_records()
-
 
     def _ensure_column_values(
         self,
@@ -728,8 +723,6 @@ class NodeRecordsInheritUniqueTimestamp:
         self._node_path = node_path
 
     def to_records(self):
-        from sys import maxsize
-
         inter_intra_publish_timestamp = 'rclcpp_inter_intra_publish_timestamp'
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
