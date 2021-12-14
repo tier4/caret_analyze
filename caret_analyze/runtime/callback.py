@@ -78,7 +78,6 @@ class CallbackBase(PathBase):
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.callback_records(self.__val)
-        records.sort(records.columns[0])
 
         return records
 

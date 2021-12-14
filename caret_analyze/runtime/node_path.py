@@ -63,7 +63,6 @@ class NodePath(PathBase):
             return RecordsFactory.create_instance()
 
         records = self._provider.node_records(self._val)
-        records.sort(records.columns[0])
         return records
 
     @property

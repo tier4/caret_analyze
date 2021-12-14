@@ -99,6 +99,5 @@ class Communication(PathBase):
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._records_provider.communication_records(self._val)
-        records.sort(records.columns[0])
 
         return records
