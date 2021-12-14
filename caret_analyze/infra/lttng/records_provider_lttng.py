@@ -810,7 +810,7 @@ class NodeRecordsUseLatestMessage:
             left_records=sub_records,
             right_records=pub_records,
             left_stamp_key=sub_records.columns[0],
-            right_stamp_key='rclcpp_publish_timestamp',
+            right_stamp_key=pub_records.columns[0],
             join_left_key=None,
             join_right_key=None,
             columns=Columns(sub_records.columns + pub_records.columns).as_list(),
