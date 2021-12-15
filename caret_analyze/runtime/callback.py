@@ -21,7 +21,8 @@ from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import (CallbackStructValue,
                              SubscriptionCallbackStructValue,
-                             TimerCallbackStructValue)
+                             TimerCallbackStructValue,
+                             CallbackType)
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
@@ -53,6 +54,10 @@ class CallbackBase(PathBase):
     @property
     def callback_name(self) -> str:
         return self.__val.callback_name
+
+    @property
+    def callback_type(self) -> CallbackType:
+        return self.__val.callback_type
 
     @property
     def subscription(self) -> Optional[Subscription]:

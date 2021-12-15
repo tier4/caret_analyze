@@ -147,9 +147,11 @@ class TestRecordsMerged:
     def test_merge_two_records(self, mocker: MockerFixture):
         cb_records = Records(
             [
-                Record({'callback_start': 0, 'xxx': 1}),
+                Record({
+                    'callback_start': 0, 'xxx': 1, 'pub': 2
+                    }),
             ],
-            ['callback_start', 'xxx']
+            ['callback_start', 'xxx', 'pub']
         )
         comm_records = Records(
             [
@@ -171,7 +173,7 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0'
+                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0', 'pub': 'pub/0'
                 }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
@@ -201,11 +203,11 @@ class TestRecordsMerged:
     def test_loop_case(self, mocker: MockerFixture):
         cb_records_0 = Records(
             [
-                Record({'callback_start': 0, 'xxx': 1, 'callback_end': 3}),
-                Record({'callback_start': 6, 'xxx': 7, 'callback_end': 9}),
-                Record({'callback_start': 12, 'xxx': 13, 'callback_end': 15}),
+                Record({'callback_start': 0, 'xxx': 1, 'pub': 2}),
+                Record({'callback_start': 6, 'xxx': 7, 'pub': 8}),
+                Record({'callback_start': 12, 'xxx': 13, 'pub': 14}),
             ],
-            ['callback_start', 'xxx', 'callback_end']
+            ['callback_start', 'xxx', 'pub']
         )
         cb_records_1 = cb_records_0.clone()
 
@@ -220,7 +222,7 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0'
+                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0', 'pub': 'pub/0'
                 }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
@@ -233,7 +235,7 @@ class TestRecordsMerged:
                 return {
                     'callback_start': 'callback_start/1',
                     'xxx': 'xxx/1',
-                    'callback_end': 'callback_end/1'
+                    'pub': 'pub/1'
                 }
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
@@ -250,21 +252,21 @@ class TestRecordsMerged:
                 Record({
                     'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
                     'write/0': 4, 'read/0': 5,
-                    'callback_start/1': 6, 'xxx/1': 7, 'callback_end/1': 9
+                    'callback_start/1': 6, 'xxx/1': 7, 'pub/1': 8
                 }),
                 Record({
                     'callback_start/0': 6, 'xxx/0': 7, 'pub/0': 8,
                     'write/0': 10, 'read/0': 11,
-                    'callback_start/1': 12, 'xxx/1': 13, 'callback_end/1': 15
+                    'callback_start/1': 12, 'xxx/1': 13, 'pub/1': 14
                 }),
                 Record({
-                    'callback_start/0': 12, 'xxx/0': 13
+                    'callback_start/0': 12, 'xxx/0': 13, 'pub/0': 14
                 }),
             ],
             [
                 'callback_start/0', 'xxx/0', 'pub/0',
                 'write/0', 'read/0',
-                'callback_start/1', 'xxx/1', 'callback_end/1'
+                'callback_start/1', 'xxx/1', 'pub/1'
             ]
         )
         assert records.equals(expected)

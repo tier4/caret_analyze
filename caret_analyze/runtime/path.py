@@ -22,7 +22,7 @@ from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Columns, Summary, Util
-from ..exceptions import InvalidArgumentError
+from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record.record import merge, merge_sequencial, RecordsInterface
 from ..value_objects import PathStructValue
 
@@ -147,7 +147,8 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            assert left_records.columns[-1] == right_records.columns[0]
+            if left_records.columns[-1] != right_records.columns[0]:
+                raise InvalidRecordsError('left columns[-1] != right columns[0]')
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 

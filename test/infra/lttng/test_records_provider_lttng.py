@@ -229,7 +229,7 @@ class TestRecordsProviderLttng:
         records = Records(
             [
                 Record({
-                    COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 1,
+                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: 1,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 2,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 3,
                     COLUMN_NAME.CALLBACK_START_TIMESTAMP: 4,
@@ -237,7 +237,7 @@ class TestRecordsProviderLttng:
                     COLUMN_NAME.CALLBACK_OBJECT: cb_object,
                 }),
                 Record({
-                    COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 2,
+                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: 2,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 3,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 4,
                     COLUMN_NAME.CALLBACK_START_TIMESTAMP: 5,
@@ -245,7 +245,7 @@ class TestRecordsProviderLttng:
                     COLUMN_NAME.CALLBACK_OBJECT: cb_object
                 }),
                 Record({
-                    COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 3,
+                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: 3,
                     COLUMN_NAME.DDS_WRITE_TIMESTAMP: 4,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 5,
                     COLUMN_NAME.CALLBACK_START_TIMESTAMP: 6,
@@ -256,7 +256,7 @@ class TestRecordsProviderLttng:
             [
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.DDS_WRITE_TIMESTAMP,
                 COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
