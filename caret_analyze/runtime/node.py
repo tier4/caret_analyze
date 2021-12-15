@@ -75,7 +75,7 @@ class Node:
         return self._publishers
 
     @property
-    def publish_topics(self) -> List[str]:
+    def publish_topic_names(self) -> List[str]:
         return sorted(_.topic_name for _ in self._publishers)
 
     @property
@@ -87,7 +87,7 @@ class Node:
         return self._subscriptions
 
     @property
-    def subscribe_topics(self) -> List[str]:
+    def subscribe_topic_names(self) -> List[str]:
         return sorted(_.topic_name for _ in self._subscriptions)
 
     @property
