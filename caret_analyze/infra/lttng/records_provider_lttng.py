@@ -12,42 +12,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Optional, Union
+from functools import cached_property
 
-from ...exceptions import InvalidArgumentError, UnsupportedTypeError, UnsupportedNodeRecordsError
-from ...infra.lttng.column_names import COLUMN_NAME
-from ...record.interface import (RecordInterface, RecordsInterface)
-from ...record.record import merge_sequencial, merge
-from ...record.record_factory import RecordsFactory
-from ...infra.interface import RuntimeDataProvider
-from ...infra.infra_helper import InfraHelper
-from ...value_objects import (CallbackStructValue,
-                              SubscriptionCallbackStructValue,
-                              TimerCallbackStructValue,
-                              CommunicationStructValue,
-                              NodePathStructValue,
-                              PublisherStructValue,
-                              SubscriptionStructValue,
-                              VariablePassingStructValue,
-                              CallbackChain,
-                              InheritUniqueStamp,
-                              UseLatestMessage,
-                              Qos)
 from .lttng import Lttng
 from ...common import Columns
-from logging import getLogger
+from ...exceptions import (InvalidArgumentError,
+                           UnsupportedNodeRecordsError,
+                           UnsupportedTypeError)
+from ...infra.infra_helper import InfraHelper
+from ...infra.interface import RuntimeDataProvider
+from ...infra.lttng.column_names import COLUMN_NAME
+from ...record.interface import RecordInterface, RecordsInterface
+from ...record.record import merge, merge_sequencial
+from ...record.record_factory import RecordsFactory
+from ...common import Util
+from ...value_objects import (CallbackChain, CallbackStructValue,
+                              CommunicationStructValue, InheritUniqueStamp,
+                              NodePathStructValue, PublisherStructValue, Qos,
+                              SubscriptionCallbackStructValue,
+                              SubscriptionStructValue,
+                              TimerCallbackStructValue, UseLatestMessage,
+                              VariablePassingStructValue)
 
 logger = getLogger(__name__)
 
 
 class RecordsProviderLttng(RuntimeDataProvider):
-    """Recordsを加工して、測定結果を算出する。
-    マージに加えて、フィルタリングなどはここで行う。
+    """
+    Records are processed and measurement results are calculated.
+
+    In addition to merging, filtering and other operations are performed here.
 
     Parameters
     ----------
     RecordsContainer : [type]
-        [description]ol
+        [description]
+
     """
 
     def __init__(
@@ -56,18 +58,13 @@ class RecordsProviderLttng(RuntimeDataProvider):
     ) -> None:
         self._lttng = lttng
         self._helper = RecordsProviderLttngHelper(lttng)
-        self._callback_records_cache: Optional[RecordsInterface] = None
-        self._inter_comm_records_cache: Optional[RecordsInterface] = None
-        self._intra_comm_records_cache: Optional[RecordsInterface] = None
-        self._inter_sub_callback_records_cache: Optional[RecordsInterface] = None
-        self._intra_sub_callback_records_cache: Optional[RecordsInterface] = None
 
     def communication_records(
         self,
         comm_val: CommunicationStructValue
     ) -> RecordsInterface:
         """
-        Provide communication records
+        Provide communication records.
 
         Parameters
         ----------
@@ -91,37 +88,37 @@ class RecordsProviderLttng(RuntimeDataProvider):
         """
         if self.is_intra_process_communication(comm_val):
             records = self._compose_intra_proc_comm_records(comm_val)
-            records.rename_columns({
-                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-                # COLUMN_NAME.MESSAGE_TIMESTAMP:
-                #     InfraHelper.pub_to_column(
-                #         comm_val.publisher_value, COLUMN_NAME.MESSAGE_TIMESTAMP),
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP:
+            rename_dict = {}
+
+            rename_dict[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+
+            if comm_val.subscribe_callback is not None:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
                     InfraHelper.cb_to_column(
-                        comm_val.subscription.callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-            })
+                        comm_val.subscribe_callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+
+            records.rename_columns(rename_dict)
             return records
         else:
             records = self._compose_inter_proc_comm_records(comm_val)
-            records.rename_columns({
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
-                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
-                COLUMN_NAME.DDS_WRITE_TIMESTAMP:
-                    InfraHelper.pub_to_column(
-                        comm_val.publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP),
-                # COLUMN_NAME.MESSAGE_TIMESTAMP:
-                #     InfraHelper.pub_to_column(
-                #         comm_val.publisher_value, COLUMN_NAME.MESSAGE_TIMESTAMP),
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP:
+            rename_dict = {}
+            rename_dict[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+            rename_dict[COLUMN_NAME.RCL_PUBLISH_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+            rename_dict[COLUMN_NAME.DDS_WRITE_TIMESTAMP] = \
+                InfraHelper.pub_to_column(
+                comm_val.publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+
+            if comm_val.subscribe_callback is not None:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
                     InfraHelper.cb_to_column(
-                        comm_val.subscription.callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-            })
+                    comm_val.subscribe_callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+            records.rename_columns(rename_dict)
             return records
 
     def node_records(
@@ -170,16 +167,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
             - [callback_name]/callback_start_timestamp
             - [callback_name]/callback_end_timestamp
-        """
-        if self._callback_records_cache is None:
-            self._callback_records_cache = self._lttng.compose_callback_records()
 
+        """
         callback_objects = self._helper.get_callback_objects(callback)
 
         def is_target_record(record: RecordInterface):
             return record.get('callback_object') in callback_objects
 
-        callback_records = self._callback_records_cache.clone()
+        callback_records = self._lttng.compose_callback_records().clone()
         callback_records.filter_if(is_target_record)
 
         runtime_info_columns = [
@@ -196,12 +191,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
         )
         return callback_records
 
-    def subscription_records(
+    def subscribe_records(
         self,
-        subscription_value: SubscriptionStructValue
+        subscription: SubscriptionStructValue
     ) -> RecordsInterface:
         """
-        Provide subscription records
+        Provide subscription records.
 
         Parameters
         ----------
@@ -219,97 +214,48 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Raises
         ------
         InvalidArgumentError
+
         """
-        callback = subscription_value.callback
+        callback = subscription.callback
         if callback is None:
             msg = 'callback_value is None. '
-            msg += f'node_name: {subscription_value.node_name}'
-            msg += f'callback_name: {subscription_value.callback_name}'
-            msg += f'topic_name: {subscription_value.topic_name}'
+            msg += f'node_name: {subscription.node_name}'
+            msg += f'callback_name: {subscription.callback_name}'
+            msg += f'topic_name: {subscription.topic_name}'
             raise InvalidArgumentError(msg)
 
-        callback_object = self._helper.get_subscription_callback_object(callback)
+        callback_objects = self._helper.get_subscription_callback_objects(callback)
 
         def is_target_record(record: RecordInterface):
-            return record.get(COLUMN_NAME.CALLBACK_OBJECT) == callback_object
+            return record.get(COLUMN_NAME.CALLBACK_OBJECT) in callback_objects
 
-        # TODO: intra callback recordsも追加する。
-        inter_sub_records = self._compose_inter_sub_callback_records()
-        inter_sub_records.filter_if(is_target_record)
+        sub_records = self._lttng.compose_subscribe_records().clone()
+        sub_records.filter_if(is_target_record)
 
         columns = [
             InfraHelper.cb_to_column(callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-            InfraHelper.sub_to_column(subscription_value, COLUMN_NAME.MESSAGE_TIMESTAMP),
-            InfraHelper.sub_to_column(subscription_value, COLUMN_NAME.SOURCE_TIMESTAMP)
+            InfraHelper.sub_to_column(subscription, COLUMN_NAME.MESSAGE_TIMESTAMP),
+            InfraHelper.sub_to_column(subscription, COLUMN_NAME.SOURCE_TIMESTAMP)
         ]
-        inter_sub_records.rename_columns(
+        sub_records.rename_columns(
             {
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: columns[0],
                 COLUMN_NAME.MESSAGE_TIMESTAMP: columns[1],
                 COLUMN_NAME.SOURCE_TIMESTAMP: columns[2],
             }
         )
-        drop_columns = list(set(inter_sub_records.columns) - set(columns))
-        inter_sub_records.drop_columns(drop_columns)
-        inter_sub_records.reindex(columns)
+        drop_columns = list(set(sub_records.columns) - set(columns))
+        sub_records.drop_columns(drop_columns)
+        sub_records.reindex(columns)
 
-        return inter_sub_records
-
-    def intra_subscription_records(
-        self,
-        subscription_value: SubscriptionStructValue
-    ) -> RecordsInterface:
-        """
-        Provide subscription records
-
-        Parameters
-        ----------
-        subscription_value : SubscriptionStructValue
-            Target subscription value.
-
-        Returns
-        -------
-        RecordsInterface
-            Columns
-            - message_timestamp
-            - callback_start_timestamp
-
-        Raises
-        ------
-        InvalidArgumentError
-
-        """
-        callback_value = subscription_value.callback
-        if callback_value is None:
-            msg = 'callback_value is None. '
-            msg += f'node_name: {subscription_value.node_name}'
-            msg += f'callback_name: {subscription_value.callback_name}'
-            msg += f'topic_name: {subscription_value.topic_name}'
-            raise InvalidArgumentError(msg)
-
-        callback_object_intra = self._helper.get_subscription_callback_object_intra(callback_value)
-
-        def is_target_record_intra(record: RecordInterface):
-            return record.get(COLUMN_NAME.CALLBACK_OBJECT) == callback_object_intra
-
-        intra_sub_records = self._compose_inter_sub_callback_records()
-        intra_sub_records.filter_if(is_target_record_intra)
-
-        columns = [
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP
-        ]
-        drop_columns = list(set(intra_sub_records.columns) - set(columns))
-        intra_sub_records.drop_columns(drop_columns)
-        intra_sub_records.reindex(columns)
-        return intra_sub_records
+        return sub_records
 
     def publish_records(
         self,
         publisher: PublisherStructValue
     ) -> RecordsInterface:
         """
-        Return publish records
+        Return publish records.
 
         Parameters
         ----------
@@ -320,8 +266,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
-            - [callback_name]/rclcpp_publish_timestamp
+            - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp
+            - [topic_name]/dds_write_timestamp
             - [topic_name]/message_timestamp
+            - [topic_name]/source_timestamp
+            - [topic_name]/rclcpp_intra_publish_timestamp
 
         """
         publisher_handles = self._helper.get_publisher_handles(publisher)
@@ -329,85 +279,34 @@ class RecordsProviderLttng(RuntimeDataProvider):
         def is_target(record: RecordInterface):
             return record.get('publisher_handle') in publisher_handles
 
-        records_inter = self._inter_comm_records.clone()
-        records_inter.filter_if(is_target)
+        records = self._lttng.compose_publish_records()
 
-        records_intra = self._intra_comm_records.clone()
-        records_intra.filter_if(is_target)
-
-        records = merge_sequencial(
-            left_records=records_inter,
-            right_records=records_intra,
-            left_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            join_left_key=None,
-            join_right_key=None,
-            columns=Columns(records_inter.columns + records_intra.columns).as_list(),
-            how='outer'
-        )
+        records.filter_if(is_target)
 
         columns = [
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCL_PUBLISH_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.MESSAGE_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, COLUMN_NAME.SOURCE_TIMESTAMP),
         ]
         records.rename_columns({
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: columns[0],
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: columns[1],
-            COLUMN_NAME.MESSAGE_TIMESTAMP: columns[2],
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: columns[2],
+            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: columns[3],
+            COLUMN_NAME.DDS_WRITE_TIMESTAMP: columns[4],
+            COLUMN_NAME.MESSAGE_TIMESTAMP: columns[5],
+            COLUMN_NAME.SOURCE_TIMESTAMP: columns[6],
         })
 
         drop_columns = list(set(records.columns) - set(columns))
-        records.drop_columns(drop_columns)  # type: ignore
+        records.drop_columns(drop_columns)
         records.reindex(columns)
+
         return records
-
-    def intra_publish_records(
-        self,
-        publisher: PublisherStructValue
-    ) -> RecordsInterface:
-        """
-        Return intra publish records
-
-        Parameters
-        ----------
-        publish_value : PublisherStructValue
-            target publisher value
-
-        Returns
-        -------
-        RecordsInterface
-            Columns
-            - [topic_name]/rclcpp_intra_publish_timestamp
-            - [topic_name]/message_timestamp
-
-        """
-        if self._intra_comm_records_cache is None:
-            self._intra_comm_records_cache = self._lttng.compose_intra_proc_comm_records()
-
-        publisher_handles = self._helper.get_publisher_handles(publisher)
-
-        def is_target(record: RecordInterface):
-            return record.get('publisher_handle') in publisher_handles
-
-        records_intra = self._intra_comm_records_cache.clone()
-        records_intra.filter_if(is_target)
-
-        columns = [
-            InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
-            InfraHelper.pub_to_column(publisher, COLUMN_NAME.MESSAGE_TIMESTAMP),
-        ]
-
-        records_intra.rename_columns(
-            {
-                records_intra.columns[0]: columns[0],
-                records_intra.columns[1]: columns[1],
-            }
-        )
-        drop_columns = list(set(records_intra.columns)-set(columns))
-        records_intra.drop_columns(drop_columns)
-        records_intra.reindex(columns)
-        return records_intra
 
     def get_rmw_implementation(self) -> str:
         return self._lttng.get_rmw_impl()
@@ -418,17 +317,13 @@ class RecordsProviderLttng(RuntimeDataProvider):
     ) -> Qos:
         raise NotImplementedError()
 
-    @property
+    @cached_property
     def _inter_comm_records(self) -> RecordsInterface:
-        if self._inter_comm_records_cache is None:
-            self._inter_comm_records_cache = self._lttng.compose_inter_proc_comm_records()
-        return self._inter_comm_records_cache
+        return self._lttng.compose_inter_proc_comm_records()
 
-    @property
+    @cached_property
     def _intra_comm_records(self) -> RecordsInterface:
-        if self._intra_comm_records_cache is None:
-            self._intra_comm_records_cache = self._lttng.compose_intra_proc_comm_records()
-        return self._intra_comm_records_cache
+        return self._lttng.compose_intra_proc_comm_records()
 
     def _compose_inter_proc_comm_records(
         self,
@@ -446,7 +341,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
-            - rclcpp_publish_timestamp
+            - rclcpp_inter_publish_timestamp
             - rcl_publish_timestamp
             - dds_write_timestamp
             - callback_start_timestamp
@@ -459,102 +354,27 @@ class RecordsProviderLttng(RuntimeDataProvider):
         assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
 
         publisher_handles = self._helper.get_publisher_handles(publisher)
-        callback_object = self._helper.get_subscription_callback_object(subscription_cb)
+        callback_object = self._helper.get_subscription_callback_object_inter(subscription_cb)
 
         def is_target(record: RecordInterface):
             if COLUMN_NAME.CALLBACK_OBJECT not in record.columns:
                 return False
             if COLUMN_NAME.PUBLISHER_HANDLE not in record.columns:
                 return False
-            return record.get('publisher_handle') in publisher_handles and \
-                record.get('callback_object') == callback_object
+            return record.get(COLUMN_NAME.PUBLISHER_HANDLE) in publisher_handles and \
+                record.get(COLUMN_NAME.CALLBACK_OBJECT) == callback_object
 
         records = self._inter_comm_records.clone()
         records.filter_if(is_target)
 
         columns = [
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             COLUMN_NAME.DDS_WRITE_TIMESTAMP,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP
         ]
         drop_columns = list(set(records.columns) - set(columns))
         records.drop_columns(drop_columns)
-        records.reindex(columns)
-        return records
-
-    def _compose_intra_sub_callback_records(
-        self,
-    ) -> RecordsInterface:
-        """
-        Compose intra process subscription callback records.
-
-        Parameters
-        ----------
-        subscription_callback_value : SubscriptionCallbackStructValue
-            target subscription callback value
-
-        Returns
-        -------
-        RecordsInterface
-            Columns
-            - source_timestamp
-            - message_timestamp
-            - callback_start_timestamp
-        """
-        if self._intra_comm_records_cache is None:
-            self._intra_comm_records_cache = self._lttng.compose_intra_proc_comm_records()
-        self._intra_comm_records_cache.clone()
-        raise NotImplementedError('')
-
-    @property
-    def inter_sub_callback_records(self) -> RecordsInterface:
-        if self._inter_sub_callback_records_cache is None:
-            self._inter_sub_callback_records_cache = self._compose_inter_sub_callback_records(self)
-
-        return self._inter_sub_callback_records_cache
-
-    @property
-    def intra_sub_callback_records(self) -> RecordsInterface:
-        if self._intra_sub_callback_records_cache is None:
-            self._intra_sub_callback_records_cache = self._compose_intra_sub_callback_records(self)
-        return self._intra_sub_callback_records_cache
-
-    def _compose_inter_sub_callback_records(
-        self,
-    ) -> RecordsInterface:
-        """
-        Compose inter process subscription callback records.
-
-        Parameters
-        ----------
-        subscription_callback_info : SubscriptionCallbackStructInfo
-            target subscription callback info
-
-        Returns
-        -------
-        RecordsInterface
-            Columns
-            - source_timestamp
-            - message_timestamp
-            - callback_start_timestamp
-            - callback_object
-        """
-        if self._inter_comm_records_cache is None:
-            self._inter_comm_records_cache = self._lttng.compose_inter_proc_comm_records()
-
-        records = self._inter_comm_records_cache.clone()
-
-        columns = [
-            COLUMN_NAME.SOURCE_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_OBJECT,
-        ]
-
-        drop_columns = list(set(records.columns) - set(columns))
-        records.drop_columns(drop_columns)
-        self._ensure_column_values(records, columns)
         records.reindex(columns)
         return records
 
@@ -588,9 +408,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - callback_start_timestamp
 
         """
-        if self._intra_comm_records_cache is None:
-            self._intra_comm_records_cache = self._lttng.compose_intra_proc_comm_records()
-
         publisher = comm_info.publisher
         subscription_cb = comm_info.subscribe_callback
 
@@ -606,7 +423,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             return record.get(COLUMN_NAME.PUBLISHER_HANDLE) in publisher_handles and \
                 record.get(COLUMN_NAME.CALLBACK_OBJECT) == callback_object_intra
 
-        records = self._intra_comm_records_cache.clone()
+        records = self._lttng.compose_intra_proc_comm_records().clone()
         records.filter_if(is_target)
 
         columns = [
@@ -641,9 +458,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         read_records: RecordsInterface = self.callback_records(
-            variable_passing_info.callback_value_read)
+            variable_passing_info.callback_read)
         write_records: RecordsInterface = self.callback_records(
-            variable_passing_info.callback_value_write)
+            variable_passing_info.callback_write)
 
         read_records.drop_columns([read_records.columns[-1]])  # callback end
         write_records.drop_columns([write_records.columns[0]])  # callback_start
@@ -693,7 +510,7 @@ class RecordsProviderLttngHelper:
             return [self.get_timer_callback_object(callback)]
 
         if isinstance(callback, SubscriptionCallbackStructValue):
-            obj = self.get_subscription_callback_object(callback)
+            obj = self.get_subscription_callback_object_inter(callback)
             obj_intra = self.get_subscription_callback_object_intra(callback)
             if obj_intra is not None:
                 return [obj, obj_intra]
@@ -707,28 +524,34 @@ class RecordsProviderLttngHelper:
         self,
         callback: TimerCallbackStructValue
     ) -> int:
-        callback_lttng = self._bridge.get_timer_callback_value(callback)
+        callback_lttng = self._bridge.get_timer_callback(callback)
         return callback_lttng.callback_object
 
-    def get_subscription_callback_object(
+    def get_subscription_callback_objects(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> List[int]:
+        return self.get_callback_objects(callback)
+
+    def get_subscription_callback_object_inter(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> int:
-        callback_lttng = self._bridge.get_subscription_callback_value(callback)
+        callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object
 
     def get_subscription_callback_object_intra(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> Optional[int]:
-        callback_lttng = self._bridge.get_subscription_callback_value(callback)
+        callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object_intra
 
     def get_publisher_handles(
         self,
         publisher_info: PublisherStructValue
     ) -> List[int]:
-        publisher_lttng = self._bridge.get_publisher_values(publisher_info)
+        publisher_lttng = self._bridge.get_publishers(publisher_info)
         return [pub_info.publisher_handle
                 for pub_info
                 in publisher_lttng]
@@ -740,15 +563,10 @@ class NodeRecordsCallbackChain:
         provider: RecordsProviderLttng,
         node_path: NodePathStructValue,
     ) -> None:
-        if node_path.callbacks is None:
-            raise UnsupportedNodeRecordsError('callback values is None.')
-        if not isinstance(node_path.message_context, CallbackChain):
-            msg = 'node_path.message context is not InheritUniqueStamp'
-            raise UnsupportedNodeRecordsError(msg)
 
         self._provider = provider
         self._validate(node_path)
-        self._info = node_path
+        self._val = node_path
 
     @staticmethod
     def _rename_callback_records(
@@ -769,8 +587,8 @@ class NodeRecordsCallbackChain:
         records: RecordsInterface,
         var_pass: VariablePassingStructValue
     ) -> None:
-        callback_read = var_pass.callback_value_read
-        callback_write = var_pass.callback_value_write
+        callback_read = var_pass.callback_read
+        callback_write = var_pass.callback_write
         records.rename_columns(
             {
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP:
@@ -796,7 +614,7 @@ class NodeRecordsCallbackChain:
         )
 
     def to_records(self):
-        chain_info = self._info.child
+        chain_info = self._val.child
 
         if isinstance(chain_info[0], CallbackStructValue):
             cb_info = chain_info[0]
@@ -810,7 +628,7 @@ class NodeRecordsCallbackChain:
         for chain_element in chain_info[1:]:
             if isinstance(chain_element, CallbackStructValue):
                 records_ = self._provider.callback_records(chain_element)
-                self._rename_callback_records(records_, chain_element)
+                # self._rename_callback_records(records_, chain_element)
                 join_key = records_.columns[0]
                 records = merge(
                     left_records=records,
@@ -836,28 +654,29 @@ class NodeRecordsCallbackChain:
                 )
                 continue
 
-        # last_element = chain_info[-1]
-        # if isinstance(last_element, CallbackStructInfo)
-        # and self._info.publisher_info is not None:
-        #     last_callback_end = Util.filter(lambda x: 'callback_end' in x, records.columns)[-1]
-        #     records.drop_columns([last_callback_end])
+        last_element = chain_info[-1]
+        if isinstance(last_element, CallbackStructValue) \
+                and self._val.publisher is not None:
+            last_callback_end_name = Util.filter_items(
+                lambda x: COLUMN_NAME.CALLBACK_END_TIMESTAMP in x, records.columns)[-1]
+            records.drop_columns([last_callback_end_name])
+            last_callback_start_name = Util.filter_items(
+                lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns)[-1]
 
-        #     last_callback_start = Util.filter(
-        # lambda x: 'callback_start' in x, records.columns)[-1]
-        #     publish_records = self._provider.publish_records(self._info.publisher_info)
-        #     self._rename_publish_records(publish_records, self._info.publisher_info)
-        #     publish_column = publish_records.columns[0]
-        #     columns = records.columns + [publish_column]
-        #     records = merge_sequencial(
-        #         left_records=records,
-        #         right_records=publish_records,
-        #         join_left_key=None,
-        #         join_right_key=None,
-        #         left_stamp_key=last_callback_start,
-        #         right_stamp_key=publish_column,
-        #         columns=columns,
-        #         how='left'
-        #     )
+            publish_records = self._provider.publish_records(self._val.publisher)
+            self._rename_publish_records(publish_records, self._val.publisher)
+            publish_column = publish_records.columns[0]
+            columns = records.columns + [publish_column]
+            records = merge_sequencial(
+                left_records=records,
+                right_records=publish_records,
+                join_left_key=None,
+                join_right_key=None,
+                left_stamp_key=last_callback_start_name,
+                right_stamp_key=publish_column,
+                columns=columns,
+                how='left'
+            )
         return records
 
     @staticmethod
@@ -866,6 +685,13 @@ class NodeRecordsCallbackChain:
     ) -> None:
         if node_path.callbacks is None:
             raise UnsupportedNodeRecordsError('')
+
+        if node_path.callbacks is None:
+            raise UnsupportedNodeRecordsError('callback values is None.')
+
+        if not isinstance(node_path.message_context, CallbackChain):
+            msg = 'node_path.message context is not CallbackChain'
+            raise UnsupportedNodeRecordsError(msg)
 
         head_callback = node_path.callbacks[0]
         tail_callback = node_path.callbacks[-1]
@@ -899,52 +725,22 @@ class NodeRecordsInheritUniqueTimestamp:
         self._node_path = node_path
 
     def to_records(self):
-        from sys import maxsize
-
-        inter_intra_publish_timestamp = 'rclcpp_inter_intra_publish_timestamp'
-        columns = [
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            inter_intra_publish_timestamp,
-        ]
-
-        sub_records = self._provider.subscription_records(self._node_path.subscription)
-        sub_records_intra = self._provider.intra_subscription_records(
-            self._node_path.subscription)
-        sub_records.drop_columns([COLUMN_NAME.SOURCE_TIMESTAMP])
-        sub_records.concat(sub_records_intra)
-        sub_records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-
+        sub_records = self._provider.subscribe_records(self._node_path.subscription)
         pub_records = self._provider.publish_records(self._node_path.publisher)
-        pub_records_intra = self._provider.intra_publish_records(self._node_path.publisher)
-        pub_merged = merge_sequencial(
-            left_records=pub_records,
-            right_records=pub_records_intra,
-            left_stamp_key=COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            join_left_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            join_right_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            columns=Columns(pub_records.columns+pub_records_intra.columns),
-            how='outer'
-        )
 
-        pub_merged.append_column(inter_intra_publish_timestamp)
-        for record in pub_merged.data:
-            rclcpp_publish, rclcpp_intra_publish = maxsize, maxsize
-            if COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in record.columns:
-                rclcpp_publish = record.get(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
-            if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.columns:
-                rclcpp_intra_publish = record.get(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
-            inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
-            record.add(inter_intra_publish_timestamp, inter_intra_publish)
+        columns = [
+            sub_records.columns[0],
+            pub_records.columns[0],
+        ]
 
         pub_sub_records = merge_sequencial(
             left_records=sub_records,
-            right_records=pub_merged,
-            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            right_stamp_key=inter_intra_publish_timestamp,
-            join_left_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            join_right_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            columns=Columns(sub_records.columns + pub_merged.columns).as_list(),
+            right_records=pub_records,
+            left_stamp_key=sub_records.columns[0],
+            right_stamp_key=pub_records.columns[0],
+            join_left_key=f'{self._node_path.subscribe_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}',
+            join_right_key=f'{self._node_path.publish_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}',
+            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
             how='left_use_latest'
         )
 
@@ -990,61 +786,22 @@ class NodeRecordsUseLatestMessage:
         self._node_path = node_path
 
     def to_records(self):
-        maxsize = 2**64-1
-
-        sub_records = self._provider.subscription_records(self._node_path.subscription)
-        sub_records_intra = self._provider.intra_subscription_records(
-            self._node_path.subscription)
-        sub_records.drop_columns([COLUMN_NAME.SOURCE_TIMESTAMP])
-        sub_records.concat(sub_records_intra)
-        sub_records.sort(sub_records.columns[0])
-
+        sub_records = self._provider.subscribe_records(self._node_path.subscription)
         pub_records = self._provider.publish_records(self._node_path.publisher)
-        pub_records_intra = self._provider.intra_publish_records(self._node_path.publisher)
-        pub_merged = merge_sequencial(
-            left_records=pub_records,
-            right_records=pub_records_intra,
-            left_stamp_key=pub_records.columns[0],
-            right_stamp_key=pub_records_intra.columns[0],
-            join_left_key=None,
-            join_right_key=None,
-            columns=Columns(pub_records.columns+pub_records_intra.columns),
-            how='outer'
-        )
-
-        rclcpp_publish_column = \
-            f'{self._node_path.publish_topic_name}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
-        rclcpp_intra_publish_column = \
-            f'{self._node_path.publish_topic_name}/{COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP}'
-        # for record in pub_merged.data:
-        inter_intra_publish_timestamps = []
-        for i in range(len(pub_merged)):
-            record = pub_merged.data[i]
-            rclcpp_publish, rclcpp_intra_publish = maxsize, maxsize
-            if rclcpp_publish_column in record.columns:
-                rclcpp_publish = record.get(rclcpp_publish_column)
-            if rclcpp_intra_publish_column in record.columns:
-                rclcpp_intra_publish = record.get(rclcpp_intra_publish_column)
-            inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
-            inter_intra_publish_timestamps.append(inter_intra_publish)
-            # pub_merged.data[i].add(inter_intra_publish_timestamp, inter_intra_publish)
-            []
 
         columns = [
             sub_records.columns[0],
-            f'{self._node_path.publish_topic_name}/rclcpp_inter_intra_publish_timestamp',
+            f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
-
-        pub_merged.append_column(columns[1], inter_intra_publish_timestamps)
 
         pub_sub_records = merge_sequencial(
             left_records=sub_records,
-            right_records=pub_merged,
+            right_records=pub_records,
             left_stamp_key=sub_records.columns[0],
-            right_stamp_key=columns[1],
+            right_stamp_key=pub_records.columns[0],
             join_left_key=None,
             join_right_key=None,
-            columns=Columns(sub_records.columns + pub_merged.columns).as_list(),
+            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
             how='left_use_latest'
         )
 

@@ -17,6 +17,7 @@ from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 
 
 class TestLttngInfo:
+
     def test_add_tracepoints(self):
         data = Ros2DataModel()
         data.add_context(0, 0, 0, 'version')

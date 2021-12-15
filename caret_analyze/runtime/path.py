@@ -14,18 +14,17 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence, Union
 from logging import getLogger
+from typing import Dict, List, Optional, Sequence, Union
 
-from ..exceptions import InvalidArgumentError
-from ..record.record import RecordsInterface, merge, merge_sequencial
-from ..common import Util, Columns, CustomDict
+from .callback import CallbackBase
 from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
-from .callback import CallbackBase
+from ..common import Columns, Summary, Util
+from ..exceptions import InvalidArgumentError
+from ..record.record import merge, merge_sequencial, RecordsInterface
 from ..value_objects import PathStructValue
-
 
 logger = getLogger(__name__)
 
@@ -119,35 +118,25 @@ class RecordsMerged:
         logger.info('Started merging path records.')
 
         column_merger = ColumnMerger()
-        idx: int
-        if len(targets[0].data) > 0:
-            idx = 0
-        else:
-            idx = 1
+        if len(targets[0].data) == 0:
+            targets = targets[1:]
 
-        first_element = targets[idx]
-
+        first_element = targets[0]
         left_records = first_element
-
-        # todo: refactor
-        if 'callback_end' in first_element.columns[-1] and first_element != targets[-1]:
-            # drop callback end
-            left_records.drop_columns([first_element.columns[-1]])
 
         rename_rule = column_merger.append_columns_and_return_rename_rule(
             left_records)
-        left_records.rename_columns(rename_rule)
 
+        left_records.rename_columns(rename_rule)
         first_column = first_element.columns[0]
 
-        merge_targets = targets[idx+1:]
-        for target in merge_targets:
+        for target in targets[1:]:
             right_records = target
 
             is_dummy_records = len(right_records.columns) == 0
 
             if is_dummy_records:
-                if target == merge_targets[-1]:
+                if target == targets[-1]:
                     msg = 'Detected dummy_records. merge terminated.'
                     logger.info(msg)
                 else:
@@ -158,45 +147,30 @@ class RecordsMerged:
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            # todo: refactor
-            if 'callback_end' in right_records.columns[-1] and target != targets[-1]:
-                # drop callback end
-                right_records.drop_columns([right_records.columns[-1]])
-
+            assert left_records.columns[-1] == right_records.columns[0]
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
-            if left_stamp_key == right_stamp_key:
-                msg = '\n[merge]\n'
-                msg += f'- left_column: {left_stamp_key} \n'
-                msg += f'- right_column: {right_stamp_key}. \n'
-                logger.info(msg)
-                left_records = merge(
-                    left_records=left_records,
-                    right_records=right_records,
-                    join_left_key=left_stamp_key,
-                    join_right_key=right_stamp_key,
-                    columns=Columns(left_records.columns +
-                                    right_records.columns).as_list(),
-                    how='left'
-                )
-            else:
-                msg = '\n[merge_sequencial] \n'
-                msg += f'- left_column: {left_stamp_key} \n'
-                msg += f'- right_column: {right_stamp_key} \n'
-                logger.info(msg)
+            right_records.drop_columns([left_records.columns[0]])
+            right_stamp_key = right_records.columns[0]
 
-                left_records = merge_sequencial(
-                    left_records=left_records,
-                    right_records=right_records,
-                    join_left_key=None,
-                    join_right_key=None,
-                    left_stamp_key=left_stamp_key,
-                    right_stamp_key=right_stamp_key,
-                    columns=Columns(left_records.columns +
-                                    right_records.columns).as_list(),
-                    how='left_use_latest'
-                )
+            logger.info(
+                '\n[merge_sequencial] \n'
+                f'- left_column: {left_stamp_key} \n'
+                f'- right_column: {right_stamp_key} \n'
+            )
+
+            left_records = merge_sequencial(
+                left_records=left_records,
+                right_records=right_records,
+                join_left_key=None,
+                join_right_key=None,
+                left_stamp_key=left_stamp_key,
+                right_stamp_key=right_stamp_key,
+                columns=Columns(left_records.columns +
+                                right_records.columns).as_list(),
+                how='left_use_latest'
+            )
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
@@ -207,13 +181,13 @@ class RecordsMerged:
 class Path(PathBase):
     def __init__(
         self,
-        path_info: PathStructValue,
+        path: PathStructValue,
         child: List[Union[NodePath, Communication]],
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
         super().__init__()
 
-        self._value = path_info
+        self._value = path
         self._validate(child)
         self._child = child
         self._columns_cache: Optional[List[str]] = None
@@ -241,13 +215,16 @@ class Path(PathBase):
                 continue
             msg = 'Detected invalid message context. Correct these node_path definitions. \n'
             msg += 'To see node definition,'
-            msg += f'execute [ app.get_node(\'{child.node_name}\').summary.pprint() ] \n'
+            msg += f"execute [ app.get_node('{child.node_name}').summary.pprint() ] \n"
             msg += str(child.summary)
             logger.warning(msg)
             is_valid = False
         return is_valid
 
     def get_child(self, name: str):
+        if not isinstance(name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target(child: Union[NodePath, Communication]):
             if isinstance(child, NodePath):
                 return child.node_name == name
@@ -257,7 +234,7 @@ class Path(PathBase):
         return Util.find_one(is_target, self.child)
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._value.summary
 
     @property
@@ -294,15 +271,15 @@ class Path(PathBase):
 
     @property
     def communications(self) -> List[Communication]:
-        return Util.filter(lambda x: isinstance(x, Communication), self._child)
+        return Util.filter_items(lambda x: isinstance(x, Communication), self._child)
 
     @property
     def node_paths(self) -> List[NodePath]:
-        return Util.filter(lambda x: isinstance(x, NodePath), self._child)
+        return Util.filter_items(lambda x: isinstance(x, NodePath), self._child)
 
     @property
     def topic_names(self) -> List[str]:
-        return list(self._value.topic_names)
+        return sorted(self._value.topic_names)
 
     @property
     def child(self) -> List[Union[NodePath, Communication]]:
@@ -310,8 +287,8 @@ class Path(PathBase):
 
     @property
     def child_names(self) -> List[str]:
-        return list(self._value.child_names)
+        return sorted(self._value.child_names)
 
     @property
     def node_names(self) -> List[str]:
-        return list(self._value.node_names)
+        return sorted(self._value.node_names)

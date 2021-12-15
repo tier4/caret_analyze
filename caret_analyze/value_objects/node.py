@@ -15,17 +15,15 @@
 
 from typing import Optional, Tuple
 
+from ..common import Summary, Util
 from ..exceptions import ItemNotFoundError
-from ..common import Util
-from .callback_group import CallbackGroupStructValue
 from .callback import CallbackStructValue
-from .node_path import NodePathStructValue, NodePathValue
+from .callback_group import CallbackGroupStructValue
+from .node_path import NodePathStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
-from .message_context import MessageContext
-from ..common import CustomDict
 
 
 class NodeValue(ValueObject):
@@ -44,6 +42,20 @@ class NodeValue(ValueObject):
     @property
     def node_id(self) -> Optional[str]:
         return self.__node_id
+
+
+class NodeValueWithId(NodeValue):
+    def __init__(
+        self,
+        node_name: str,
+        node_id: str,
+    ) -> None:
+        super().__init__(node_name, node_id)
+        self._node_id = node_id
+
+    @property
+    def node_id(self) -> str:
+        return self._node_id
 
 
 class NodeStructValue(ValueObject):
@@ -154,8 +166,8 @@ class NodeStructValue(ValueObject):
             raise ItemNotFoundError(msg)
 
     @property
-    def summary(self) -> CustomDict:
-        d: CustomDict = CustomDict()
+    def summary(self) -> Summary:
+        d: Summary = Summary()
         d['node'] = self.node_name
         d['callbacks'] = self.callback_names
         d['callback_groups'] = self.callback_group_names

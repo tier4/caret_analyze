@@ -15,40 +15,28 @@
 from __future__ import annotations
 
 from itertools import product
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 from logging import getLogger
+from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
-from caret_analyze.value_objects.message_context import CallbackChain, MessageContext
+from caret_analyze.value_objects.message_context import (CallbackChain,
+                                                         MessageContext)
 
-from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
-                          ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError,
-                          InvalidYamlFormatError)
 from ..common import Util
-from ..value_objects import (CallbackGroupValue,
-                             CallbackGroupStructValue,
-                             CallbackValue,
+from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
+                          InvalidYamlFormatError, ItemNotFoundError,
+                          MultipleItemFoundError, UnsupportedTypeError)
+from ..value_objects import (CallbackGroupStructValue, CallbackGroupValue,
+                             CallbackStructValue, CallbackValue,
+                             CommunicationStructValue, ExecutorStructValue,
+                             ExecutorValue, NodePathStructValue, NodePathValue,
+                             NodeStructValue, NodeValue, NodeValueWithId,
+                             PathStructValue, PathValue, PublisherStructValue,
+                             PublisherValue, SubscriptionCallbackStructValue,
                              SubscriptionCallbackValue,
-                             TimerCallbackValue,
-                             CallbackStructValue,
-                             SubscriptionCallbackStructValue,
-                             TimerCallbackStructValue,
-                             CommunicationStructValue,
-                             ExecutorValue,
-                             ExecutorStructValue,
-                             NodePathValue,
-                             NodeValue,
-                             NodePathStructValue,
-                             NodeStructValue,
-                             PathValue,
-                             PathStructValue,
-                             PublisherValue,
-                             PublisherStructValue,
-                             SubscriptionValue,
-                             SubscriptionStructValue,
-                             VariablePassingValue,
-                             VariablePassingStructValue)
+                             SubscriptionStructValue, SubscriptionValue,
+                             TimerCallbackStructValue, TimerCallbackValue,
+                             VariablePassingStructValue, VariablePassingValue)
 from .reader_interface import UNDEFINED_STR, ArchitectureReader
-
 
 logger = getLogger(__name__)
 
@@ -83,13 +71,13 @@ class ArchitectureLoaded():
         paths_loaded = PathValuesLoaded(
             topic_ignored_reader, nodes_loaded, comms_loaded)
         self._named_paths: Tuple[PathStructValue, ...]
-        self._named_paths = paths_loaded.data
+        self._paths = paths_loaded.data
 
         return None
 
     @property
-    def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return self._named_paths
+    def paths(self) -> Tuple[PathStructValue, ...]:
+        return self._paths
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
@@ -141,7 +129,7 @@ class CommValuesLoaded():
             callbacks_pub = None
             is_target_pub_cb = CommValuesLoaded.IsTargetPubCallback(pub)
             callback_values = nodes_loaded.get_callbacks(pub.node_name)
-            callbacks_pub = tuple(Util.filter(is_target_pub_cb, callback_values))
+            callbacks_pub = tuple(Util.filter_items(is_target_pub_cb, callback_values))
         except ItemNotFoundError:
             logger.info(f'Failed to find publisher callback. {node_pub}. Skip loading')
         except MultipleItemFoundError:
@@ -246,8 +234,8 @@ class NodeValuesLoaded():
         self._data = tuple(nodes_struct)
 
     @staticmethod
-    def _remove_duplicated(nodes: Sequence[NodeValue]) -> Sequence[NodeValue]:
-        nodes_: List[NodeValue] = []
+    def _remove_duplicated(nodes: Sequence[NodeValueWithId]) -> Sequence[NodeValueWithId]:
+        nodes_: List[NodeValueWithId] = []
         node_names = set()
         for node in nodes:
             if node.node_name not in node_names:
@@ -256,7 +244,7 @@ class NodeValuesLoaded():
         return nodes_
 
     @staticmethod
-    def _validate(nodes: Sequence[NodeValue]):
+    def _validate(nodes: Sequence[NodeValueWithId]):
         from itertools import groupby
 
         # validate node name uniqueness.
@@ -389,7 +377,8 @@ class NodeValuesLoaded():
         try:
             node_paths = NodeValuesLoaded._search_node_paths(node_struct, reader)
             node_path_added = NodeStructValue(
-                node_struct.node_name, node_struct.publishers, node_struct.subscriptions,
+                node_struct.node_name, node_struct.publishers,
+                node_struct.subscriptions,
                 tuple(node_paths), node_struct.callback_groups,
                 node_struct.variable_passings
             )
@@ -559,6 +548,7 @@ class MessageContextsLoaded:
         data: List[MessageContext] = []
 
         context_dicts = reader.get_message_contexts(NodeValue(node.node_name, None))
+        pub_sub_pairs = []
         for context_dict in context_dicts:
             try:
                 context_type = context_dict['context_type']
@@ -569,11 +559,13 @@ class MessageContextsLoaded:
                                                context_dict['publisher_topic_name'],
                                                context_dict['subscription_topic_name'])
                 data.append(self._to_struct(context_dict, node_path))
+                pub_sub_pairs.append((node_path.publish_topic_name, node_path.subscribe_topic_name))
             except Error as e:
                 logger.warning(e)
 
         for context in self._create_callack_chain(node_paths):
-            if context not in data:
+            pub_sub_pair = (context.publisher_topic_name, context.subscription_topic_name)
+            if context not in data and pub_sub_pair not in pub_sub_pairs:
                 data.append(context)
 
         self._data = tuple(data)
@@ -688,7 +680,7 @@ class PublishersLoaded:
                 pub_callbacks.append(callback)
 
         return PublisherStructValue(
-            publisher_value.node_id,
+            publisher_value.node_name,
             publisher_value.topic_name,
             callback_values=tuple(pub_callbacks),
         )
@@ -704,7 +696,7 @@ class PublishersLoaded:
             return True
 
         callbacks = callbacks_loaded.data
-        return Util.filter(is_user_defined, callbacks)
+        return Util.filter_items(is_user_defined, callbacks)
 
     @property
     def data(self) -> Tuple[PublisherStructValue, ...]:
@@ -848,6 +840,8 @@ class CallbacksLoaded():
 
         callback_num = Util.num_digit(len(callbacks))
         for callback in callbacks:
+            if callback.callback_id is None:
+                continue
             self._cb_dict[callback.callback_id] = self._to_struct(
                 callback, callback_num)
 
@@ -917,7 +911,11 @@ class CallbacksLoaded():
 
         # check callback id
         cb_ids: List[str] = [
-            cb.callback_id for cb in callbacks if cb.callback_name is not None]
+            cb.callback_id
+            for cb
+            in callbacks
+            if cb.callback_id is not None
+        ]
         if len(cb_names) != len(set(cb_names)):
             msg = f'Duplicated callback id. node_name: {self._node.node_name}\n'
             for cb_id in set(cb_ids):
@@ -993,12 +991,12 @@ class ExecutorValuesLoaded():
     @staticmethod
     def _to_struct(
         executor_name: str,
-        executor_value: ExecutorValue,
+        executor: ExecutorValue,
         nodes_loaded: NodeValuesLoaded,
     ) -> ExecutorStructValue:
         callback_group_values: List[CallbackGroupStructValue] = []
 
-        for cbg_id in executor_value.callback_group_ids:
+        for cbg_id in executor.callback_group_ids:
             try:
                 callback_group_values.append(
                     ExecutorValuesLoaded._find_struct_callback_group(
@@ -1010,7 +1008,7 @@ class ExecutorValuesLoaded():
                 logger.warn(e)
 
         return ExecutorStructValue(
-            executor_value.executor_type,
+            executor.executor_type,
             tuple(callback_group_values),
             executor_name,
         )
@@ -1035,7 +1033,7 @@ class PathValuesLoaded():
         communications_loaded: CommValuesLoaded,
     ) -> None:
         paths: List[PathStructValue] = []
-        for path in reader.get_named_paths():
+        for path in reader.get_paths():
             try:
                 paths.append(
                     self._to_struct(path, nodes_loaded, communications_loaded)
@@ -1205,7 +1203,7 @@ class TopicIgnoredReader(ArchitectureReader):
         def is_not_ignored(callback_id: str):
             return callback_id not in self._ignore_callback_ids
 
-        return tuple(Util.filter(is_not_ignored, callback_ids))
+        return tuple(Util.filter_items(is_not_ignored, callback_ids))
 
     @staticmethod
     def _get_ignore_callback_ids(
@@ -1220,9 +1218,9 @@ class TopicIgnoredReader(ArchitectureReader):
         for node in tqdm(nodes, 'Loading callbacks'):
             node = NodeValue(node.node_name, node.node_id)
 
-            sub = reader.get_subscriptions(node)
+            sub = reader.get_subscription_callbacks(node)
             for sub_val in sub:
-                if sub_val.topic_name not in ignore_topic_set:
+                if sub_val.subscribe_topic_name not in ignore_topic_set:
                     continue
 
                 if sub_val.callback_id is None:
@@ -1232,10 +1230,10 @@ class TopicIgnoredReader(ArchitectureReader):
 
         return set(ignore_callback_ids)
 
-    def get_named_paths(self) -> Sequence[PathValue]:
-        return self._reader.get_named_paths()
+    def get_paths(self) -> Sequence[PathValue]:
+        return self._reader.get_paths()
 
-    def get_nodes(self) -> Sequence[NodeValue]:
+    def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._reader.get_nodes()
 
     def get_subscriptions(self, node: NodeValue) -> List[SubscriptionValue]:

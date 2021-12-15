@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apacato_node_branch_indexese.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,33 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-
-import pytest
 from pytest_mock import MockerFixture
 
-from caret_analyze.architecture.graph_search import (CallbackPathSearcher, GraphNode,
-                                                     GraphPathCore, Graph, GraphPath, GraphEdge,
-                                                     NodePathSearcher, GraphCore, GraphEdgeCore)
-from caret_analyze.exceptions import ItemNotFoundError
+from caret_analyze.architecture.graph_search import (CallbackPathSearcher,
+                                                     Graph, GraphCore,
+                                                     GraphEdge, GraphEdgeCore,
+                                                     GraphNode, GraphPath,
+                                                     GraphPathCore,
+                                                     NodePathSearcher)
 from caret_analyze.value_objects import (CallbackStructValue,
                                          CommunicationStructValue,
-                                         NodePathStructValue,
-                                         NodeStructValue,
-                                         PathStructValue,
-                                         PublisherStructValue,
-                                         VariablePassingStructValue,
-                                         SubscriptionStructValue)
-
-
-class TestGraphBranch:
-
-    def test_eq(self):
-        node0 = GraphNode('/node0/callback0')
-        node1 = GraphNode('/node1/callback1')
-
-        assert GraphBranch(node0, node1) == GraphBranch(node0, node1)
-        assert GraphBranch(node0, node0) != GraphBranch(node0, node1)
+                                         NodePathStructValue, NodeStructValue,
+                                         PathStructValue, PublisherStructValue,
+                                         SubscriptionStructValue,
+                                         VariablePassingStructValue)
 
 
 class TestGraphNode:
@@ -51,29 +38,29 @@ class TestGraphNode:
 class TestGraphPath:
 
     def test_to_graph_nodes_multi_nodes(self):
-        path = GraphPathCore()
+        path = GraphPath()
         assert len(path) == 0
-        assert len(path.to_graph_nodes()) == 0
+        assert len(path.nodes) == 0
 
         nodes = [
             GraphNode('/node0/callback0'),
             GraphNode('/node1/callback1'),
             GraphNode('/node2/callback2'),
         ]
-        path.append(GraphBranch(nodes[0], nodes[1]))
-        path.append(GraphBranch(nodes[1], nodes[2]))
+        path.append(GraphEdge(nodes[0], nodes[1]))
+        path.append(GraphEdge(nodes[1], nodes[2]))
 
         assert len(path) == 2
-        assert nodes == path.to_graph_nodes()
+        assert nodes == path.nodes
 
     def test_to_graph_nodes_single_node(self):
-        path = GraphPathCore()
+        path = GraphPath()
 
         nodes = [GraphNode('/node0/callback0')]
-        path.append(GraphBranch(nodes[0], nodes[0]))
+        path.append(GraphEdge(nodes[0], nodes[0]))
 
         assert len(path) == 1
-        assert nodes == path.to_graph_nodes()
+        assert nodes == path.nodes
 
 
 class TestGraphCore:
@@ -126,9 +113,16 @@ class TestGraphCore:
         r = g.search_paths(0, 4)
         assert len(r) == 5
         assert [GraphEdgeCore(0, 1), GraphEdgeCore(1, 3), GraphEdgeCore(3, 4)] in r
-        assert [GraphEdgeCore(0, 1), GraphEdgeCore(1, 3), GraphEdgeCore(3, 2), GraphEdgeCore(2, 4)] in r
-        assert [GraphEdgeCore(0, 2), GraphEdgeCore(2, 1), GraphEdgeCore(1, 3), GraphEdgeCore(3, 4)] in r
-        assert [GraphEdgeCore(0, 2), GraphEdgeCore(2, 1), GraphEdgeCore(1, 3), GraphEdgeCore(3, 2), GraphEdgeCore(2, 4)] in r
+        assert [
+            GraphEdgeCore(0, 1), GraphEdgeCore(1, 3), GraphEdgeCore(3, 2), GraphEdgeCore(2, 4)
+            ] in r
+        assert [
+            GraphEdgeCore(0, 2), GraphEdgeCore(2, 1), GraphEdgeCore(1, 3), GraphEdgeCore(3, 4)
+            ] in r
+        assert [
+            GraphEdgeCore(0, 2), GraphEdgeCore(2, 1), GraphEdgeCore(1, 3),
+            GraphEdgeCore(3, 2), GraphEdgeCore(2, 4)
+            ] in r
         assert [GraphEdgeCore(0, 2), GraphEdgeCore(2, 4)] in r
 
     def test_search_complex_loop_case_with_label(self):
@@ -145,14 +139,33 @@ class TestGraphCore:
 
         r = g.search_paths(0, 4)
         assert len(r) == 8
-        assert [GraphEdgeCore(0, 1, '0'), GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 4, '3')] in r
-        assert [GraphEdgeCore(0, 1, '0'), GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 2, '4'), GraphEdgeCore(2, 4, '6')] in r
-        assert [GraphEdgeCore(0, 2, '1'), GraphEdgeCore(2, 1, '5'), GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 4, '3')] in r
-        assert [GraphEdgeCore(0, 2, '1'), GraphEdgeCore(2, 1, '5'), GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 2, '4'), GraphEdgeCore(2, 4, '6')] in r
-        assert [GraphEdgeCore(0, 2, '1'), GraphEdgeCore(2, 4, '6')] in r
-        assert [GraphEdgeCore(0, 2, '1_'), GraphEdgeCore(2, 1, '5'), GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 4, '3')] in r
-        assert [GraphEdgeCore(0, 2, '1_'), GraphEdgeCore(2, 1, '5'), GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 2, '4'), GraphEdgeCore(2, 4, '6')] in r
-        assert [GraphEdgeCore(0, 2, '1_'), GraphEdgeCore(2, 4, '6')] in r
+        assert [
+            GraphEdgeCore(0, 1, '0'), GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 4, '3')
+            ] in r
+        assert [
+            GraphEdgeCore(0, 1, '0'), GraphEdgeCore(1, 3, '2'),
+            GraphEdgeCore(3, 2, '4'), GraphEdgeCore(2, 4, '6')
+            ] in r
+        assert [
+            GraphEdgeCore(0, 2, '1'), GraphEdgeCore(2, 1, '5'),
+            GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 4, '3')
+            ] in r
+        assert [
+            GraphEdgeCore(0, 2, '1'), GraphEdgeCore(2, 1, '5'),
+            GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 2, '4'), GraphEdgeCore(2, 4, '6')
+            ] in r
+        assert [
+            GraphEdgeCore(0, 2, '1'), GraphEdgeCore(2, 4, '6')] in r
+        assert [
+            GraphEdgeCore(0, 2, '1_'), GraphEdgeCore(2, 1, '5'),
+            GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 4, '3')
+            ] in r
+        assert [
+            GraphEdgeCore(0, 2, '1_'), GraphEdgeCore(2, 1, '5'),
+            GraphEdgeCore(1, 3, '2'), GraphEdgeCore(3, 2, '4'), GraphEdgeCore(2, 4, '6')
+            ] in r
+        assert [
+            GraphEdgeCore(0, 2, '1_'), GraphEdgeCore(2, 4, '6')] in r
 
     def test_search_simple_loop_case(self):
         g = GraphCore()
@@ -164,7 +177,9 @@ class TestGraphCore:
 
         r = g.search_paths(0, 3)
         assert len(r) == 2
-        assert [GraphEdgeCore(0, 1), GraphEdgeCore(1, 2), GraphEdgeCore(2, 1), GraphEdgeCore(1, 3)] in r
+        assert [
+            GraphEdgeCore(0, 1), GraphEdgeCore(1, 2), GraphEdgeCore(2, 1), GraphEdgeCore(1, 3)
+            ] in r
         assert [GraphEdgeCore(0, 1), GraphEdgeCore(1, 3)] in r
 
     # def test_measure_performance(self):
@@ -174,7 +189,6 @@ class TestGraphCore:
     #         g.add_edge(i, i+1)
 
     #     g.search_paths(0, num-1)
-
 
 
 class TestGraph:
@@ -203,8 +217,12 @@ class TestGraph:
         g.add_edge(node_3, node_4)
 
         r = g.search_paths(node_0, node_4)
-        assert GraphPath([GraphEdge(node_0, node_1), GraphEdge(node_1, node_3), GraphEdge(node_3, node_4)]) in r
-        assert GraphPath([GraphEdge(node_0, node_2), GraphEdge(node_2, node_3), GraphEdge(node_3, node_4)]) in r
+        assert GraphPath([
+            GraphEdge(node_0, node_1), GraphEdge(node_1, node_3), GraphEdge(node_3, node_4)]
+            ) in r
+        assert GraphPath([
+            GraphEdge(node_0, node_2), GraphEdge(node_2, node_3), GraphEdge(node_3, node_4)
+            ]) in r
 
     def test_search_loop_case(self):
         g = GraphCore()
@@ -239,11 +257,23 @@ class TestGraph:
 
         r = g.search_paths(node_0, node_4)
         assert len(r) == 5
-        assert [GraphEdge(node_0, node_1), GraphEdge(node_1, node_3), GraphEdge(node_3, node_4)] in r
-        assert [GraphEdge(node_0, node_1), GraphEdge(node_1, node_3), GraphEdge(node_3, node_2), GraphEdge(node_2, node_4)] in r
-        assert [GraphEdge(node_0, node_2), GraphEdge(node_2, node_1), GraphEdge(node_1, node_3), GraphEdge(node_3, node_4)] in r
-        assert [GraphEdge(node_0, node_2), GraphEdge(node_2, node_1), GraphEdge(node_1, node_3), GraphEdge(node_3, node_2), GraphEdge(node_2, node_4)] in r
-        assert [GraphEdge(node_0, node_2), GraphEdge(node_2, node_4)] in r
+        assert [
+            GraphEdge(node_0, node_1), GraphEdge(node_1, node_3), GraphEdge(node_3, node_4)
+            ] in r
+        assert [
+            GraphEdge(node_0, node_1), GraphEdge(node_1, node_3),
+            GraphEdge(node_3, node_2), GraphEdge(node_2, node_4)
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2), GraphEdge(node_2, node_1),
+            GraphEdge(node_1, node_3), GraphEdge(node_3, node_4)
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2), GraphEdge(node_2, node_1),
+            GraphEdge(node_1, node_3), GraphEdge(node_3, node_2), GraphEdge(node_2, node_4)
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2), GraphEdge(node_2, node_4)] in r
 
     def test_search_complex_loop_case_with_label(self):
         g = Graph()
@@ -264,14 +294,36 @@ class TestGraph:
 
         r = g.search_paths(node_0, node_4)
         assert len(r) == 8
-        assert [GraphEdge(node_0, node_1, '0'), GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_4, '3')] in r
-        assert [GraphEdge(node_0, node_1, '0'), GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_2, '4'), GraphEdge(node_2, node_4, '6')] in r
-        assert [GraphEdge(node_0, node_2, '1'), GraphEdge(node_2, node_1, '5'), GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_4, '3')] in r
-        assert [GraphEdge(node_0, node_2, '1'), GraphEdge(node_2, node_1, '5'), GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_2, '4'), GraphEdge(node_2, node_4, '6')] in r
-        assert [GraphEdge(node_0, node_2, '1'), GraphEdge(node_2, node_4, '6')] in r
-        assert [GraphEdge(node_0, node_2, '1_'), GraphEdge(node_2, node_1, '5'), GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_4, '3')] in r
-        assert [GraphEdge(node_0, node_2, '1_'), GraphEdge(node_2, node_1, '5'), GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_2, '4'), GraphEdge(node_2, node_4, '6')] in r
-        assert [GraphEdge(node_0, node_2, '1_'), GraphEdge(node_2, node_4, '6')] in r
+        assert [
+            GraphEdge(node_0, node_1, '0'), GraphEdge(node_1, node_3, '2'),
+            GraphEdge(node_3, node_4, '3')
+            ] in r
+        assert [
+            GraphEdge(node_0, node_1, '0'), GraphEdge(node_1, node_3, '2'),
+            GraphEdge(node_3, node_2, '4'), GraphEdge(node_2, node_4, '6')
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2, '1'), GraphEdge(node_2, node_1, '5'),
+            GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_4, '3')
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2, '1'), GraphEdge(node_2, node_1, '5'),
+            GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_2, '4'),
+            GraphEdge(node_2, node_4, '6')
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2, '1'), GraphEdge(node_2, node_4, '6')] in r
+        assert [
+            GraphEdge(node_0, node_2, '1_'), GraphEdge(node_2, node_1, '5'),
+            GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_4, '3')
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2, '1_'), GraphEdge(node_2, node_1, '5'),
+            GraphEdge(node_1, node_3, '2'), GraphEdge(node_3, node_2, '4'),
+            GraphEdge(node_2, node_4, '6')
+            ] in r
+        assert [
+            GraphEdge(node_0, node_2, '1_'), GraphEdge(node_2, node_4, '6')] in r
 
     def test_search_simple_loop_case(self):
         g = Graph()
@@ -288,131 +340,19 @@ class TestGraph:
 
         r = g.search_paths(node_0, node_3)
         assert len(r) == 2
-        assert [GraphEdge(node_0, node_1), GraphEdge(node_1, node_2), GraphEdge(node_2, node_1), GraphEdge(node_1, node_3)] in r
-        assert [GraphEdge(node_0, node_1), GraphEdge(node_1, node_3)] in r
-
-
-class TestGraphSearcher:
-
-    def test_search_simple_case(self):
-        node0 = GraphNode('/node0/callback0')
-        node1 = GraphNode('/node1/callback1')
-
-        branches: List[GraphBranch] = []
-        branches.append(GraphBranch(node0, node1))
-        searcher = GraphSearcher(branches)
-
-        paths = searcher.search(node0, node1)
-        path = paths[0]
-        assert path.to_graph_nodes() == [node0, node1]
-
-    def test_search_merge_case(self):
-        node_s = GraphNode('/node_start/callback0')
-        node_0 = GraphNode('/node_0/callback0')
-        node_1 = GraphNode('/node_1/callback0')
-        node_e = GraphNode('/node_end/callback0')
-
-        branches: List[GraphBranch] = []
-
-        branches.append(GraphBranch(node_s, node_0))
-        branches.append(GraphBranch(node_s, node_1))
-        branches.append(GraphBranch(node_0, node_e))
-        branches.append(GraphBranch(node_1, node_e))
-
-        searcher = GraphSearcher(branches)
-
-        paths = searcher.search(node_s, node_e)
-        assert len(paths) == 2
-
-        assert paths[0].to_graph_nodes() == [node_s, node_0, node_e]
-        nodes = paths[1].to_graph_nodes()
-        assert paths[1].to_graph_nodes() == [node_s, node_1, node_e]
-
-    def test_search_loop_case(self):
-        node_s = GraphNode('/node_start/callback0')
-        node_e = GraphNode('/node_end/callback0')
-
-        branches: List[GraphBranch] = []
-
-        branches.append(GraphBranch(node_s, node_e))
-        branches.append(GraphBranch(node_e, node_s))
-
-        searcher = GraphSearcher(branches)
-
-        paths = searcher.search(node_s, node_e)
-        assert len(paths) == 1
-        assert paths[0].to_graph_nodes() == [node_s, node_e]
-
-        paths = searcher.search(node_s, node_s)
-        assert len(paths) == 1
-        assert paths[0].to_graph_nodes() == [node_s, node_e, node_s]
-
-    def test_search_complex_loop_case(self):
-
-        node_s = GraphNode('s')
-        node_1 = GraphNode('1')
-        node_2 = GraphNode('2')
-        node_3 = GraphNode('3')
-        node_e = GraphNode('e')
-
-        nodes: List[GraphNode] = []
-        nodes.append(node_s)
-        nodes.append(node_1)
-        nodes.append(node_2)
-        nodes.append(node_3)
-        nodes.append(node_e)
-
-        branches: List[GraphBranch] = []
-
-        branches.append(GraphBranch(node_s, node_1))
-        branches.append(GraphBranch(node_s, node_2))
-        branches.append(GraphBranch(node_1, node_3))
-        branches.append(GraphBranch(node_3, node_e))
-        branches.append(GraphBranch(node_3, node_2))
-        branches.append(GraphBranch(node_2, node_1))
-        branches.append(GraphBranch(node_2, node_e))
-
-        searcher = GraphSearcher(branches, nodes)
-
-        paths = searcher.search(node_s, node_e)
-        assert len(paths) == 5
-        assert paths[0].to_graph_nodes() == [
-            node_s, node_1, node_e
-        ]
-        assert paths[1].to_graph_nodes() == [
-            node_s, node_3, node_2, node_e
-        ]
-        assert paths[2].to_graph_nodes() == [
-            node_s, node_2, node_1, node_3, node_e
-        ]
-        assert paths[3].to_graph_nodes() == [
-            node_s, node_2, node_3, node_2, node_e
-        ]
-        assert paths[4].to_graph_nodes() == [
-            node_s, node_2, node_e
-        ]
-
-    # def test_measure_performance(self):
-    #     num = 2500
-    #     nodes = []
-    #     for i in range(num):
-    #         nodes.append(GraphNode(str(i)))
-
-    #     branches = []
-    #     for i in range(num-1):
-    #         branches.append(GraphBranch(nodes[i], nodes[i+1]))
-
-    #     searcher = GraphSearcher(branches)
-    #     paths = searcher.search(nodes[0], nodes[-1])
-    #     assert len(paths) == 1
-    #     assert paths[0].to_graph_nodes() == nodes
+        assert [
+            GraphEdge(node_0, node_1), GraphEdge(node_1, node_2),
+            GraphEdge(node_2, node_1), GraphEdge(node_1, node_3)] in r
+        assert [
+            GraphEdge(node_0, node_1), GraphEdge(node_1, node_3)] in r
 
 
 class TestCallbackPathSearcher:
+
     def test_empty(self, mocker: MockerFixture):
         node_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock, 'callback_values', ())
-        mocker.patch.object(node_mock, 'variable_passing_values', ())
+        mocker.patch.object(node_mock, 'callbacks', ())
+        mocker.patch.object(node_mock, 'variable_passings', ())
         searcher = CallbackPathSearcher(node_mock)
 
         sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
@@ -426,14 +366,17 @@ class TestCallbackPathSearcher:
         sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
         pub_cb_mock = mocker.Mock(spec=CallbackStructValue)
 
-        searcher_mock = mocker.Mock(spec=GraphSearcher)
+        mocker.patch.object(node_mock, 'callbacks', [])
+        mocker.patch.object(node_mock, 'variable_passings', [])
+
+        searcher_mock = mocker.Mock(spec=Graph)
         mocker.patch(
-            'caret_analyze.architecture.graph_search.GraphSearcher',
+            'caret_analyze.architecture.graph_search.Graph',
             return_value=searcher_mock
         )
-        mocker.patch.object(searcher_mock, 'search',
-                            return_value=[GraphPathCore()])
-        searcher = CallbackPathSearcher(node_mock, (), ())
+        mocker.patch.object(searcher_mock, 'search_paths',
+                            return_value=[GraphPath()])
+        searcher = CallbackPathSearcher(node_mock)
 
         path_mock = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(searcher, '_to_paths', return_value=[path_mock])
@@ -454,8 +397,11 @@ class TestCallbackPathSearcher:
         sub_topic_name = '/sub'
         pub_topic_name = '/pub'
 
-        searcher = CallbackPathSearcher(
-            node_mock, (sub_cb_mock, pub_cb_mock), (var_pas_mock,))
+        mocker.patch.object(node_mock, 'node_name', '/node')
+        mocker.patch.object(node_mock, 'callbacks', [pub_cb_mock, sub_cb_mock])
+        mocker.patch.object(node_mock, 'variable_passings', [var_pas_mock])
+
+        searcher = CallbackPathSearcher(node_mock)
 
         sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
         pub_info_mock = mocker.Mock(spec=PublisherStructValue)
@@ -482,14 +428,14 @@ class TestCallbackPathSearcher:
         )
 
         chain = [sub_cb_mock, var_pas_mock, pub_cb_mock]
-        graph_path_mock = mocker.Mock(spec=GraphPathCore)
-        mocker.patch.object(graph_path_mock, 'to_graph_nodes',
-                            return_value=[
+        graph_path_mock = mocker.Mock(spec=GraphPath)
+        mocker.patch.object(graph_path_mock, 'nodes',
+                            [
                                 graph_node_mock_0,
                                 graph_node_mock_1,
                                 graph_node_mock_2,
                                 graph_node_mock_3,
-                                ])
+                            ])
 
         node_path = searcher._to_path(
             graph_path_mock, sub_topic_name, pub_topic_name)
@@ -511,11 +457,11 @@ class TestCallbackPathSearcher:
 class TestNodePathSearcher:
     def test_empty(self, mocker: MockerFixture):
         searcher = NodePathSearcher((), ())
-        with pytest.raises(ItemNotFoundError):
-            searcher.search('node_name_not_exist', 'node_name_not_exist')
+
+        assert searcher.search('node_name_not_exist', 'node_name_not_exist', 0) == []
 
         node_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock, 'paths_info', [])
+        mocker.patch.object(node_mock, 'paths', [])
         mocker.patch.object(node_mock, 'node_name', 'node')
         mocker.patch.object(node_mock, 'publish_topic_names', [])
         mocker.patch.object(node_mock, 'subscribe_topic_names', [])
@@ -524,22 +470,17 @@ class TestNodePathSearcher:
         assert paths == []
 
     def test_search(self, mocker: MockerFixture):
-        graph_searcher_mock = mocker.Mock(spec=GraphSearcher)
+        graph_mock = mocker.Mock(spec=Graph)
         mocker.patch(
-            'caret_analyze.architecture.graph_search.GraphSearcher',
-            return_value=graph_searcher_mock)
+            'caret_analyze.architecture.graph_search.Graph',
+            return_value=graph_mock)
         searcher = NodePathSearcher((), ())
 
-        src_graph_mock = mocker.Mock(spec=GraphNode)
-        mocker.patch.object(searcher, '_to_src_graph_nodes',
-                            return_value=[src_graph_mock])
-
-        dst_graph_mock = mocker.Mock(spec=GraphNode)
-        mocker.patch.object(searcher, '_to_dst_graph_nodes',
-                            return_value=[dst_graph_mock])
+        src_node = GraphNode('start_node_name')
+        dst_node = GraphNode('end_node_name')
 
         graph_path_mock = mocker.Mock(spec=GraphPathCore)
-        mocker.patch.object(graph_searcher_mock, 'search',
+        mocker.patch.object(graph_mock, 'search_paths',
                             return_value=[graph_path_mock])
 
         path_mock = mocker.Mock(spec=PathStructValue)
@@ -547,44 +488,8 @@ class TestNodePathSearcher:
         paths = searcher.search('start_node_name', 'end_node_name')
 
         assert paths == [path_mock]
-        assert graph_searcher_mock.search.call_args == (
-            (src_graph_mock, dst_graph_mock),)
-
-    def test_to_dst_graph_nodes(self, mocker: MockerFixture):
-        node_name = '/node'
-        topic_name = '/topic'
-
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock, 'node_name', node_name)
-        mocker.patch.object(node_mock, 'paths_info', ())
-        mocker.patch.object(node_mock, 'subscribe_topic_names', (topic_name,))
-
-        searcher = NodePathSearcher((node_mock,), ())
-
-        graph_nodes = searcher._to_dst_graph_nodes(node_name)
-
-        graph_name = searcher._to_node_point_name(node_name, topic_name, 'sub')
-        expect = GraphNode(graph_name)
-
-        assert graph_nodes == [expect]
-
-    def test_to_src_graph_nodes(self, mocker: MockerFixture):
-        node_name = '/node'
-        topic_name = '/topic'
-
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock, 'node_name', node_name)
-        mocker.patch.object(node_mock, 'paths_info', ())
-        mocker.patch.object(node_mock, 'publish_topic_names', (topic_name,))
-
-        searcher = NodePathSearcher((node_mock,), ())
-
-        graph_nodes = searcher._to_src_graph_nodes(node_name)
-
-        graph_name = searcher._to_node_point_name(node_name, topic_name, 'pub')
-        expect = GraphNode(graph_name)
-
-        assert graph_nodes == [expect]
+        assert graph_mock.search_paths.call_args == (
+            (src_node, dst_node, 0), )
 
     def test_to_path(self, mocker: MockerFixture):
         node_name = '/node'
@@ -602,18 +507,33 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock, 'subscribe_node_name', node_name)
         mocker.patch.object(comm_mock, 'topic_name', topic_name)
 
-        mocker.patch.object(node_mock, 'paths_info', [node_path_mock])
+        mocker.patch.object(node_mock, 'paths', [node_path_mock])
+
+        mocker.patch.object(
+            NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock)
+
+        mocker.patch.object(
+            NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
 
         searcher = NodePathSearcher((node_mock,), (comm_mock,))
-        graph_path_mock = mocker.Mock(spec=GraphPathCore)
+        graph_path_mock = mocker.Mock(spec=GraphPath)
+        edge_mock = mocker.Mock(GraphEdge)
         mocker.patch.object(
-            graph_path_mock, 'to_graph_nodes',
-            return_value=[
-                GraphNode(searcher._to_node_point_name(node_name, topic_name, 'pub')),
-                GraphNode(searcher._to_node_point_name(node_name, topic_name, 'sub')),
-            ]
+            graph_path_mock, 'nodes',
+            [GraphNode(node_name)],
         )
+        mocker.patch.object(edge_mock, 'node_name_from', node_name)
+        mocker.patch.object(edge_mock, 'node_name_to', node_name)
+        mocker.patch.object(edge_mock, 'label', topic_name)
+        mocker.patch.object(
+            graph_path_mock, 'edges', [edge_mock]
+        )
+        pub_mock = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(NodePathSearcher, '_get_publisher', return_value=pub_mock)
+        sub_mock = mocker.Mock(spec=SubscriptionStructValue)
+        mocker.patch.object(NodePathSearcher, '_get_subscription', return_value=sub_mock)
         path = searcher._to_path(graph_path_mock)
+
         expected = PathStructValue(
             None, (node_path_mock, comm_mock, node_path_mock)
         )
@@ -626,7 +546,7 @@ class TestNodePathSearcher:
         node_mock = mocker.Mock(spec=NodeStructValue)
 
         node_path_mock = mocker.Mock(spec=NodePathStructValue)
-        mocker.patch.object(node_mock, 'paths_info', (node_path_mock,))
+        mocker.patch.object(node_mock, 'paths', (node_path_mock,))
         mocker.patch.object(node_mock, 'node_name', node_name)
         mocker.patch.object(node_mock, 'publish_topic_names', [topic_name])
         mocker.patch.object(node_mock, 'subscribe_topic_names', [topic_name])
@@ -639,6 +559,12 @@ class TestNodePathSearcher:
         mocker.patch.object(comm_mock, 'topic_name', topic_name)
         mocker.patch.object(comm_mock, 'publish_node_name', node_name)
         mocker.patch.object(comm_mock, 'subscribe_node_name', node_name)
+
+        mocker.patch.object(
+            NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock)
+
+        mocker.patch.object(
+            NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
 
         searcher = NodePathSearcher((node_mock,), (comm_mock,))
         paths = searcher.search(node_name, node_name)

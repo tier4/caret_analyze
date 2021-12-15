@@ -15,11 +15,12 @@
 
 """Module for ROS 2 data model."""
 
+from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 import pandas as pd
+
 from tracetools_analysis.data_model import (DataModel,
                                             DataModelIntermediateStorage)
 
-from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 
 
 class Ros2DataModel(DataModel):
@@ -78,7 +79,8 @@ class Ros2DataModel(DataModel):
             None, ['on_data_available_timestamp', 'source_timestamp']
         )
         self.rclcpp_intra_publish_instances = RecordsFactory.create_instance(
-            None, ['rclcpp_intra_publish_timestamp', 'publisher_handle', 'message', 'message_timestamp']
+            None, ['rclcpp_intra_publish_timestamp', 'publisher_handle',
+                   'message', 'message_timestamp']
         )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
             None, ['rclcpp_publish_timestamp', 'publisher_handle', 'message', 'message_timestamp']
@@ -89,10 +91,12 @@ class Ros2DataModel(DataModel):
         self.dispatch_subscription_callback_instances = RecordsFactory.create_instance(
             None, ['dispatch_subscription_callback_timestamp', 'callback_object', 'message',
                    'source_timestamp', 'message_timestamp'])
-        self.dispatch_intra_process_subscription_callback_instances = RecordsFactory.create_instance(
-            None, ['dispatch_intra_process_subscription_callback_timestamp', 'callback_object',
-                   'message', 'message_timestamp']
-        )
+        self.dispatch_intra_process_subscription_callback_instances = \
+            RecordsFactory.create_instance(
+                None,
+                ['dispatch_intra_process_subscription_callback_timestamp', 'callback_object',
+                 'message', 'message_timestamp']
+            )
         self.message_construct_instances = RecordsFactory.create_instance(
             None, ['message_construct_timestamp', 'original_message', 'constructed_message']
         )

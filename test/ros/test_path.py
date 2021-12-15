@@ -12,16 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# from typing import Dict
-
-# from caret_analyze import Application, Lttng
-# from caret_analyze.callback import SubscriptionCallback, TimerCallback
-# from caret_analyze.communication import Communication, VariablePassing
-# from caret_analyze.path import ColumnNameCounter, Path, PathLatencyMerger
-# from caret_analyze.record import Record, Records
-# from caret_analyze.record.interface import RecordsComposer, RecordsInterface
-# from caret_analyze.value_objects.callback_info import CallbackStructInfo, SubscriptionCallbackStructInfo
-# from caret_analyze.value_objects.publisher_info import PublisherInfo
 
 import pytest
 from pytest_mock import MockerFixture
@@ -55,7 +45,7 @@ class TestPath:
 
         path_info_mock = mocker.Mock(spec=PathStructValue)
         mocker.patch.object(path_info_mock, 'path_name', 'name')
-        path = Path(path_info_mock, [])
+        path = Path(path_info_mock, [], None)
 
         assert path.path_name == 'name'
         assert path.column_names == []
@@ -79,7 +69,7 @@ class TestPath:
         path_info_mock = mocker.Mock(spec=PathStructValue)
         mocker.patch.object(path_info_mock, 'path_name', 'name')
         path = Path(path_info_mock, [node_mock_0,
-                    comm_mock_0, node_mock_1, comm_mock_1])
+                    comm_mock_0, node_mock_1, comm_mock_1], None)
         assert str(path) == '\n'.join(['node0', 'node1'])
 
     def test_validate(self, mocker: MockerFixture):
@@ -88,7 +78,7 @@ class TestPath:
 
         path_info_mock = mocker.Mock(spec=PathStructValue)
         with pytest.raises(InvalidArgumentError):
-            Path(path_info_mock, [node_mock_0, node_mock_1])
+            Path(path_info_mock, [node_mock_0, node_mock_1], None)
 
 
 class TestColumnMerged:
@@ -157,15 +147,15 @@ class TestRecordsMerged:
     def test_merge_two_records(self, mocker: MockerFixture):
         cb_records = Records(
             [
-                Record({'cb_start': 0, 'xxx': 1}),
+                Record({'callback_start': 0, 'xxx': 1}),
             ],
-            ['cb_start', 'xxx']
+            ['callback_start', 'xxx']
         )
         comm_records = Records(
             [
-                Record({'pub': 2, 'write': 4, 'read': 5, 'cb_start': 6}),
+                Record({'pub': 2, 'write': 4, 'read': 5, 'callback_start': 6}),
             ],
-            ['pub', 'write', 'read', 'cb_start']
+            ['pub', 'write', 'read', 'callback_start']
         )
 
         # cb_mock = mocker.Mock(spec=Records)
@@ -181,11 +171,14 @@ class TestRecordsMerged:
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                    'cb_start': 'cb_start/0', 'xxx': 'xxx/0'
+                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0'
                 }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                    'pub': 'pub/0', 'write': 'write/0', 'read': 'read/0', 'cb_start': 'cb_start/1'
+                    'pub': 'pub/0',
+                    'write': 'write/0',
+                    'read': 'read/0',
+                    'callback_start': 'callback_start/1'
                 }
         mocker.patch.object(
             merger_mock, 'append_columns_and_return_rename_rule',
@@ -196,45 +189,51 @@ class TestRecordsMerged:
         expected = Records(
             [
                 Record({
-                    'cb_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
-                    'write/0': 4, 'read/0': 5, 'cb_start/1': 6
+                    'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
+                    'write/0': 4, 'read/0': 5, 'callback_start/1': 6
                 }),
             ],
-            ['cb_start/0', 'xxx/0', 'pub/0', 'write/0', 'read/0', 'cb_start/1']
+            ['callback_start/0', 'xxx/0', 'pub/0', 'write/0', 'read/0', 'callback_start/1']
         )
 
         assert records.equals(expected)
 
     def test_loop_case(self, mocker: MockerFixture):
-        cb_records = Records(
+        cb_records_0 = Records(
             [
-                Record({'cb_start': 0, 'xxx': 1, 'cb_end': 3}),
-                Record({'cb_start': 6, 'xxx': 7, 'cb_end': 9}),
-                Record({'cb_start': 12, 'xxx': 13, 'cb_end': 15}),
+                Record({'callback_start': 0, 'xxx': 1, 'callback_end': 3}),
+                Record({'callback_start': 6, 'xxx': 7, 'callback_end': 9}),
+                Record({'callback_start': 12, 'xxx': 13, 'callback_end': 15}),
             ],
-            ['cb_start', 'xxx', 'cb_end']
+            ['callback_start', 'xxx', 'callback_end']
         )
+        cb_records_1 = cb_records_0.clone()
 
         comm_records = Records(
             [
-                Record({'pub': 2, 'write': 4, 'read': 5, 'cb_start': 6}),
-                Record({'pub': 8, 'write': 10, 'read': 11, 'cb_start': 12}),
+                Record({'pub': 2, 'write': 4, 'read': 5, 'callback_start': 6}),
+                Record({'pub': 8, 'write': 10, 'read': 11, 'callback_start': 12}),
             ],
-            ['pub', 'write', 'read', 'cb_start']
+            ['pub', 'write', 'read', 'callback_start']
         )
 
         def append_columns_and_return_rename_rule(records):
             if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
                 return {
-                    'cb_start': 'cb_start/0', 'xxx': 'xxx/0', 'cb_end': 'cb_end/0'
+                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0'
                 }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
                 return {
-                    'pub': 'pub/0', 'write': 'write/0', 'read': 'read/0', 'cb_start': 'cb_start/1'
+                    'pub': 'pub/0',
+                    'write': 'write/0',
+                    'read': 'read/0',
+                    'callback_start': 'callback_start/1'
                 }
             if merger_mock.append_columns_and_return_rename_rule.call_count == 3:
                 return {
-                    'cb_start': 'cb_start/1', 'xxx': 'xxx/1', 'cb_end': 'cb_end/1'
+                    'callback_start': 'callback_start/1',
+                    'xxx': 'xxx/1',
+                    'callback_end': 'callback_end/1'
                 }
 
         merger_mock = mocker.Mock(spec=ColumnMerger)
@@ -244,25 +243,28 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([cb_records, comm_records, cb_records])
+        merged = RecordsMerged([cb_records_0, comm_records, cb_records_1])
         records = merged.data
         expected = Records(
             [
                 Record({
-                    'cb_start/0': 0, 'xxx/0': 1, 'pub/0': 2, 'cb_end/0': 3,
+                    'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
                     'write/0': 4, 'read/0': 5,
-                    'cb_start/1': 6, 'xxx/1': 7, 'pub/1': 8, 'cb_end/1': 9
+                    'callback_start/1': 6, 'xxx/1': 7, 'callback_end/1': 9
                 }),
                 Record({
-                    'cb_start/0': 6, 'xxx/0': 7, 'pub/0': 8, 'cb_end/0': 9,
+                    'callback_start/0': 6, 'xxx/0': 7, 'pub/0': 8,
                     'write/0': 10, 'read/0': 11,
-                    'cb_start/1': 12, 'xxx/1': 13, 'pub/1': 14, 'cb_end/1': 15
+                    'callback_start/1': 12, 'xxx/1': 13, 'callback_end/1': 15
+                }),
+                Record({
+                    'callback_start/0': 12, 'xxx/0': 13
                 }),
             ],
             [
-                'cb_start/0', 'xxx/0', 'pub/0', 'cb_end/0',
+                'callback_start/0', 'xxx/0', 'pub/0',
                 'write/0', 'read/0',
-                'cb_start/1', 'xxx/1', 'pub/1', 'cb_end/1'
+                'callback_start/1', 'xxx/1', 'callback_end/1'
             ]
         )
         assert records.equals(expected)

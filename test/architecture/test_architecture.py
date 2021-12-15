@@ -24,8 +24,7 @@ from caret_analyze.architecture.graph_search import NodePathSearcher
 from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
-                                         ExecutorStructValue,
-                                         NodeStructValue,
+                                         ExecutorStructValue, NodeStructValue,
                                          PathStructValue)
 
 
@@ -35,7 +34,7 @@ class TestArchiteture:
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
         mocker.patch.object(loaded_mock, 'nodes', [])
-        mocker.patch.object(loaded_mock, 'named_paths', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
@@ -53,12 +52,12 @@ class TestArchiteture:
         mocker.patch.object(loaded_mock, 'nodes', [])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
-        mocker.patch.object(loaded_mock, 'named_paths', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
         arch = Architecture('file_type', 'file_path')
 
         assert len(arch.nodes) == 0
         assert len(arch.executors) == 0
-        assert len(arch.named_paths) == 0
+        assert len(arch.paths) == 0
         assert len(arch.communications) == 0
 
     def test_get_node(self, mocker: MockerFixture):
@@ -73,7 +72,7 @@ class TestArchiteture:
         node_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock, 'node_name', 'node_name')
 
-        mocker.patch.object(loaded_mock, 'named_paths', ())
+        mocker.patch.object(loaded_mock, 'paths', ())
         mocker.patch.object(loaded_mock, 'nodes', (node_mock,))
         mocker.patch.object(loaded_mock, 'communications', ())
 
@@ -98,7 +97,7 @@ class TestArchiteture:
         comm_mock = mocker.Mock(spec=CommunicationStructValue)
 
         mocker.patch.object(loaded_mock, 'nodes', [node_mock])
-        mocker.patch.object(loaded_mock, 'named_paths', [path_mock])
+        mocker.patch.object(loaded_mock, 'paths', [path_mock])
         mocker.patch.object(loaded_mock, 'communications', [comm_mock])
         mocker.patch.object(loaded_mock, 'executors', [executor_mock])
         mocker.patch.object(path_mock, 'path_name', 'path')
@@ -121,20 +120,20 @@ class TestArchiteture:
         assert len(arch.executors) == 1
         assert arch.executors[0] == executor_mock
 
-        assert len(arch.named_paths) == 1
-        assert arch.named_paths[0] == path_mock
+        assert len(arch.paths) == 1
+        assert arch.paths[0] == path_mock
 
         assert len(arch.communications) == 1
         assert arch.communications[0] == comm_mock
 
-    def test_named_path(self, mocker: MockerFixture):
+    def test_path(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
         path = PathStructValue('path0', ())
 
         mocker.patch.object(loaded_mock, 'nodes', [])
-        mocker.patch.object(loaded_mock, 'named_paths', [path])
+        mocker.patch.object(loaded_mock, 'paths', [path])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
@@ -147,35 +146,41 @@ class TestArchiteture:
         arch = Architecture('file_type', 'file_path')
 
         # remove
-        assert len(arch.named_paths) == 1
-        arch.remove_named_path('path0')
-        assert len(arch.named_paths) == 0
+        assert len(arch.paths) == 1
+        arch.remove_path('path0')
+        assert len(arch.paths) == 0
         with pytest.raises(InvalidArgumentError):
-            arch.remove_named_path('path0')
+            arch.remove_path('path0')
 
         # add
-        arch.add_named_path('path1', path)
-        assert len(arch.named_paths) == 1
+        arch.add_path('path1', path)
+        assert len(arch.paths) == 1
         with pytest.raises(InvalidArgumentError):
-            arch.add_named_path('path1', path)
+            arch.add_path('path1', path)
 
         # get
         with pytest.raises(InvalidArgumentError):
-            arch.get_named_path('path0')
-        path_ = arch.get_named_path('path1')
+            arch.get_path('path0')
+        path_ = arch.get_path('path1')
 
         # update
-        arch.update_named_path('path2', path_)
-        arch.get_named_path('path2')
+        arch.update_path('path2', path_)
+        arch.get_path('path2')
         with pytest.raises(InvalidArgumentError):
-            arch.update_named_path('path2', path_)
+            arch.update_path('path2', path_)
 
     def test_search_paths(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
-        mocker.patch.object(loaded_mock, 'nodes', [])
-        mocker.patch.object(loaded_mock, 'named_paths', [])
+        start_node_mock = mocker.Mock(spec=NodeStructValue)
+        end_node_mock = mocker.Mock(spec=NodeStructValue)
+
+        mocker.patch.object(start_node_mock, 'node_name', 'start_node')
+        mocker.patch.object(end_node_mock, 'node_name', 'end_node')
+
+        mocker.patch.object(loaded_mock, 'nodes', [start_node_mock, end_node_mock])
+        mocker.patch.object(loaded_mock, 'paths', [])
         mocker.patch.object(loaded_mock, 'communications', [])
         mocker.patch.object(loaded_mock, 'executors', [])
 
@@ -191,6 +196,9 @@ class TestArchiteture:
         mocker.patch.object(searcher_mock, 'search', return_value=[path_mock])
 
         arch = Architecture('file_type', 'file_path')
+
+        with pytest.raises(InvalidArgumentError):
+            arch.search_paths('not_exist', 'not_exist')
 
         path = arch.search_paths('start_node', 'end_node')
         assert path == [path_mock]

@@ -25,9 +25,9 @@ from bokeh.palettes import Bokeh8
 from bokeh.plotting import ColumnDataSource, figure
 from bokeh.resources import CDN
 
+from ...exceptions import InvalidArgumentError
 from ...record.data_frame_shaper import Clip, Strip
 from ...runtime.path import Path
-from ...exceptions import InvalidArgumentError
 
 
 def message_flow(
@@ -153,19 +153,20 @@ def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
     line_sources = []
 
     for i, row in df.iterrows():
-        x_min = min(row.values)
-        x_max = max(row.values)
+        row_values = row.dropna().values
+        x_min = min(row_values)
+        x_max = max(row_values)
         width = x_max - x_min
 
         line_source = ColumnDataSource({
-            'x': row.values,
-            'y': tick_labels.values,
-            'x_min': [x_min]*len(row.values),
-            'x_max': [x_max]*len(row.values),
-            'width': [width]*len(row.values),
-            'height': [0]*len(row.values),
-            'latency': [width*1.0e-6]*len(row.values),
-            'desc': [f'index: {i}']*len(row.values),
+            'x': row_values,
+            'y': tick_labels.values[:len(row_values)],
+            'x_min': [x_min]*len(row_values),
+            'x_max': [x_max]*len(row_values),
+            'width': [width]*len(row_values),
+            'height': [0]*len(row_values),
+            'latency': [width*1.0e-6]*len(row_values),
+            'desc': [f'index: {i}']*len(row_values),
         })
 
         line_sources.append(line_source)

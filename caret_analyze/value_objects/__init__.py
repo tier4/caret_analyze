@@ -12,13 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback import CallbackValue, CallbackStructValue, CallbackType, TimerCallbackValue, TimerCallbackStructValue, SubscriptionCallbackValue, SubscriptionCallbackStructValue
+from .callback import (CallbackValue, CallbackStructValue,
+                       CallbackType, TimerCallbackValue,
+                       TimerCallbackStructValue,
+                       SubscriptionCallbackValue,
+                       SubscriptionCallbackStructValue)
 from .callback_group import CallbackGroupValue, CallbackGroupStructValue, CallbackGroupType
 from .communication import CommunicationStructValue
-from .executor import ExecutorStructValue, ExecutorValue, ExecutorType
-from .message_context import MessageContextType, UseLatestMessage, InheritUniqueStamp, CallbackChain, MessageContext
+from .executor import ExecutorStructValue, ExecutorType, ExecutorValue
+from .message_context import (CallbackChain, InheritUniqueStamp, MessageContextType, UseLatestMessage,
+                              MessageContext)
 from .node_path import NodePathValue, NodePathStructValue
-from .node import NodeStructValue, NodeValue
+from .node import NodeStructValue, NodeValue, NodeValueWithId
 from .path import PathValue, PathStructValue
 from .publisher import PublisherValue, PublisherStructValue
 from .subscription import SubscriptionValue, SubscriptionStructValue
@@ -31,7 +36,7 @@ __all__ = [
     'CallbackStructValue',
     'CallbackType',
     'TimerCallbackValue',
-    'TimerCallbackStructValue'
+    'TimerCallbackStructValue',
     'SubscriptionCallbackValue',
     'SubscriptionCallbackStructValue',
     'CallbackGroupValue',
@@ -50,6 +55,7 @@ __all__ = [
     'NodePathStructValue',
     'NodeStructValue',
     'NodeValue',
+    'NodeValueWithId',
     'PathValue',
     'PathStructValue',
     'PublisherValue',

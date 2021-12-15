@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import INFO, StreamHandler, getLogger
 from typing import Tuple, Union
 
-from logging import StreamHandler, getLogger, INFO
-
 from ..value_objects import NodePathStructValue, NodeStructValue
+from .architecture import Architecture
 from .architecture_loaded import NodeValuesLoaded
 from .architecture_reader_factory import ArchitectureReaderFactory
-from .architecture import Architecture
 
 
 def check_procedure(

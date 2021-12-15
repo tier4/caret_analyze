@@ -16,7 +16,8 @@ from __future__ import annotations
 
 from typing import List
 
-from ..common import Util, CustomDict
+from ..common import Summary, Util
+from ..exceptions import InvalidArgumentError
 from ..value_objects import ExecutorStructValue, ExecutorType
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -48,11 +49,17 @@ class Executor:
         self,
         callback_group_name: str
     ) -> CallbackGroup:
+        if not isinstance(callback_group_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target(x: CallbackGroup):
             return x.callback_group_name == callback_group_name
         return Util.find_one(is_target, self.callback_groups)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        if not isinstance(callback_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
         def is_target_callback(callback: CallbackBase):
             return callback.callback_name == callback_name
 
@@ -60,7 +67,7 @@ class Executor:
 
     @property
     def callback_names(self) -> List[str]:
-        return [c.callback_name for c in self.callbacks]
+        return sorted(c.callback_name for c in self.callbacks)
 
     @property
     def callback_groups(self) -> List[CallbackGroup]:
@@ -68,8 +75,8 @@ class Executor:
 
     @property
     def callback_group_names(self) -> List[str]:
-        return [cbg.callback_group_name for cbg in self.callback_groups]
+        return sorted(cbg.callback_group_name for cbg in self.callback_groups)
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self._val.summary

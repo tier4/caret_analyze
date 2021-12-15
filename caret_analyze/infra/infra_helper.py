@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ..value_objects import CallbackStructValue, PublisherStructValue, SubscriptionStructValue
+from ..value_objects import (CallbackStructValue, PublisherStructValue,
+                             SubscriptionStructValue)
 
 
 class InfraHelper():

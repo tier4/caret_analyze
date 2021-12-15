@@ -13,21 +13,24 @@
 # limitations under the License.
 
 
-import numpy as np
+from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
+                                                  LttngInfo, PublisherBinder)
+from caret_analyze.infra.lttng.records_source import RecordsSource
+from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
+from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
+                                                     NodeValueLttng,
+                                                     PublisherValueLttng,
+                                                     SubscriptionCallbackValueLttng,
+                                                     TimerCallbackValueLttng)
+from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
+                                         ExecutorValue)
+from caret_analyze.value_objects.node import NodeValue
 import pandas as pd
 from pytest_mock import MockerFixture
 
-from caret_analyze.infra.lttng.lttng_info import DataFrameFormatted, LttngInfo, PublisherBinder
-from caret_analyze.infra.lttng.records_source import RecordsSource
-from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
-from caret_analyze.value_objects import CallbackGroupType, ExecutorValue, ExecutorType
-from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
-                                                     SubscriptionCallbackValueLttng,
-                                                     TimerCallbackValueLttng,
-                                                     PublisherValueLttng)
-
 
 class TestLttngInfo:
+
     def test_rmw_implementation(self, mocker: MockerFixture):
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
@@ -35,6 +38,10 @@ class TestLttngInfo:
 
         source_mock = mocker.Mock(spec=RecordsSource)
         data = Ros2DataModel()
+        data.finalize()
+
+        mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
+        mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
         info = LttngInfo(data, source_mock)
         assert info.get_rmw_impl() == ''
 
@@ -52,6 +59,7 @@ class TestLttngInfo:
         nodes_df = pd.DataFrame.from_dict(
             [
                 {
+                    'node_id': 'node_id',
                     'node_handle': 2,
                     'node_name': '/node',
                 }
@@ -60,10 +68,15 @@ class TestLttngInfo:
         mocker.patch.object(formatted_mock, 'nodes_df', nodes_df)
 
         source_mock = mocker.Mock(spec=RecordsSource)
+
+        mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
+        mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
+
         info = LttngInfo(Ros2DataModel(), source_mock)
-        node_names = info.get_nodes()
-        assert len(node_names) == 1
-        assert node_names[0] == '/node'
+        nodes = info.get_nodes()
+        assert len(nodes) == 1
+        expect = NodeValueLttng('/node', 'node_id')
+        assert nodes == [expect]
 
     def test_get_publishers_info(self, mocker: MockerFixture):
         data = Ros2DataModel()
@@ -91,6 +104,7 @@ class TestLttngInfo:
         node_df = pd.DataFrame.from_dict(
             [
                 {
+                    'node_id': 'node_id',
                     'node_handle': node_handle,
                     'node_name': '/node',
                 }
@@ -101,6 +115,7 @@ class TestLttngInfo:
         pub_info_expect = PublisherValueLttng(
             node_name='/node',
             topic_name='/topic_name',
+            node_id='node_id',
             callback_ids=None,
             publisher_handle=publisher_handle
         )
@@ -110,12 +125,16 @@ class TestLttngInfo:
         mocker.patch.object(binder_mock, 'can_bind', return_value=False)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.PublisherBinder',
                      return_value=binder_mock)
+
+        mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
+        mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
+
         info = LttngInfo(data, source_mock)
-        pubs_info = info.get_publishers('/node')
+        pubs_info = info.get_publishers(NodeValue('/node', 'node_id'))
         assert len(pubs_info) == 1
         assert pubs_info[0] == pub_info_expect
 
-        pubs_info = info.get_publishers('/noexist')
+        pubs_info = info.get_publishers(NodeValue('/node_', 'node_id_'))
         assert len(pubs_info) == 0
 
     def test_get_timer_callbacks_info(self, mocker: MockerFixture):
@@ -149,6 +168,7 @@ class TestLttngInfo:
         node_df = pd.DataFrame.from_dict(
             [
                 {
+                    'node_id': 'node_id',
                     'node_handle': node_handle,
                     'node_name': '/node1'
                 }
@@ -161,11 +181,16 @@ class TestLttngInfo:
                      return_value=binder_mock)
         data = Ros2DataModel()
         source_mock = mocker.Mock(spec=RecordsSource)
+
+        mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
+        # mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
+
         info = LttngInfo(data, source_mock)
 
-        timer_cbs_info = info.get_timer_callbacks('/node1')
+        timer_cbs_info = info.get_timer_callbacks(NodeValue('/node1', 'node_id'))
         timer_cb_info_expct = TimerCallbackValueLttng(
             'timer_callback_0',
+            'node_id',
             '/node1',
             symbol,
             period_ns,
@@ -175,7 +200,7 @@ class TestLttngInfo:
 
         assert timer_cbs_info == [timer_cb_info_expct]
 
-        assert info.get_timer_callbacks('not_exist') == []
+        assert info.get_timer_callbacks(NodeValue('/', 'id')) == []
 
     def test_get_subscription_callbacks_info(self, mocker: MockerFixture):
         callback_object = [2, 3]
@@ -224,10 +249,12 @@ class TestLttngInfo:
         node_df = pd.DataFrame.from_dict(
             [
                 {
+                    'node_id': 'node_id',
                     'node_handle': node_handle[0],
                     'node_name': node_name[0]
                 },
                 {
+                    'node_id': 'node_id_2',
                     'node_handle': node_handle[1],
                     'node_name': node_name[1]
                 }
@@ -243,9 +270,10 @@ class TestLttngInfo:
         source_mock = mocker.Mock(spec=RecordsSource)
         info = LttngInfo(data, source_mock)
 
-        sub_cbs_info = info.get_subscription_callbacks('/node1')
+        sub_cbs_info = info.get_subscription_callbacks(NodeValue('/node1', 'node_id'))
         sub_cb_info_expect = SubscriptionCallbackValueLttng(
             'subscription_callback_0',
+            'node_id',
             node_name[0],
             symbol[0],
             topic_name[0],
@@ -255,9 +283,10 @@ class TestLttngInfo:
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
-        sub_cbs_info = info.get_subscription_callbacks('/node2')
+        sub_cbs_info = info.get_subscription_callbacks(NodeValue('/node2', 'node_id_2'))
         sub_cb_info_expect = SubscriptionCallbackValueLttng(
             'subscription_callback_1',
+            'node_id_2',
             node_name[1],
             symbol[1],
             topic_name[1],
@@ -267,7 +296,7 @@ class TestLttngInfo:
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
-        sub_cbs_info = info.get_subscription_callbacks('/no_exist')
+        sub_cbs_info = info.get_subscription_callbacks(NodeValue('/', '/'))
         assert sub_cbs_info == []
 
     def test_get_callback_groups_info(self, mocker: MockerFixture):
@@ -317,6 +346,7 @@ class TestLttngInfo:
         node_df = pd.DataFrame.from_dict(
             [
                 {
+                    'node_id': 'node_id',
                     'node_handle': node_handle,
                     'node_name': node_name
                 }
@@ -327,6 +357,7 @@ class TestLttngInfo:
         cbg_df = pd.DataFrame.from_dict(
             [
                 {
+                    'callback_group_id': 'callback_group_id',
                     'callback_group_addr': cbg_addr,
                     'executor_addr': exec_addr,
                     'group_type_name': CallbackGroupType.REENTRANT.type_name,
@@ -338,12 +369,14 @@ class TestLttngInfo:
         data = Ros2DataModel()
         source_mock = mocker.Mock(spec=RecordsSource)
         info = LttngInfo(data, source_mock)
-        cbg_info = info.get_callback_groups()
+        cbg_info = info.get_callback_groups(NodeValue(node_name, 'node_id'))
 
         cbg_info_expect = CallbackGroupValueLttng(
             CallbackGroupType.REENTRANT.type_name,
             '/node1',
-            ['timer_callback_0', 'subscription_callback_0'],
+            'node_id',
+            ('timer_callback_0', 'subscription_callback_0'),
+            'callback_group_id',
             callback_group_addr=cbg_addr,
             executor_addr=exec_addr,
         )
@@ -366,28 +399,25 @@ class TestLttngInfo:
             ]
         )
         mocker.patch.object(formatted_mock, 'executor_df', exec_df)
+        cbg_df = pd.DataFrame.from_dict([
+            {
+                'callback_group_id': 'callback_group_id',
+                'callback_group_addr': cbg_addr,
+                'executor_addr': executor,
+                'group_type_name': CallbackGroupType.REENTRANT.type_name,
+            }
+        ])
+        mocker.patch.object(formatted_mock, 'callback_groups_df', cbg_df)
 
         data = Ros2DataModel()
         source_mock = mocker.Mock(spec=RecordsSource)
         info = LttngInfo(data, source_mock)
 
-        cbgs = [
-            CallbackGroupValueLttng(
-                CallbackGroupType.REENTRANT.type_name,
-                '/node1',
-                ['timer_callback_0'],
-                callback_group_addr=cbg_addr,
-                executor_addr=executor,
-            )
-        ]
-        mocker.patch.object(
-            info, 'get_callback_groups_info', return_value=cbgs)
-
         execs_info = info.get_executors()
 
         exec_info_expect = ExecutorValue(
             ExecutorType.SINGLE_THREADED_EXECUTOR.type_name,
-            tuple(cbgs),
+            ('callback_group_id',),
         )
 
         assert execs_info == [exec_info_expect]
@@ -409,6 +439,7 @@ class TestLttngInfo:
 
 
 class TestDataFrameFormatted:
+
     def test_build_timer_callbacks_df(self):
         data = Ros2DataModel()
 
@@ -437,13 +468,13 @@ class TestDataFrameFormatted:
         expect = pd.DataFrame.from_dict(
             [
                 {
+                    'callback_id': f'timer_callback_{callback_object}',
                     'callback_object': callback_object,
                     'node_handle': node_handle,
                     'timer_handle': timer_handle,
                     'callback_group_addr': callback_group_addr,
                     'period_ns': period_ns,
                     'symbol': symbol,
-                    'callback_id': f'timer_callback_{callback_object}',
                 },
             ]
         )
@@ -497,6 +528,7 @@ class TestDataFrameFormatted:
         expect = pd.DataFrame.from_dict(
             [
                 {
+                    'callback_id': f'subscription_callback_{callback_object_inter[0]}',
                     'callback_object': callback_object_inter[0],
                     'callback_object_intra': callback_object_intra[0],
                     'node_handle': node_handle[0],
@@ -504,17 +536,16 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr[0],
                     'topic_name': topic_name[0],
                     'symbol': symbol[0],
-                    'callback_id': f'subscription_callback_{callback_object_inter[0]}',
                     'depth': depth[0]
                 },
                 {
+                    'callback_id': f'subscription_callback_{callback_object_inter[1]}',
                     'callback_object': callback_object_inter[1],
                     'node_handle': node_handle[1],
                     'subscription_handle': subscription_handle[1],
                     'callback_group_addr': callback_group_addr[1],
                     'topic_name': topic_name[1],
                     'symbol': symbol[1],
-                    'callback_id': f'subscription_callback_{callback_object_inter[1]}',
                     'depth': depth[1],
                 },
             ]
@@ -533,6 +564,7 @@ class TestDataFrameFormatted:
 
         expect = [
             {
+                'executor_id': f'executor_{exec_addr}',
                 'executor_addr': exec_addr,
                 'executor_type_name': exec_type,
             }
@@ -554,6 +586,7 @@ class TestDataFrameFormatted:
 
         expect = [
             {
+                'executor_id': f'executor_{exec_addr}',
                 'executor_addr': exec_addr,
                 'executor_type_name': exec_type,
             }
@@ -618,6 +651,7 @@ class TestDataFrameFormatted:
 
         expect = pd.DataFrame.from_dict(
             [{
+                'node_id': '/node1_0',
                 'node_handle': node_handle,
                 'node_name': '/node1',
             }]
@@ -637,9 +671,10 @@ class TestDataFrameFormatted:
 
         expect = pd.DataFrame.from_dict(
             [{
+                'callback_group_id': f'callback_group_{callback_group_addr}',
                 'callback_group_addr': callback_group_addr,
-                'executor_addr': exec_addr,
                 'group_type_name': group_type,
+                'executor_addr': exec_addr,
             }]
         )
         assert cbg_df.equals(expect)
@@ -659,9 +694,10 @@ class TestDataFrameFormatted:
 
         expect = pd.DataFrame.from_dict(
             [{
+                'callback_group_id': f'callback_group_{cbg_addr}',
                 'callback_group_addr': cbg_addr,
-                'executor_addr': exec_addr,
                 'group_type_name': group_type,
+                'executor_addr': exec_addr,
             }]
         )
         assert cbg_df.equals(expect)
@@ -682,6 +718,7 @@ class TestDataFrameFormatted:
 
         expect = pd.DataFrame.from_dict(
             [{
+                'publisher_id': f'publisher_{pub_handle}',
                 'publisher_handle': pub_handle,
                 'node_handle': node_handle,
                 'topic_name': topic_name,

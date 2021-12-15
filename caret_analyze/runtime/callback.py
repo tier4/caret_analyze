@@ -16,15 +16,15 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from ..record import RecordsInterface
+from ..common import Summary
 from ..infra.interface import RecordsProvider
+from ..record import RecordsInterface
 from ..value_objects import (CallbackStructValue,
                              SubscriptionCallbackStructValue,
                              TimerCallbackStructValue)
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
-from ..common import CustomDict
 
 
 class CallbackBase(PathBase):
@@ -66,19 +66,18 @@ class CallbackBase(PathBase):
     def publish_topic_names(self) -> Optional[List[str]]:
         if self.__val.publish_topic_names is None:
             return None
-        return list(self.__val.publish_topic_names)
+        return sorted(self.__val.publish_topic_names)
 
     @property
     def subscribe_topic_name(self) -> Optional[str]:
         return self.__val.subscribe_topic_name
 
     @property
-    def summary(self) -> CustomDict:
+    def summary(self) -> Summary:
         return self.__val.summary
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.callback_records(self.__val)
-        records.sort(records.columns[0])
 
         return records
 
