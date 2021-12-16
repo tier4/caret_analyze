@@ -89,6 +89,14 @@ class Communication(PathBase):
         return self._val.publish_node_name
 
     @property
+    def subscribe_node(self) -> Node:
+        return self._node_sub
+
+    @property
+    def publish_node(self) -> Node:
+        return self._node_pub
+
+    @property
     def topic_name(self) -> str:
         return self._val.topic_name
 
