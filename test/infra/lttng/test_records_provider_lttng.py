@@ -14,7 +14,6 @@
 
 from typing import List
 
-
 from caret_analyze.exceptions import UnsupportedNodeRecordsError
 from caret_analyze.infra.infra_helper import InfraHelper
 from caret_analyze.infra.lttng import Lttng

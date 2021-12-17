@@ -17,6 +17,7 @@ from ..infra.yaml.architecture_reader_yaml import ArchitectureReaderYaml
 
 
 class ArchitectureReaderFactory:
+
     @staticmethod
     def create_instance(file_type: str, file_path: str):
         if file_type in ['yaml', 'yml']:

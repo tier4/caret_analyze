@@ -14,12 +14,11 @@
 
 from __future__ import annotations
 
-from collections import UserList, defaultdict
+from collections import defaultdict, UserList
 from copy import deepcopy
 from itertools import product
 from logging import getLogger
-from typing import (Callable, DefaultDict, Dict, List, Optional, Set, Tuple,
-                    Union)
+from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 
 from ..common import Util
 from ..exceptions import (InvalidArgumentError, ItemNotFoundError,

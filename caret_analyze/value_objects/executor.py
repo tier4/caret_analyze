@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ..common import Summary, Util
 from .callback import CallbackStructValue
-from .callback_group import CallbackGroupStructValue, CallbackGroupValue
+from .callback_group import CallbackGroupStructValue
 from .value_object import ValueObject
+from ..common import Summary, Util
 
 
 class ExecutorType(ValueObject):

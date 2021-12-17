@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-from pytest_mock import MockerFixture
-
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.records_source import RecordsSource
@@ -25,6 +23,8 @@ from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue
 from caret_analyze.value_objects.node import NodeValue
+
+from pytest_mock import MockerFixture
 
 
 class TestLttng:

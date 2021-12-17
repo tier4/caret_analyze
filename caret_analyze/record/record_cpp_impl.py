@@ -18,9 +18,8 @@ from typing import Callable, Dict, List, Optional, Sequence
 
 from record_cpp_impl import RecordBase, RecordsBase
 
+from .record import RecordInterface, Records, RecordsInterface, validate_rename_rule
 from ..exceptions import InvalidArgumentError
-from .record import (RecordInterface, Records, RecordsInterface,
-                     validate_rename_rule)
 
 
 class RecordCppImpl(RecordBase, RecordInterface):

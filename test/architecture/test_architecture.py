@@ -13,9 +13,6 @@
 # limitations under the License.
 
 
-import pytest
-from pytest_mock import MockerFixture
-
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
 from caret_analyze.architecture.architecture_reader_factory import \
@@ -27,8 +24,12 @@ from caret_analyze.value_objects import (CommunicationStructValue,
                                          ExecutorStructValue, NodeStructValue,
                                          PathStructValue)
 
+import pytest
+from pytest_mock import MockerFixture
+
 
 class TestArchiteture:
+
     def test_empty_architecture(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)

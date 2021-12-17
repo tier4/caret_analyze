@@ -14,11 +14,11 @@
 
 from typing import Optional, Union
 
+from .path_base import PathBase
 from ..common import Summary
-from ..infra.interface import RuntimeDataProvider, RecordsProvider
+from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
 from ..value_objects import SubscriptionStructValue
-from .path_base import PathBase
 
 
 class Subscription(PathBase):

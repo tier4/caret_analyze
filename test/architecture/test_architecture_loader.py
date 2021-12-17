@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-from pytest_mock import MockerFixture
-
 from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
                                                             CallbackGroupsLoaded,
                                                             CallbackPathSearched,
@@ -52,6 +49,9 @@ from caret_analyze.value_objects.callback import \
     SubscriptionCallbackStructValue
 from caret_analyze.value_objects.message_context import MessageContextType
 from caret_analyze.value_objects.node import NodeValueWithId
+
+import pytest
+from pytest_mock import MockerFixture
 
 
 class TestArchitectureLoaded:
@@ -471,6 +471,7 @@ class TestNodesInfoLoaded():
 
 
 class TestTopicIgnoreReader:
+
     def test_get_publishers(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
         mocker.patch.object(
@@ -600,6 +601,7 @@ class TestTopicIgnoreReader:
 
 
 class TestNodePathLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         searcher_mock = mocker.Mock(spec=CallbackPathSearcher)
         mocker.patch('caret_analyze.architecture.graph_search.CallbackPathSearcher',
@@ -722,6 +724,7 @@ class TestSubscriptionsLoaded:
 
 
 class TestCallbacksLoaded:
+
     def test_empty_callback(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValue('node_name', 'node_name')
@@ -878,6 +881,7 @@ class TestCallbacksLoaded:
 
 
 class TestVariablePassingsLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
@@ -935,6 +939,7 @@ class TestVariablePassingsLoaded:
 
 
 class TestCallbackGroupsLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
@@ -982,6 +987,7 @@ class TestCallbackGroupsLoaded:
 
 
 class TestExecutorInfoLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
@@ -1083,6 +1089,7 @@ class TestExecutorInfoLoaded:
 
 
 class TestCommunicationInfoLoaded:
+
     def test_empty(self, mocker: MockerFixture):
 
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)

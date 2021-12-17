@@ -15,8 +15,6 @@
 
 from typing import Optional, Tuple
 
-from ..common import Summary, Util
-from ..exceptions import ItemNotFoundError
 from .callback import CallbackStructValue
 from .callback_group import CallbackGroupStructValue
 from .node_path import NodePathStructValue
@@ -24,6 +22,8 @@ from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
+from ..common import Summary, Util
+from ..exceptions import ItemNotFoundError
 
 
 class NodeValue(ValueObject):

@@ -14,9 +14,9 @@
 # limitations under the License.
 
 
-from ..common import Summary
 from .callback import CallbackStructValue
 from .value_object import ValueObject
+from ..common import Summary
 
 
 class VariablePassingValue(ValueObject):

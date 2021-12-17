@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-from pytest_mock import MockerFixture
 
 from caret_analyze.architecture.architecture import Architecture
 from caret_analyze.exceptions import ItemNotFoundError
@@ -25,6 +23,9 @@ from caret_analyze.runtime.executor import Executor
 from caret_analyze.runtime.node import Node
 from caret_analyze.runtime.path import Path
 from caret_analyze.runtime.runtime_loaded import RuntimeLoaded
+
+import pytest
+from pytest_mock import MockerFixture
 
 
 class TestApplication:

@@ -18,25 +18,24 @@ from itertools import product
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
-from caret_analyze.value_objects.message_context import (CallbackChain,
-                                                         MessageContext)
-
+from .reader_interface import ArchitectureReader, UNDEFINED_STR
 from ..common import Util
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
                           InvalidYamlFormatError, ItemNotFoundError,
                           MultipleItemFoundError, UnsupportedTypeError)
-from ..value_objects import (CallbackGroupStructValue, CallbackGroupValue,
-                             CallbackStructValue, CallbackValue,
-                             CommunicationStructValue, ExecutorStructValue,
-                             ExecutorValue, NodePathStructValue, NodePathValue,
-                             NodeStructValue, NodeValue, NodeValueWithId,
-                             PathStructValue, PathValue, PublisherStructValue,
-                             PublisherValue, SubscriptionCallbackStructValue,
+from ..value_objects import (CallbackChain, CallbackGroupStructValue,
+                             CallbackGroupValue, CallbackStructValue,
+                             CallbackValue, CommunicationStructValue,
+                             ExecutorStructValue, ExecutorValue,
+                             MessageContext, NodePathStructValue,
+                             NodePathValue, NodeStructValue, NodeValue,
+                             NodeValueWithId, PathStructValue, PathValue,
+                             PublisherStructValue, PublisherValue,
+                             SubscriptionCallbackStructValue,
                              SubscriptionCallbackValue,
                              SubscriptionStructValue, SubscriptionValue,
                              TimerCallbackStructValue, TimerCallbackValue,
                              VariablePassingStructValue, VariablePassingValue)
-from .reader_interface import UNDEFINED_STR, ArchitectureReader
 
 logger = getLogger(__name__)
 
@@ -548,7 +547,7 @@ class MessageContextsLoaded:
         data: List[MessageContext] = []
 
         context_dicts = reader.get_message_contexts(NodeValue(node.node_name, None))
-        pub_sub_pairs = []
+        pub_sub_pairs: List[Tuple[Optional[str], Optional[str]]] = []
         for context_dict in context_dicts:
             try:
                 context_type = context_dict['context_type']
@@ -559,7 +558,8 @@ class MessageContextsLoaded:
                                                context_dict['publisher_topic_name'],
                                                context_dict['subscription_topic_name'])
                 data.append(self._to_struct(context_dict, node_path))
-                pub_sub_pairs.append((node_path.publish_topic_name, node_path.subscribe_topic_name))
+                pair = (node_path.publish_topic_name, node_path.subscribe_topic_name)
+                pub_sub_pairs.append(pair)
             except Error as e:
                 logger.warning(e)
 

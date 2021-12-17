@@ -17,10 +17,8 @@ from typing import Dict, Optional, Union
 from graphviz import Digraph, Source
 
 from ...runtime import CallbackBase, Node, Publisher, Subscription
-from ...value_objects import (CallbackStructValue,
-                              CallbackType,
-                              NodeStructValue,
-                              PublisherStructValue,
+from ...value_objects import (CallbackStructValue, CallbackType,
+                              NodeStructValue, PublisherStructValue,
                               SubscriptionStructValue)
 
 NodeClass = Union[Node, NodeStructValue]

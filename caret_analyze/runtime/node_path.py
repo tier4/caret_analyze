@@ -14,16 +14,14 @@
 
 from typing import List, Optional
 
-from caret_analyze.infra.interface import RecordsProvider
-
-from ..common import Summary
-from ..record.record import RecordsInterface
-from ..record.record_factory import RecordsFactory
-from ..value_objects import MessageContext, NodePathStructValue
 from .callback import CallbackBase
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
+from ..common import Summary
+from ..infra import RecordsProvider
+from ..record import RecordsFactory, RecordsInterface
+from ..value_objects import MessageContext, NodePathStructValue
 
 
 class NodePath(PathBase):

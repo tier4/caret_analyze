@@ -17,6 +17,7 @@ from ..value_objects import (CallbackStructValue, PublisherStructValue,
 
 
 class InfraHelper():
+
     @staticmethod
     def cb_to_column(
         callback: CallbackStructValue,

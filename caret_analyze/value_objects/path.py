@@ -18,11 +18,11 @@ from __future__ import annotations
 from logging import getLogger
 from typing import Optional, Tuple, Union
 
-from ..common import Summary, Util
-from ..exceptions import InvalidArgumentError
 from .communication import CommunicationStructValue
 from .node_path import NodePathStructValue, NodePathValue
 from .value_object import ValueObject
+from ..common import Summary, Util
+from ..exceptions import InvalidArgumentError
 
 logger = getLogger(__name__)
 
@@ -144,7 +144,7 @@ class PathStructValue(ValueObject):
                 msg = 'Detected "message_contest is None". Correct these node_path definitions. \n'
                 msg += 'To see node definition and procedure,'
                 msg += f'execute :\n' \
-                    f'>> check_procedure(\'yaml\', \'/path/to/yaml\', arch, \'{child.node_name}\') \n'
+                    f">> check_procedure('yaml', '/path/to/yaml', arch, '{child.node_name}') \n"
                 msg += str(child.summary)
                 logger.warning(msg)
                 continue

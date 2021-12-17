@@ -14,11 +14,11 @@
 
 from __future__ import annotations
 
+from .path_base import PathBase
 from ..common import Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import VariablePassingStructValue
-from .path_base import PathBase
 
 
 class VariablePassing(PathBase):

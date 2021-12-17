@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .util import Util
-from .singleton import Singleton
 from .columns import Columns
 from .custom_dict import Summary
+from .singleton import Singleton
+from .util import Util
 
 __all__ = [
-    'Util',
-    'Singleton',
     'Columns',
+    'Singleton',
     'Summary',
+    'Util',
 ]

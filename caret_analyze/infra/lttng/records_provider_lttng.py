@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import cached_property
 from logging import getLogger
 from typing import List, Optional, Union
-from functools import cached_property
 
 from .lttng import Lttng
-from ...common import Columns
+from ...common import Columns, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
                            UnsupportedTypeError)
@@ -27,7 +27,6 @@ from ...infra.lttng.column_names import COLUMN_NAME
 from ...record.interface import RecordInterface, RecordsInterface
 from ...record.record import merge, merge_sequencial
 from ...record.record_factory import RecordsFactory
-from ...common import Util
 from ...value_objects import (CallbackChain, CallbackStructValue,
                               CommunicationStructValue, InheritUniqueStamp,
                               NodePathStructValue, PublisherStructValue, Qos,
@@ -733,13 +732,15 @@ class NodeRecordsInheritUniqueTimestamp:
             pub_records.columns[0],
         ]
 
+        join_left_key = f'{self._node_path.subscribe_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'
+        join_right_key = f'{self._node_path.publish_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'
         pub_sub_records = merge_sequencial(
             left_records=sub_records,
             right_records=pub_records,
             left_stamp_key=sub_records.columns[0],
             right_stamp_key=pub_records.columns[0],
-            join_left_key=f'{self._node_path.subscribe_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}',
-            join_right_key=f'{self._node_path.publish_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}',
+            join_left_key=join_left_key,
+            join_right_key=join_right_key,
             columns=Columns(sub_records.columns + pub_records.columns).as_list(),
             how='left_use_latest'
         )

@@ -14,16 +14,16 @@
 
 from __future__ import annotations
 
-import sys
 from copy import deepcopy
 from enum import IntEnum
+from itertools import groupby
 from typing import Callable, Dict, List, Optional, Set
 
 import pandas as pd
 
+from .interface import RecordInterface, RecordsInterface
 from ..common import Columns
 from ..exceptions import InvalidArgumentError
-from .interface import RecordInterface, RecordsInterface
 
 
 class MergeSide(IntEnum):
@@ -752,7 +752,6 @@ def merge_sequencial_for_addr_track(
 
 
 def validate_rename_rule(rename_rule: Dict[str, str]):
-    from itertools import groupby
     # overwrite columns
     if len(set(rename_rule.keys()) & set(rename_rule.values())) > 0:
         msg = 'Overwrite columns. '

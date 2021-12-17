@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-from pytest_mock import MockerFixture
-
-from caret_analyze.architecture.architecture import Architecture
+from caret_analyze.architecture import Architecture
 from caret_analyze.exceptions import UnsupportedTypeError
 from caret_analyze.infra.interface import RecordsProvider
 from caret_analyze.runtime.callback import (CallbackBase, SubscriptionCallback,
@@ -48,8 +45,12 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          TimerCallbackStructValue,
                                          VariablePassingStructValue)
 
+import pytest
+from pytest_mock import MockerFixture
+
 
 class TestRuntimeLoaded:
+
     def test_empty_architecture(self, mocker: MockerFixture):
         arch = mocker.Mock(spec=Architecture)
         mocker.patch.object(arch, 'nodes', ())
@@ -112,6 +113,7 @@ class TestRuntimeLoaded:
 
 
 class TestNodesLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         node_info_mock = mocker.Mock(spec=NodeStructValue)
 
@@ -208,6 +210,7 @@ class TestNodesLoaded:
 
 
 class TestPublishsersLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         loaded = PublishersLoaded((), provider_mock)
@@ -248,6 +251,7 @@ class TestPublishsersLoaded:
 
 
 class TestSubscriptionsLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         loaded = SubscriptionsLoaded((), provider_mock)
@@ -288,6 +292,7 @@ class TestSubscriptionsLoaded:
 
 
 class TestExecutorLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
         loaded = ExecutorsLoaded((), nodes_loaded_mock)
@@ -384,6 +389,7 @@ class TestPathsLoaded:
 
 
 class TestCommunicationsLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
@@ -585,6 +591,7 @@ class TestCallbacksLoaded:
 
 
 class TestCallbackGroupsLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spedc=RecordsProvider)
         publisher_loaded_mock = mocker.Mock(spec=PublishersLoaded)
@@ -618,6 +625,7 @@ class TestCallbackGroupsLoaded:
 
 
 class TestNodePathsLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
@@ -651,6 +659,7 @@ class TestNodePathsLoaded:
 
 
 class TestVariablePassingsLoaded:
+
     def test_empty(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spec=MockerFixture)
         loaded = VariablePassingsLoaded((), provider_mock)

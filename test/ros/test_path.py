@@ -13,9 +13,6 @@
 # limitations under the License.
 
 
-import pytest
-from pytest_mock import MockerFixture
-
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.record import Record, Records
 from caret_analyze.record.interface import RecordsInterface
@@ -23,6 +20,9 @@ from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
 from caret_analyze.value_objects import PathStructValue
+
+import pytest
+from pytest_mock import MockerFixture
 
 
 class TestPath:
@@ -82,6 +82,7 @@ class TestPath:
 
 
 class TestColumnMerged:
+
     def test_empty(self):
         merged = ColumnMerger()
         assert merged.column_names == []
@@ -140,6 +141,7 @@ class TestColumnMerged:
 
 
 class TestRecordsMerged:
+
     def test_empty(self):
         with pytest.raises(InvalidArgumentError):
             RecordsMerged([])

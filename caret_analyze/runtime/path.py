@@ -23,7 +23,7 @@ from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Columns, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
-from ..record.record import merge, merge_sequencial, RecordsInterface
+from ..record.record import merge_sequencial, RecordsInterface
 from ..value_objects import PathStructValue
 
 logger = getLogger(__name__)

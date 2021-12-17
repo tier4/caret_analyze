@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .callback import SubscriptionCallbackValueLttng, TimerCallbackValueLttng
 from .callback_group import CallbackGroupValueLttng
-from .callback import TimerCallbackValueLttng, SubscriptionCallbackValueLttng
-from .publisher import PublisherValueLttng
 from .node import NodeValueLttng
+from .publisher import PublisherValueLttng
 
 __all__ = [
     'CallbackGroupValueLttng',
-    'TimerCallbackValueLttng',
-    'SubscriptionCallbackValueLttng',
-    'PublisherValueLttng',
     'NodeValueLttng',
+    'PublisherValueLttng',
+    'SubscriptionCallbackValueLttng',
+    'TimerCallbackValueLttng',
 ]

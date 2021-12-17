@@ -16,6 +16,12 @@ from __future__ import annotations, unicode_literals
 
 from typing import List, Optional, Union
 
+from .callback import CallbackBase
+from .callback_group import CallbackGroup
+from .communication import Communication
+from .executor import Executor
+from .node import Node
+from .path import Path
 from ..architecture import Architecture
 from ..common import Summary, Util
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
@@ -24,12 +30,6 @@ from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..infra.lttng.lttng import Lttng
 from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
 from ..value_objects import NodePathStructValue
-from .callback import CallbackBase
-from .callback_group import CallbackGroup
-from .communication import Communication
-from .executor import Executor
-from .node import Node
-from .path import Path
 
 
 class Application():

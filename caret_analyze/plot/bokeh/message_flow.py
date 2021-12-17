@@ -17,13 +17,13 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Optional
 
-import numpy as np
-import pandas as pd
 from bokeh.io import save, show
 from bokeh.models import CrosshairTool
 from bokeh.palettes import Bokeh8
 from bokeh.plotting import ColumnDataSource, figure
 from bokeh.resources import CDN
+import numpy as np
+import pandas as pd
 
 from ...exceptions import InvalidArgumentError
 from ...record.data_frame_shaper import Clip, Strip
@@ -298,7 +298,6 @@ class RawLevelFormatter(DataFrameFormatter):
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
         renames = {}
-        topic_name = ''
         for column_name in df.columns:
             if '_timestamp' in column_name:
                 idx = column_name.rfind('_timestamp')
@@ -308,6 +307,7 @@ class RawLevelFormatter(DataFrameFormatter):
 
 
 class NodeLevelFormatter(DataFrameFormatter):
+
     def __init__(self, path: Path) -> None:
         self._path = path
 

@@ -17,8 +17,8 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple
 
-from ..common import Summary
 from .value_object import ValueObject
+from ..common import Summary
 
 
 class CallbackType(ValueObject):

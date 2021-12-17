@@ -15,12 +15,12 @@
 from copy import deepcopy
 from typing import Any, Optional
 
+from caret_analyze.exceptions import InvalidArgumentError
+from caret_analyze.record.record import (merge, Record, RecordInterface, Records,
+                                         RecordsInterface)
+
 import pandas as pd
 import pytest
-
-from caret_analyze.exceptions import InvalidArgumentError
-from caret_analyze.record.record import (Record, RecordInterface, Records,
-                                         RecordsInterface, merge)
 
 RecordCppImpl: Any
 RecordsCppImpl: Any

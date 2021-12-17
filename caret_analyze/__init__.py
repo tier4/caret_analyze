@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .runtime.application import Application
-from .infra.lttng.lttng import Lttng
+from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
+
 from .architecture import Architecture, check_procedure
+from .infra.lttng.lttng import Lttng
+from .runtime.application import Application
 
 __all__ = [
     'Application',
@@ -23,14 +25,9 @@ __all__ = [
     'check_procedure'
 ]
 
-from logging import getLogger, StreamHandler, DEBUG, WARN, Formatter
 
 handler = StreamHandler()
 handler.setLevel(WARN)
-
-# fmt = '%(levelname)-8s: %(asctime)s | ' \
-#     + '%(filename)-12s - %(funcName)-12s : ' \
-#     + '%(lineno)-4s -- %(message)s'
 
 fmt = '%(levelname)-8s: %(asctime)s | %(message)s'
 formatter = Formatter(
