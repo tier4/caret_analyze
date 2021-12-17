@@ -31,6 +31,9 @@ class Clip(DataFrameShaper):
         self._rtrim_ns = rtrim_ns
 
     def execute(self, df: pd.DataFrame) -> pd.DataFrame:
+        if len(df.columns) == 0:
+            return df
+
         first_column = df.columns[0]
 
         df_clippped = df[
@@ -49,6 +52,9 @@ class Strip(DataFrameShaper):
         self._rstrip_ns = rstrip_s * 1.0e9
 
     def execute(self, df: pd.DataFrame) -> pd.DataFrame:
+        if len(df.columns) == 0 or len(df) == 0:
+            return df
+
         clip = self.to_clip(df)
         return clip.execute(df)
 
