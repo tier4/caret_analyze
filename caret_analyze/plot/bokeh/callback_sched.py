@@ -18,7 +18,9 @@ from typing import Union
 
 from bokeh.io import show
 from bokeh.palettes import d3
-from bokeh.plotting import figure
+from bokeh.plotting import ColumnDataSource, figure
+
+import numpy as np
 
 from ...runtime.callback_group import CallbackGroup
 from ...runtime.executor import Executor
@@ -64,30 +66,34 @@ def get_dataframe(target, lstrip_s, rstrip_s):
             for target in target.callbacks]
 
 
-def get_start_and_end(dataframe):
-    startpoints = []
-    endpoints = []
-    for item in dataframe.itertuples():
-        startpoints.append(item._1*1.0e-6)
-        endpoints.append(item._2*1.0e-6)
-    return startpoints, endpoints
-
-
 def sched_plot(target_name: str, target, dataframe):
 
     colors = d3['Category20'][20]
+    TOOLTIPS = """
+    <div style="width:400px; word-wrap: break-word;">
+    callback_start = @x_min [ns] <br>
+    callback_end = @x_max [ns] <br>
+    latency = @latency [ms] <br>
+    @desc <br>
+    callback_type = @callback_type
+    </div>
+    """
     p = figure(x_axis_label='Time [ms]',
                y_axis_label='',
                title=f'Time-line of callbacks in {target_name}',
-               width=1200)
-
+               width=1200,
+               active_scroll='wheel_zoom',
+               tooltips=TOOLTIPS)
     top = .0
     bottom = top - 0.2
     counter = 0
     for callback, df_cb in zip(target.callbacks, dataframe):
-        startpoints, endpoints = get_start_and_end(df_cb)
-        p.quad(left=startpoints, right=endpoints,
-               top=top, bottom=bottom,
+        rect_source = get_callback_rects(callback, df_cb, bottom, top)
+        p.rect('x',
+               'y',
+               'width',
+               'height',
+               source=rect_source,
                color=colors[counter],
                legend_label=f'{callback.callback_name}')
         counter += 1
@@ -103,19 +109,33 @@ def sched_plot(target_name: str, target, dataframe):
 
 def sched_plot_cbg(target_name: str, target, dataframe):
     colors = d3['Category20'][20]
+    TOOLTIPS = """
+    <div style="width:400px; word-wrap: break-word;">
+    callback_start = @x_min [ns] <br>
+    callback_end = @x_max [ns] <br>
+    latency = @latency [ms] <br>
+    @desc <br>
+    callback_type = @callback_type
+    </div>
+    """
     p = figure(x_axis_label='Time [ms]',
                y_axis_label='',
                title=f'Time-line of callbacks in {target_name}',
-               width=1200)
+               width=1200,
+               active_scroll='wheel_zoom',
+               tooltips=TOOLTIPS)
     top = .0
     bottom = top - 0.2
     counter = 0
 
     for callback_group in target.callback_groups:
         for callback, df_cb in zip(callback_group.callbacks, dataframe):
-            startpoints, endpoints = get_start_and_end(df_cb)
-            p.quad(left=startpoints, right=endpoints,
-                   top=top, bottom=bottom,
+            rect_source = get_callback_rects(callback, df_cb, bottom, top)
+            p.rect('x',
+                   'y',
+                   'width',
+                   'height',
+                   source=rect_source,
                    color=colors[counter],
                    legend_label=f'{callback.callback_name} ({callback_group.callback_group_name})')
             top -= 0.3
@@ -128,3 +148,68 @@ def sched_plot_cbg(target_name: str, target, dataframe):
     p.add_layout(p.legend[0], 'right')
 
     show(p)
+
+
+def get_callback_rects(
+    callback,
+    dataframe,
+    y_min,
+    y_max
+) -> ColumnDataSource:
+    rect_source = ColumnDataSource(data={
+        'x': [],
+        'y': [],
+        'x_min': [],
+        'x_max': [],
+        'width': [],
+        'latency': [],
+        'height': [],
+        'desc': [],
+        'callback_type': []
+    })
+    for item in dataframe.itertuples():
+        callback_start = item._1
+        callback_end = item._2
+        rect = RectValues(callback_start, callback_end, y_min, y_max)
+        new_data = {
+            'x': [rect.x],
+            'y': [rect.y],
+            'x_min': [callback_start],
+            'x_max': [callback_end],
+            'width': [rect.width],
+            'latency': [(callback_end-callback_start)*1.0e-6],
+            'height': [rect.height],
+            'desc': [f'symbol: {callback.symbol}'],
+            'callback_type': [f'{callback.callback_type}']
+                    }
+        rect_source.stream(new_data)
+
+    return rect_source
+
+
+class RectValues():
+    def __init__(
+        self,
+        callback_start: float,
+        callback_end: float,
+        y_min: int,
+        y_max: int
+    ) -> None:
+        self._y = [y_min, y_max]
+        self._x = [callback_start, callback_end]
+
+    @property
+    def x(self) -> float:
+        return np.mean(self._x)
+
+    @property
+    def y(self) -> float:
+        return np.mean(self._y)
+
+    @property
+    def width(self) -> float:
+        return abs(self._x[0] - self._x[1])
+
+    @property
+    def height(self) -> float:
+        return abs(self._y[0] - self._y[1])
