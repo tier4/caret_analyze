@@ -12,7 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .application import Application
-from .record.lttng import Lttng
+from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
 
-__all__ = ['Application', 'Lttng']
+from .architecture import Architecture, check_procedure
+from .infra.lttng.lttng import Lttng
+from .runtime.application import Application
+
+__all__ = [
+    'Application',
+    'Architecture',
+    'Lttng',
+    'check_procedure'
+]
+
+
+handler = StreamHandler()
+handler.setLevel(WARN)
+
+fmt = '%(levelname)-8s: %(asctime)s | %(message)s'
+formatter = Formatter(
+    fmt,
+    datefmt='%Y-%m-%d %H:%M:%S')
+handler.setFormatter(formatter)
+
+logger = getLogger()
+logger.setLevel(DEBUG)
+logger.addHandler(handler)

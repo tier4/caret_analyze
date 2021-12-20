@@ -24,13 +24,10 @@ from bokeh.plotting import ColumnDataSource, figure
 from bokeh.resources import CDN
 import numpy as np
 import pandas as pd
-from ...record import RecordInterface
 
-from ...callback import SubscriptionCallback
-from ...data_frame_shaper import Clip, Strip
-from ...path import Path
-from ...record.trace_points import TRACE_POINT
-from ...util import Util
+from ...exceptions import InvalidArgumentError
+from ...record.data_frame_shaper import Clip, Strip
+from ...runtime.path import Path
 
 
 def message_flow(
@@ -42,14 +39,15 @@ def message_flow(
     rstrip_s: float = 0,
 ) -> None:
     granularity = granularity or 'raw'
-    assert granularity in ['raw', 'callback', 'node']
+    if granularity not in ['raw', 'node']:
+        raise InvalidArgumentError('granularity must be [ raw / node ]')
 
     TOOLTIPS = """
     <div style="width:400px; word-wrap: break-word;">
     t = @x [ns] <br>
     t_start = @x_min [ns] <br>
     t_end = @x_max [ns] <br>
-    latency = @width [ns] <br>
+    latency = @latency [ms] <br>
     @desc
     </div>
     """
@@ -72,7 +70,7 @@ def message_flow(
         clip = strip.to_clip(df)
         df = clip.execute(df)
 
-    formatter = FormatterFactory.create(granularity)
+    formatter = FormatterFactory.create(path, granularity)
     formatter.remove_columns(df)
     formatter.rename_columns(df, path)
 
@@ -84,7 +82,7 @@ def message_flow(
     rect_source = get_callback_rects(path, yaxis_values, granularity, clip)
     fig.rect('x', 'y', 'width', 'height', source=rect_source, color='black', alpha=0.15)
 
-    line_sources = get_flow_lines(df, path)
+    line_sources = get_flow_lines(df)
     for i, line_source in enumerate(line_sources):
         fig.line(
             x='x',
@@ -114,74 +112,61 @@ def get_callback_rects(
         'x_max': [],
         'desc': [],
         'width': [],
+        'latency': [],
         'height': []
     })
 
+    if path.callbacks is None:
+        return rect_source
+
     for callback in path.callbacks:
         if granularity == 'raw':
-            search_name = callback.unique_name
-        elif granularity == 'callback':
-            search_name = callback.unique_name
+            search_name = callback.callback_name
         elif granularity == 'node':
             search_name = callback.node_name
 
-        y_maxs = y_axi_values.get_start_indexes(search_name)
-        y_mins = y_axi_values.get_end_values(search_name)
+        y_maxs = np.array(y_axi_values.get_start_indexes(search_name))
+        y_mins = y_maxs - 1
 
-        data = callback.to_records().data
         for y_min, y_max in zip(y_mins, y_maxs):
-            for record in data:
-                callback_start = record.get(
-                    TRACE_POINT.CALLBACK_START_TIMESTAMP)
-                callback_end = record.get(TRACE_POINT.CALLBACK_END_TIMESTAMP)
+            for _, row in callback.to_dataframe(shaper=clip).iterrows():
+                callback_start = row.to_list()[0]
+                callback_end = row.to_list()[-1]
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
                 new_data = {
                     'x': [rect.x],
                     'y': [rect.y],
-                    'x_min': [str(callback_start)],
-                    'x_max': [str(callback_end)],
+                    'x_min': [callback_start],
+                    'x_max': [callback_end],
                     'width': [rect.width],
+                    'latency': [(callback_end-callback_start)*1.0e-6],
                     'height': [rect.height],
-                    'desc': ['symbol: ' + callback.symbol],
+                    'desc': [f'symbol: {callback.symbol}'],
                 }
                 rect_source.stream(new_data)
 
     return rect_source
 
 
-def get_path_end_time(record: RecordInterface, columns: List[str]) -> int:
-    x_max = 0
-    for column in columns:
-        if column not in record.columns:
-            continue
-        if TRACE_POINT.CALLBACK_END_TIMESTAMP in column and column != columns[-1]:
-            continue
-        time = record.get(column)
-        x_max = max(x_max, time)
-    return x_max
-
-
-def get_flow_lines(df: pd.DataFrame, path: Path) -> ColumnDataSource:
+def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
     tick_labels = YAxisProperty(df)
     line_sources = []
 
-    records = path.to_records()
-
-    for i, record in enumerate(records.data):
-        x = np.array([record.get(c)
-                     for c in path.column_names if c in record.columns])
-        x_min = min(x)
-        x_max = get_path_end_time(record, path.column_names)
+    for i, row in df.iterrows():
+        row_values = row.dropna().values
+        x_min = min(row_values)
+        x_max = max(row_values)
         width = x_max - x_min
 
         line_source = ColumnDataSource({
-            'x': x,
-            'y': tick_labels.values[:len(x)],
-            'x_min': [str(x_min)]*len(x),
-            'x_max': [str(x_max)]*len(x),
-            'width': [width]*len(x),
-            'height': [0]*len(x),
-            'desc': [f'record index: {i}']*len(x),
+            'x': row_values,
+            'y': tick_labels.values[:len(row_values)],
+            'x_min': [x_min]*len(row_values),
+            'x_max': [x_max]*len(row_values),
+            'width': [width]*len(row_values),
+            'height': [0]*len(row_values),
+            'latency': [width*1.0e-6]*len(row_values),
+            'desc': [f'index: {i}']*len(row_values),
         })
 
         line_sources.append(line_source)
@@ -189,14 +174,35 @@ def get_flow_lines(df: pd.DataFrame, path: Path) -> ColumnDataSource:
     return line_sources
 
 
-class DataFrameColumnNameParser:
+class DataFrameColumnNameParsed:
 
-    def __init__(self, column_name) -> None:
+    def __init__(self, path: Path, column_name) -> None:
         split_text = column_name.split('/')
         tracepoint_name = split_text[-2]
         self.tracepoint_name = tracepoint_name
-        self.unique_name = '/'.join(split_text[:-2])
-        self.node_name = '/'.join(split_text[:-3])
+
+        self.loop_index = split_text[-1]
+        self.name = '/'.join(split_text[:-2])
+        self.node_name = None
+        self.topic_name = None
+        if self._has_node_name(path.node_names, column_name):
+            self.node_name = '/'.join(split_text[:-3])
+        if self._has_topic_name(path.topic_names, column_name):
+            self.topic_name = '/'.join(split_text[:-3])
+
+    @staticmethod
+    def _has_topic_name(topic_names, column_name):
+        for topic_name in topic_names:
+            if topic_name in column_name:
+                return True
+        return False
+
+    @staticmethod
+    def _has_node_name(topic_names, column_name):
+        for topic_name in topic_names:
+            if topic_name in column_name:
+                return True
+        return False
 
 
 class ColorPalette:
@@ -243,7 +249,7 @@ class YAxisValues:
     def _search_values(self, search_name) -> np.array:
         indexes = np.array([], dtype=int)
         for i, column_name in enumerate(self._column_names):
-            if '[end]' in column_name or '[publish]' in column_name:
+            if 'callback_end' in column_name:
                 continue
             if search_name in column_name:
                 indexes = np.append(indexes, i)
@@ -255,7 +261,7 @@ class YAxisValues:
 
     def get_end_values(self, search_name) -> List[int]:
         indexes = self._search_values(search_name)
-        return list((indexes + 1) * -1)
+        return list((indexes + 1) * -0.5)
 
 
 class DataFrameFormatter(metaclass=ABCMeta):
@@ -272,18 +278,19 @@ class DataFrameFormatter(metaclass=ABCMeta):
 class FormatterFactory():
 
     @classmethod
-    def create(self, granularity: str) -> DataFrameFormatter:
+    def create(self, path: Path, granularity: str) -> DataFrameFormatter:
         if granularity == 'raw':
-            return RawLevelFormatter()
-        elif granularity == 'callback':
-            return CallbackLevelFormatter()
+            return RawLevelFormatter(path)
         elif granularity == 'node':
-            return NodeLevelFormatter()
+            return NodeLevelFormatter(path)
 
         raise NotImplementedError()
 
 
 class RawLevelFormatter(DataFrameFormatter):
+
+    def __init__(self, path: Path) -> None:
+        pass
 
     def remove_columns(self, df: pd.DataFrame) -> None:
         df
@@ -291,119 +298,46 @@ class RawLevelFormatter(DataFrameFormatter):
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
         renames = {}
-        topic_name = ''
-        for column_name in df.columns[::-1]:
-            parser = DataFrameColumnNameParser(column_name)
-            tracepoint_name = parser.tracepoint_name
-            unique_name = parser.unique_name
-
-            callback = Util.find_one(path.callbacks, lambda x: x.unique_name == unique_name)
-            assert callback is not None
-
-            if 'subscription_callback' in unique_name and \
-                    tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
-                assert isinstance(callback, SubscriptionCallback)
-                topic_name = callback.topic_name
-
-            new_column_name = ''
-            if tracepoint_name in [
-                TRACE_POINT.ON_DATA_AVAILABLE_TIMESTAMP,
-                TRACE_POINT.DDS_WRITE_TIMESTAMP,
-                TRACE_POINT.RCL_PUBLISH_TIMESTAMP,
-                TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
-                TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            ]:
-                new_column_name = f'{topic_name}/{tracepoint_name}'
-                new_column_name = new_column_name[:-(len('_timestamp'))]
-            elif tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
-                new_column_name = f'{unique_name} [start]'
-            elif tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
-                new_column_name = f'{unique_name} [end]'
-
-            renames[column_name] = new_column_name
-
-        df.rename(columns=renames, inplace=True)
-
-
-class CallbackLevelFormatter(DataFrameFormatter):
-
-    def remove_columns(self, df: pd.DataFrame) -> None:
-        drop_columns = []
-        for column_name_, column_name in zip(df.columns[:-1], df.columns[1:]):
-            # For variable passing, callback_end, calllback_start
-            # In case of communication, callback_end,rclcpp_publish/rclcpp_intra_publish
-            tracepoint_name_ = DataFrameColumnNameParser(column_name_).tracepoint_name
-            tracepoint_name = DataFrameColumnNameParser(column_name).tracepoint_name
-
-            is_callback_end = tracepoint_name_ == TRACE_POINT.CALLBACK_END_TIMESTAMP
-            is_variable_pasisng = tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP
-
-            if is_callback_end and is_variable_pasisng:
-                continue
-
-            if tracepoint_name_ not in [
-                TRACE_POINT.CALLBACK_START_TIMESTAMP,
-                TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-                TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP,
-            ]:
-                drop_columns.append(column_name_)
-
-        df.drop(drop_columns, axis=1, inplace=True)
-
-    def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
-        renames = {}
         for column_name in df.columns:
-            parser = DataFrameColumnNameParser(column_name)
-            if parser.tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
-                renames[column_name] = parser.unique_name + ' [start]'
-            elif parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
-                renames[column_name] = parser.unique_name + ' [end]'
-            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP:
-                renames[column_name] = parser.unique_name + ' [publish]'
-            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP:
-                renames[column_name] = parser.unique_name + ' [publish]'
+            if '_timestamp' in column_name:
+                idx = column_name.rfind('_timestamp')
+                renames[column_name] = column_name[:idx]
+
         df.rename(columns=renames, inplace=True)
 
 
 class NodeLevelFormatter(DataFrameFormatter):
 
+    def __init__(self, path: Path) -> None:
+        self._path = path
+
     def remove_columns(self, df: pd.DataFrame) -> None:
-        callback_level_formatter = CallbackLevelFormatter()
-        callback_level_formatter.remove_columns(df)
+        raw_level_formatter = RawLevelFormatter(self._path)
+        raw_level_formatter.remove_columns(df)
 
         drop_columns = []
 
         # remove callbacks in the same node
-        for i, column_name in enumerate(df.columns):
-            parser = DataFrameColumnNameParser(column_name)
+        for column_name_, column_name in zip(df.columns[:-1], df.columns[1:]):
+            parsed_before = DataFrameColumnNameParsed(self._path, column_name_)
+            parsed = DataFrameColumnNameParsed(self._path, column_name)
 
-            is_next_same_node = False
-            is_before_same_node = False
-            if i+1 < len(df.columns):
-                parser_ = DataFrameColumnNameParser(df.columns[i+1])
-                is_next_same_node = parser.node_name == parser_.node_name
-            if i-1 >= 0:
-                parser_ = DataFrameColumnNameParser(df.columns[i-1])
-                is_before_same_node = parser.node_name == parser_.node_name
-
-            if is_next_same_node and is_before_same_node:
+            if parsed_before.node_name is not None and parsed.node_name is not None and \
+                    parsed_before.node_name == parsed.node_name:
                 drop_columns.append(column_name)
+
+            if parsed_before.topic_name is not None and parsed.topic_name is not None and \
+                    parsed_before.topic_name == parsed.topic_name:
+                drop_columns.append(column_name)
+
         df.drop(drop_columns, axis=1, inplace=True)
 
     def rename_columns(self, df: pd.DataFrame, path: Path) -> None:
-        path
-
         renames = {}
         for column_name in df.columns:
-            parser = DataFrameColumnNameParser(column_name)
-            if parser.tracepoint_name == TRACE_POINT.CALLBACK_START_TIMESTAMP:
-                renames[column_name] = parser.node_name + ' [start]'
-            elif parser.tracepoint_name == TRACE_POINT.CALLBACK_END_TIMESTAMP:
-                renames[column_name] = parser.node_name + ' [end]'
-            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_PUBLISH_TIMESTAMP:
-                renames[column_name] = parser.node_name + ' [publish]'
-            elif parser.tracepoint_name == TRACE_POINT.RCLCPP_INTRA_PUBLISH_TIMESTAMP:
-                renames[column_name] = parser.node_name + ' [publish]'
+            if '_timestamp' in column_name:
+                idx = column_name.rfind('_timestamp')
+                renames[column_name] = column_name[:idx]
 
         df.rename(columns=renames, inplace=True)
 
