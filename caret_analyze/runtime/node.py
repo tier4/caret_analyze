@@ -16,16 +16,15 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from caret_analyze.value_objects import NodeStructValue
-
-from ..common import Summary, Util
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
 from .node_path import NodePath
 from .publisher import Publisher
 from .subscription import Subscription
 from .variable_passing import VariablePassing
+from ..common import Summary, Util
+from ..exceptions import InvalidArgumentError, ItemNotFoundError
+from ..value_objects import NodeStructValue
 
 
 class Node:
@@ -75,7 +74,7 @@ class Node:
         return self._publishers
 
     @property
-    def publish_topics(self) -> List[str]:
+    def publish_topic_names(self) -> List[str]:
         return sorted(_.topic_name for _ in self._publishers)
 
     @property
@@ -87,7 +86,7 @@ class Node:
         return self._subscriptions
 
     @property
-    def subscribe_topics(self) -> List[str]:
+    def subscribe_topic_names(self) -> List[str]:
         return sorted(_.topic_name for _ in self._subscriptions)
 
     @property

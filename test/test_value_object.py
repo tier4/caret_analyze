@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
 from caret_analyze.value_objects.value_object import ValueObject
+
+import pytest
 
 
 class SampleClassA(ValueObject):
@@ -54,7 +54,9 @@ class SampleClassB(ValueObject):
     def f(self):
         return None
 
+
 class SampleClassC(ValueObject):
+
     def __init__(self, i: int, s: str, p: int) -> None:
         self._p = p
         self._v = SampleClassA(i, s, p)
@@ -67,7 +69,9 @@ class SampleClassC(ValueObject):
     def v(self) -> SampleClassA:
         return self._v
 
+
 class TestValueObject:
+
     def test_immutable(self):
         c = SampleClassA(1, '1', 1)
         with pytest.raises(Exception):
@@ -91,7 +95,7 @@ class TestValueObject:
     def test_str(self):
         from yaml import dump
         a = SampleClassA(1, '2', 3)
-        assert str(a) == dump({'i':1, 's': '2'})
+        assert str(a) == dump({'i': 1, 's': '2'})
 
         a = SampleClassC(1, '2', 3)
         assert str(a) == dump({'p': 3, 'v': {'i': 1, 's': '2'}})

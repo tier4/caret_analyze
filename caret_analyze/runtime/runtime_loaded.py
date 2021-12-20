@@ -16,6 +16,16 @@ from __future__ import annotations
 
 from typing import List, Optional, Tuple, Union
 
+from .callback import CallbackBase, SubscriptionCallback, TimerCallback
+from .callback_group import CallbackGroup
+from .communication import Communication
+from .executor import Executor
+from .node import Node
+from .node_path import NodePath
+from .path import Path
+from .publisher import Publisher
+from .subscription import Subscription
+from .variable_passing import VariablePassing
 from ..architecture import Architecture
 from ..common import Util
 from ..exceptions import (ItemNotFoundError, MultipleItemFoundError,
@@ -28,16 +38,6 @@ from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionStructValue, TimerCallbackStructValue,
                              VariablePassingStructValue)
-from .callback import CallbackBase, SubscriptionCallback, TimerCallback
-from .callback_group import CallbackGroup
-from .communication import Communication
-from .executor import Executor
-from .node import Node
-from .node_path import NodePath
-from .path import Path
-from .publisher import Publisher
-from .subscription import Subscription
-from .variable_passing import VariablePassing
 
 
 class RuntimeLoaded():

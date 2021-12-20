@@ -12,35 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from typing import Dict, Optional, Union
 
 from graphviz import Digraph, Source
 
-from ...architecture import Architecture
-from ...common import Util
-from ...runtime.callback import (CallbackBase, SubscriptionCallback,
-                                 TimerCallback)
-from ...runtime.node import Node
-from ...runtime.path import Path
+from ...runtime import CallbackBase, Node, Publisher, Subscription
+from ...value_objects import (CallbackStructValue, CallbackType,
+                              NodeStructValue, PublisherStructValue,
+                              SubscriptionStructValue)
+
+NodeClass = Union[Node, NodeStructValue]
+CallbackClass = Union[CallbackBase, CallbackStructValue]
+PublisherClass = Union[Publisher, PublisherStructValue]
+SubscriptionClass = Union[Subscription, SubscriptionStructValue]
 
 
 def callback_graph(
-    arch: Architecture,
-    callbacks: List[CallbackBase],
+    node: NodeClass,
     export_path: Optional[str] = None,
-    separate: bool = False,
-    plot_target_path_only: bool = False
 ) -> Optional[Source]:
-    if plot_target_path_only and len(callbacks) == 0:
-        print('Failed to find specified path. Ignore plot_target_path_only argument.')
-        plot_target_path_only = False
+    import os
 
-    dot = CallbackGraph(arch, callbacks, separate, plot_target_path_only).to_dot()
+    dot = CallbackGraph(node).to_dot()
     source = Source(dot)
     if export_path is not None:
-        file_path_wo_ext = export_path.split('.')[0]
         ext = export_path.split('.')[-1]
-        source.render(file_path_wo_ext, format=ext)
+        file_path_wo_ext = export_path[:-(len(ext)+1)]
+        dirname = os.path.dirname(file_path_wo_ext)
+        basename = os.path.basename(file_path_wo_ext)
+        source.render(basename, directory=dirname, format=ext, cleanup=True)
         return None
     return source
 
@@ -52,30 +52,21 @@ class CallbackGraph:
 
     def __init__(
         self,
-        arch: Architecture,
-        callbacks: List[CallbackBase],
-        separate: bool,
-        plot_target_path_only: bool
+        node: NodeClass
     ):
-        self._arch = arch
-        path = Path(callbacks, arch.communications, arch.variable_passings)
-
         self._graph = Digraph(format='svg', engine='dot')
         self._graph.name = 'Hover the mouse over a callback.'
         self._graph.attr(compound='true', rankdir='LR',
                          style='rounded', newrank='true')
 
-        self._labelled_edges = []
-        self._labelled_edges.append(LabelledEdge(self, '/tf'))
-        self._labelled_edges.append(LabelledEdge(self, '/tf_static'))
+        self._labelled_edges: Dict[str, LabelledEdge] = {}
+        pub_topic_name = list(node.publish_topic_names)
+        sub_topic_name = list(node.subscribe_topic_names or [])
+        topic_names = set(sub_topic_name + pub_topic_name)
+        for topic_name in topic_names:
+            self._labelled_edges[topic_name] = LabelledEdge(self, topic_name)
 
-        if separate:
-            for comm in arch.communications:
-                if comm.topic_name in [_.topic_name for _ in self._labelled_edges]:
-                    continue
-                self._labelled_edges.append(LabelledEdge(self, comm.topic_name))
-
-        self._draw_graph(path, plot_target_path_only)
+        self._draw_graph(node)
 
     def to_dot(self):
         return self._graph.source
@@ -84,70 +75,38 @@ class CallbackGraph:
         splitted = node_name.split('/')
         return '/'.join(splitted[:-1])
 
-    def _draw_graph(self, path: Path, plot_target_path_only: bool) -> None:
-        for node in self._arch.nodes:
-            if node.node_name in CallbackGraph.IGNORE_NODES:
-                continue
-            if plot_target_path_only and not self._contain(node, path):
-                continue
-            self._draw_node(node, path)
+    def _draw_graph(self, node: NodeClass) -> None:
+        self._draw_node(node)
 
-        for comm in self._arch.communications:
-            pub_node: Node = Util.find_one(
-                self._arch.nodes, lambda x: x.node_name == comm.publisher.node_name
-            )
-            sub_node: Node = Util.find_one(
-                self._arch.nodes, lambda x: x.node_name == comm.subscription.node_name
-            )
+        for pub in node.publishers:
+            self._labelled_edges[pub.topic_name].draw_publisher(pub)
 
-            if plot_target_path_only and \
-               (not self._contain(pub_node, path) or not self._contain(sub_node, path)):
-                continue
-            self._draw_comm(comm, path.contains(comm))  # highlight
+        for sub in node.subscriptions:
+            self._labelled_edges[sub.topic_name].draw_subscription(sub)
 
-        for var in self._arch.variable_passings:
-            node_var: Node = Util.find_one(
-                self._arch.nodes, lambda x: x.node_name == var.callback_to.node_name
-            )
-            if plot_target_path_only and not self._contain(node_var, path):
-                continue
-
-            head_name = var.callback_to.callback_name
-            tail_name = var.callback_from.callback_name
-            if path.contains(var):
-                color = CallbackGraph.PATH_HIGHLIGHT_COLOR
-                penwidth = '4.0'
-            else:
+        if node.variable_passings is not None:
+            for var in node.variable_passings:
+                head_name = var.callback_name_read
+                tail_name = var.callback_name_write
                 color = 'black'
                 penwidth = '1.0'
-            self._graph.edge(tail_name, head_name, color=color, penwidth=penwidth)
+                self._graph.edge(tail_name, head_name,
+                                 color=color, penwidth=penwidth)
 
-    def _contain(self, node: Node, path: Path) -> bool:
-        for callback in node.callbacks:
-            if path.contains(callback):
-                return True
-        return False
-
-    def _draw_comm(self, comm, highlight: bool) -> None:
-        for labelled_edge in self._labelled_edges:
-            if comm.topic_name == labelled_edge.topic_name:
-                labelled_edge.draw(comm)
-                return
-        head_name = comm.callback_to.name
-        head_node_name = comm.callback_to.node_name
-        self._draw_edge(comm, head_name, head_node_name, highlight)
-
-    def _get_tooltip(self, callback: CallbackBase) -> str:
-        if isinstance(callback, TimerCallback):
-            period_ns_str = '{:,}'.format(callback.period_ns)
+    def _get_tooltip(self, callback: CallbackClass) -> str:
+        if callback.callback_type == CallbackType.TIMER:
+            period_ns_str = '{:,}'.format(callback.period_ns)  # type: ignore
             return f'period ns: {period_ns_str}\n symbol: {callback.symbol}'
 
-        elif isinstance(callback, SubscriptionCallback):
-            return f'topic name: {callback.topic_name}\n symbol: {callback.symbol}'
+        if callback.callback_type == CallbackType.SUBSCRIPTION:
+            return f'topic name: {callback.subscribe_topic_name}\n symbol: {callback.symbol}'
 
-        assert False, 'not implemented'
+        raise NotImplementedError()
 
-    def _draw_callbacks(self, node_cluster, node: Node, path: Path):
+    def _draw_callbacks(self, node_cluster, node: NodeClass):
+        if node.callbacks is None:
+            return
+
         if len(node.callbacks) == 0:
             node_cluster.node(
                 node.node_name,
@@ -160,12 +119,8 @@ class CallbackGraph:
 
         for callback in node.callbacks:
             tooltip: str = self._get_tooltip(callback)
-            if path.contains(callback):
-                color = CallbackGraph.PATH_HIGHLIGHT_COLOR
-                fillcolor = CallbackGraph.PATH_HIGHLIGHT_FILL_COLOR
-            else:
-                color = 'black'
-                fillcolor = 'white'
+            color = 'black'
+            fillcolor = 'white'
 
             node_cluster.node(
                 callback.callback_name,
@@ -176,7 +131,7 @@ class CallbackGraph:
                 fillcolor=fillcolor,
             )
 
-    def _draw_node(self, node: Node, path: Path) -> None:
+    def _draw_node(self, node: NodeClass) -> None:
         # Nesting clusters is not available due to an error in graphviz.
         # Graphviz-2.49.1 used for verification.
 
@@ -187,53 +142,68 @@ class CallbackGraph:
                         'bgcolor': 'white', 'color': 'black'},
         ) as node_cluster:
 
-            self._draw_callbacks(node_cluster, node, path)
+            self._draw_callbacks(node_cluster, node)
 
-    def _draw_callback_to_callback(self, comm, head_name, head_node_name, highlight: bool):
-        tail_name = comm.callback_from.name
-        tail_node_name = comm.callback_from.node_name
-        if (
-            tail_node_name in CallbackGraph.IGNORE_NODES
-            or head_node_name in CallbackGraph.IGNORE_NODES
-        ):
-            return
+    def _to_cluster_name(self, node_name: str, prefix=''):
+        return 'cluster_' + prefix + node_name
 
-        if highlight:
-            color = CallbackGraph.PATH_HIGHLIGHT_COLOR
-            penwidth = '4.0'
-        else:
-            color = 'black'
-            penwidth = '1.0'
 
-        self._graph.edge(tail_name, head_name,
-                         label=comm.topic_name,
-                         color=color,
-                         penwidth=penwidth)
+class LabelledEdge:
 
-    def _draw_node_to_callback(self, comm, head_name, head_node_name):
-        tail_node = Util.find_one(
-            self._arch.nodes, lambda x: x.node_name == comm.publisher.node_name
+    def __init__(self, graph: CallbackGraph, topic_name, color='blue'):
+        self._graph = graph
+        self.topic_name = topic_name
+        self._color = color
+
+    def _to_tail_name(self, node_name: str):
+        return self.topic_name + node_name
+
+    def _to_head_name(self, node_name: str):
+        return self.topic_name + node_name
+
+    @property
+    def label(self) -> str:
+        return f'{self.topic_name}'
+
+    def draw_publisher(self, publisher: PublisherClass):
+        head_name = self._to_head_name(publisher.topic_name)
+
+        self._graph._graph.node(
+            head_name, color=self._color, shape='cds',
+            label=self.label, _attributes={'orientation': '180'}
         )
-        if tail_node is None or len(tail_node.callbacks) == 0:
+
+        if publisher.callback_names is not None:
+            for callback_name in publisher.callback_names:
+                self._draw_edge_from_callback(
+                    callback_name, head_name)
+        else:
+            self._draw_edge_from_node(publisher, head_name)
+
+    def draw_subscription(self, subscription: SubscriptionClass):
+        head_name = subscription.callback_name
+        tail_name = self._to_tail_name(subscription.node_name)
+        self._graph._graph.node(
+            tail_name, color=self._color, shape='cds', label=self.label
+        )
+        self._graph._graph.edge(
+            tail_name, head_name, color=self._color,
+        )
+
+    def _draw_edge_from_node(self, publisher: PublisherClass, head_name):
+        if publisher.callback_names is None:
             return None
 
         # Choose only one temporary callback that you need to connect to.
-        tail_callback = tail_node.callbacks[0]
-        tail_name = tail_callback.name
-        tail_node_name = tail_callback.node_name
-        if (
-            tail_node_name in CallbackGraph.IGNORE_NODES
-            or head_node_name in CallbackGraph.IGNORE_NODES
-        ):
-            return None
+        tail_name = publisher.callback_names[0]
 
-        publish_node_cluster_name = self._to_cluster_name(
-            comm.publisher.node_name, prefix='node_')
+        publish_node_cluster_name = self._graph._to_cluster_name(
+            publisher.node_name, prefix='node_')
         tooltip = 'The callback to publish is not specified.'
-        self._graph.edge(
+
+        self._graph._graph.edge(
             tail_name,
             head_name,
-            label=comm.topic_name,
             ltail=publish_node_cluster_name,
             color='red',
             dir='both',
@@ -241,53 +211,13 @@ class CallbackGraph:
             tooltip=tooltip,
         )
 
-    def _to_cluster_name(self, node_name: str, prefix=''):
-        return 'cluster_' + prefix + node_name
+    def _draw_edge_from_callback(self, callback_name: str, head_name):
+        tail_name = callback_name
 
-    def _draw_edge(self, comm, head_name, head_node_name, highlight: bool) -> None:
-        if comm.callback_from is not None:
-            self._draw_callback_to_callback(
-                comm, head_name, head_node_name, highlight)
-        else:
-            self._draw_node_to_callback(comm, head_name, head_node_name)
+        color = 'black'
+        penwidth = '1.0'
 
-
-class LabelledEdge:
-
-    def __init__(self, callback_graph, topic_name, color='blue'):
-        self._callback_graph = callback_graph
-        self.topic_name = topic_name
-        self._pub_nodes = set()
-        self._sub_nodes = set()
-        self._color = color
-
-    def _to_tail_name(self, comm):
-        return self.topic_name + comm.subscription.node_name
-
-    def _to_head_name(self, comm):
-        return self.topic_name + comm.publisher.node_name
-
-    @property
-    def label(self) -> str:
-        return f'[{self.topic_name}]'
-
-    def draw(self, comm):
-        if comm.publisher.node_name not in self._pub_nodes:
-            self._pub_nodes.add(comm.publisher.node_name)
-            head_name = self._to_head_name(comm)
-
-            self._callback_graph._graph.node(
-                head_name, label=self.label, color=self._color)
-            self._callback_graph._draw_edge(
-                comm, head_name, comm.publisher.node_name, False)
-
-        if comm.subscription.node_name not in self._sub_nodes:
-            self._sub_nodes.add(comm.subscription.node_name)
-            head_name = comm.callback_to.name
-            tail_name = self._to_tail_name(comm)
-            self._callback_graph._graph.node(
-                tail_name, color=self._color, shape='cds', label=self.label
-            )
-            self._callback_graph._graph.edge(
-                tail_name, head_name, color=self._color, label=self.label
-            )
+        self._graph._graph.edge(tail_name,
+                                head_name,
+                                color=color,
+                                penwidth=penwidth)

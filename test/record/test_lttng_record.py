@@ -19,7 +19,8 @@
 # from caret_analyze.record.record import Records
 # from caret_analyze.infra.lttng.lttng import Lttng
 # from caret_analyze.infra.lttng.records_composer_lttng import Lttng
-# from caret_analyze.value_objects.callback_info import SubscriptionCallbackStructInfo, TimerCallbackStructInfo
+# from caret_analyze.value_objects.callback_info import SubscriptionCallbackStructInfo,
+#  TimerCallbackStructInfo
 # from caret_analyze.value_objects.publisher_info import PublisherInfo
 # from caret_analyze.infra.lttng.column_names import COLUMN_NAME
 
@@ -186,7 +187,8 @@
 #             ]
 #         )
 
-#         mocker.patch.object(lttng, 'get_subscription_callbacks_info', return_value=[sub_callback])
+#         mocker.patch.object(lttng, 'get_subscription_callbacks_info',
+# return_value=[sub_callback])
 #         mocker.patch.object(lttng, 'get_timer_callbacks_info', return_value=[pub_callback])
 #         mocker.patch.object(lttng, 'get_publishers_info', return_value=[publisher])
 #         mocker.patch.object(
@@ -257,7 +259,8 @@
 #             ]
 #         )
 
-#         mocker.patch.object(lttng, 'get_subscription_callbacks_info', return_value=[sub_callback])
+#         mocker.patch.object(lttng, 'get_subscription_callbacks_info',
+#           return_value=[sub_callback])
 #         mocker.patch.object(lttng, 'get_timer_callbacks_info', return_value=[pub_callback])
 #         mocker.patch.object(lttng, 'get_publishers_info', return_value=[publisher])
 #         mocker.patch.object(

@@ -17,13 +17,13 @@ from __future__ import annotations
 from logging import getLogger
 from typing import Optional, Tuple, Union
 
-from ..common import Summary, Util
 from .callback import CallbackStructValue
 from .message_context import MessageContext
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
+from ..common import Summary, Util
 
 logger = getLogger(__name__)
 

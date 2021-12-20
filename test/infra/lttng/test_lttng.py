@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-from pytest_mock import MockerFixture
-
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.records_source import RecordsSource
@@ -26,6 +24,8 @@ from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue
 from caret_analyze.value_objects.node import NodeValue
 
+from pytest_mock import MockerFixture
+
 
 class TestLttng:
 
@@ -36,6 +36,9 @@ class TestLttng:
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
                      return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
@@ -51,6 +54,9 @@ class TestLttng:
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
                      return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
@@ -64,6 +70,9 @@ class TestLttng:
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
                      return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
@@ -78,6 +87,9 @@ class TestLttng:
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
                      return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
@@ -93,6 +105,9 @@ class TestLttng:
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
                      return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 
@@ -108,6 +123,9 @@ class TestLttng:
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
                      return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
 
         lttng = Lttng('trace_dir', force_conversion=False, use_singleton_cache=False)
 

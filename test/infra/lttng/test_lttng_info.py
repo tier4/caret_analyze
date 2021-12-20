@@ -25,6 +25,7 @@ from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
 from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
                                          ExecutorValue)
 from caret_analyze.value_objects.node import NodeValue
+
 import pandas as pd
 from pytest_mock import MockerFixture
 

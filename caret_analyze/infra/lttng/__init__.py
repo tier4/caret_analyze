@@ -13,5 +13,9 @@
 # limitations under the License.
 
 from .lttng import Lttng
+from .records_provider_lttng import RecordsProviderLttng
 
-__all__ = ['Lttng']
+__all__ = [
+    'Lttng',
+    'RecordsProviderLttng'
+]

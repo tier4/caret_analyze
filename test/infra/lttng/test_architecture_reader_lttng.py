@@ -13,16 +13,15 @@
 # limitations under the License.
 
 
-from pytest_mock import MockerFixture
-
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.architecture_reader_lttng import \
     ArchitectureReaderLttng
-from caret_analyze.value_objects import (CallbackGroupValue,
-                                         ExecutorValue,
+from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
                                          NodeValueWithId, PublisherValue,
                                          SubscriptionCallbackValue,
                                          TimerCallbackValue)
+
+from pytest_mock import MockerFixture
 
 
 class TestArchitectureReaderLttng:

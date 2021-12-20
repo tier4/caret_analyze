@@ -16,15 +16,15 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from ..common import Summary
-from ..infra.interface import RecordsProvider
-from ..record import RecordsInterface
-from ..value_objects import CommunicationStructValue
 from .callback import CallbackBase
 from .node import Node
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
+from ..common import Summary
+from ..infra import RecordsProvider
+from ..record import RecordsInterface
+from ..value_objects import CommunicationStructValue
 
 
 class Communication(PathBase):
@@ -87,6 +87,14 @@ class Communication(PathBase):
     @property
     def publish_node_name(self) -> str:
         return self._val.publish_node_name
+
+    @property
+    def subscribe_node(self) -> Node:
+        return self._node_sub
+
+    @property
+    def publish_node(self) -> Node:
+        return self._node_pub
 
     @property
     def topic_name(self) -> str:

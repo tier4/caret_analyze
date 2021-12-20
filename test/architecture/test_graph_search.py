@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pytest_mock import MockerFixture
-
 from caret_analyze.architecture.graph_search import (CallbackPathSearcher,
                                                      Graph, GraphCore,
                                                      GraphEdge, GraphEdgeCore,
@@ -26,6 +24,8 @@ from caret_analyze.value_objects import (CallbackStructValue,
                                          PathStructValue, PublisherStructValue,
                                          SubscriptionStructValue,
                                          VariablePassingStructValue)
+
+from pytest_mock import MockerFixture
 
 
 class TestGraphNode:
@@ -64,6 +64,7 @@ class TestGraphPath:
 
 
 class TestGraphCore:
+
     def test_search_simple_case(self):
         g = GraphCore()
         g.add_edge(0, 1)
@@ -192,6 +193,7 @@ class TestGraphCore:
 
 
 class TestGraph:
+
     def test_search_simple_case(self):
         node_0 = GraphNode('0')
         node_1 = GraphNode('1')
@@ -455,6 +457,7 @@ class TestCallbackPathSearcher:
 
 
 class TestNodePathSearcher:
+
     def test_empty(self, mocker: MockerFixture):
         searcher = NodePathSearcher((), ())
 

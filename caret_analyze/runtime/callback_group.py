@@ -19,9 +19,9 @@ from typing import List
 from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CallbackGroupType)
 
+from .callback import CallbackBase
 from ..common import Summary, Util
 from ..exceptions import InvalidArgumentError
-from .callback import CallbackBase
 
 
 class CallbackGroup:

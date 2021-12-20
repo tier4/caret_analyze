@@ -22,7 +22,6 @@ from tracetools_analysis.data_model import (DataModel,
                                             DataModelIntermediateStorage)
 
 
-
 class Ros2DataModel(DataModel):
     """
     Container to model pre-processed ROS 2 data for analysis.

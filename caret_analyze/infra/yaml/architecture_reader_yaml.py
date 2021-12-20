@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Sequence
 
 import yaml
 
-from ...architecture.reader_interface import UNDEFINED_STR, ArchitectureReader
+from ...architecture.reader_interface import ArchitectureReader, UNDEFINED_STR
 from ...common import Util
 from ...exceptions import InvalidYamlFormatError
 from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
@@ -27,6 +27,7 @@ from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
 
 
 class ArchitectureReaderYaml(ArchitectureReader):
+
     def __init__(self, file_path: str):
         with open(file_path, 'r') as f:
             yaml_str = f.read()
@@ -48,7 +49,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         try:
             v = obj[key_name]
             if v is None:
-                raise InvalidYamlFormatError(f'\'{key_name}\' value is None. obj: {obj}')
+                raise InvalidYamlFormatError(f"'{key_name}' value is None. obj: {obj}")
             return v
         except (KeyError, TypeError) as e:
             msg = f'Failed to parse yaml file. {key_name} not found. obj: {obj}'

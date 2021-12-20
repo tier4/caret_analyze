@@ -16,16 +16,14 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Tuple
 
-from caret_analyze.value_objects.node_path import NodePathStructValue
-
+from .reader_interface import UNDEFINED_STR
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..value_objects import (CallbackStructValue, ExecutorStructValue,
-                             NodeStructValue, PathStructValue,
-                             PublisherStructValue,
+                             NodePathStructValue, NodeStructValue,
+                             PathStructValue, PublisherStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionStructValue, TimerCallbackStructValue,
                              VariablePassingStructValue)
-from .reader_interface import UNDEFINED_STR
 
 
 class ArchitectureExporter():
@@ -235,7 +233,7 @@ class NodesDicts:
             obj['callback_groups'] = [{
                 'callback_group_type': cbg.callback_group_type_name,
                 'callback_group_name': cbg.callback_group_name,
-                'callback_names': sorted(list(cbg.callback_names))
+                'callback_names': sorted(cbg.callback_names)
             } for cbg in node.callback_groups]
 
         if node.callbacks is not None:

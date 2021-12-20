@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-from pytest_mock import MockerFixture
-
 from caret_analyze.exceptions import InvalidYamlFormatError
 from caret_analyze.infra.yaml.architecture_reader_yaml import \
     ArchitectureReaderYaml
@@ -23,6 +20,9 @@ from caret_analyze.value_objects import (CallbackGroupType, CallbackType,
                                          SubscriptionCallbackValue,
                                          TimerCallbackValue)
 from caret_analyze.value_objects.node import NodeValue
+
+import pytest
+from pytest_mock import MockerFixture
 
 
 class TestArchitectureReaderYaml:

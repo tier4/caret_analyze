@@ -16,5 +16,6 @@ from .bokeh.callback_sched import callback_sched
 from .bokeh.message_flow import message_flow
 from .graphviz.callback_graph import callback_graph
 from .graphviz.chain_latency import chain_latency
+from .graphviz.node_graph import node_graph
 
 __all__ = ['callback_sched','message_flow', 'chain_latency', 'callback_graph','node_graph']

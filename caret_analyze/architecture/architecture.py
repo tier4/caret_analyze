@@ -16,13 +16,13 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, Optional, Tuple
 
+from .architecture_exporter import ArchitectureExporter
+from .reader_interface import IGNORE_TOPICS
 from ..common import Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
-from .architecture_exporter import ArchitectureExporter
-from .reader_interface import IGNORE_TOPICS
 
 
 class Architecture():

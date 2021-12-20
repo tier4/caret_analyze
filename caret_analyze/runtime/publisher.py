@@ -14,11 +14,11 @@
 
 from typing import List, Optional, Union
 
+from .path_base import PathBase
 from ..common import Summary
-from ..infra.interface import RuntimeDataProvider, RecordsProvider
+from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
 from ..value_objects import PublisherStructValue
-from .path_base import PathBase
 
 
 class Publisher(PathBase):

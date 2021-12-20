@@ -14,9 +14,6 @@
 
 from typing import Dict, List
 
-import pytest
-from pytest_mock import MockerFixture
-
 from caret_analyze.architecture.architecture_exporter import (ArchitectureExporter,
                                                               CallbackDicts,
                                                               ExecutorsDicts,
@@ -37,8 +34,12 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          TimerCallbackStructValue,
                                          VariablePassingStructValue)
 
+import pytest
+from pytest_mock import MockerFixture
+
 
 class TestArchitectureExporter:
+
     def test_empty(self, mocker: MockerFixture):
         exporter = ArchitectureExporter((), (), ())
 
@@ -108,10 +109,10 @@ class TestArchitectureExporter:
         mocker.patch.object(node_mock, 'data', [])
 
         expected = \
-            '''named_paths: []
+            """named_paths: []
 executors: []
 nodes: []
-'''
+"""
         assert str(exporter) == expected
 
 
@@ -300,6 +301,7 @@ class TestExecutorDicts:
 
 
 class TestNodeDicts:
+
     def test_empty(self):
         node_dict = NodesDicts([])
         assert node_dict.data == []
@@ -458,6 +460,7 @@ class TestNodeDicts:
 
 
 class TestSubDicts:
+
     def test_content(self, mocker: MockerFixture):
         sub_info = mocker.Mock(spec=SubscriptionStructValue)
         mocker.patch.object(sub_info, 'topic_name', 'topic')
@@ -509,6 +512,7 @@ class TestSubDicts:
 
 
 class TestPubDicts:
+
     def test_content(self, mocker: MockerFixture):
         pub_info = mocker.Mock(spec=PublisherStructValue)
         mocker.patch.object(pub_info, 'topic_name', 'topic')
@@ -560,6 +564,7 @@ class TestPubDicts:
 
 
 class TestCallbackDicts:
+
     def test_timer_callback(self, mocker: MockerFixture):
         callback_mock = mocker.Mock(spec=TimerCallbackStructValue)
 
@@ -652,6 +657,7 @@ class TestCallbackDicts:
 
 
 class TestVarPassDicts:
+
     def test_empty(self):
         var_pass_dicts = VarPassDicts([])
         expect = [{

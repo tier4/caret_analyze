@@ -17,9 +17,9 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ..common import Summary
 from .callback import CallbackStructValue
 from .value_object import ValueObject
+from ..common import Summary
 
 
 class CallbackGroupType(ValueObject):

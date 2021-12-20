@@ -14,9 +14,9 @@
 
 from typing import Optional
 
-from ..common import Summary
 from .callback import SubscriptionCallbackStructValue
 from .value_object import ValueObject
+from ..common import Summary
 
 
 class SubscriptionValue(ValueObject):

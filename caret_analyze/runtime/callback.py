@@ -16,15 +16,16 @@ from __future__ import annotations
 
 from typing import List, Optional
 
+from .path_base import PathBase
+from .publisher import Publisher
+from .subscription import Subscription
 from ..common import Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import (CallbackStructValue,
+                             CallbackType,
                              SubscriptionCallbackStructValue,
                              TimerCallbackStructValue)
-from .path_base import PathBase
-from .publisher import Publisher
-from .subscription import Subscription
 
 
 class CallbackBase(PathBase):
@@ -53,6 +54,10 @@ class CallbackBase(PathBase):
     @property
     def callback_name(self) -> str:
         return self.__val.callback_name
+
+    @property
+    def callback_type(self) -> CallbackType:
+        return self.__val.callback_type
 
     @property
     def subscription(self) -> Optional[Subscription]:

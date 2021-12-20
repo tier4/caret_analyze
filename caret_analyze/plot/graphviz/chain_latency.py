@@ -14,8 +14,8 @@
 
 from typing import List, Optional
 
-import numpy as np
 from graphviz import Digraph, Source
+import numpy as np
 
 from ...exceptions import InvalidArgumentError
 from ...runtime.path import Path

@@ -31,7 +31,11 @@ class RecordsSource():
         data: Ros2DataModel,
     ) -> None:
         self._data = data
-        self._data.rclcpp_publish_instances.rename_columns(
+        self._preprocess(self._data)
+
+    @staticmethod
+    def _preprocess(data: Ros2DataModel):
+        data.rclcpp_publish_instances.rename_columns(
             {COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP}
         )
 
