@@ -54,6 +54,10 @@ class Ros2DataModel(DataModel):
         self._callback_group_service: DataModelIntermediateStorage = []
         self._callback_group_client: DataModelIntermediateStorage = []
 
+        self._tilde_subscriptions: DataModelIntermediateStorage = []
+        self._tilde_publishers: DataModelIntermediateStorage = []
+        self._tilde_subscribe_added: DataModelIntermediateStorage = []
+
         # Events (multiple instances, may not have a meaningful index)
         # string argument
         self._lifecycle_transitions: DataModelIntermediateStorage = []
@@ -99,6 +103,22 @@ class Ros2DataModel(DataModel):
         self.message_construct_instances = RecordsFactory.create_instance(
             None, ['message_construct_timestamp', 'original_message', 'constructed_message']
         )
+
+        self.tilde_subscribe = RecordsFactory.create_instance(
+            None, [
+                'tilde_subscribe_timestamp',
+                'subscription',
+                'tilde_message_id']
+        )
+
+        self.tilde_publish = RecordsFactory.create_instance(
+            None, [
+                'tilde_publish_timestamp',
+                'publisher',
+                'subscription_id',
+                'tilde_message_id']
+        )
+
         self.rmw_implementation = ''
 
     def add_context(self, context_handle, timestamp, pid, version) -> None:
@@ -184,6 +204,17 @@ class Ros2DataModel(DataModel):
         }
         self._timers.append(record)
 
+    def add_tilde_subscribe_added(
+        self, subscription_id, node_name, topic_name, timestamp
+    ) -> None:
+        record = {
+            'subscription_id': subscription_id,
+            'node_name': node_name,
+            'topic_name': topic_name,
+            'timestamp': timestamp
+        }
+        self._tilde_subscribe_added.append(record)
+
     def add_timer_node_link(self, handle, timestamp, node_handle) -> None:
         record = {
             'timer_handle': handle,
@@ -225,6 +256,28 @@ class Ros2DataModel(DataModel):
             'timestamp': timestamp,
         }
         self._lifecycle_transitions.append(record)
+
+    def add_tilde_subscription(
+        self, subscription, node_name, topic_name, timestamp
+    ) -> None:
+        record = {
+            'subscription': subscription,
+            'node_name': node_name,
+            'topic_name': topic_name,
+            'timestamp': timestamp,
+        }
+        self._tilde_subscriptions.append(record)
+
+    def add_tilde_publisher(
+        self, publisher, node_name, topic_name, timestamp
+    ) -> None:
+        record = {
+            'publisher': publisher,
+            'node_name': node_name,
+            'topic_name': topic_name,
+            'timestamp': timestamp,
+        }
+        self._tilde_publishers.append(record)
 
     def add_callback_start_instance(
         self, timestamp: int, callback: int, is_intra_process: bool
@@ -400,6 +453,38 @@ class Ros2DataModel(DataModel):
         )
         self.dispatch_intra_process_subscription_callback_instances.append(
             record)
+
+    def add_tilde_subscribe(
+        self,
+        timestamp: int,
+        subscription: int,
+        tilde_message_id: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'tilde_subscribe_timestamp': timestamp,
+                'subscription': subscription,
+                'tilde_message_id': tilde_message_id
+            }
+        )
+        self.tilde_subscribe.append(record)
+
+    def add_tilde_publish(
+        self,
+        timestamp: int,
+        publisher: int,
+        subscription_id: int,
+        tilde_message_id: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'tilde_publish_timestamp': timestamp,
+                'publisher': publisher,
+                'subscription_id': subscription_id,
+                'tilde_message_id': tilde_message_id,
+            }
+        )
+        self.tilde_publish.append(record)
 
     def add_executor(
         self,
@@ -600,6 +685,21 @@ class Ros2DataModel(DataModel):
         if self._callback_group_client:
             self.callback_group_client.set_index(
                 'callback_group_addr', inplace=True, drop=True
+            )
+        self.tilde_subscriptions = pd.DataFrame.from_dict(self._tilde_subscriptions)
+        if self._tilde_subscriptions:
+            self.tilde_subscriptions.set_index(
+                'subscription', inplace=True, drop=True
+            )
+        self.tilde_publishers = pd.DataFrame.from_dict(self._tilde_publishers)
+        if self._tilde_publishers:
+            self.tilde_publishers.set_index(
+                'publisher', inplace=True, drop=True
+            )
+        self.tilde_subscribe_added = pd.DataFrame.from_dict(self._tilde_subscribe_added)
+        if self._tilde_subscribe_added:
+            self.tilde_subscribe_added.set_index(
+                'subscription_id', inplace=True, drop=True
             )
 
     def print_data(self) -> None:

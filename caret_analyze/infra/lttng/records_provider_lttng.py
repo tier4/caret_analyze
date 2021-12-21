@@ -16,6 +16,8 @@ from functools import cached_property
 from logging import getLogger
 from typing import List, Optional, Union
 
+from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
+
 from .lttng import Lttng
 from ...common import Columns, Util
 from ...exceptions import (InvalidArgumentError,
@@ -32,7 +34,9 @@ from ...value_objects import (CallbackChain, CallbackStructValue,
                               NodePathStructValue, PublisherStructValue, Qos,
                               SubscriptionCallbackStructValue,
                               SubscriptionStructValue,
-                              TimerCallbackStructValue, UseLatestMessage,
+                              Tilde,
+                              TimerCallbackStructValue,
+                              UseLatestMessage,
                               VariablePassingStructValue)
 
 logger = getLogger(__name__)
@@ -124,29 +128,29 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self,
         node_path_val: NodePathStructValue,
     ) -> RecordsInterface:
-        if node_path_val.child is None and node_path_val.message_context is None:
+        if node_path_val.message_context is None:
             # dummy record
-            msg = 'message context and node_path.child are None. return dummy record. '
+            msg = 'message context is None. return dummy record. '
             msg += f'node_name: {node_path_val.node_name}'
             logger.info(msg)
             return RecordsFactory.create_instance()
 
-        try:
+        if node_path_val.message_context_type == MessageContextType.CALLBACK_CHAIN:
             return NodeRecordsCallbackChain(self, node_path_val).to_records()
-        except UnsupportedNodeRecordsError as e:
-            logger.info(f'Skip callback_chain. {e}')
 
-        try:
+        if node_path_val.message_context_type == MessageContextType.INHERIT_UNIQUE_STAMP:
             return NodeRecordsInheritUniqueTimestamp(self, node_path_val).to_records()
-        except UnsupportedNodeRecordsError as e:
-            logger.info(f'Skip inherit_unique_timestamp. {e}')
 
-        try:
+        if node_path_val.message_context_type == MessageContextType.USE_LATEST_MESSAGE:
             return NodeRecordsUseLatestMessage(self, node_path_val).to_records()
-        except UnsupportedNodeRecordsError as e:
-            logger.info(f'Skip use_latest_message. {e}')
 
-        raise UnsupportedNodeRecordsError('Failed to calculate node latency.')
+        if node_path_val.message_context_type == MessageContextType.TILDE:
+            return NodeRecordsTilde(self, node_path_val).to_records()
+
+        raise UnsupportedNodeRecordsError(
+            'Unknown message context. '
+            f'message_context = {node_path_val.message_context.context_type.type_name}'
+        )
 
     def callback_records(
         self,
@@ -206,9 +210,11 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+            - [callback_name]/callback_start_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
-            - [callback_name]/callback_start_timestamp
+            - [topic_name]/tilde_subscribe_timestamp
+            - [topic_name]/tilde_message_id
 
         Raises
         ------
@@ -228,19 +234,43 @@ class RecordsProviderLttng(RuntimeDataProvider):
         def is_target_record(record: RecordInterface):
             return record.get(COLUMN_NAME.CALLBACK_OBJECT) in callback_objects
 
-        sub_records = self._lttng.compose_subscribe_records().clone()
+        sub_records = self._lttng.compose_subscribe_records()
         sub_records.filter_if(is_target_record)
+
+        tilde_subsciption = self._helper.get_tilde_subscription(callback)
+        tilde_records = self._lttng.compose_tilde_subscribe_records()
+
+        def tilde_is_target(record: RecordInterface):
+            return record.get('tilde_subscription') == tilde_subsciption
+
+        tilde_records.filter_if(tilde_is_target)
+        tilde_records.drop_columns(['tilde_subscription'])
+
+        sub_records = merge_sequencial(
+            left_records=sub_records,
+            right_records=tilde_records,
+            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key='tilde_subscribe_timestamp',
+            join_left_key=None,
+            join_right_key=None,
+            how='left',
+            columns=Columns(sub_records.columns + tilde_records.columns).as_list()
+        )
 
         columns = [
             InfraHelper.cb_to_column(callback, COLUMN_NAME.CALLBACK_START_TIMESTAMP),
             InfraHelper.sub_to_column(subscription, COLUMN_NAME.MESSAGE_TIMESTAMP),
-            InfraHelper.sub_to_column(subscription, COLUMN_NAME.SOURCE_TIMESTAMP)
+            InfraHelper.sub_to_column(subscription, COLUMN_NAME.SOURCE_TIMESTAMP),
+            InfraHelper.sub_to_column(subscription, 'tilde_subscribe_timestamp'),
+            InfraHelper.sub_to_column(subscription, 'tilde_message_id'),
         ]
         sub_records.rename_columns(
             {
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: columns[0],
                 COLUMN_NAME.MESSAGE_TIMESTAMP: columns[1],
                 COLUMN_NAME.SOURCE_TIMESTAMP: columns[2],
+                'tilde_subscribe_timestamp': columns[3],
+                'tilde_message_id': columns[4],
             }
         )
         drop_columns = list(set(sub_records.columns) - set(columns))
@@ -266,11 +296,16 @@ class RecordsProviderLttng(RuntimeDataProvider):
         RecordsInterface
             Columns
             - [topic_name]/rclcpp_publish_timestamp
+            - [topic_name]/rclcpp_intra_publish_timestamp
+            - [topic_name]/rclcpp_inter_publish_timestamp
             - [topic_name]/rcl_publish_timestamp
             - [topic_name]/dds_write_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
             - [topic_name]/rclcpp_intra_publish_timestamp
+            - [topic_name]/tilde_subscribe_timestamp
+            - [topic_name]/tilde_publish_timestamp
+            - [topic_name]/tilde_message_id
 
         """
         publisher_handles = self._helper.get_publisher_handles(publisher)
@@ -282,6 +317,27 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         records.filter_if(is_target)
 
+        tilde_publishers = self._helper.get_tilde_publishers(publisher)
+        tilde_records = self._lttng.compose_tilde_publish_records()
+
+        def tilde_is_target(record: RecordInterface):
+            return record.get('tilde_publisher') in tilde_publishers
+
+        tilde_records.filter_if(tilde_is_target)
+
+        tilde_records.drop_columns(['tilde_publisher'])
+
+        records = merge_sequencial(
+            left_records=tilde_records,
+            right_records=records,
+            left_stamp_key='tilde_publish_timestamp',
+            right_stamp_key='rclcpp_publish_timestamp',
+            join_left_key=None,
+            join_right_key=None,
+            columns=Columns(tilde_records.columns + records.columns).as_list(),
+            how='right'
+        )
+
         columns = [
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
@@ -290,6 +346,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.DDS_WRITE_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.MESSAGE_TIMESTAMP),
             InfraHelper.pub_to_column(publisher, COLUMN_NAME.SOURCE_TIMESTAMP),
+            InfraHelper.pub_to_column(publisher, 'tilde_publish_timestamp'),
+            InfraHelper.pub_to_column(publisher, 'tilde_message_id'),
         ]
         records.rename_columns({
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: columns[0],
@@ -299,11 +357,56 @@ class RecordsProviderLttng(RuntimeDataProvider):
             COLUMN_NAME.DDS_WRITE_TIMESTAMP: columns[4],
             COLUMN_NAME.MESSAGE_TIMESTAMP: columns[5],
             COLUMN_NAME.SOURCE_TIMESTAMP: columns[6],
+            'tilde_publish_timestamp': columns[7],
+            'tilde_message_id': columns[8],
         })
 
         drop_columns = list(set(records.columns) - set(columns))
         records.drop_columns(drop_columns)
         records.reindex(columns)
+
+        return records
+
+    def tilde_records(
+        self,
+        subscription: SubscriptionStructValue,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        pub_records = self._lttng.compose_tilde_publish_records()
+        assert subscription.callback is not None
+
+        publisher_addrs = self._helper.get_tilde_publishers(publisher)
+        subscription_addr = self._helper.get_tilde_subscription(subscription.callback)
+
+        def is_target_pub(record: RecordInterface):
+            return record.get('tilde_publisher') in publisher_addrs and \
+                record.get('tilde_subscription') == subscription_addr
+        pub_records.filter_if(is_target_pub)
+
+        sub_records = self._lttng.compose_tilde_subscribe_records()
+
+        def is_target_sub(record: RecordInterface):
+            return record.get('tilde_subscription') == subscription_addr
+        sub_records.filter_if(is_target_sub)
+
+        records = merge(
+            left_records=sub_records,
+            right_records=pub_records,
+            join_left_key='tilde_message_id',
+            join_right_key='tilde_message_id',
+            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
+            how='left'
+        )
+
+        records.drop_columns(['tilde_publisher', 'tilde_subscription'])
+        columns = [
+            InfraHelper.sub_to_column(subscription, 'tilde_subscribe_timestamp'),
+            InfraHelper.sub_to_column(subscription, 'tilde_publish_timestamp'),
+        ]
+        records.rename_columns({
+            'tilde_subscribe_timestamp': columns[0],
+            'tilde_publish_timestamp': columns[1],
+        })
 
         return records
 
@@ -546,12 +649,28 @@ class RecordsProviderLttngHelper:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object_intra
 
+    def get_tilde_subscription(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> Optional[int]:
+        callback_lttng = self._bridge.get_subscription_callback(callback)
+        return callback_lttng.tilde_subscription
+
     def get_publisher_handles(
         self,
         publisher_info: PublisherStructValue
     ) -> List[int]:
         publisher_lttng = self._bridge.get_publishers(publisher_info)
         return [pub_info.publisher_handle
+                for pub_info
+                in publisher_lttng]
+
+    def get_tilde_publishers(
+        self,
+        publisher_info: PublisherStructValue
+    ) -> List[Optional[int]]:
+        publisher_lttng = self._bridge.get_publishers(publisher_info)
+        return [pub_info.tilde_publisher
                 for pub_info
                 in publisher_lttng]
 
@@ -663,7 +782,6 @@ class NodeRecordsCallbackChain:
                 lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns)[-1]
 
             publish_records = self._provider.publish_records(self._val.publisher)
-            self._rename_publish_records(publish_records, self._val.publisher)
             publish_column = publish_records.columns[0]
             columns = records.columns + [publish_column]
             records = merge_sequencial(
@@ -673,9 +791,11 @@ class NodeRecordsCallbackChain:
                 join_right_key=None,
                 left_stamp_key=last_callback_start_name,
                 right_stamp_key=publish_column,
-                columns=columns,
+                columns=Columns(records.columns + publish_records.columns).as_list(),
                 how='left'
             )
+            records.drop_columns(list(set(records.columns) - set(columns)))
+            records.reindex(columns)
         return records
 
     @staticmethod
@@ -817,6 +937,91 @@ class NodeRecordsUseLatestMessage:
         context: UseLatestMessage,
     ) -> None:
         def is_valid() -> bool:
+            if context.publisher_topic_name != node_path.publish_topic_name:
+                return False
+            if context.subscription_topic_name != node_path.subscribe_topic_name:
+                return False
+
+            return True
+
+        if is_valid():
+            return None
+
+        msg = f'UseLatest cannot build records. \n{node_path} \n{context}'
+        raise UnsupportedNodeRecordsError(msg)
+
+
+class NodeRecordsTilde:
+    def __init__(
+        self,
+        provider: RecordsProviderLttng,
+        node_path: NodePathStructValue,
+    ) -> None:
+        if node_path.message_context is None:
+            raise UnsupportedNodeRecordsError('node_path.message context is None')
+        if not isinstance(node_path.message_context, Tilde):
+            raise UnsupportedNodeRecordsError('node_path.message context is not UseLatestMessage')
+
+        self._provider = provider
+        self._context: MessageContext = node_path.message_context
+        self._validate(node_path, self._context)
+        self._node_path = node_path
+
+    def to_records(self):
+        tilde_records = self._provider.tilde_records(
+            self._node_path.subscription, self._node_path.publisher)
+        sub_records = self._provider.subscribe_records(self._node_path.subscription)
+        pub_records = self._provider.publish_records(self._node_path.publisher)
+
+        left_stamp_key = Util.find_one(
+            lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, sub_records.columns)
+        right_stamp_key = Util.find_one(
+            lambda x: 'tilde_subscribe_timestamp' in x, sub_records.columns)
+
+        records = merge_sequencial(
+            left_records=sub_records,
+            right_records=tilde_records,
+            left_stamp_key=left_stamp_key,
+            right_stamp_key=right_stamp_key,
+            join_left_key=None,
+            join_right_key=None,
+            columns=Columns(sub_records.columns + tilde_records.columns).as_list(),
+            how='left'
+        )
+
+        left_stamp_key = Util.find_one(
+            lambda x: 'tilde_publish_timestamp' in x, records.columns)
+        right_stamp_key = Util.find_one(
+            lambda x: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in x, pub_records.columns)
+        records = merge_sequencial(
+            left_records=records,
+            right_records=pub_records,
+            left_stamp_key=left_stamp_key,
+            right_stamp_key=right_stamp_key,
+            join_left_key=None,
+            join_right_key=None,
+            columns=Columns(records.columns + pub_records.columns).as_list(),
+            how='left'
+        )
+
+        columns = [
+            Util.find_one(lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns),
+            Util.find_one(lambda x: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in x, records.columns),
+        ]
+
+        drop_columns = list(set(records.columns) - set(columns))
+        records.drop_columns(drop_columns)
+        records.reindex(columns)
+        return records
+
+    @staticmethod
+    def _validate(
+        node_path: NodePathStructValue,
+        context: MessageContext,
+    ) -> None:
+        def is_valid() -> bool:
+            if not isinstance(context, Tilde):
+                return False
             if context.publisher_topic_name != node_path.publish_topic_name:
                 return False
             if context.subscription_topic_name != node_path.subscribe_topic_name:

@@ -27,6 +27,7 @@ class PublisherValueLttng(PublisherValue):
         node_id: str,
         callback_ids: Optional[Tuple[str, ...]],
         publisher_handle: int,
+        tilde_publisher: Optional[int]
     ) -> None:
         super().__init__(
             node_name=node_name,
@@ -35,7 +36,12 @@ class PublisherValueLttng(PublisherValue):
             callback_ids=callback_ids,
         )
         self._publisher_handle = publisher_handle
+        self._tilde_publisher = tilde_publisher
 
     @property
     def publisher_handle(self) -> int:
         return self._publisher_handle
+
+    @property
+    def tilde_publisher(self) -> Optional[int]:
+        return self._tilde_publisher

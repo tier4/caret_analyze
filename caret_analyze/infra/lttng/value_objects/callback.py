@@ -56,6 +56,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
         callback_object_intra: Optional[int],
+        tilde_subscription: Optional[int]
     ) -> None:
         super().__init__(
             callback_id=callback_id,
@@ -68,6 +69,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
 
         self._callback_object = callback_object
         self._callback_object_intra = callback_object_intra
+        self._tilde_sub = tilde_subscription
 
     @property
     def callback_object(self) -> int:
@@ -76,3 +78,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
     @property
     def callback_object_intra(self) -> Optional[int]:
         return self._callback_object_intra
+
+    @property
+    def tilde_subscription(self) -> Optional[int]:
+        return self._tilde_sub

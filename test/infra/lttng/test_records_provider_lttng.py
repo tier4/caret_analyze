@@ -30,6 +30,7 @@ from caret_analyze.record import Record, Records, RecordsInterface
 from caret_analyze.record.interface import RecordInterface
 from caret_analyze.value_objects import (CallbackChain, CallbackStructValue,
                                          CommunicationStructValue,
+                                         MessageContextType,
                                          NodePathStructValue,
                                          PublisherStructValue,
                                          SubscriptionCallbackStructValue,
@@ -130,7 +131,7 @@ class TestRecordsProviderLttng:
         callback_info_lttng = SubscriptionCallbackValueLttng(
             'callback_id', 'node_id', callback_info.node_name, symbol,
             topic_name, callback_info.publish_topic_names,
-            callback_object, callback_object_intra)
+            callback_object, callback_object_intra, None)
         mocker.patch.object(lttng_mock, 'get_subscription_callbacks', return_value=[
                             callback_info_lttng])
         mocker.patch.object(
@@ -186,7 +187,7 @@ class TestRecordsProviderLttng:
 
         callback_info_lttng = SubscriptionCallbackValueLttng(
             'callback_id', 'node_id', node_name, symbol, topic_name, pub_topic_names,
-            callback_object, callback_object_intra)
+            callback_object, callback_object_intra, None)
         mocker.patch.object(lttng_mock, 'get_subscription_callbacks', return_value=[
                             callback_info_lttng])
         mocker.patch.object(
@@ -208,6 +209,10 @@ class TestRecordsProviderLttng:
 
         mocker.patch.object(node_records_cb_chain_mock,
                             'to_records', return_value=records_mock)
+
+        mocker.patch.object(node_path_info_mock,
+                            'message_context_type', MessageContextType.CALLBACK_CHAIN)
+
         provider = RecordsProviderLttng(lttng_mock)
 
         records = provider.node_records(node_path_info_mock)
@@ -295,6 +300,9 @@ class TestRecordsProviderLttng:
             'caret_analyze.infra.lttng.records_provider_lttng.NodeRecordsInheritUniqueTimestamp',
             return_value=node_records_inherit_timestamp_mock)
 
+        mocker.patch.object(node_path_info_mock,
+                            'message_context_type', MessageContextType.INHERIT_UNIQUE_STAMP)
+
         mocker.patch.object(node_records_inherit_timestamp_mock,
                             'to_records', return_value=records_mock)
         provider = RecordsProviderLttng(lttng_mock)
@@ -351,6 +359,16 @@ class TestRecordsProviderLttng:
             ]
         )
 
+        tilde_records = Records(
+            [],
+            [
+                'tilde_publish_timestamp',
+                'tilde_publisher',
+                'tilde_message_id',
+                'tilde_subscription',
+            ]
+        )
+
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch(
             'caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
@@ -362,6 +380,10 @@ class TestRecordsProviderLttng:
 
         mocker.patch.object(
             lttng_mock, 'compose_publish_records', return_value=records)
+
+        mocker.patch.object(
+            lttng_mock, 'compose_tilde_publish_records', return_value=tilde_records)
+
         provider = RecordsProviderLttng(lttng_mock)
 
         mocker.patch.object(pub_mock, 'topic_name', '/topic')

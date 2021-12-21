@@ -14,7 +14,10 @@
 
 from functools import cached_property
 
+from typing import List
+
 from .column_names import COLUMN_NAME
+from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
 from ...common import Columns
 from ...record import (merge, merge_sequencial,
@@ -29,9 +32,11 @@ class RecordsSource():
     def __init__(
         self,
         data: Ros2DataModel,
+        info: LttngInfo
     ) -> None:
         self._data = data
         self._preprocess(self._data)
+        self._info = info
 
     @staticmethod
     def _preprocess(data: Ros2DataModel):
@@ -239,6 +244,7 @@ class RecordsSource():
             ],
         )
         intra_proc_publish = self._data.rclcpp_intra_publish_instances
+        # intra_proc_publish.drop_columns([COLUMN_NAME.MESSAGE])
 
         # When publishing to both intra-process and inter-process,
         # intra-process communication is done first.
@@ -281,6 +287,51 @@ class RecordsSource():
         ])
 
         return publish
+
+    @cached_property
+    def tilde_publish_records(self) -> RecordsInterface:
+        """
+        Compose tilde publish records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - tilde_publish_timestamp
+            - tilde_publisher
+            - tilde_message_id
+            - tilde_subscription
+
+        """
+        records = self._data.tilde_publish
+        records.rename_columns({'publisher': 'tilde_publisher'})
+
+        subscription: List[int] = []
+        for record in records:
+            subscription_id = record.get('subscription_id')
+            subscription.append(self._info.tilde_sub_id_map[subscription_id])
+
+        records.append_column('tilde_subscription', subscription)
+        records.drop_columns(['subscription_id'])
+        return records
+
+    @cached_property
+    def tilde_subscribe_records(self) -> RecordsInterface:
+        """
+        Compose tilde subscribe records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - tilde_subscribe_timestamp
+            - tilde_subscription
+            - tilde_message_id
+
+        """
+        records = self._data.tilde_subscribe
+        records.rename_columns({'subscription': 'tilde_subscription'})
+        return records
 
     @cached_property
     def subscribe_records(self) -> RecordsInterface:

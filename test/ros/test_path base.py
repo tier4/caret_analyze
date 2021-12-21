@@ -12,17 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# from typing import Dict
-
-# from caret_analyze import Application, Lttng
-# from caret_analyze.callback import SubscriptionCallback, TimerCallback
-# from caret_analyze.communication import Communication, VariablePassing
-# from caret_analyze.path import ColumnNameCounter, Path, PathLatencyMerger
-# from caret_analyze.record import Record, Records
-# from caret_analyze.record.interface import RecordsComposer, RecordsInterface
-# from caret_analyze.value_objects.callback_info import CallbackStructInfo,
-# SubscriptionCallbackStructInfo
-# from caret_analyze.value_objects.publisher_info import PublisherInfo
 
 from typing import List
 

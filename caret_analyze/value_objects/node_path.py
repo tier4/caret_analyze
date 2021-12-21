@@ -18,7 +18,7 @@ from logging import getLogger
 from typing import Optional, Tuple, Union
 
 from .callback import CallbackStructValue
-from .message_context import MessageContext
+from .message_context import MessageContext, MessageContextType
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
@@ -115,6 +115,13 @@ class NodePathStructValue(ValueObject):
     @property
     def message_context(self) -> Optional[MessageContext]:
         return self._context
+
+    @property
+    def message_context_type(self) -> Optional[MessageContextType]:
+        if self._context is None:
+            return None
+
+        return self._context.context_type
 
     @property
     def child(

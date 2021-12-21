@@ -14,8 +14,7 @@
 
 
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
-                                                  LttngInfo, PublisherBinder)
-from caret_analyze.infra.lttng.records_source import RecordsSource
+                                                  LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
                                                      NodeValueLttng,
@@ -37,19 +36,18 @@ class TestLttngInfo:
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        source_mock = mocker.Mock(spec=RecordsSource)
         data = Ros2DataModel()
         data.finalize()
 
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
-        info = LttngInfo(data, source_mock)
+        info = LttngInfo(data)
         assert info.get_rmw_impl() == ''
 
         data = Ros2DataModel()
         data.set_rmw_implementation('xxx_dds')
         data.finalize()
-        info = LttngInfo(data, source_mock)
+        info = LttngInfo(data)
         assert info.get_rmw_impl() == 'xxx_dds'
 
     def test_get_node_names(self, mocker: MockerFixture):
@@ -68,12 +66,10 @@ class TestLttngInfo:
         )
         mocker.patch.object(formatted_mock, 'nodes_df', nodes_df)
 
-        source_mock = mocker.Mock(spec=RecordsSource)
-
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
 
-        info = LttngInfo(Ros2DataModel(), source_mock)
+        info = LttngInfo(Ros2DataModel())
         nodes = info.get_nodes()
         assert len(nodes) == 1
         expect = NodeValueLttng('/node', 'node_id')
@@ -85,6 +81,8 @@ class TestLttngInfo:
         publisher_handle = 9
         depth = 5
         node_handle = 3
+        node_name = 'node_name'
+        tilde_publisher = 8
 
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
@@ -102,6 +100,17 @@ class TestLttngInfo:
         )
         mocker.patch.object(formatted_mock, 'publishers_df', pub_df)
 
+        tilde_pub_df = pd.DataFrame.from_dict(
+            [
+                {
+                    'tilde_publisher': tilde_publisher,
+                    'node_name': node_name,
+                    'topic_name': '/topic_name',
+                }
+            ]
+        )
+        mocker.patch.object(formatted_mock, 'tilde_publishers_df', tilde_pub_df)
+
         node_df = pd.DataFrame.from_dict(
             [
                 {
@@ -118,19 +127,14 @@ class TestLttngInfo:
             topic_name='/topic_name',
             node_id='node_id',
             callback_ids=None,
-            publisher_handle=publisher_handle
+            publisher_handle=publisher_handle,
+            tilde_publisher=None
         )
-
-        source_mock = mocker.Mock(spec=RecordsSource)
-        binder_mock = mocker.Mock(spec=PublisherBinder)
-        mocker.patch.object(binder_mock, 'can_bind', return_value=False)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.PublisherBinder',
-                     return_value=binder_mock)
 
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
 
-        info = LttngInfo(data, source_mock)
+        info = LttngInfo(data)
         pubs_info = info.get_publishers(NodeValue('/node', 'node_id'))
         assert len(pubs_info) == 1
         assert pubs_info[0] == pub_info_expect
@@ -176,17 +180,12 @@ class TestLttngInfo:
             ]
         )
         mocker.patch.object(formatted_mock, 'nodes_df', node_df)
-        binder_mock = mocker.Mock(spec=PublisherBinder)
-        mocker.patch.object(binder_mock, 'can_bind', return_value=False)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.PublisherBinder',
-                     return_value=binder_mock)
         data = Ros2DataModel()
-        source_mock = mocker.Mock(spec=RecordsSource)
 
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         # mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
 
-        info = LttngInfo(data, source_mock)
+        info = LttngInfo(data)
 
         timer_cbs_info = info.get_timer_callbacks(NodeValue('/node1', 'node_id'))
         timer_cb_info_expct = TimerCallbackValueLttng(
@@ -214,6 +213,7 @@ class TestLttngInfo:
         depth = [9, 10]
         subscription_handle = [11, 12]
         cbg_addr = [13, 14]
+        tilde_subscription = [17, 18]
 
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
@@ -247,6 +247,23 @@ class TestLttngInfo:
         mocker.patch.object(
             formatted_mock, 'subscription_callbacks_df', sub_df)
 
+        tilde_sub_df = pd.DataFrame.from_dict(
+            [
+                {
+                    'tilde_subscription': tilde_subscription[0],
+                    'node_name': node_name[0],
+                    'topic_name': topic_name[0],
+                },
+                {
+                    'tilde_subscription': tilde_subscription[1],
+                    'node_name': node_name[1],
+                    'topic_name': topic_name[1],
+                }
+            ]
+        )
+        mocker.patch.object(
+            formatted_mock, 'tilde_subscriptions_df', tilde_sub_df)
+
         node_df = pd.DataFrame.from_dict(
             [
                 {
@@ -263,13 +280,8 @@ class TestLttngInfo:
         )
         mocker.patch.object(formatted_mock, 'nodes_df', node_df)
 
-        binder_mock = mocker.Mock(spec=PublisherBinder)
-        mocker.patch.object(binder_mock, 'can_bind', return_value=False)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.PublisherBinder',
-                     return_value=binder_mock)
         data = Ros2DataModel()
-        source_mock = mocker.Mock(spec=RecordsSource)
-        info = LttngInfo(data, source_mock)
+        info = LttngInfo(data)
 
         sub_cbs_info = info.get_subscription_callbacks(NodeValue('/node1', 'node_id'))
         sub_cb_info_expect = SubscriptionCallbackValueLttng(
@@ -281,6 +293,7 @@ class TestLttngInfo:
             None,
             callback_object=callback_object[0],
             callback_object_intra=callback_object_intra[0],
+            tilde_subscription=tilde_subscription[0]
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
@@ -293,7 +306,8 @@ class TestLttngInfo:
             topic_name[1],
             None,
             callback_object[1],
-            None
+            None,
+            tilde_subscription=tilde_subscription[1]
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
@@ -368,8 +382,7 @@ class TestLttngInfo:
         mocker.patch.object(formatted_mock, 'callback_groups_df', cbg_df)
 
         data = Ros2DataModel()
-        source_mock = mocker.Mock(spec=RecordsSource)
-        info = LttngInfo(data, source_mock)
+        info = LttngInfo(data)
         cbg_info = info.get_callback_groups(NodeValue(node_name, 'node_id'))
 
         cbg_info_expect = CallbackGroupValueLttng(
@@ -411,8 +424,7 @@ class TestLttngInfo:
         mocker.patch.object(formatted_mock, 'callback_groups_df', cbg_df)
 
         data = Ros2DataModel()
-        source_mock = mocker.Mock(spec=RecordsSource)
-        info = LttngInfo(data, source_mock)
+        info = LttngInfo(data)
 
         execs_info = info.get_executors()
 
@@ -422,21 +434,6 @@ class TestLttngInfo:
         )
 
         assert execs_info == [exec_info_expect]
-
-        # cbgs = [
-        #     CallbackGroupInfoLttng(
-        #         CallbackGroupType.REENTRANT.type_name,
-        #         '/node2',
-        #         ['/node2/timer_callback_0'],
-        #         callback_group_addr=callback_group_object[1]
-        #     )
-        # ]
-        # exec_info_expect = ExecutorInfo(
-        #     ExecutorType.MULTI_THREADED_EXECUTOR.type_name,
-        #     cbgs,
-        # )
-
-        # assert execs_info[1] == exec_info_expect
 
 
 class TestDataFrameFormatted:
@@ -735,6 +732,9 @@ class TestDataFrameFormatted:
         sub_mock = mocker.Mock(spec=pd.DataFrame)
         cbg_mock = mocker.Mock(spec=pd.DataFrame)
         pub_mock = mocker.Mock(spec=pd.DataFrame)
+        tilde_sub_mock = mocker.Mock(spec=pd.DataFrame)
+        tilde_pub_mock = mocker.Mock(spec=pd.DataFrame)
+        tilde_sub_id_mock = mocker.Mock(spec=pd.DataFrame)
 
         mocker.patch.object(
             DataFrameFormatted, '_build_executor_df', return_value=exec_mock)
@@ -748,6 +748,12 @@ class TestDataFrameFormatted:
             DataFrameFormatted, '_build_cbg_df', return_value=cbg_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_publisher_df', return_value=pub_mock)
+        mocker.patch.object(
+            DataFrameFormatted, '_build_tilde_subscription_df', return_value=tilde_sub_mock)
+        mocker.patch.object(
+            DataFrameFormatted, '_build_tilde_publisher_df', return_value=tilde_pub_mock)
+        mocker.patch.object(
+            DataFrameFormatted, '_build_tilde_sub_id_df', return_value=tilde_sub_id_mock)
 
         data_mock = mocker.Mock(spec=Ros2DataModel)
         formatted = DataFrameFormatted(data_mock)

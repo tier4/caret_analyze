@@ -36,6 +36,7 @@ class MessageContextType(ValueObject):
     USE_LATEST_MESSAGE: MessageContextType
     CALLBACK_CHAIN: MessageContextType
     INHERIT_UNIQUE_STAMP:  MessageContextType
+    TILDE:  MessageContextType
 
     def __init__(
         self,
@@ -54,6 +55,7 @@ class MessageContextType(ValueObject):
 MessageContextType.USE_LATEST_MESSAGE = MessageContextType('use_latest_message')
 MessageContextType.INHERIT_UNIQUE_STAMP = MessageContextType('inherit_unique_stamp')
 MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
+MessageContextType.TILDE = MessageContextType('tilde')
 
 
 class MessageContext(ValueObject):
@@ -147,6 +149,8 @@ class MessageContext(ValueObject):
             return InheritUniqueStamp(node_name, context_dict, subscription, publisher, child)
         if context_type_name == str(MessageContextType.USE_LATEST_MESSAGE):
             return UseLatestMessage(node_name, context_dict, subscription, publisher, child)
+        if context_type_name == str(MessageContextType.TILDE):
+            return Tilde(node_name, context_dict, subscription, publisher, child)
 
         raise UnsupportedTypeError(
             f'Failed to load message context. message_context={context_type_name}')
@@ -236,3 +240,41 @@ class CallbackChain(MessageContext):
                 f'{self.node_name}')
 
         return is_valid
+
+
+class Tilde(MessageContext):
+    TYPE_NAME = 'tilde'
+
+    """
+    tilde.
+
+    Latency is calculated from tilde.
+
+    """
+
+    def __init__(
+        self,
+        node_name: str,
+        message_context_dict: Dict,
+        subscription: Optional[SubscriptionStructValue],
+        publisher: Optional[PublisherStructValue],
+        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+    ) -> None:
+        super().__init__(node_name, message_context_dict, subscription, publisher, callbacks)
+
+    @property
+    def context_type(self) -> MessageContextType:
+        return MessageContextType.TILDE
+
+    def is_applicable_path(
+        self,
+        subscription: Optional[SubscriptionStructValue],
+        publisher: Optional[PublisherStructValue],
+        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+    ) -> bool:
+        if not super().is_applicable_path(subscription, publisher, callbacks):
+            return False
+        return True
+
+    def verify(self) -> bool:
+        return True

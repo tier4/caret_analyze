@@ -92,6 +92,16 @@ class Ros2Handler(EventHandler):
             self._handle_callback_group_add_service
         handler_map['ros2_caret:callback_group_add_client'] = \
             self._handle_callback_group_add_client
+        handler_map['ros2_caret:tilde_subscription_init'] = \
+            self._handle_tilde_subscription_init
+        handler_map['ros2_caret:tilde_publisher_init'] = \
+            self._handle_tilde_publisher_init
+        handler_map['ros2_caret:tilde_subscribe'] = \
+            self._handle_tilde_subscribe
+        handler_map['ros2_caret:tilde_publish'] = \
+            self._handle_tilde_publish
+        handler_map['ros2_caret:tilde_subscribe_added'] = \
+            self._handle_tilde_subscribe_added
 
         super().__init__(
             handler_map=handler_map,
@@ -525,3 +535,62 @@ class Ros2Handler(EventHandler):
         callback_group_addr = get_field(event, 'callback_group_addr')
         client_handle = get_field(event, 'client_handle')
         self.data.callback_group_add_client(callback_group_addr, stamp, client_handle)
+
+    def _handle_tilde_subscription_init(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        timestamp = metadata.timestamp
+        subscription = get_field(event, 'subscription')
+        node_name = get_field(event, 'node_name')
+        topic_name = get_field(event, 'topic_name')
+        self.data.add_tilde_subscription(subscription, node_name, topic_name, timestamp)
+
+    def _handle_tilde_publisher_init(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        timestamp = metadata.timestamp
+        publisher = get_field(event, 'publisher')
+        node_name = get_field(event, 'node_name')
+        topic_name = get_field(event, 'topic_name')
+        self.data.add_tilde_publisher(publisher, node_name, topic_name, timestamp)
+
+    def _handle_tilde_subscribe(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        timestamp = metadata.timestamp
+        subscription = get_field(event, 'subscription')
+        tilde_message_id = get_field(event, 'tilde_message_id')
+        self.data.add_tilde_subscribe(timestamp, subscription, tilde_message_id)
+
+    def _handle_tilde_publish(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        # timestamp = metadata.timestamp
+        publisher = get_field(event, 'publisher')
+        publish_tilde_timestamp = get_field(event, 'tilde_publish_timestamp')
+        tilde_message_id = get_field(event, 'tilde_message_id')
+        subscription_id = get_field(event, 'subscription_id')
+        self.data.add_tilde_publish(
+            publish_tilde_timestamp,
+            publisher,
+            subscription_id,
+            tilde_message_id)
+
+    def _handle_tilde_subscribe_added(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        timestamp = metadata.timestamp
+        subscription_id = get_field(event, 'subscription_id')
+        node_name = get_field(event, 'node_name')
+        topic_name = get_field(event, 'topic_name')
+        self.data.add_tilde_subscribe_added(subscription_id, node_name, topic_name, timestamp)

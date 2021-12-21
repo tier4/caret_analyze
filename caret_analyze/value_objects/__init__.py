@@ -25,6 +25,7 @@ from .message_context import (CallbackChain,
                               InheritUniqueStamp,
                               MessageContext,
                               MessageContextType,
+                              Tilde,
                               UseLatestMessage)
 from .node import NodeStructValue, NodeValue, NodeValueWithId
 from .node_path import NodePathStructValue, NodePathValue
@@ -64,6 +65,7 @@ __all__ = [
     'SubscriptionCallbackValue',
     'SubscriptionStructValue',
     'SubscriptionValue',
+    'Tilde',
     'TimerCallbackStructValue',
     'TimerCallbackValue',
     'UseLatestMessage',

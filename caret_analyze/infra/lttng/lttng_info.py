@@ -14,32 +14,31 @@
 
 from __future__ import annotations
 
+from functools import cached_property, lru_cache
 from logging import getLogger
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
 
-from .records_source import RecordsSource
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
                             PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ...common import Util
-from ...record.interface import RecordsInterface
-from ...value_objects import CallbackGroupType, ExecutorValue, NodeValue
+from ...value_objects import ExecutorValue, NodeValue
 
 logger = getLogger(__name__)
 
 
 class LttngInfo:
 
-    def __init__(self, data: Ros2DataModel, records_source: RecordsSource):
+    def __init__(self, data: Ros2DataModel):
         self._formatted = DataFrameFormatted(data)
         self._rmw_implementation = data.rmw_implementation
-        self._source = records_source
-        self._binder_cache: Dict[str, PublisherBinder] = {}
+        # self._source = records_source
+        # self._binder_cache: Dict[str, PublisherBinder] = {}
 
         self._timer_cb_cache: Dict[str, Sequence[TimerCallbackValueLttng]] = {}
         self._sub_cb_cache: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
@@ -115,12 +114,12 @@ class LttngInfo:
 
         timer_cbs = self._get_timer_cbs_without_pub(node_id)
 
-        if node_id not in self._binder_cache.keys():
-            self._binder_cache[node_id] = PublisherBinder(self, self._source)
+        # if node_id not in self._binder_cache.keys():
+        #     self._binder_cache[node_id] = PublisherBinder(self, self._source)
 
-        binder = self._binder_cache[node_id]
-        if binder.can_bind(node) and len(timer_cbs) > 0:
-            timer_cbs = binder.bind_pub_topics_and_timer_cbs(node_id, timer_cbs)
+        # binder = self._binder_cache[node_id]
+        # if binder.can_bind(node) and len(timer_cbs) > 0:
+        #     timer_cbs = binder.bind_pub_topics_and_timer_cbs(node_id, timer_cbs)
 
         return timer_cbs
 
@@ -154,6 +153,7 @@ class LttngInfo:
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
         return get_timer_cb_local(node_lttng)
 
+    @lru_cache
     def get_nodes(self) -> Sequence[NodeValueLttng]:
         """
         Get node name list.
@@ -165,11 +165,23 @@ class LttngInfo:
 
         """
         nodes_df = self._formatted.nodes_df
+
         nodes = []
+        added_nodes = set()
+        duplicate_nodes = set()
+
         for _, row in nodes_df.iterrows():
             node_name = row['node_name']
             node_id = row['node_id']
+            if node_name in added_nodes:
+                duplicate_nodes.add(node_name)
+            added_nodes.add(node_name)
             nodes.append(NodeValueLttng(node_name, node_id))
+
+        for duplicate_node in duplicate_nodes:
+            logger.warning(
+                f'Duplicate node. node_name = {duplicate_node}. '
+                'The measurement results may be incorrect.')
 
         return nodes
 
@@ -183,10 +195,16 @@ class LttngInfo:
 
         sub_df = self._formatted.subscription_callbacks_df
         sub_df = merge(sub_df, self._formatted.nodes_df, 'node_handle')
+        tilde_sub = self._formatted.tilde_subscriptions_df
+        sub_df = pd.merge(sub_df, tilde_sub, on=['node_name', 'topic_name'], how='left')
+        sub_df = sub_df.astype({'tilde_subscription': 'Int64'})
 
         for _, row in sub_df.iterrows():
             node_name = row['node_name']
             node_id = row['node_id']
+            tilde_subscription = row['tilde_subscription']
+            if tilde_subscription is pd.NA:
+                tilde_subscription = None
 
             # Since callback_object_intra contains nan, it is of type np.float.
             record_callback_object_intra = row['callback_object_intra']
@@ -206,6 +224,7 @@ class LttngInfo:
                     publish_topic_names=None,
                     callback_object=row['callback_object'],
                     callback_object_intra=callback_object_intra,
+                    tilde_subscription=tilde_subscription
                 )
             )
         return sub_cbs_info
@@ -220,12 +239,12 @@ class LttngInfo:
         sub_cbs_info: List[SubscriptionCallbackValueLttng]
         sub_cbs_info = self._get_sub_cbs_without_pub(node_id)
 
-        if node_id not in self._binder_cache.keys():
-            self._binder_cache[node_id] = PublisherBinder(self, self._source)
+        # if node_id not in self._binder_cache.keys():
+        #     self._binder_cache[node_id] = PublisherBinder(self, self._source)
 
-        binder = self._binder_cache[node_id]
-        if binder.can_bind(node):
-            sub_cbs_info = binder.bind_pub_topics_and_sub_cbs(node_id, sub_cbs_info)
+        # binder = self._binder_cache[node_id]
+        # if binder.can_bind(node):
+        #     sub_cbs_info = binder.bind_pub_topics_and_sub_cbs(node_id, sub_cbs_info)
 
         return sub_cbs_info
 
@@ -262,14 +281,18 @@ class LttngInfo:
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
         return get_sub_cb_local(node_lttng)
 
+    @property
+    def tilde_sub_id_map(self) -> Dict[int, int]:
+        return self._formatted.tilde_sub_id_map
+
     def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
         node_id = node.node_id
-        if node_id not in self._binder_cache.keys():
-            self._binder_cache[node_id] = PublisherBinder(self, self._source)
+        # if node_id not in self._binder_cache.keys():
+        #     self._binder_cache[node_id] = PublisherBinder(self, self._source)
 
-        binder = self._binder_cache[node_id]
-        if not binder.can_bind(node):
-            return self.get_publishers_without_cb_bind(node_id)
+        # binder = self._binder_cache[node_id]
+        # if not binder.can_bind(node):
+        return self.get_publishers_without_cb_bind(node_id)
 
         cbs: List[Union[TimerCallbackValueLttng,
                         SubscriptionCallbackValueLttng]] = []
@@ -346,11 +369,18 @@ class LttngInfo:
         """
         pub_df = self._formatted.publishers_df
         pub_df = merge(pub_df, self._formatted.nodes_df, 'node_handle')
+        tilde_pub = self._formatted.tilde_publishers_df
 
+        pub_df = pd.merge(pub_df, tilde_pub, on=['node_name', 'topic_name'], how='left')
+        pub_df = pub_df.astype({'tilde_publisher': 'Int64'})
         pubs_info = []
         for _, row in pub_df.iterrows():
             if row['node_id'] != node_id:
                 continue
+            tilde_publisher = row['tilde_publisher']
+            if tilde_publisher is pd.NA:
+                tilde_publisher = None
+
             pubs_info.append(
                 PublisherValueLttng(
                     node_name=row['node_name'],
@@ -358,6 +388,7 @@ class LttngInfo:
                     node_id=row['node_id'],
                     callback_ids=None,
                     publisher_handle=row['publisher_handle'],
+                    tilde_publisher=tilde_publisher
                 )
             )
 
@@ -476,293 +507,293 @@ class LttngInfo:
         return execs
 
 
-class PublisherBinder:
-    TARGET_RECORD_MAX_INDEX = 10
+# class PublisherBinder:
+#     TARGET_RECORD_MAX_INDEX = 10
 
-    def __init__(self, lttng_info: LttngInfo, records_source: RecordsSource) -> None:
-        self._info = lttng_info
-        self._source = records_source
-        self._callback_records_cache: Optional[RecordsInterface] = None
-        self._intra_comm_records_cache: Optional[RecordsInterface] = None
-        self._inter_comm_records_cache: Optional[RecordsInterface] = None
+#     def __init__(self, lttng_info: LttngInfo, records_source: RecordsSource) -> None:
+#         self._info = lttng_info
+#         self._source = records_source
+#         self._callback_records_cache: Optional[RecordsInterface] = None
+#         self._intra_comm_records_cache: Optional[RecordsInterface] = None
+#         self._inter_comm_records_cache: Optional[RecordsInterface] = None
 
-    def can_bind(self, node: NodeValue) -> bool:
-        """
-        If all callbacks in a node are exclusive, the publisher can be tied to the callback.
+#     def can_bind(self, node: NodeValue) -> bool:
+#         """
+#         If all callbacks in a node are exclusive, the publisher can be tied to the callback.
 
-        Parameters
-        ----------
-        node_name : str
-            [description]
+#         Parameters
+#         ----------
+#         node_name : str
+#             [description]
 
-        Returns
-        -------
-        bool
+#         Returns
+#         -------
+#         bool
 
-        """
-        # implementation is mostly done, but the processing time is huge, so it is not practical.
-        # Disable it until the speedup is complete.
-        return False
+#         """
+#         # implementation is mostly done, but the processing time is huge, so it is not practical.
+#         # Disable it until the speedup is complete.
+#         return False
 
-        cbgs: Sequence[CallbackGroupValueLttng]
-        cbgs = self._info.get_callback_groups(node)
+#         cbgs: Sequence[CallbackGroupValueLttng]
+#         cbgs = self._info.get_callback_groups(node)
 
-        # TODO: ignore /parameter_events, /clock
-        # Ignore callback groups that have no callbacks added,
-        # as they are irrelevant to performance.
-        # if len(callback_ids) == 0:
-        #     self._ignored_callback_groups.add(row['callback_group_id'])
-        #     continue
+#         # TODO: ignore /parameter_events, /clock
+#         # Ignore callback groups that have no callbacks added,
+#         # as they are irrelevant to performance.
+#         # if len(callback_ids) == 0:
+#         #     self._ignored_callback_groups.add(row['callback_group_id'])
+#         #     continue
 
-        if len(cbgs) != 1:
-            print('false')
-            return False
+#         if len(cbgs) != 1:
+#             print('false')
+#             return False
 
-        cbg = cbgs[0]
-        if cbg.callback_group_type is CallbackGroupType.REENTRANT:
-            print('false')
-            return False
+#         cbg = cbgs[0]
+#         if cbg.callback_group_type is CallbackGroupType.REENTRANT:
+#             print('false')
+#             return False
 
-        print('true')
-        return True
+#         print('true')
+#         return True
 
-    def bind_pub_topics_and_timer_cbs(
-        self,
-        node_name: str,
-        callbacks: Sequence[TimerCallbackValueLttng],
-    ) -> List[TimerCallbackValueLttng]:
-        """
-        Return publisher binded callback values.
+#     def bind_pub_topics_and_timer_cbs(
+#         self,
+#         node_name: str,
+#         callbacks: Sequence[TimerCallbackValueLttng],
+#     ) -> List[TimerCallbackValueLttng]:
+#         """
+#         Return publisher binded callback values.
 
-        Note:
-        This function call takes a long time because binding uses records.
+#         Note:
+#         This function call takes a long time because binding uses records.
 
-        Parameters
-        ----------
-        node_name : str
-        callbacks_info : Sequence[TimerCallbackValueLttng]
+#         Parameters
+#         ----------
+#         node_name : str
+#         callbacks_info : Sequence[TimerCallbackValueLttng]
 
-        Returns
-        -------
-        List[TimerCallbackValueLttng]
-            publisher binded callback values.
+#         Returns
+#         -------
+#         List[TimerCallbackValueLttng]
+#             publisher binded callback values.
 
-        """
-        callback_list: List[TimerCallbackValueLttng]
-        callback_list = list(callbacks)
+#         """
+#         callback_list: List[TimerCallbackValueLttng]
+#         callback_list = list(callbacks)
 
-        # insert empty tuple
-        for cb in callbacks:
-            self._update_timer_cb_publish_topics(callback_list, cb, ())
+#         # insert empty tuple
+#         for cb in callbacks:
+#             self._update_timer_cb_publish_topics(callback_list, cb, ())
 
-        publishers = self._info.get_publishers_without_cb_bind(node_name)
-        publishers = Util.filter_items(
-            lambda x: x.topic_name not in ['/parameter_events', '/rosout'],
-            publishers
-        )
+#         publishers = self._info.get_publishers_without_cb_bind(node_name)
+#         publishers = Util.filter_items(
+#             lambda x: x.topic_name not in ['/parameter_events', '/rosout'],
+#             publishers
+#         )
 
-        from itertools import product
+#         from itertools import product
 
-        from tqdm import tqdm
+#         from tqdm import tqdm
 
-        it = list(product(publishers, callbacks))
-        for publisher, cb in tqdm(it):
-            if not self._is_consistent(publisher, cb):
-                continue
+#         it = list(product(publishers, callbacks))
+#         for publisher, cb in tqdm(it):
+#             if not self._is_consistent(publisher, cb):
+#                 continue
 
-            topic_names: Tuple[str, ...] = (publisher.topic_name,)
-            if cb.publish_topic_names is not None:
-                topic_names = topic_names + cb.publish_topic_names
+#             topic_names: Tuple[str, ...] = (publisher.topic_name,)
+#             if cb.publish_topic_names is not None:
+#                 topic_names = topic_names + cb.publish_topic_names
 
-            self._update_timer_cb_publish_topics(
-                callback_list, cb, topic_names)
-            break
+#             self._update_timer_cb_publish_topics(
+#                 callback_list, cb, topic_names)
+#             break
 
-        return callback_list
+#         return callback_list
 
-    def bind_pub_topics_and_sub_cbs(
-        self,
-        node_name: str,
-        callbacks_info: Sequence[SubscriptionCallbackValueLttng],
-    ) -> List[SubscriptionCallbackValueLttng]:
-        """
-        Return publisher binded callback values.
+#     def bind_pub_topics_and_sub_cbs(
+#         self,
+#         node_name: str,
+#         callbacks_info: Sequence[SubscriptionCallbackValueLttng],
+#     ) -> List[SubscriptionCallbackValueLttng]:
+#         """
+#         Return publisher binded callback values.
 
-        Note:
-        This function call takes a long time because binding uses records.
+#         Note:
+#         This function call takes a long time because binding uses records.
 
-        Parameters
-        ----------
-        node_name : str
-        callbacks_info : Sequence[SubscriptionCallbackValueLttng]
+#         Parameters
+#         ----------
+#         node_name : str
+#         callbacks_info : Sequence[SubscriptionCallbackValueLttng]
 
-        Returns
-        -------
-        List[SubscriptionCallbackValueLttng]
-            publisher binded callback values.
+#         Returns
+#         -------
+#         List[SubscriptionCallbackValueLttng]
+#             publisher binded callback values.
 
-        """
-        system_topics = ['/parameter_events', '/rosout', '/clock']
-        callback_list: List[SubscriptionCallbackValueLttng]
-        callback_list = list(callbacks_info)
-        callback_list = Util.filter_items(
-            lambda x: x.subscribe_topic_name not in system_topics, callback_list)
+#         """
+#         system_topics = ['/parameter_events', '/rosout', '/clock']
+#         callback_list: List[SubscriptionCallbackValueLttng]
+#         callback_list = list(callbacks_info)
+#         callback_list = Util.filter_items(
+#             lambda x: x.subscribe_topic_name not in system_topics, callback_list)
 
-        # insert empty tuple
-        for cb_info in callback_list:
-            self._update_sub_cb_publish_topics(callback_list, cb_info, ())
+#         # insert empty tuple
+#         for cb_info in callback_list:
+#             self._update_sub_cb_publish_topics(callback_list, cb_info, ())
 
-        publishers = self._info.get_publishers_without_cb_bind(node_name)
-        publishers = Util.filter_items(lambda x: x.topic_name not in system_topics, publishers)
+#         publishers = self._info.get_publishers_without_cb_bind(node_name)
+#         publishers = Util.filter_items(lambda x: x.topic_name not in system_topics, publishers)
 
-        from itertools import product
+#         from itertools import product
 
-        from tqdm import tqdm
+#         from tqdm import tqdm
 
-        it = list(product(publishers, callback_list))
-        for publisher, cb_info in tqdm(it):
-            if not self._is_consistent(publisher, cb_info):
-                continue
-            topic_names: Tuple[str, ...] = (publisher.topic_name,)
-            if cb_info.publish_topic_names is not None:
-                topic_names = topic_names + cb_info.publish_topic_names
+#         it = list(product(publishers, callback_list))
+#         for publisher, cb_info in tqdm(it):
+#             if not self._is_consistent(publisher, cb_info):
+#                 continue
+#             topic_names: Tuple[str, ...] = (publisher.topic_name,)
+#             if cb_info.publish_topic_names is not None:
+#                 topic_names = topic_names + cb_info.publish_topic_names
 
-            self._update_sub_cb_publish_topics(
-                callback_list, cb_info, topic_names)
-            break
+#             self._update_sub_cb_publish_topics(
+#                 callback_list, cb_info, topic_names)
+#             break
 
-        return callback_list
+#         return callback_list
 
-    def _get_publish_time(
-        self,
-        publisher_info: PublisherValueLttng
-    ) -> Optional[int]:
-        def select_record_index(records: RecordsInterface) -> int:
-            # Select publish after the initialization is complete.
-            # To reduce the search time from the beginning. The smaller the index, the better.
-            # Note: intra_porocess cyclic demo is manually publishing the first message.
-            return min(len(publisher_records.data)-1, self.TARGET_RECORD_MAX_INDEX)
+#     def _get_publish_time(
+#         self,
+#         publisher_info: PublisherValueLttng
+#     ) -> Optional[int]:
+#         def select_record_index(records: RecordsInterface) -> int:
+#             # Select publish after the initialization is complete.
+#             # To reduce the search time from the beginning. The smaller the index, the better.
+#             # Note: intra_porocess cyclic demo is manually publishing the first message.
+#             return min(len(publisher_records.data)-1, self.TARGET_RECORD_MAX_INDEX)
 
-        publisher_handle = publisher_info.publisher_handle
+#         publisher_handle = publisher_info.publisher_handle
 
-        publisher_records = self._source.inter_proc_comm_records.clone()
-        publisher_records.filter_if(lambda x: x.get(
-            'publisher_handle') == publisher_handle)
-        if len(publisher_records) > 0:
-            publish_index = select_record_index(publisher_records)
-            return publisher_records.data[publish_index].get('rclcpp_publish_timestamp')
+#         publisher_records = self._source.inter_proc_comm_records.clone()
+#         publisher_records.filter_if(lambda x: x.get(
+#             'publisher_handle') == publisher_handle)
+#         if len(publisher_records) > 0:
+#             publish_index = select_record_index(publisher_records)
+#             return publisher_records.data[publish_index].get('rclcpp_publish_timestamp')
 
-        publisher_records = self._source.intra_proc_comm_records.clone()
-        publisher_records.filter_if(lambda x: x.get(
-            'publisher_handle') == publisher_handle)
-        if len(publisher_records) > 0:
-            publish_index = select_record_index(publisher_records)
-            return publisher_records.data[publish_index].get('rclcpp_intra_publish_timestamp')
+#         publisher_records = self._source.intra_proc_comm_records.clone()
+#         publisher_records.filter_if(lambda x: x.get(
+#             'publisher_handle') == publisher_handle)
+#         if len(publisher_records) > 0:
+#             publish_index = select_record_index(publisher_records)
+#             return publisher_records.data[publish_index].get('rclcpp_intra_publish_timestamp')
 
-        return None
+#         return None
 
-    def _is_consistent_inter(
-        self,
-        publish_time: int,
-        callback_info: Union[TimerCallbackValueLttng,
-                             SubscriptionCallbackValueLttng]
-    ) -> Optional[bool]:
-        callback_object = callback_info.callback_object
-        cb_records = self._source.callback_records.clone()
-        cb_records.filter_if(lambda x: x.get(
-            'callback_object') == callback_object)
+#     def _is_consistent_inter(
+#         self,
+#         publish_time: int,
+#         callback_info: Union[TimerCallbackValueLttng,
+#                              SubscriptionCallbackValueLttng]
+#     ) -> Optional[bool]:
+#         callback_object = callback_info.callback_object
+#         cb_records = self._source.callback_records.clone()
+#         cb_records.filter_if(lambda x: x.get(
+#             'callback_object') == callback_object)
 
-        for data in cb_records.data:
-            if 'callback_start_timestamp' not in data.columns:
-                continue
-            if 'callback_end_timestamp' not in data.columns:
-                continue
-            if data.get('callback_start_timestamp') < publish_time and \
-                    publish_time < data.get('callback_end_timestamp'):
-                return True
-            if data.get('callback_start_timestamp') > publish_time and \
-                    data.get('callback_end_timestamp') > publish_time:
-                return False
-        return None
+#         for data in cb_records.data:
+#             if 'callback_start_timestamp' not in data.columns:
+#                 continue
+#             if 'callback_end_timestamp' not in data.columns:
+#                 continue
+#             if data.get('callback_start_timestamp') < publish_time and \
+#                     publish_time < data.get('callback_end_timestamp'):
+#                 return True
+#             if data.get('callback_start_timestamp') > publish_time and \
+#                     data.get('callback_end_timestamp') > publish_time:
+#                 return False
+#         return None
 
-    def _is_consistent_intra(
-        self,
-        publish_time: int,
-        callback: SubscriptionCallbackValueLttng
-    ) -> bool:
-        callback_object = callback.callback_object_intra
-        cb_records = self._source.callback_records.clone()
-        cb_records.filter_if(lambda x: x.get(
-            'callback_object') == callback_object)
+#     def _is_consistent_intra(
+#         self,
+#         publish_time: int,
+#         callback: SubscriptionCallbackValueLttng
+#     ) -> bool:
+#         callback_object = callback.callback_object_intra
+#         cb_records = self._source.callback_records.clone()
+#         cb_records.filter_if(lambda x: x.get(
+#             'callback_object') == callback_object)
 
-        for data in cb_records.data:
-            if 'callback_start_timestamp' not in data.columns:
-                continue
-            if 'callback_end_timestamp' not in data.columns:
-                continue
-            if data.get('callback_start_timestamp') < publish_time and \
-                    publish_time < data.get('callback_end_timestamp'):
-                return True
-            if data.get('callback_start_timestamp') > publish_time and \
-                    data.get('callback_end_timestamp') > publish_time:
-                return False
-        return False
+#         for data in cb_records.data:
+#             if 'callback_start_timestamp' not in data.columns:
+#                 continue
+#             if 'callback_end_timestamp' not in data.columns:
+#                 continue
+#             if data.get('callback_start_timestamp') < publish_time and \
+#                     publish_time < data.get('callback_end_timestamp'):
+#                 return True
+#             if data.get('callback_start_timestamp') > publish_time and \
+#                     data.get('callback_end_timestamp') > publish_time:
+#                 return False
+#         return False
 
-    def _is_consistent(
-        self,
-        publisher_info: PublisherValueLttng,
-        callback_info: Union[TimerCallbackValueLttng,
-                             SubscriptionCallbackValueLttng]
-    ) -> bool:
-        publish_time = self._get_publish_time(publisher_info)
-        if publish_time is None:
-            return False
+#     def _is_consistent(
+#         self,
+#         publisher_info: PublisherValueLttng,
+#         callback_info: Union[TimerCallbackValueLttng,
+#                              SubscriptionCallbackValueLttng]
+#     ) -> bool:
+#         publish_time = self._get_publish_time(publisher_info)
+#         if publish_time is None:
+#             return False
 
-        is_consistent = self._is_consistent_inter(publish_time, callback_info)
-        if is_consistent is True:
-            return True
+#         is_consistent = self._is_consistent_inter(publish_time, callback_info)
+#         if is_consistent is True:
+#             return True
 
-        if isinstance(callback_info, SubscriptionCallbackValueLttng):
-            return self._is_consistent_intra(publish_time, callback_info)
-        return False
+#         if isinstance(callback_info, SubscriptionCallbackValueLttng):
+#             return self._is_consistent_intra(publish_time, callback_info)
+#         return False
 
-    @staticmethod
-    def _update_timer_cb_publish_topics(
-        timer_cbs: List[TimerCallbackValueLttng],
-        update_target: TimerCallbackValueLttng,
-        publish_topic_names: Tuple[str, ...]
-    ) -> None:
-        # try:
-        index = timer_cbs.index(update_target)
-        timer_cbs[index] = TimerCallbackValueLttng(
-            callback_id=update_target.callback_id,
-            node_id=update_target.node_id,
-            node_name=update_target.node_name,
-            symbol=update_target.symbol,
-            period_ns=update_target.period_ns,
-            publish_topic_names=publish_topic_names,
-            callback_object=update_target.callback_object
-        )
-        # except ValueError:
-        #     print(f'Failed to find item. {update_target}.')
+#     @staticmethod
+#     def _update_timer_cb_publish_topics(
+#         timer_cbs: List[TimerCallbackValueLttng],
+#         update_target: TimerCallbackValueLttng,
+#         publish_topic_names: Tuple[str, ...]
+#     ) -> None:
+#         # try:
+#         index = timer_cbs.index(update_target)
+#         timer_cbs[index] = TimerCallbackValueLttng(
+#             callback_id=update_target.callback_id,
+#             node_id=update_target.node_id,
+#             node_name=update_target.node_name,
+#             symbol=update_target.symbol,
+#             period_ns=update_target.period_ns,
+#             publish_topic_names=publish_topic_names,
+#             callback_object=update_target.callback_object
+#         )
+#         # except ValueError:
+#         #     print(f'Failed to find item. {update_target}.')
 
-    @staticmethod
-    def _update_sub_cb_publish_topics(
-        sub_cbs: List[SubscriptionCallbackValueLttng],
-        update_target: SubscriptionCallbackValueLttng,
-        publish_topic_names: Tuple[str, ...]
-    ) -> None:
-        index = sub_cbs.index(update_target)
-        sub_cbs[index] = SubscriptionCallbackValueLttng(
-            callback_id=update_target.callback_id,
-            node_id=update_target.node_id,
-            node_name=update_target.node_name,
-            symbol=update_target.symbol,
-            subscribe_topic_name=update_target.subscribe_topic_name,
-            publish_topic_names=publish_topic_names,
-            callback_object=update_target.callback_object,
-            callback_object_intra=update_target.callback_object_intra
-        )
+#     @staticmethod
+#     def _update_sub_cb_publish_topics(
+#         sub_cbs: List[SubscriptionCallbackValueLttng],
+#         update_target: SubscriptionCallbackValueLttng,
+#         publish_topic_names: Tuple[str, ...]
+#     ) -> None:
+#         index = sub_cbs.index(update_target)
+#         sub_cbs[index] = SubscriptionCallbackValueLttng(
+#             callback_id=update_target.callback_id,
+#             node_id=update_target.node_id,
+#             node_name=update_target.node_name,
+#             symbol=update_target.symbol,
+#             subscribe_topic_name=update_target.subscribe_topic_name,
+#             publish_topic_names=publish_topic_names,
+#             callback_object=update_target.callback_object,
+#             callback_object_intra=update_target.callback_object_intra
+#         )
 
 
 class DataFrameFormatted:
@@ -774,6 +805,9 @@ class DataFrameFormatted:
         self._sub_callbacks_df = self._build_sub_callbacks_df(data)
         self._cbg_df = self._build_cbg_df(data)
         self._pub_df = self._build_publisher_df(data)
+        self._tilde_sub = self._build_tilde_subscription_df(data)
+        self._tilde_pub = self._build_tilde_publisher_df(data)
+        self._tilde_sub_id_to_sub = self._build_tilde_sub_id_df(data, self._tilde_sub)
 
     @staticmethod
     def _ensure_columns(
@@ -784,6 +818,13 @@ class DataFrameFormatted:
         for missing_column in set(columns) - set(df.columns):
             df_[missing_column] = np.nan
         return df_
+
+    @cached_property
+    def tilde_sub_id_map(self) -> Dict[int, int]:
+        d: Dict[int, int] = {}
+        for _, row in self._tilde_sub_id_to_sub.iterrows():
+            d[row['subscription_id']] = row['tilde_subscription']
+        return d
 
     @property
     def timer_callbacks_df(self) -> pd.DataFrame:
@@ -901,6 +942,38 @@ class DataFrameFormatted:
 
         """
         return self._cbg_df
+
+    @property
+    def tilde_publishers_df(self) -> pd.DataFrame:
+        """
+        Get tilde wrapped publisher.
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - tilde_publisher
+            - node_name
+            - topic_name
+
+        """
+        return self._tilde_pub
+
+    @property
+    def tilde_subscriptions_df(self) -> pd.DataFrame:
+        """
+        Get tilde wrapped subscription.
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - tilde_subscription
+            - node_name
+            - topic_name
+
+        """
+        return self._tilde_sub
 
     @staticmethod
     def _build_publisher_df(
@@ -1028,6 +1101,89 @@ class DataFrameFormatted:
 
     @staticmethod
     def _build_sub_callbacks_df(
+        data: Ros2DataModel,
+    ) -> pd.DataFrame:
+        columns = [
+            'callback_id', 'callback_object', 'callback_object_intra', 'node_handle',
+            'subscription_handle', 'callback_group_addr', 'topic_name', 'symbol', 'depth'
+        ]
+
+        def callback_id(row: pd.Series) -> str:
+            cb_object = row['callback_object']
+            return f'subscription_callback_{cb_object}'
+
+        try:
+            df = data.subscriptions.reset_index()
+
+            callback_objects_df = DataFrameFormatted._format_subscription_callback_object(data)
+            df = merge(df, callback_objects_df, 'subscription_handle')
+
+            symbols_df = data.callback_symbols.reset_index()
+            df = merge(df, symbols_df, 'callback_object')
+
+            cbg = data.callback_group_subscription.reset_index()
+            df = merge(df, cbg, 'subscription_handle')
+
+            df = DataFrameFormatted._add_column(
+                df, 'callback_id', callback_id
+            )
+
+            df = DataFrameFormatted._ensure_columns(df, columns)
+
+            return df[columns]
+        except KeyError:
+            return pd.DataFrame(columns=columns)
+
+    @staticmethod
+    def _build_tilde_subscription_df(
+        data: Ros2DataModel,
+    ) -> pd.DataFrame:
+        columns = ['tilde_subscription', 'node_name', 'topic_name']
+
+        try:
+            df = data.tilde_subscriptions.reset_index()
+
+            df.rename({'subscription': 'tilde_subscription'}, axis=1, inplace=True)
+            df = DataFrameFormatted._ensure_columns(df, columns)
+
+            return df[columns]
+        except KeyError:
+            return pd.DataFrame(columns=columns)
+
+    @staticmethod
+    def _build_tilde_publisher_df(
+        data: Ros2DataModel,
+    ) -> pd.DataFrame:
+        columns = ['tilde_publisher', 'tilde_subscription', 'node_name', 'topic_name']
+
+        try:
+            df = data.tilde_publishers.reset_index()
+
+            df.rename({'publisher': 'tilde_publisher'}, axis=1, inplace=True)
+            df = DataFrameFormatted._ensure_columns(df, columns)
+
+            return df[columns]
+        except KeyError:
+            return pd.DataFrame(columns=columns)
+
+    @staticmethod
+    def _build_tilde_sub_id_df(
+        data: Ros2DataModel,
+        sub_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        columns = ['subscription_id', 'tilde_subscription', 'node_name', 'topic_name']
+        try:
+            df = data.tilde_subscribe_added.reset_index()
+            df = pd.merge(df, sub_df, on=['node_name', 'topic_name'], how='left')
+
+            df = DataFrameFormatted._ensure_columns(df, columns)
+
+            return df[columns]
+        except KeyError:
+            return pd.DataFrame(columns=columns)
+
+    @staticmethod
+    def _build_tilde_sub(
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = [

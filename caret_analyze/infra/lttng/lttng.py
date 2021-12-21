@@ -51,8 +51,8 @@ class Lttng(InfraBase):
 
         Lttng._last_load_dir = trace_dir
         data = self._parse_lttng_data(trace_dir, force_conversion)
-        self._source: RecordsSource = RecordsSource(data)
-        self._info = LttngInfo(data, self._source)
+        self._info = LttngInfo(data)
+        self._source: RecordsSource = RecordsSource(data, self._info)
 
     def clear_singleton_cache(self) -> None:
         self._last_load_dir = None
@@ -263,3 +263,13 @@ class Lttng(InfraBase):
         self,
     ) -> RecordsInterface:
         return self._source.subscribe_records.clone()
+
+    def compose_tilde_publish_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.tilde_publish_records.clone()
+
+    def compose_tilde_subscribe_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.tilde_subscribe_records.clone()
