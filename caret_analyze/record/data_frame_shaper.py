@@ -44,6 +44,14 @@ class Clip(DataFrameShaper):
         df_clippped.reset_index(inplace=True, drop=True)
         return df_clippped
 
+    @property
+    def min_ns(self) -> int:
+        return self._ltrim_ns
+
+    @property
+    def max_ns(self) -> int:
+        return self._rtrim_ns
+
 
 class Strip(DataFrameShaper):
 

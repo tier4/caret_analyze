@@ -25,6 +25,7 @@ from bokeh.resources import CDN
 import numpy as np
 import pandas as pd
 
+from .util import apply_x_axis_offset, RectValues
 from ...exceptions import InvalidArgumentError
 from ...record.data_frame_shaper import Clip, Strip
 from ...runtime.path import Path
@@ -53,6 +54,9 @@ def message_flow(
     """
 
     fig = figure(
+        x_axis_label='Time [s]',
+        y_axis_label='',
+        title=f'Message flow of {path.path_name}',
         plot_width=1000,
         plot_height=400,
         active_scroll='wheel_zoom',
@@ -64,11 +68,12 @@ def message_flow(
 
     df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
 
-    clip = None
-    if lstrip_s > 0 or rstrip_s > 0:
-        strip = Strip(lstrip_s, rstrip_s)
-        clip = strip.to_clip(df)
-        df = clip.execute(df)
+    strip = Strip(lstrip_s, rstrip_s)
+    clip = strip.to_clip(df)
+    df = clip.execute(df)
+
+    x_range_name = 'x_plot_axis'
+    apply_x_axis_offset(fig, x_range_name, clip.min_ns, clip.max_ns)
 
     formatter = FormatterFactory.create(path, granularity)
     formatter.remove_columns(df)
@@ -80,7 +85,16 @@ def message_flow(
     fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
     rect_source = get_callback_rects(path, yaxis_values, granularity, clip)
-    fig.rect('x', 'y', 'width', 'height', source=rect_source, color='black', alpha=0.15)
+    fig.rect(
+        'x',
+        'y',
+        'width',
+        'height',
+        source=rect_source,
+        color='black',
+        alpha=0.15,
+        x_range_name=x_range_name
+    )
 
     line_sources = get_flow_lines(df)
     for i, line_source in enumerate(line_sources):
@@ -91,6 +105,7 @@ def message_flow(
             line_color=color_palette.get_index_color(i),
             line_alpha=1,
             source=line_source,
+            x_range_name=x_range_name
         )
 
     if export_path is None:
@@ -340,31 +355,3 @@ class NodeLevelFormatter(DataFrameFormatter):
                 renames[column_name] = column_name[:idx]
 
         df.rename(columns=renames, inplace=True)
-
-
-class RectValues():
-    def __init__(
-        self,
-        callback_start: float,
-        callback_end: float,
-        y_min: int,
-        y_max: int
-    ) -> None:
-        self._y = [y_min, y_max]
-        self._x = [callback_start, callback_end]
-
-    @property
-    def x(self) -> float:
-        return np.mean(self._x)
-
-    @property
-    def y(self) -> float:
-        return np.mean(self._y)
-
-    @property
-    def width(self) -> float:
-        return abs(self._x[0] - self._x[1])
-
-    @property
-    def height(self) -> float:
-        return abs(self._y[0] - self._y[1])

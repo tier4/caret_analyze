@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .data_frame_shaper import Clip, DataFrameShaper, Strip
 from .record import (merge,
                      merge_sequencial,
                      merge_sequencial_for_addr_track,
@@ -23,12 +24,15 @@ from .record import (merge,
 from .record_factory import RecordFactory, RecordsFactory
 
 __all__ = [
+    'Clip',
+    'DataFrameShaper',
     'Record',
     'RecordFactory',
     'RecordInterface',
     'Records',
     'RecordsFactory',
     'RecordsInterface',
+    'Strip',
     'merge',
     'merge_sequencial',
     'merge_sequencial_for_addr_track',
