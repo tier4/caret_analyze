@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Sequence, Union
 
 from bokeh.io import show
 from bokeh.palettes import d3
@@ -22,6 +22,7 @@ from bokeh.plotting import ColumnDataSource, figure
 
 import numpy as np
 
+from ...exceptions import InvalidArgumentError
 from ...runtime.callback_group import CallbackGroup
 from ...runtime.executor import Executor
 from ...runtime.node import Node
@@ -31,83 +32,34 @@ def callback_sched(
     target: Union[Node, CallbackGroup, Executor],
     lstrip_s: float = 0,
     rstrip_s: float = 0
-                  ):
+):
+    cbgs: Sequence[CallbackGroup]
+    target_name: str
+
     if isinstance(target, Node):
-        callback_sched_node(target, lstrip_s, rstrip_s)
-    elif isinstance(target, CallbackGroup):
-        callback_sched_cbg(target, lstrip_s, rstrip_s)
+        if target.callback_groups is None:
+            raise InvalidArgumentError('target.callback_groups is None')
+
+        cbgs = target.callback_groups
+        target_name = target.node_name
+
     elif isinstance(target, Executor):
-        callback_sched_exec(target, lstrip_s, rstrip_s)
+        cbgs = target.callback_groups
+        target_name = target.executor_name
+
+    else:
+        cbgs = [target]
+        target_name = target.callback_group_name
+
+    sched_plot_cbg(target_name, cbgs, lstrip_s, rstrip_s)
 
 
-def callback_sched_node(target: Node, lstrip_s, rstrip_s):
-    node_name = target.node_name
-    dataframes_cb = []
-    dataframes_cb = get_dataframe(target, lstrip_s, rstrip_s)
-    sched_plot(node_name, target, dataframes_cb)
-
-
-def callback_sched_cbg(target: CallbackGroup, lstrip_s, rstrip_s):
-    cbg_name = target.callback_group_name
-    dataframes_cb = []
-    dataframes_cb = get_dataframe(target, lstrip_s, rstrip_s)
-    sched_plot(cbg_name, target, dataframes_cb)
-
-
-def callback_sched_exec(target: Executor, lstrip_s, rstrip_s):
-    executor_name = target.executor_name
-    dataframes_cb = []
-    dataframes_cb = get_dataframe(target, lstrip_s, rstrip_s)
-    sched_plot_cbg(executor_name, target, dataframes_cb)
-
-
-def get_dataframe(target, lstrip_s, rstrip_s):
-    return [target.to_dataframe(lstrip_s=lstrip_s, rstrip_s=rstrip_s)
-            for target in target.callbacks]
-
-
-def sched_plot(target_name: str, target, dataframe):
-
-    colors = d3['Category20'][20]
-    TOOLTIPS = """
-    <div style="width:400px; word-wrap: break-word;">
-    callback_start = @x_min [ns] <br>
-    callback_end = @x_max [ns] <br>
-    latency = @latency [ms] <br>
-    @desc <br>
-    callback_type = @callback_type
-    </div>
-    """
-    p = figure(x_axis_label='Time [ms]',
-               y_axis_label='',
-               title=f'Time-line of callbacks in {target_name}',
-               width=1200,
-               active_scroll='wheel_zoom',
-               tooltips=TOOLTIPS)
-    top = .0
-    bottom = top - 0.2
-    counter = 0
-    for callback, df_cb in zip(target.callbacks, dataframe):
-        rect_source = get_callback_rects(callback, df_cb, bottom, top)
-        p.rect('x',
-               'y',
-               'width',
-               'height',
-               source=rect_source,
-               color=colors[counter],
-               legend_label=f'{callback.callback_name}')
-        counter += 1
-        top -= 0.3
-        bottom = top - 0.2
-    p.yaxis.visible = False
-    p.legend.location = 'bottom_left'
-    p.legend.click_policy = 'hide'
-    p.add_layout(p.legend[0], 'right')
-
-    show(p)
-
-
-def sched_plot_cbg(target_name: str, target, dataframe):
+def sched_plot_cbg(
+    target_name: str,
+    cbgs: Sequence[CallbackGroup],
+    lstrip_s: float = 0,
+    rstrip_s: float = 0
+):
     colors = d3['Category20'][20]
     TOOLTIPS = """
     <div style="width:400px; word-wrap: break-word;">
@@ -128,8 +80,9 @@ def sched_plot_cbg(target_name: str, target, dataframe):
     bottom = top - 0.2
     counter = 0
 
-    for callback_group in target.callback_groups:
-        for callback, df_cb in zip(callback_group.callbacks, dataframe):
+    for callback_group in cbgs:
+        for callback in callback_group.callbacks:
+            df_cb = callback.to_dataframe(lstrip_s=lstrip_s, rstrip_s=rstrip_s)
             rect_source = get_callback_rects(callback, df_cb, bottom, top)
             p.rect('x',
                    'y',
