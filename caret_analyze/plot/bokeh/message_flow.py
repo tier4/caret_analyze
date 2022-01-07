@@ -25,7 +25,7 @@ from bokeh.resources import CDN
 import numpy as np
 import pandas as pd
 
-from .util import apply_x_axis_offset, RectValues
+from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
 from ...exceptions import InvalidArgumentError
 from ...record.data_frame_shaper import Clip, Strip
 from ...runtime.path import Path
@@ -49,6 +49,8 @@ def message_flow(
     t_start = @x_min [ns] <br>
     t_end = @x_max [ns] <br>
     latency = @latency [ms] <br>
+
+    <br>
     @desc
     </div>
     """
@@ -143,6 +145,8 @@ def get_callback_rects(
         y_maxs = np.array(y_axi_values.get_start_indexes(search_name))
         y_mins = y_maxs - 1
 
+        callback_desc = get_callback_param_desc(callback)
+
         for y_min, y_max in zip(y_mins, y_maxs):
             for _, row in callback.to_dataframe(shaper=clip).iterrows():
                 callback_start = row.to_list()[0]
@@ -156,7 +160,8 @@ def get_callback_rects(
                     'width': [rect.width],
                     'latency': [(callback_end-callback_start)*1.0e-6],
                     'height': [rect.height],
-                    'desc': [f'symbol: {callback.symbol}'],
+                    'desc': [f'callback_type: {callback.callback_type},'
+                             f'{callback_desc}, symbol: {callback.symbol}'],
                 }
                 rect_source.stream(new_data)
 

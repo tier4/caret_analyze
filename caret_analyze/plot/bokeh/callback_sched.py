@@ -23,7 +23,7 @@ from bokeh.io import show
 from bokeh.palettes import d3
 from bokeh.plotting import ColumnDataSource, figure
 
-from .util import apply_x_axis_offset, RectValues
+from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
 from ...common import Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
@@ -90,8 +90,11 @@ def sched_plot_cbg(
     callback_start = @x_min [ns] <br>
     callback_end = @x_max [ns] <br>
     latency = @latency [ms] <br>
-    @desc <br>
-    callback_type = @callback_type
+    <br>
+    node_name = @node_name <br>
+    callback_type = @callback_type <br>
+    @callback_param <br>
+    symbol = @symbol
     </div>
     """
     p = figure(x_axis_label='Time [s]',
@@ -111,8 +114,7 @@ def sched_plot_cbg(
 
     for callback_group in cbgs:
         for callback in callback_group.callbacks:
-            df_cb = callback.to_dataframe(shaper=clipper)
-            rect_source = get_callback_rects(callback, df_cb, rect_y, rect_height)
+            rect_source = get_callback_rects(callback, clipper, rect_y, rect_height)
             color = color_selector.get_color(
                 callback.node_name,
                 callback_group.callback_group_name,
@@ -138,7 +140,7 @@ def sched_plot_cbg(
 
 def get_callback_rects(
     callback,
-    dataframe,
+    clip: Clip,
     y,
     height
 ) -> ColumnDataSource:
@@ -153,10 +155,17 @@ def get_callback_rects(
         'width': [],
         'latency': [],
         'height': [],
-        'desc': [],
-        'callback_type': []
+        'node_name': [],
+        'callback_type': [],
+        'callback_param': [],
+        'symbol': []
+
     })
-    for item in dataframe.itertuples():
+
+    callback_param = get_callback_param_desc(callback)
+
+    df = callback.to_dataframe(shaper=clip)
+    for item in df.itertuples():
         callback_start = item._1
         callback_end = item._2
         rect = RectValues(callback_start, callback_end, y_min, y_max)
@@ -168,9 +177,11 @@ def get_callback_rects(
             'width': [rect.width],
             'latency': [(callback_end-callback_start)*1.0e-6],
             'height': [rect.height],
-            'desc': [f'symbol: {callback.symbol}'],
+            'node_name': [callback.node_name],
+            'symbol': [callback.symbol],
+            'callback_param': [callback_param],
             'callback_type': [f'{callback.callback_type}']
-                    }
+        }
         rect_source.stream(new_data)
 
     return rect_source
