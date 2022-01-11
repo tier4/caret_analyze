@@ -23,7 +23,7 @@ from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 
 logger = getLogger(__name__)
 
@@ -52,7 +52,7 @@ class NodePathValue(ValueObject):
         return self._subscribe_topic_name
 
 
-class NodePathStructValue(ValueObject):
+class NodePathStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         node_name: str,

@@ -24,7 +24,7 @@ from .callback import CallbackStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
-from ..common import Summary
+from ..common import Summarizable, Summary
 from ..exceptions import UnsupportedTypeError
 
 logger = getLogger(__name__)
@@ -58,7 +58,7 @@ MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
 MessageContextType.TILDE = MessageContextType('tilde')
 
 
-class MessageContext(ValueObject):
+class MessageContext(ValueObject, Summarizable):
     """Structured message context value."""
 
     def __init__(

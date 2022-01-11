@@ -19,10 +19,10 @@ from .node import NodeStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 
 
-class CommunicationStructValue(ValueObject):
+class CommunicationStructValue(ValueObject, Summarizable):
 
     def __init__(
         self,

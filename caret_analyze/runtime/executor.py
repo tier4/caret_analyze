@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import List
 
-from caret_analyze.common import Summary, Util
+from caret_analyze.common import Summarizable, Summary, Util
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.value_objects import ExecutorStructValue, ExecutorType
 
@@ -24,7 +24,7 @@ from .callback import CallbackBase
 from .callback_group import CallbackGroup
 
 
-class Executor:
+class Executor(Summarizable):
 
     def __init__(
         self,

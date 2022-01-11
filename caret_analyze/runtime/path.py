@@ -21,7 +21,7 @@ from .callback import CallbackBase
 from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
-from ..common import Columns, Summary, Util
+from ..common import Columns, Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record.record import merge_sequencial, RecordsInterface
 from ..value_objects import PathStructValue
@@ -179,7 +179,7 @@ class RecordsMerged:
         return left_records
 
 
-class Path(PathBase):
+class Path(PathBase, Summarizable):
     def __init__(
         self,
         path: PathStructValue,

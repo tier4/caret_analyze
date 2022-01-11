@@ -20,7 +20,7 @@ from typing import Optional, Tuple
 from .callback import CallbackStructValue
 from .callback_group import CallbackGroupStructValue
 from .value_object import ValueObject
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 
 
 class ExecutorType(ValueObject):
@@ -53,7 +53,7 @@ ExecutorType.SINGLE_THREADED_EXECUTOR = ExecutorType('single_threaded_executor')
 ExecutorType.MULTI_THREADED_EXECUTOR = ExecutorType('multi_threaded_executor')
 
 
-class ExecutorStructValue(ValueObject):
+class ExecutorStructValue(ValueObject, Summarizable):
     """Executor info for architecture."""
 
     def __init__(

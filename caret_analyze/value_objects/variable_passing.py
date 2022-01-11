@@ -16,7 +16,7 @@
 
 from .callback import CallbackStructValue
 from .value_object import ValueObject
-from ..common import Summary
+from ..common import Summarizable, Summary
 
 
 class VariablePassingValue(ValueObject):
@@ -72,7 +72,7 @@ class VariablePassingValue(ValueObject):
         return self._callback_id_read
 
 
-class VariablePassingStructValue(ValueObject):
+class VariablePassingStructValue(ValueObject, Summarizable):
     """variable passing info."""
 
     def __init__(

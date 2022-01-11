@@ -13,11 +13,22 @@
 # limitations under the License.
 
 from .value_object import ValueObject
+from ..common import Summarizable, Summary
 
 
-class Qos(ValueObject):
+class Qos(ValueObject, Summarizable):
     """qos info."""
+
+    def __init__(self, depth: int) -> None:
+        self._depth = depth
 
     @property
     def depth(self) -> int:
-        raise NotImplementedError()
+        return self._depth
+
+    @property
+    def summary(self) -> Summary:
+        d: Summary = Summary()
+        d['depth'] = self.depth
+
+        return d

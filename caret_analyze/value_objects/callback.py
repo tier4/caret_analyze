@@ -18,7 +18,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple
 
 from .value_object import ValueObject
-from ..common import Summary
+from ..common import Summarizable, Summary
 
 
 class CallbackType(ValueObject):
@@ -245,7 +245,7 @@ class SubscriptionCallbackValue(CallbackValue):
         return self.__subscribe_topic_name
 
 
-class CallbackStructValue(metaclass=ABCMeta):
+class CallbackStructValue(Summarizable, metaclass=ABCMeta):
     """Callback value base class."""
 
     def __init__(

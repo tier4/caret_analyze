@@ -22,12 +22,12 @@ from .node_path import NodePath
 from .publisher import Publisher
 from .subscription import Subscription
 from .variable_passing import VariablePassing
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import NodeStructValue
 
 
-class Node:
+class Node(Summarizable):
 
     def __init__(
         self,

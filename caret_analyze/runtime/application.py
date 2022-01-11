@@ -23,7 +23,7 @@ from .executor import Executor
 from .node import Node
 from .path import Path
 from ..architecture import Architecture
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..infra.infra_base import InfraBase
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
@@ -32,7 +32,7 @@ from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
 from ..value_objects import NodePathStructValue
 
 
-class Application():
+class Application(Summarizable):
     def __init__(
         self,
         architecture: Architecture,

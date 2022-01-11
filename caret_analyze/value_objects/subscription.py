@@ -16,7 +16,7 @@ from typing import Optional
 
 from .callback import SubscriptionCallbackStructValue
 from .value_object import ValueObject
-from ..common import Summary
+from ..common import Summarizable, Summary
 
 
 class SubscriptionValue(ValueObject):
@@ -51,7 +51,7 @@ class SubscriptionValue(ValueObject):
         return self._callback_id
 
 
-class SubscriptionStructValue(ValueObject):
+class SubscriptionStructValue(ValueObject, Summarizable):
     """Subscription info."""
 
     def __init__(

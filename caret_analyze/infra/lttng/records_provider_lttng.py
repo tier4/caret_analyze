@@ -19,6 +19,7 @@ from typing import List, Optional, Union
 from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
 
 from .lttng import Lttng
+from .value_objects import PublisherValueLttng, SubscriptionCallbackValueLttng
 from ...common import Columns, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
@@ -415,9 +416,25 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def get_qos(
         self,
-        pub_sub_value: Union[PublisherStructValue, SubscriptionStructValue]
+        pub_sub: Union[PublisherStructValue, SubscriptionStructValue]
     ) -> Qos:
-        raise NotImplementedError()
+        if isinstance(pub_sub, SubscriptionStructValue):
+            sub_cb = pub_sub.callback
+            if sub_cb is None:
+                raise InvalidArgumentError('Failed to get callback information.'
+                                           'pub.callback is None')
+            sub_cb_lttng = self._helper.get_lttng_subscription(sub_cb)
+            return self._lttng.get_subscription_qos(sub_cb_lttng)
+
+        pubs_lttng = self._helper.get_lttng_publishers(pub_sub)
+        if len(pubs_lttng) == 0:
+            raise InvalidArgumentError('No publisher matching the criteria was found.')
+        if len(pubs_lttng) > 1:
+            logger.warning(
+                'Multiple publishers matching your criteria were found.'
+                'The value of the first publisher qos will be returned.')
+
+        return self._lttng.get_publisher_qos(pubs_lttng[0])
 
     @cached_property
     def _inter_comm_records(self) -> RecordsInterface:
@@ -658,9 +675,9 @@ class RecordsProviderLttngHelper:
 
     def get_publisher_handles(
         self,
-        publisher_info: PublisherStructValue
+        publisher: PublisherStructValue
     ) -> List[int]:
-        publisher_lttng = self._bridge.get_publishers(publisher_info)
+        publisher_lttng = self._bridge.get_publishers(publisher)
         return [pub_info.publisher_handle
                 for pub_info
                 in publisher_lttng]
@@ -673,6 +690,18 @@ class RecordsProviderLttngHelper:
         return [pub_info.tilde_publisher
                 for pub_info
                 in publisher_lttng]
+
+    def get_lttng_publishers(
+        self,
+        publisher: PublisherStructValue
+    ) -> List[PublisherValueLttng]:
+        return self._bridge.get_publishers(publisher)
+
+    def get_lttng_subscription(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> SubscriptionCallbackValueLttng:
+        return self._bridge.get_subscription_callback(callback)
 
 
 class NodeRecordsCallbackChain:

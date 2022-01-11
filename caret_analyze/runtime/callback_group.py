@@ -20,11 +20,11 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CallbackGroupType)
 
 from .callback import CallbackBase
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError
 
 
-class CallbackGroup:
+class CallbackGroup(Summarizable):
 
     def __init__(
         self,

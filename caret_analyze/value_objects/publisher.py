@@ -16,7 +16,7 @@ from typing import Optional, Tuple
 
 from .callback import CallbackStructValue
 from .value_object import ValueObject
-from ..common import Summary
+from ..common import Summarizable, Summary
 
 
 class PublisherValue(ValueObject):
@@ -57,7 +57,7 @@ class PublisherValue(ValueObject):
         return msg
 
 
-class PublisherStructValue(ValueObject):
+class PublisherStructValue(ValueObject, Summarizable):
     """Structured publisher value."""
 
     def __init__(

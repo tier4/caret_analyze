@@ -18,14 +18,14 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
 
 
-class Architecture():
+class Architecture(Summarizable):
     def __init__(
         self,
         file_type: str,

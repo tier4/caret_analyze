@@ -15,13 +15,13 @@
 from typing import Optional, Union
 
 from .path_base import PathBase
-from ..common import Summary
+from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import SubscriptionStructValue
+from ..value_objects import Qos, SubscriptionStructValue
 
 
-class Subscription(PathBase):
+class Subscription(PathBase, Summarizable):
 
     def __init__(
         self,
@@ -47,6 +47,12 @@ class Subscription(PathBase):
     @property
     def callback_name(self) -> Optional[str]:
         return self._val.callback_name
+
+    @property
+    def qos(self) -> Optional[Qos]:
+        if isinstance(self._provider, RuntimeDataProvider):
+            return self._provider.get_qos(self._val)
+        return None
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.subscribe_records(self._val)

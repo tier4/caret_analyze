@@ -21,13 +21,13 @@ from .node import Node
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
-from ..common import Summary
+from ..common import Summarizable, Summary
 from ..infra import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import CommunicationStructValue
 
 
-class Communication(PathBase):
+class Communication(PathBase, Summarizable):
 
     def __init__(
         self,

@@ -18,13 +18,13 @@ from .callback import CallbackBase
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
-from ..common import Summary
+from ..common import Summarizable, Summary
 from ..infra import RecordsProvider
 from ..record import RecordsFactory, RecordsInterface
 from ..value_objects import MessageContext, NodePathStructValue
 
 
-class NodePath(PathBase):
+class NodePath(PathBase, Summarizable):
     def __init__(
         self,
         node_path_value: NodePathStructValue,

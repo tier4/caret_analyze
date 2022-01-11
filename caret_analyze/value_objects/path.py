@@ -21,7 +21,7 @@ from typing import Optional, Tuple, Union
 from .communication import CommunicationStructValue
 from .node_path import NodePathStructValue, NodePathValue
 from .value_object import ValueObject
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError
 
 logger = getLogger(__name__)
@@ -47,7 +47,7 @@ class PathValue(ValueObject):
         return self._node_paths_info
 
 
-class PathStructValue(ValueObject):
+class PathStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         path_name: Optional[str],

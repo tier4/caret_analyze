@@ -15,13 +15,13 @@
 from __future__ import annotations
 
 from .path_base import PathBase
-from ..common import Summary
+from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import VariablePassingStructValue
 
 
-class VariablePassing(PathBase):
+class VariablePassing(PathBase, Summarizable):
 
     def __init__(
         self,

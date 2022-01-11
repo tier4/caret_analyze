@@ -15,13 +15,13 @@
 from typing import List, Optional, Union
 
 from .path_base import PathBase
-from ..common import Summary
+from ..common import Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import PublisherStructValue
+from ..value_objects import PublisherStructValue, Qos
 
 
-class Publisher(PathBase):
+class Publisher(PathBase, Summarizable):
     def __init__(
         self,
         publisher: PublisherStructValue,
@@ -49,6 +49,12 @@ class Publisher(PathBase):
         if names is None:
             return None
         return sorted(names)
+
+    @property
+    def qos(self) -> Optional[Qos]:
+        if isinstance(self._provider, RuntimeDataProvider):
+            return self._provider.get_qos(self._val)
+        return None
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.publish_records(self._val)

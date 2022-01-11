@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABCMeta, abstractproperty
 from collections import UserDict
 from typing import Any, Dict, List, Union
 
@@ -48,3 +49,10 @@ class Summary(UserDict):
             return dic
 
         return obj
+
+
+class Summarizable(metaclass=ABCMeta):
+
+    @abstractproperty
+    def summary(self) -> Summary:
+        pass

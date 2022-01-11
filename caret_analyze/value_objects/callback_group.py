@@ -19,7 +19,7 @@ from typing import Optional, Tuple
 
 from .callback import CallbackStructValue
 from .value_object import ValueObject
-from ..common import Summary
+from ..common import Summarizable, Summary
 
 
 class CallbackGroupType(ValueObject):
@@ -135,7 +135,7 @@ class CallbackGroupValue(ValueObject):
         return self._callback_ids
 
 
-class CallbackGroupStructValue(ValueObject):
+class CallbackGroupStructValue(ValueObject, Summarizable):
     """Callback group value object."""
 
     def __init__(

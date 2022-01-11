@@ -22,7 +22,7 @@ from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
-from ..common import Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import ItemNotFoundError
 
 
@@ -58,7 +58,7 @@ class NodeValueWithId(NodeValue):
         return self._node_id
 
 
-class NodeStructValue(ValueObject):
+class NodeStructValue(ValueObject, Summarizable):
     """Executor info for architecture."""
 
     def __init__(

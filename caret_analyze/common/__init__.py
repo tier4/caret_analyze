@@ -13,13 +13,14 @@
 # limitations under the License.
 
 from .columns import Columns
-from .custom_dict import Summary
 from .singleton import Singleton
+from .summary import Summarizable, Summary
 from .util import Util
 
 __all__ = [
     'Columns',
     'Singleton',
+    'Summarizable',
     'Summary',
     'Util',
 ]

@@ -27,7 +27,8 @@ from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ...common import Util
-from ...value_objects import ExecutorValue, NodeValue
+from ...exceptions import InvalidArgumentError
+from ...value_objects import ExecutorValue, NodeValue, Qos
 
 logger = getLogger(__name__)
 
@@ -505,6 +506,34 @@ class LttngInfo:
             )
 
         return execs
+
+    def get_publisher_qos(self, publisher: PublisherValueLttng) -> Qos:
+        df = self._formatted.publishers_df
+        pub_df = df[df['publisher_handle'] == publisher.publisher_handle]
+
+        if len(pub_df) == 0:
+            raise InvalidArgumentError('No publisher matching the criteria was found.')
+        if len(pub_df) > 1:
+            logger.warning(
+                'Multiple publishers matching your criteria were found.'
+                'The value of the first publisher qos will be returned.')
+
+        depth = int(pub_df['depth'].values[0])
+        return Qos(depth)
+
+    def get_subscription_qos(self, callback: SubscriptionCallbackValueLttng) -> Qos:
+        df = self._formatted.subscription_callbacks_df
+        sub_df = df[df['callback_object'] == callback.callback_object]
+
+        if len(sub_df) == 0:
+            raise InvalidArgumentError('No subscription matching the criteria was found.')
+        if len(sub_df) > 1:
+            logger.warning(
+                'Multiple publishers matching your criteria were found.'
+                'The value of the first publisher qos will be returned.')
+
+        depth = int(sub_df['depth'].values[0])
+        return Qos(depth)
 
 
 # class PublisherBinder:

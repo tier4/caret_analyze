@@ -23,7 +23,7 @@ from .value_objects import (PublisherValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
 from ...record import RecordsInterface
-from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId
+from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos
 
 
 class Lttng(InfraBase):
@@ -197,6 +197,44 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_subscription_callbacks(node)
+
+    def get_publisher_qos(
+        self,
+        pub: PublisherValueLttng
+    ) -> Qos:
+        """
+        Get publisher qos.
+
+        Parameters
+        ----------
+        pub : PublisherValueLttng
+            target publisher
+
+        Returns
+        -------
+        Qos
+
+        """
+        return self._info.get_publisher_qos(pub)
+
+    def get_subscription_qos(
+        self,
+        sub: SubscriptionCallbackValueLttng
+    ) -> Qos:
+        """
+        Get subscription qos.
+
+        Parameters
+        ----------
+        sub : SubscriptionCallbackValueLttng
+            target subscription
+
+        Returns
+        -------
+        Qos
+
+        """
+        return self._info.get_subscription_qos(sub)
 
     def compose_inter_proc_comm_records(
         self,
