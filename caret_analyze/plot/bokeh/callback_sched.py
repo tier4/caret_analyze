@@ -20,7 +20,7 @@ from typing import Dict, Sequence, Tuple, Union
 
 from bokeh.colors import Color
 from bokeh.io import show
-from bokeh.palettes import d3
+from bokeh.palettes import Bokeh8
 from bokeh.plotting import ColumnDataSource, figure
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
@@ -125,7 +125,10 @@ def sched_plot_cbg(
                    'height',
                    source=rect_source,
                    color=color,
+                   alpha=0.6,
                    legend_label=f'{callback.callback_name}',
+                   hover_fill_color=color,
+                   hover_alpha=1.0,
                    x_range_name=x_range_name)
             rect_y += rect_y_step
 
@@ -201,7 +204,7 @@ class ColorSelector:
             return ColorSelectorNode()
 
     def __init__(self) -> None:
-        self._palette = d3['Category20'][20]
+        self._palette = Bokeh8
         self._color_map: Dict[str, Color] = {}
 
     def get_color(self, node_name: str, cbg_name: str, callback_name: str) -> Color:

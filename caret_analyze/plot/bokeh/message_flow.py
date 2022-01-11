@@ -95,6 +95,8 @@ def message_flow(
         source=rect_source,
         color='black',
         alpha=0.15,
+        hover_fill_color='black',
+        hover_alpha=0.4,
         x_range_name=x_range_name
     )
 
