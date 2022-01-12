@@ -14,11 +14,12 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Sequence
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from record_cpp_impl import RecordBase, RecordsBase
 
 from .record import RecordInterface, Records, RecordsInterface, validate_rename_rule
+from ..common import Progress
 from ..exceptions import InvalidArgumentError
 
 
@@ -110,11 +111,26 @@ class RecordsCppImpl(RecordsInterface):
 
         merged_cpp_base = self._records.merge(
             right_records._records, join_left_key, join_right_key,
-            columns, how, progress_label)
+            columns, how,
+            Progress.records_label(progress_label))
 
         merged = RecordsCppImpl()
         merged._insert_records(merged_cpp_base)
         return merged
+
+    def groupby(
+        self,
+        columns: List[str]
+    ) -> Dict[Tuple[int, ...], RecordsInterface]:
+        assert 0 < len(columns) and len(columns) <= 3
+
+        group_cpp_base = self._records.groupby(*columns)
+        group: Dict[Tuple[int, ...], RecordsInterface] = {}
+        for k, v in group_cpp_base.items():
+            records = RecordsCppImpl()
+            records._insert_records(v)
+            group[k] = records
+        return group
 
     @property
     def columns(self) -> List[str]:
@@ -175,7 +191,7 @@ class RecordsCppImpl(RecordsInterface):
             join_right_key or '',
             columns,
             how,
-            progress_label
+            Progress.records_label(progress_label)
         )
 
         merged = RecordsCppImpl()
@@ -211,7 +227,7 @@ class RecordsCppImpl(RecordsInterface):
             sink_records._records,
             sink_stamp_key,
             sink_from_key,
-            progress_label,
+            Progress.records_label(progress_label)
         )
 
         merged = RecordsCppImpl()

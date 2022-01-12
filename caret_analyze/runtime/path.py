@@ -170,7 +170,8 @@ class RecordsMerged:
                 right_stamp_key=right_stamp_key,
                 columns=Columns(left_records.columns +
                                 right_records.columns).as_list(),
-                how='left_use_latest'
+                how='left_use_latest',
+                progress_label='binding: node records'
             )
 
         logger.info('Finished merging path records.')

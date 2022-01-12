@@ -20,7 +20,7 @@ from typing import Dict, Sequence, Tuple, Union
 
 from bokeh.colors import Color
 from bokeh.io import show
-from bokeh.palettes import Bokeh8
+from bokeh.palettes import Set1
 from bokeh.plotting import ColumnDataSource, figure
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
@@ -204,7 +204,7 @@ class ColorSelector:
             return ColorSelectorNode()
 
     def __init__(self) -> None:
-        self._palette = Bokeh8
+        self._palette = Set1[4]
         self._color_map: Dict[str, Color] = {}
 
     def get_color(self, node_name: str, cbg_name: str, callback_name: str) -> Color:

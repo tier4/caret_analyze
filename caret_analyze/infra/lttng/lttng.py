@@ -270,6 +270,7 @@ class Lttng(InfraBase):
             - callback_start_timestamp
             - publisher_handle
             - rclcpp_intra_publish_timestamp
+            - message_timestamp
 
         """
         return self._source.intra_proc_comm_records.clone()

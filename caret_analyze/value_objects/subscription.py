@@ -64,6 +64,14 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         self._topic_name: str = topic_name
         self._callback_value = callback_info
 
+    def __eq__(self, other) -> bool:
+        # It is not necessary because __eq__ is defined in ValueObject type,
+        # but for speed, only necessary items are compared.
+
+        if isinstance(other, SubscriptionStructValue):
+            return self.node_name == other.node_name and self.topic_name == other.topic_name
+        return False
+
     @property
     def node_name(self) -> str:
         return self._node_name

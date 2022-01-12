@@ -17,7 +17,7 @@ from __future__ import annotations
 from copy import deepcopy
 from enum import IntEnum
 from itertools import groupby
-from typing import Callable, Dict, List, Optional, Set
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 
@@ -662,6 +662,18 @@ class Records(RecordsInterface):
         merged_records.reindex(columns)
 
         return merged_records
+
+    def groupby(self, columns: List[str]) -> Dict[Tuple[int, ...], RecordsInterface]:
+        group: Dict[Tuple[int, ...], RecordsInterface] = {}
+
+        m = 2**64 - 1
+        for record in self._data:
+            k = tuple(record.get_with_default(column, m) for column in columns)
+            if k not in group:
+                group[k] = Records(None, self._columns)
+            group[k].append(record)
+
+        return group
 
 
 def merge(

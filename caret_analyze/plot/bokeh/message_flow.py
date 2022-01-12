@@ -138,6 +138,15 @@ def get_callback_rects(
     if path.callbacks is None:
         return rect_source
 
+    x = []
+    y = []
+    x_min = []
+    x_max = []
+    desc = []
+    width = []
+    latency = []
+    height = []
+
     for callback in path.callbacks:
         if granularity == 'raw':
             search_name = callback.callback_name
@@ -150,23 +159,33 @@ def get_callback_rects(
         callback_desc = get_callback_param_desc(callback)
 
         for y_min, y_max in zip(y_mins, y_maxs):
-            for _, row in callback.to_dataframe(shaper=clip).iterrows():
+            df = callback.to_dataframe(shaper=clip)
+            for _, row in df.iterrows():
                 callback_start = row.to_list()[0]
                 callback_end = row.to_list()[-1]
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
-                new_data = {
-                    'x': [rect.x],
-                    'y': [rect.y],
-                    'x_min': [callback_start],
-                    'x_max': [callback_end],
-                    'width': [rect.width],
-                    'latency': [(callback_end-callback_start)*1.0e-6],
-                    'height': [rect.height],
-                    'desc': [f'callback_type: {callback.callback_type},'
-                             f'{callback_desc}, symbol: {callback.symbol}'],
-                }
-                rect_source.stream(new_data)
+                x.append(rect.x)
+                y.append(rect.y)
+                x_min.append(callback_start)
+                x_max.append(callback_end)
+                width.append(rect.width)
+                latency.append((callback_end-callback_start)*1.0e-6)
+                height.append(rect.height)
 
+                desc_str = f'callback_type: {callback.callback_type}' + \
+                    f', {callback_desc}, symbol: {callback.symbol}'
+                desc.append(desc_str)
+
+    rect_source = ColumnDataSource(data={
+        'x': x,
+        'y': y,
+        'x_min': x_min,
+        'x_max': x_max,
+        'desc': desc,
+        'width': width,
+        'latency': latency,
+        'height': height
+    })
     return rect_source
 
 

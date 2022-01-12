@@ -19,7 +19,7 @@ from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
-from ..common import Util
+from ..common import Progress, Util
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
                           InvalidYamlFormatError, ItemNotFoundError,
                           MultipleItemFoundError, UnsupportedTypeError)
@@ -97,7 +97,6 @@ class CommValuesLoaded():
         self,
         nodes_loaded: NodeValuesLoaded
     ) -> None:
-        from tqdm import tqdm
         node_values = nodes_loaded.data
 
         data: List[CommunicationStructValue] = []
@@ -105,7 +104,7 @@ class CommValuesLoaded():
 
         node_pub: NodeStructValue
         node_sub: NodeStructValue
-        for node_pub, node_sub in tqdm(pub_sub_pair, 'Loading communications.'):
+        for node_pub, node_sub in Progress.tqdm(pub_sub_pair, 'Searching communications.'):
             for pub, sub in product(node_pub.publishers, node_sub.subscriptions):
                 if pub.topic_name != sub.topic_name:
                     continue
@@ -206,7 +205,6 @@ class NodeValuesLoaded():
         self,
         reader: ArchitectureReader,
     ) -> None:
-        from tqdm import tqdm
         nodes_struct: List[NodeStructValue] = []
         self._cb_loaded: List[CallbacksLoaded] = []
         self._cbg_loaded: List[CallbackGroupsLoaded] = []
@@ -220,7 +218,7 @@ class NodeValuesLoaded():
 
         nodes = self._remove_duplicated(nodes)
 
-        for node in tqdm(nodes, 'Loading nodes.'):
+        for node in Progress.tqdm(nodes, 'Loading nodes.'):
             try:
                 node, cb_loaded, cbg_loaded = self._create_node(node, reader)
                 nodes_struct.append(node)
@@ -1214,8 +1212,7 @@ class TopicIgnoredReader(ArchitectureReader):
         ignore_topic_set = set(ignore_topics)
 
         nodes = reader.get_nodes()
-        from tqdm import tqdm
-        for node in tqdm(nodes, 'Loading callbacks'):
+        for node in Progress.tqdm(nodes, 'Loading callbacks'):
             node = NodeValue(node.node_name, node.node_id)
 
             sub = reader.get_subscription_callbacks(node)

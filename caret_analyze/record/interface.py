@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set
+from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
 import pandas as pd
 
@@ -589,4 +589,9 @@ class RecordsInterface:
     @abstractmethod
     def bind_drop_as_delay(self) -> None:
         """Convert the dropped points to records converted as delay."""
+        pass
+
+    @abstractmethod
+    def groupby(self, columns: List[str]) -> Dict[Tuple[int, ...], RecordsInterface]:
+        """Split based on the value of the given column name."""
         pass

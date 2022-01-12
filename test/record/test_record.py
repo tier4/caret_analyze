@@ -501,6 +501,202 @@ class TestRecords:
             for i, record in enumerate(records):
                 assert record.get('a') == records_py.data[i].get('a')
 
+    def test_groupby_1key(self):
+        records_py = Records(
+            [
+                Record({'a': 0, 'b': 1}),
+                Record({'a': 0, 'b': 2}),
+                Record({'a': 5, 'b': 3}),
+            ],
+            ['a', 'b']
+        )
+        expect = {}
+        expect[(0,)] = Records(
+            [
+                Record({'a': 0, 'b': 1}),
+                Record({'a': 0, 'b': 2}),
+            ],
+            ['a', 'b']
+        )
+
+        expect[(5,)] = Records(
+            [
+                Record({'a': 5, 'b': 3}),
+            ],
+            ['a', 'b']
+        )
+
+        group = records_py.groupby(['a'])
+
+        assert group.keys() == expect.keys()
+
+        for k, v in group.items():
+            assert v.equals(expect[k])
+
+        records_cpp = to_cpp_records(records_py)
+        expect_cpp = {}
+        for k, v in expect.items():
+            expect_cpp[k] = to_cpp_records(v)
+        group_cpp = records_cpp.groupby(['a'])
+
+        assert group_cpp.keys() == expect_cpp.keys()
+
+        for k, v in group_cpp.items():
+            assert v.equals(expect_cpp[k])
+
+    def test_groupby_1key_key_missing(self):
+        records_py = Records(
+            [
+                Record({'a': 0, 'b': 1}),
+                Record({'b': 2}),
+                Record({'a': 5, 'b': 3}),
+            ],
+            ['a', 'b']
+        )
+        expect = {}
+        expect[(0,)] = Records(
+            [
+                Record({'a': 0, 'b': 1}),
+            ],
+            ['a', 'b']
+        )
+
+        expect[(5,)] = Records(
+            [
+                Record({'a': 5, 'b': 3}),
+            ],
+            ['a', 'b']
+        )
+        expect[(2**64-1,)] = Records(
+            [
+                Record({'b': 2}),
+            ],
+            ['a', 'b']
+        )
+
+        group = records_py.groupby(['a'])
+
+        assert group.keys() == expect.keys()
+
+        for k, v in group.items():
+            assert v.equals(expect[k])
+
+        records_cpp = to_cpp_records(records_py)
+        expect_cpp = {}
+        for k, v in expect.items():
+            expect_cpp[k] = to_cpp_records(v)
+        group_cpp = records_cpp.groupby(['a'])
+
+        assert group_cpp.keys() == expect_cpp.keys()
+
+        for k, v in group_cpp.items():
+            assert v.equals(expect_cpp[k])
+
+    def test_groupby_2key(self):
+        records_py = Records(
+            [
+                Record({'a': 0, 'b': 1, 'c': 2}),
+                Record({'a': 0, 'b': 2, 'c': 3}),
+                Record({'a': 5, 'b': 3, 'c': 3}),
+                Record({'a': 5, 'b': 4, 'c': 3}),
+            ],
+            ['a', 'b', 'c']
+        )
+
+        expect = {}
+        expect[(0, 2)] = Records(
+            [
+                Record({'a': 0, 'b': 1, 'c': 2}),
+            ],
+            ['a', 'b', 'c']
+        )
+        expect[(0, 3)] = Records(
+            [
+                Record({'a': 0, 'b': 2, 'c': 3}),
+            ],
+            ['a', 'b', 'c']
+        )
+        expect[(5, 3)] = Records(
+            [
+                Record({'a': 5, 'b': 3, 'c': 3}),
+                Record({'a': 5, 'b': 4, 'c': 3}),
+            ],
+            ['a', 'b', 'c']
+        )
+
+        group = records_py.groupby(['a', 'c'])
+
+        assert group.keys() == expect.keys()
+
+        for k, v in group.items():
+            assert v.equals(expect[k])
+
+        records_cpp = to_cpp_records(records_py)
+        expect_cpp = {}
+        for k, v in expect.items():
+            expect_cpp[k] = to_cpp_records(v)
+        group_cpp = records_cpp.groupby(['a', 'c'])
+
+        assert group_cpp.keys() == expect_cpp.keys()
+
+        for k, v in group_cpp.items():
+            assert v.equals(expect_cpp[k])
+
+    def test_groupby_3key(self):
+        records_py = Records(
+            [
+                Record({'a': 0, 'b': 1, 'c': 2}),
+                Record({'a': 0, 'b': 2, 'c': 3}),
+                Record({'a': 5, 'b': 3, 'c': 3}),
+                Record({'a': 5, 'b': 4, 'c': 3}),
+            ],
+            ['a', 'b', 'c']
+        )
+
+        expect = {}
+        expect[(0, 1, 2)] = Records(
+            [
+                Record({'a': 0, 'b': 1, 'c': 2}),
+            ],
+            ['a', 'b', 'c']
+        )
+        expect[(0, 2, 3)] = Records(
+            [
+                Record({'a': 0, 'b': 2, 'c': 3}),
+            ],
+            ['a', 'b', 'c']
+        )
+        expect[(5, 3, 3)] = Records(
+            [
+                Record({'a': 5, 'b': 3, 'c': 3}),
+            ],
+            ['a', 'b', 'c']
+        )
+        expect[(5, 4, 3)] = Records(
+            [
+                Record({'a': 5, 'b': 4, 'c': 3}),
+            ],
+            ['a', 'b', 'c']
+        )
+
+        group = records_py.groupby(['a', 'b', 'c'])
+
+        assert group.keys() == expect.keys()
+
+        for k, v in group.items():
+            assert v.equals(expect[k])
+
+        records_cpp = to_cpp_records(records_py)
+        expect_cpp = {}
+        for k, v in expect.items():
+            expect_cpp[k] = to_cpp_records(v)
+        group_cpp = records_cpp.groupby(['a', 'b', 'c'])
+
+        assert group_cpp.keys() == expect_cpp.keys()
+
+        for k, v in group_cpp.items():
+            assert v.equals(expect_cpp[k])
+
     def test_append_column(self):
         expects_py = Records(
             [
@@ -1732,7 +1928,7 @@ class TestRecords:
                 sink_records=sink_records,
                 sink_stamp_key='sink_stamp',
                 sink_from_key='sink_addr',
-                columns=['source_addr', 'source_stamp', 'sink_stamp']
+                columns=['source_addr', 'source_stamp', 'sink_stamp'],
             )
 
             merged.sort(key='sink_stamp')

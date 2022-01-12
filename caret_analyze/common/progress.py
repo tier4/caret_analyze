@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .columns import Columns
-from .progress import Progress
-from .singleton import Singleton
-from .summary import Summarizable, Summary
-from .util import Util
+from tqdm import tqdm
 
-__all__ = [
-    'Columns',
-    'Progress',
-    'Singleton',
-    'Summarizable',
-    'Summary',
-    'Util',
-]
+
+class Progress:
+    enable = False
+
+    @classmethod
+    def tqdm(cls, it, *args):
+        if cls.enable:
+            return tqdm(it, *args)
+        return it
+
+    @classmethod
+    def records_label(cls, label: str) -> str:
+        if cls.enable:
+            return label
+        return ''
