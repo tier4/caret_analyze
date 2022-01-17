@@ -66,17 +66,12 @@ def get_cbg_and_name(
 
 
 def get_range(cbgs: Sequence[CallbackGroup]) -> Tuple[int, int]:
-    frame_min = 2**64-1
-    frame_max = 0
-
     callbacks = Util.flatten([cbg.callbacks for cbg in cbgs])
-    for callback in callbacks:
-        cb_min = min(callback.to_dataframe().min().values)
-        cb_max = max(callback.to_dataframe().max().values)
-        frame_min = min(frame_min, cb_min)
-        frame_max = max(frame_max, cb_max)
+    cb_dfs = [cb.to_dataframe() for cb in callbacks]
+    cb_min = min(min(df.min()) for df in cb_dfs)
+    cb_max = max(max(df.max()) for df in cb_dfs)
 
-    return frame_min, frame_max
+    return cb_min, cb_max
 
 
 def sched_plot_cbg(
