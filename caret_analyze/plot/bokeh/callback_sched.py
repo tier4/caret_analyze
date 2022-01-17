@@ -25,7 +25,7 @@ from bokeh.plotting import ColumnDataSource, figure
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
 from ...common import Util
-from ...exceptions import InvalidArgumentError
+from ...exceptions import InvalidArgumentError, InvalidRecordsError
 from ...record import Clip
 from ...runtime import CallbackGroup, Executor, Node
 
@@ -68,8 +68,11 @@ def get_cbg_and_name(
 def get_range(cbgs: Sequence[CallbackGroup]) -> Tuple[int, int]:
     callbacks = Util.flatten([cbg.callbacks for cbg in cbgs])
     cb_dfs = [cb.to_dataframe() for cb in callbacks]
-    cb_min = min(min(df.min()) for df in cb_dfs)
-    cb_max = max(max(df.max()) for df in cb_dfs)
+    cb_dfs_valid = [cb_df for cb_df in cb_dfs if len(cb_df) > 0]
+    if len(cb_dfs_valid) == 0:
+        raise InvalidRecordsError('Failed to found Callback measurement results.')
+    cb_min = min(min(df.min()) for df in cb_dfs_valid)
+    cb_max = max(max(df.max()) for df in cb_dfs_valid)
 
     return cb_min, cb_max
 
