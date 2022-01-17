@@ -1247,6 +1247,27 @@ class DataFrameFormatted:
             return pd.DataFrame(columns=columns)
 
     @staticmethod
+    def _is_ignored_subscription(
+        data: Ros2DataModel,
+        subscription_handle: int
+    ) -> bool:
+        sub_df = data.subscriptions
+        sub_df = sub_df[sub_df.index == subscription_handle]
+        sub_df = merge(sub_df, data.nodes, 'node_handle')
+
+        ns = sub_df.at[0, 'namespace']
+        name = sub_df.at[0, 'name']
+        topic_name = sub_df.at[0, 'topic_name']
+
+        if ns == '/' and name == 'rviz2':
+            return True
+
+        if topic_name == '/parameter_events':
+            return True
+
+        return False
+
+    @staticmethod
     def _format_subscription_callback_object(
         data: Ros2DataModel,
     ) -> pd.DataFrame:
@@ -1276,9 +1297,13 @@ class DataFrameFormatted:
             columns={'reference': 'subscription'})
         sub_df = data.subscription_objects
         sub_df = merge(sub_df, callback_objects_df, 'subscription')
+
         dicts = []
         for key, group in sub_df.groupby('subscription_handle'):
             group.reset_index(drop=True, inplace=True)
+
+            if DataFrameFormatted._is_ignored_subscription(data, key):
+                continue
 
             record = {
                 'subscription_handle': key,

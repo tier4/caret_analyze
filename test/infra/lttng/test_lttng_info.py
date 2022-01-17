@@ -478,7 +478,7 @@ class TestDataFrameFormatted:
         )
         assert timer_df.equals(expect)
 
-    def test_build_subscription_callbacks_df(self):
+    def test_build_subscription_callbacks_df(self, mocker: MockerFixture):
         data = Ros2DataModel()
 
         node_handle = [0, 1]
@@ -521,6 +521,9 @@ class TestDataFrameFormatted:
         )
 
         data.finalize()
+
+        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
+
         sub_df = DataFrameFormatted._build_sub_callbacks_df(data)
 
         expect = pd.DataFrame.from_dict(
@@ -593,7 +596,7 @@ class TestDataFrameFormatted:
 
         assert exec_df.equals(expect_df)
 
-    def test_format_subscription_callback_object(self):
+    def test_format_subscription_callback_object(self, mocker: MockerFixture):
         data = Ros2DataModel()
 
         subscription_handle = [4, 5]
@@ -614,6 +617,8 @@ class TestDataFrameFormatted:
         data.add_callback_object(sub_ptr[2], 0, callback_object_inter[1])
 
         data.finalize()
+
+        mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
 
         sub_df = DataFrameFormatted._format_subscription_callback_object(data)
 
