@@ -14,7 +14,7 @@
 
 from functools import cached_property
 
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from .column_names import COLUMN_NAME
 from .lttng_info import LttngInfo
@@ -42,9 +42,13 @@ class RecordsSource():
         )
 
     @cached_property
-    def _grouped_callback_start(self) -> Dict[Tuple[int, ...], RecordsInterface]:
+    def _grouped_callback_start(self) -> Dict[int, RecordsInterface]:
         records = self._data.callback_start_instances.clone()
-        return records.groupby([COLUMN_NAME.IS_INTRA_PROCESS])
+        group: Dict[int, RecordsInterface] = {}
+        for k, v in records.groupby([COLUMN_NAME.IS_INTRA_PROCESS]).items():
+            assert len(k) == 1
+            group[k[0]] = v
+        return group
 
     @cached_property
     def inter_proc_comm_records(self) -> RecordsInterface:
@@ -341,8 +345,8 @@ class RecordsSource():
             None,
             ['callback_start_timestamp', 'callback_object', 'is_intra_process']
         )
-        if (1,) in self._grouped_callback_start:
-            intra_callback_start = self._grouped_callback_start[(1,)].clone()
+        if 1 in self._grouped_callback_start:
+            intra_callback_start = self._grouped_callback_start[1].clone()
             intra_proc_subscribe.concat(intra_callback_start)
         return intra_proc_subscribe
 
@@ -352,8 +356,8 @@ class RecordsSource():
             None,
             ['callback_start_timestamp', 'callback_object', 'is_intra_process']
         )
-        if (0,) in self._grouped_callback_start:
-            intra_callback_start = self._grouped_callback_start[(0,)].clone()
+        if 0 in self._grouped_callback_start:
+            intra_callback_start = self._grouped_callback_start[0].clone()
             intra_proc_subscribe.concat(intra_callback_start)
         return intra_proc_subscribe
 

@@ -200,6 +200,15 @@ class TestRecords:
         with pytest.raises(InvalidArgumentError):
             RecordsCppImpl(None, ['a', 'a'])
 
+    def test_columns(self):
+        columns = ['value', 'stamp']
+
+        for records_type in [Records, RecordsCppImpl]:
+            if records_type == RecordsCppImpl and not CppImplEnabled:
+                continue
+            records = records_type([], columns)
+            assert records.columns == columns
+
     def test_data(self):
         expects_py = Records(
             [
