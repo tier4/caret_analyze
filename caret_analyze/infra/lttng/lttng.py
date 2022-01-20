@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Sequence
+from __future__ import annotations
+
+from abc import ABCMeta, abstractmethod
+
+from typing import Dict, List, Optional, Sequence
 
 from tracetools_analysis.loading import load_file
 
@@ -25,6 +29,116 @@ from ..infra_base import InfraBase
 from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos
 
+Event = Dict[str, int]
+
+
+class LttngEventFilter(metaclass=ABCMeta):
+    NAME = '_name'
+    TIMESTAMP = '_timestamp'
+    CPU_ID = '_cpuid'
+    VPID = 'vpid'
+    VTID = 'vtid'
+
+    class Common:
+        start_time: int
+        end_time: int
+
+    @staticmethod
+    def duration_filter(duration_s: float, offset_s: float) -> LttngEventFilter:
+        return EventDurationFilter(duration_s, offset_s)
+
+    @staticmethod
+    def strip_filter(lsplit_s: Optional[float], rsplit_s: Optional[float]) -> LttngEventFilter:
+        return EventStripFilter(lsplit_s, rsplit_s)
+
+    @staticmethod
+    def init_pass_filter() -> LttngEventFilter:
+        return InitEventPassFilter()
+
+    @abstractmethod
+    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        pass
+
+
+class InitEventPassFilter(LttngEventFilter):
+
+    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        init_events = {
+            'ros2:rcl_init',
+            'ros2:rcl_node_init',
+            'ros2:rcl_publisher_init',
+            'ros2:rcl_subscription_init',
+            'ros2:rclcpp_subscription_init',
+            'ros2:rclcpp_subscription_callback_added',
+            'ros2:rcl_service_init',
+            'ros2:rclcpp_service_callback_added',
+            'ros2:rcl_client_init',
+            'ros2:rcl_timer_init',
+            'ros2:rclcpp_timer_callback_added',
+            'ros2:rclcpp_timer_link_node',
+            'ros2:rclcpp_callback_register',
+            'ros2:rcl_lifecycle_state_machine_init',
+            'ros2:rcl_lifecycle_transition',
+            'ros2:dispatch_intra_process_subscription_callback',
+            'ros2_caret:rmw_implementation',
+            'ros2_caret:add_callback_group',
+            'ros2_caret:add_callback_group_static_executor',
+            'ros2_caret:construct_executor',
+            'ros2_caret:construct_static_executor',
+            'ros2_caret:callback_group_add_timer',
+            'ros2_caret:callback_group_add_subscription',
+            'ros2_caret:callback_group_add_service',
+            'ros2_caret:callback_group_add_client',
+            'ros2_caret:tilde_subscription_init',
+            'ros2_caret:tilde_publisher_init',
+        }
+
+        return event[self.NAME] in init_events
+
+
+class EventStripFilter(LttngEventFilter):
+    def __init__(
+        self,
+        lstrip_s: Optional[float],
+        rstrip_s: Optional[float]
+    ) -> None:
+        self._lstrip = lstrip_s
+        self._rstrip = rstrip_s
+        self._init_events = InitEventPassFilter()
+
+    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        if self._init_events.accept(event, common):
+            return True
+
+        if self._lstrip:
+            diff_ns = event[self.TIMESTAMP] - common.start_time
+            diff_s = diff_ns * 1.0e-9
+            if diff_s < self._lstrip:
+                return False
+
+        if self._rstrip:
+            diff_ns = common.end_time - event[self.TIMESTAMP]
+            diff_s = diff_ns * 1.0e-9
+            if diff_s < self._rstrip:
+                return False
+        return True
+
+
+class EventDurationFilter(LttngEventFilter):
+
+    def __init__(self, duration_s: float, offset_s: float) -> None:
+        self._duration = duration_s
+        self._offset = offset_s
+        self._init_events = InitEventPassFilter()
+
+    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        if self._init_events.accept(event, common):
+            return True
+
+        elapsed_ns = event[self.TIMESTAMP] - common.start_time
+        elapsed_s = elapsed_ns * 1.0e-9
+        return self._offset <= elapsed_s and elapsed_s < (self._offset + self._duration)
+
 
 class Lttng(InfraBase):
     """
@@ -36,21 +150,26 @@ class Lttng(InfraBase):
     """
 
     _last_load_dir: Optional[str] = None
+    _last_filters: Optional[List[LttngEventFilter]] = None
 
     def __init__(
         self,
         trace_dir: str,
         force_conversion: bool = False,
         use_singleton_cache: bool = True,
+        *,
+        event_filters: Optional[List[LttngEventFilter]] = None
     ) -> None:
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
 
-        if self._last_load_dir == trace_dir and use_singleton_cache is True:
+        if self._last_load_dir == trace_dir and use_singleton_cache is True and \
+                event_filters == self._last_filters:
             return
 
         Lttng._last_load_dir = trace_dir
-        data = self._parse_lttng_data(trace_dir, force_conversion)
+        Lttng._last_filters = event_filters
+        data = self._parse_lttng_data(trace_dir, force_conversion, event_filters or [])
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
 
@@ -60,31 +179,33 @@ class Lttng(InfraBase):
     @staticmethod
     def _parse_lttng_data(
         trace_dir: str,
-        force_conversion: bool
+        force_conversion: bool,
+        event_filters: List[LttngEventFilter]
     ) -> DataModel:
         events = load_file(trace_dir, force_conversion=force_conversion)
-        # events = Lttng._filter_runtime_events(events)
+        print('{} events found.'.format(len(events)))
+        if len(event_filters) > 0:
+            events = Lttng._filter_events(events, event_filters)
+            print('filted to {} events.'.format(len(events)))
+
         handler = Ros2Handler.process(events)
         return handler.data
 
     @staticmethod
-    def _filter_runtime_events(events):
-        runtimes = [
-            'ros2:callback_end',
-            'ros2:callback_start',
-            'ros2:dispatch_intra_process_subscription_callback',
-            'ros2:dispatch_subscription_callback',
-            'ros2:dds_write',
-            'ros2:dds_bind_addr_to_stamp',
-            'ros2:rcl_publish',
-            'ros2:rclcpp_publish',
-        ]
-        print(f'{len(events)} events. ')
-        events = list(filter(
-            lambda x: x['_name'] not in runtimes, events
-        ))
-        print(f'filtered : {len(events)} events. ')
-        return events
+    def _filter_events(events: List[Event], filters: List[LttngEventFilter]):
+        if len(events) == 0:
+            return []
+
+        common = LttngEventFilter.Common()
+        common.start_time = events[0][LttngEventFilter.TIMESTAMP]
+        common.end_time = events[-1][LttngEventFilter.TIMESTAMP]
+
+        filtered = []
+        for event in events:
+            if all(event_filter.accept(event, common) for event_filter in filters):
+                filtered.append(event)
+
+        return filtered
 
     def get_nodes(
         self

@@ -16,14 +16,15 @@ from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
 
 from .architecture import Architecture, check_procedure
 from .common import Progress
-from .infra.lttng.lttng import Lttng
+from .infra.lttng.lttng import Lttng, LttngEventFilter
 from .runtime.application import Application
 
 __all__ = [
     'Application',
     'Architecture',
-    'Progress',
     'Lttng',
+    'LttngEventFilter',
+    'Progress',
     'check_procedure'
 ]
 

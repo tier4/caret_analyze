@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
+from logging import getLogger
 from typing import Dict, Sequence, Tuple, Union
 
 from bokeh.colors import Color
@@ -23,11 +24,16 @@ from bokeh.io import show
 from bokeh.palettes import Set1
 from bokeh.plotting import ColumnDataSource, figure
 
+from caret_analyze.runtime.callback import CallbackBase
+
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
 from ...common import Util
-from ...exceptions import InvalidArgumentError, InvalidRecordsError
+from ...exceptions import InvalidArgumentError
 from ...record import Clip
 from ...runtime import CallbackGroup, Executor, Node
+
+
+logger = getLogger(__name__)
 
 
 def callback_sched(
@@ -40,7 +46,8 @@ def callback_sched(
 
     cbgs, target_name = get_cbg_and_name(target)
 
-    frame_min, frame_max = get_range(cbgs)
+    callbacks = Util.flatten([cbg.callbacks for cbg in cbgs])
+    frame_min, frame_max = get_range(callbacks)
     clip_min = int(frame_min + lstrip_s*1.0e9)
     clip_max = int(frame_max - rstrip_s*1.0e9)
     clip = Clip(clip_min, clip_max)
@@ -65,12 +72,15 @@ def get_cbg_and_name(
         return [target], target.callback_group_name
 
 
-def get_range(cbgs: Sequence[CallbackGroup]) -> Tuple[int, int]:
-    callbacks = Util.flatten([cbg.callbacks for cbg in cbgs])
+def get_range(callbacks: Sequence[CallbackBase]) -> Tuple[int, int]:
+    callbacks_valid = [cb for cb in callbacks if len(cb.to_records()) > 0]
+
+    if len(callbacks_valid) == 0:
+        logger.warning('Failed to found Callback measurement results.')
+        return 0, 1
+
     cb_dfs = [cb.to_dataframe() for cb in callbacks]
     cb_dfs_valid = [cb_df for cb_df in cb_dfs if len(cb_df) > 0]
-    if len(cb_dfs_valid) == 0:
-        raise InvalidRecordsError('Failed to found Callback measurement results.')
     cb_min = min(min(df.min()) for df in cb_dfs_valid)
     cb_max = max(max(df.max()) for df in cb_dfs_valid)
 

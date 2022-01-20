@@ -67,6 +67,8 @@ class Strip(DataFrameShaper):
         return clip.execute(df)
 
     def to_clip(self, df: pd.DataFrame) -> Clip:
+        if len(df.columns) == 0 or len(df) == 0:
+            return Clip(0, 1)
         first_column = df.columns[0]
         start_ns = df.at[0, first_column]
         end_ns = df.at[len(df)-1, first_column]
