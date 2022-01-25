@@ -20,7 +20,7 @@ from caret_analyze.value_objects.message_context import MessageContext, MessageC
 
 from .lttng import Lttng
 from .value_objects import PublisherValueLttng, SubscriptionCallbackValueLttng
-from ...common import Columns, Util
+from ...common import ClockConverter, Columns, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
                            UnsupportedTypeError)
@@ -50,7 +50,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def __init__(
         self,
-        lttng: Lttng
+        lttng: Lttng,
     ) -> None:
         self._lttng = lttng
         self._source = FilteredRecordsSource(lttng)
@@ -509,6 +509,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 'The value of the first publisher qos will be returned.')
 
         return self._lttng.get_publisher_qos(pubs_lttng[0])
+
+    def get_sim_time_converter(self) -> ClockConverter:
+        return self._lttng.get_sim_time_converter()
 
     def variable_passing_records(
         self,

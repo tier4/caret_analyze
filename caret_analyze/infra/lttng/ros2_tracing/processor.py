@@ -102,6 +102,8 @@ class Ros2Handler(EventHandler):
             self._handle_tilde_publish
         handler_map['ros2_caret:tilde_subscribe_added'] = \
             self._handle_tilde_subscribe_added
+        handler_map['ros2_caret:sim_time'] = \
+            self._handle_sim_time
 
         super().__init__(
             handler_map=handler_map,
@@ -434,15 +436,6 @@ class Ros2Handler(EventHandler):
         addr_to = get_field(event, 'addr_to')
         self.data.add_dds_bind_addr_to_addr(timestamp, addr_from, addr_to)
 
-    def _handle_ros_time(
-        self,
-        event: Dict,
-        metadata: EventMetadata,
-    ) -> None:
-        rostime = get_field(event, 'stamp')
-        stamp = metadata.timestamp
-        self.data.add_ros_time(stamp, rostime)
-
     def _handle_rmw_implementation(
         self,
         event: Dict,
@@ -594,3 +587,12 @@ class Ros2Handler(EventHandler):
         node_name = get_field(event, 'node_name')
         topic_name = get_field(event, 'topic_name')
         self.data.add_tilde_subscribe_added(subscription_id, node_name, topic_name, timestamp)
+
+    def _handle_sim_time(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        timestamp = metadata.timestamp
+        sim_time = get_field(event, 'stamp')
+        self.data.add_sim_time(timestamp, sim_time)

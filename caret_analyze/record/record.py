@@ -17,7 +17,7 @@ from __future__ import annotations
 from copy import deepcopy
 from enum import IntEnum
 from itertools import groupby
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 import pandas as pd
 
@@ -263,6 +263,26 @@ class Records(RecordsInterface):
     def to_dataframe(self) -> pd.DataFrame:
         pd_dict = [record.data for record in self.data]
         return self._to_dataframe(pd_dict, self.columns)
+
+    def get_column_series(self, column_name: str) -> Sequence[Optional[int]]:
+        return self._get_column_series_core(self, column_name)
+
+    def get_row_series(self, index: int) -> RecordInterface:
+        if index >= len(self.data):
+            raise InvalidArgumentError('index exceeds the row size.')
+        return self.data[index]
+
+    @staticmethod
+    def _get_column_series_core(records: RecordsInterface, column_name: str):
+        if column_name not in records.columns:
+            raise InvalidArgumentError(f'Unknown column_name: {column_name}')
+        l: List[Optional[int]] = []
+        for datum in records.data:
+            if column_name in datum.columns:
+                l.append(datum.get(column_name))
+            else:
+                l.append(None)
+        return l
 
     @staticmethod
     def _to_dataframe(

@@ -498,3 +498,7 @@ class RecordsSource():
         )
 
         return records
+
+    @cached_property
+    def system_and_sim_times(self) -> RecordsInterface:
+        return self._data.sim_time

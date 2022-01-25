@@ -510,6 +510,49 @@ class TestRecords:
             for i, record in enumerate(records):
                 assert record.get('a') == records_py.data[i].get('a')
 
+    def test_get_column_series(self):
+        records_py: Records = Records(
+            [
+                Record({'a': 0, 'b': 1}),
+                Record({'b': 3}),
+                Record({'a': 5}),
+            ],
+            ['a', 'b']
+        )
+        records_cpp = to_cpp_records(records_py)
+
+        for records in [records_py, records_cpp]:
+            if records is None and not CppImplEnabled:
+                continue
+
+            assert records.get_column_series('a') == [0, None, 5]
+            assert records.get_column_series('b') == [1, 3, None]
+
+            with pytest.raises(InvalidArgumentError):
+                records.get_column_series('x')
+
+    def test_get_row_series(self):
+        records_py: Records = Records(
+            [
+                Record({'a': 0, 'b': 1}),
+                Record({'b': 3}),
+                Record({'a': 5}),
+            ],
+            ['a', 'b']
+        )
+        records_cpp = to_cpp_records(records_py)
+
+        for records in [records_py, records_cpp]:
+            if records is None and not CppImplEnabled:
+                continue
+
+            assert records.get_row_series(0).equals(records.data[0])
+            assert records.get_row_series(1).equals(records.data[1])
+            assert records.get_row_series(2).equals(records.data[2])
+
+            with pytest.raises(InvalidArgumentError):
+                records.get_row_series(100)
+
     def test_groupby_1key(self):
         records_py = Records(
             [

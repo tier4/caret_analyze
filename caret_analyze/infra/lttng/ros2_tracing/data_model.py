@@ -118,6 +118,11 @@ class Ros2DataModel(DataModel):
                 'subscription_id',
                 'tilde_message_id']
         )
+        self.sim_time = RecordsFactory.create_instance(
+            None, [
+                'system_time',
+                'sim_time']
+        )
 
         self.rmw_implementation = ''
 
@@ -432,6 +437,19 @@ class Ros2DataModel(DataModel):
             }
         )
         self.dispatch_subscription_callback_instances.append(record)
+
+    def add_sim_time(
+        self,
+        timestamp: int,
+        sim_time: int
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'system_time': timestamp,
+                'sim_time': sim_time
+            }
+        )
+        self.sim_time.append(record)
 
     def set_rmw_implementation(self, rmw_impl: str):
         self.rmw_implementation = rmw_impl

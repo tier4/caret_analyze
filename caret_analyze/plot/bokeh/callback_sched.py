@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import abstractmethod
 
 from logging import getLogger
-from typing import Dict, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.colors import Color
 from bokeh.io import show
@@ -27,7 +27,7 @@ from bokeh.plotting import ColumnDataSource, figure
 from caret_analyze.runtime.callback import CallbackBase
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
-from ...common import Util
+from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
 from ...runtime import CallbackGroup, Executor, Node
@@ -41,6 +41,7 @@ def callback_sched(
     lstrip_s: float = 0,
     rstrip_s: float = 0,
     coloring_rule='callback',
+    use_sim_time: bool = False
 ):
     assert coloring_rule in ['callback', 'callback_group', 'node']
 
@@ -53,7 +54,7 @@ def callback_sched(
     clip = Clip(clip_min, clip_max)
 
     color_selector = ColorSelector.create_instance(coloring_rule)
-    sched_plot_cbg(target_name, cbgs, color_selector, clip)
+    sched_plot_cbg(target_name, cbgs, color_selector, clip, use_sim_time)
 
 
 def get_cbg_and_name(
@@ -92,6 +93,7 @@ def sched_plot_cbg(
     cbgs: Sequence[CallbackGroup],
     color_selector: ColorSelector,
     clipper: Clip,
+    use_sim_time: bool
 ):
     TOOLTIPS = """
     <div style="width:400px; word-wrap: break-word;">
@@ -114,7 +116,17 @@ def sched_plot_cbg(
                tooltips=TOOLTIPS)
 
     x_range_name = 'x_plot_axis'
-    apply_x_axis_offset(p, x_range_name, clipper.min_ns, clipper.max_ns)
+    converter: Optional[ClockConverter] = None
+    if use_sim_time:
+        cbs: List[CallbackBase] = Util.flatten(
+            cbg.callbacks for cbg in cbgs if len(cbg.callbacks) > 0)
+        converter = cbs[0]._provider.get_sim_time_converter() # TODO(hsgwa): refactor
+        frame_min = converter.convert(clipper.min_ns)
+        frame_max = converter.convert(clipper.max_ns)
+    else:
+        frame_min = clipper.min_ns
+        frame_max = clipper.max_ns
+    apply_x_axis_offset(p, x_range_name, frame_min, frame_max)
 
     rect_y = 0.0
     rect_height = 0.3
@@ -122,7 +134,7 @@ def sched_plot_cbg(
 
     for callback_group in cbgs:
         for callback in callback_group.callbacks:
-            rect_source = get_callback_rects(callback, clipper, rect_y, rect_height)
+            rect_source = get_callback_rects(callback, clipper, rect_y, rect_height, converter)
             color = color_selector.get_color(
                 callback.node_name,
                 callback_group.callback_group_name,
@@ -150,10 +162,11 @@ def sched_plot_cbg(
 
 
 def get_callback_rects(
-    callback,
+    callback: CallbackBase,
     clip: Clip,
     y,
-    height
+    height,
+    converter: Optional[ClockConverter]
 ) -> ColumnDataSource:
     y_min = y - height
     y_max = y + height
@@ -179,7 +192,12 @@ def get_callback_rects(
     for item in df.itertuples():
         callback_start = item._1
         callback_end = item._2
+        if converter:
+            callback_start = converter.convert(callback_start)
+            callback_end = converter.convert(callback_end)
+
         rect = RectValues(callback_start, callback_end, y_min, y_max)
+
         new_data = {
             'x': [rect.x],
             'y': [rect.y],

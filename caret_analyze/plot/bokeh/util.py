@@ -49,7 +49,7 @@ class RectValues():
         return abs(self._y[0] - self._y[1])
 
 
-def apply_x_axis_offset(fig: Figure, x_range_name: str, min_ns: int, max_ns: int):
+def apply_x_axis_offset(fig: Figure, x_range_name: str, min_ns: float, max_ns: float):
     offset_s = max_ns*1.0e-9
     end_s = (max_ns-min_ns)*1.0e-9
 

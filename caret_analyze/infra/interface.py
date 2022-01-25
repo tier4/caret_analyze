@@ -17,6 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Union
 
+from ..common import ClockConverter
 from ..record.interface import RecordsInterface
 from ..value_objects import (CallbackStructValue, CommunicationStructValue,
                              NodePathStructValue, PublisherStructValue, Qos,
@@ -103,6 +104,12 @@ class RecordsProvider(metaclass=ABCMeta):
         self,
         publisher: PublisherStructValue
     ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def get_sim_time_converter(
+        self,
+    ) -> ClockConverter:
         pass
 
 

@@ -26,6 +26,8 @@ from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
+from ...common import ClockConverter
+from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos
 
@@ -356,6 +358,20 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_subscription_qos(sub)
+
+    def get_sim_time_converter(
+        self
+    ) -> ClockConverter:
+        records: RecordsInterface = self._source.system_and_sim_times
+        system_times = records.get_column_series('system_time')
+        sim_times = records.get_column_series('sim_time')
+        system_times_filtered = [_ for _ in system_times if _ is not None]
+        sim_times_filtered = [_ for _ in sim_times if _ is not None]
+        try:
+            return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
+        except InvalidArgumentError:
+            raise InvalidArgumentError(
+                'Failed to load sim_time. Please measure again with clock_recorder running.')
 
     def compose_inter_proc_comm_records(
         self,

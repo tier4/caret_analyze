@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
+from ...common import ClockConverter
 from ...exceptions import InvalidArgumentError
 from ...record.data_frame_shaper import Clip, Strip
 from ...runtime.path import Path
@@ -38,6 +39,7 @@ def message_flow(
     treat_drop_as_delay=False,
     lstrip_s: float = 0,
     rstrip_s: float = 0,
+    use_sim_time: bool = False
 ) -> None:
     granularity = granularity or 'raw'
     if granularity not in ['raw', 'node']:
@@ -70,12 +72,25 @@ def message_flow(
 
     df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
 
+    converter: Optional[ClockConverter] = None
+    if use_sim_time:
+        assert path.callbacks is not None and len(path.callbacks) > 0
+        cb = path.callbacks[0]
+        converter = cb._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
+
     strip = Strip(lstrip_s, rstrip_s)
     clip = strip.to_clip(df)
     df = clip.execute(df)
 
+    frame_min: float = clip.min_ns
+    frame_max: float = clip.max_ns
+
+    if converter:
+        frame_min = converter.convert(frame_min)
+        frame_max = converter.convert(frame_max)
+
     x_range_name = 'x_plot_axis'
-    apply_x_axis_offset(fig, x_range_name, clip.min_ns, clip.max_ns)
+    apply_x_axis_offset(fig, x_range_name, frame_min, frame_max)
 
     formatter = FormatterFactory.create(path, granularity)
     formatter.remove_columns(df)
@@ -86,7 +101,7 @@ def message_flow(
     fig.yaxis.ticker = yaxis_property.values
     fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
-    rect_source = get_callback_rects(path, yaxis_values, granularity, clip)
+    rect_source = get_callback_rects(path, yaxis_values, granularity, clip, converter)
     fig.rect(
         'x',
         'y',
@@ -100,7 +115,7 @@ def message_flow(
         x_range_name=x_range_name
     )
 
-    line_sources = get_flow_lines(df)
+    line_sources = get_flow_lines(df, converter)
     for i, line_source in enumerate(line_sources):
         fig.line(
             x='x',
@@ -122,7 +137,8 @@ def get_callback_rects(
     path: Path,
     y_axi_values: YAxisValues,
     granularity: str,
-    clip: Optional[Clip]
+    clip: Optional[Clip],
+    converter: Optional[ClockConverter]
 ) -> ColumnDataSource:
     rect_source = ColumnDataSource(data={
         'x': [],
@@ -163,6 +179,9 @@ def get_callback_rects(
             for _, row in df.iterrows():
                 callback_start = row.to_list()[0]
                 callback_end = row.to_list()[-1]
+                if converter:
+                    callback_start = converter.convert(callback_start)
+                    callback_end = converter.convert(callback_end)
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
                 x.append(rect.x)
                 y.append(rect.y)
@@ -189,12 +208,14 @@ def get_callback_rects(
     return rect_source
 
 
-def get_flow_lines(df: pd.DataFrame) -> ColumnDataSource:
+def get_flow_lines(df: pd.DataFrame, converter: Optional[ClockConverter]) -> ColumnDataSource:
     tick_labels = YAxisProperty(df)
     line_sources = []
 
     for i, row in df.iterrows():
         row_values = row.dropna().values
+        if converter:
+            row_values = [converter.convert(_) for _ in row_values]
         x_min = min(row_values)
         x_max = max(row_values)
         width = x_max - x_min

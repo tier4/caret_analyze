@@ -300,6 +300,14 @@ class RecordsInterface:
         """
         pass
 
+    @abstractmethod
+    def get_row_series(self, index: int) -> RecordInterface:
+        pass
+
+    @abstractmethod
+    def get_column_series(self, column_name: str) -> Sequence[Optional[int]]:
+        pass
+
     def __len__(self) -> int:
         return len(self.data)
 

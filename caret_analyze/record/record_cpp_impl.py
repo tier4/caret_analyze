@@ -132,6 +132,14 @@ class RecordsCppImpl(RecordsInterface):
             group[k] = records
         return group
 
+    def get_row_series(self, index: int) -> RecordInterface:
+        if index >= len(self.data):
+            raise InvalidArgumentError('index exceeds the row size.')
+        return self.data[index]
+
+    def get_column_series(self, column_name: str) -> Sequence[Optional[int]]:
+        return Records._get_column_series_core(self, column_name)
+
     @property
     def columns(self) -> List[str]:
         return self._records.columns
