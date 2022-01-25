@@ -138,8 +138,8 @@ class Architecture(Summarizable):
             'nodes': self.node_names
         })
 
-    def export(self, file_path: str):
-        exporter = ArchitectureExporter(self.nodes, self.executors, self.paths)
+    def export(self, file_path: str, force: bool = False):
+        exporter = ArchitectureExporter(self.nodes, self.executors, self.paths, force)
         exporter.execute(file_path)
 
     def search_paths(

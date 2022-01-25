@@ -33,13 +33,16 @@ class ArchitectureExporter():
         node_values: Tuple[NodeStructValue, ...],
         executor_values: Tuple[ExecutorStructValue, ...],
         named_path_values: Tuple[PathStructValue, ...],
+        force: bool = False
     ) -> None:
         self._named_path_values = named_path_values
         self._executor_values = executor_values
         self._node_values = node_values
+        self._force = force
 
     def execute(self, file_path: str) -> None:
-        with open(file_path, mode='w') as f:
+        mode = 'w' if self._force else 'x'
+        with open(file_path, mode=mode) as f:
             f.write(str(self))
 
     def __str__(self) -> str:

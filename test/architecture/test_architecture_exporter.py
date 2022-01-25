@@ -115,6 +115,33 @@ nodes: []
 """
         assert str(exporter) == expected
 
+    def test_force_option(self, mocker: MockerFixture, tmpdir):
+        exporter = ArchitectureExporter((), (), ())
+        exporter_force = ArchitectureExporter((), (), (), force=True)
+
+        named_path_mock = mocker.Mock(spec=NamedPathsDicts)
+        mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
+                     return_value=named_path_mock)
+        mocker.patch.object(named_path_mock, 'data', [])
+
+        exec_mock = mocker.Mock(spec=ExecutorsDicts)
+        mocker.patch('caret_analyze.architecture.architecture_exporter.ExecutorsDicts',
+                     return_value=exec_mock)
+        mocker.patch.object(exec_mock, 'data', [])
+
+        node_mock = mocker.Mock(spec=NodesDicts)
+        mocker.patch('caret_analyze.architecture.architecture_exporter.NodesDicts',
+                     return_value=node_mock)
+        mocker.patch.object(node_mock, 'data', [])
+
+        f = tmpdir.mkdir('sub').join('arch.yaml')
+        exporter.execute(f.strpath)
+
+        with pytest.raises(FileExistsError):
+            exporter.execute(f)
+
+        exporter_force.execute(f)
+
 
 class TestNamedPathsDicts:
 
