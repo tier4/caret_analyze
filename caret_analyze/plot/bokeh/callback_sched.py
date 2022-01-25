@@ -19,18 +19,17 @@ from abc import abstractmethod
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
-from bokeh.colors import Color
+from bokeh.colors import Color, RGB
 from bokeh.io import show
-from bokeh.palettes import Set1
 from bokeh.plotting import ColumnDataSource, figure
 
-from caret_analyze.runtime.callback import CallbackBase
+import colorcet as cc
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
 from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
-from ...runtime import CallbackGroup, Executor, Node
+from ...runtime import CallbackBase, CallbackGroup, Executor, Node
 
 
 logger = getLogger(__name__)
@@ -120,7 +119,7 @@ def sched_plot_cbg(
     if use_sim_time:
         cbs: List[CallbackBase] = Util.flatten(
             cbg.callbacks for cbg in cbgs if len(cbg.callbacks) > 0)
-        converter = cbs[0]._provider.get_sim_time_converter() # TODO(hsgwa): refactor
+        converter = cbs[0]._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
         frame_min = converter.convert(clipper.min_ns)
         frame_max = converter.convert(clipper.max_ns)
     else:
@@ -230,7 +229,7 @@ class ColorSelector:
             return ColorSelectorNode()
 
     def __init__(self) -> None:
-        self._palette = Set1[4]
+        self._palette: Sequence[Color] = [self._from_rgb(*rgb) for rgb in cc.glasbey_bw_minc_20]
         self._color_map: Dict[str, Color] = {}
 
     def get_color(self, node_name: str, cbg_name: str, callback_name: str) -> Color:
@@ -245,6 +244,13 @@ class ColorSelector:
     @abstractmethod
     def _get_color_hash(self, node_name: str, cbg_name: str, callback_name: str) -> Color:
         return
+
+    @staticmethod
+    def _from_rgb(r: float, g: float, b: float) -> Color:
+        r_ = int(r*255)
+        g_ = int(g*255)
+        b_ = int(b*255)
+        return RGB(r_, g_, b_)
 
 
 class ColorSelectorCallback(ColorSelector):
