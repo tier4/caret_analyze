@@ -45,7 +45,7 @@ class TestLttngInfo:
         assert info.get_rmw_impl() == ''
 
         data = Ros2DataModel()
-        data.set_rmw_implementation('xxx_dds')
+        data.add_rmw_implementation('xxx_dds')
         data.finalize()
         info = LttngInfo(data)
         assert info.get_rmw_impl() == 'xxx_dds'
@@ -69,7 +69,9 @@ class TestLttngInfo:
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
 
-        info = LttngInfo(Ros2DataModel())
+        data = Ros2DataModel()
+        data.finalize()
+        info = LttngInfo(data)
         nodes = info.get_nodes()
         assert len(nodes) == 1
         expect = NodeValueLttng('/node', 'node_id')
@@ -134,6 +136,7 @@ class TestLttngInfo:
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
 
+        data.finalize()
         info = LttngInfo(data)
         pubs_info = info.get_publishers(NodeValue('/node', 'node_id'))
         assert len(pubs_info) == 1
@@ -149,6 +152,7 @@ class TestLttngInfo:
         period_ns = 8
         callback_object = 11
         callback_group_addr = 14
+        timer_handle = 15
         symbol = 'symbol'
 
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
@@ -185,6 +189,7 @@ class TestLttngInfo:
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         # mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
 
+        data.finalize()
         info = LttngInfo(data)
 
         timer_cbs_info = info.get_timer_callbacks(NodeValue('/node1', 'node_id'))
@@ -194,6 +199,7 @@ class TestLttngInfo:
             '/node1',
             symbol,
             period_ns,
+            timer_handle,
             None,
             callback_object=callback_object
         )
@@ -214,6 +220,7 @@ class TestLttngInfo:
         subscription_handle = [11, 12]
         cbg_addr = [13, 14]
         tilde_subscription = [17, 18]
+        subscription_handle = [19, 20]
 
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
@@ -243,7 +250,7 @@ class TestLttngInfo:
                     'depth': depth[1]
                 }
             ]
-        )
+        ).convert_dtypes()
         mocker.patch.object(
             formatted_mock, 'subscription_callbacks_df', sub_df)
 
@@ -260,7 +267,7 @@ class TestLttngInfo:
                     'topic_name': topic_name[1],
                 }
             ]
-        )
+        ).convert_dtypes()
         mocker.patch.object(
             formatted_mock, 'tilde_subscriptions_df', tilde_sub_df)
 
@@ -277,10 +284,11 @@ class TestLttngInfo:
                     'node_name': node_name[1]
                 }
             ]
-        )
+        ).convert_dtypes()
         mocker.patch.object(formatted_mock, 'nodes_df', node_df)
 
         data = Ros2DataModel()
+        data.finalize()
         info = LttngInfo(data)
 
         sub_cbs_info = info.get_subscription_callbacks(NodeValue('/node1', 'node_id'))
@@ -290,6 +298,7 @@ class TestLttngInfo:
             node_name[0],
             symbol[0],
             topic_name[0],
+            subscription_handle[0],
             None,
             callback_object=callback_object[0],
             callback_object_intra=callback_object_intra[0],
@@ -304,6 +313,7 @@ class TestLttngInfo:
             node_name[1],
             symbol[1],
             topic_name[1],
+            subscription_handle[1],
             None,
             callback_object[1],
             None,
@@ -382,6 +392,7 @@ class TestLttngInfo:
         mocker.patch.object(formatted_mock, 'callback_groups_df', cbg_df)
 
         data = Ros2DataModel()
+        data.finalize()
         info = LttngInfo(data)
         cbg_info = info.get_callback_groups(NodeValue(node_name, 'node_id'))
 
@@ -424,6 +435,7 @@ class TestLttngInfo:
         mocker.patch.object(formatted_mock, 'callback_groups_df', cbg_df)
 
         data = Ros2DataModel()
+        data.finalize()
         info = LttngInfo(data)
 
         execs_info = info.get_executors()
@@ -550,7 +562,7 @@ class TestDataFrameFormatted:
                     'depth': depth[1],
                 },
             ]
-        )
+        ).convert_dtypes()
         assert sub_df.equals(expect)
 
     def test_executor_df(self):
@@ -634,7 +646,7 @@ class TestDataFrameFormatted:
                     'callback_object': callback_object_inter[1],
                 },
             ]
-        )
+        ).convert_dtypes()
         assert sub_df.equals(expect)
 
     def test_build_nodes_df(self):
@@ -735,6 +747,7 @@ class TestDataFrameFormatted:
         node_mock = mocker.Mock(spec=pd.DataFrame)
         timer_mock = mocker.Mock(spec=pd.DataFrame)
         sub_mock = mocker.Mock(spec=pd.DataFrame)
+        srv_mock = mocker.Mock(spec=pd.DataFrame)
         cbg_mock = mocker.Mock(spec=pd.DataFrame)
         pub_mock = mocker.Mock(spec=pd.DataFrame)
         tilde_sub_mock = mocker.Mock(spec=pd.DataFrame)
@@ -749,6 +762,8 @@ class TestDataFrameFormatted:
             DataFrameFormatted, '_build_timer_callbacks_df', return_value=timer_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_sub_callbacks_df', return_value=sub_mock)
+        mocker.patch.object(
+            DataFrameFormatted, '_build_srv_callbacks_df', return_value=srv_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_cbg_df', return_value=cbg_mock)
         mocker.patch.object(
@@ -768,6 +783,7 @@ class TestDataFrameFormatted:
         assert formatted.timer_callbacks_df == timer_mock
         assert formatted.subscription_callbacks_df == sub_mock
         assert formatted.callback_groups_df == cbg_mock
+        assert formatted.services_df == srv_mock
         assert formatted.publishers_df == pub_mock
 
     # def test_build_subscription_callbacks_df(self):

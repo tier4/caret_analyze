@@ -53,6 +53,7 @@ class Ros2DataModel(DataModel):
         self._callback_group_subscription: DataModelIntermediateStorage = []
         self._callback_group_service: DataModelIntermediateStorage = []
         self._callback_group_client: DataModelIntermediateStorage = []
+        self._rmw_impl: DataModelIntermediateStorage = []
 
         self._tilde_subscriptions: DataModelIntermediateStorage = []
         self._tilde_publishers: DataModelIntermediateStorage = []
@@ -124,8 +125,6 @@ class Ros2DataModel(DataModel):
                 'sim_time']
         )
 
-        self.rmw_implementation = ''
-
     def add_context(self, context_handle, timestamp, pid, version) -> None:
         record = {
             'context_handle': context_handle,
@@ -182,7 +181,7 @@ class Ros2DataModel(DataModel):
 
     def add_service(self, handle, timestamp, node_handle, rmw_handle, service_name) -> None:
         record = {
-            'service_handle': timestamp,
+            'service_handle': handle,
             'timestamp': timestamp,
             'node_handle': node_handle,
             'rmw_handle': rmw_handle,
@@ -451,8 +450,8 @@ class Ros2DataModel(DataModel):
         )
         self.sim_time.append(record)
 
-    def set_rmw_implementation(self, rmw_impl: str):
-        self.rmw_implementation = rmw_impl
+    def add_rmw_implementation(self, rmw_impl: str):
+        self._rmw_impl.append({'rmw_impl': rmw_impl})
 
     def add_dispatch_intra_process_subscription_callback_instance(
         self,
@@ -719,6 +718,8 @@ class Ros2DataModel(DataModel):
             self.tilde_subscribe_added.set_index(
                 'subscription_id', inplace=True, drop=True
             )
+
+        self.rmw_impl = pd.DataFrame.from_dict(self._rmw_impl)
 
     def print_data(self) -> None:
         print('====================ROS 2 DATA MODEL===================')

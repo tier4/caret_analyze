@@ -37,7 +37,9 @@ class LttngInfo:
 
     def __init__(self, data: Ros2DataModel):
         self._formatted = DataFrameFormatted(data)
-        self._rmw_implementation = data.rmw_implementation
+
+        # TODO(hsgwa): check rmw_impl for each process.
+        self._rmw_implementation = data.rmw_impl.iloc[0, 0] if len(data.rmw_impl) > 0 else ''
         # self._source = records_source
         # self._binder_cache: Dict[str, PublisherBinder] = {}
 
@@ -102,6 +104,7 @@ class LttngInfo:
                     node_id=row['node_id'],
                     symbol=row['symbol'],
                     period_ns=row['period_ns'],
+                    timer_handle=row['timer_handle'],
                     publish_topic_names=None,
                     callback_object=row['callback_object']
                 )
@@ -209,7 +212,7 @@ class LttngInfo:
 
             # Since callback_object_intra contains nan, it is of type np.float.
             record_callback_object_intra = row['callback_object_intra']
-            if np.isnan(record_callback_object_intra):
+            if record_callback_object_intra is pd.NA:
                 callback_object_intra = None
             else:
                 callback_object_intra = int(record_callback_object_intra)
@@ -223,6 +226,7 @@ class LttngInfo:
                     symbol=row['symbol'],
                     subscribe_topic_name=row['topic_name'],
                     publish_topic_names=None,
+                    subscription_handle=row['subscription_handle'],
                     callback_object=row['callback_object'],
                     callback_object_intra=callback_object_intra,
                     tilde_subscription=tilde_subscription
@@ -832,6 +836,7 @@ class DataFrameFormatted:
         self._nodes_df = self._build_nodes_df(data)
         self._timer_callbacks_df = self._build_timer_callbacks_df(data)
         self._sub_callbacks_df = self._build_sub_callbacks_df(data)
+        self._srv_callbacks_df = self._build_srv_callbacks_df(data)
         self._cbg_df = self._build_cbg_df(data)
         self._pub_df = self._build_publisher_df(data)
         self._tilde_sub = self._build_tilde_subscription_df(data)
@@ -940,6 +945,25 @@ class DataFrameFormatted:
 
         """
         return self._pub_df
+
+    @property
+    def services_df(self) -> pd.DataFrame:
+        """
+        Get service info table.
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - callback_id
+            - callback_object
+            - node_handle
+            - service_handle
+            - service_name
+            - symbol
+
+        """
+        return self._srv_callbacks_df
 
     @property
     def executor_df(self) -> pd.DataFrame:
@@ -1159,6 +1183,39 @@ class DataFrameFormatted:
 
             df = DataFrameFormatted._ensure_columns(df, columns)
 
+            return df[columns].convert_dtypes()
+        except KeyError:
+            return pd.DataFrame(columns=columns).convert_dtypes()
+
+    @staticmethod
+    def _build_srv_callbacks_df(
+        data: Ros2DataModel,
+    ) -> pd.DataFrame:
+        columns = [
+            'callback_id', 'callback_object', 'node_handle',
+            'service_handle', 'service_name', 'symbol'
+        ]
+
+        def callback_id(row: pd.Series) -> str:
+            cb_object = row['callback_object']
+            return f'service_callback_{cb_object}'
+
+        try:
+            df = data.services.reset_index()
+
+            callback_objects_df = data.callback_objects.reset_index().rename(
+                {'reference': 'service_handle'}, axis=1)
+            df = merge(df, callback_objects_df, 'service_handle')
+
+            symbols_df = data.callback_symbols.reset_index()
+            df = merge(df, symbols_df, 'callback_object')
+
+            df = DataFrameFormatted._add_column(
+                df, 'callback_id', callback_id
+            )
+
+            df = DataFrameFormatted._ensure_columns(df, columns)
+
             return df[columns]
         except KeyError:
             return pd.DataFrame(columns=columns)
@@ -1321,7 +1378,7 @@ class DataFrameFormatted:
                     f'subscription_handle = {key}, '
                     f'callback_objects = {cb_objs}')
             dicts.append(record)
-        df = pd.DataFrame.from_dict(dicts, dtype=int)
+        df = pd.DataFrame.from_dict(dicts, dtype='Int64')
         return df
 
     @staticmethod

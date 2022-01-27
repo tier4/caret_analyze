@@ -15,7 +15,7 @@
 
 """Module for trace events processor and ROS 2 model creation."""
 
-from typing import Dict, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 from tracetools_analysis.processor import (EventHandler, EventMetadata,
                                            HandlerMap)
@@ -113,6 +113,53 @@ class Ros2Handler(EventHandler):
 
         # Temporary buffers
         self._callback_instances: Dict[int, Tuple[Dict, EventMetadata]] = {}
+
+    @staticmethod
+    def get_trace_points() -> List[str]:
+        return [
+            'ros2:rcl_init',
+            'ros2:rcl_node_init',
+            'ros2:rcl_publisher_init',
+            'ros2:rcl_subscription_init',
+            'ros2:rclcpp_subscription_init',
+            'ros2:rclcpp_subscription_callback_added',
+            'ros2:rcl_service_init',
+            'ros2:rclcpp_service_callback_added',
+            'ros2:rcl_client_init',
+            'ros2:rcl_timer_init',
+            'ros2:rclcpp_timer_callback_added',
+            'ros2:rclcpp_timer_link_node',
+            'ros2:rclcpp_callback_register',
+            'ros2:callback_start',
+            'ros2:callback_end',
+            'ros2:rcl_lifecycle_state_machine_init',
+            'ros2:rcl_lifecycle_transition',
+            'ros2:rclcpp_publish',
+            'ros2:message_construct',
+            'ros2:rclcpp_intra_publish',
+            'ros2:dispatch_subscription_callback',
+            'ros2:dispatch_intra_process_subscription_callback',
+            'ros2_caret:on_data_available',
+            'ros2:rcl_publish',
+            'ros2_caret:dds_write',
+            'ros2_caret:dds_bind_addr_to_stamp',
+            'ros2_caret:dds_bind_addr_to_addr',
+            'ros2_caret:rmw_implementation',
+            'ros2_caret:add_callback_group',
+            'ros2_caret:add_callback_group_static_executor',
+            'ros2_caret:construct_executor',
+            'ros2_caret:construct_static_executor',
+            'ros2_caret:callback_group_add_timer',
+            'ros2_caret:callback_group_add_subscription',
+            'ros2_caret:callback_group_add_service',
+            'ros2_caret:callback_group_add_client',
+            'ros2_caret:tilde_subscription_init',
+            'ros2_caret:tilde_publisher_init',
+            'ros2_caret:tilde_subscribe',
+            'ros2_caret:tilde_publish',
+            'ros2_caret:tilde_subscribe_added',
+            'ros2_caret:sim_time',
+        ]
 
     @staticmethod
     def required_events() -> Set[str]:
@@ -443,7 +490,7 @@ class Ros2Handler(EventHandler):
     ) -> None:
         metadata
         rmw_impl = get_field(event, 'rmw_impl')
-        self.data.set_rmw_implementation(rmw_impl)
+        self.data.add_rmw_implementation(rmw_impl)
 
     def _handle_construct_executor(
         self,

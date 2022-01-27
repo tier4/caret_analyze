@@ -27,6 +27,7 @@ class TimerCallbackValueLttng(TimerCallbackValue):
         node_name: str,
         symbol: str,
         period_ns: int,
+        timer_handle: int,
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
     ) -> None:
@@ -39,10 +40,15 @@ class TimerCallbackValueLttng(TimerCallbackValue):
             publish_topic_names=publish_topic_names,
         )
         self._callback_object = callback_object
+        self._timer_handle = timer_handle
 
     @property
     def callback_object(self) -> int:
         return self._callback_object
+
+    @property
+    def timer_handle(self) -> int:
+        return self._timer_handle
 
 
 class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
@@ -53,6 +59,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
+        subscription_handle: int,
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
         callback_object_intra: Optional[int],
@@ -70,6 +77,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         self._callback_object = callback_object
         self._callback_object_intra = callback_object_intra
         self._tilde_sub = tilde_subscription
+        self._subscription_handle = subscription_handle
 
     @property
     def callback_object(self) -> int:
@@ -82,3 +90,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
     @property
     def tilde_subscription(self) -> Optional[int]:
         return self._tilde_sub
+
+    @property
+    def subscription_handle(self) -> int:
+        return self._subscription_handle

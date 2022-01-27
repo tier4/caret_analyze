@@ -18,6 +18,8 @@ from abc import ABCMeta, abstractmethod
 
 from typing import Dict, List, Optional, Sequence
 
+import pandas as pd
+
 from tracetools_analysis.loading import load_file
 
 from .ros2_tracing.data_model import DataModel
@@ -164,6 +166,7 @@ class Lttng(InfraBase):
     ) -> None:
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
+        from .event_counter import EventCounter
 
         if self._last_load_dir == trace_dir and use_singleton_cache is True and \
                 event_filters == self._last_filters:
@@ -174,6 +177,7 @@ class Lttng(InfraBase):
         data = self._parse_lttng_data(trace_dir, force_conversion, event_filters or [])
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
+        self._counter = EventCounter(data, self._info)
 
     def clear_singleton_cache(self) -> None:
         self._last_load_dir = None
@@ -372,6 +376,13 @@ class Lttng(InfraBase):
         except InvalidArgumentError:
             raise InvalidArgumentError(
                 'Failed to load sim_time. Please measure again with clock_recorder running.')
+
+    def get_count(
+        self,
+        groupby: Optional[List[str]] = None
+    ) -> pd.DataFrame:
+        groupby = groupby or ['trace_point']
+        return self._counter.get_count(groupby)
 
     def compose_inter_proc_comm_records(
         self,
