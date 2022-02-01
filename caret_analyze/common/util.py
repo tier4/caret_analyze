@@ -63,7 +63,7 @@ class Util:
         Raises
         ------
         ItemNotFoundError
-            Failed to identify item that match the condition.
+            Failed to find item that match the condition.
         MultipleItemFoundError
             Failed to identify item that match the condition.
 

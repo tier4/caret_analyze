@@ -56,22 +56,67 @@ class Application(Summarizable):
 
     @property
     def executors(self) -> List[Executor]:
+        """
+        Get executors.
+
+        Returns
+        -------
+        List[Executor]
+            executor list.
+
+        """
         return self._executors
 
     @property
     def nodes(self) -> List[Node]:
+        """
+        Get nodes.
+
+        Returns
+        -------
+        List[Node]
+            node list.
+
+        """
         return self._nodes
 
     @property
     def communications(self) -> List[Communication]:
+        """
+        Get communications.
+
+        Returns
+        -------
+        List[Communication]
+            communication list.
+
+        """
         return self._communications
 
     @property
     def paths(self) -> List[Path]:
+        """
+        Get paths.
+
+        Returns
+        -------
+        List[Path]
+            path list.
+
+        """
         return self._paths
 
     @property
     def callbacks(self) -> List[CallbackBase]:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        List[CallbackBase]
+            callback list.
+
+        """
         cbs: List[CallbackBase] = []
         for node in self.nodes:
             if node.callbacks is not None:
@@ -79,6 +124,29 @@ class Application(Summarizable):
         return cbs
 
     def get_path(self, path_name: str) -> Path:
+        """
+        Get path that matches the condition.
+
+        Parameters
+        ----------
+        path_name : str
+            path name to get.
+
+        Returns
+        -------
+        Path
+            path that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(path_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -91,6 +159,29 @@ class Application(Summarizable):
         self,
         executor_name: str
     ) -> Executor:
+        """
+        Get executor that matches the condition.
+
+        Parameters
+        ----------
+        executor_name : str
+            executor name to get. The name is defined in the architecture file (ex: executor_0).
+
+        Returns
+        -------
+        Executor
+            executor that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(executor_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -100,6 +191,15 @@ class Application(Summarizable):
     def callback_groups(
         self,
     ) -> List[CallbackGroup]:
+        """
+        Get callback groups.
+
+        Returns
+        -------
+        List[CallbackGroup]
+            callback group list.
+
+        """
         cbgs: List[CallbackGroup] = []
         for node in self.nodes:
             if node.callback_groups is None:
@@ -110,7 +210,30 @@ class Application(Summarizable):
     def get_callback_group(
         self,
         callback_group_name: str
-    ) -> CallbackBase:
+    ) -> CallbackGroup:
+        """
+        Get callback group that matches the condition.
+
+        Parameters
+        ----------
+        callback_group_name : str
+            callback group name to get.
+
+        Returns
+        -------
+        CallbackBase
+            callback group that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(callback_group_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -124,6 +247,33 @@ class Application(Summarizable):
         subscription_node_name: str,
         topic_name: str
     ) -> Communication:
+        """
+        Get communication that matches the condition.
+
+        Parameters
+        ----------
+        publisher_node_name : str
+            node name that publishes the message.
+        subscription_node_name : str
+            node name that subscribe the message.
+        topic_name : str
+            topic name.
+
+        Returns
+        -------
+        Communication
+            communication that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(publisher_node_name, str) or \
                 not isinstance(subscription_node_name, str) or \
                 not isinstance(topic_name, str):
@@ -138,22 +288,67 @@ class Application(Summarizable):
 
     @property
     def topic_names(self) -> List[str]:
+        """
+        Get topic names.
+
+        Returns
+        -------
+        List[str]
+            topic name list.
+
+        """
         return sorted({_.topic_name for _ in self.communications})
 
     @property
     def executor_names(self) -> List[str]:
+        """
+        Get executor names.
+
+        Returns
+        -------
+        List[str]
+            executor name list.
+
+        """
         return sorted(_.executor_name for _ in self.executors)
 
     @property
     def callback_group_names(self) -> List[str]:
+        """
+        Get callback group names.
+
+        Returns
+        -------
+        List[str]
+            callback group name list.
+
+        """
         return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
     def path_names(self) -> List[str]:
+        """
+        Get path names.
+
+        Returns
+        -------
+        List[str]
+            path name list.
+
+        """
         return sorted(_.path_name for _ in self.paths)
 
     @property
     def callback_names(self) -> List[str]:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        List[str]
+            callback name list.
+
+        """
         return sorted(_.callback_name for _ in self.callbacks)
 
     def get_node_path(
@@ -162,6 +357,33 @@ class Application(Summarizable):
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str]
     ) -> NodePathStructValue:
+        """
+        Get node path that matches the condition.
+
+        Parameters
+        ----------
+        node_name : str
+            node name to get.
+        subscribe_topic_name : Optional[str]
+            topic name which the node subscribes.
+        publish_topic_name : Optional[str]
+            topic name which the node publishes.
+
+        Returns
+        -------
+        NodePathStructValue
+            node path that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(node_name, str) or \
                 not isinstance(subscribe_topic_name, str) or \
                 not isinstance(publish_topic_name, str):
@@ -177,6 +399,29 @@ class Application(Summarizable):
         self,
         topic_name: str
     ) -> List[Communication]:
+        """
+        Get communication that matches the condition.
+
+        Parameters
+        ----------
+        topic_name : str
+            topic name to get.
+
+        Returns
+        -------
+        List[Communication]
+            communications that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -189,6 +434,29 @@ class Application(Summarizable):
         self,
         node_name: str,
     ) -> List[NodePathStructValue]:
+        """
+        Get node paths.
+
+        Parameters
+        ----------
+        node_name : str
+            node name to get.
+
+        Returns
+        -------
+        List[NodePathStructValue]
+            node path list.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -199,9 +467,41 @@ class Application(Summarizable):
 
     @property
     def node_paths(self) -> List[NodePathStructValue]:
+        """
+        Get paths.
+
+        Returns
+        -------
+        List[NodePathStructValue]
+            path list.
+
+        """
         return Util.flatten([_.paths for _ in self.nodes])
 
     def get_node(self, node_name: str) -> Node:
+        """
+        Get node that matches the condition.
+
+        Parameters
+        ----------
+        node_name : str
+            node name to get.
+
+        Returns
+        -------
+        Node
+            node that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -211,6 +511,29 @@ class Application(Summarizable):
         return Util.find_one(is_target_node, self.nodes)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        """
+        Get callback that mathces the condition.
+
+        Parameters
+        ----------
+        callback_name : str
+            callback name to get.
+
+        Returns
+        -------
+        CallbackBase
+            callback that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
         if not isinstance(callback_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -221,10 +544,28 @@ class Application(Summarizable):
 
     @property
     def node_names(self) -> List[str]:
+        """
+        Get node names.
+
+        Returns
+        -------
+        List[str]
+            node name list.
+
+        """
         return sorted(c.node_name for c in self.nodes)
 
     @property
     def summary(self) -> Summary:
+        """
+        Get application summary.
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return Summary({
             'nodes': self.node_names
         })
