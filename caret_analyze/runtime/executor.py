@@ -44,7 +44,8 @@ class Executor(Summarizable):
 
     @property
     def callbacks(self) -> List[CallbackBase]:
-        return Util.flatten([cbg.callbacks for cbg in self._cbgs])
+        cbs = Util.flatten([cbg.callbacks for cbg in self._cbgs])
+        return sorted(cbs, key=lambda x: x.callback_name)
 
     def get_callback_group(
         self,
@@ -72,7 +73,7 @@ class Executor(Summarizable):
 
     @property
     def callback_groups(self) -> List[CallbackGroup]:
-        return self._cbgs
+        return sorted(self._cbgs, key=lambda x: x.callback_group_name)
 
     @property
     def callback_group_names(self) -> List[str]:

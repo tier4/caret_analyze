@@ -41,7 +41,7 @@ class CallbackBase(PathBase, Summarizable):
         self.__val = info
         self._provider = records_provider
         self._sub = subscription
-        self._pub = publishers
+        self._pubs = publishers
 
     @property
     def node_name(self) -> str:
@@ -65,7 +65,9 @@ class CallbackBase(PathBase, Summarizable):
 
     @property
     def publishers(self) -> Optional[List[Publisher]]:
-        return self._pub
+        if self._pubs is None:
+            return None
+        return sorted(self._pubs, key=lambda x: x.topic_name)
 
     @property
     def publish_topic_names(self) -> Optional[List[str]]:

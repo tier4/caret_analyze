@@ -47,7 +47,9 @@ class Node(Summarizable):
 
     @property
     def callback_groups(self) -> Optional[List[CallbackGroup]]:
-        return self._callback_groups
+        if self._callback_groups is None:
+            return None
+        return sorted(self._callback_groups, key=lambda x: x.callback_group_name)
 
     @property
     def node_name(self) -> str:
@@ -57,7 +59,8 @@ class Node(Summarizable):
     def callbacks(self) -> Optional[List[CallbackBase]]:
         if self.callback_groups is None:
             return None
-        return Util.flatten([cbg.callbacks for cbg in self.callback_groups])
+        cbs = Util.flatten([cbg.callbacks for cbg in self.callback_groups])
+        return sorted(cbs, key=lambda x: x.callback_name)
 
     @property
     def callback_names(self) -> Optional[List[str]]:
@@ -71,7 +74,7 @@ class Node(Summarizable):
 
     @property
     def publishers(self) -> List[Publisher]:
-        return self._publishers
+        return sorted(self._publishers, key=lambda x: x.topic_name)
 
     @property
     def publish_topic_names(self) -> List[str]:
@@ -83,7 +86,7 @@ class Node(Summarizable):
 
     @property
     def subscriptions(self) -> List[Subscription]:
-        return self._subscriptions
+        return sorted(self._subscriptions, key=lambda x: x.topic_name)
 
     @property
     def subscribe_topic_names(self) -> List[str]:

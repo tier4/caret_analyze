@@ -46,7 +46,9 @@ class NodePath(PathBase, Summarizable):
 
     @property
     def callbacks(self) -> Optional[List[CallbackBase]]:
-        return self._callbacks
+        if self._callbacks is None:
+            return None
+        return sorted(self._callbacks, key=lambda x: x.callback_name)
 
     @property
     def message_context(self) -> Optional[MessageContext]:

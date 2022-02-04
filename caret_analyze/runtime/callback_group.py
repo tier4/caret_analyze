@@ -77,7 +77,7 @@ class CallbackGroup(Summarizable):
 
     @property
     def callbacks(self) -> List[CallbackBase]:
-        return self._callbacks
+        return sorted(self._callbacks, key=lambda x: x.callback_name)
 
     @property
     def summary(self) -> Summary:

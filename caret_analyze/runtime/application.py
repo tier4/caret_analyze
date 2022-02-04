@@ -65,7 +65,7 @@ class Application(Summarizable):
             executor list.
 
         """
-        return self._executors
+        return sorted(self._executors, key=lambda x: x.executor_name)
 
     @property
     def nodes(self) -> List[Node]:
@@ -78,7 +78,7 @@ class Application(Summarizable):
             node list.
 
         """
-        return self._nodes
+        return sorted(self._nodes, key=lambda x: x.node_name)
 
     @property
     def communications(self) -> List[Communication]:
@@ -91,7 +91,7 @@ class Application(Summarizable):
             communication list.
 
         """
-        return self._communications
+        return sorted(self._communications, key=lambda x: x.topic_name)
 
     @property
     def paths(self) -> List[Path]:
@@ -104,7 +104,7 @@ class Application(Summarizable):
             path list.
 
         """
-        return self._paths
+        return sorted(self._paths, key=lambda x: x.path_name or '')
 
     @property
     def callbacks(self) -> List[CallbackBase]:
@@ -121,7 +121,7 @@ class Application(Summarizable):
         for node in self.nodes:
             if node.callbacks is not None:
                 cbs += list(node.callbacks)
-        return cbs
+        return sorted(cbs, key=lambda x: x.callback_name)
 
     def get_path(self, path_name: str) -> Path:
         """
@@ -205,7 +205,7 @@ class Application(Summarizable):
             if node.callback_groups is None:
                 continue
             cbgs += node.callback_groups
-        return cbgs
+        return sorted(cbgs, key=lambda x: x.callback_group_name)
 
     def get_callback_group(
         self,
@@ -425,10 +425,12 @@ class Application(Summarizable):
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.filter_items(
+        comms = Util.filter_items(
             lambda x: x.topic_name == topic_name,
             self.communications
         )
+
+        return sorted(comms, key=lambda x: x.topic_name)
 
     def get_node_paths(
         self,
