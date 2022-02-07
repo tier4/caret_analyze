@@ -12,33 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .interface import ArchitectureInfoContainer
-from .interface import CallbackInterface
-from .interface import PublisherInterface
-from .interface import RecordsContainer
-from .interface import SubscriptionCallbackInterface
-from .interface import SubscriptionInterface
-from .interface import TimerCallbackInterface
-from .record import merge
-from .record import merge_sequencial
-from .record import merge_sequencial_for_addr_track
-from .record import Record
-from .record import RecordInterface
-from .record import Records
-from .record import RecordsInterface
+from .data_frame_shaper import Clip, DataFrameShaper, Strip
+from .record import (merge,
+                     merge_sequencial,
+                     merge_sequencial_for_addr_track,
+                     Record,
+                     RecordInterface,
+                     Records,
+                     RecordsInterface)
+
+from .record_factory import RecordFactory, RecordsFactory
 
 __all__ = [
-    'RecordInterface',
-    'RecordsInterface',
+    'Clip',
+    'DataFrameShaper',
     'Record',
+    'RecordFactory',
+    'RecordInterface',
     'Records',
-    'RecordsContainer',
-    'ArchitectureInfoContainer',
-    'PublisherInterface',
-    'SubscriptionInterface',
-    'CallbackInterface',
-    'TimerCallbackInterface',
-    'SubscriptionCallbackInterface',
+    'RecordsFactory',
+    'RecordsInterface',
+    'Strip',
     'merge',
     'merge_sequencial',
     'merge_sequencial_for_addr_track',

@@ -14,591 +14,19 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
 from copy import deepcopy
 from enum import IntEnum
-import sys
-from typing import Callable, Dict, List, Optional, Set
+from itertools import groupby
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 
-
-class RecordInterface:
-    """
-    Interface for Record class.
-
-    This behavior is similar to the dictionary type.
-    To avoid conflicts with the pybind metaclass, ABC is not used.
-    """
-
-    @abstractmethod
-    def equals(self, other: RecordInterface) -> bool:
-        """
-        Compare record.
-
-        Parameters
-        ----------
-        other : RecordInterface
-            comparison target.
-
-        Returns
-        -------
-        bool
-            True if record data is same, otherwise false.
-
-        """
-        pass
-
-    @abstractmethod
-    def merge(self, other: RecordInterface, inplace=False) -> Optional[Record]:
-        """
-        Mege record.
-
-        Parameters
-        ----------
-        other : RecordInterface
-            merge target.
-        inplace : bool
-            inplace record if true, otherwise false.
-
-        Returns
-        -------
-        Record
-            Merged record class if inplace = false, otherwise None.
-
-        """
-        pass
-
-    @abstractmethod
-    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[Record]:
-        """
-        Drop columns method.
-
-        Parameters
-        ----------
-        columns : List[str]
-            columns to be dropped.
-        inplace : bool
-            inplace record if true, otherwise false.
-
-        Returns
-        -------
-        Optional[Record]
-            Column dropped record class if inplace = false, otherwise None.
-
-        """
-        pass
-
-    @abstractmethod
-    def add(self, key: str, stamp: int) -> None:
-        """
-        Add(Update) column value.
-
-        Parameters
-        ----------
-        key : str
-            key name to set.
-        stamp : int
-            key value to set.
-
-        """
-        pass
-
-    @abstractmethod
-    def change_dict_key(self, old_key: str, new_key: str) -> None:
-        """
-        Change columns name.
-
-        Parameters
-        ----------
-        old_key : str
-            column name to be changed.
-        new_key : str
-            new column name.
-
-        """
-        pass
-
-    @abstractmethod
-    def get(self, key: str) -> int:
-        """
-        Get value for specific column.
-
-        Parameters
-        ----------
-        key : str
-            key name to get.
-
-        Returns
-        -------
-        int
-            Value for selected key.
-
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def data(self) -> Dict[str, int]:
-        """
-        Convert to dictionary.
-
-        Returns
-        -------
-        data : Dict[str, int]:
-            dictionary data.
-
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def columns(self) -> Set[str]:
-        """
-        Get columnnames.
-
-        Returns
-        -------
-        Set[str]
-            Column names.
-
-        """
-        pass
-
-
-class RecordsInterface:
-    """
-    Interface for Record class.
-
-    This behavior is similar to pandas.DataFrame.
-    To avoid conflicts with the pybind metaclass, ABC is not used.
-    """
-
-    @abstractmethod
-    def equals(self, other: RecordsInterface) -> bool:
-        """
-        Equals method.
-
-        Parameters
-        ----------
-        other : RecordsInterface
-            comparison target.
-
-        Returns
-        -------
-        bool
-            true if record data is same, otherwise false.
-
-        """
-        pass
-
-    @abstractmethod
-    def append(self, other: RecordInterface) -> None:
-        """
-        Append new record.
-
-        Parameters
-        ----------
-        other : RecordInterface
-            record to be added.
-
-        """
-        pass
-
-    @abstractmethod
-    def concat(self, other: RecordsInterface, inplace=False) -> Optional[RecordsInterface]:
-        """
-        Concat records.
-
-        Parameters
-        ----------
-        other : RecordsInterface
-            records to be concatenated.
-        inplace : bool
-            inplace original instance if true.
-
-        Returns
-        -------
-        RecordsInterface
-            concatenated records if inplace=False, otherwise None.
-
-        """
-        pass
-
-    @abstractmethod
-    def sort(
-        self, key: str, sub_key: Optional[str] = None, inplace=False, ascending=True
-    ) -> Optional[RecordsInterface]:
-        """
-        Sort records.
-
-        Parameters
-        ----------
-        key : str
-            key name to used for sort.
-        sub_key : str
-            second key name to used for sort.
-        inplace : bool
-            inplace original instance if true.
-        ascending : bool
-            ascending if True, descending if false.
-
-        Returns
-        -------
-        RecordsInterface
-            sorted records if inplace=False, otherwise None.
-
-        """
-        pass
-
-    @abstractmethod
-    def filter_if(
-        self, f: Callable[[RecordInterface], bool], inplace: bool = False
-    ) -> Optional[RecordsInterface]:
-        """
-        Get filterd records.
-
-        Parameters
-        ----------
-        f : Callable[[RecordInterface], bool]
-            condition function.
-        inplace : bool
-            inplace original instance if true.
-
-        Returns
-        -------
-        Optional[RecordsInterface]
-            Filterd records.
-
-        """
-        pass
-
-    @abstractmethod
-    def copy(self) -> RecordsInterface:
-        """
-        Get duplicated records.
-
-        Returns
-        -------
-        RecordsInterface
-            Deep-copyed records.
-
-        TODO
-        ----
-        * this method is duplicated. remove this.
-
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def data(self) -> List[RecordInterface]:
-        """
-        Get records list.
-
-        Returns
-        -------
-        List[RecordInterface]
-            Records list.
-
-        """
-        pass
-
-    @abstractmethod
-    def drop_columns(
-        self, columns: List[str], inplace: bool = False
-    ) -> Optional[RecordsInterface]:
-        """
-        Drop columns.
-
-        Parameters
-        ----------
-        columns : List[str]
-            columns to be dropped.
-        inplace : bool
-            inplace record if true, otherwise false.
-
-        Returns
-        -------
-        Optional[RecordsInterface]
-            Column dropped record class if inplace = false, otherwise None.
-
-        """
-        pass
-
-    @abstractmethod
-    def rename_columns(
-        self, columns: Dict[str, str], inplace: bool = False
-    ) -> Optional[RecordsInterface]:
-        """
-        Rename columns.
-
-        Parameters
-        ----------
-        columns : Dict[str, str]
-            rename params. same as dataframe rename.
-        inplace : bool
-            inplace record if true, otherwise false.
-
-        Returns
-        -------
-        Optional[RecordsInterface]
-            Column renamed record class if inplace = false, otherwise None.
-
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def columns(self) -> Set[str]:
-        """
-        Get columnnames.
-
-        Returns
-        -------
-        Set[str]
-            Column names.
-
-        """
-        pass
-
-    @abstractmethod
-    def to_dataframe(self) -> pd.DataFrame:
-        """
-        Convert to pandas dataframe.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Records data.
-
-        """
-        pass
-
-    @abstractmethod
-    def to_string(self) -> str:
-        """
-        Convert to string.
-
-        TODO
-        ----
-        * remove this method
-        """
-        pass
-
-    @abstractmethod
-    def merge(
-        self,
-        right_records: RecordInterface,
-        join_key: str,
-        how: str = 'inner',
-        left_record_sort_key: Optional[str] = None,
-        right_record_sort_key: Optional[str] = None,
-        *,
-        progress_label: Optional[str] = None
-    ) -> Records:
-        """
-        Merge records by key match.
-
-        Parameters
-        ----------
-        right_records : RecordInterface
-            merge target.
-        join_key : str
-            Key to use for matching.
-        how : str
-            merge type. [inner/right/left/outer]
-        left_record_sort_key : str
-            unused [TODO: remove]
-        right_record_sort_key : str
-            unused [TODO: remove]
-        progress_label : str
-            label for progress bar. cpp impl only.
-
-        Returns
-        -------
-        RecordsInterface
-
-        Example
-        -------
-        >>> left_records = Records([
-            Record({'join_key': 1, 'left_other': 1}),
-            Record({'join_key': 2, 'left_other': 2}),
-        ])
-        >>> right_records = Records([
-            Record({'join_key': 2, 'right_other': 3}),
-            Record({'join_key': 1, 'right_other': 4}),
-        ])
-        >>> expected = Records([
-            Record({'join_key': 1, 'left_other': 1, 'right_other': 4}),
-            Record({'join_key': 2, 'left_other': 2, 'right_other': 3}),
-        ])
-        >>> left_records.merge(right_records, 'join_key').equals(expected)
-        True
-
-        """
-        pass
-
-    @abstractmethod
-    def merge_sequencial(
-        self,
-        right_records: RecordsInterface,
-        left_stamp_key: str,
-        right_stamp_key: str,
-        join_key: Optional[str],
-        how: str = 'inner',
-        *,
-        progress_label: Optional[str] = None
-    ) -> Records:
-        """
-        Merge chronologically contiguous records.
-
-        Merge left_records[left_key] and the right_records[right_key]
-        that occurred immediately after it.
-        If join_key is set, left_records[join_key]==right_records[join_key] is added as condition.
-
-
-        Parameters
-        ----------
-        right_records : RecordsInterface
-            merge target.
-        left_stamp_key : str
-            left records key name to use for comparison in time series merge.
-        right_stamp_key : str
-            right records key name to use for comparison in time series merge.
-        join_key : str
-            join key name to use equal condition.
-        how : str
-            merge type. [inner/right/left/outer]
-        progress_label : str
-            label for progress bar. cpp impl only.
-
-        Records
-        -------
-        RecordsInterface
-            Merged records.
-
-        Example
-        -------
-        >>> left_records = Records([
-            Record({'join_key': 1, 'left_stamp_key': 0}),
-            Record({'join_key': 2, 'left_stamp_key': 3})
-        ])
-        >>> right_records = Records([
-            Record({'join_key': 2, 'right_stamp_key': 5}),
-            Record({'join_key': 1, 'right_stamp_key': 6})
-        ])
-        >>> expected = Records([
-            Record({'join_key': 1, 'left_stamp_key': 0, 'right_stamp_key': 6}),
-            Record({'join_key': 2, 'left_stamp_key': 3, 'right_stamp_key': 5}),
-        ])
-        >>> left_records.merge_sequencial(
-            right_records, 'left_stamp_key', 'right_stamp_key', 'join_key', 'inner'
-        ).equals(expected)
-        True
-
-
-        """
-        pass
-
-    @abstractmethod
-    def merge_sequencial_for_addr_track(
-        self,
-        source_stamp_key: str,
-        source_key: str,
-        copy_records: RecordsInterface,
-        copy_stamp_key: str,
-        copy_from_key: str,
-        copy_to_key: str,
-        sink_records: RecordsInterface,
-        sink_stamp_key: str,
-        sink_from_key: str,
-        *,
-        progress_label: Optional[str] = None
-    ) -> RecordsInterface:
-        """
-        Merge for tracking addresses when copying occurs.
-
-        Parameters
-        ----------
-        source_stamp_key : str
-            key name indicating time stamp for source records
-        source_key : str
-            Key name indicating the address of the copy source for source records.
-        copy_records : Recordsinterface
-            copy records
-        copy_stamp_key : str
-            key name indicating time stamp for copy records
-        copy_from_key : str
-            Key name indicating the address of the copy source for source records.
-        copy_to_key : str
-            Key name indicating the address of the copy destination
-        sink_records : RecordsInterface
-            sink-side records
-        sink_stamp_key : str
-            keyname indicating time stamp for copy records
-        sink_from_key : str
-            Key name indicating the address of the copy destination
-        progress_label : str
-            label for progress bar. cpp impl only.
-
-        Returns
-        -------
-        RecordsInterface
-            Merged records.
-
-        Examples
-        --------
-        >>> source_records = Records([
-            Record({'source_key': 1, 'source_stamp': 0}),
-        ])
-        >>> copy_records = Records([
-            Record({'copy_from_key': 1, 'copy_to_key': 11, 'copy_stamp_key': 1})
-        ])
-        >>> sink_records = Records([
-            Record({'sink_from_key': 11, 'sink_stamp': 2}),
-            Record({'sink_from_key': 1, 'sink_stamp': 3}),
-        ])
-        >>> expected = Records([
-            Record({'source_stamp':0, 'sink_stamp':3, 'source_key':1}),
-            Record({'source_stamp':0, 'sink_stamp':2, 'source_key':1}),
-        ])
-        >>> source_records.merge_sequencial_for_addr_track(
-            'source_stamp', 'source_key', copy_records, 'copy_stamp_key', 'copy_from_key',
-            'copy_to_key', sink_records, 'sink_stamp', 'sink_from_key'
-        ).equals(expected)
-        True
-
-        """
-        pass
-
-    @abstractmethod
-    def clone(self) -> RecordsInterface:
-        """
-        Get duplicated records.
-
-        Returns
-        -------
-        RecordsInterface
-            deep-copyed records.
-
-        """
-        pass
-
-    @abstractmethod
-    def bind_drop_as_delay(self, sort_key: str) -> None:
-        """
-        Convert the dropped points to records converted as delay.
-
-        TODO
-        ----
-        Modify to return converted value
-
-        """
-        pass
-
-
-class MergeSideInfo(IntEnum):
+from .interface import RecordInterface, RecordsInterface
+from ..common import Columns
+from ..exceptions import InvalidArgumentError
+
+pd.set_option('display.max_colwidth',100)
+class MergeSide(IntEnum):
     LEFT = 0
     RIGHT = 1
 
@@ -614,52 +42,43 @@ class Record(RecordInterface):
     def get(self, key: str) -> int:
         return self._data[key]
 
+    def get_with_default(self, key: str, v: int) -> int:
+        return self._data.get(key, v)
+
     @property
     def data(self) -> Dict[str, int]:
         return self._data
 
     @property
     def columns(self) -> Set[str]:
-        return self._columns
+        return deepcopy(self._columns)
 
-    def drop_columns(self, columns: List[str], inplace=False) -> Optional[Record]:
+    def drop_columns(self, columns: List[str]) -> None:
         data: Dict[str, int]
 
-        if inplace:
-            data = self._data
-        else:
-            data = deepcopy(self)._data
+        data = self._data
 
         for column in columns:
             if column not in self.columns:
                 continue
             del data[column]
 
-        if inplace:
-            self._columns -= set(columns)
-            return None
-        else:
-            return Record(data)
+        self._columns -= set(columns)
+        return None
 
-    def equals(self, other: Record) -> bool:  # type: ignore
+    def equals(self, other: RecordInterface) -> bool:
         is_columns_equal = self.columns == other.columns
         if is_columns_equal is False:
             return False
         return self.data == other.data
 
     def add(self, key: str, stamp: int):
-        self.columns.add(key)
+        self._columns.add(key)
         self._data[key] = stamp
 
-    def merge(self, other: Record, inplace=False) -> Optional[Record]:  # type: ignore
-        if inplace:
-            self._data.update(other.data)
-            self._columns |= other.columns
-            return None
-        else:
-            d = deepcopy(self.data)
-            d.update(deepcopy(other.data))
-            return Record(d)
+    def merge(self, other: RecordInterface) -> None:
+        self._data.update(other.data)
+        self._columns |= other.columns
 
     def change_dict_key(self, old_key: str, new_key: str) -> None:
         self._data[new_key] = self._data.pop(old_key, None)
@@ -669,122 +88,156 @@ class Record(RecordInterface):
 
 class Records(RecordsInterface):
 
-    def __init__(self, init: Optional[List[Record]] = None):
-        self._columns: Set[str] = set()
-        for record in init or []:
-            self._columns |= record.columns
-        self._data: List[Record] = init or []
+    def __init__(
+        self,
+        init: Optional[List[RecordInterface]] = None,
+        columns: Optional[List[str]] = None
+    ) -> None:
+        init_: List[RecordInterface] = init or []
+        columns_: List[str] = columns or []
+        self._validate(init_, columns_)
+
+        self._data: List[RecordInterface] = init_
+        self._columns: List[str] = columns_
+
+    @staticmethod
+    def _validate(init: Optional[List[RecordInterface]], columns: Optional[List[str]]) -> None:
+        init = init or []
+        columns = columns or []
+
+        columns_set = set(columns)
+        for record in init:
+            unkown_column = set(record.columns) - columns_set
+            if len(unkown_column) > 0:
+                msg = 'Contains an unknown columns. '
+                msg += f'{unkown_column}'
+                raise InvalidArgumentError(msg)
+
+        if len(set(columns)) != len(columns):
+            from itertools import groupby
+            msg = 'columns must be unique. '
+            columns = sorted(columns)
+            msg += 'duplicated columns: '
+            for key, group in groupby(columns):
+                if len(list(group)) >= 2:
+                    msg += f'{key}, '
+
+            raise InvalidArgumentError(msg)
+
+    def __len__(self) -> int:
+        return len(self.data)
 
     @property
-    def columns(self) -> Set[str]:
-        return self._columns
+    def columns(self) -> List[str]:
+        return deepcopy(self._columns)
 
     def sort(
-        self, key: str, sub_key: Optional[str] = None, inplace=False, ascending=True
-    ) -> Optional[Records]:
-        if inplace:
-            data = self.data
-        else:
-            data = deepcopy(self.data)
+        self, key: str, sub_key: Optional[str] = None, ascending=True
+    ) -> None:
+        data_ = self.data
 
         if ascending:
-            if sub_key is None:
-                data.sort(key=lambda record: record.get(key))
-            else:
-                data.sort(
-                    key=lambda record: (record.get(
-                        key), record.get(sub_key))  # type: ignore
+            if sub_key is not None:
+                data_.sort(
+                    key=lambda record: (record.get(key), record.get(sub_key))  # type: ignore
                 )
-        else:
-            if sub_key is None:
-                data.sort(key=lambda record: -record.get(key))
             else:
-                data.sort(
-                    key=lambda record: (-record.get(key), -
-                                        record.get(sub_key))  # type: ignore
-                )
-
-        if inplace:
-            return None
+                data_.sort(key=lambda record: record.get(key))
         else:
-            return Records(data)
+            if sub_key is not None:
+                data_.sort(
+                    key=lambda record: (-record.get(key), - record.get(sub_key))  # type: ignore
+                )
+            else:
+                data_.sort(key=lambda record: -record.get(key))
 
-    def copy(self) -> Records:
-        return deepcopy(self)
+        return None
+
+    def sort_column_order(
+        self,
+        ascending=True,
+        put_none_at_top=True,
+    ) -> None:
+        data_ = self.data
+        maxsize = 2**64 - 1
+
+        if ascending:
+            default_value = maxsize if put_none_at_top else 0
+
+            def sort_func(record: RecordInterface):
+                return tuple(record.get_with_default(k, default_value) for k in self.columns)
+        else:
+            default_value = 0 if put_none_at_top else maxsize
+
+            def sort_func(record: RecordInterface):
+                return tuple(-record.get_with_default(k, default_value) for k in self.columns)
+
+        data_.sort(key=sort_func)
+
+        return None
 
     @property
-    def data(self) -> List[Record]:  # type: ignore
+    def data(self) -> List[RecordInterface]:
         return self._data
 
-    def append(self, other: Record):  # type: ignore
-        assert isinstance(other, Record)
+    def append(self, other: RecordInterface):
         self._data.append(other)
-        self._columns |= other.columns
+        unknown_columns = set(other.columns) - set(self.columns)
+        if len(unknown_columns) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_columns}'
+            raise InvalidArgumentError(msg)
 
-    def concat(self, other: Records, inplace=False) -> Optional[Records]:  # type: ignore
-        if inplace:
-            self._data += other._data
-            self._columns |= other.columns
-            return None
-        else:
-            d = deepcopy(self._data)
-            d += deepcopy(other._data)
-            return Records(d)
+    def concat(self, other: RecordsInterface) -> None:
+        self._data += list(other.data)
 
-    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[Records]:
-        data: List[Record]
+    def drop_columns(self, columns: List[str]) -> None:
+        data_: List[RecordInterface]
 
-        if inplace:
-            data = self._data
-        else:
-            data = deepcopy(self._data)
+        columns_ = [c for c in self._columns if c not in columns]
+        data_ = self._data
 
-        for record in data:
-            record.drop_columns(columns, inplace=True)
+        for record in data_:
+            record.drop_columns(columns)
 
-        if not inplace:
-            return Records(data)
-        else:
-            self._columns -= set(columns)
-            return None
+        self._columns = columns_
+        return None
 
-    def rename_columns(self, columns: Dict[str, str], inplace: bool = False) -> Optional[Records]:
-        self._columns -= set(columns.keys())
-        self._columns |= set(columns.values())
+    def rename_columns(self, columns: Dict[str, str]) -> None:
+        validate_rename_rule(columns)
 
-        data: List[Record]
-        if inplace:
-            data = self._data
-        else:
-            data = deepcopy(self._data)
+        data_: List[RecordInterface]
+        data_ = self._data
 
-        for record in data:
+        for record in data_:
             for key_from, key_to in columns.items():
                 if key_from not in record.columns:
                     continue
                 record.change_dict_key(key_from, key_to)
 
-        if not inplace:
-            return Records(data)
-        else:
-            return None
+        for old, new in columns.items():
+            index = self.columns.index(old)
+            self._columns[index] = new
+        return None
 
-    def filter_if(self, f: Callable[[Record], bool], inplace: bool = False) -> Optional[Records]:
-        records = Records()
-        init_columns = self.columns
-        for record in self._data:  # type: Record
+    def append_column(self, column: str, values: List[int]) -> None:
+        if len(values) != len(self):
+            raise InvalidArgumentError('len(values) != len(records)')
+
+        self._columns += [column]
+        for record, value in zip(self.data, values):
+            record.add(column, value)
+
+    def filter_if(self, f: Callable[[RecordInterface], bool]) -> None:
+        records = Records(None, self.columns)
+        for record in self._data:
             if f(record):
                 records.append(record)
 
-        if not inplace:
-            records._columns = init_columns
-            records._data = deepcopy(records._data)
-            return records
-        else:
-            self._data = records._data
-            return None
+        self._data = records._data
+        return None
 
-    def equals(self, records: Records) -> bool:  # type: ignore
+    def equals(self, records: RecordsInterface) -> bool:
         if len(self.data) != len(records.data):
             return False
 
@@ -792,29 +245,43 @@ class Records(RecordsInterface):
             if r.equals(r_) is False:
                 return False
 
-        if self._columns != records._columns:
+        if self.columns != records.columns:
             return False
 
         return True
 
+    def reindex(self, columns: List[str]) -> None:
+        err_columns = set(self.columns) ^ set(columns)
+        if len(err_columns) > 0:
+            msg = 'Column names do not match. '
+            for err_column in err_columns:
+                msg += f'{err_column}, '
+            raise InvalidArgumentError(msg)
+
+        self._columns = columns
+
     def to_dataframe(self) -> pd.DataFrame:
         pd_dict = [record.data for record in self.data]
-        df = pd.DataFrame.from_dict(pd_dict)
-        missing_columns = set(self.columns) - set(df.columns)
+        return self._to_dataframe(pd_dict, self.columns)
+
+    @staticmethod
+    def _to_dataframe(
+        df_dict: List[Dict[str, int]],
+        columns: List[str]
+    ) -> pd.DataFrame:
+        df = pd.DataFrame.from_dict(df_dict, dtype='Int64')
+        missing_columns = set(columns) - set(df.columns)
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
-        return df
-
-    def to_string(self) -> str:
-        return self.to_dataframe().to_string()
+        return df[columns]
 
     def clone(self) -> Records:
         from copy import deepcopy
 
         return deepcopy(self)
 
-    def bind_drop_as_delay(self, sort_key: str) -> None:
-        self.sort(sort_key, sub_key=None, inplace=True, ascending=False)
+    def bind_drop_as_delay(self) -> None:
+        self.sort_column_order(ascending=False, put_none_at_top=False)
 
         oldest_values: Dict[str, int] = {}
 
@@ -823,138 +290,184 @@ class Records(RecordsInterface):
                 if key not in record.columns and key in oldest_values.keys():
                     record.add(key, oldest_values[key])
                 if key in record.columns:
-                    oldest_values[key] = record.data[key]
+                    oldest_values[key] = record.get(key)
 
-        self.sort(sort_key, sub_key=None, inplace=True, ascending=True)
+        self.sort_column_order(ascending=True, put_none_at_top=True)
 
     def merge(
         self,
-        right_records: Records,
-        join_key: str,
-        how: str = 'inner',
-        left_sort_key: Optional[str] = None,
-        right_sort_key: Optional[str] = None,
+        right_records: RecordsInterface,
+        join_left_key: str,
+        join_right_key: str,
+        columns: List[str],
+        how: str,
         *,
         progress_label: Optional[str] = None  # unused
     ) -> Records:
-        left_records = self
+        maxsize = 2**64 - 1
+        self._validate(None, columns)
 
+        left_records = self.clone()
         merge_left = how in ['left', 'outer']
         merge_right = how in ['right', 'outer']
 
-        merged_records = Records()
         assert how in ['inner', 'left', 'right', 'outer']
 
-        for left in left_records.data:
-            left.add('side', MergeSideInfo.LEFT)  # type: ignore
+        column_side = '_tmp_side'
+        column_merge_stamp = '_tmp_stamp'
+        column_has_valid_join_key = '_tmp_has_valid_join_key'
+        column_join_key = '_tmp_join_key'
+        column_found_right_record = '_tmp_found_right_record'
 
-        for right in right_records.data:
-            right.add('side', MergeSideInfo.RIGHT)  # type: ignore
+        left_records.append_column(column_side, [MergeSide.LEFT]*len(left_records))
+        right_records.append_column(column_side, [MergeSide.RIGHT]*len(right_records))
 
-        records: Records
-        records = left_records.concat(right_records)  # type: ignore
+        concat_columns = Columns(left_records.columns + right_records.columns +
+                                 [column_side, column_has_valid_join_key,
+                                  column_merge_stamp, column_join_key]).as_list()
 
-        for record in records._data:
-            record.add('has_valid_join_key', join_key in record.columns)
-            if join_key in record.columns:
-                record.add('merge_stamp', record.get(join_key))
+        concat_records = Records(None, concat_columns)
+        concat_records.concat(left_records)
+        concat_records.concat(right_records)
+
+        record: RecordInterface
+
+        for record in concat_records.data:
+            if record.get(column_side) == MergeSide.LEFT:
+                join_key = join_left_key
+            if record.get(column_side) == MergeSide.RIGHT:
+                join_key = join_right_key
+
+            has_valid_join_key = join_key in record.columns
+            record.add(column_has_valid_join_key, has_valid_join_key)
+            if has_valid_join_key:
+                record.add(column_merge_stamp, record.get(join_key))
+                record.add(column_join_key, record.get(
+                    join_key))  # type: ignore
             else:
-                record.add('merge_stamp', sys.maxsize)
+                record.add(column_merge_stamp, maxsize)
 
-        records.sort(key='merge_stamp', sub_key='side', inplace=True)
+        concat_records.sort(key=column_merge_stamp, sub_key=column_side)
 
-        empty_records: List[Record] = []
-        left_record_: Optional[Record] = None
+        empty_records: List[RecordInterface] = []
+        left_record_: Optional[RecordInterface] = None
 
-        for record in records._data:
-            if record.get('has_valid_join_key') is False:
-                if record.get('side') == MergeSideInfo.LEFT and merge_left:
+        merged_records = Records(
+            None,
+            concat_records.columns + [column_found_right_record]
+        )
+        for record in concat_records._data:
+
+            if record.get(column_has_valid_join_key) is False:
+                if record.get(column_side) == MergeSide.LEFT and merge_left:
                     merged_records.append(record)
-                elif record.get('side') == MergeSideInfo.RIGHT and merge_right:
+                elif record.get(column_side) == MergeSide.RIGHT and merge_right:
                     merged_records.append(record)
                 continue
 
-            join_value = record.get(join_key)
+            join_value = record.get(column_join_key)
 
-            if record.get('side') == MergeSideInfo.LEFT:
-                if left_record_ and left_record_.get('found_right_record') is False:
+            if record.get(column_side) == MergeSide.LEFT:
+                if left_record_ and left_record_.get(column_found_right_record) is False:
                     empty_records.append(left_record_)
                 left_record_ = record
-                left_record_.add('found_right_record', False)
+                left_record_.add(column_found_right_record, False)
             else:
                 if (
                     left_record_
-                    and join_value == left_record_.get(join_key)
-                    and record.get('has_valid_join_key')
+                    and join_value == left_record_.get(column_join_key)
+                    and record.get(column_has_valid_join_key)
                 ):
-                    left_record_.add('found_right_record', True)
+                    left_record_.add(column_found_right_record, True)
                     merged_record = deepcopy(record)
-                    merged_record.merge(left_record_, inplace=True)
+                    merged_record.merge(left_record_)
                     merged_records.append(merged_record)
                 else:
                     empty_records.append(record)
-        if left_record_ is not None and left_record_.get('found_right_record') is False:
+        if left_record_ is not None and left_record_.get(column_found_right_record) is False:
             empty_records.append(left_record_)
 
         for record in empty_records:
-            side = record.get('side')
-            if side == MergeSideInfo.LEFT and merge_left:
+            side = record.get(column_side)
+            if side == MergeSide.LEFT and merge_left:
                 merged_records.append(record)
-            elif side == MergeSideInfo.RIGHT and merge_right:
+            elif side == MergeSide.RIGHT and merge_right:
                 merged_records.append(record)
 
-        temporay_columns = ['side', 'merge_stamp',
-                            'has_valid_join_key', 'found_right_record']
-        merged_records.drop_columns(temporay_columns, inplace=True)
-        left_records.drop_columns(temporay_columns, inplace=True)
-        right_records.drop_columns(temporay_columns, inplace=True)
+        temporay_columns = [column_side, column_merge_stamp, column_join_key,
+                            column_has_valid_join_key, column_found_right_record]
+
+        merged_records.drop_columns(temporay_columns)
+        left_records.drop_columns(temporay_columns)
+        right_records.drop_columns(temporay_columns)
+
+        merged_records.reindex(columns)
 
         return merged_records
 
-    def merge_sequencial(  # type: ignore
+    def merge_sequencial(
         self,
-        right_records: Records,
+        right_records: RecordsInterface,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_key: Optional[str],
-        how: str = 'inner',
+        join_left_key: Optional[str],
+        join_right_key: Optional[str],
+        columns: List[str],
+        how: str,
         *,
         progress_label: Optional[str] = None  # unused
-    ) -> Records:
-        assert how in ['inner', 'left', 'right', 'outer']
+    ) -> RecordsInterface:
+        maxsize = 2**64 - 1
+        self._validate(None, columns)
 
+        assert how in ['inner', 'left', 'right', 'outer', 'left_use_latest']
         left_records = self
 
-        merge_left = how in ['left', 'outer']
+        merge_left = how in ['left', 'outer', 'left_use_latest']
+        bind_latest_left_record = how in ['left_use_latest']
         merge_right = how in ['right', 'outer']
 
-        merged_records: Records = Records()
+        column_side = '_tmp_side'
+        column_has_valid_join_key = '_tmp_has_valid_join_key'
+        column_merge_stamp = '_tmp_stamp'
+        column_has_merge_stamp = '_tmp_has_merge_stamp'
+        column_sub_records = '_tmp_sub_records'
 
-        for left in left_records.data:
-            left.add('side', MergeSideInfo.LEFT)  # type: ignore
+        left_records.append_column(column_side, [MergeSide.LEFT]*len(left_records))
+        right_records.append_column(column_side, [MergeSide.RIGHT]*len(right_records))
 
-        for right in right_records.data:
-            right.add('side', MergeSideInfo.RIGHT)  # type: ignore
+        concat_columns = Columns(
+            left_records.columns + right_records.columns
+            + [column_has_valid_join_key, column_merge_stamp, column_has_merge_stamp]
+            ).as_list()
+        concat_records = Records(None, concat_columns)
+        concat_records.concat(left_records)
+        concat_records.concat(right_records)
 
-        records: Records
-        records = left_records.concat(right_records)  # type: ignore
-
-        for record in records._data:
-            record.add('has_valid_join_key',
-                       join_key is None or join_key in record.columns)
-            if record.get('side') == MergeSideInfo.LEFT and left_stamp_key in record.columns:
-                record.add('merge_stamp', record.get(left_stamp_key))
-                record.add('has_merge_stamp', True)
-            elif record.get('side') == MergeSideInfo.RIGHT and right_stamp_key in record.columns:
-                record.add('has_merge_stamp', True)
-                record.add('merge_stamp', record.get(right_stamp_key))
+        for record in concat_records.data:
+            if record.get(column_side) == MergeSide.LEFT:
+                record.add(column_has_valid_join_key,
+                           join_left_key is None or join_left_key in record.columns)
             else:
-                record.add('merge_stamp', sys.maxsize)
-                record.add('has_merge_stamp', False)
+                record.add(column_has_valid_join_key,
+                           join_right_key is None or join_right_key in record.columns)
 
-        records.sort(key='merge_stamp', inplace=True)
+            if record.get(column_side) == MergeSide.LEFT and left_stamp_key in record.columns:
+                record.add(column_merge_stamp, record.get(left_stamp_key))
+                record.add(column_has_merge_stamp, True)
+            elif record.get(column_side) == MergeSide.RIGHT and right_stamp_key in record.columns:
+                record.add(column_has_merge_stamp, True)
+                record.add(column_merge_stamp, record.get(right_stamp_key))
+            else:
+                record.add(column_merge_stamp, maxsize)
+                record.add(column_has_merge_stamp, False)
 
         def get_join_value(record: RecordInterface) -> Optional[int]:
+            if record.get(column_side) == MergeSide.LEFT:
+                join_key = join_left_key
+            else:
+                join_key = join_right_key
+
             if join_key is None:
                 return 0
             elif join_key in record.columns:
@@ -962,49 +475,56 @@ class Records(RecordsInterface):
             else:
                 return None
 
-        to_left_records_: Dict[int, Record] = {}
-        for record in records._data:
-            if record.get('side') == MergeSideInfo.LEFT and record.get('has_merge_stamp'):
-                record.add('sub_records', [])  # type: ignore
+        concat_records.sort(key=column_merge_stamp, sub_key=column_side)
+
+        to_left_records: Dict[int, RecordInterface] = {}
+        for record in concat_records.data:
+            if not record.get(column_has_merge_stamp):
+                continue
+
+            if record.get(column_side) == MergeSide.LEFT:
+                record.add(column_sub_records, [])  # type: ignore
 
                 join_value = get_join_value(record)
                 if join_value is None:
                     continue
-                to_left_records_[join_value] = record
-            elif record.get('side') == MergeSideInfo.RIGHT and record.get('has_merge_stamp'):
+                to_left_records[join_value] = record
+            elif record.get(column_side) == MergeSide.RIGHT:
                 join_value = get_join_value(record)
                 if join_value is None:
                     continue
-                if join_value not in to_left_records_.keys():
+                if join_value not in to_left_records.keys():
                     continue
-                left_record_to_be_bind = to_left_records_[join_value]
-                left_record_to_be_bind._data['sub_records'].append(record)
+                left_record_to_be_bind = to_left_records[join_value]
+                left_record_to_be_bind.data[column_sub_records].append(record)  # type: ignore
 
-        added: Set[Record] = set()
-        for i, current_record in enumerate(records._data):
+        merged_records = Records(None, concat_records.columns + [column_sub_records])
+
+        added: Set[RecordInterface] = set()
+        for current_record in concat_records.data:
             recorded = current_record in added
-
             if recorded:
                 continue
 
-            if not current_record.get('has_merge_stamp') or not current_record.get(
-                'has_valid_join_key'
+            if not current_record.get(column_has_merge_stamp) or not current_record.get(
+                column_has_valid_join_key
             ):
-                if current_record.get('side') == MergeSideInfo.RIGHT and merge_right:
+                if current_record.get(column_side) == MergeSide.RIGHT and merge_right:
                     merged_records.append(current_record)
                     added.add(current_record)
-                elif current_record.get('side') == MergeSideInfo.LEFT and merge_left:
+                elif current_record.get(column_side) == MergeSide.LEFT and merge_left:
                     merged_records.append(current_record)
                     added.add(current_record)
                 continue
 
-            if current_record.get('side') == MergeSideInfo.RIGHT:
+            if current_record.get(column_side) == MergeSide.RIGHT:
                 if merge_right:
                     merged_records.append(current_record)
                     added.add(current_record)
                 continue
 
-            sub_records: List[Record] = current_record._data['sub_records']
+            sub_records: List[RecordInterface]
+            sub_records = current_record.data[column_sub_records]  # type: ignore
 
             if sub_records == []:
                 if merge_left:
@@ -1012,74 +532,87 @@ class Records(RecordsInterface):
                     added.add(current_record)
                 continue
 
-            for sub_record in sub_records:
+            for i, sub_record in enumerate(sub_records):
+                if 1 <= i and not bind_latest_left_record:
+                    break
                 if sub_record in added:
                     if merge_left:
                         merged_records.append(current_record)
                         added.add(current_record)
                     continue
 
-                merged_record = Record()
-                merged_record.merge(current_record, inplace=True)
-                merged_record.merge(sub_record, inplace=True)
+                merged_record: RecordInterface = Record()
+                merged_record.merge(current_record)
+                merged_record.merge(sub_record)
                 merged_records.append(merged_record)
                 added.add(current_record)
                 added.add(sub_record)
 
         temporay_columns = [
-            'side',
-            'merge_stamp',
-            'has_merge_stamp',
-            'has_valid_join_key',
-            'sub_records',
+            column_side,
+            column_merge_stamp,
+            column_has_merge_stamp,
+            column_has_valid_join_key,
+            column_sub_records,
         ]
-        merged_records.drop_columns(temporay_columns, inplace=True)
-        left_records.drop_columns(temporay_columns, inplace=True)
-        right_records.drop_columns(temporay_columns, inplace=True)
+        merged_records.drop_columns(temporay_columns)
+        left_records.drop_columns(temporay_columns)
+        right_records.drop_columns(temporay_columns)
+
+        merged_records.reindex(columns)
 
         return merged_records
 
-    def merge_sequencial_for_addr_track(  # type: ignore
+    def merge_sequencial_for_addr_track(
         self,
         source_stamp_key: str,
         source_key: str,
-        copy_records: Records,
+        copy_records: RecordsInterface,
         copy_stamp_key: str,
         copy_from_key: str,
         copy_to_key: str,
-        sink_records: Records,
+        sink_records: RecordsInterface,
         sink_stamp_key: str,
         sink_from_key: str,
+        columns: List[str],
         *,
         progress_label: Optional[str] = None  # unused
     ) -> Records:
+        assert isinstance(copy_records, Records)
+        assert isinstance(sink_records, Records)
 
-        source_records = deepcopy(self)
-        copy_records = deepcopy(copy_records)
-        sink_records = deepcopy(sink_records)
+        column_type = '_tmp_type'
+        column_timestamp = '_tmp_timestamp'
 
-        merged_records: Records = Records()
+        source_records = self.clone()
+        copy_records = copy_records.clone()
+        sink_records = sink_records.clone()
 
-        for record in source_records.data:
-            record.add('type', RecordType.SOURCE)  # type: ignore
-            record.add('timestamp', record.get(source_stamp_key))
-        for record in copy_records.data:
-            record.add('type', RecordType.COPY)  # type: ignore
-            record.add('timestamp', record.get(copy_stamp_key))
-        for record in sink_records.data:
-            record.add('type', RecordType.SINK)  # type: ignore
-            record.add('timestamp', record.get(sink_stamp_key))
+        source_records.append_column(column_type, [RecordType.SOURCE]*len(source_records))
+        copy_records.append_column(column_type, [RecordType.COPY]*len(copy_records))
+        sink_records.append_column(column_type, [RecordType.SINK]*len(sink_records))
 
-        records = Records(source_records._data +
-                          copy_records._data + sink_records._data)
-        records.sort('timestamp', ascending=False, inplace=True)
+        source_timestamps = [r.get(source_stamp_key) for r in source_records.data]
+        source_records.append_column(column_timestamp, source_timestamps)
+        copy_records.rename_columns({copy_stamp_key: column_timestamp})
+        sink_timestamps = [r.get(sink_stamp_key) for r in sink_records.data]
+        sink_records.append_column(column_timestamp, sink_timestamps)
+
+        merged_records_column = Columns(source_records.columns)
+        merged_records_column += copy_records.columns
+        merged_records_column += sink_records.columns
+        merged_records: Records = Records(None, merged_records_column.as_list())
+
+        concat_records = Records(source_records._data + copy_records._data + sink_records._data,
+                                 merged_records_column.as_list())
+        concat_records.sort(column_timestamp, ascending=False)
         # Searching for records in chronological order is not good
         # because the lost records stay forever. Sort in reverse chronological order.
 
         #  List of records to be added by sink and removed by source
-        processing_records: List[Record] = []
+        processing_records: List[RecordInterface] = []
 
-        def merge_processing_record_keys(processing_record: Record):
+        def merge_processing_record_keys(processing_record: RecordInterface):
             for processing_record_ in filter(
                 lambda x: x.get(sink_from_key) & processing_record.get(
                     sink_from_key)
@@ -1094,51 +627,74 @@ class Records(RecordsInterface):
                 processing_record.data[sink_from_key] = merged_set
                 processing_record_.data[sink_from_key] = merged_set
 
-        for record in records.data:
-            if record.get('type') == RecordType.SINK:
-                record._data[sink_from_key] = {record.get(sink_from_key)}
+        for record in concat_records.data:
+
+            if record.get(column_type) == RecordType.SINK:
+                record.data[sink_from_key] = {record.get(sink_from_key)}  # type: ignore
                 processing_records.append(record)
 
-            elif record.get('type') == RecordType.COPY:
+            elif record.get(column_type) == RecordType.COPY:
                 records_need_to_merge = filter(
-                    lambda x: record.get(
-                        copy_to_key) in x._data[sink_from_key], processing_records
+                    lambda x: record.get(copy_to_key) in x.data[sink_from_key],  # type: ignore
+                    processing_records
                 )
                 for processing_record in records_need_to_merge:
-                    processing_record._data[sink_from_key].add(
+                    processing_record.data[sink_from_key].add(  # type: ignore
                         record.get(copy_from_key))
                     merge_processing_record_keys(processing_record)
                     # No need for subsequent loops since we integrated them.
                     break
 
-            elif record.get('type') == RecordType.SOURCE:
+            elif record.get(column_type) == RecordType.SOURCE:
                 for processing_record in filter(
-                    lambda x: record.get(source_key) in x._data[sink_from_key],
+                    lambda x: record.get(source_key) in x.data[sink_from_key],  # type: ignore
                     processing_records[:],
                 ):
                     processing_records.remove(processing_record)
-                    processing_record.merge(record, inplace=True)
+                    processing_record.merge(record)
                     merged_records.append(processing_record)
 
         # Deleting an added key
         merged_records.drop_columns(
-            ['type', 'timestamp', sink_from_key], inplace=True)
+            [column_type, column_timestamp, sink_from_key,
+             copy_from_key, copy_to_key, copy_stamp_key])
+
+        merged_records.reindex(columns)
 
         return merged_records
+
+    def groupby(self, columns: List[str]) -> Dict[Tuple[int, ...], RecordsInterface]:
+        group: Dict[Tuple[int, ...], RecordsInterface] = {}
+
+        m = 2**64 - 1
+        for record in self._data:
+            k = tuple(record.get_with_default(column, m) for column in columns)
+            if k not in group:
+                group[k] = Records(None, self._columns)
+            group[k].append(record)
+
+        return group
 
 
 def merge(
     left_records: RecordsInterface,
     right_records: RecordsInterface,
-    join_key: str,
-    how: str = 'inner',
+    join_left_key: str,
+    join_right_key: str,
+    columns: List[str],
+    how: str,
     *,
     progress_label: Optional[str] = None
-) -> Records:
+) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
     return left_records.merge(
-        right_records, join_key, how, progress_label=progress_label  # type: ignore
+        right_records,
+        join_left_key,
+        join_right_key,
+        columns,
+        how,
+        progress_label=progress_label
     )
 
 
@@ -1147,18 +703,22 @@ def merge_sequencial(
     right_records: RecordsInterface,
     left_stamp_key: str,
     right_stamp_key: str,
-    join_key: Optional[str],
-    how: str = 'inner',
+    join_left_key: Optional[str],
+    join_right_key: Optional[str],
+    columns: List[str],
+    how: str,
     *,
-    progress_label: Optional[str] = None
-) -> Records:
+    progress_label: Optional[str] = None,
+) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
     return left_records.merge_sequencial(
-        right_records,  # type: ignore
+        right_records,
         left_stamp_key,
         right_stamp_key,
-        join_key,
+        join_left_key,
+        join_right_key,
+        columns,
         how,
         progress_label=progress_label,
     )
@@ -1181,6 +741,7 @@ def merge_sequencial_for_addr_track(
     sink_records: RecordsInterface,
     sink_stamp_key: str,
     sink_from_key: str,
+    columns: List[str],
     *,
     progress_label: Optional[str] = None
 ):
@@ -1190,12 +751,28 @@ def merge_sequencial_for_addr_track(
     return source_records.merge_sequencial_for_addr_track(
         source_stamp_key,
         source_key,
-        copy_records,  # type: ignore
+        copy_records,
         copy_stamp_key,
         copy_from_key,
         copy_to_key,
-        sink_records,  # type: ignore
+        sink_records,
         sink_stamp_key,
         sink_from_key,
+        columns,
         progress_label=progress_label,
     )
+
+
+def validate_rename_rule(rename_rule: Dict[str, str]):
+    # overwrite columns
+    if len(set(rename_rule.keys()) & set(rename_rule.values())) > 0:
+        msg = 'Overwrite columns. '
+        msg += str(rename_rule)
+        raise InvalidArgumentError(msg)
+
+    # duplicate columns after change
+    for _, group in groupby(rename_rule.values()):
+        if len(list(group)) > 1:
+            msg = 'duplicate columns'
+            msg += str(rename_rule)
+            raise InvalidArgumentError(msg)

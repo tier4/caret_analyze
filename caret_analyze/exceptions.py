@@ -17,9 +17,72 @@ class Error(Exception):
     """Base class for exception in this module."""
 
 
-class TraceResultAanalyzeError(Exception):
+class TraceResultAanalyzeError(Error):
     """Failed to parse trace results."""
 
     def __init__(self, *args: object) -> None:
         """Construct exception instance."""
         super().__init__(*args)
+
+
+class InvalidYamlFormatError(Error):
+    """Failed to load yaml."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidTraceFormatError(Error):
+    """Failed to load trace data."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidReaderError(Error):
+    """Failed to load architecutre."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class ItemNotFoundError(Error):
+    """Failed to identify item that match the condition."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class MultipleItemFoundError(Error):
+    """Failed to identify item that match the condition."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidArgumentError(Error):
+    """Failed to process function."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class UnsupportedTypeError(Error):
+    """Given type is unsupported."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class InvalidRecordsError(Error):
+    """Given Records does not have the necessary columns."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+
+class UnsupportedNodeRecordsError(Error):
+    """Failed to calculate node path records."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
