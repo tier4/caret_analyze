@@ -14,185 +14,88 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import List, Optional
 
-from .architecture_exporter import ArchitectureExporter
-from .reader_interface import IGNORE_TOPICS
-from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
-from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
-                             CommunicationStructValue, ExecutorStructValue,
-                             NodeStructValue, PathStructValue)
+from caret_analyze.record import RecordsContainer
+from caret_analyze.util import Util
+
+from .interface import ArchitectureExporter
+from .interface import ArchitectureImporter
+from .interface import ArchitectureInterface
+from .interface import IGNORE_TOPICS
+from .interface import PathAlias
+from .lttng import LttngArchitectureImporter
+from .yaml import YamlArchitectureExporter
+from .yaml import YamlArchitectureImporter
+from ..callback import CallbackBase
+from ..communication import Communication
+from ..communication import VariablePassing
+from ..node import Node
 
 
-class Architecture(Summarizable):
+class Architecture(ArchitectureInterface):
     def __init__(
         self,
-        file_type: str,
         file_path: str,
-    ) -> None:
-        from .architecture_reader_factory import ArchitectureReaderFactory
-        from .architecture_loaded import ArchitectureLoaded
+        file_type: str,
+        records_container: Optional[RecordsContainer],
+        ignore_topics: List[str] = IGNORE_TOPICS,
+    ):
+        self._nodes: List[Node] = []
+        self._path_aliases: List[PathAlias] = []
+        self._communications: List[Communication] = []
+        self._import(file_path, file_type, records_container, ignore_topics)
 
-        # /parameter events and /rosout measurements are not yet supported.
-        ignore_topics: List[str] = IGNORE_TOPICS
+    def export(self, file_path: str):
+        exporter: ArchitectureExporter
+        exporter = YamlArchitectureExporter()
+        exporter.execute(self, self._path_aliases, file_path)
 
-        reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
-        loaded = ArchitectureLoaded(reader, ignore_topics)
-
-        self._nodes: Tuple[NodeStructValue, ...] = loaded.nodes
-        self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
-        self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
-        self._path_manager = NamedPathManager(loaded.paths)
-
-    def get_node(self, node_name: str) -> NodeStructValue:
-        try:
-            return Util.find_one(lambda x: x.node_name == node_name, self.nodes)
-        except ItemNotFoundError:
-            msg = 'Failed to find node. '
-            msg += f'node_name: {node_name}'
-            raise ItemNotFoundError(msg)
-
-    def get_executor(self, executor_name: str) -> ExecutorStructValue:
-        return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
-
-    def get_callback_group(self, callback_group_name: str) -> CallbackGroupStructValue:
-        return Util.find_one(
-            lambda x: x.callback_group_name == callback_group_name, self.callback_groups)
-
-    @property
-    def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
-        return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
-
-    @property
-    def callback_group_names(self) -> Tuple[CallbackGroupStructValue, ...]:
-        return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
-
-    @property
-    def topic_names(self) -> Tuple[str, ...]:
-        return tuple(sorted({_.topic_name for _ in self.communications}))
-
-    def get_callback(self, callback_name: str) -> CallbackStructValue:
-        return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-
-    @property
-    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
-        return tuple(_.callbacks for _ in self.callback_groups)
-
-    def get_communication(
+    def _import(
         self,
-        publisher_node_name: str,
-        subscription_node_name: str,
-        topic_name: str
-    ) -> CommunicationStructValue:
-        def is_target_comm(comm: CommunicationStructValue):
-            return comm.publish_node_name == publisher_node_name and \
-                comm.subscribe_node_name == subscription_node_name and \
-                comm.topic_name == topic_name
+        file_path: str,
+        file_type: str,
+        records_container: Optional[RecordsContainer],
+        ignore_topics: List[str],
+    ) -> None:
+        file_type = file_type.lower()
+        assert file_type in ['ctf', 'lttng', 'yml', 'yaml']
 
-        return Util.find_one(is_target_comm, self.communications)
+        importer: ArchitectureImporter
+        if file_type in ['lttng', 'ctf']:
+            importer = LttngArchitectureImporter(records_container)
+        elif file_type in ['yml', 'yaml']:
+            importer = YamlArchitectureImporter(records_container)
 
-    def get_path(self, path_name: str) -> PathStructValue:
-        return self._path_manager.get_named_path(path_name)
+        importer.execute(file_path, ignore_topics)
 
-    def add_path(self, path_name: str, path_info: PathStructValue) -> None:
-        self._path_manager.add_named_path(path_name, path_info)
+        self._nodes = importer.nodes
+        self._path_aliases = importer.path_aliases
+        self._communications = importer.communications
+        self._variable_passings = importer.variable_passings
 
-    def remove_path(self, path_name: str) -> None:
-        self._path_manager.remove_named_path(path_name)
+    def add_path_alias(self, path_name: str, callbacks: List[CallbackBase]):
+        assert path_name not in [
+            alias.path_name for alias in self._path_aliases]
+        callback_names = [callback.unique_name for callback in callbacks]
+        alias = PathAlias(path_name, callback_names)
+        self._path_aliases.append(alias)
 
-    def update_path(self, path_name: str, path: PathStructValue) -> None:
-        self._path_manager.update_named_path(path_name, path)
+    def has_path_alias(self, path_name: str):
+        return path_name in [alias.path_name for alias in self._path_aliases]
 
     @property
-    def nodes(self) -> Tuple[NodeStructValue, ...]:
+    def nodes(self) -> List[Node]:
         return self._nodes
 
     @property
-    def node_names(self) -> Tuple[str, ...]:
-        return tuple(sorted(_.node_name for _ in self._nodes))
+    def path_aliases(self) -> List[PathAlias]:
+        return self._path_aliases
 
     @property
-    def executors(self) -> Tuple[ExecutorStructValue, ...]:
-        return self._executors
-
-    @property
-    def executor_names(self) -> Tuple[ExecutorStructValue, ...]:
-        return tuple(sorted(_.executor_name for _ in self._executors))
-
-    @property
-    def paths(self) -> Tuple[PathStructValue, ...]:
-        return self._path_manager.named_paths
-
-    @property
-    def path_names(self) -> Tuple[str, ...]:
-        return tuple(sorted(_.path_name for _ in self._path_manager.named_paths))
-
-    @property
-    def communications(self) -> Tuple[CommunicationStructValue, ...]:
+    def communications(self) -> List[Communication]:
         return self._communications
 
     @property
-    def summary(self) -> Summary:
-        return Summary({
-            'nodes': self.node_names
-        })
-
-    def export(self, file_path: str):
-        exporter = ArchitectureExporter(self.nodes, self.executors, self.paths)
-        exporter.execute(file_path)
-
-    def search_paths(
-        self,
-        start_node_name: str,
-        end_node_name: str,
-        max_node_depth: Optional[int] = None,
-        node_filter: Optional[Callable[[str], bool]] = None,
-        communication_filter: Optional[Callable[[str], bool]] = None,
-    ) -> List[PathStructValue]:
-        from .graph_search import NodePathSearcher
-        if start_node_name not in self.node_names:
-            raise InvalidArgumentError(f'Failed to find node. {start_node_name}')
-        if end_node_name not in self.node_names:
-            raise InvalidArgumentError(f'Failed to find node. node_name: {end_node_name}')
-
-        path_searcher = NodePathSearcher(
-            self._nodes, self._communications, node_filter, communication_filter)
-        return path_searcher.search(start_node_name, end_node_name, max_node_depth)
-
-
-class NamedPathManager():
-
-    def __init__(self, paths: Tuple[PathStructValue, ...]) -> None:
-        self._named_paths: Dict[str, PathStructValue] = {}
-        for path in paths:
-            if path.path_name is None:
-                continue
-            self._named_paths[path.path_name] = path
-
-    @property
-    def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return tuple(self._named_paths.values())
-
-    def get_named_path(self, path_name: str) -> PathStructValue:
-        if path_name not in self._named_paths.keys():
-            raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
-        return self._named_paths[path_name]
-
-    def add_named_path(self, path_name: str, path_info: PathStructValue):
-        if path_name in self._named_paths.keys():
-            raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
-        named_path_info = PathStructValue(path_name, path_info.child)
-        self._named_paths[path_name] = named_path_info
-
-    def remove_named_path(self, path_name: str):
-        if path_name not in self._named_paths.keys():
-            raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
-        del self._named_paths[path_name]
-
-    def update_named_path(self, path_name: str, path_info: PathStructValue):
-        if path_info.path_name is None:
-            raise InvalidArgumentError('path_info.path_name is None')
-
-        self.remove_named_path(path_info.path_name)
-        self.add_named_path(path_name, path_info)
+    def variable_passings(self) -> List[VariablePassing]:
+        return Util.flatten([node.variable_passings for node in self._nodes])

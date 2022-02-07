@@ -15,7 +15,10 @@
 
 from typing import Dict, List, Optional
 
-from .record import Record, RecordInterface, Records, RecordsInterface
+from .record import Record
+from .record import RecordInterface
+from .record import Records
+from .record import RecordsInterface
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl
@@ -50,23 +53,19 @@ class RecordFactory:
 
 class RecordsFactory:
 
-    @staticmethod
-    def is_cpp_impl_valid() -> bool:
+    @classmethod
+    def is_cpp_impl_valid(cls) -> bool:
         return use_cpp_impl
 
-    @staticmethod
-    def create_instance(
-        init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[str]] = None
-    ) -> RecordsInterface:
+    @classmethod
+    def create_instance(cls, init: Optional[List[RecordInterface]] = None) -> RecordsInterface:
         if use_cpp_impl:
-            return RecordsFactory._create_cpp_instance(init, columns)
+            return cls._create_cpp_instance(init)
         else:
-            return Records(init, columns)
+            return Records(init)  # type: ignore
 
-    @staticmethod
+    @classmethod
     def _create_cpp_instance(
-        init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[str]] = None,
+        cls, init: Optional[List[RecordInterface]] = None
     ) -> RecordsInterface:
-        return cpp_impl.RecordsCppImpl(init or [], columns or [])
+        return cpp_impl.RecordsCppImpl(init or [])  # type: ignore

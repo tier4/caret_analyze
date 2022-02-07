@@ -23,7 +23,6 @@ class TracePoint(NamedTuple):
     DDS_WRITE_TIMESTAMP: str = 'dds_write_timestamp'
     ON_DATA_AVAILABLE_TIMESTAMP: str = 'on_data_available_timestamp'
     RCLCPP_INTRA_PUBLISH_TIMESTAMP: str = 'rclcpp_intra_publish_timestamp'
-    TIMER_START_TIMESTAMP: str = 'timer_start_timestamp'
 
 
 TRACE_POINT = TracePoint()

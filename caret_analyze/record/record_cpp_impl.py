@@ -14,28 +14,45 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, List, Optional
 
-from record_cpp_impl import RecordBase, RecordsBase
+import pandas as pd
+from record_cpp_impl import RecordBase
+from record_cpp_impl import RecordsBase
 
-from .record import RecordInterface, Records, RecordsInterface, validate_rename_rule
-from ..common import Progress
-from ..exceptions import InvalidArgumentError
+from .record import RecordInterface
+from .record import RecordsInterface
 
 
 class RecordCppImpl(RecordBase, RecordInterface):
-    pass
+    def merge(  # type: ignore
+        self, other: RecordCppImpl, inplace=False
+    ) -> Optional[RecordCppImpl]:
+        if inplace:
+            self._merge(other)
+            return None
+        else:
+            record = RecordCppImpl(self)
+            record._merge(other)
+            return record
+
+    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[RecordCppImpl]:
+        if inplace:
+            self._drop_columns(columns)
+            return None
+        else:
+            record = RecordCppImpl(self)
+            record._drop_columns(columns)
+            return record
 
 
-class RecordsCppImpl(RecordsInterface):
+class RecordsCppImpl(RecordsBase, RecordsInterface):
 
-    def __init__(
-        self,
-        init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[str]] = None,
-    ):
-        Records._validate(init, columns)
-        self._records = RecordsBase(init or [], columns or [])
+    def __init__(self, init: Optional[List[RecordCppImpl]] = None):
+        super().__init__(init or [])
+
+    def to_string(self) -> str:
+        return self.to_dataframe().to_string()
 
     def export_json(self, path: str) -> None:
         import json
@@ -47,189 +64,133 @@ class RecordsCppImpl(RecordsInterface):
             f.write(s)
         return None
 
-    def append(
-        self,
-        other: RecordInterface
-    ) -> None:
-        unknown_columns = set(other.columns) - set(self.columns)
-        if len(unknown_columns) > 0:
-            msg = 'Contains an unknown columns. '
-            msg += f'{unknown_columns}'
-            raise InvalidArgumentError(msg)
+    def concat(  # type: ignore
+        self, other: RecordsCppImpl, inplace=False
+    ) -> Optional[RecordsCppImpl]:
+        if inplace:
+            self._concat(other)
+            return None
+        else:
+            records = RecordsCppImpl(self)
+            records._concat(other)
+            return records
 
-        self._records.append(other)
+    @property
+    def data(self) -> List[RecordCppImpl]:  # type: ignore
+        return [RecordCppImpl(record_base.data) for record_base in self._data]
 
-    def concat(
-        self, other: RecordsInterface
-    ) -> None:
-        assert isinstance(other, RecordsCppImpl)
-        self._records.concat(other._records)
-        return None
+    def sort(  # type: ignore
+        self, key: str, sub_key: Optional[str] = None, ascending=True, inplace=False
+    ) -> Optional[RecordsCppImpl]:
+        if inplace:
+            self._sort(key, sub_key or '', ascending)
+            return None
+        else:
+            records = RecordsCppImpl(self)
+            records._sort(key, sub_key or '', ascending)
+            return records
 
-    def sort(
-        self, key: str, sub_key: Optional[str] = None, ascending=True
-    ) -> None:
-        if key not in self.columns:
-            raise InvalidArgumentError(f'column [{key}] not found.')
-        self._records.sort(key, sub_key or '', ascending)
-        return None
+    def clone(self) -> RecordsCppImpl:
+        return RecordsCppImpl([RecordCppImpl(record.data) for record in self.data])
 
-    def sort_column_order(
-        self,
-        ascending: bool = True,
-        put_none_at_top=True,
-    ) -> None:
-        self._records.sort_column_order(ascending, put_none_at_top)
+    def bind_drop_as_delay(self, sort_key: str) -> None:
+        self._bind_drop_as_delay(sort_key)
 
-    def bind_drop_as_delay(self) -> None:
-        self._records.bind_drop_as_delay()
+    def drop_columns(self, columns: List[str], inplace: bool = False) -> Optional[RecordsCppImpl]:
+        if inplace:
+            self._drop_columns(columns)
+            return None
+        else:
+            records = RecordsCppImpl(self)
+            records._drop_columns(columns)
+            return records
 
     def to_dataframe(self):
         data_dict = [record.data for record in self.data]
-        return Records._to_dataframe(data_dict, self.columns)
+        return pd.DataFrame.from_dict(data_dict)
 
     def rename_columns(
-        self, columns: Dict[str, str]
-    ) -> None:
-        validate_rename_rule(columns)
-        self._records.rename_columns(columns)
-        return None
+        self, columns: Dict[str, str], inplace: bool = False
+    ) -> Optional[RecordsCppImpl]:
+        if inplace:
+            self._rename_columns(columns)
+            return None
+        else:
+            records = RecordsCppImpl(self)
+            records._rename_columns(columns)
+            return records
 
-    def merge(
+    def filter_if(
+        self, f: Callable[[RecordInterface], bool], inplace: bool = False
+    ) -> Optional[RecordsInterface]:
+        if inplace:
+            self._filter(f)
+            return None
+        else:
+            records = RecordsCppImpl(self)
+            records._filter(f)
+            return records
+
+    def merge(  # type: ignore
         self,
-        right_records: RecordsInterface,
-        join_left_key: str,
-        join_right_key: str,
-        columns: List[str],
-        how: str,
+        right_records: RecordsCppImpl,
+        join_key: str,
+        how: str = 'inner',
         *,
         progress_label: Optional[str] = None,
     ) -> RecordsCppImpl:
         progress_label = progress_label or ''
         assert how in ['inner', 'left', 'right', 'outer']
-        assert isinstance(right_records, RecordsCppImpl)
-
-        merged_cpp_base = self._records.merge(
-            right_records._records, join_left_key, join_right_key,
-            columns, how,
-            Progress.records_label(progress_label))
-
-        merged = RecordsCppImpl()
-        merged._insert_records(merged_cpp_base)
+        merged_cpp_base = self._merge(
+            right_records, join_key, how, progress_label)
+        merged = RecordsCppImpl(merged_cpp_base)
         return merged
 
-    def groupby(
+    def merge_sequencial(  # type: ignore
         self,
-        columns: List[str]
-    ) -> Dict[Tuple[int, ...], RecordsInterface]:
-        assert 0 < len(columns) and len(columns) <= 3
-
-        group_cpp_base = self._records.groupby(*columns)
-        group: Dict[Tuple[int, ...], RecordsInterface] = {}
-        for k, v in group_cpp_base.items():
-            records = RecordsCppImpl()
-            records._insert_records(v)
-            group[k] = records
-        return group
-
-    @property
-    def columns(self) -> List[str]:
-        return self._records.columns
-
-    def equals(self, other: RecordsInterface) -> bool:
-        if not isinstance(other, RecordsCppImpl):
-            return False
-        return self._records.equals(other._records)
-
-    def reindex(self, columns: List[str]) -> None:
-        self._records.reindex(columns)
-
-    def clone(self) -> RecordsCppImpl:
-        records_clone = self._records.clone()
-        records = RecordsCppImpl()
-        records._insert_records(records_clone)
-        return records
-
-    def _insert_records(self, records: RecordsBase) -> None:
-        self._records = records
-
-    def append_column(self, column: str, values: List[int]) -> None:
-        if len(values) != len(self):
-            raise InvalidArgumentError('len(values) != len(records)')
-
-        self._records.append_column(column, values)
-
-    def drop_columns(self, columns: List[str]) -> None:
-        self._records.drop_columns(columns)
-
-    def filter_if(self, f: Callable[[RecordInterface], bool]) -> None:
-        self._records.filter_if(f)
-
-    @property
-    def data(self) -> Sequence[RecordInterface]:
-        return self._records.data
-
-    def merge_sequencial(
-        self,
-        right_records: RecordsInterface,
+        right_records: RecordsCppImpl,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
-        columns: List[str],
-        how: str,
+        join_key: Optional[str],
+        how: str = 'inner',
         *,
         progress_label: Optional[str] = None,
-    ) -> RecordsInterface:
+    ) -> RecordsCppImpl:
         progress_label = progress_label or ''
-        assert isinstance(right_records, RecordsCppImpl)
-        merged_cpp_base = self._records.merge_sequencial(
-            right_records._records,
-            left_stamp_key,
-            right_stamp_key,
-            join_left_key or '',
-            join_right_key or '',
-            columns,
-            how,
-            Progress.records_label(progress_label)
+        merged_cpp_base = self._merge_sequencial(
+            right_records, left_stamp_key, right_stamp_key, join_key or '', how, progress_label
         )
 
-        merged = RecordsCppImpl()
-        merged._insert_records(merged_cpp_base)
+        merged = RecordsCppImpl(merged_cpp_base)
         return merged
 
-    def merge_sequencial_for_addr_track(
+    def merge_sequencial_for_addr_track(  # type: ignore
         self,
         source_stamp_key: str,
         source_key: str,
-        copy_records: RecordsInterface,
+        copy_records: RecordsCppImpl,
         copy_stamp_key: str,
         copy_from_key: str,
         copy_to_key: str,
-        sink_records: RecordsInterface,
+        sink_records: RecordsCppImpl,
         sink_stamp_key: str,
         sink_from_key: str,
-        columns: List[str],
         *,
         progress_label: Optional[str] = None,
-    ) -> RecordsInterface:
-        assert isinstance(copy_records, RecordsCppImpl)
-        assert isinstance(sink_records, RecordsCppImpl)
-
+    ) -> RecordsCppImpl:
         progress_label = progress_label or ''
-        merged_cpp_base = self._records.merge_sequencial_for_addr_track(
+        merged_cpp_base = self._merge_sequencial_for_addr_track(
             source_stamp_key,
             source_key,
-            copy_records._records,
+            copy_records,
             copy_stamp_key,
             copy_from_key,
             copy_to_key,
-            sink_records._records,
+            sink_records,
             sink_stamp_key,
             sink_from_key,
-            Progress.records_label(progress_label)
+            progress_label,
         )
 
-        merged = RecordsCppImpl()
-        merged._insert_records(merged_cpp_base)
+        merged = RecordsCppImpl(merged_cpp_base)
         return merged

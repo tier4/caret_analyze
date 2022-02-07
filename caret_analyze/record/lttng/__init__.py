@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .application import Application
-from .record.lttng import Lttng
+from .lttng import Lttng
 
-__all__ = ['Application', 'Lttng']
+__all__ = ['Lttng']

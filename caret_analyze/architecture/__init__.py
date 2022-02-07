@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from .architecture import Architecture
-from .util import check_procedure
+from .interface import PathAlias
 
 __all__ = [
     'Architecture',
-    'check_procedure'
+    'PathAlias',
 ]
