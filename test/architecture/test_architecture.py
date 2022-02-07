@@ -14,74 +14,192 @@
 
 
 from caret_analyze.architecture import Architecture
+from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
+from caret_analyze.architecture.architecture_reader_factory import \
+    ArchitectureReaderFactory
+from caret_analyze.architecture.graph_search import NodePathSearcher
+from caret_analyze.architecture.reader_interface import ArchitectureReader
+from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
+from caret_analyze.value_objects import (CommunicationStructValue,
+                                         ExecutorStructValue, NodeStructValue,
+                                         PathStructValue)
 
 import pytest
+from pytest_mock import MockerFixture
 
 
-class TestArchitecture:
-    @pytest.mark.parametrize(
-        'yaml_path, nodes_len, aliases_len, comm_len, var_passings_len',
-        [
-            ('sample/lttng_samples/talker_listener/architecture.yaml', 2, 0, 1, 0),
-            ('sample/lttng_samples/multi_talker_listener/architecture.yaml', 4, 0, 2, 0),
-            ('sample/lttng_samples/cyclic_pipeline_intra_process/architecture.yaml', 2, 0, 2, 0),
-            ('sample/lttng_samples/end_to_end_sample/architecture.yaml', 6, 0, 5, 0),
-            ('sample/lttng_samples/end_to_end_sample/architecture_modified.yaml', 6, 1, 5, 2),
-        ],
-    )
-    def test_import_file(self, yaml_path, nodes_len, aliases_len, comm_len, var_passings_len):
-        arch = Architecture(yaml_path, 'yaml', None)
+class TestArchiteture:
 
-        assert len(arch.nodes) == nodes_len
-        assert len(arch._path_aliases) == aliases_len
-        assert len(arch.communications) == comm_len
-        assert len(arch.variable_passings) == var_passings_len
+    def test_empty_architecture(self, mocker: MockerFixture):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
-    @pytest.mark.parametrize(
-        'trace_path',
-        [
-            ('sample/lttng_samples/talker_listener'),
-            ('sample/lttng_samples/multi_talker_listener'),
-            ('sample/lttng_samples/cyclic_pipeline_intra_process'),
-            ('sample/lttng_samples/end_to_end_sample/fastrtps'),
-        ],
-    )
-    def test_export_and_import_yaml(self, tmpdir, trace_path):
-        arch = Architecture(trace_path, 'lttng', None)
+        mocker.patch.object(loaded_mock, 'nodes', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
+        mocker.patch.object(loaded_mock, 'communications', [])
+        mocker.patch.object(loaded_mock, 'executors', [])
 
-        trace_name = trace_path.split('/')[-1]
-        yaml_path = tmpdir.mkdir('architecture').join(f'{trace_name}.yaml')
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
 
-        arch.export(yaml_path)
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        mocker.patch.object(ArchitectureReaderFactory,
+                            'create_instance', return_value=reader_mock)
 
-        arch_ = Architecture(yaml_path, 'yaml', None)
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
 
-        assert len(arch.nodes) == len(arch_.nodes)
-        assert len(arch.path_aliases) == len(arch_.path_aliases)
-        assert len(arch.communications) == len(arch_.communications)
-        assert len(arch.variable_passings) == len(arch_.variable_passings)
+        mocker.patch.object(loaded_mock, 'nodes', [])
+        mocker.patch.object(loaded_mock, 'communications', [])
+        mocker.patch.object(loaded_mock, 'executors', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
+        arch = Architecture('file_type', 'file_path')
 
-    def test_add_path_alias(self):
-        yaml_path = 'sample/lttng_samples/talker_listener/architecture.yaml'
-        arch = Architecture(yaml_path, 'yaml', None)
+        assert len(arch.nodes) == 0
+        assert len(arch.executors) == 0
+        assert len(arch.paths) == 0
+        assert len(arch.communications) == 0
 
-        assert len(arch.path_aliases) == 0
+    def test_get_node(self, mocker: MockerFixture):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        mocker.patch.object(ArchitectureReaderFactory,
+                            'create_instance', return_value=reader_mock)
 
-        callback = arch.nodes[0].callbacks[0]
-        arch.add_path_alias('path_name', [callback])
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
 
-        assert len(arch.path_aliases) == 1
-        alias = arch.path_aliases[0]
-        assert alias.path_name == 'path_name'
-        assert alias.callback_names == [callback.unique_name]
+        node_mock = mocker.Mock(spec=NodeStructValue)
+        mocker.patch.object(node_mock, 'node_name', 'node_name')
 
-    def test_has_path_alias(self):
-        yaml_path = 'sample/lttng_samples/talker_listener/architecture.yaml'
-        arch = Architecture(yaml_path, 'yaml', None)
+        mocker.patch.object(loaded_mock, 'paths', ())
+        mocker.patch.object(loaded_mock, 'nodes', (node_mock,))
+        mocker.patch.object(loaded_mock, 'communications', ())
 
-        assert arch.has_path_alias('path_name') is False
+        searcher_mock = mocker.Mock(spec=NodePathSearcher)
+        mocker.patch('caret_analyze.architecture.graph_search.NodePathSearcher',
+                     return_value=searcher_mock)
 
-        callback = arch.nodes[0].callbacks[0]
-        arch.add_path_alias('path_name', [callback])
+        arch = Architecture('file_type', 'file_path')
+        node = arch.get_node('node_name')
+        assert node == node_mock
 
-        assert arch.has_path_alias('path_name') is True
+        with pytest.raises(ItemNotFoundError):
+            arch.get_node('node_not_exist')
+
+    def test_full_architecture(self, mocker: MockerFixture):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+
+        node_mock = mocker.Mock(spec=NodeStructValue)
+        executor_mock = mocker.Mock(spec=ExecutorStructValue)
+        path_mock = mocker.Mock(spec=PathStructValue)
+        comm_mock = mocker.Mock(spec=CommunicationStructValue)
+
+        mocker.patch.object(loaded_mock, 'nodes', [node_mock])
+        mocker.patch.object(loaded_mock, 'paths', [path_mock])
+        mocker.patch.object(loaded_mock, 'communications', [comm_mock])
+        mocker.patch.object(loaded_mock, 'executors', [executor_mock])
+        mocker.patch.object(path_mock, 'path_name', 'path')
+
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
+
+        mocker.patch.object(ArchitectureReaderFactory,
+                            'create_instance', return_value=reader_mock)
+
+        searcher_mock = mocker.Mock(spec=NodePathSearcher)
+        mocker.patch('caret_analyze.architecture.graph_search.NodePathSearcher',
+                     return_value=searcher_mock)
+
+        arch = Architecture('file_type', 'file_path')
+
+        assert len(arch.nodes) == 1
+        assert arch.nodes[0] == node_mock
+
+        assert len(arch.executors) == 1
+        assert arch.executors[0] == executor_mock
+
+        assert len(arch.paths) == 1
+        assert arch.paths[0] == path_mock
+
+        assert len(arch.communications) == 1
+        assert arch.communications[0] == comm_mock
+
+    def test_path(self, mocker: MockerFixture):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+
+        path = PathStructValue('path0', ())
+
+        mocker.patch.object(loaded_mock, 'nodes', [])
+        mocker.patch.object(loaded_mock, 'paths', [path])
+        mocker.patch.object(loaded_mock, 'communications', [])
+        mocker.patch.object(loaded_mock, 'executors', [])
+
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
+
+        mocker.patch.object(ArchitectureReaderFactory,
+                            'create_instance', return_value=reader_mock)
+
+        arch = Architecture('file_type', 'file_path')
+
+        # remove
+        assert len(arch.paths) == 1
+        arch.remove_path('path0')
+        assert len(arch.paths) == 0
+        with pytest.raises(InvalidArgumentError):
+            arch.remove_path('path0')
+
+        # add
+        arch.add_path('path1', path)
+        assert len(arch.paths) == 1
+        with pytest.raises(InvalidArgumentError):
+            arch.add_path('path1', path)
+
+        # get
+        with pytest.raises(InvalidArgumentError):
+            arch.get_path('path0')
+        path_ = arch.get_path('path1')
+
+        # update
+        arch.update_path('path2', path_)
+        arch.get_path('path2')
+        with pytest.raises(InvalidArgumentError):
+            arch.update_path('path2', path_)
+
+    def test_search_paths(self, mocker: MockerFixture):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+
+        start_node_mock = mocker.Mock(spec=NodeStructValue)
+        end_node_mock = mocker.Mock(spec=NodeStructValue)
+
+        mocker.patch.object(start_node_mock, 'node_name', 'start_node')
+        mocker.patch.object(end_node_mock, 'node_name', 'end_node')
+
+        mocker.patch.object(loaded_mock, 'nodes', [start_node_mock, end_node_mock])
+        mocker.patch.object(loaded_mock, 'paths', [])
+        mocker.patch.object(loaded_mock, 'communications', [])
+        mocker.patch.object(loaded_mock, 'executors', [])
+
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
+        mocker.patch.object(ArchitectureReaderFactory,
+                            'create_instance', return_value=reader_mock)
+
+        searcher_mock = mocker.Mock(spec=NodePathSearcher)
+        mocker.patch('caret_analyze.architecture.graph_search.NodePathSearcher',
+                     return_value=searcher_mock)
+        path_mock = mocker.Mock(spec=PathStructValue)
+        mocker.patch.object(searcher_mock, 'search', return_value=[path_mock])
+
+        arch = Architecture('file_type', 'file_path')
+
+        with pytest.raises(InvalidArgumentError):
+            arch.search_paths('not_exist', 'not_exist')
+
+        path = arch.search_paths('start_node', 'end_node')
+        assert path == [path_mock]
