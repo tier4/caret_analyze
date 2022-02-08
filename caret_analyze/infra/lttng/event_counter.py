@@ -148,8 +148,14 @@ class EventCounter:
         timer_cb_to_node_name: Dict[int, str] = {}
         sub_cb_to_topic_name: Dict[int, str] = {}
 
+        def ns_and_node_name(ns: str, name: str) -> str:
+            if ns[-1] == '/':
+                return ns + name
+            else:
+                return ns + '/' + name
+
         for handler, row in data.nodes.iterrows():
-            node_handle_to_node_name[handler] = row['namespace'] + row['name']
+            node_handle_to_node_name[handler] = ns_and_node_name(row['namespace'], row['name'])
 
         for handler, row in data.publishers.iterrows():
             pub_handle_to_node_name[handler] = \

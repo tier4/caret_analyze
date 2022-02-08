@@ -38,7 +38,7 @@ class TestEventCounter:
     def test_build_count_df_increment_count(self, mocker: MockerFixture):
         data = Ros2DataModel()
         data.add_context(0, 0, 0, 0)
-        data.add_node(0, 0, 0, 0, 0, 0)
+        data.add_node(0, 0, 0, 0, 'name', '/')
         data.add_publisher(0, 0, 0, 0, 0, 0)
         data.add_rcl_subscription(0, 0, 0, 0, 0, 0)
         data.add_rclcpp_subscription(0, 0, 0)
