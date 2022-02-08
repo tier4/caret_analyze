@@ -19,7 +19,9 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
 
 from .lttng import Lttng
-from .value_objects import PublisherValueLttng, SubscriptionCallbackValueLttng
+from .value_objects import (PublisherValueLttng,
+                            SubscriptionCallbackValueLttng,
+                            TimerCallbackValueLttng)
 from ...common import ClockConverter, Columns, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
@@ -27,13 +29,18 @@ from ...exceptions import (InvalidArgumentError,
 from ...infra.interface import RuntimeDataProvider
 from ...infra.lttng.column_names import COLUMN_NAME
 from ...record import (merge, merge_sequencial, RecordsFactory, RecordsInterface)
-from ...value_objects import (CallbackChain, CallbackStructValue,
-                              CommunicationStructValue, InheritUniqueStamp,
-                              NodePathStructValue, PublisherStructValue, Qos,
+from ...value_objects import (CallbackChain,
+                              CallbackStructValue,
+                              CommunicationStructValue,
+                              InheritUniqueStamp,
+                              NodePathStructValue,
+                              PublisherStructValue,
+                              Qos,
                               SubscriptionCallbackStructValue,
                               SubscriptionStructValue,
                               Tilde,
                               TimerCallbackStructValue,
+                              TimerStructValue,
                               UseLatestMessage,
                               VariablePassingStructValue)
 
@@ -449,6 +456,39 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return pub_records
 
+    def timer_records(self, timer: TimerStructValue) -> RecordsInterface:
+        """
+        Return timer records.
+
+        Parameters
+        ----------
+        timer : TimerStructValue
+            [description]
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - [callback_name]/timer_event
+            - [callback_name]/callback_start
+            - [callback_name]/callback_end
+
+        """
+        timer = self._helper.get_lttng_timer/(timer)
+        timer_records = self._source.timer_records(timer)
+
+        columns = [
+            COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+        ]
+
+        self._format(timer_records, columns)
+        self._rename_column(timer_records, None, publisher.topic_name)
+
+        return timer_records
+
+
     def tilde_records(
         self,
         subscription: SubscriptionStructValue,
@@ -818,6 +858,12 @@ class RecordsProviderLttngHelper:
         callback: SubscriptionCallbackStructValue
     ) -> SubscriptionCallbackValueLttng:
         return self._bridge.get_subscription_callback(callback)
+
+    def get_lttng_timer(
+        self,
+        callback: TimerCallbackStructValue
+    ) -> TimerCallbackValueLttng:
+        return self._bridge.get_timer_callback(callback)
 
 
 class NodeRecordsCallbackChain:

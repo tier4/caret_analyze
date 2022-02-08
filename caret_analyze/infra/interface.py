@@ -22,6 +22,7 @@ from ..record.interface import RecordsInterface
 from ..value_objects import (CallbackStructValue, CommunicationStructValue,
                              NodePathStructValue, PublisherStructValue, Qos,
                              SubscriptionStructValue,
+                             TimerStructValue,
                              VariablePassingStructValue)
 
 
@@ -103,6 +104,13 @@ class RecordsProvider(metaclass=ABCMeta):
     def publish_records(
         self,
         publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def timer_records(
+        self,
+        timer: TimerStructValue
     ) -> RecordsInterface:
         pass
 

@@ -25,6 +25,7 @@ from .node_path import NodePath
 from .path import Path
 from .publisher import Publisher
 from .subscription import Subscription
+from .timer import Timer, TimerStructValue
 from .variable_passing import VariablePassing
 from ..architecture import Architecture
 from ..common import Util
@@ -136,10 +137,19 @@ class NodesLoaded:
             node_value.subscriptions, provider)
         subscriptions = subscriptions_loaded.data
 
+        timers_loaded = TimersLoaded(
+            node_value.timers, provider
+        )
+        timers = timers_loaded.data
+
         cbgs: List[CallbackGroup] = []
         if node_value.callback_groups is not None:
             cbgs = CallbackGroupsLoaded(
-                node_value.callback_groups, provider, publishers_loaded, subscriptions_loaded
+                node_value.callback_groups,
+                provider,
+                publishers_loaded,
+                subscriptions_loaded,
+                timers_loaded
             ).data
 
         callbacks = Util.flatten([_.callbacks for _ in cbgs])
@@ -157,6 +167,7 @@ class NodesLoaded:
             node_value,
             publishsers,
             subscriptions,
+            timers,
             node_paths,
             cbgs,
             variable_passings
@@ -402,6 +413,87 @@ class SubscriptionsLoaded:
             return topic_match and node_match and callback_match
 
 
+class TimersLoaded:
+    def __init__(
+        self,
+        subscriptions_info: Tuple[TimerStructValue, ...],
+        provider: Union[RecordsProvider, RuntimeDataProvider],
+    ) -> None:
+        raise NotImplementedError('')
+        self._subs = [
+            self._to_runtime(sub_info, provider)
+            for sub_info
+            in subscriptions_info
+        ]
+
+    @staticmethod
+    def _to_runtime(
+        timer_info: TimerStructValue,
+        provider: Union[RecordsProvider, RuntimeDataProvider],
+    ) -> Timer:
+        raise NotImplementedError('')
+        # return Subscription(subscription_info, provider)
+
+    @property
+    def data(self) -> List[Timer]:
+        raise NotImplementedError('')
+        # return self._subs
+
+    def get_timers(
+        self,
+        node_name: Optional[str],
+        callback_name: Optional[str],
+        period_ns: Optional[int],
+    ) -> List[Timer]:
+        raise NotImplementedError('')
+        # is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
+        # return Util.filter_items(is_target, self._subs)
+
+    def get_timer(
+        self,
+        node_name: Optional[str],
+        callback_name: Optional[str],
+        period_ns: Optional[int],
+    ) -> Timer:
+        raise NotImplementedError('')
+        # try:
+        #     is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
+        #     return Util.find_one(is_target, self._subs)
+        # except ItemNotFoundError:
+        #     msg = 'Failed to find subscription. '
+        #     msg += f'node_name: {node_name}, '
+        #     msg += f'callback_name: {callback_name}, '
+        #     msg += f'topic_name: {topic_name}, '
+        #     raise ItemNotFoundError(msg)
+
+    class IsTarget:
+        def __init__(
+            self,
+            node_name: Optional[str],
+            callback_name: Optional[str],
+            topic_name: Optional[str]
+        ) -> None:
+            raise NotImplementedError('')
+            self._node_name = node_name
+            self._callback_name = callback_name
+            self._topic_name = topic_name
+
+        def __call__(self, sub: Subscription) -> bool:
+            raise NotImplementedError('')
+            topic_match = True
+            if self._topic_name is not None:
+                topic_match = self._topic_name == sub.topic_name
+
+            node_match = True
+            if self._node_name is not None:
+                node_match = self._node_name == sub.node_name
+
+            callback_match = True
+            if self._callback_name is not None:
+                callback_match = self._callback_name == sub.callback_name
+            return topic_match and node_match and callback_match
+
+
 class NodePathsLoaded:
     def __init__(
         self,
@@ -619,10 +711,11 @@ class CallbacksLoaded:
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
+        timers_loaded: TimersLoaded
     ) -> None:
         self._callbacks = [
             self._to_runtime(
-                cb_info, provider, publishers_loaded, subscriptions_loaded
+                cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded
             )
             for cb_info
             in callback_values
@@ -634,6 +727,7 @@ class CallbacksLoaded:
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
+        timers_loaded: TimersLoaded,
     ) -> CallbackBase:
         publishers: Optional[List[Publisher]] = None
 
@@ -642,10 +736,13 @@ class CallbacksLoaded:
                 None, callback_value.callback_name, None)
 
         if isinstance(callback_value, TimerCallbackStructValue):
+            timer = timers_loaded.get_timer(
+                None, callback_value.callback_name, None)
             return TimerCallback(
                 callback_value,
                 provider,
-                publishers
+                publishers,
+                timer
             )
         if isinstance(callback_value, SubscriptionCallbackStructValue):
             subscription = subscriptions_loaded.get_subscription(
@@ -671,11 +768,12 @@ class CallbackGroupsLoaded:
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
+        timers_loaded: TimersLoaded
     ) -> None:
 
         self._data = [
             self._to_runtime(cbg_info, provider,
-                             publishers_loaded, subscriptions_loaded)
+                             publishers_loaded, subscriptions_loaded, timers_loaded)
             for cbg_info
             in callback_group_value
         ]
@@ -686,9 +784,10 @@ class CallbackGroupsLoaded:
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
+        timers_loaded: TimersLoaded
     ) -> CallbackGroup:
         cbs_loaded = CallbacksLoaded(
-            cbg_value.callbacks, provider, publishers_loaded, subscriptions_loaded
+            cbg_value.callbacks, provider, publishers_loaded, subscriptions_loaded, timers_loaded
         )
 
         return CallbackGroup(cbg_value, cbs_loaded.data)

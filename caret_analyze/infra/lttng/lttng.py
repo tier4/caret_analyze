@@ -451,6 +451,11 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.subscribe_records.clone()
 
+    def compose_timer_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.timer_records.clone()
+
     def compose_tilde_publish_records(
         self,
     ) -> RecordsInterface:

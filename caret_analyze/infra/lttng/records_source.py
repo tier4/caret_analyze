@@ -16,6 +16,9 @@ from functools import cached_property
 
 from typing import Dict, List
 
+from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
+from caret_analyze.record.record_factory import RecordFactory
+
 from .column_names import COLUMN_NAME
 from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
@@ -293,6 +296,41 @@ class RecordsSource():
         ])
 
         return publish
+
+    @cached_property
+    def timer_records(self) -> RecordsInterface:
+        """
+        Compose timer records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - timer_event
+            - callback_start
+            - callback_end
+
+        """
+        columns = [
+            COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+        ]
+
+        timer_ctrls = self._info.get_timer_controls()
+        records = RecordsFactory.create_instance(None, columns)
+
+        for ctrl in timer_ctrls:
+            if isinstance(ctrl, TimerInit):
+                record_dict = {
+                    COLUMN_NAME.TIMER_EVENT_TIMESTAMP: 0,
+                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 0,
+                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 0,
+                }
+                record = RecordFactory.create_instance(record_dict)
+                records.append(record)
+
+        return records
 
     @cached_property
     def tilde_publish_records(self) -> RecordsInterface:
