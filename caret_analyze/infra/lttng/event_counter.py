@@ -19,7 +19,6 @@ from typing import Dict, List
 
 import pandas as pd
 
-from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
 from ...exceptions import InvalidArgumentError, InvalidTraceFormatError
 
@@ -28,9 +27,9 @@ logger = getLogger(__name__)
 
 class EventCounter:
 
-    def __init__(self, data: Ros2DataModel, info: LttngInfo):
+    def __init__(self, data: Ros2DataModel):
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
-        self._count_df = self._build_count_df(data, info)
+        self._count_df = self._build_count_df(data)
         self._validate()
 
     def get_count(self, groupby: List[str]) -> pd.DataFrame:
@@ -88,7 +87,7 @@ class EventCounter:
                 'The binary may have been compiled without using fork-rclcpp.')
 
     @staticmethod
-    def _build_count_df(data: Ros2DataModel, info: LttngInfo) -> pd.DataFrame:
+    def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
         trace_point_and_df = {
             'ros2:rcl_init': data.contexts,
             'ros2:rcl_node_init': data.nodes,
@@ -210,12 +209,12 @@ class EventCounter:
                     topic_name = sub_cb_to_topic_name.get(key[0], '-')
                 elif key[1] in pub_handle_to_topic_name or \
                         key[1] in pub_handle_to_node_name:
-                    node_name = pub_handle_to_topic_name.get(key[1], '-')
-                    topic_name = pub_handle_to_node_name.get(key[1], '-')
+                    topic_name = pub_handle_to_topic_name.get(key[1], '-')
+                    node_name = pub_handle_to_node_name.get(key[1], '-')
                 elif key[2] in sub_handle_to_node_name or \
                         key[2] in sub_handle_to_topic_name:
-                    node_name = sub_handle_to_topic_name.get(key[2], '-')
-                    topic_name = sub_handle_to_node_name.get(key[2], '-')
+                    topic_name = sub_handle_to_topic_name.get(key[2], '-')
+                    node_name = sub_handle_to_node_name.get(key[2], '-')
 
                 count_dict.append(
                     {

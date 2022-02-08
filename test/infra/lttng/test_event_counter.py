@@ -17,7 +17,6 @@ from logging import getLogger
 
 from caret_analyze.exceptions import InvalidTraceFormatError
 from caret_analyze.infra.lttng.event_counter import EventCounter
-from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.ros2_tracing.processor import Ros2Handler
 
@@ -31,10 +30,7 @@ class TestEventCounter:
         data = Ros2DataModel()
         data.finalize()
 
-        lttng_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[])
-
-        df = EventCounter._build_count_df(data, lttng_mock)
+        df = EventCounter._build_count_df(data)
         assert set(df.columns) == {'size', 'node_name', 'trace_point', 'topic_name'}
         assert set(df['trace_point'].values) == set(Ros2Handler.get_trace_points())
         assert list(df['size']) == [0] * len(df)
@@ -84,10 +80,7 @@ class TestEventCounter:
 
         data.finalize()
 
-        lttng_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[])
-
-        df = EventCounter._build_count_df(data, lttng_mock)
+        df = EventCounter._build_count_df(data)
         assert list(df['size']) == [1] * len(df)
 
     def test_validation_without_ld_preload(
@@ -98,14 +91,11 @@ class TestEventCounter:
         data.add_dds_write_instance(0, 0)
         data.finalize()
 
-        lttng_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[])
-
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
         logger.propagate = True
 
         with pytest.raises(InvalidTraceFormatError):
-            EventCounter(data, lttng_mock)
+            EventCounter(data)
 
     def test_validation_without_forked_rclcpp(
         self,
@@ -115,14 +105,11 @@ class TestEventCounter:
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
         data.finalize()
 
-        lttng_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[])
-
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
         logger.propagate = True
 
         with pytest.raises(InvalidTraceFormatError):
-            EventCounter(data, lttng_mock)
+            EventCounter(data)
 
     def test_validation_valid_case(
         self,
@@ -133,10 +120,7 @@ class TestEventCounter:
         data.add_dds_write_instance(0, 0)
         data.finalize()
 
-        lttng_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[])
-
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
         logger.propagate = True
 
-        EventCounter(data, lttng_mock)
+        EventCounter(data)

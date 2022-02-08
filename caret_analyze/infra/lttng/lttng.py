@@ -177,7 +177,7 @@ class Lttng(InfraBase):
         data = self._parse_lttng_data(trace_dir, force_conversion, event_filters or [])
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
-        self._counter = EventCounter(data, self._info)
+        self._counter = EventCounter(data)
 
     def clear_singleton_cache(self) -> None:
         self._last_load_dir = None
