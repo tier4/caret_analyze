@@ -474,8 +474,25 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [callback_name]/callback_end
 
         """
-        timer = self._helper.get_lttng_timer/(timer)
-        timer_records = self._source.timer_records(timer)
+        assert timer.callback is not None
+        timer_lttng_cb = self._helper.get_lttng_timer(timer.callback)
+        timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
+        callback_records = self.callback_records(timer.callback)
+
+        last_record = callback_records.data[-1]
+        last_callback_start = last_record.get(callback_records.columns[0])
+        timer_events = timer_events_factory.create(last_callback_start)
+
+        timer_records = merge_sequencial(
+            left_records=timer_events,
+            right_records=callback_records,
+            left_stamp_key=COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_left_key=None,
+            join_right_key=None,
+            columns=Columns(timer_events.columns + callback_records.columns).as_list(),
+            how='left'
+        )
 
         columns = [
             COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
@@ -484,10 +501,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
         ]
 
         self._format(timer_records, columns)
-        self._rename_column(timer_records, None, publisher.topic_name)
+        self._rename_column(timer_records, timer.callback_name, None)
 
         return timer_records
-
 
     def tilde_records(
         self,
@@ -723,6 +739,10 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP}'
+
+        if COLUMN_NAME.TIMER_EVENT_TIMESTAMP in records.columns:
+            rename_dict[COLUMN_NAME.TIMER_EVENT_TIMESTAMP] = \
+                f'{callback_name}/{COLUMN_NAME.TIMER_EVENT_TIMESTAMP}'
 
         if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \

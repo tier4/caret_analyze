@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback import SubscriptionCallbackValueLttng, TimerCallbackValueLttng
-from .callback_group import CallbackGroupValueLttng
-from .node import NodeValueLttng
-from .publisher import PublisherValueLttng
-from .timer_control import TimerControl, TimerInit
 
-__all__ = [
-    'CallbackGroupValueLttng',
-    'NodeValueLttng',
-    'PublisherValueLttng',
-    'SubscriptionCallbackValueLttng',
-    'TimerCallbackValueLttng',
-    'TimerControl',
-    'TimerInit',
-]
+from abc import ABCMeta, abstractmethod
+
+from ...record import RecordsInterface
+
+
+class EventsFactory(metaclass=ABCMeta):
+
+    @abstractmethod
+    def create(self, until_ns: int) -> RecordsInterface:
+        pass

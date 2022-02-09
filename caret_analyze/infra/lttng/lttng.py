@@ -22,6 +22,7 @@ import pandas as pd
 
 from tracetools_analysis.loading import load_file
 
+from .events_factory import EventsFactory
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
 from .value_objects import (PublisherValueLttng,
@@ -451,10 +452,11 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.subscribe_records.clone()
 
-    def compose_timer_records(
+    def create_timer_events_factory(
         self,
-    ) -> RecordsInterface:
-        return self._source.timer_records.clone()
+        timer_callback: TimerCallbackValueLttng
+    ) -> EventsFactory:
+        return self._source.create_timer_events_factory(timer_callback)
 
     def compose_tilde_publish_records(
         self,

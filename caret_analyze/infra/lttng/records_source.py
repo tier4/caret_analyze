@@ -14,17 +14,19 @@
 
 from functools import cached_property
 
-from typing import Dict, List
-
-from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
-from caret_analyze.record.record_factory import RecordFactory
+from typing import Dict, List, Sequence
 
 from .column_names import COLUMN_NAME
+from .events_factory import EventsFactory
 from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
-from ...common import Columns
+from .value_objects import TimerCallbackValueLttng, TimerControl, TimerInit
+from ...common import Columns, Util
 from ...record import (merge, merge_sequencial,
-                       merge_sequencial_for_addr_track, RecordsFactory, RecordsInterface)
+                       merge_sequencial_for_addr_track,
+                       RecordFactory,
+                       RecordsFactory,
+                       RecordsInterface)
 
 
 class RecordsSource():
@@ -297,40 +299,49 @@ class RecordsSource():
 
         return publish
 
-    @cached_property
-    def timer_records(self) -> RecordsInterface:
+    def create_timer_events_factory(
+        self,
+        timer_callback: TimerCallbackValueLttng
+    ) -> EventsFactory:
         """
-        Compose timer records.
+        Create tiemr events factory
+
+        Parameters
+        ----------
+        timer_callback : TimerCallbackValueLttng
+            target callback to create timer events.
 
         Returns
         -------
-        RecordsInterface
-            columns:
-            - timer_event
-            - callback_start
-            - callback_end
+        EventsFactory
 
         """
-        columns = [
-            COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-        ]
+        class TimerEventsFactory(EventsFactory):
+            def __init__(self, ctrls: Sequence[TimerControl]) -> None:
+                self._ctrls = ctrls
+
+            def create(self, until_ns: int) -> RecordsInterface:
+                columns = [
+                    COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+                ]
+
+                records = RecordsFactory.create_instance(None, columns)
+
+                for ctrl in self._ctrls:
+                    if isinstance(ctrl, TimerInit):
+                        record_dict = {
+                            COLUMN_NAME.TIMER_EVENT_TIMESTAMP: 0,
+                        }
+                        record = RecordFactory.create_instance(record_dict)
+                        records.append(record)
+
+                return records
 
         timer_ctrls = self._info.get_timer_controls()
-        records = RecordsFactory.create_instance(None, columns)
+        filtered_timer_ctrls = Util.filter_items(
+            lambda x: x.timer_handle == timer_callback.timer_handle, timer_ctrls)
 
-        for ctrl in timer_ctrls:
-            if isinstance(ctrl, TimerInit):
-                record_dict = {
-                    COLUMN_NAME.TIMER_EVENT_TIMESTAMP: 0,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 0,
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 0,
-                }
-                record = RecordFactory.create_instance(record_dict)
-                records.append(record)
-
-        return records
+        return TimerEventsFactory(filtered_timer_ctrls)
 
     @cached_property
     def tilde_publish_records(self) -> RecordsInterface:
