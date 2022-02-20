@@ -156,3 +156,9 @@ class Node(Summarizable):
             raise InvalidArgumentError('Argument type is invalid.')
 
         return Util.find_one(lambda x: x.topic_name == topic_name, self._publishers)
+
+    def get_timer(self, topic_name: str) -> Timer:
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        return Util.find_one(lambda x: x.topic_name == topic_name, self._timers)

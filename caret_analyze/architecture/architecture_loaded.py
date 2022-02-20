@@ -18,7 +18,6 @@ from itertools import product
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
-from caret_analyze.value_objects.timer import TimerStructValue, TimerValue
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
 from ..common import Progress, Util
@@ -37,7 +36,7 @@ from ..value_objects import (CallbackChain, CallbackGroupStructValue,
                              SubscriptionCallbackValue,
                              SubscriptionStructValue, SubscriptionValue,
                              TimerCallbackStructValue, TimerCallbackValue,
-                             VariablePassingStructValue, VariablePassingValue)
+                             VariablePassingStructValue, VariablePassingValue, TimerValue, TimerStructValue)
 
 logger = getLogger(__name__)
 
@@ -633,11 +632,12 @@ class NodePathCreated:
         self,
         subscription_values: Tuple[SubscriptionStructValue, ...],
         publisher_values: Tuple[PublisherStructValue, ...],
+        timer_values: Tuple[TimerStructValue, ...]
     ) -> None:
         paths: List[NodePathStructValue] = []
-        for sub, pub in product(subscription_values, publisher_values):
+        for sub, pub, timer in product(subscription_values, publisher_values, timer_values):
             paths.append(
-                NodePathStructValue(sub.node_name, sub, pub, None, None)
+                NodePathStructValue(sub.node_name, sub, pub, timer, None, None)
             )
 
         self._data = tuple(paths)
@@ -748,36 +748,34 @@ class TimersLoaded:
         reader: ArchitectureReader,
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue
-    ) -> None:
-        raise NotImplementedError('')
-        # subscription_values = reader.get_subscriptions(node)
-        # self._data = tuple(self._to_struct(callbacks_loaded, sub)
-        #                    for sub in subscription_values)
+    ) -> TimerStructValue:
+        timer_values = reader.get_timers()
+        self._data = tuple(self._to_struct(callbacks_loaded, timer)
+                           for timer in timer_values)
 
     def _to_struct(
         self,
         callbacks_loaded: CallbacksLoaded,
         timer_value: TimerValue
     ) -> TimerStructValue:
-        raise NotImplementedError('')
-        # sub_callback: Optional[CallbackStructValue] = None
+        
+        timer_callback: Optional[CallbackStructValue] = None
 
-        # if subscription_value.callback_id is not None:
-        #     sub_callback = callbacks_loaded.find_callback(
-        #         subscription_value.callback_id)
+        if timer_value.callback_id is not None:
+            timer_callback = callbacks_loaded.find_callback(
+                timer_value.callback_id)
 
-        # assert isinstance(sub_callback, SubscriptionCallbackStructValue)
+        assert isinstance(timer_callback, TimerCallbackStructValue)
 
-        # return SubscriptionStructValue(
-        #     subscription_value.node_name,
-        #     subscription_value.topic_name,
-        #     sub_callback
-        # )
+        return TimerStructValue(
+            timer_value.node_name,
+            timer_value.period,
+            timer_callback
+        )
 
     @property
     def data(self) -> Tuple[TimerStructValue, ...]:
-        raise NotImplementedError('')
-        # return self._data
+        return self._data
 
 
 class VariablePassingsLoaded():
@@ -1211,6 +1209,12 @@ class TopicIgnoredReader(ArchitectureReader):
                 continue
             publishers.append(publisher)
         return publishers
+
+    def get_timers(self) -> List[TimerValue]:
+        timers: List[TimerValue] = []
+        for timer in self._reader.get_timers():
+            timers.append(timer)
+        return timers
 
     def get_callback_groups(
         self,

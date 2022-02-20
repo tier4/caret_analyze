@@ -416,14 +416,13 @@ class SubscriptionsLoaded:
 class TimersLoaded:
     def __init__(
         self,
-        subscriptions_info: Tuple[TimerStructValue, ...],
+        timer_info: Tuple[TimerStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
-        raise NotImplementedError('')
-        self._subs = [
-            self._to_runtime(sub_info, provider)
-            for sub_info
-            in subscriptions_info
+        self._timers = [
+            self._to_runtime(timer_info, provider)
+            for timer_info
+            in timer_info
         ]
 
     @staticmethod
@@ -431,13 +430,11 @@ class TimersLoaded:
         timer_info: TimerStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Timer:
-        raise NotImplementedError('')
-        # return Subscription(subscription_info, provider)
+        return Timer(timer_info, provider)
 
     @property
     def data(self) -> List[Timer]:
-        raise NotImplementedError('')
-        # return self._subs
+        return self._timers
 
     def get_timers(
         self,
@@ -445,9 +442,8 @@ class TimersLoaded:
         callback_name: Optional[str],
         period_ns: Optional[int],
     ) -> List[Timer]:
-        raise NotImplementedError('')
-        # is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
-        # return Util.filter_items(is_target, self._subs)
+        is_target = TimersLoaded.IsTarget(node_name, callback_name, period_ns)
+        return Util.filter_items(is_target, self._timers)
 
     def get_timer(
         self,
@@ -455,43 +451,40 @@ class TimersLoaded:
         callback_name: Optional[str],
         period_ns: Optional[int],
     ) -> Timer:
-        raise NotImplementedError('')
-        # try:
-        #     is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
-        #     return Util.find_one(is_target, self._subs)
-        # except ItemNotFoundError:
-        #     msg = 'Failed to find subscription. '
-        #     msg += f'node_name: {node_name}, '
-        #     msg += f'callback_name: {callback_name}, '
-        #     msg += f'topic_name: {topic_name}, '
-        #     raise ItemNotFoundError(msg)
+        try:
+            is_target = TimersLoaded.IsTarget(node_name, callback_name, period_ns)
+            return Util.find_one(is_target, self._timers)
+        except ItemNotFoundError:
+            msg = 'Failed to find timer. '
+            msg += f'node_name: {node_name}, '
+            msg += f'callback_name: {callback_name}, '
+            msg += f' period_ns: {period_ns}, '
+            raise ItemNotFoundError(msg)
 
     class IsTarget:
         def __init__(
             self,
             node_name: Optional[str],
             callback_name: Optional[str],
-            topic_name: Optional[str]
+            period_ns: Optional[int],
         ) -> None:
-            raise NotImplementedError('')
             self._node_name = node_name
             self._callback_name = callback_name
-            self._topic_name = topic_name
+            self._period_ns =  period_ns
 
-        def __call__(self, sub: Subscription) -> bool:
-            raise NotImplementedError('')
-            topic_match = True
-            if self._topic_name is not None:
-                topic_match = self._topic_name == sub.topic_name
+        def __call__(self, timer: Timer) -> bool:
+            period_match = True
+            if self._period_ns is not None:
+                period_match = self._period_ns == timer.period_ns
 
             node_match = True
             if self._node_name is not None:
-                node_match = self._node_name == sub.node_name
+                node_match = self._node_name == timer.node_name
 
             callback_match = True
             if self._callback_name is not None:
-                callback_match = self._callback_name == sub.callback_name
-            return topic_match and node_match and callback_match
+                callback_match = self._callback_name == timer.callback_name
+            return period_match and node_match and callback_match
 
 
 class NodePathsLoaded:

@@ -476,28 +476,31 @@ class RecordsProviderLttng(RuntimeDataProvider):
         """
         assert timer.callback is not None
         timer_lttng_cb = self._helper.get_lttng_timer(timer.callback)
+
         timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
         callback_records = self.callback_records(timer.callback)
 
+
         last_record = callback_records.data[-1]
+        
         last_callback_start = last_record.get(callback_records.columns[0])
         timer_events = timer_events_factory.create(last_callback_start)
-
         timer_records = merge_sequencial(
             left_records=timer_events,
             right_records=callback_records,
             left_stamp_key=COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key=callback_records.columns[0],
             join_left_key=None,
             join_right_key=None,
             columns=Columns(timer_events.columns + callback_records.columns).as_list(),
             how='left'
         )
+        
 
         columns = [
             COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+            callback_records.columns[0],
+            callback_records.columns[1],
         ]
 
         self._format(timer_records, columns)

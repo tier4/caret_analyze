@@ -26,6 +26,7 @@ from .events_factory import EventsFactory
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
 from .value_objects import (PublisherValueLttng,
+                            TimerControl,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -287,6 +288,18 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_publishers(node)
+
+    def get_timers(
+        self
+    ) -> Sequence[TimerControl]:
+        """
+        Get timers information.
+        Returns
+        -------
+        Sequence[TimerControl]
+
+        """
+        return self._info.get_timer_controls()
 
     def get_timer_callbacks(
         self,

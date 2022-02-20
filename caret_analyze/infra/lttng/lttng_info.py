@@ -548,7 +548,7 @@ class LttngInfo:
         for _, row in df.iterrows():
             if row['type'] == 'init':
                 params = row['params']
-                ctrl = TimerInit(row['timer_handle'], params['period'])
+                ctrl = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
                 ctrls.append(ctrl)
             else:
                 raise NotImplementedError('Unsupported timer control type.')

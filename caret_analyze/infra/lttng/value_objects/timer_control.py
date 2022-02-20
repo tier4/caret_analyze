@@ -14,18 +14,21 @@
 
 class TimerControl:
 
-    def __init__(self, timer_handle: int) -> None:
+    def __init__(self, timer_handle: int, timestamp: int) -> None:
         self._timer_handle = timer_handle
+        self._timestamp = timestamp
 
     @property
     def timer_handle(self) -> int:
         return self._timer_handle
+    def timestamp(self) -> int:
+        return self._timestamp
 
 
 class TimerInit(TimerControl):
 
-    def __init__(self, timer_handle: int, period_ns: int) -> None:
-        super().__init__(timer_handle)
+    def __init__(self, timer_handle: int, timestamp: int, period_ns: int) -> None:
+        super().__init__(timer_handle, timestamp)
         self._period_ns = period_ns
 
     @property

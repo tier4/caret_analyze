@@ -13,6 +13,8 @@
 # limitations under the License.
 
 from functools import cached_property
+from os import times_result
+from threading import Timer
 
 from typing import Dict, List, Sequence
 
@@ -124,8 +126,8 @@ class RecordsSource():
             columns=Columns(publish.columns + dds_write.columns).as_list(),
             how='left',
             progress_label='binding: rcl_publish and dds_write',
-        )
-
+        )   
+                                        
         callback_start_instances = self.inter_callback_records
         subscription = self._data.dispatch_subscription_callback_instances
 
@@ -321,23 +323,30 @@ class RecordsSource():
                 self._ctrls = ctrls
 
             def create(self, until_ns: int) -> RecordsInterface:
+                
                 columns = [
                     COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
                 ]
-
+               
                 records = RecordsFactory.create_instance(None, columns)
-
                 for ctrl in self._ctrls:
+                    
                     if isinstance(ctrl, TimerInit):
-                        record_dict = {
-                            COLUMN_NAME.TIMER_EVENT_TIMESTAMP: 0,
-                        }
-                        record = RecordFactory.create_instance(record_dict)
-                        records.append(record)
+                        ctrl._timestamp
+                        timer_timestamp=ctrl._timestamp
+                        while timer_timestamp < until_ns:
+                            record_dict={
+                            COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
+                            }
+                            record = RecordFactory.create_instance(record_dict)
+                            records.append(record)
+                            timer_timestamp = timer_timestamp+ctrl.period_ns
 
                 return records
 
         timer_ctrls = self._info.get_timer_controls()
+        
+       
         filtered_timer_ctrls = Util.filter_items(
             lambda x: x.timer_handle == timer_callback.timer_handle, timer_ctrls)
 

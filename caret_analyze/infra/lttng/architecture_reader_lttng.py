@@ -20,7 +20,7 @@ from ...architecture.reader_interface import ArchitectureReader
 from ...value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
                               PathValue, PublisherValue,
                               SubscriptionCallbackValue, SubscriptionValue,
-                              TimerCallbackValue, VariablePassingValue)
+                              TimerCallbackValue, VariablePassingValue, TimerValue)
 
 
 class ArchitectureReaderLttng(ArchitectureReader):
@@ -68,6 +68,11 @@ class ArchitectureReaderLttng(ArchitectureReader):
         node: NodeValue
     ) -> Sequence[PublisherValue]:
         return self._lttng.get_publishers(node)
+
+    def get_timers(
+        self,
+    ) -> Sequence[TimerValue]:
+        return self._lttng.get_timers()
 
     def get_callback_groups(
         self,

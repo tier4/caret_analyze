@@ -172,6 +172,19 @@ class NodeStructValue(ValueObject, Summarizable):
             msg += f'topic_name: {publish_topic_name}'
             raise ItemNotFoundError(msg)
 
+    def get_timer(
+        self,
+        timer_period: str
+    ) -> TimerStructValue:
+        try:
+            return Util.find_one(
+                lambda x: x.period == timer_period,
+                self._publishers)
+        except ItemNotFoundError:
+            msg = 'Failed to find timer info. '
+            msg += f'topic_name: {timer_period}'
+            raise ItemNotFoundError(msg)
+
     @property
     def summary(self) -> Summary:
         d: Summary = Summary()
