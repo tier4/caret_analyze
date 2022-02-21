@@ -25,16 +25,16 @@ CallbacksType = Union[Application, Executor,
 
 class TimeSeriesPlot(metaclass=ABCMeta):
 
-    def plot(self, xaxis_type: Optional[str] = None):
+    def show(self, xaxis_type: Optional[str] = None):
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xasix_type(xaxis_type)
 
         if 'system_time':
-            self._plot_with_system_time()
+            self._show_with_system_time()
         elif 'sim_time':
-            self._plot_with_sim_time()
+            self._show_with_sim_time()
         elif 'index':
-            self._plot_with_index()
+            self._show_with_index()
 
         raise NotImplementedError('')
 
@@ -50,15 +50,15 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _plot_with_index(self):
+    def _show_with_index(self):
         pass
 
     @abstractmethod
-    def _plot_with_sim_time(self):
+    def _show_with_sim_time(self):
         pass
 
     @abstractmethod
-    def _plot_with_system_time(self):
+    def _show_with_system_time(self):
         pass
 
     def _validate_xasix_type(self, xaxis_type: Optional[str]):
@@ -90,15 +90,15 @@ class CallbackLatencyPlot(TimeSeriesPlot):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_index(self):
+    def _show_with_index(self):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_sim_time(self):
+    def _show_with_sim_time(self):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_system_time(self):
+    def _show_with_system_time(self):
         raise NotImplementedError('')
         pass
 
@@ -109,15 +109,15 @@ class CallbackJitterPlot(TimeSeriesPlot):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_index(self):
+    def _show_with_index(self):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_sim_time(self):
+    def _show_with_sim_time(self):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_system_time(self):
+    def _show_with_system_time(self):
         raise NotImplementedError('')
         pass
 
@@ -128,15 +128,15 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_index(self):
+    def _show_with_index(self):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_sim_time(self):
+    def _show_with_sim_time(self):
         raise NotImplementedError('')
         pass
 
-    def _plot_with_system_time(self):
+    def _show_with_system_time(self):
         raise NotImplementedError('')
         pass
 
@@ -145,4 +145,4 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
 # callbacks= []
 # plot = Plot.create_callback_frequency_plot(callbacks)
 # plot.to_dataframe()
-# plot.plot()
+# plot.show()
