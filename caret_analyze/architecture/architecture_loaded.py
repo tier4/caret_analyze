@@ -632,12 +632,11 @@ class NodePathCreated:
         self,
         subscription_values: Tuple[SubscriptionStructValue, ...],
         publisher_values: Tuple[PublisherStructValue, ...],
-        timer_values: Tuple[TimerStructValue, ...]
     ) -> None:
         paths: List[NodePathStructValue] = []
-        for sub, pub, timer in product(subscription_values, publisher_values, timer_values):
+        for sub, pub in product(subscription_values, publisher_values):
             paths.append(
-                NodePathStructValue(sub.node_name, sub, pub, timer, None, None)
+                NodePathStructValue(sub.node_name, sub, pub, None, None)
             )
 
         self._data = tuple(paths)
@@ -749,7 +748,7 @@ class TimersLoaded:
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue
     ) -> TimerStructValue:
-        timer_values = reader.get_timers()
+        timer_values = reader.get_timers(node)
         self._data = tuple(self._to_struct(callbacks_loaded, timer)
                            for timer in timer_values)
 
@@ -758,14 +757,12 @@ class TimersLoaded:
         callbacks_loaded: CallbacksLoaded,
         timer_value: TimerValue
     ) -> TimerStructValue:
-        
+
         timer_callback: Optional[CallbackStructValue] = None
 
         if timer_value.callback_id is not None:
             timer_callback = callbacks_loaded.find_callback(
                 timer_value.callback_id)
-
-        assert isinstance(timer_callback, TimerCallbackStructValue)
 
         return TimerStructValue(
             timer_value.node_name,
@@ -1210,9 +1207,9 @@ class TopicIgnoredReader(ArchitectureReader):
             publishers.append(publisher)
         return publishers
 
-    def get_timers(self) -> List[TimerValue]:
+    def get_timers(self, node: NodeValue) -> List[TimerValue]:
         timers: List[TimerValue] = []
-        for timer in self._reader.get_timers():
+        for timer in self._reader.get_timers(node):
             timers.append(timer)
         return timers
 
