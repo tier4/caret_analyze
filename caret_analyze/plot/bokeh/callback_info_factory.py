@@ -14,9 +14,9 @@
 
 from typing import List, Union
 
-from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
-from .callback_info_interface import TimeSeriesPlot
 from .callback_info import CallbackFrequencyPlot, CallbackJitterPlot, CallbackLatencyPlot
+from .callback_info_interface import TimeSeriesPlot
+from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
 
 
 CallbacksType = Union[Application, Executor,

@@ -137,7 +137,7 @@ class Node(Summarizable):
             raise ItemNotFoundError('Callback is None.')
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-    
+
     def get_callbacks(self, callback_names: Tuple[str, ...]) -> List[CallbackBase]:
         callbacks = []
         for callback_name in callback_names:
@@ -147,8 +147,9 @@ class Node(Summarizable):
             if self.callbacks is None:
                 raise ItemNotFoundError('Callback is None.')
 
-            callbacks.append(Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks))
-        
+            callbacks.append(
+                    Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks))
+
         return callbacks
 
     def get_subscription(self, topic_name: str) -> Subscription:

@@ -66,7 +66,7 @@ class Executor(Summarizable):
             return callback.callback_name == callback_name
 
         return Util.find_one(is_target_callback, self.callbacks)
-    
+
     def get_callbacks(self, callback_names: Tuple[str, ...]) -> List[CallbackBase]:
         callbacks = []
         for callback_name in callback_names:
@@ -77,7 +77,7 @@ class Executor(Summarizable):
                 return callback.callback_name == callback_name
 
             callbacks.append(Util.find_one(is_target_callback, self.callbacks))
-        
+
         return callbacks
 
     @property

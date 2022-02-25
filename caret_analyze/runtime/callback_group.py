@@ -91,7 +91,7 @@ class CallbackGroup(Summarizable):
             lambda x: x.callback_name == callback_name,
             self._callbacks
         )
-    
+
     def get_callbacks(self, callback_names: Tuple[str, ...]) -> List[CallbackBase]:
         callbacks = []
         for callback_name in callback_names:
@@ -102,5 +102,5 @@ class CallbackGroup(Summarizable):
                 lambda x: x.callback_name == callback_name,
                 self._callbacks
             ))
-        
+
         return callbacks
