@@ -12,13 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from subprocess import call
 from typing import List, Union, Tuple
 import pandas as pd
-from bokeh.plotting import figure, show
-from bokeh.palettes import d3
-
-from caret_analyze.runtime import callback
 
 from .callback_info_interface import TimeSeriesPlot
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
