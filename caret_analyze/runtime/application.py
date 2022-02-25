@@ -14,7 +14,7 @@
 
 from __future__ import annotations, unicode_literals
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -543,6 +543,42 @@ class Application(Summarizable):
             return callback.callback_name == callback_name
 
         return Util.find_one(is_target_callback, self.callbacks)
+    
+    def get_callbacks(self, callback_names: Tuple[str, ...]) -> List[CallbackBase]:
+        """
+        Get callbacks that match the condition.
+
+        Parameters
+        ----------
+        callback_names : Tuple[str, ...]
+            callback names to get.
+
+        Returns
+        -------
+        List[CallbackBase]
+            callbacks that match the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
+        callbacks = []
+        for callback_name in callback_names:
+            if not isinstance(callback_name, str):
+                raise InvalidArgumentError('Argument type is invalid.')
+
+            def is_target_callback(callback: CallbackBase):
+                return callback.callback_name == callback_name
+
+            callbacks.append(Util.find_one(is_target_callback, self.callbacks))
+        
+        return callbacks
 
     @property
     def node_names(self) -> List[str]:
