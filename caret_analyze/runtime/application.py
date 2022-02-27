@@ -570,13 +570,7 @@ class Application(Summarizable):
         """
         callbacks = []
         for callback_name in callback_names:
-            if not isinstance(callback_name, str):
-                raise InvalidArgumentError('Argument type is invalid.')
-
-            def is_target_callback(callback: CallbackBase):
-                return callback.callback_name == callback_name
-
-            callbacks.append(Util.find_one(is_target_callback, self.callbacks))
+            callbacks.append(self.get_callback(callback_name))
 
         return callbacks
 

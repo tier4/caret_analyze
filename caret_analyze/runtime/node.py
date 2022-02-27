@@ -141,14 +141,7 @@ class Node(Summarizable):
     def get_callbacks(self, callback_names: Tuple[str, ...]) -> List[CallbackBase]:
         callbacks = []
         for callback_name in callback_names:
-            if not isinstance(callback_name, str):
-                raise InvalidArgumentError('Argument type is invalid.')
-
-            if self.callbacks is None:
-                raise ItemNotFoundError('Callback is None.')
-
-            callbacks.append(
-                    Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks))
+            callbacks.append(self.get_callback(callback_name))
 
         return callbacks
 

@@ -95,12 +95,6 @@ class CallbackGroup(Summarizable):
     def get_callbacks(self, callback_names: Tuple[str, ...]) -> List[CallbackBase]:
         callbacks = []
         for callback_name in callback_names:
-            if not isinstance(callback_name, str):
-                raise InvalidArgumentError('Argument type is invalid.')
-
-            callbacks.append(Util.find_one(
-                lambda x: x.callback_name == callback_name,
-                self._callbacks
-            ))
+            callbacks.append(self.get_callback(callback_name))
 
         return callbacks
