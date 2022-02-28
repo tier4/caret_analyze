@@ -544,7 +544,7 @@ class Application(Summarizable):
 
         return Util.find_one(is_target_callback, self.callbacks)
 
-    def get_callbacks(self, callback_names: Tuple[str, ...]) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: Tuple[str, ...]) -> List[CallbackBase]:
         """
         Get callbacks that match the condition.
 
