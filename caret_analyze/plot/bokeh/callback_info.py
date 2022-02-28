@@ -50,10 +50,6 @@ class CallbackLatencyPlot(TimeSeriesPlot):
 
         return latency_df
 
-    def _show_core(self, xaxis_type: str):
-        latency_df = self._to_dataframe_core(xaxis_type)
-        self._show_from_multi_index_df(latency_df, xaxis_type, 'Time-line of callbacks latency')
-
 
 class CallbackJitterPlot(TimeSeriesPlot):
     def __init__(
@@ -82,10 +78,6 @@ class CallbackJitterPlot(TimeSeriesPlot):
 
         return jitter_df
 
-    def _show_core(self, xaxis_type: str):
-        jitter_df = self._to_dataframe_core(xaxis_type)
-        self._show_from_multi_index_df(jitter_df, xaxis_type, 'Time-line of callbacks jitter')
-
 
 class CallbackFrequencyPlot(TimeSeriesPlot):
     def __init__(
@@ -107,12 +99,6 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         frequency_df = self._get_preprocessing_frequency(latency_table, earliest_timestamp)
 
         return frequency_df
-
-    def _show_core(self, xaxis_type: str):
-        frequency_df = self._to_dataframe_core(xaxis_type)
-        self._show_from_multi_index_df(
-                frequency_df,
-                xaxis_type, 'Time-line of callbacks frequency')
 
     def _get_cb_freq_with_timestamp(
         self,

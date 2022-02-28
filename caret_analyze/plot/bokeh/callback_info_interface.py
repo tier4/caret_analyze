@@ -20,6 +20,8 @@ from bokeh.plotting import figure, show
 
 import pandas as pd
 
+from .callback_sched import get_range
+from .util import apply_x_axis_offset
 from ...exceptions import UnsupportedTypeError
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
 
@@ -44,7 +46,12 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
 
-        self._show_core(xaxis_type)
+        if(xaxis_type == 'system_time'):
+            self._show_with_system_time()
+        elif(xaxis_type == 'sim_time'):
+            self._show_with_sim_time()
+        elif(xaxis_type == 'index'):
+            self._show_with_index()
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
         xaxis_type = xaxis_type or 'system_time'
@@ -54,10 +61,6 @@ class TimeSeriesPlot(metaclass=ABCMeta):
 
     @abstractmethod
     def _to_dataframe_core(self, xaxis_type: str):
-        pass
-
-    @abstractmethod
-    def _show_core(self, xaxis_type: str):
         pass
 
     def _validate_xaxis_type(self, xaxis_type: Optional[str]):
@@ -83,37 +86,70 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             for i in range(len(latency_table)):
                 latency_table[c][i] = converter.convert(latency_table[c][i])
 
-    def _show_from_multi_index_df(
-        self,
-        source_df: pd.DataFrame,
-        xaxis_type: str,
-        title=''
-    ) -> None:
+    def _show_with_index(self):
+        source_df = self._to_dataframe_core('index')
         l1_columns = source_df.columns.get_level_values(1).to_list()
         colors = d3['Category20'][20]
         p = figure(height=300,
                    width=1000,
-                   x_axis_label=f'{xaxis_type}',
+                   x_axis_label='index',
                    y_axis_label=f'{l1_columns[1]}',
-                   title=title,
+                   title=f'Time-line of callbacks {l1_columns[1]}',
                    tools=['xwheel_zoom', 'xpan', 'save', 'reset'],
                    active_scroll='xwheel_zoom')
 
-        source_df = self._to_dataframe_core(xaxis_type)
-        if(xaxis_type == 'index'):
-            for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
-                single_cb_df = source_df.loc[:, (callback_name,)].dropna()
-                p.line(x=single_cb_df.index,
-                       y=single_cb_df.loc[:, l1_columns[1]].to_list(),
-                       line_color=colors[i],
-                       legend_label=callback_name)
-        else:
-            for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
-                p.line(l1_columns[0],
-                       l1_columns[1],
-                       source=source_df.loc[:, (callback_name,)].dropna(),
-                       line_color=colors[i],
-                       legend_label=callback_name)
+        for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
+            single_cb_df = source_df.loc[:, (callback_name,)].dropna()
+            p.line(x=single_cb_df.index,
+                   y=single_cb_df.loc[:, l1_columns[1]].to_list(),
+                   line_color=colors[i],
+                   legend_label=callback_name)
+
+        p.add_layout(p.legend[0], 'right')
+        show(p)
+
+    def _show_with_sim_time(self):
+        source_df = self._to_dataframe_core('sim_time')
+        l1_columns = source_df.columns.get_level_values(1).to_list()
+        colors = d3['Category20'][20]
+        p = figure(height=300,
+                   width=1000,
+                   x_axis_label='simulation time [s]',
+                   y_axis_label=f'{l1_columns[1]}',
+                   title=f'Time-line of callbacks {l1_columns[1]}',
+                   tools=['xwheel_zoom', 'xpan', 'save', 'reset'],
+                   active_scroll='xwheel_zoom')
+
+        for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
+            p.line(l1_columns[0],
+                   l1_columns[1],
+                   source=source_df.loc[:, (callback_name,)].dropna(),
+                   line_color=colors[i],
+                   legend_label=callback_name)
+
+        p.add_layout(p.legend[0], 'right')
+        show(p)
+
+    def _show_with_system_time(self):
+        source_df = self._to_dataframe_core('system_time')
+        l1_columns = source_df.columns.get_level_values(1).to_list()
+        colors = d3['Category20'][20]
+        p = figure(height=300,
+                   width=1000,
+                   x_axis_label='system time [s]',
+                   y_axis_label=f'{l1_columns[1]}',
+                   title=f'Time-line of callbacks {l1_columns[1]}',
+                   tools=['xwheel_zoom', 'xpan', 'save', 'reset'],
+                   active_scroll='xwheel_zoom')
+
+        frame_min, frame_max = get_range(self._callbacks)
+        apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
+        for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
+            single_cb_df = source_df.loc[:, (callback_name,)].dropna()
+            p.line(x=((single_cb_df.loc[:, l1_columns[0]]-frame_min)*10**(-9)).to_list(),
+                   y=single_cb_df.loc[:, l1_columns[1]].to_list(),
+                   line_color=colors[i],
+                   legend_label=callback_name)
 
         p.add_layout(p.legend[0], 'right')
         show(p)
