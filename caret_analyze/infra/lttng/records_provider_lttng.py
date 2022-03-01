@@ -481,7 +481,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         ]
         self._format(records, columns)
 
-        self._rename_column(records, subscription.callback_name, subscription.topic_name)
+        self._rename_column_tilde(records, subscription.topic_name, publisher.topic_name)
 
         return records
 
@@ -723,6 +723,28 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP}'
+
+        records.rename_columns(rename_dict)
+
+    @staticmethod
+    def _rename_column_tilde(
+        records: RecordsInterface,
+        topic_name_sub: str,
+        topic_name_pub: str
+    ) -> None:
+        rename_dict = {}
+
+        if COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in records.columns:
+            rename_dict[COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP] = \
+                f'{topic_name_sub}/{COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP}'
+
+        if COLUMN_NAME.TILDE_MESSAGE_ID in records.columns:
+            rename_dict[COLUMN_NAME.TILDE_MESSAGE_ID] = \
+                f'{topic_name_sub}/{COLUMN_NAME.TILDE_MESSAGE_ID}'
+
+        if COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in records.columns:
+            rename_dict[COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP] = \
+                f'{topic_name_pub}/{COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP}'
 
         records.rename_columns(rename_dict)
 
@@ -1080,13 +1102,11 @@ class NodeRecordsTilde:
         right_stamp_key = Util.find_one(
             lambda x: COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in x, sub_records.columns)
 
-        records = merge_sequencial(
+        records = merge(
             left_records=sub_records,
             right_records=tilde_records,
-            left_stamp_key=left_stamp_key,
-            right_stamp_key=right_stamp_key,
-            join_left_key=None,
-            join_right_key=None,
+            join_left_key=right_stamp_key,
+            join_right_key=right_stamp_key,
             columns=Columns(sub_records.columns + tilde_records.columns).as_list(),
             how='left',
             progress_label='binding tilde subscribe records.'
@@ -1094,15 +1114,12 @@ class NodeRecordsTilde:
 
         left_stamp_key = Util.find_one(
             lambda x: COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in x, records.columns)
-        right_stamp_key = Util.find_one(
-            lambda x: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in x, pub_records.columns)
-        records = merge_sequencial(
+
+        records = merge(
             left_records=records,
             right_records=pub_records,
-            left_stamp_key=left_stamp_key,
-            right_stamp_key=right_stamp_key,
-            join_left_key=None,
-            join_right_key=None,
+            join_left_key=left_stamp_key,
+            join_right_key=left_stamp_key,
             columns=Columns(records.columns + pub_records.columns).as_list(),
             how='left',
             progress_label='binding tilde publish records.'
