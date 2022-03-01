@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import List, Tuple
 
 from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CallbackGroupType)
@@ -91,3 +91,10 @@ class CallbackGroup(Summarizable):
             lambda x: x.callback_name == callback_name,
             self._callbacks
         )
+
+    def get_callbacks(self, *callback_names: Tuple[str, ...]) -> List[CallbackBase]:
+        callbacks = []
+        for callback_name in callback_names:
+            callbacks.append(self.get_callback(callback_name))
+
+        return callbacks

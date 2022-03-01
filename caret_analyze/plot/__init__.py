@@ -14,6 +14,7 @@
 
 from .bokeh.callback_sched import callback_sched
 from .bokeh.message_flow import message_flow
+from .bokeh.callback_info_factory import Plot
 from .graphviz.callback_graph import callback_graph
 from .graphviz.chain_latency import chain_latency
 from .graphviz.node_graph import node_graph
