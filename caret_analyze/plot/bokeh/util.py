@@ -50,7 +50,7 @@ class RectValues():
 
 
 def apply_x_axis_offset(fig: Figure, x_range_name: str, min_ns: float, max_ns: float):
-    offset_s = max_ns*1.0e-9
+    offset_s = min_ns*1.0e-9
     end_s = (max_ns-min_ns)*1.0e-9
 
     fig.extra_x_ranges = {x_range_name: Range1d(start=min_ns, end=max_ns)}
