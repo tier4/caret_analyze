@@ -370,42 +370,49 @@ class Records(RecordsInterface):
         concat_records.sort(key=column_merge_stamp, sub_key=column_side)
 
         empty_records: List[RecordInterface] = []
-        left_record_: Optional[RecordInterface] = None
+        left_records_: List[RecordInterface] = []
+        processed_stamps: Set[int] = set()
 
         merged_records = Records(
             None,
             concat_records.columns + [column_found_right_record]
         )
+
+        def move_left_to_empty(
+            left: List[RecordInterface],
+            empty: List[RecordInterface]
+        ):
+            for left_record in left_records_:
+                if left_record.get(column_found_right_record) is False:
+                    empty_records.append(left_record)
+
         for record in concat_records._data:
 
             if record.get(column_has_valid_join_key) is False:
-                if record.get(column_side) == MergeSide.LEFT and merge_left:
-                    merged_records.append(record)
-                elif record.get(column_side) == MergeSide.RIGHT and merge_right:
-                    merged_records.append(record)
+                empty_records.append(record)
                 continue
 
             join_value = record.get(column_join_key)
+            if join_value not in processed_stamps:
+                move_left_to_empty(left_records_, empty_records)
+                left_records_ = []
+                processed_stamps.add(join_value)
 
             if record.get(column_side) == MergeSide.LEFT:
-                if left_record_ and left_record_.get(column_found_right_record) is False:
-                    empty_records.append(left_record_)
-                left_record_ = record
-                left_record_.add(column_found_right_record, False)
-            else:
-                if (
-                    left_record_
-                    and join_value == left_record_.get(column_join_key)
-                    and record.get(column_has_valid_join_key)
-                ):
-                    left_record_.add(column_found_right_record, True)
-                    merged_record = deepcopy(record)
-                    merged_record.merge(left_record_)
-                    merged_records.append(merged_record)
-                else:
-                    empty_records.append(record)
-        if left_record_ is not None and left_record_.get(column_found_right_record) is False:
-            empty_records.append(left_record_)
+                record.add(column_found_right_record, False)
+                left_records_.append(record)
+                continue
+
+            for left_record in left_records_:
+                left_record.add(column_found_right_record, True)
+                merged_record = deepcopy(record)
+                merged_record.merge(left_record)
+                merged_records.append(merged_record)
+
+            if len(left_records_) == 0:
+                empty_records.append(record)
+
+        move_left_to_empty(left_records_, empty_records)
 
         for record in empty_records:
             side = record.get(column_side)

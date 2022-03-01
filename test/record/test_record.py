@@ -1026,6 +1026,10 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
                 ),
@@ -1042,6 +1046,10 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                         Record({'value_left': 40, 'stamp': 7}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
@@ -1059,6 +1067,10 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                         Record({'value_right': 50, 'stamp_': 10}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
@@ -1076,8 +1088,12 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
-                        Record({'value_right': 50, 'stamp_': 10}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                         Record({'value_left': 40, 'stamp': 7}),
+                        Record({'value_right': 50, 'stamp_': 10}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
                 ),
@@ -1091,6 +1107,8 @@ class TestRecords:
                 Record({'stamp': 3, 'value_left': 20}),
                 Record({'stamp': 5, 'value_left': 30}),
                 Record({'stamp': 7, 'value_left': 40}),
+                Record({'stamp': 9, 'value_left': 70}),
+                Record({'stamp': 10, 'value_left': 70}),
             ],
             ['stamp', 'value_left']
         )
@@ -1102,6 +1120,7 @@ class TestRecords:
                 Record({'stamp_': 6, 'value_right': 30}),
                 Record({'stamp_': 6, 'value_right': 30}),
                 Record({'stamp_': 10, 'value_right': 50}),
+                Record({'stamp_': 11, 'value_right': 70}),
             ],
             ['stamp_', 'value_right']
         )
