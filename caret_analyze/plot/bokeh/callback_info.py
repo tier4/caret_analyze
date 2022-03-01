@@ -95,7 +95,8 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         if(xaxis_type == 'sim_time'):
             self._df_convert_to_sim_time(latency_table)
 
-        earliest_timestamp = latency_table.iloc[0].min()  # TODO: Emit an exception when latency_table size is 0.
+        # TODO: Emit an exception when latency_table size is 0.
+        earliest_timestamp = latency_table.iloc[0].min()
         frequency_df = self._get_preprocessing_frequency(latency_table, earliest_timestamp)
 
         return frequency_df
@@ -131,8 +132,9 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
                 initial_timestamp = [
                     initial_timestamp[0] for i in range(len(timestamp_df.columns))]
             else:
+                # TODO: Emit an exception when latency_table size is 0.
                 initial_timestamp = [
-                    timestamp_df.iloc(0).mean for i in range(len(timestamp_df.columns))]  # TODO: Emit an exception when latency_table size is 0.
+                    timestamp_df.iloc(0).mean for i in range(len(timestamp_df.columns))]
 
         for initial, callback_name in zip(initial_timestamp, timestamp_df.columns):
             timestamp, frequency = self._get_cb_freq_with_timestamp(
