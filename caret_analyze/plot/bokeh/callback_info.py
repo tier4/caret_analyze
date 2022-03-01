@@ -69,10 +69,10 @@ class CallbackJitterPlot(TimeSeriesPlot):
 
         jitter_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
                 latency_table.columns,
-                ['callback_start_timestamp [ns]', 'jitter [ms]']]))
+                ['callback_start_timestamp [ns]', 'period [ms]']]))
         for cb_name in latency_table.columns:
             jitter_df[(cb_name, 'callback_start_timestamp [ns]')] = latency_table[cb_name]
-            jitter_df[(cb_name, 'jitter [ms]')] = latency_table[cb_name].diff() * 10**(-6)
+            jitter_df[(cb_name, 'period [ms]')] = latency_table[cb_name].diff() * 10**(-6)
         jitter_df = jitter_df.drop(jitter_df.index[0])
         jitter_df = jitter_df.reset_index(drop=True)
 
