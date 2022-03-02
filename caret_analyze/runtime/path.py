@@ -133,7 +133,7 @@ class RecordsMerged:
         for target_, target in zip(targets[:-1], targets[1:]):
             right_records: RecordsInterface = target.to_records()
 
-            is_dummy_records = len(right_records.to_dataframe().columns) == 0
+            is_dummy_records = len(right_records.columns) == 0
 
             if is_dummy_records:
                 if target == targets[-1]:

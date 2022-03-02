@@ -399,8 +399,8 @@ class Lttng(InfraBase):
             - callback_start_timestamp
             - publisher_handle
             - rclcpp_publish_timestamp
-            - rcl_publish_timestamp
-            - dds_write_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
 
         """
         return self._source.inter_proc_comm_records.clone()

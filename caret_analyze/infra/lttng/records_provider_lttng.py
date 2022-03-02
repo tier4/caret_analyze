@@ -73,13 +73,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
         RecordsInterface
             Columns [inter process communication case]:
             - [topic_name]/rclcpp_publish_timestamp
-            - [topic_name]/rcl_publish_timestamp
-            - [topic_name]/dds_publish_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_publish_timestamp (Optional)
             - [callback_name]/callback_start_timestamp
 
             Columns [intra process communication case]:
-            - [topic_name]/rclcpp_intra_publish_timestamp
-            - [topic_name]/message_timestamp
+            - [topic_name]/rclcpp_publish_timestamp
             - [callback_name]/callback_start_timestamp
 
         """
@@ -329,8 +328,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rclcpp_intra_publish_timestamp
             - [topic_name]/rclcpp_inter_publish_timestamp
-            - [topic_name]/rcl_publish_timestamp
-            - [topic_name]/dds_write_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
 
@@ -338,15 +337,16 @@ class RecordsProviderLttng(RuntimeDataProvider):
         publisher_handles = self._helper.get_publisher_handles(publisher)
         pub_records = self._source.publish_records(publisher_handles)
 
-        columns = [
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
-            COLUMN_NAME.SOURCE_TIMESTAMP,
-        ]
+        columns = []
+        columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in pub_records.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in pub_records.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
+        columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
 
         self._format(pub_records, columns)
         self._rename_column(pub_records, None, publisher.topic_name)
@@ -370,15 +370,15 @@ class RecordsProviderLttng(RuntimeDataProvider):
         RecordsInterface
             Columns
             - [topic_name]/rclcpp_publish_timestamp
-            - [topic_name]/rclcpp_intra_publish_timestamp
-            - [topic_name]/rclcpp_inter_publish_timestamp
-            - [topic_name]/rcl_publish_timestamp
-            - [topic_name]/dds_write_timestamp
+            - [topic_name]/rclcpp_intra_publish_timestamp (Optional)
+            - [topic_name]/rclcpp_inter_publish_timestamp (Optional)
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/message_timestamp
-            - [topic_name]/source_timestamp
+            - [topic_name]/source_timestamp (Optional)
             ---
-            - [topic_name]/tilde_publish_timestamp
-            - [topic_name]/tilde_message_id
+            - [topic_name]/tilde_publish_timestamp (Optional)
+            - [topic_name]/tilde_message_id (Optional)
 
         """
         tilde_publishers = self._helper.get_tilde_publishers(publisher)
@@ -406,8 +406,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rclcpp_intra_publish_timestamp
             - [topic_name]/rclcpp_inter_publish_timestamp
-            - [topic_name]/rcl_publish_timestamp
-            - [topic_name]/dds_write_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
             - [topic_name]/tilde_publish_timestamp
@@ -436,13 +436,15 @@ class RecordsProviderLttng(RuntimeDataProvider):
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
-            COLUMN_NAME.SOURCE_TIMESTAMP,
-            COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.TILDE_MESSAGE_ID,
         ]
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in pub_records.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in pub_records.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
+        columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
+        columns.append(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
 
         self._format(pub_records, columns)
         self._rename_column(pub_records, None, publisher.topic_name)
@@ -631,8 +633,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         RecordsInterface
             Columns
             - [topic_name]/rclcpp_publish_timestamp
-            - [topic_name]/rcl_publish_timestamp
-            - [topic_name]/dds_write_timestamp
+            - [topic_name]/rcl_publish_timestamp (Optional)
+            - [topic_name]/dds_write_timestamp (Optional)
             - [callback_name_name]/callback_start_timestamp
 
         """
@@ -647,12 +649,13 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         records = self._source.inter_comm_records(publisher_handles, callback_object)
 
-        columns = [
-            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP
-        ]
+        columns = [COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP]
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns.append(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+
         self._format(records, columns)
 
         records.rename_columns({
@@ -1277,8 +1280,8 @@ class FilteredRecordsSource:
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.DDS_WRITE_TIMESTAMP
+                # COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                # COLUMN_NAME.DDS_WRITE_TIMESTAMP
             ]
         )
         for publisher_handle in publisher_handles:
@@ -1301,9 +1304,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         publisher_handles : List[int]
-            [description]
         intra_callback_object : Optional[int]
-            [description]
 
         Returns
         -------
@@ -1314,6 +1315,7 @@ class FilteredRecordsSource:
                 lambda x: x.get('callback_object') == callback_object and
                           x.get('publisher_handle') in publisher_handles
             )
+
 
         """
         records = RecordsFactory.create_instance(
@@ -1357,22 +1359,37 @@ class FilteredRecordsSource:
                 ]
             )
 
+        Columns
+        - rclcpp_publish_timestamp
+        - rclcpp_intra_publish_timestamp
+        - rclcpp_inter_publish_timestamp
+        - rcl_publish_timestamp (Optional)
+        - dds_write_timestamp (Optional)
+        - message_timestamp
+        - source_timestamp
+        - tilde_publish_timestamp
+        - tilde_message_id
+
         """
         records = self._grouped_publish_records
-        pub_records = RecordsFactory.create_instance(
-            None,
-            [
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-                COLUMN_NAME.MESSAGE_TIMESTAMP,
-                COLUMN_NAME.SOURCE_TIMESTAMP,
-                COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.TILDE_MESSAGE_ID,
-            ]
-        )
+        records_columns = set()
+        for record in records.values():
+            records_columns.update(record.columns)
+
+        columns = []
+        columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records_columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records_columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
+        columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
+        columns.append(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
+
+        pub_records = RecordsFactory.create_instance(None, columns)
 
         for publisher_handle in publisher_handles:
             if publisher_handle in records:
