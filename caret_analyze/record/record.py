@@ -286,10 +286,21 @@ class Records(RecordsInterface):
 
     @staticmethod
     def _to_dataframe(
-        df_dict: List[Dict[str, int]],
+        df_list: List[Dict[str, int]],
         columns: List[str]
     ) -> pd.DataFrame:
-        df = pd.DataFrame.from_dict(df_dict, dtype='Int64')
+        # When from_dict is used,
+        # dataframe values are rounded to a float type,
+        # so here uses a dictionary type.
+        df_dict: Dict[str, List[Optional[int]]]
+        df_dict = {c: [None]*len(df_list) for c in columns}
+        for i, df_row in enumerate(df_list):
+            for c in columns:
+                if c in df_row:
+                    df_dict[c][i] = df_row[c]
+
+        df = pd.DataFrame(df_dict, dtype='Int64')
+
         missing_columns = set(columns) - set(df.columns)
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
