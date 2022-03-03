@@ -141,12 +141,13 @@ class EventCounter:
         sub_handle_to_node_name: Dict[int, str] = {}
         pub_handle_to_topic_name: Dict[int, str] = {}
         pub_handle_to_node_name: Dict[int, str] = {}
-        timer_callback_to_node_name: Dict[int, str] = {}
         node_handle_to_node_name: Dict[int, str] = {}
         timer_handle_to_node_name: Dict[int, str] = {}
         sub_cb_to_node_name: Dict[int, str] = {}
         timer_cb_to_node_name: Dict[int, str] = {}
         sub_cb_to_topic_name: Dict[int, str] = {}
+        sub_to_topic_name: Dict[int, str] = {}
+        sub_to_node_name: Dict[int, str] = {}
 
         def ns_and_node_name(ns: str, name: str) -> str:
             if ns[-1] == '/':
@@ -169,15 +170,18 @@ class EventCounter:
 
         for handler, row in data.timer_node_links.iterrows():
             timer_handle_to_node_name[handler] = \
-                node_handle_to_node_name.get(handler, '-')
+                node_handle_to_node_name.get(row['node_handle'], '-')
+
+        for sub, row in data.subscription_objects.iterrows():
+            sub_handle = row['subscription_handle']
+            sub_to_topic_name[sub] = sub_handle_to_topic_name.get(sub_handle, '-')
+            sub_to_node_name[sub] = sub_handle_to_node_name.get(sub_handle, '-')
 
         for handler, row in data.callback_objects.iterrows():
-            if handler in sub_handle_to_topic_name:
-                sub_cb_to_node_name[row['callback_object']] = \
-                    sub_handle_to_node_name.get(handler, '-')
-                sub_cb_to_topic_name[row['callback_object']] = \
-                    sub_handle_to_topic_name.get(handler, '-')
-            elif handler in timer_callback_to_node_name:
+            if handler in sub_to_topic_name:
+                sub_cb_to_node_name[row['callback_object']] = sub_to_node_name.get(handler, '-')
+                sub_cb_to_topic_name[row['callback_object']] = sub_to_topic_name.get(handler, '-')
+            elif handler in timer_handle_to_node_name:
                 timer_cb_to_node_name[row['callback_object']] = \
                     timer_handle_to_node_name.get(handler, '-')
 
@@ -207,8 +211,8 @@ class EventCounter:
                 node_name = '-'
                 topic_name = '-'
 
-                if key[0] in timer_callback_to_node_name:
-                    node_name = timer_callback_to_node_name.get(key[0], '-')
+                if key[0] in timer_cb_to_node_name:
+                    node_name = timer_cb_to_node_name.get(key[0], '-')
                 elif key[0] in sub_cb_to_node_name or key[0] \
                         in sub_cb_to_topic_name:
                     node_name = sub_cb_to_node_name.get(key[0], '-')
