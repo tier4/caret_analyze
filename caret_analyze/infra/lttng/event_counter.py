@@ -185,8 +185,23 @@ class EventCounter:
                 timer_cb_to_node_name[row['callback_object']] = \
                     timer_handle_to_node_name.get(handler, '-')
 
+        tilde_pub_to_topic_name: Dict[int, str] = {}
+        tilde_pub_to_node_name: Dict[int, str] = {}
+        for handler, row in data.tilde_publishers.iterrows():
+            tilde_pub_to_node_name[handler] = row['node_name']
+            tilde_pub_to_topic_name[handler] = row['topic_name']
+
+        tilde_sub_to_topic_name: Dict[int, str] = {}
+        tilde_sub_to_node_name: Dict[int, str] = {}
+        for handler, row in data.tilde_subscriptions.iterrows():
+            tilde_sub_to_node_name[handler] = row['node_name']
+            tilde_sub_to_topic_name[handler] = row['topic_name']
+
         count_dict = []
-        group_keys = ['callback_object', 'publisher_handle', 'subscription_handle']
+        group_keys = [
+            'callback_object', 'publisher_handle', 'subscription_handle',
+            'tilde_publisher', 'tilde_subscription'
+            ]
         for trace_point, df in trace_point_and_df.items():
             df = df.reset_index()
 
@@ -207,6 +222,16 @@ class EventCounter:
             if 'subscription_handle' not in df.columns:
                 df['subscription_handle'] = '-'
 
+            if trace_point in ['ros2_caret:tilde_publish', 'ros2_caret:tilde_publisher_init']:
+                df['tilde_publisher'] = df['publisher']
+            else:
+                df['tilde_publisher'] = '-'
+
+            if trace_point in ['ros2_caret:tilde_subscribe', 'ros2_caret:tilde_subscription_init']:
+                df['tilde_subscription'] = df['subscription']
+            else:
+                df['tilde_subscription'] = '-'
+
             for key, group in df.groupby(group_keys):
                 node_name = '-'
                 topic_name = '-'
@@ -225,6 +250,14 @@ class EventCounter:
                         key[2] in sub_handle_to_topic_name:
                     topic_name = sub_handle_to_topic_name.get(key[2], '-')
                     node_name = sub_handle_to_node_name.get(key[2], '-')
+                elif key[3] in tilde_pub_to_node_name or \
+                        key[3] in tilde_pub_to_topic_name:
+                    topic_name = tilde_pub_to_topic_name.get(key[3], '-')
+                    node_name = tilde_pub_to_node_name.get(key[3], '-')
+                elif key[4] in tilde_sub_to_node_name or \
+                        key[4] in tilde_sub_to_topic_name:
+                    topic_name = tilde_sub_to_topic_name.get(key[4], '-')
+                    node_name = tilde_sub_to_node_name.get(key[4], '-')
 
                 count_dict.append(
                     {
