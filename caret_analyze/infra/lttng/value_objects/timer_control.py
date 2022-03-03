@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class TimerControl:
 
     def __init__(self, timer_handle: int, timestamp: int) -> None:
@@ -21,6 +22,7 @@ class TimerControl:
     @property
     def timer_handle(self) -> int:
         return self._timer_handle
+
     def timestamp(self) -> int:
         return self._timestamp
 

@@ -470,7 +470,7 @@ class TimersLoaded:
         ) -> None:
             self._node_name = node_name
             self._callback_name = callback_name
-            self._period_ns =  period_ns
+            self._period_ns = period_ns
 
         def __call__(self, timer: Timer) -> bool:
             period_match = True

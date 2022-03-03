@@ -479,10 +479,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
         callback_records = self.callback_records(timer.callback)
-
-
         last_record = callback_records.data[-1]
-        
         last_callback_start = last_record.get(callback_records.columns[0])
         timer_events = timer_events_factory.create(last_callback_start)
         timer_records = merge_sequencial(
@@ -495,7 +492,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             columns=Columns(timer_events.columns + callback_records.columns).as_list(),
             how='left'
         )
-        
 
         columns = [
             COLUMN_NAME.TIMER_EVENT_TIMESTAMP,

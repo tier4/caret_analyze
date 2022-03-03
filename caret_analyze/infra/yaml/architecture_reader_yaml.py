@@ -23,7 +23,7 @@ from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               NodePathValue, NodeValue, NodeValueWithId,
                               PathValue, PublisherValue,
                               SubscriptionCallbackValue, SubscriptionValue,
-                              TimerCallbackValue, VariablePassingValue, TimerValue)
+                              TimerCallbackValue, TimerValue, VariablePassingValue)
 
 
 class ArchitectureReaderYaml(ArchitectureReader):
@@ -268,7 +268,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                 )
             )
         return publishers
-        
+
     def get_timers(
         self,
         node: NodeValue
@@ -276,19 +276,22 @@ class ArchitectureReaderYaml(ArchitectureReader):
         node_dict = self._get_node_dict(node.node_name)
         timers = []
 
-        if 'timers' not in node_dict.keys():
+        if 'callbacks' not in node_dict.keys():
             return []
+        cbs_dict = self._get_value(node_dict, 'callbacks')
 
-        for timer in self._get_value(node_dict, 'timers'):
+        for cb_dict in cbs_dict:
+            if self._get_value(cb_dict, 'callback_type') != 'timer_callback':
+                continue
             timers.append(
                 TimerValue(
-                    period=self._get_value(timer, 'period'),
+                    period=int(self._get_value(cb_dict, 'period_ns')),
                     node_name=node.node_name,
-                    node_id=node.node_name,
-                    callback_ids=tuple(self._get_value(timer, 'callback_names')),
+                    node_id=node.node_id,
+                    callback_id=self._get_value(cb_dict, 'callback_name'),
                 )
             )
-        return timers    
+        return timers
 
     def get_subscriptions(
         self,

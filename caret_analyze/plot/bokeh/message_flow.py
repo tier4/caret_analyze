@@ -18,7 +18,6 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, List, Optional
 
 from bokeh.io import save, show
-from bokeh.io import export_svg
 from bokeh.models import CrosshairTool
 from bokeh.palettes import Bokeh8
 from bokeh.plotting import ColumnDataSource, figure
@@ -129,8 +128,6 @@ def message_flow(
         )
 
     if export_path is None:
-        fig.output_backend = "svg"
-        export_svg(fig, filename="plot.svg")
         show(fig)
     else:
         save(fig, export_path, title='time vs tracepoint', resources=CDN)

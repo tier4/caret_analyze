@@ -18,10 +18,11 @@ from functools import cached_property, lru_cache
 from logging import getLogger
 from typing import Callable, Dict, List, Optional, Sequence, Union
 
+from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
+from caret_analyze.value_objects.timer import TimerValue
+
 import numpy as np
 import pandas as pd
-
-from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
 
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
@@ -541,6 +542,24 @@ class LttngInfo:
 
         depth = int(sub_df['depth'].values[0])
         return Qos(depth)
+
+    def get_timers(self, node: NodeValue) -> Sequence[TimerValue]:
+        try:
+            callbacks = self.get_timer_callbacks(node)
+            timers = []
+            for callback in callbacks:
+                timers.append(
+                        TimerValue(
+                            period=callback.period_ns,
+                            node_name=callback.node_name,
+                            node_id=callback.node_id,
+                            callback_id=callback.callback_id,
+                        )
+                    )
+
+            return timers
+        except ValueError:
+            return []
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
         df = self._formatted.timer_controls_df

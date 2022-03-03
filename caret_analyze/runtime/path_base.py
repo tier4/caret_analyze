@@ -179,7 +179,7 @@ class PathBase(metaclass=ABCMeta):
         dest_stamps_ns = np.array(df.iloc[:, -1].values)
         t = source_stamps_ns
 
-        latency_ns = (dest_stamps_ns - source_stamps_ns)
+        latency_ns = dest_stamps_ns - source_stamps_ns
         if remove_dropped:
             t = t.astype('int64')
             latency_ns = latency_ns.astype('int64')
@@ -218,6 +218,7 @@ class PathBase(metaclass=ABCMeta):
 
         _, latency_ns = self.to_timeseries(
             True, treat_drop_as_delay, lstrip_s, rstrip_s, shaper=shaper)
+        range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
         bin_num = math.ceil((range_max - range_min) / binsize_ns)
         return np.histogram(latency_ns, bins=bin_num, range=(range_min, range_max))

@@ -20,7 +20,7 @@ from typing import Dict, Sequence
 from ..value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
                              NodeValueWithId, PathValue, PublisherValue,
                              SubscriptionCallbackValue, SubscriptionValue,
-                             TimerCallbackValue, VariablePassingValue, TimerValue)
+                             TimerCallbackValue, TimerValue, VariablePassingValue)
 
 UNDEFINED_STR = 'UNDEFINED'
 IGNORE_TOPICS = ['/parameter_events', '/rosout', '/clock']
@@ -106,9 +106,11 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         """
         pass
+
     @abstractmethod
     def get_timers(
         self,
+        node: NodeValue
     ) -> Sequence[TimerValue]:
         """
         Get timers info.
@@ -120,7 +122,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Returns
         -------
-        Sequence[TimerStructValue]
+        Sequence[TimerValue]
             timers values
 
         """

@@ -21,7 +21,6 @@ from .callback import CallbackStructValue
 from .message_context import MessageContext, MessageContextType
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
-from caret_analyze.value_objects.timer import TimerStructValue, TimerValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
 from ..common import Summarizable, Summary, Util
@@ -59,7 +58,6 @@ class NodePathStructValue(ValueObject, Summarizable):
         node_name: str,
         subscription: Optional[SubscriptionStructValue],
         publisher: Optional[PublisherStructValue],
-        timer: Optional[TimerStructValue],
         child: Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]],
         message_context: Optional[MessageContext],
     ) -> None:
@@ -67,7 +65,6 @@ class NodePathStructValue(ValueObject, Summarizable):
         self._child = child
         self._subscription = subscription
         self._publisher = publisher
-        self._timer = timer
         self._context = message_context
 
     @property
@@ -138,10 +135,6 @@ class NodePathStructValue(ValueObject, Summarizable):
     @property
     def publisher(self) -> Optional[PublisherStructValue]:
         return self._publisher
-        
-    @property
-    def timer(self) -> Optional[TimerStructValue]:
-        return self._timer
 
     @property
     def subscription(self) -> Optional[SubscriptionStructValue]:
