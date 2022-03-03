@@ -72,6 +72,9 @@ class SubscriptionStructValue(ValueObject, Summarizable):
             return self.node_name == other.node_name and self.topic_name == other.topic_name
         return False
 
+    def __hash__(self):
+        return super().__hash__()
+
     @property
     def node_name(self) -> str:
         return self._node_name
