@@ -1187,18 +1187,22 @@ class FilteredRecordsSource:
             records.drop_columns(['tilde_subscription])
 
         """
-        sub_records = RecordsFactory.create_instance(
-            None,
-            [
-                COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP,
-                COLUMN_NAME.TILDE_SUBSCRIPTION,
-                COLUMN_NAME.TILDE_MESSAGE_ID
-            ]
-        )
+        grouped_records = self._grouped_tilde_sub_records
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                [
+                    COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP,
+                    COLUMN_NAME.TILDE_SUBSCRIPTION,
+                    COLUMN_NAME.TILDE_MESSAGE_ID
+                ]
+            )
+        sample_records = list(grouped_records.values())[0]
+        columns = sample_records.columns
+        sub_records = RecordsFactory.create_instance(None, columns)
 
-        if tilde_subscription is not None and  \
-                tilde_subscription in self._grouped_tilde_sub_records:
-            sub_records_ = self._grouped_tilde_sub_records[tilde_subscription].clone()
+        if tilde_subscription is not None and tilde_subscription in grouped_records:
+            sub_records_ = grouped_records[tilde_subscription].clone()
             sub_records.concat(sub_records_)
 
         sub_records.drop_columns([COLUMN_NAME.TILDE_SUBSCRIPTION])
@@ -1229,21 +1233,25 @@ class FilteredRecordsSource:
             )
 
         """
-        sub_records = RecordsFactory.create_instance(
-            None,
-            [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.MESSAGE_TIMESTAMP,
-                COLUMN_NAME.SOURCE_TIMESTAMP,
-            ]
-        )
-        records = self._grouped_sub_records
+        grouped_records = self._grouped_sub_records
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                [
+                    COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                    COLUMN_NAME.MESSAGE_TIMESTAMP,
+                    COLUMN_NAME.SOURCE_TIMESTAMP,
+                ]
+            )
+        sample_records = list(grouped_records.values())[0]
+        columns = sample_records.columns
+        sub_records = RecordsFactory.create_instance(None, columns)
 
-        if inter_callback_object in records:
-            sub_records.concat(records[inter_callback_object].clone())
+        if inter_callback_object in grouped_records:
+            sub_records.concat(grouped_records[inter_callback_object].clone())
 
-        if intra_callback_object is not None and intra_callback_object in records:
-            intra_sub_records = records[intra_callback_object].clone()
+        if intra_callback_object is not None and intra_callback_object in grouped_records:
+            intra_sub_records = grouped_records[intra_callback_object].clone()
             sub_records.concat(intra_sub_records)
             sub_records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
 
@@ -1273,21 +1281,28 @@ class FilteredRecordsSource:
             )
 
         """
+        grouped_records = self._grouped_inter_comm_records
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                [
+                    COLUMN_NAME.CALLBACK_OBJECT,
+                    COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                    COLUMN_NAME.PUBLISHER_HANDLE,
+                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                ]
+            )
+
+        sample_records = list(grouped_records.values())[0]
+        columns = sample_records.columns
+
         records = RecordsFactory.create_instance(
-            None,
-            [
-                COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                # COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                # COLUMN_NAME.DDS_WRITE_TIMESTAMP
-            ]
+            None, columns
         )
         for publisher_handle in publisher_handles:
             key = (callback_object, publisher_handle)
-            if key in self._grouped_inter_comm_records:
-                comm_records = self._grouped_inter_comm_records[key].clone()
+            if key in grouped_records:
+                comm_records = grouped_records[key].clone()
                 records.concat(comm_records)
 
         records.sort(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
@@ -1318,21 +1333,26 @@ class FilteredRecordsSource:
 
 
         """
-        records = RecordsFactory.create_instance(
-            None,
-            [
+        grouped_records = self._grouped_intra_comm_records
+
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(None, [
                 COLUMN_NAME.CALLBACK_OBJECT,
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.MESSAGE_TIMESTAMP
-            ]
-        )
+            ])
+
+        sample_records = list(grouped_records.values())[0]
+        columns = sample_records.columns
+        records = RecordsFactory.create_instance(None, columns)
+
         if intra_callback_object is not None:
             for publisher_handle in publisher_handles:
                 key = (intra_callback_object, publisher_handle)
-                if key in self._grouped_intra_comm_records:
-                    records_ = self._grouped_intra_comm_records[key].clone()
+                if key in grouped_records:
+                    records_ = grouped_records[key].clone()
                     records.concat(records_)
         records.sort(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
 
@@ -1371,29 +1391,27 @@ class FilteredRecordsSource:
         - tilde_message_id
 
         """
-        records = self._grouped_publish_records
-        records_columns = set()
-        for record in records.values():
-            records_columns.update(record.columns)
-
-        columns = []
-        columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
-        columns.append(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
-        columns.append(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records_columns:
-            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records_columns:
-            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
-        columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
-        columns.append(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP)
-        columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
-
+        grouped_records = self._grouped_publish_records
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                [
+                    COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.MESSAGE_TIMESTAMP,
+                    COLUMN_NAME.SOURCE_TIMESTAMP,
+                    COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.TILDE_MESSAGE_ID,
+                ]
+            )
+        sample_records = list(grouped_records.values())[0]
+        columns = sample_records.columns
         pub_records = RecordsFactory.create_instance(None, columns)
 
         for publisher_handle in publisher_handles:
-            if publisher_handle in records:
-                inter_pub_records = records[publisher_handle].clone()
+            if publisher_handle in grouped_records:
+                inter_pub_records = grouped_records[publisher_handle].clone()
                 pub_records.concat(inter_pub_records)
 
         return pub_records
@@ -1419,19 +1437,24 @@ class FilteredRecordsSource:
             )
 
         """
-        tilde_grouped_records = self._grouped_tilde_pub_records
-        tilde_records = RecordsFactory.create_instance(
-            None,
-            [
-                COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.TILDE_PUBLISHER,
-                COLUMN_NAME.TILDE_MESSAGE_ID,
-                COLUMN_NAME.TILDE_SUBSCRIPTION,
-            ])
+        grouped_records = self._grouped_tilde_pub_records
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                [
+                    COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.TILDE_PUBLISHER,
+                    COLUMN_NAME.TILDE_MESSAGE_ID,
+                    COLUMN_NAME.TILDE_SUBSCRIPTION,
+                ]
+            )
+        sample_records = list(grouped_records.values())[0]
+        columns = sample_records.columns
+        tilde_records = RecordsFactory.create_instance(None, columns)
 
         for tilde_publisher in tilde_publishers:
-            if tilde_publisher in tilde_grouped_records:
-                tilde_records_ = tilde_grouped_records[tilde_publisher].clone()
+            if tilde_publisher in grouped_records:
+                tilde_records_ = grouped_records[tilde_publisher].clone()
                 tilde_records.concat(tilde_records_)
 
         tilde_records.drop_columns([COLUMN_NAME.TILDE_PUBLISHER])
