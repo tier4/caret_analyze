@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from .callback import CallbackBase
 from .node import Node
@@ -22,7 +22,7 @@ from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from ..common import Summarizable, Summary
-from ..infra import RecordsProvider
+from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
 from ..value_objects import CommunicationStructValue
 
@@ -36,7 +36,7 @@ class Communication(PathBase, Summarizable):
         publisher: Publisher,
         subscription: Subscription,
         communication_value: CommunicationStructValue,
-        records_provider: RecordsProvider,
+        records_provider: Union[RecordsProvider, RuntimeDataProvider, None],
         callbacks_publish: Optional[List[CallbackBase]],
         callback_subscription: Optional[CallbackBase],
     ) -> None:
@@ -49,6 +49,11 @@ class Communication(PathBase, Summarizable):
         self._callback_subscription = callback_subscription
         self._is_intra_process: Optional[bool] = None
         self._rmw_implementation: Optional[str] = None
+        if isinstance(records_provider, RuntimeDataProvider):
+            self._is_intra_process = \
+                records_provider.is_intra_process_communication(communication_value)
+            self._rmw_implementation = \
+                records_provider.get_rmw_implementation()
         self._publisher = publisher
         self._subscription = subscription
 
