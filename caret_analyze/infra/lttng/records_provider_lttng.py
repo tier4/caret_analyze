@@ -19,7 +19,9 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
 
 from .lttng import Lttng
-from .value_objects import PublisherValueLttng, SubscriptionCallbackValueLttng
+from .value_objects import (PublisherValueLttng,
+                            SubscriptionCallbackValueLttng,
+                            TimerCallbackValueLttng)
 from ...common import ClockConverter, Columns, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
@@ -27,13 +29,18 @@ from ...exceptions import (InvalidArgumentError,
 from ...infra.interface import RuntimeDataProvider
 from ...infra.lttng.column_names import COLUMN_NAME
 from ...record import (merge, merge_sequencial, RecordsFactory, RecordsInterface)
-from ...value_objects import (CallbackChain, CallbackStructValue,
-                              CommunicationStructValue, InheritUniqueStamp,
-                              NodePathStructValue, PublisherStructValue, Qos,
+from ...value_objects import (CallbackChain,
+                              CallbackStructValue,
+                              CommunicationStructValue,
+                              InheritUniqueStamp,
+                              NodePathStructValue,
+                              PublisherStructValue,
+                              Qos,
                               SubscriptionCallbackStructValue,
                               SubscriptionStructValue,
                               Tilde,
                               TimerCallbackStructValue,
+                              TimerStructValue,
                               UseLatestMessage,
                               VariablePassingStructValue)
 
@@ -451,6 +458,54 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return pub_records
 
+    def timer_records(self, timer: TimerStructValue) -> RecordsInterface:
+        """
+        Return timer records.
+
+        Parameters
+        ----------
+        timer : TimerStructValue
+            [description]
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - [callback_name]/timer_event
+            - [callback_name]/callback_start
+            - [callback_name]/callback_end
+
+        """
+        assert timer.callback is not None
+        timer_lttng_cb = self._helper.get_lttng_timer(timer.callback)
+
+        timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
+        callback_records = self.callback_records(timer.callback)
+        last_record = callback_records.data[-1]
+        last_callback_start = last_record.get(callback_records.columns[0])
+        timer_events = timer_events_factory.create(last_callback_start)
+        timer_records = merge_sequencial(
+            left_records=timer_events,
+            right_records=callback_records,
+            left_stamp_key=COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+            right_stamp_key=callback_records.columns[0],
+            join_left_key=None,
+            join_right_key=None,
+            columns=Columns(timer_events.columns + callback_records.columns).as_list(),
+            how='left'
+        )
+
+        columns = [
+            COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+            callback_records.columns[0],
+            callback_records.columns[1],
+        ]
+
+        self._format(timer_records, columns)
+        self._rename_column(timer_records, timer.callback_name, None)
+
+        return timer_records
+
     def tilde_records(
         self,
         subscription: SubscriptionStructValue,
@@ -687,6 +742,10 @@ class RecordsProviderLttng(RuntimeDataProvider):
             rename_dict[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP}'
 
+        if COLUMN_NAME.TIMER_EVENT_TIMESTAMP in records.columns:
+            rename_dict[COLUMN_NAME.TIMER_EVENT_TIMESTAMP] = \
+                f'{callback_name}/{COLUMN_NAME.TIMER_EVENT_TIMESTAMP}'
+
         if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
                 f'{callback_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
@@ -843,6 +902,12 @@ class RecordsProviderLttngHelper:
         callback: SubscriptionCallbackStructValue
     ) -> SubscriptionCallbackValueLttng:
         return self._bridge.get_subscription_callback(callback)
+
+    def get_lttng_timer(
+        self,
+        callback: TimerCallbackStructValue
+    ) -> TimerCallbackValueLttng:
+        return self._bridge.get_timer_callback(callback)
 
 
 class NodeRecordsCallbackChain:

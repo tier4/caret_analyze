@@ -18,10 +18,13 @@ from abc import ABCMeta, abstractmethod
 
 from typing import Dict, List, Optional, Sequence
 
+from caret_analyze.value_objects.timer import TimerValue
+
 import pandas as pd
 
 from tracetools_analysis.loading import load_file
 
+from .events_factory import EventsFactory
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
 from .value_objects import (PublisherValueLttng,
@@ -288,6 +291,20 @@ class Lttng(InfraBase):
         """
         return self._info.get_publishers(node)
 
+    def get_timers(
+        self,
+        node: NodeValue
+    ) -> Sequence[TimerValue]:
+        """
+        Get timers information.
+
+        Returns
+        -------
+        Sequence[TimerValue]
+
+        """
+        return self._info.get_timers(node)
+
     def get_timer_callbacks(
         self,
         node: NodeValue
@@ -451,6 +468,12 @@ class Lttng(InfraBase):
         self,
     ) -> RecordsInterface:
         return self._source.subscribe_records.clone()
+
+    def create_timer_events_factory(
+        self,
+        timer_callback: TimerCallbackValueLttng
+    ) -> EventsFactory:
+        return self._source.create_timer_events_factory(timer_callback)
 
     def compose_tilde_publish_records(
         self,

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# from threading import Timer
 from caret_analyze.architecture import Architecture
 from caret_analyze.exceptions import UnsupportedTypeError
 from caret_analyze.infra.interface import RecordsProvider
@@ -31,9 +32,10 @@ from caret_analyze.runtime.runtime_loaded import (CallbackGroupsLoaded,
                                                   PathsLoaded,
                                                   PublishersLoaded,
                                                   RuntimeLoaded,
-                                                  SubscriptionsLoaded,
+                                                  SubscriptionsLoaded, TimersLoaded,
                                                   VariablePassingsLoaded)
 from caret_analyze.runtime.subscription import Subscription
+from caret_analyze.runtime.timer import Timer
 from caret_analyze.runtime.variable_passing import VariablePassing
 from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CommunicationStructValue,
@@ -43,6 +45,7 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          SubscriptionCallbackStructValue,
                                          SubscriptionStructValue,
                                          TimerCallbackStructValue,
+                                         TimerStructValue,
                                          VariablePassingStructValue)
 
 import pytest
@@ -132,6 +135,7 @@ class TestNodesLoaded:
         mocker.patch.object(node_info_mock, 'callback_groups', None)
         mocker.patch.object(node_info_mock, 'paths', ())
         mocker.patch.object(node_info_mock, 'variable_passings', None)
+        mocker.patch.object(node_info_mock, 'timers', ())
         mocker.patch.object(node_info_mock, 'publishers', ())
         mocker.patch.object(node_info_mock, 'subscriptions', ())
 
@@ -146,6 +150,7 @@ class TestNodesLoaded:
 
         assert node.node_name == 'node'
         assert node.callbacks == []
+        assert node.timers == []
         assert node.publishers == []
         assert node.subscriptions == []
         assert node.variable_passings == []
@@ -156,6 +161,7 @@ class TestNodesLoaded:
 
         cbg_info_mock = mocker.Mock(spec=CallbackGroupStructValue)
         var_pass_info_mock = mocker.Mock(spec=VariablePassingStructValue)
+        timer_info_mock = mocker.Mock(spec=TimerStructValue)
         pub_info_mock = mocker.Mock(spec=PublisherStructValue)
         sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
 
@@ -163,6 +169,7 @@ class TestNodesLoaded:
         mocker.patch.object(node_info_mock, 'callback_groups', (cbg_info_mock))
         mocker.patch.object(node_info_mock, 'paths', ())
         mocker.patch.object(node_info_mock, 'variable_passings', (var_pass_info_mock))
+        mocker.patch.object(node_info_mock, 'timers', (timer_info_mock,))
         mocker.patch.object(node_info_mock, 'publishers', (pub_info_mock,))
         mocker.patch.object(node_info_mock, 'subscriptions', (sub_info_mock,))
 
@@ -192,6 +199,12 @@ class TestNodesLoaded:
         mocker.patch('caret_analyze.runtime.runtime_loaded.PublishersLoaded',
                      return_value=pub_loaded)
 
+        timer_mock = mocker.Mock(spec=Timer)
+        timer_loaded = mocker.Mock(spec=TimersLoaded)
+        mocker.patch.object(timer_loaded, 'data', [timer_mock])
+        mocker.patch('caret_analyze.runtime.runtime_loaded.TimersLoaded',
+                     return_value=timer_loaded)
+
         sub_mock = mocker.Mock(spec=Subscription)
         sub_loaded = mocker.Mock(spec=SubscriptionsLoaded)
         mocker.patch.object(sub_loaded, 'data', [sub_mock])
@@ -205,6 +218,7 @@ class TestNodesLoaded:
         assert node.callback_groups == [cbg_mock]
         assert node.publishers == [pub_mock]
         assert node.subscriptions == [sub_mock]
+        assert node.timers == [timer_mock]
         assert node.variable_passings == [var_pass_mock]
         assert node.paths == [node_path_mock]
 
@@ -509,8 +523,10 @@ class TestCallbacksLoaded:
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
+        timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
-        loaded = CallbacksLoaded((), provider_mock, pub_loaded_mock, sub_loaded_mock)
+        loaded = CallbacksLoaded(
+            (), provider_mock, pub_loaded_mock, sub_loaded_mock, timer_loaded_mock)
 
         assert loaded.data == []
 
@@ -518,12 +534,14 @@ class TestCallbacksLoaded:
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
+        timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
         cb_info_mock = mocker.Mock(spec=TimerCallbackStructValue)
         cb_mock = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(CallbacksLoaded, '_to_runtime', return_value=cb_mock)
 
-        loaded = CallbacksLoaded((cb_info_mock,), provider_mock, pub_loaded_mock, sub_loaded_mock)
+        loaded = CallbacksLoaded(
+            (cb_info_mock,), provider_mock, pub_loaded_mock, sub_loaded_mock, timer_loaded_mock)
 
         assert loaded.data == [cb_mock]
 
@@ -531,6 +549,7 @@ class TestCallbacksLoaded:
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
+        timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
         node_name = '/node'
         period_ns = 3
@@ -546,7 +565,7 @@ class TestCallbacksLoaded:
         mocker.patch.object(pub_loaded_mock, 'get_publishers', return_value=[pub_mock])
 
         cb = CallbacksLoaded._to_runtime(
-            cb_info, provider_mock, pub_loaded_mock, sub_loaded_mock)
+            cb_info, provider_mock, pub_loaded_mock, sub_loaded_mock, timer_loaded_mock)
 
         assert isinstance(cb, TimerCallback)
         assert cb.callback_name == cb_name
@@ -560,6 +579,7 @@ class TestCallbacksLoaded:
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
+        timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
         node_name = '/node'
         pub_topic = '/pub_topic'
@@ -578,7 +598,7 @@ class TestCallbacksLoaded:
         )
 
         cb = CallbacksLoaded._to_runtime(
-            cb_info, provider_mock, pub_loaded_mock, sub_loaded_mock)
+            cb_info, provider_mock, pub_loaded_mock, sub_loaded_mock, timer_loaded_mock)
 
         assert isinstance(cb, SubscriptionCallback)
         assert cb.callback_name == cb_name
@@ -595,9 +615,11 @@ class TestCallbackGroupsLoaded:
     def test_empty(self, mocker: MockerFixture):
         provider_mock = mocker.Mock(spedc=RecordsProvider)
         publisher_loaded_mock = mocker.Mock(spec=PublishersLoaded)
-        subscriptions_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
+        sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
+        timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
+
         cbgs = CallbackGroupsLoaded(
-            (), provider_mock, publisher_loaded_mock, subscriptions_loaded_mock).data
+            (), provider_mock, publisher_loaded_mock, sub_loaded_mock, timer_loaded_mock).data
         assert cbgs == []
 
     def test_to_runtime(self, mocker: MockerFixture):
@@ -605,6 +627,7 @@ class TestCallbackGroupsLoaded:
         cbg_info_mock = mocker.Mock(spec=CallbackGroupStructValue)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
+        timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
         cbg_name = 'cbg'
 
@@ -618,7 +641,7 @@ class TestCallbackGroupsLoaded:
         mocker.patch.object(cb_loaded_mock, 'data', [cb_mock])
 
         cbg = CallbackGroupsLoaded._to_runtime(
-            cbg_info_mock, provider_mock, pub_loaded_mock, sub_loaded_mock)
+            cbg_info_mock, provider_mock, pub_loaded_mock, sub_loaded_mock, timer_loaded_mock)
 
         assert cbg.callbacks == [cb_mock]
         assert cbg.callback_group_name == cbg_name

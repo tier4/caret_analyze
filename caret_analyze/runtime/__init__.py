@@ -22,6 +22,7 @@ from .node_path import NodePath
 from .path import Path
 from .publisher import Publisher
 from .subscription import Subscription
+from .timer import Timer
 from .variable_passing import VariablePassing
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     'Node',
     'Path',
     'Publisher',
+    'Timer',
     'Subscription',
     'VariablePassing',
 ]

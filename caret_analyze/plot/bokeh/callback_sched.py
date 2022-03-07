@@ -21,9 +21,14 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.colors import Color, RGB
 from bokeh.io import show
+from bokeh.models import Arrow, NormalHead
 from bokeh.plotting import ColumnDataSource, figure
 
+from caret_analyze.runtime.callback import TimerCallback
+
 import colorcet as cc
+
+import pandas as pd
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
 from ...common import ClockConverter, Util
@@ -45,7 +50,6 @@ def callback_sched(
     assert coloring_rule in ['callback', 'callback_group', 'node']
 
     cbgs, target_name = get_cbg_and_name(target)
-
     callbacks = Util.flatten([cbg.callbacks for cbg in cbgs])
     frame_min, frame_max = get_range(callbacks)
     clip_min = int(frame_min + lstrip_s*1.0e9)
@@ -129,7 +133,7 @@ def sched_plot_cbg(
 
     rect_y = 0.0
     rect_height = 0.3
-    rect_y_step = -1.0
+    rect_y_step = -1.5
 
     for callback_group in cbgs:
         for callback in callback_group.callbacks:
@@ -149,6 +153,34 @@ def sched_plot_cbg(
                    hover_fill_color=color,
                    hover_alpha=1.0,
                    x_range_name=x_range_name)
+            if isinstance(callback, TimerCallback):
+                y_start = rect_source.data['y'][1]+0.9
+                y_end = rect_source.data['y'][1]+rect_height
+                timer = callback.timer
+                df = timer.to_dataframe()
+                for item in df.itertuples():
+                    timerstamp = item._1
+                    callback_start = item._2
+                    # callback_end = item._3
+                    res = callback_start-timerstamp
+                    delayed_th = 500000
+                    # The callback is considered delayed if this value is exceeded.
+                    if not pd.isna(res):
+                        if res > delayed_th:
+                            p.add_layout(Arrow(end=NormalHead(
+                                fill_color='red',
+                                line_width=1,
+                                size=10
+                                ),
+                                       x_start=(timerstamp-frame_min)*1.0e-9, y_start=y_start,
+                                       x_end=(timerstamp-frame_min)*1.0e-9, y_end=y_end))
+                        else:
+                            p.add_layout(Arrow(end=NormalHead(
+                                fill_color='white',
+                                line_width=1,
+                                size=10),
+                                       x_start=(timerstamp-frame_min)*1.0e-9, y_start=y_start,
+                                       x_end=(timerstamp-frame_min)*1.0e-9, y_end=y_end))
             rect_y += rect_y_step
 
     p.ygrid.grid_line_alpha = 0
@@ -211,7 +243,6 @@ def get_callback_rects(
             'callback_type': [f'{callback.callback_type}']
         }
         rect_source.stream(new_data)
-
     return rect_source
 
 

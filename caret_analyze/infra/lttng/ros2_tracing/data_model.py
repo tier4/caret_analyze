@@ -124,6 +124,10 @@ class Ros2DataModel(DataModel):
                 'system_time',
                 'sim_time']
         )
+        self.timer_event = RecordsFactory.create_instance(
+            None, [
+                'time_event_stamp']
+        )
 
     def add_context(self, context_handle, timestamp, pid, version) -> None:
         record = {

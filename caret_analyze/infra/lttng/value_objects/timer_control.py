@@ -12,18 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback import SubscriptionCallbackValueLttng, TimerCallbackValueLttng
-from .callback_group import CallbackGroupValueLttng
-from .node import NodeValueLttng
-from .publisher import PublisherValueLttng
-from .timer_control import TimerControl, TimerInit
 
-__all__ = [
-    'CallbackGroupValueLttng',
-    'NodeValueLttng',
-    'PublisherValueLttng',
-    'SubscriptionCallbackValueLttng',
-    'TimerCallbackValueLttng',
-    'TimerControl',
-    'TimerInit',
-]
+class TimerControl:
+
+    def __init__(self, timer_handle: int, timestamp: int) -> None:
+        self._timer_handle = timer_handle
+        self._timestamp = timestamp
+
+    @property
+    def timer_handle(self) -> int:
+        return self._timer_handle
+
+    def timestamp(self) -> int:
+        return self._timestamp
+
+
+class TimerInit(TimerControl):
+
+    def __init__(self, timer_handle: int, timestamp: int, period_ns: int) -> None:
+        super().__init__(timer_handle, timestamp)
+        self._period_ns = period_ns
+
+    @property
+    def period_ns(self) -> int:
+        return self._period_ns
