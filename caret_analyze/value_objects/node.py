@@ -182,7 +182,7 @@ class NodeStructValue(ValueObject, Summarizable):
                 self._publishers)
         except ItemNotFoundError:
             msg = 'Failed to find timer info. '
-            msg += f'topic_name: {timer_period}'
+            msg += f'timer_period: {timer_period}'
             raise ItemNotFoundError(msg)
 
     @property

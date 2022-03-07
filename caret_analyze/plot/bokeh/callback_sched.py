@@ -163,8 +163,10 @@ def sched_plot_cbg(
                     callback_start = item._2
                     # callback_end = item._3
                     res = callback_start-timerstamp
+                    delayed_th = 500000
+                    # The callback is considered delayed if this value is exceeded.
                     if not pd.isna(res):
-                        if res > 500000:
+                        if res > delayed_th:
                             p.add_layout(Arrow(end=NormalHead(
                                 fill_color='red',
                                 line_width=1,
@@ -182,6 +184,7 @@ def sched_plot_cbg(
             rect_y += rect_y_step
 
     p.ygrid.grid_line_alpha = 0
+    p.yaxis.visible = False
     p.legend.location = 'bottom_left'
     p.legend.click_policy = 'hide'
     p.add_layout(p.legend[0], 'right')
