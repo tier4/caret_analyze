@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .bokeh.callback_info_factory import Plot
 from .bokeh.callback_sched import callback_sched
 from .bokeh.message_flow import message_flow
-from .bokeh.callback_info_factory import Plot
 from .graphviz.callback_graph import callback_graph
 from .graphviz.chain_latency import chain_latency
 from .graphviz.node_graph import node_graph
 
-__all__ = ['callback_sched', 'message_flow', 'chain_latency', 'callback_graph', 'node_graph']
+__all__ = [
+    'Plot',
+    'callback_graph',
+    'callback_sched',
+    'chain_latency',
+    'message_flow',
+    'node_graph'
+]
