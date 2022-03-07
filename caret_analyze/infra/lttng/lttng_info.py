@@ -1091,7 +1091,7 @@ class DataFrameFormatted:
         df = data.timers.reset_index()
         df['type'] = 'init'
         df['params'] = [{'period': row['period']} for (_, row) in df.iterrows()]
-
+        df = DataFrameFormatted._ensure_columns(df, columns)
         return df[columns]
 
     @staticmethod

@@ -490,6 +490,32 @@ class TestDataFrameFormatted:
         )
         assert timer_df.equals(expect)
 
+    def test_build_timer_control_df(self):
+        data = Ros2DataModel()
+        timer_handle = 3
+        period = 8
+        timestamp = 15
+        params = {'period': period}
+        type_name = 'init'
+
+        data.add_timer(timer_handle, timestamp, period, 0)
+
+        data.finalize()
+
+        timer_df = DataFrameFormatted._build_timer_control_df(data)
+
+        expect = pd.DataFrame.from_dict(
+            [
+                {
+                    'timestamp': timestamp,
+                    'timer_handle': timer_handle,
+                    'type': type_name,
+                    'params': params,
+                },
+            ]
+        )
+        assert timer_df.equals(expect)
+
     def test_build_subscription_callbacks_df(self, mocker: MockerFixture):
         data = Ros2DataModel()
 
@@ -746,6 +772,7 @@ class TestDataFrameFormatted:
         exec_mock = mocker.Mock(spec=pd.DataFrame)
         node_mock = mocker.Mock(spec=pd.DataFrame)
         timer_mock = mocker.Mock(spec=pd.DataFrame)
+        timer_control_mock = mocker.Mock(spec=pd.DataFrame)
         sub_mock = mocker.Mock(spec=pd.DataFrame)
         srv_mock = mocker.Mock(spec=pd.DataFrame)
         cbg_mock = mocker.Mock(spec=pd.DataFrame)
@@ -761,6 +788,8 @@ class TestDataFrameFormatted:
         mocker.patch.object(
             DataFrameFormatted, '_build_timer_callbacks_df', return_value=timer_mock)
         mocker.patch.object(
+            DataFrameFormatted, '_build_timer_control_df', return_value=timer_control_mock)
+        mocker.patch.object(
             DataFrameFormatted, '_build_sub_callbacks_df', return_value=sub_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_srv_callbacks_df', return_value=srv_mock)
@@ -774,13 +803,13 @@ class TestDataFrameFormatted:
             DataFrameFormatted, '_build_tilde_publisher_df', return_value=tilde_pub_mock)
         mocker.patch.object(
             DataFrameFormatted, '_build_tilde_sub_id_df', return_value=tilde_sub_id_mock)
-
         data_mock = mocker.Mock(spec=Ros2DataModel)
         formatted = DataFrameFormatted(data_mock)
 
         assert formatted.executor_df == exec_mock
         assert formatted.nodes_df == node_mock
         assert formatted.timer_callbacks_df == timer_mock
+        assert formatted.timer_controls_df == timer_control_mock
         assert formatted.subscription_callbacks_df == sub_mock
         assert formatted.callback_groups_df == cbg_mock
         assert formatted.services_df == srv_mock

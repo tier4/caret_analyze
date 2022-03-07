@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# from threading import Timer
 from caret_analyze.architecture import Architecture
 from caret_analyze.exceptions import UnsupportedTypeError
 from caret_analyze.infra.interface import RecordsProvider
@@ -34,6 +35,7 @@ from caret_analyze.runtime.runtime_loaded import (CallbackGroupsLoaded,
                                                   SubscriptionsLoaded, TimersLoaded,
                                                   VariablePassingsLoaded)
 from caret_analyze.runtime.subscription import Subscription
+from caret_analyze.runtime.timer import Timer
 from caret_analyze.runtime.variable_passing import VariablePassing
 from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CommunicationStructValue,
@@ -43,6 +45,7 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          SubscriptionCallbackStructValue,
                                          SubscriptionStructValue,
                                          TimerCallbackStructValue,
+                                         TimerStructValue,
                                          VariablePassingStructValue)
 
 import pytest
@@ -132,6 +135,7 @@ class TestNodesLoaded:
         mocker.patch.object(node_info_mock, 'callback_groups', None)
         mocker.patch.object(node_info_mock, 'paths', ())
         mocker.patch.object(node_info_mock, 'variable_passings', None)
+        mocker.patch.object(node_info_mock, 'timers', ())
         mocker.patch.object(node_info_mock, 'publishers', ())
         mocker.patch.object(node_info_mock, 'subscriptions', ())
 
@@ -146,6 +150,7 @@ class TestNodesLoaded:
 
         assert node.node_name == 'node'
         assert node.callbacks == []
+        assert node.timers == []
         assert node.publishers == []
         assert node.subscriptions == []
         assert node.variable_passings == []
@@ -156,6 +161,7 @@ class TestNodesLoaded:
 
         cbg_info_mock = mocker.Mock(spec=CallbackGroupStructValue)
         var_pass_info_mock = mocker.Mock(spec=VariablePassingStructValue)
+        timer_info_mock = mocker.Mock(spec=TimerStructValue)
         pub_info_mock = mocker.Mock(spec=PublisherStructValue)
         sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
 
@@ -163,6 +169,7 @@ class TestNodesLoaded:
         mocker.patch.object(node_info_mock, 'callback_groups', (cbg_info_mock))
         mocker.patch.object(node_info_mock, 'paths', ())
         mocker.patch.object(node_info_mock, 'variable_passings', (var_pass_info_mock))
+        mocker.patch.object(node_info_mock, 'timers', (timer_info_mock,))
         mocker.patch.object(node_info_mock, 'publishers', (pub_info_mock,))
         mocker.patch.object(node_info_mock, 'subscriptions', (sub_info_mock,))
 
@@ -192,6 +199,12 @@ class TestNodesLoaded:
         mocker.patch('caret_analyze.runtime.runtime_loaded.PublishersLoaded',
                      return_value=pub_loaded)
 
+        timer_mock = mocker.Mock(spec=Timer)
+        timer_loaded = mocker.Mock(spec=TimersLoaded)
+        mocker.patch.object(timer_loaded, 'data', [timer_mock])
+        mocker.patch('caret_analyze.runtime.runtime_loaded.TimersLoaded',
+                     return_value=timer_loaded)
+
         sub_mock = mocker.Mock(spec=Subscription)
         sub_loaded = mocker.Mock(spec=SubscriptionsLoaded)
         mocker.patch.object(sub_loaded, 'data', [sub_mock])
@@ -205,6 +218,7 @@ class TestNodesLoaded:
         assert node.callback_groups == [cbg_mock]
         assert node.publishers == [pub_mock]
         assert node.subscriptions == [sub_mock]
+        assert node.timers == [timer_mock]
         assert node.variable_passings == [var_pass_mock]
         assert node.paths == [node_path_mock]
 

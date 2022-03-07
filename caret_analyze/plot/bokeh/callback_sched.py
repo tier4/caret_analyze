@@ -28,6 +28,8 @@ from caret_analyze.runtime.callback import TimerCallback
 
 import colorcet as cc
 
+import pandas as pd
+
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
 from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
@@ -158,9 +160,23 @@ def sched_plot_cbg(
                 df = timer.to_dataframe()
                 for item in df.itertuples():
                     timerstamp = item._1
-                    # callback_start = item._2
+                    callback_start = item._2
                     # callback_end = item._3
-                    p.add_layout(Arrow(end=NormalHead(fill_color='orange', line_width=1, size=10),
+                    res = callback_start-timerstamp
+                    if not pd.isna(res):
+                        if res > 500000:
+                            p.add_layout(Arrow(end=NormalHead(
+                                fill_color='red',
+                                line_width=1,
+                                size=10
+                                ),
+                                       x_start=(timerstamp-frame_min)*1.0e-9, y_start=y_start,
+                                       x_end=(timerstamp-frame_min)*1.0e-9, y_end=y_end))
+                        else:
+                            p.add_layout(Arrow(end=NormalHead(
+                                fill_color='white',
+                                line_width=1,
+                                size=10),
                                        x_start=(timerstamp-frame_min)*1.0e-9, y_start=y_start,
                                        x_end=(timerstamp-frame_min)*1.0e-9, y_end=y_end))
             rect_y += rect_y_step

@@ -23,6 +23,7 @@ from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
                                                             PathValuesLoaded,
                                                             PublishersLoaded,
                                                             SubscriptionsLoaded,
+                                                            TimersLoaded,
                                                             TopicIgnoredReader,
                                                             VariablePassingsLoaded)
 from caret_analyze.architecture.graph_search import CallbackPathSearcher
@@ -42,7 +43,7 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          PublisherStructValue, PublisherValue,
                                          SubscriptionCallbackValue,
                                          SubscriptionStructValue,
-                                         SubscriptionValue, TimerCallbackValue,
+                                         SubscriptionValue, TimerCallbackValue, TimerStructValue,
                                          VariablePassingStructValue,
                                          VariablePassingValue)
 from caret_analyze.value_objects.callback import \
@@ -213,6 +214,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(
             reader_mock, 'get_publishers', return_value=[])
         mocker.patch.object(
+            reader_mock, 'get_timers', return_value=[])
+        mocker.patch.object(
             reader_mock, 'get_message_contexts', return_value=[])
 
         path_searched = mocker.Mock(spec=CallbackPathSearched)
@@ -251,6 +254,7 @@ class TestNodesInfoLoaded():
         cbg = mocker.Mock(spec=CallbackGroupStructValue)
         callback = mocker.Mock(spec=CallbackStructValue)
         subscription = mocker.Mock(spec=SubscriptionStructValue)
+        timer = mocker.Mock(spec=TimerStructValue)
         publisher = mocker.Mock(spec=PublisherStructValue)
         var_pass = mocker.Mock(spec=VariablePassingStructValue)
         path = mocker.Mock(spec=NodePathStructValue)
@@ -269,6 +273,8 @@ class TestNodesInfoLoaded():
             reader_mock, 'get_subscriptions', return_value=[subscription])
         mocker.patch.object(
             reader_mock, 'get_publishers', return_value=[publisher])
+        mocker.patch.object(
+            reader_mock, 'get_timers', return_value=[timer])
 
         mocker.patch.object(
             reader_mock, 'get_message_contexts', return_value=[context])
@@ -307,6 +313,10 @@ class TestNodesInfoLoaded():
         mocker.patch('caret_analyze.architecture.architecture_loaded.SubscriptionsLoaded',
                      return_value=subscriptions_loaded)
         mocker.patch.object(subscriptions_loaded, 'data', (subscription,))
+        timers_loaded = mocker.Mock(spec=TimersLoaded)
+        mocker.patch('caret_analyze.architecture.architecture_loaded.TimersLoaded',
+                     return_value=timers_loaded)
+        mocker.patch.object(timers_loaded, 'data', (timer,))
 
         def assigned(node_paths, message_contexts):
             return node_paths
@@ -322,6 +332,7 @@ class TestNodesInfoLoaded():
 
         assert node.node_name == 'node'
         assert node.publishers == (publisher,)
+        assert node.timers == (timer,)
         assert node.subscriptions == (subscription,)
         assert node.callbacks == (callback,)
         assert node.callback_groups == (cbg,)
@@ -447,6 +458,7 @@ class TestNodesInfoLoaded():
         mocker.patch.object(reader_mock, 'get_timer_callbacks', return_value=[])
         mocker.patch.object(reader_mock, 'get_subscription_callbacks', return_value=[])
         mocker.patch.object(reader_mock, 'get_publishers', return_value=[])
+        mocker.patch.object(reader_mock, 'get_timers', return_value=[])
         mocker.patch.object(reader_mock, 'get_subscriptions', return_value=[])
         mocker.patch.object(reader_mock, 'get_callback_groups', return_value=[])
         mocker.patch.object(reader_mock, 'get_variable_passings', return_value=[])
