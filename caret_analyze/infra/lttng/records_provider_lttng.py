@@ -666,10 +666,10 @@ class RecordsProviderLttng(RuntimeDataProvider):
             )
 
         if not pub_result:
-            print(f"'caret/rclcpp' may not be used in publisher of '{pub_node}'.")
+            logger.warning(f"'caret/rclcpp' may not be used in publisher of '{pub_node}'.")
             return False
         if not sub_result:
-            print(f"'caret/rclcpp' may not be used in subscriber of '{sub_node}'.")
+            logger.warning(f"'caret/rclcpp' may not be used in subscriber of '{sub_node}'.")
             return False
         return True
 
