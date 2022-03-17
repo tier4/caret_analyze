@@ -626,6 +626,55 @@ class RecordsProviderLttng(RuntimeDataProvider):
         intra_record = self._compose_intra_proc_comm_records(communication_value)
         return len(intra_record) > 0
 
+    def verify_trace_points(
+        self,
+        node_name: str,
+        trace_points: str
+    ) -> bool:
+        df = self._lttng.get_count(['node_name', 'trace_point'])
+        df = df.reset_index()
+        node_df = df.loc[df['node_name'] == node_name]
+        trace_point_df = node_df[node_df['trace_point'] == trace_points]
+        if trace_point_df['size'].empty:
+            return False
+        elif trace_point_df['size'].item() <= 0:
+            return False
+        else:
+            return True
+
+
+    def verify_communication(
+        self,
+        communication: CommunicationStructValue,
+    ) -> bool:
+        is_intra_proc = self.is_intra_process_communication(communication)
+        if is_intra_proc is True:
+            pub_node = communication.publish_node.node_name
+            sub_node = communication.subscribe_node.node_name
+            pub_result = self.verify_trace_points(pub_node, 'ros2:rclcpp_intra_publish')
+            sub_result = self.verify_trace_points(
+                sub_node,
+                'ros2:dispatch_intra_process_subscription_callback'
+            )
+
+        elif is_intra_proc is False:
+            pub_result = True
+            sub_node = communication.subscribe_node.node_name
+            sub_result = self.verify_trace_points(
+                sub_node,
+                'ros2:dispatch_subscription_callback'
+            )
+
+        if not pub_result:
+            print(f"'caret/rclcpp' may not be used in publisher of '{pub_node}'.")
+            return False
+        if not sub_result:
+            print(f"'caret/rclcpp' may not be used in subscriber of '{sub_node}'.")
+            return False
+        return True
+
+
+
     def _compose_intra_proc_comm_records(
         self,
         comm_info: CommunicationStructValue,

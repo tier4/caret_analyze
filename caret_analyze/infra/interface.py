@@ -120,7 +120,14 @@ class RecordsProvider(metaclass=ABCMeta):
     ) -> ClockConverter:
         pass
 
+    @abstractmethod
+    def verify_communication(
+        self,
+        communication: CommunicationStructValue
+    ) -> bool:
+        pass
 
+        
 class RuntimeDataProvider(RecordsProvider):
 
     @abstractmethod
