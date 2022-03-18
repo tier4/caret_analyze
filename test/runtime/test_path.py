@@ -300,14 +300,3 @@ class TestRecordsMerged:
             ]
         )
         assert records.equals(expected)
-
-
-class TestVerify:
-
-    def test_verify(self):
-        from caret_analyze import Architecture, Application, Lttng
-        arch = Architecture('yaml', '/home/emb4/.ros/tracing/arch_universe_gsm8.yaml')
-        lttng = Lttng('/home/emb4/.ros/tracing/trace_no_use_caret_rclcpp_02')
-        app = Application(arch, lttng)
-        path = app.get_path('pandar_cloud-gsm8_interface')
-        path.verify()

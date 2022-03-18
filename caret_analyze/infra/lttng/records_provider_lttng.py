@@ -626,7 +626,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         intra_record = self._compose_intra_proc_comm_records(communication_value)
         return len(intra_record) > 0
 
-    def verify_trace_points(
+    def _verify_trace_points(
         self,
         node_name: str,
         trace_points: str
@@ -651,8 +651,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if is_intra_proc is True:
             pub_node = communication.publish_node.node_name
             sub_node = communication.subscribe_node.node_name
-            pub_result = self.verify_trace_points(pub_node, 'ros2:rclcpp_intra_publish')
-            sub_result = self.verify_trace_points(
+            pub_result = self._verify_trace_points(pub_node, 'ros2:rclcpp_intra_publish')
+            sub_result = self._verify_trace_points(
                 sub_node,
                 'ros2:dispatch_intra_process_subscription_callback'
             )
@@ -660,7 +660,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         elif is_intra_proc is False:
             pub_result = True
             sub_node = communication.subscribe_node.node_name
-            sub_result = self.verify_trace_points(
+            sub_result = self._verify_trace_points(
                 sub_node,
                 'ros2:dispatch_subscription_callback'
             )
