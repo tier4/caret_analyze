@@ -110,6 +110,12 @@ class Communication(PathBase, Summarizable):
         records = self.to_records()
         return records.columns
 
+    def verify(self) -> bool:
+        is_valid = True
+        if self._records_provider is not None:
+            is_valid &= self._records_provider.verify_communication(self._val)
+        return is_valid
+
     def _to_records_core(self) -> RecordsInterface:
         records = self._records_provider.communication_records(self._val)
 

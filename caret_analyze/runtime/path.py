@@ -234,6 +234,9 @@ class Path(PathBase, Summarizable):
             msg += str(child.summary)
             logger.warning(msg)
             is_valid = False
+
+        for comm in self.communications:
+            is_valid &= comm.verify()
         return is_valid
 
     def get_child(self, name: str):
