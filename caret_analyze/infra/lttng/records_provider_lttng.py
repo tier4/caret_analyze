@@ -642,7 +642,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
         else:
             return True
 
-
     def verify_communication(
         self,
         communication: CommunicationStructValue,
@@ -672,8 +671,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             logger.warning(f"'caret/rclcpp' may not be used in subscriber of '{sub_node}'.")
             return False
         return True
-
-
 
     def _compose_intra_proc_comm_records(
         self,

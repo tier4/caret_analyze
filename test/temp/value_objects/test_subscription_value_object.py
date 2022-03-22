@@ -14,8 +14,6 @@
 
 from caret_analyze.value_objects import SubscriptionStructValue
 
-import pytest
-
 
 class TestSubscriptionValueObject:
 

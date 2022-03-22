@@ -127,7 +127,7 @@ class RecordsProvider(metaclass=ABCMeta):
     ) -> bool:
         pass
 
-        
+
 class RuntimeDataProvider(RecordsProvider):
 
     @abstractmethod

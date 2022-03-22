@@ -22,7 +22,6 @@ from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Columns, Summarizable, Summary, Util
-from ..infra import RecordsProvider
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record.record import merge, merge_sequencial, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
