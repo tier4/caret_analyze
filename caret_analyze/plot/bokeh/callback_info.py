@@ -123,9 +123,7 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         return timestamp_list, frequency_list
 
     def _get_preprocessing_frequency(self, timestamp_df, *initial_timestamp) -> pd.DataFrame:
-        frequency_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
-                timestamp_df.columns,
-                ['callback_start_timestamp [ns]', 'frequency [Hz]']]))
+        frequency_df = pd.DataFrame()
 
         if len(initial_timestamp) != len(timestamp_df.columns):
             if len(initial_timestamp) == 1:
@@ -139,7 +137,15 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         for initial, callback_name in zip(initial_timestamp, timestamp_df.columns):
             timestamp, frequency = self._get_cb_freq_with_timestamp(
                     timestamp_df, initial, callback_name)
-            frequency_df[(callback_name, 'callback_start_timestamp [ns]')] = timestamp
-            frequency_df[(callback_name, 'frequency [Hz]')] = frequency
+            ts_df = pd.DataFrame(columns=pd.MultiIndex.from_product(
+                [[callback_name], ['callback_start_timestamp [ns]']]))
+            fq_df = pd.DataFrame(columns=pd.MultiIndex.from_product(
+                [[callback_name], ['frequency [Hz]']]))
+            # adding lists to dataframe
+            ts_df[(callback_name, 'callback_start_timestamp [ns]')] = timestamp
+            fq_df[(callback_name, 'frequency [Hz]')] = frequency
+            # adding dataframe to 'return dataframe'
+            frequency_df = pd.concat([frequency_df, ts_df], axis=1)
+            frequency_df = pd.concat([frequency_df, fq_df], axis=1)
 
         return frequency_df
