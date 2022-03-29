@@ -15,7 +15,7 @@
 from copy import deepcopy
 from typing import Any, Optional
 
-from caret_analyze.exceptions import InvalidArgumentError
+from caret_analyze.exceptions import InvalidArgumentError, InvalidRecordsError
 from caret_analyze.record.record import (merge, Record, RecordInterface, Records,
                                          RecordsInterface)
 
@@ -442,6 +442,10 @@ class TestRecords:
             records_concat.concat(records_left)
             records_concat.concat(records_right)
             assert records_concat.equals(records_expect)
+
+            records_concat = Records(None, ['a'])
+            with pytest.raises(InvalidArgumentError):
+                records_concat.concat(records_right)
 
     def test_bind_drop_as_delay(self):
         for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):

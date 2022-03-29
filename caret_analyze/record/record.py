@@ -189,6 +189,11 @@ class Records(RecordsInterface):
             raise InvalidArgumentError(msg)
 
     def concat(self, other: RecordsInterface) -> None:
+        unknown_columns = set(other.columns) - set(self.columns)
+        if len(unknown_columns) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_columns}'
+            raise InvalidArgumentError(msg)
         self._data += list(other.data)
 
     def drop_columns(self, columns: List[str]) -> None:

@@ -51,7 +51,7 @@ class RecordsCppImpl(RecordsInterface):
         self,
         other: RecordInterface
     ) -> None:
-        unknown_columns = set(other.columns) - set(self.columns)
+        unknown_columns = set(other.columns) ^ set(self.columns)
         if len(unknown_columns) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'
@@ -63,6 +63,11 @@ class RecordsCppImpl(RecordsInterface):
         self, other: RecordsInterface
     ) -> None:
         assert isinstance(other, RecordsCppImpl)
+        unknown_columns = set(other.columns) - set(self.columns)
+        if len(unknown_columns) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_columns}'
+            raise InvalidArgumentError(msg)
         self._records.concat(other._records)
         return None
 
