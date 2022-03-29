@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from caret_analyze.value_objects.timer import TimerValue
 
@@ -162,44 +162,54 @@ class Lttng(InfraBase):
 
     def __init__(
         self,
-        trace_dir: str,
+        trace_dir_or_events: Union[str, Dict],
         force_conversion: bool = False,
         use_singleton_cache: bool = True,
         *,
-        event_filters: Optional[List[LttngEventFilter]] = None
+        event_filters: Optional[List[LttngEventFilter]] = None,
+        store_events: bool = False,
     ) -> None:
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
         from .event_counter import EventCounter
 
-        if self._last_load_dir == trace_dir and use_singleton_cache is True and \
+        if self._last_load_dir == trace_dir_or_events and use_singleton_cache is True and \
                 event_filters == self._last_filters:
             return
 
-        Lttng._last_load_dir = trace_dir
-        Lttng._last_filters = event_filters
-        data = self._parse_lttng_data(trace_dir, force_conversion, event_filters or [])
+        data, events = self._parse_lttng_data(
+            trace_dir_or_events,
+            force_conversion,
+            event_filters or []
+        )
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
         self._counter = EventCounter(data)
+        self.events = events if store_events else None
 
     def clear_singleton_cache(self) -> None:
         self._last_load_dir = None
 
     @staticmethod
     def _parse_lttng_data(
-        trace_dir: str,
+        trace_dir_or_events: Union[str, Dict],
         force_conversion: bool,
         event_filters: List[LttngEventFilter]
-    ) -> DataModel:
-        events = load_file(trace_dir, force_conversion=force_conversion)
-        print('{} events found.'.format(len(events)))
+    ) -> Tuple[DataModel, Dict]:
+        if isinstance(trace_dir_or_events, str):
+            Lttng._last_load_dir = trace_dir_or_events
+            Lttng._last_filters = event_filters
+            events = load_file(trace_dir_or_events, force_conversion=force_conversion)
+            print('{} events found.'.format(len(events)))
+        else:
+            events = trace_dir_or_events
+
         if len(event_filters) > 0:
             events = Lttng._filter_events(events, event_filters)
             print('filted to {} events.'.format(len(events)))
 
         handler = Ros2Handler.process(events)
-        return handler.data
+        return handler.data, events
 
     @staticmethod
     def _filter_events(events: List[Event], filters: List[LttngEventFilter]):
@@ -211,7 +221,8 @@ class Lttng(InfraBase):
         common.end_time = events[-1][LttngEventFilter.TIMESTAMP]
 
         filtered = []
-        for event in events:
+        from tqdm import tqdm
+        for event in tqdm(events):
             if all(event_filter.accept(event, common) for event_filter in filters):
                 filtered.append(event)
 
