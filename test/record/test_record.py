@@ -15,7 +15,7 @@
 from copy import deepcopy
 from typing import Any, Optional
 
-from caret_analyze.exceptions import InvalidArgumentError, InvalidRecordsError
+from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.record.record import (merge, Record, RecordInterface, Records,
                                          RecordsInterface)
 
@@ -1014,6 +1014,11 @@ class TestRecords:
             assert records.columns == ['b', 'c', 'd', 'a']
             records.reindex(['a', 'b', 'c', 'd'])
             assert records.columns == ['a', 'b', 'c', 'd']
+
+            with pytest.raises(InvalidArgumentError):
+                records.reindex(['a', 'b', 'c', 'd', 'e'])
+            with pytest.raises(InvalidArgumentError):
+                records.reindex(['a', 'b', 'c'])
 
     @pytest.mark.parametrize(
         'how, records_expect_py',

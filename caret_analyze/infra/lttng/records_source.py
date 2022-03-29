@@ -273,7 +273,8 @@ class RecordsSource():
             ],
         )
 
-        intra_proc_publish = self._data.rclcpp_intra_publish_instances
+        intra_proc_publish = self._data.rclcpp_intra_publish_instances.clone()
+        intra_proc_publish.drop_columns([COLUMN_NAME.MESSAGE])
         # intra_proc_publish.drop_columns([COLUMN_NAME.MESSAGE])
 
         # When publishing to both intra-process and inter-process,
@@ -310,6 +311,7 @@ class RecordsSource():
         columns.append(COLUMN_NAME.PUBLISHER_HANDLE)
         columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
         columns.append(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in publish.columns:
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in publish.columns:

@@ -1607,7 +1607,11 @@ class FilteredRecordsSource:
         records = self._grouped_callback_records
         callback_records = RecordsFactory.create_instance(
             None,
-            [COLUMN_NAME.CALLBACK_START_TIMESTAMP, COLUMN_NAME.CALLBACK_END_TIMESTAMP]
+            [
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_OBJECT
+            ]
         )
 
         if inter_callback_object in records:

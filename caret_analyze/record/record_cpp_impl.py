@@ -155,6 +155,11 @@ class RecordsCppImpl(RecordsInterface):
         return self._records.equals(other._records)
 
     def reindex(self, columns: List[str]) -> None:
+        miss_match_columns = set(columns) ^ set(self.columns)
+        if len(miss_match_columns) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{miss_match_columns}'
+            raise InvalidArgumentError(msg)
         self._records.reindex(columns)
 
     def clone(self) -> RecordsCppImpl:
