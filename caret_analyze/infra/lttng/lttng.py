@@ -446,7 +446,7 @@ class Lttng(InfraBase):
             - callback_object
             - callback_start_timestamp
             - publisher_handle
-            - rclcpp_intra_publish_timestamp
+            - rclcpp_publish_timestamp
             - message_timestamp
 
         """
