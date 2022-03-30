@@ -294,6 +294,9 @@ class TestRecords:
             assert records_empty.columns == []
             assert len(records_empty.data) == 0
 
+            with pytest.raises(InvalidArgumentError):
+                records.drop_columns('')
+
     def test_rename_columns(self):
         records_py: Records = Records(
             [
@@ -442,6 +445,10 @@ class TestRecords:
             records_concat.concat(records_left)
             records_concat.concat(records_right)
             assert records_concat.equals(records_expect)
+
+            records_concat = Records(None, ['a'])
+            with pytest.raises(InvalidArgumentError):
+                records_concat.concat(records_right)
 
     def test_bind_drop_as_delay(self):
         for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
@@ -1010,6 +1017,11 @@ class TestRecords:
             assert records.columns == ['b', 'c', 'd', 'a']
             records.reindex(['a', 'b', 'c', 'd'])
             assert records.columns == ['a', 'b', 'c', 'd']
+
+            with pytest.raises(InvalidArgumentError):
+                records.reindex(['a', 'b', 'c', 'd', 'e'])
+            with pytest.raises(InvalidArgumentError):
+                records.reindex(['a', 'b', 'c'])
 
     @pytest.mark.parametrize(
         'how, records_expect_py',
@@ -1959,6 +1971,9 @@ class TestRecords:
                 Record({'sink_addr': 1, 'sink_stamp': 3}),
                 Record({'sink_addr': 13, 'sink_stamp': 12}),
                 Record({'sink_addr': 13, 'sink_stamp': 22}),
+                Record({'sink_addr': 3, 'sink_stamp': 23}),
+                Record({'sink_addr': 13, 'sink_stamp': 24}),
+                Record({'sink_addr': 3, 'sink_stamp': 25}),
             ],
             ['sink_addr', 'sink_stamp']
         )
@@ -1975,6 +1990,9 @@ class TestRecords:
                 }),
                 Record({
                     'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 22,
+                }),
+                Record({
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 23,
                 }),
             ],
             ['source_addr', 'source_stamp', 'sink_stamp']
