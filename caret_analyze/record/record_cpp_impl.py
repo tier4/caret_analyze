@@ -178,6 +178,8 @@ class RecordsCppImpl(RecordsInterface):
         self._records.append_column(column, values)
 
     def drop_columns(self, columns: List[str]) -> None:
+        if not isinstance(columns, list):
+            raise InvalidArgumentError('columns must be list.')
         self._records.drop_columns(columns)
 
     def filter_if(self, f: Callable[[RecordInterface], bool]) -> None:

@@ -54,6 +54,9 @@ class Record(RecordInterface):
         return deepcopy(self._columns)
 
     def drop_columns(self, columns: List[str]) -> None:
+        if not isinstance(columns, list):
+            raise InvalidArgumentError('columns must be list.')
+
         data: Dict[str, int]
 
         data = self._data
