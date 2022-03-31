@@ -86,3 +86,10 @@ class UnsupportedNodeRecordsError(Error):
 
     def __init__(self, message: str) -> None:
         self.message = message
+
+
+class InvalidColumnAttributeError(Error):
+    """Given column attribute miss match requests."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message

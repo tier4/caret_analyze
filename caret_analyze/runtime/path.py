@@ -21,7 +21,7 @@ from .callback import CallbackBase
 from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
-from ..common import Columns, Summarizable, Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record.record import merge, merge_sequencial, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
@@ -171,10 +171,8 @@ class RecordsMerged:
                     right_records=right_records,
                     join_left_key=None,
                     join_right_key=None,
-                    left_stamp_key=left_stamp_key,
-                    right_stamp_key=right_stamp_key,
-                    columns=Columns(left_records.columns +
-                                    right_records.columns).as_list(),
+                    left_stamp_key=left_stamp_key.column_name,
+                    right_stamp_key=right_stamp_key.column_name,
                     how='left_use_latest',
                     progress_label='binding: node records'
                 )
@@ -182,14 +180,13 @@ class RecordsMerged:
                 left_records = merge(
                     left_records=left_records,
                     right_records=right_records,
-                    join_left_key=left_records.columns[-1],
-                    join_right_key=right_records.columns[0],
-                    columns=Columns(left_records.columns + right_records.columns).as_list(),
+                    join_left_key=left_records.columns[-1].column_name,
+                    join_right_key=right_records.columns[0].column_name,
                     how='left'
                 )
 
         logger.info('Finished merging path records.')
-        left_records.sort(first_column)
+        left_records.sort(first_column.column_name)
 
         return left_records
 

@@ -19,6 +19,8 @@ from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tupl
 
 import pandas as pd
 
+from .column import Column
+
 
 class RecordInterface:
     """
@@ -67,13 +69,13 @@ class RecordInterface:
         pass
 
     @abstractmethod
-    def drop_columns(self, columns: List[str]) -> None:
+    def drop_columns(self, column_names: List[str]) -> None:
         """
         Drop columns method.
 
         Parameters
         ----------
-        columns : List[str]
+        column_names : List[str]
             columns to be dropped.
 
         """
@@ -270,6 +272,13 @@ class RecordsInterface:
         pass
 
     @abstractmethod
+    def get_column(
+        self,
+        column_name: str
+    ) -> Column:
+        pass
+
+    @abstractmethod
     def filter_if(
         self, f: Callable[[RecordInterface], bool]
     ) -> None:
@@ -300,6 +309,20 @@ class RecordsInterface:
         """
         pass
 
+    @property
+    @abstractmethod
+    def column_names(self) -> List[str]:
+        """
+        Get column names.
+
+        Returns
+        -------
+        List[str]
+            column names.
+
+        """
+        pass
+
     @abstractmethod
     def get_row_series(self, index: int) -> RecordInterface:
         pass
@@ -314,27 +337,27 @@ class RecordsInterface:
     def __iter__(self) -> Iterator:
         return iter(self.data)
 
-    def reindex(self, columns: List[str]) -> None:
+    def reindex(self, column_names: List[str]) -> None:
         """
         Reindex columns.
 
         Parameters
         ----------
-        columns : List[str]
+        column_names : List[str]
 
         """
         pass
 
     @abstractmethod
     def drop_columns(
-        self, columns: List[str]
+        self, column_names: List[str]
     ) -> None:
         """
         Drop columns.
 
         Parameters
         ----------
-        columns : List[str]
+        column_names : List[str]
             columns to be dropped.
 
         """
@@ -342,14 +365,14 @@ class RecordsInterface:
 
     @abstractmethod
     def rename_columns(
-        self, columns: Dict[str, str]
+        self, column_names: Dict[str, str]
     ) -> None:
         """
         Rename columns.
 
         Parameters
         ----------
-        columns : Dict[str, str]
+        column_names : Dict[str, str]
             rename params. same as dataframe rename.
 
         """
@@ -357,7 +380,21 @@ class RecordsInterface:
 
     @property
     @abstractmethod
-    def columns(self) -> List[str]:
+    def column_names(self) -> List[str]:
+        """
+        Get columnnames.
+
+        Returns
+        -------
+        Sequence[str]
+            Column names.
+
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def columns(self) -> List[Column]:
         """
         Get columnnames.
 
@@ -388,7 +425,6 @@ class RecordsInterface:
         right_records: RecordsInterface,
         join_left_key: str,
         join_right_key: str,
-        columns: List[str],
         how: str,
         *,
         progress_label: Optional[str] = None
@@ -441,7 +477,6 @@ class RecordsInterface:
         right_stamp_key: str,
         join_left_key: Optional[str],
         join_right_key: Optional[str],
-        columns: List[str],
         how: str,
         *,
         progress_label: Optional[str] = None
@@ -509,7 +544,6 @@ class RecordsInterface:
         sink_records: RecordsInterface,
         sink_stamp_key: str,
         sink_from_key: str,
-        columns: List[str],
         *,
         progress_label: Optional[str] = None
     ) -> RecordsInterface:
@@ -570,13 +604,13 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def append_column(self, column: str, values: List[int]) -> None:
+    def append_column(self, column: Column, values: List[int]) -> None:
         """
         Append column to records.
 
         Parameters
         ----------
-        column : str
+        column : Column
         values: List[int]
 
         """
@@ -600,6 +634,9 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def groupby(self, columns: List[str]) -> Dict[Tuple[int, ...], RecordsInterface]:
+    def groupby(
+        self,
+        column_names: List[str]
+    ) -> Dict[Tuple[int, ...], RecordsInterface]:
         """Split based on the value of the given column name."""
         pass

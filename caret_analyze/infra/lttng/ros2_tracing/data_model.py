@@ -15,7 +15,9 @@
 
 """Module for ROS 2 data model."""
 
+from caret_analyze.record.column import Column
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
+
 import pandas as pd
 
 from tracetools_analysis.data_model import (DataModel,
@@ -65,71 +67,192 @@ class Ros2DataModel(DataModel):
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
-            None, ['callback_start_timestamp', 'callback_object', 'is_intra_process']
+            None,
+            [
+                Column('tid'),
+                Column('callback_start_timestamp'),
+                Column('callback_object'),
+                Column('is_intra_process')
+            ]
         )
         self.callback_end_instances = RecordsFactory.create_instance(
-            None, ['callback_end_timestamp', 'callback_object']
+            None,
+            [
+                Column('tid'),
+                Column('callback_end_timestamp'),
+                Column('callback_object')
+            ]
         )
         self.dds_write_instances = RecordsFactory.create_instance(
-            None, ['tid', 'dds_write_timestamp', 'message']
+            None,
+            [
+                Column('dds_write_timestamp'),
+                Column('message')
+            ]
         )
         self.dds_bind_addr_to_stamp = RecordsFactory.create_instance(
-            None, ['tid', 'dds_bind_addr_to_stamp_timestamp', 'addr', 'source_timestamp']
+            None,
+            [
+                Column('tid'),
+                Column('dds_bind_addr_to_stamp_timestamp'),
+                Column('addr'),
+                Column('source_timestamp')
+            ]
         )
         self.dds_bind_addr_to_addr = RecordsFactory.create_instance(
-            None, ['dds_bind_addr_to_addr_timestamp', 'addr_from', 'addr_to']
+            None,
+            [
+                Column('dds_bind_addr_to_addr_timestamp'),
+                Column('addr_from'),
+                Column('addr_to')
+            ]
         )
         self.on_data_available_instances = RecordsFactory.create_instance(
-            None, ['on_data_available_timestamp', 'source_timestamp']
+            None,
+            [
+                Column('on_data_available_timestamp'),
+                Column('source_timestamp')
+            ]
         )
         self.rclcpp_intra_publish_instances = RecordsFactory.create_instance(
-            None, ['tid', 'rclcpp_intra_publish_timestamp', 'publisher_handle',
-                   'message', 'message_timestamp']
+            None,
+            [
+                Column('tid'),
+                Column('rclcpp_intra_publish_timestamp'),
+                Column('publisher_handle'),
+                Column('message'),
+                Column('message_timestamp')
+            ]
         )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
-            None, [
-                'tid', 'rclcpp_publish_timestamp', 'publisher_handle',
-                'message', 'message_timestamp'
+            None,
+            [
+                Column('tid'),
+                Column('rclcpp_publish_timestamp'),
+                Column('publisher_handle'),
+                Column('message'),
+                Column('message_timestamp')
             ]
         )
         self.rcl_publish_instances = RecordsFactory.create_instance(
-            None, ['tid', 'rcl_publish_timestamp', 'publisher_handle', 'message']
+            None,
+            [
+                Column('tid'),
+                Column('rcl_publish_timestamp'),
+                Column('publisher_handle'),
+                Column('message')
+            ]
         )
         self.dispatch_subscription_callback_instances = RecordsFactory.create_instance(
-            None, ['dispatch_subscription_callback_timestamp', 'callback_object', 'message',
-                   'source_timestamp', 'message_timestamp'])
+            None,
+            [
+                Column('dispatch_subscription_callback_timestamp'),
+                Column('callback_object'),
+                Column('message'),
+                Column('source_timestamp'),
+                Column('message_timestamp')
+            ]
+        )
         self.dispatch_intra_process_subscription_callback_instances = \
             RecordsFactory.create_instance(
                 None,
-                ['dispatch_intra_process_subscription_callback_timestamp', 'callback_object',
-                 'message', 'message_timestamp']
+                [
+                    Column('dispatch_intra_process_subscription_callback_timestamp'),
+                    Column('callback_object'),
+                    Column('message'),
+                    Column('message_timestamp')
+                ]
             )
         self.message_construct_instances = RecordsFactory.create_instance(
-            None, ['message_construct_timestamp', 'original_message', 'constructed_message']
+            None,
+            [
+                Column('message_construct_timestamp'),
+                Column('original_message'),
+                Column('constructed_message')
+            ]
         )
 
         self.tilde_subscribe = RecordsFactory.create_instance(
-            None, [
-                'tilde_subscribe_timestamp',
-                'subscription',
-                'tilde_message_id']
+            None,
+            [
+                Column('tilde_subscribe_timestamp'),
+                Column('subscription'),
+                Column('tilde_message_id')
+            ]
         )
 
         self.tilde_publish = RecordsFactory.create_instance(
-            None, [
-                'tilde_publish_timestamp',
-                'publisher',
-                'subscription_id',
-                'tilde_message_id']
+            None,
+            [
+                Column('tilde_publish_timestamp'),
+                Column('publisher'),
+                Column('subscription_id'),
+                Column('tilde_message_id')
+            ]
         )
         self.sim_time = RecordsFactory.create_instance(
-            None, [
-                'system_time',
-                'sim_time']
+            None,
+            [
+                Column('system_time'),
+                Column('sim_time')
+            ]
         )
         self.timer_event = RecordsFactory.create_instance(
-            None, [
-                'time_event_stamp']
+            None,
+            [
+                Column('time_event_stamp')
+            ]
+        )
+        self.send_transform = RecordsFactory.create_instance(
+            None,
+            [
+                Column('send_transform_timestamp'),
+                Column('broadcaster'),
+                Column('tf_timestamp'),
+                Column('frame_id_compact'),
+                Column('child_frame_id_compact'),
+            ]
+        )
+        self.tf_lookup_transform_start = RecordsFactory.create_instance(
+            None,
+            [
+                Column('lookup_transform_start_timestamp'),
+                Column('tf_buffer_core'),
+                Column('target_time'),
+                Column('frame_id_compact'),
+                Column('child_frame_id_compact'),
+            ]
+        )
+        self.tf_lookup_transform_end = RecordsFactory.create_instance(
+            None,
+            [
+                Column('lookup_transform_end_timestamp'),
+                Column('tf_buffer_core'),
+            ]
+        )
+        self.tf_find_closest = RecordsFactory.create_instance(
+            None,
+            [
+                Column('find_closest_timestamp'),
+                Column('tf_buffer_core'),
+                Column('frame_id_compact'),
+                Column('child_frame_id_compact'),
+                Column('stamp'),
+                Column('frame_id_compact_'),
+                Column('child_frame_id_compact_'),
+                Column('stamp_')
+            ]
+        )
+        self.tf_set_transform = RecordsFactory.create_instance(
+            None,
+            [
+                Column('tid'),
+                Column('set_transform_timestamp'),
+                Column('tf_buffer_core'),
+                Column('transform_stamp'),
+                Column('frame_id_compact'),
+                Column('child_frame_id_compact'),
+            ]
         )
 
     def add_context(self, context_handle, timestamp, pid, version) -> None:

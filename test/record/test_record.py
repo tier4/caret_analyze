@@ -15,12 +15,21 @@
 from copy import deepcopy
 from typing import Any, Optional
 
-from caret_analyze.exceptions import InvalidArgumentError
-from caret_analyze.record.record import (merge, Record, RecordInterface, Records,
-                                         RecordsInterface)
+from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
+from caret_analyze.record import (
+    Column,
+    merge,
+    Record,
+    RecordInterface,
+    Records,
+    RecordsInterface,
+)
+
+from caret_analyze.record.column import ColumnAttribute, ColumnMapperContainer
 
 import pandas as pd
 import pytest
+
 
 RecordCppImpl: Any
 RecordsCppImpl: Any
@@ -191,23 +200,27 @@ class TestRecords:
             Records([Record({'a': 1})], None)
 
         with pytest.raises(InvalidArgumentError):
-            Records(None, ['a', 'a'])
+            Records(None, [Column('a'), Column('a')])
 
         RecordsCppImpl()
         with pytest.raises(InvalidArgumentError):
             RecordsCppImpl([RecordCppImpl({'a': 1})], None)
 
         with pytest.raises(InvalidArgumentError):
-            RecordsCppImpl(None, ['a', 'a'])
+            RecordsCppImpl(None, [Column('a'), Column('a')])
 
     def test_columns(self):
-        columns = ['value', 'stamp']
+        columns = [
+            Column('value'),
+            Column('stamp'),
+        ]
 
         for records_type in [Records, RecordsCppImpl]:
             if records_type == RecordsCppImpl and not CppImplEnabled:
                 continue
             records = records_type([], columns)
             assert records.columns == columns
+            assert records.column_names == ['value', 'stamp']
 
     def test_data(self):
         expects_py = Records(
@@ -215,7 +228,10 @@ class TestRecords:
                 Record({'value': 0, 'stamp': 1}),
                 Record({'value': 2, 'stamp': 4}),
             ],
-            ['value', 'stamp']
+            [
+                Column('value'),
+                Column('stamp')
+            ]
         )
         expects_cpp = to_cpp_records(expects_py)
 
@@ -231,7 +247,10 @@ class TestRecords:
                 Record({'value': 0, 'stamp': 1}),
                 Record({'value': 2, 'stamp': 4}),
             ],
-            ['value', 'stamp']
+            [
+                Column('value'),
+                Column('stamp')
+            ]
         )
         expects_cpp = to_cpp_records(expects_py)
 
@@ -246,14 +265,17 @@ class TestRecords:
                 Record({'value': 0, 'stamp': 1}),
                 Record({'value': 2, 'stamp': 4}),
             ],
-            ['value', 'stamp']
+            [
+                Column('value'),
+                Column('stamp')
+            ]
         )
         expects_cpp = to_cpp_records(expects_py)
         for expects, record_type, records_type in \
                 zip([expects_py, expects_cpp], [Record, RecordCppImpl], [Records, RecordsCppImpl]):
             if records_type == RecordsCppImpl and not CppImplEnabled:
                 continue
-            records = records_type(None, ['value', 'stamp'])
+            records = records_type(None, [Column('value'), Column('stamp')])
             records.append(expects.data[0])
             records.append(expects.data[1])
             assert records.equals(expects)
@@ -267,23 +289,30 @@ class TestRecords:
                 Record({key: 0, value: 3}),
                 Record({key: 1, value: 4}),
                 Record({key: 2, value: 5}),
-            ], [key, value]
+            ],
+            [
+                Column(key),
+                Column(value)
+            ]
         )
 
         records_cpp = to_cpp_records(records_py)
-        columns_expect = [value]
+        column_names_expect = [value]
 
         for records, records_type in zip([records_py, records_cpp], [Records, RecordsCppImpl]):
             if records_type is RecordsCppImpl and not CppImplEnabled:
                 continue
 
             drop_keys = [key]
+            records.get_column(key)
             records.drop_columns(drop_keys)
             for record in records.data:
                 assert key not in record.columns
-            assert records.columns == columns_expect
+            with pytest.raises(ItemNotFoundError):
+                records.get_column(key)
+            assert records.column_names == column_names_expect
             for datum in records.data:
-                assert datum.columns == set(columns_expect)
+                assert datum.columns == set(column_names_expect)
             assert records.data[0].get(value) == 3
             assert records.data[1].get(value) == 4
             assert records.data[2].get(value) == 5
@@ -302,7 +331,11 @@ class TestRecords:
             [
                 Record({'stamp': 0, 'aaa': 1}),
                 Record(),
-            ], ['stamp', 'aaa']
+            ],
+            [
+                Column('stamp'),
+                Column('aaa')
+            ]
         )
 
         records_cpp = to_cpp_records(records_py)
@@ -321,7 +354,7 @@ class TestRecords:
             assert 'aaa' not in records.data[1].columns
             assert 'aaa_' not in records.data[1].columns
 
-            assert records.columns == ['stamp', 'aaa']
+            assert records.column_names == ['stamp', 'aaa']
 
             rename_keys = {
                 'aaa': 'aaa_',
@@ -333,19 +366,26 @@ class TestRecords:
             assert 'stamp_' in records.data[0].columns
             assert 'stamp' not in records.data[1].columns
             assert 'stamp_' not in records.data[1].columns
+            records.get_column('stamp_')
+            with pytest.raises(ItemNotFoundError):
+                records.get_column('stamp')
 
             assert 'aaa' not in records.data[0].columns
             assert 'aaa_' in records.data[0].columns
             assert 'aaa' not in records.data[1].columns
             assert 'aaa_' not in records.data[1].columns
 
-            assert records.columns == ['stamp_', 'aaa_']
+            assert records.column_names == ['stamp_', 'aaa_']
 
     def test_rename_colums_validate_argument(self):
         records_py: Records = Records(
             [
                 Record({'AAA': 0, 'BBB': 0}),
-            ], ['AAA', 'BBB']
+            ],
+            [
+                Column('AAA'),
+                Column('BBB')
+            ]
         )
         records_cpp = to_cpp_records(records_py)
 
@@ -378,7 +418,10 @@ class TestRecords:
         records_py: Records = Records(
             [
                 Record({'stamp': 0}),
-            ], ['stamp']
+            ],
+            [
+                Column('stamp')
+            ]
         )
         records_cpp = to_cpp_records(records_py)
         for records, records_type in zip([records_py, records_cpp], [Records, RecordsCppImpl]):
@@ -386,9 +429,12 @@ class TestRecords:
                 continue
 
             records_ = records.clone()
-            records_.append_column('aaa', [9])
-            assert records_.columns == ['stamp', 'aaa']
-            assert records.columns == ['stamp']
+            with pytest.raises(ItemNotFoundError):
+                records_.get_column('aaa')
+            records_.append_column(Column('aaa'), [9])
+            records_.get_column('aaa')
+            assert records_.column_names == ['stamp', 'aaa']
+            assert records.column_names == ['stamp']
 
     def test_filter_if(self):
         key = 'stamp'
@@ -398,7 +444,10 @@ class TestRecords:
                 Record({key: 0}),
                 Record({key: 1}),
                 Record({key: 2}),
-            ], [key]
+            ],
+            [
+                Column(key)
+            ]
         )
         records_cpp = to_cpp_records(records_py)
         for records, records_type in zip([records_py, records_cpp], [Records, RecordsCppImpl]):
@@ -426,27 +475,36 @@ class TestRecords:
                 [
                     record_type({'a': 0}),
                     record_type({'a': 1}),
-                ], ['a']
+                ],
+                [
+                    Column('a')
+                ]
             )
             records_right = records_type(
                 [
                     record_type({'b': 3}),
                     record_type({'b': 4}),
                     record_type({'b': 5}),
-                ], ['b']
+                ],
+                [
+                    Column('b')
+                ]
             )
 
             records_expect = records_type(
                 records_left.data + records_right.data,
-                ['a', 'b']
+                [
+                    Column('a'),
+                    Column('b')
+                ]
             )
 
-            records_concat = Records(None, ['a', 'b'])
+            records_concat = Records(None, [Column('a'), Column('b')])
             records_concat.concat(records_left)
             records_concat.concat(records_right)
             assert records_concat.equals(records_expect)
 
-            records_concat = Records(None, ['a'])
+            records_concat = Records(None, [Column('a')])
             with pytest.raises(InvalidArgumentError):
                 records_concat.concat(records_right)
 
@@ -462,7 +520,12 @@ class TestRecords:
                     record_type({'sort_key': 3, 'stamp_': 5}),
                     record_type({'sort_key': 4, 'stamp': 6}),
                     record_type({'sort_key': 5}),
-                ], ['sort_key', 'stamp', 'stamp_']
+                ],
+                [
+                    Column('sort_key'),
+                    Column('stamp'),
+                    Column('stamp_')
+                ]
             )
             records.bind_drop_as_delay()
             records_expect = records_type(
@@ -472,7 +535,12 @@ class TestRecords:
                     record_type({'sort_key': 3, 'stamp': 6, 'stamp_': 5}),
                     record_type({'sort_key': 4, 'stamp': 6}),
                     record_type({'sort_key': 5}),
-                ], ['sort_key', 'stamp', 'stamp_']
+                ],
+                [
+                    Column('sort_key'),
+                    Column('stamp'),
+                    Column('stamp_')
+                ]
             )
 
             assert records.equals(records_expect)
@@ -484,18 +552,57 @@ class TestRecords:
                 Record({'b': 1, 'a': 3}),
                 Record({'c': 2, 'a': 5}),
             ],
-            ['b', 'a', 'c']
+            [
+                Column('b'),
+                Column('a'),
+                Column('c')
+            ]
         )
         records_cpp = to_cpp_records(records_py)
         expect_dict = [record.data for record in records_py.data]
         expect_df = pd.DataFrame.from_dict(
-            expect_dict, dtype='Int64'
+            expect_dict, dtype='object'
         ).reindex(columns=['b', 'a', 'c'])
 
         for records in [records_py, records_cpp]:
             if records is None and not CppImplEnabled:
                 continue
 
+            df = records.to_dataframe()
+            assert df.equals(expect_df)
+
+            column = records.get_column('a')
+            assert column.mapper is None
+
+    def test_to_dataframe_with_column_mapper(self):
+        mapper_container = ColumnMapperContainer()
+
+        records_py: Records = Records(
+            [
+                Record({'a': 0, 'b': 2}),
+                Record({'a': 3}),
+            ],
+            [
+                Column('a', [ColumnAttribute.KEY_HASH], mapper_container=mapper_container),
+                Column('b', mapper_container=mapper_container)
+            ]
+        )
+        records_cpp = to_cpp_records(records_py)
+        expect_dict = [
+            {'a': 'test0', 'b': 2},
+            {'a': 'test3'}
+        ]
+        expect_df = pd.DataFrame.from_dict(
+            expect_dict, dtype='object'
+        ).reindex(columns=['a', 'b'])
+
+        for records in [records_py, records_cpp]:
+            if records is None and not CppImplEnabled:
+                continue
+
+            column = records.get_column('a')
+            column.mapper.add(0, 'test0')
+            column.mapper.add(3, 'test3')
             df = records.to_dataframe()
             assert df.equals(expect_df)
 
@@ -506,7 +613,7 @@ class TestRecords:
                 Record({'a': 3}),
                 Record({'a': 5}),
             ],
-            ['a']
+            [Column('a')]
         )
         records_cpp = to_cpp_records(records_py)
 
@@ -524,7 +631,10 @@ class TestRecords:
                 Record({'b': 3}),
                 Record({'a': 5}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
         records_cpp = to_cpp_records(records_py)
 
@@ -545,7 +655,10 @@ class TestRecords:
                 Record({'b': 3}),
                 Record({'a': 5}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
         records_cpp = to_cpp_records(records_py)
 
@@ -567,7 +680,10 @@ class TestRecords:
                 Record({'a': 0, 'b': 2}),
                 Record({'a': 5, 'b': 3}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
         expect = {}
         expect[(0,)] = Records(
@@ -575,14 +691,20 @@ class TestRecords:
                 Record({'a': 0, 'b': 1}),
                 Record({'a': 0, 'b': 2}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
 
         expect[(5,)] = Records(
             [
                 Record({'a': 5, 'b': 3}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
 
         group = records_py.groupby(['a'])
@@ -610,27 +732,39 @@ class TestRecords:
                 Record({'b': 2}),
                 Record({'a': 5, 'b': 3}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
         expect = {}
         expect[(0,)] = Records(
             [
                 Record({'a': 0, 'b': 1}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
 
         expect[(5,)] = Records(
             [
                 Record({'a': 5, 'b': 3}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
         expect[(2**64-1,)] = Records(
             [
                 Record({'b': 2}),
             ],
-            ['a', 'b']
+            [
+                Column('a'),
+                Column('b')
+            ]
         )
 
         group = records_py.groupby(['a'])
@@ -659,7 +793,11 @@ class TestRecords:
                 Record({'a': 5, 'b': 3, 'c': 3}),
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
 
         expect = {}
@@ -667,20 +805,32 @@ class TestRecords:
             [
                 Record({'a': 0, 'b': 1, 'c': 2}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
         expect[(0, 3)] = Records(
             [
                 Record({'a': 0, 'b': 2, 'c': 3}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
         expect[(5, 3)] = Records(
             [
                 Record({'a': 5, 'b': 3, 'c': 3}),
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
 
         group = records_py.groupby(['a', 'c'])
@@ -709,7 +859,11 @@ class TestRecords:
                 Record({'a': 5, 'b': 3, 'c': 3}),
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
 
         expect = {}
@@ -717,25 +871,41 @@ class TestRecords:
             [
                 Record({'a': 0, 'b': 1, 'c': 2}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
         expect[(0, 2, 3)] = Records(
             [
                 Record({'a': 0, 'b': 2, 'c': 3}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
         expect[(5, 3, 3)] = Records(
             [
                 Record({'a': 5, 'b': 3, 'c': 3}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
         expect[(5, 4, 3)] = Records(
             [
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
-            ['a', 'b', 'c']
+            [
+                Column('a'),
+                Column('b'),
+                Column('c')
+            ]
         )
 
         group = records_py.groupby(['a', 'b', 'c'])
@@ -761,7 +931,7 @@ class TestRecords:
             [
                 Record({'value': 0}),
             ],
-            ['value']
+            [Column('value')]
         )
 
         expects_cpp = to_cpp_records(expects_py)
@@ -773,6 +943,21 @@ class TestRecords:
             assert records.columns == []
             records.append_column('value', [0])
             assert records.equals(expects)
+
+    def test_get_column(self):
+        records_py = Records(
+            [
+                Record({'value': 0}),
+            ],
+            [Column('value')]
+        )
+
+        records_cpp = to_cpp_records(records_py)
+        for records in [records_py, records_cpp]:
+            column = records.get_column('value')
+            assert column.column_name == 'value'
+            with pytest.raises(ItemNotFoundError):
+                records.get_column('not exist')
 
     def test_sort(self):
         key = 'stamp'
@@ -787,7 +972,7 @@ class TestRecords:
                     record_type({key: 0}),
                     record_type({key: 1}),
                 ],
-                [key]
+                [Column(key)]
             )
             records_asc = records_type(
                 [
@@ -795,7 +980,7 @@ class TestRecords:
                     record_type({key: 1}),
                     record_type({key: 2}),
                 ],
-                [key]
+                [Column(key)]
             )
             records_desc = records_type(
                 [
@@ -803,7 +988,7 @@ class TestRecords:
                     record_type({key: 1}),
                     record_type({key: 0}),
                 ],
-                [key]
+                [Column(key)]
             )
             records_ = records.clone()
             records_.sort(key, ascending=True)
@@ -831,7 +1016,11 @@ class TestRecords:
                     record_type({key: 0, key_: 5, key__: 5}),
                     record_type({key: 1}),
                 ],
-                [key, key_, key__]
+                [
+                    Column(key),
+                    Column(key_),
+                    Column(key__)
+                ]
             )
             records_asc = records_type(
                 [
@@ -842,7 +1031,11 @@ class TestRecords:
                     record_type({key: 2, key_: 2, key__: 6}),
                     record_type({key: 2, key_: 2}),
                 ],
-                [key, key_, key__]
+                [
+                    Column(key),
+                    Column(key_),
+                    Column(key__)
+                ]
             )
             records_desc = records_type(
                 [
@@ -853,7 +1046,11 @@ class TestRecords:
                     record_type({key: 1, key__: 5}),
                     record_type({key: 0, key_: 5, key__: 5}),
                 ],
-                [key, key_, key__]
+                [
+                    Column(key),
+                    Column(key_),
+                    Column(key__)
+                ]
             )
             records_ = records.clone()
             records_.sort_column_order(ascending=True, put_none_at_top=True)
@@ -878,7 +1075,10 @@ class TestRecords:
                     record_type({key: 0, sub_key: 5}),
                     record_type({key: 1, sub_key: 3}),
                 ],
-                [key, sub_key]
+                [
+                    Column(key),
+                    Column(sub_key)
+                ]
             )
             records_asc = records_type(
                 [
@@ -887,7 +1087,10 @@ class TestRecords:
                     record_type({key: 2, sub_key: 1}),
                     record_type({key: 2, sub_key: 2}),
                 ],
-                [key, sub_key]
+                [
+                    Column(key),
+                    Column(sub_key)
+                ]
             )
             records_desc = records_type(
                 [
@@ -896,7 +1099,10 @@ class TestRecords:
                     record_type({key: 1, sub_key: 3}),
                     record_type({key: 0, sub_key: 5}),
                 ],
-                [key, sub_key]
+                [
+                    Column(key),
+                    Column(sub_key)
+                ]
             )
             records_ = records.clone()
             records_.sort(key, sub_key=sub_key, ascending=True)
@@ -915,14 +1121,14 @@ class TestRecords:
                         Record({'stamp': 0}),
                         Record({'stamp': 1}),
                     ],
-                    ['stamp']
+                    [Column('stamp')]
                 ),
                 Records(
                     [
                         Record({'stamp': 0}),
                         Record({'stamp': 1}),
                     ],
-                    ['stamp']
+                    [Column('stamp')]
                 ),
                 True,
             ),
@@ -931,13 +1137,13 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 5, 'stamp_': 6}),
-                    ], ['stamp', 'stamp_']
+                    ], [Column('stamp'), Column('stamp_')]
                 ),
                 Records(
                     [
                         Record({'stamp_': 1, 'stamp': 0}),
                         Record({'stamp_': 6, 'stamp': 5}),
-                    ], ['stamp_', 'stamp']
+                    ], [Column('stamp_'), Column('stamp')]
                 ),
                 False,
             ),
@@ -946,14 +1152,13 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 5, 'stamp_': 7}),
-                    ], ['stamp', 'stamp_']
+                    ], [Column('stamp'), Column('stamp_')]
                 ),
                 Records(
                     [
                         Record({'stamp_': 1, 'stamp': 0}),
                         Record({'stamp_': 6, 'stamp': 5}),
-                    ], ['stamp', 'stamp_']
-
+                    ], [Column('stamp'), Column('stamp_')]
                 ),
                 False,
             ),
@@ -962,14 +1167,13 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 5, 'stamp_': 7}),
-                    ], ['stamp', 'stamp_', 'stamp__']
+                    ], [Column('stamp'), Column('stamp_'), Column('stamp__')]
                 ),
                 Records(
                     [
                         Record({'stamp_': 1, 'stamp': 0}),
                         Record({'stamp_': 6, 'stamp': 5}),
-                    ], ['stamp', 'stamp_']
-
+                    ], [Column('stamp'), Column('stamp_')]
                 ),
                 False,
             ),
@@ -977,14 +1181,13 @@ class TestRecords:
                 Records(
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
-                    ], ['stamp', 'stamp_']
+                    ], [Column('stamp'), Column('stamp_')]
                 ),
                 Records(
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 0, 'stamp_': 7}),
-                    ], ['stamp', 'stamp_']
-
+                    ], [Column('stamp'), Column('stamp_')]
                 ),
                 False,
             ),
@@ -1006,7 +1209,12 @@ class TestRecords:
                 Record({'a': 1, 'b': 3}),
                 Record({'b': 4, 'c': 5}),
             ],
-            ['b', 'c', 'd', 'a']
+            [
+                Column('b'),
+                Column('c'),
+                Column('d'),
+                Column('a')
+            ]
         )
         records_cpp = to_cpp_records(records_py)
 
@@ -1014,9 +1222,9 @@ class TestRecords:
             if records is None and not CppImplEnabled:
                 continue
 
-            assert records.columns == ['b', 'c', 'd', 'a']
+            assert records.column_names == ['b', 'c', 'd', 'a']
             records.reindex(['a', 'b', 'c', 'd'])
-            assert records.columns == ['a', 'b', 'c', 'd']
+            assert records.column_names == ['a', 'b', 'c', 'd']
 
             with pytest.raises(InvalidArgumentError):
                 records.reindex(['a', 'b', 'c', 'd', 'e'])
@@ -1043,7 +1251,12 @@ class TestRecords:
                         Record({'value_left': 70, 'value_right': 70,
                                'stamp': 10, 'stamp_': 11}),
                     ],
-                    ['stamp', 'value_left',  'stamp_', 'value_right']
+                    [
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1064,7 +1277,12 @@ class TestRecords:
                                'stamp': 10, 'stamp_': 11}),
                         Record({'value_left': 40, 'stamp': 7}),
                     ],
-                    ['stamp', 'value_left',  'stamp_', 'value_right']
+                    [
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1085,7 +1303,12 @@ class TestRecords:
                                'stamp': 10, 'stamp_': 11}),
                         Record({'value_right': 50, 'stamp_': 10}),
                     ],
-                    ['stamp', 'value_left',  'stamp_', 'value_right']
+                    [
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1107,7 +1330,12 @@ class TestRecords:
                         Record({'value_left': 40, 'stamp': 7}),
                         Record({'value_right': 50, 'stamp_': 10}),
                     ],
-                    ['stamp', 'value_left',  'stamp_', 'value_right']
+                    [
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
         ],
@@ -1122,7 +1350,10 @@ class TestRecords:
                 Record({'stamp': 9, 'value_left': 70}),
                 Record({'stamp': 10, 'value_left': 70}),
             ],
-            ['stamp', 'value_left']
+            [
+                Column('stamp', []),
+                Column('value_left', []),
+            ]
         )
 
         records_right_py: Records = Records(
@@ -1134,13 +1365,22 @@ class TestRecords:
                 Record({'stamp_': 10, 'value_right': 50}),
                 Record({'stamp_': 11, 'value_right': 70}),
             ],
-            ['stamp_', 'value_right']
+            [
+                Column('stamp_', []),
+                Column('value_right', []),
+            ]
         )
 
         records_left_cpp = to_cpp_records(records_left_py)
         records_right_cpp = to_cpp_records(records_right_py)
         records_expect_cpp = to_cpp_records(records_expect_py)
 
+        column_names_expect = [
+            'stamp',
+            'value_left',
+            'stamp_',
+            'value_right'
+        ]
         for records_left, records_right, records_expect in zip(
             [records_left_py, records_left_cpp],
             [records_right_py, records_right_cpp],
@@ -1149,15 +1389,15 @@ class TestRecords:
             if records_left is None or records_right is None:
                 continue
 
-            columns = ['stamp', 'value_left', 'stamp_', 'value_right']
             merged = records_left.merge(
-                records_right, 'value_left', 'value_right', columns, how=how)
+                records_right, 'value_left', 'value_right', how=how)
 
-            assert merged.equals(records_expect) is True  # type: ignore
-            assert records_left.columns == [
-                'stamp', 'value_left']  # type: ignore
-            assert records_right.columns == [
-                'stamp_', 'value_right']  # type: ignore
+            merged.get_column('value_left')
+            merged.get_column('value_right')
+            assert merged.equals(records_expect)
+            assert merged.column_names == column_names_expect
+            assert records_left.column_names == ['stamp', 'value_left']
+            assert records_right.column_names == ['stamp_', 'value_right']
 
     @pytest.mark.parametrize(
         'how, expect_records_py',
@@ -1187,8 +1427,14 @@ class TestRecords:
                             }
                         ),
                     ],
-                    ['other_stamp', 'other_stamp_', 'stamp',
-                        'stamp_', 'value_left', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1218,8 +1464,14 @@ class TestRecords:
                         Record({'other_stamp': 8}),
                         Record({'other_stamp': 16}),
                     ],
-                    ['other_stamp', 'other_stamp_', 'stamp',
-                        'stamp_', 'value_left', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1249,8 +1501,14 @@ class TestRecords:
                         Record({'other_stamp_': 10}),
                         Record({'other_stamp_': 14}),
                     ],
-                    ['other_stamp', 'other_stamp_', 'stamp',
-                        'stamp_', 'value_left', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1282,8 +1540,14 @@ class TestRecords:
                         Record({'other_stamp_': 10}),
                         Record({'other_stamp_': 14}),
                     ],
-                    ['other_stamp', 'other_stamp_', 'stamp',
-                        'stamp_', 'value_left', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
         ],
@@ -1296,7 +1560,11 @@ class TestRecords:
                 Record({'other_stamp': 12, 'stamp': 9, 'value_left': 2}),
                 Record({'other_stamp': 16}),
             ],
-            ['other_stamp', 'stamp', 'value_left']
+            [
+                Column('other_stamp'),
+                Column('stamp'),
+                Column('value_left'),
+            ]
         )
 
         right_records_py = Records(
@@ -1306,7 +1574,11 @@ class TestRecords:
                 Record({'other_stamp_': 10}),
                 Record({'other_stamp_': 14}),
             ],
-            ['other_stamp_', 'stamp_', 'value_right']
+            [
+                Column('other_stamp_'),
+                Column('stamp_'),
+                Column('value_right'),
+            ]
         )
 
         left_records_cpp = to_cpp_records(left_records_py)
@@ -1321,17 +1593,17 @@ class TestRecords:
             if left_records is None and not CppImplEnabled:
                 continue
 
+                # columns=['other_stamp', 'other_stamp_', 'stamp',
+                #          'stamp_', 'value_left', 'value_right'],
             merged = merge(
                 left_records=left_records,
                 right_records=right_records,
                 join_left_key='value_left',
                 join_right_key='value_right',
-                columns=['other_stamp', 'other_stamp_', 'stamp',
-                         'stamp_', 'value_left', 'value_right'],
                 how=how
             )
 
-            assert merged.equals(expect_records) is True
+            assert merged.equals(expect_records)
 
     @pytest.mark.parametrize(
         'how, expect_records_py',
@@ -1343,7 +1615,12 @@ class TestRecords:
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 0, 'sub_stamp': 3}),
                         Record({'key_left': 2, 'key_right': 2, 'stamp': 1, 'sub_stamp': 2}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1355,7 +1632,12 @@ class TestRecords:
                         Record({'key_left': 1, 'stamp': 6}),
                         Record({'key_left': 2, 'stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1369,7 +1651,12 @@ class TestRecords:
                         Record({'key_left': 1, 'stamp': 6}),
                         Record({'key_left': 2, 'stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1381,7 +1668,12 @@ class TestRecords:
                         Record({'key_right': 1, 'sub_stamp': 4}),
                         Record({'key_right': 2, 'sub_stamp': 5}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1395,7 +1687,12 @@ class TestRecords:
                         Record({'key_left': 1, 'stamp': 6}),
                         Record({'key_left': 2, 'stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
         ],
@@ -1408,7 +1705,10 @@ class TestRecords:
                 Record({'key_left': 1, 'stamp': 6}),
                 Record({'key_left': 2, 'stamp': 7}),
             ],
-            ['key_left', 'stamp']
+            [
+                Column('key_left'),
+                Column('stamp')
+            ]
         )
 
         right_records_py: Records = Records(
@@ -1418,7 +1718,10 @@ class TestRecords:
                 Record({'key_right': 1, 'sub_stamp': 4}),
                 Record({'key_right': 2, 'sub_stamp': 5}),
             ],
-            ['key_right', 'sub_stamp']
+            [
+                Column('key_right'),
+                Column('sub_stamp')
+            ]
         )
 
         for left_records, right_records, expect_records in zip(
@@ -1435,7 +1738,6 @@ class TestRecords:
                 right_stamp_key='sub_stamp',
                 join_left_key='key_left',
                 join_right_key='key_right',
-                columns=['key_left', 'stamp', 'key_right', 'sub_stamp'],
                 how=how,
             )
 
@@ -1451,7 +1753,11 @@ class TestRecords:
                         Record({'key': 1, 'stamp': 0, 'sub_stamp': 3}),
                         Record({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
                     ],
-                    ['key', 'stamp', 'sub_stamp']
+                    [
+                        Column('key'),
+                        Column('stamp'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1463,7 +1769,11 @@ class TestRecords:
                         Record({'key': 1, 'stamp': 6}),
                         Record({'key': 2, 'stamp': 7}),
                     ],
-                    ['key', 'stamp', 'sub_stamp']
+                    [
+                        Column('key'),
+                        Column('stamp'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1477,7 +1787,11 @@ class TestRecords:
                         Record({'key': 1, 'stamp': 6}),
                         Record({'key': 2, 'stamp': 7}),
                     ],
-                    ['key', 'stamp', 'sub_stamp']
+                    [
+                        Column('key'),
+                        Column('stamp'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1489,7 +1803,11 @@ class TestRecords:
                         Record({'key': 1, 'sub_stamp': 4}),
                         Record({'key': 2, 'sub_stamp': 5}),
                     ],
-                    ['key', 'stamp', 'sub_stamp']
+                    [
+                        Column('key'),
+                        Column('stamp'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1503,7 +1821,11 @@ class TestRecords:
                         Record({'key': 1, 'stamp': 6}),
                         Record({'key': 2, 'stamp': 7}),
                     ],
-                    ['key', 'stamp', 'sub_stamp']
+                    [
+                        Column('key'),
+                        Column('stamp'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
         ],
@@ -1516,7 +1838,10 @@ class TestRecords:
                 Record({'key': 1, 'stamp': 6}),
                 Record({'key': 2, 'stamp': 7}),
             ],
-            ['key', 'stamp']
+            [
+                Column('key'),
+                Column('stamp'),
+            ]
         )
 
         right_records_py: Records = Records(
@@ -1526,7 +1851,10 @@ class TestRecords:
                 Record({'key': 1, 'sub_stamp': 4}),
                 Record({'key': 2, 'sub_stamp': 5}),
             ],
-            ['key', 'sub_stamp']
+            [
+                Column('key'),
+                Column('sub_stamp'),
+            ]
         )
 
         for left_records, right_records, expect_records in zip(
@@ -1543,7 +1871,6 @@ class TestRecords:
                 right_stamp_key='sub_stamp',
                 join_left_key='key',
                 join_right_key='key',
-                columns=['key', 'stamp', 'sub_stamp'],
                 how=how,
             )
 
@@ -1559,7 +1886,10 @@ class TestRecords:
                         Record({'stamp': 0, 'sub_stamp': 1}),
                         Record({'stamp': 5, 'sub_stamp': 6}),
                     ],
-                    ['stamp', 'sub_stamp']
+                    [
+                        Column('stamp'),
+                        Column('sub_stamp'),
+                    ]
                 ),
             ),
             (
@@ -1572,7 +1902,10 @@ class TestRecords:
                         Record({'stamp': 5, 'sub_stamp': 6}),
                         Record({'stamp': 8}),
                     ],
-                    ['stamp', 'sub_stamp']
+                    [
+                        Column('stamp'),
+                        Column('sub_stamp'),
+                    ]
                 ),
             ),
             (
@@ -1586,7 +1919,10 @@ class TestRecords:
                         Record({'stamp': 5, 'sub_stamp': 7}),
                         Record({'stamp': 8}),
                     ],
-                    ['stamp', 'sub_stamp']
+                    [
+                        Column('stamp'),
+                        Column('sub_stamp'),
+                    ]
                 ),
             ),
             (
@@ -1597,7 +1933,10 @@ class TestRecords:
                         Record({'stamp': 5, 'sub_stamp': 6}),
                         Record({'sub_stamp': 7}),
                     ],
-                    ['stamp', 'sub_stamp']
+                    [
+                        Column('stamp'),
+                        Column('sub_stamp'),
+                    ]
                 ),
             ),
             (
@@ -1611,7 +1950,10 @@ class TestRecords:
                         Record({'sub_stamp': 7}),
                         Record({'stamp': 8}),
                     ],
-                    ['stamp', 'sub_stamp']
+                    [
+                        Column('stamp'),
+                        Column('sub_stamp'),
+                    ]
                 ),
             ),
         ],
@@ -1625,7 +1967,9 @@ class TestRecords:
                 Record({'stamp': 5}),
                 Record({'stamp': 8}),
             ],
-            ['stamp']
+            [
+                Column('stamp'),
+            ]
         )
 
         right_records_py: Records = Records(
@@ -1634,7 +1978,9 @@ class TestRecords:
                 Record({'sub_stamp': 6}),
                 Record({'sub_stamp': 7}),
             ],
-            ['sub_stamp']
+            [
+                Column('sub_stamp'),
+            ]
         )
 
         for left_records, right_records, expect_records in zip(
@@ -1651,7 +1997,6 @@ class TestRecords:
                 right_stamp_key='sub_stamp',
                 join_left_key=None,
                 join_right_key=None,
-                columns=['stamp', 'sub_stamp'],
                 how=how,
             )
 
@@ -1667,7 +2012,12 @@ class TestRecords:
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 0, 'sub_stamp': 2}),
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1679,7 +2029,12 @@ class TestRecords:
                         Record({'key_left': 1, 'stamp': 5}),
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1695,7 +2050,12 @@ class TestRecords:
                         Record({'key_left': 1, 'key_right': 1,
                                'stamp': 6, 'sub_stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1707,7 +2067,12 @@ class TestRecords:
                         Record({'key_right': 1, 'sub_stamp': 3}),
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
             (
@@ -1721,7 +2086,12 @@ class TestRecords:
                         Record({'key_left': 1, 'stamp': 5}),
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
-                    ['key_left', 'stamp', 'key_right', 'sub_stamp']
+                    [
+                        Column('key_left'),
+                        Column('stamp'),
+                        Column('key_right'),
+                        Column('sub_stamp')
+                    ]
                 ),
             ),
         ],
@@ -1734,7 +2104,10 @@ class TestRecords:
                 Record({'key_left': 1, 'stamp': 5}),
                 Record({'key_left': 1, 'stamp': 6}),
             ],
-            ['key_left', 'stamp']
+            [
+                Column('key_left'),
+                Column('stamp'),
+            ]
         )
 
         right_records_py: Records = Records(
@@ -1744,7 +2117,10 @@ class TestRecords:
                 Record({'key_right': 1, 'sub_stamp': 3}),
                 Record({'key_right': 1, 'sub_stamp': 7}),
             ],
-            ['key_right', 'sub_stamp']
+            [
+                Column('key_right'),
+                Column('sub_stamp')
+            ]
         )
 
         for left_records, right_records, expect_records in zip(
@@ -1761,7 +2137,6 @@ class TestRecords:
                 right_stamp_key='sub_stamp',
                 join_left_key='key_left',
                 join_right_key='key_right',
-                columns=['key_left', 'stamp', 'key_right', 'sub_stamp'],
                 how=how,
             )
 
@@ -1785,8 +2160,14 @@ class TestRecords:
                             }
                         ),
                     ],
-                    ['other_stamp', 'stamp', 'value_left',
-                        'other_stamp_', 'stamp_', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1807,8 +2188,14 @@ class TestRecords:
                         Record({'other_stamp': 8}),
                         Record({'other_stamp': 16}),
                     ],
-                    ['other_stamp', 'stamp', 'value_left',
-                        'other_stamp_', 'stamp_', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1839,8 +2226,14 @@ class TestRecords:
                         Record({'other_stamp': 8}),
                         Record({'other_stamp': 16}),
                     ],
-                    ['other_stamp', 'stamp', 'value_left',
-                        'other_stamp_', 'stamp_', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1867,8 +2260,14 @@ class TestRecords:
                         Record({'other_stamp_': 10, 'stamp_': 10}),
                         Record({'other_stamp_': 14, 'value_right': 2}),
                     ],
-                    ['other_stamp', 'stamp', 'value_left',
-                        'other_stamp_', 'stamp_', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
             (
@@ -1898,8 +2297,14 @@ class TestRecords:
                         Record({'other_stamp': 16}),
                         Record({'other_stamp_': 14, 'value_right': 2}),
                     ],
-                    ['other_stamp', 'stamp', 'value_left',
-                        'other_stamp_', 'stamp_', 'value_right']
+                    [
+                        Column('other_stamp'),
+                        Column('stamp'),
+                        Column('value_left'),
+                        Column('other_stamp_'),
+                        Column('stamp_'),
+                        Column('value_right')
+                    ]
                 ),
             ),
         ],
@@ -1912,7 +2317,11 @@ class TestRecords:
                 Record({'other_stamp': 12, 'stamp': 9, 'value_left': 1}),
                 Record({'other_stamp': 16}),
             ],
-            ['other_stamp', 'stamp', 'value_left']
+            [
+                Column('other_stamp'),
+                Column('stamp'),
+                Column('value_left'),
+            ]
         )
 
         right_records_py = Records(
@@ -1922,7 +2331,11 @@ class TestRecords:
                 Record({'other_stamp_': 10, 'stamp_': 10}),
                 Record({'other_stamp_': 14, 'value_right': 2}),
             ],
-            ['other_stamp_', 'stamp_', 'value_right']
+            [
+                Column('other_stamp_'),
+                Column('stamp_'),
+                Column('value_right')
+            ]
         )
 
         for left_records, right_records, expect_records in zip(
@@ -1939,8 +2352,6 @@ class TestRecords:
                 right_stamp_key='stamp_',
                 join_left_key='value_left',
                 join_right_key='value_right',
-                columns=['other_stamp', 'stamp', 'value_left',
-                         'other_stamp_', 'stamp_', 'value_right'],
                 how=how,
             )
 
@@ -1953,7 +2364,10 @@ class TestRecords:
                 Record({'source_addr': 1, 'source_stamp': 10}),
                 Record({'source_addr': 3, 'source_stamp': 20}),
             ],
-            ['source_addr', 'source_stamp']
+            [
+                Column('source_addr'),
+                Column('source_stamp')
+            ]
         )
 
         copy_records: Records = Records(
@@ -1963,7 +2377,11 @@ class TestRecords:
                 Record({'addr_from': 3, 'addr_to': 13, 'copy_stamp': 21}),
                 Record({'addr_from': 13, 'addr_to': 23, 'copy_stamp': 22}),
             ],
-            ['addr_from', 'addr_to', 'copy_stamp']
+            [
+                Column('addr_from'),
+                Column('addr_to'),
+                Column('copy_stamp')
+            ]
         )
 
         sink_records: Records = Records(
@@ -1977,7 +2395,10 @@ class TestRecords:
                 Record({'sink_addr': 3, 'sink_stamp': 26}),
                 Record({'sink_addr': 23, 'sink_stamp': 27}),
             ],
-            ['sink_addr', 'sink_stamp']
+            [
+                Column('sink_addr'),
+                Column('sink_stamp')
+            ]
         )
 
         expect_records = Records(
@@ -2000,7 +2421,11 @@ class TestRecords:
                     'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 27,
                 }),
             ],
-            ['source_addr', 'source_stamp', 'sink_stamp']
+            [
+                Column('source_addr'),
+                Column('source_stamp'),
+                Column('sink_stamp')
+            ]
         )
 
         for source_records, copy_records, sink_records, expect_records in zip(
@@ -2021,16 +2446,14 @@ class TestRecords:
                 copy_to_key='addr_to',
                 sink_records=sink_records,
                 sink_stamp_key='sink_stamp',
-                sink_from_key='sink_addr',
-                columns=['source_addr', 'source_stamp', 'sink_stamp'],
+                sink_from_key='sink_addr'
             )
 
             merged.sort(key='sink_stamp')
             expect_records.sort(key='sink_stamp')
 
-            assert source_records.columns == ['source_addr', 'source_stamp']
-            assert copy_records.columns == [
-                'addr_from', 'addr_to', 'copy_stamp']
-            assert sink_records.columns == ['sink_addr', 'sink_stamp']
+            assert source_records.column_names == ['source_addr', 'source_stamp']
+            assert copy_records.column_names == ['addr_from', 'addr_to', 'copy_stamp']
+            assert sink_records.column_names == ['sink_addr', 'sink_stamp']
 
             assert merged.equals(expect_records)
