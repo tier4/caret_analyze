@@ -1363,16 +1363,6 @@ class FilteredRecordsSource:
         RecordsInterface
 
         """
-        columns = [
-            COLUMN_NAME.CALLBACK_OBJECT,
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.PUBLISHER_HANDLE,
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
-            COLUMN_NAME.SOURCE_TIMESTAMP
-        ]
         pub_records = self.publish_records(publisher_handles)
         sub_records = self.sub_records(callback_object, None)
 
@@ -1385,6 +1375,20 @@ class FilteredRecordsSource:
             how='left'
         )
 
+        columns = [
+            COLUMN_NAME.CALLBACK_OBJECT,
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.PUBLISHER_HANDLE,
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+        ]
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in merged.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in merged.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns += [
+            COLUMN_NAME.MESSAGE_TIMESTAMP,
+            COLUMN_NAME.SOURCE_TIMESTAMP
+        ]
         drop = list(set(merged.columns) - set(columns))
         merged.drop_columns(drop)
         merged.reindex(columns)
