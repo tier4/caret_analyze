@@ -151,47 +151,39 @@ class Records(RecordsInterface):
         return Util.find_one(lambda x: str(x) == column_name, self._columns)
 
     def sort(
-        self, key: str, sub_key: Optional[str] = None, ascending=True
-    ) -> None:
-        data_ = self.data
-
-        if ascending:
-            if sub_key is not None:
-                data_.sort(
-                    key=lambda record: (record.get(key), record.get(sub_key))  # type: ignore
-                )
-            else:
-                data_.sort(key=lambda record: record.get(key))
-        else:
-            if sub_key is not None:
-                data_.sort(
-                    key=lambda record: (-record.get(key), - record.get(sub_key))  # type: ignore
-                )
-            else:
-                data_.sort(key=lambda record: -record.get(key))
-
-        return None
-
-    def sort_column_order(
         self,
-        ascending=True,
-        put_none_at_top=True,
+        key: Union[str, List[str]],
+        ascending=True
     ) -> None:
         data_ = self.data
+
+        if isinstance(key, str):
+            keys = [key]
+        else:
+            keys = key
+
+        assert len(keys) > 0
+
         maxsize = 2**64 - 1
 
         if ascending:
-            default_value = maxsize if put_none_at_top else 0
+            def key_func(record: RecordInterface) -> Tuple[int, ...]:
+                return tuple(
+                    record.get_with_default(k, maxsize)
+                    for k
+                    in keys
+                )
 
-            def sort_func(record: RecordInterface):
-                return tuple(record.get_with_default(k, default_value) for k in self.column_names)
+            data_.sort(key=key_func)
         else:
-            default_value = 0 if put_none_at_top else maxsize
+            def key_func(record: RecordInterface) -> Tuple[int, ...]:
+                return tuple(
+                    -record.get_with_default(k, maxsize)
+                    for k
+                    in keys
+                )
 
-            def sort_func(record: RecordInterface):
-                return tuple(-record.get_with_default(k, default_value) for k in self.column_names)
-
-        data_.sort(key=sort_func)
+            data_.sort(key=key_func)
 
         return None
 
@@ -232,7 +224,7 @@ class Records(RecordsInterface):
         return None
 
     def rename_columns(self, columns: Dict[str, str]) -> None:
-        validate_rename_rule(columns)
+        validate_rename_rule(columns, self.column_names)
 
         data_: List[RecordInterface]
         data_ = self._data
@@ -371,7 +363,7 @@ class Records(RecordsInterface):
         return deepcopy(self)
 
     def bind_drop_as_delay(self) -> None:
-        self.sort_column_order(ascending=False, put_none_at_top=False)
+        self.sort(self.column_names, ascending=False)
 
         oldest_values: Dict[str, int] = {}
 
@@ -382,18 +374,34 @@ class Records(RecordsInterface):
                 if key in record.columns:
                     oldest_values[key] = record.get(key)
 
-        self.sort_column_order(ascending=True, put_none_at_top=True)
+        self.sort(self.column_names, ascending=True)
 
     def merge(
         self,
         right_records: RecordsInterface,
-        join_left_key: str,
-        join_right_key: str,
+        join_left_key: Union[str, List[str]],
+        join_right_key: Union[str, List[str]],
         how: str,
         *,
         progress_label: Optional[str] = None  # unused
     ) -> Records:
         maxsize = 2**64 - 1
+
+        if isinstance(join_left_key, str):
+            join_left_keys = [join_left_key]
+        else:
+            join_left_keys = join_left_key
+        if isinstance(join_right_key, str):
+            join_right_keys = [join_right_key]
+        else:
+            join_right_keys = join_right_key
+
+        assert set(join_left_keys) <= set(self.column_names)
+        assert set(join_right_keys) <= set(right_records.column_names)
+
+        if len(join_left_keys) != len(join_right_keys):
+            raise InvalidArgumentError("join keys size doesn\'t match")
+
         columns = Columns(self.columns + right_records.columns).as_list()
         self._validate(None, columns)
 
@@ -404,20 +412,19 @@ class Records(RecordsInterface):
         assert how in ['inner', 'left', 'right', 'outer']
 
         column_side = '_tmp_side'
-        column_merge_stamp = '_tmp_stamp'
-        column_has_valid_join_key = '_tmp_has_valid_join_key'
-        column_join_key = '_tmp_join_key'
+        column_join_keys = [f'_tmp_join_key_{i}' for i in range(len(join_left_keys))]
         column_found_right_record = '_tmp_found_right_record'
+        column_has_valid_join_key = '_tmp_has_valid_join_key'
 
         left_records.append_column(column_side, [MergeSide.LEFT]*len(left_records))
         right_records.append_column(column_side, [MergeSide.RIGHT]*len(right_records))
 
         tmp_columns = [
             Column(column_side),
-            Column(column_has_valid_join_key),
-            Column(column_merge_stamp),
-            Column(column_join_key)
+        ] + [
+            Column(column_join_key) for column_join_key in column_join_keys
         ]
+
         concat_columns = Columns(
             left_records.columns + right_records.columns + tmp_columns
         ).as_list()
@@ -430,20 +437,16 @@ class Records(RecordsInterface):
 
         for record in concat_records.data:
             if record.get(column_side) == MergeSide.LEFT:
-                join_key = join_left_key
+                join_keys_ = join_left_keys
             if record.get(column_side) == MergeSide.RIGHT:
-                join_key = join_right_key
+                join_keys_ = join_right_keys
 
-            has_valid_join_key = join_key in record.columns
+            has_valid_join_key = set(join_keys_) <= set(record.columns)
             record.add(column_has_valid_join_key, has_valid_join_key)
-            if has_valid_join_key:
-                record.add(column_merge_stamp, record.get(join_key))
-                record.add(column_join_key, record.get(
-                    join_key))  # type: ignore
-            else:
-                record.add(column_merge_stamp, maxsize)
+            for column_join_key, join_key in zip(column_join_keys, join_keys_):
+                record.add(column_join_key, record.get_with_default(join_key, maxsize))
 
-        concat_records.sort(key=column_merge_stamp, sub_key=column_side)
+        concat_records.sort(column_join_keys + [column_side])
 
         empty_records: List[RecordInterface] = []
         left_records_: List[RecordInterface] = []
@@ -451,7 +454,8 @@ class Records(RecordsInterface):
 
         merged_records = Records(
             None,
-            concat_records.columns + [Column(column_found_right_record)]
+            concat_records.columns +
+            [Column(column_found_right_record), Column(column_has_valid_join_key)]
         )
 
         def move_left_to_empty(
@@ -468,7 +472,12 @@ class Records(RecordsInterface):
                 empty_records.append(record)
                 continue
 
-            join_value = record.get(column_join_key)
+            join_value = tuple(
+                record.get(column_join_key)
+                for column_join_key
+                in column_join_keys
+            )
+
             if join_value not in processed_stamps:
                 move_left_to_empty(left_records_, empty_records)
                 left_records_ = []
@@ -497,8 +506,8 @@ class Records(RecordsInterface):
             elif side == MergeSide.RIGHT and merge_right:
                 merged_records.append(record)
 
-        temporay_columns = [column_side, column_merge_stamp, column_join_key,
-                            column_has_valid_join_key, column_found_right_record]
+        temporay_columns = [column_side, column_found_right_record, column_has_valid_join_key] \
+            + column_join_keys
 
         merged_records.drop_columns(temporay_columns)
         left_records.drop_columns(temporay_columns)
@@ -513,13 +522,27 @@ class Records(RecordsInterface):
         right_records: RecordsInterface,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
+        join_left_key: Optional[Union[str, List[str]]],
+        join_right_key: Optional[Union[str, List[str]]],
         how: str,
         *,
         progress_label: Optional[str] = None  # unused
     ) -> RecordsInterface:
         maxsize = 2**64 - 1
+        join_left_key = join_left_key or []
+        join_right_key = join_right_key or []
+
+        assert isinstance(join_left_key, str) or isinstance(join_left_key, list)
+        assert isinstance(join_right_key, str) or isinstance(join_right_key, list)
+
+        join_left_keys = [join_left_key] if isinstance(join_left_key, str) else join_left_key
+        join_right_keys = [join_right_key] if isinstance(join_right_key, str) else join_right_key
+
+        del join_left_key
+        del join_right_key
+
+        assert len(join_left_keys) == len(join_right_keys)
+
         columns = Columns(self.columns + right_records.columns).as_list()
         self._validate(None, columns)
 
@@ -553,36 +576,34 @@ class Records(RecordsInterface):
 
         for record in concat_records.data:
             if record.get(column_side) == MergeSide.LEFT:
-                record.add(column_has_valid_join_key,
-                           join_left_key is None or join_left_key in record.columns)
+                join_keys = join_left_keys
+                stamp_key = left_stamp_key
             else:
-                record.add(column_has_valid_join_key,
-                           join_right_key is None or join_right_key in record.columns)
+                join_keys = join_right_keys
+                stamp_key = right_stamp_key
 
-            if record.get(column_side) == MergeSide.LEFT and left_stamp_key in record.columns:
-                record.add(column_merge_stamp, record.get(left_stamp_key))
-                record.add(column_has_merge_stamp, True)
-            elif record.get(column_side) == MergeSide.RIGHT and right_stamp_key in record.columns:
-                record.add(column_has_merge_stamp, True)
-                record.add(column_merge_stamp, record.get(right_stamp_key))
-            else:
-                record.add(column_merge_stamp, maxsize)
-                record.add(column_has_merge_stamp, False)
+            record.add(
+                column_has_valid_join_key,
+                len(join_keys) == 0 or set(join_keys) <= set(record.columns)
+            )
+            record.add(column_has_merge_stamp, stamp_key in record.columns)
+            record.add(column_merge_stamp, record.get_with_default(stamp_key, maxsize))
 
-        def get_join_value(record: RecordInterface) -> Optional[int]:
+        def get_join_values(record: RecordInterface) -> Tuple[int, ...]:
             if record.get(column_side) == MergeSide.LEFT:
-                join_key = join_left_key
+                return tuple(
+                    record.get_with_default(join_left_key, maxsize)
+                    for join_left_key
+                    in join_left_keys
+                )
             else:
-                join_key = join_right_key
+                return tuple(
+                    record.get_with_default(join_right_key, maxsize)
+                    for join_right_key
+                    in join_right_keys
+                )
 
-            if join_key is None:
-                return 0
-            elif join_key in record.columns:
-                return record.get(join_key)
-            else:
-                return None
-
-        concat_records.sort(key=column_merge_stamp, sub_key=column_side)
+        concat_records.sort([column_merge_stamp, column_side])
 
         to_left_records: Dict[int, RecordInterface] = {}
         for record in concat_records.data:
@@ -592,14 +613,12 @@ class Records(RecordsInterface):
             if record.get(column_side) == MergeSide.LEFT:
                 record.add(column_sub_records, [])  # type: ignore
 
-                join_value = get_join_value(record)
+                join_value = get_join_values(record)
                 if join_value is None:
                     continue
                 to_left_records[join_value] = record
             elif record.get(column_side) == MergeSide.RIGHT:
-                join_value = get_join_value(record)
-                if join_value is None:
-                    continue
+                join_value = get_join_values(record)
                 if join_value not in to_left_records.keys():
                     continue
                 left_record_to_be_bind = to_left_records[join_value]
@@ -881,7 +900,22 @@ def merge_sequencial_for_addr_track(
     )
 
 
-def validate_rename_rule(rename_rule: Dict[str, str]):
+def validate_rename_rule(
+    rename_rule: Dict[str, str],
+    old_columns: List[str]
+) -> None:
+    already_exist = set(old_columns) & set(rename_rule.values())
+    if len(already_exist) > 0:
+        raise InvalidArgumentError(
+            f'Column already exists. columns: {already_exist}'
+        )
+
+    not_exist = set(rename_rule.keys()) - set(old_columns)
+    if len(not_exist) > 0:
+        raise InvalidArgumentError(
+            f'Target column does not exist. columns: {not_exist}'
+        )
+
     # overwrite columns
     if len(set(rename_rule.keys()) & set(rename_rule.values())) > 0:
         msg = 'Overwrite columns. '
@@ -894,3 +928,5 @@ def validate_rename_rule(rename_rule: Dict[str, str]):
             msg = 'duplicate columns'
             msg += str(rename_rule)
             raise InvalidArgumentError(msg)
+
+    return None

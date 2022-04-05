@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple
+from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple, Union
 
 import pandas as pd
 
@@ -254,24 +254,6 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def sort_column_order(
-        self,
-        ascending: bool = True,
-        put_none_at_top=True,
-    ) -> None:
-        """
-        Sort records by ordered columns.
-
-        Parameters
-        ----------
-        ascending : bool
-            ascending if True, descending if false.
-        put_none_at_top : bool
-
-        """
-        pass
-
-    @abstractmethod
     def get_column(
         self,
         column_name: str
@@ -380,20 +362,6 @@ class RecordsInterface:
 
     @property
     @abstractmethod
-    def column_names(self) -> List[str]:
-        """
-        Get columnnames.
-
-        Returns
-        -------
-        Sequence[str]
-            Column names.
-
-        """
-        pass
-
-    @property
-    @abstractmethod
     def columns(self) -> List[Column]:
         """
         Get columnnames.
@@ -423,8 +391,8 @@ class RecordsInterface:
     def merge(
         self,
         right_records: RecordsInterface,
-        join_left_key: str,
-        join_right_key: str,
+        join_left_key: Union[str, List[str]],
+        join_right_key: Union[str, List[str]],
         how: str,
         *,
         progress_label: Optional[str] = None

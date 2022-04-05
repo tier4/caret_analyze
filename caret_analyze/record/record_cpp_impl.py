@@ -36,18 +36,19 @@ class RecordsCppImpl(RecordsInterface):
         init: Optional[List[RecordInterface]] = None,
         columns: Optional[List[Column]] = None,
     ):
-        self._columns = columns or []
-        Records._validate(init, self._columns)
-        self._records = RecordsBase(init or [], self.column_names)
-        self._columns_map = {}
+        columns = columns or []
+        Records._validate(init, columns)
+        column_names = [str(c) for c in columns]
+        self._records = RecordsBase(init or [], column_names)
+        self._name_to_column = {}
         if columns is not None:
             for c in columns:
                 assert isinstance(c, Column)
-            self._columns_map = {str(c): c for c in columns}
+            self._name_to_column = {str(c): c for c in columns}
 
     @property
     def column_names(self) -> List[str]:
-        return [str(c) for c in self._columns]
+        return self._records.columns
 
     def export_json(self, path: str) -> None:
         import json
@@ -75,7 +76,7 @@ class RecordsCppImpl(RecordsInterface):
         self, other: RecordsInterface
     ) -> None:
         assert isinstance(other, RecordsCppImpl)
-        unknown_columns = set(other.columns) - set(self.columns)
+        unknown_columns = set(other.column_names) - set(self.column_names)
         if len(unknown_columns) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'
@@ -84,27 +85,25 @@ class RecordsCppImpl(RecordsInterface):
         return None
 
     def sort(
-        self, key: str, sub_key: Optional[str] = None, ascending=True
+        self,
+        key: Union[str, List[str]],
+        ascending=True
     ) -> None:
-        if key not in self.column_names:
-            raise InvalidArgumentError(f'column [{key}] not found.')
-        self._records.sort(key, sub_key or '', ascending)
+        keys = key if isinstance(key, list) else [key]
+
+        not_exist = set(keys) - set(self.column_names)
+        if len(not_exist) > 0:
+            raise InvalidArgumentError(f'column [{not_exist}] not found.')
+        self._records.sort(keys, ascending)
         return None
 
     def get_column(
         self,
         column_name: str
     ) -> Column:
-        if column_name in self._columns_map:
-            return self._columns_map[column_name]
+        if column_name in self._name_to_column:
+            return self._name_to_column[column_name]
         raise ItemNotFoundError(f'Failed to find column: {column_name}')
-
-    def sort_column_order(
-        self,
-        ascending: bool = True,
-        put_none_at_top=True,
-    ) -> None:
-        self._records.sort_column_order(ascending, put_none_at_top)
 
     def bind_drop_as_delay(self) -> None:
         self._records.bind_drop_as_delay()
@@ -117,36 +116,43 @@ class RecordsCppImpl(RecordsInterface):
         self,
         column_names: Dict[str, str]
     ) -> None:
-        validate_rename_rule(column_names)
+        validate_rename_rule(column_names, self.column_names)
         self._records.rename_columns(column_names)
 
-        for old_column_name, new_column_name in column_names.items():
-            index = self.column_names.index(old_column_name)
-            old_column = self.get_column(old_column_name)
-            self._columns[index] = old_column.create_renamed(new_column_name)
-
         for k, v in column_names.items():
-            if k in self._columns_map:
-                self._columns_map[v] = self._columns_map.pop(k)
+            if k in self._name_to_column:
+                old_column = self._name_to_column.pop(k)
+                new_column = old_column.create_renamed(v)
+                self._name_to_column[v] = new_column
         return None
 
     def merge(
         self,
         right_records: RecordsInterface,
-        join_left_key: str,
-        join_right_key: str,
+        join_left_key: Union[str, List[str]],
+        join_right_key: Union[str, List[str]],
         how: str,
         *,
-        progress_label: Optional[str] = None,
+        progress_label: Optional[str] = None
     ) -> RecordsCppImpl:
         progress_label = progress_label or ''
         assert how in ['inner', 'left', 'right', 'outer']
         assert isinstance(right_records, RecordsCppImpl)
+
+        if isinstance(join_left_key, str):
+            join_left_keys = [join_left_key]
+        else:
+            join_left_keys = join_left_key
+        if isinstance(join_right_key, str):
+            join_right_keys = [join_right_key]
+        else:
+            join_right_keys = join_right_key
+
         column_names_ = [str(c) for c in self.columns + right_records.columns]
         columns = Columns(column_names_).as_list()
 
         merged_cpp_base = self._records.merge(
-            right_records._records, join_left_key, join_right_key,
+            right_records._records, join_left_keys, join_right_keys,
             columns, how,
             Progress.records_label(progress_label))
 
@@ -166,6 +172,7 @@ class RecordsCppImpl(RecordsInterface):
         for k, v in group_cpp_base.items():
             records = RecordsCppImpl()
             records._insert_records(v)
+            records._insert_columns(self.columns)
             group[k] = records
         return group
 
@@ -185,7 +192,7 @@ class RecordsCppImpl(RecordsInterface):
 
     @property
     def columns(self) -> List[Column]:
-        return [self._columns_map[c] for c in self._records.columns]
+        return [self._name_to_column[c] for c in self._records.columns]
 
     def equals(
         self,
@@ -193,7 +200,7 @@ class RecordsCppImpl(RecordsInterface):
     ) -> bool:
         if not isinstance(other, RecordsCppImpl):
             return False
-        return self._records.equals(other._records)
+        return self._records.equals(other._records) and self.columns == other.columns
 
     def reindex(self, column_names: List[str]) -> None:
         miss_match_columns = set(column_names) ^ set(self.column_names)
@@ -202,14 +209,6 @@ class RecordsCppImpl(RecordsInterface):
             msg += f'{miss_match_columns}'
             raise InvalidArgumentError(msg)
         self._records.reindex(column_names)
-
-        # TODO(hsgwa): refactor
-        columns_tmp = self._columns
-        self._columns = []
-        for column_name in column_names:
-            for column_tmp in columns_tmp:
-                if column_tmp.column_name == column_name:
-                    self._columns.append(column_tmp)
 
     def clone(
         self
@@ -229,9 +228,8 @@ class RecordsCppImpl(RecordsInterface):
         self,
         columns: List[Column]
     ) -> None:
-        self._columns = columns
         for c in columns:
-            self._columns_map[str(c)] = c
+            self._name_to_column[str(c)] = c
 
     def append_column(
         self,
@@ -248,22 +246,15 @@ class RecordsCppImpl(RecordsInterface):
         elif isinstance(column, str):
             column_tmp = Column(column)
         self._records.append_column(column_tmp.column_name, values)
-        self._columns_map[column_tmp.column_name] = column_tmp
-        self._columns.append(column_tmp)
+        self._name_to_column[column_tmp.column_name] = column_tmp
 
     def drop_columns(self, columns: List[str]) -> None:
         if not isinstance(columns, list):
             raise InvalidArgumentError('columns must be list.')
         self._records.drop_columns(columns)
         for c in columns:
-            if c in self._columns_map:
-                self._columns_map.pop(c)
-        self._columns = [
-            column
-            for column
-            in self._columns
-            if column.column_name not in columns
-        ]
+            if c in self._name_to_column:
+                self._name_to_column.pop(c)
 
     def filter_if(
         self,
@@ -280,8 +271,8 @@ class RecordsCppImpl(RecordsInterface):
         right_records: RecordsInterface,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
+        join_left_key: Optional[Union[str, List[str]]],
+        join_right_key: Optional[Union[str, List[str]]],
         how: str,
         *,
         progress_label: Optional[str] = None,
@@ -289,12 +280,16 @@ class RecordsCppImpl(RecordsInterface):
         progress_label = progress_label or ''
         assert isinstance(right_records, RecordsCppImpl)
         columns = Columns(self.columns + right_records.columns).as_list()
+        join_left_key = join_left_key or []
+        join_right_key = join_right_key or []
+        join_left_keys = [join_left_key] if isinstance(join_left_key, str) else join_left_key
+        join_right_keys = [join_right_key] if isinstance(join_right_key, str) else join_right_key
         merged_cpp_base = self._records.merge_sequencial(
             right_records._records,
             left_stamp_key,
             right_stamp_key,
-            join_left_key or '',
-            join_right_key or '',
+            join_left_keys,
+            join_right_keys,
             [str(c) for c in columns],
             how,
             Progress.records_label(progress_label)

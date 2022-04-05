@@ -25,7 +25,7 @@ from caret_analyze.record import (
     RecordsInterface,
 )
 
-from caret_analyze.record.column import ColumnAttribute, ColumnMapperContainer
+from caret_analyze.record.column import ColumnMapper
 
 import pandas as pd
 import pytest
@@ -355,6 +355,8 @@ class TestRecords:
             assert 'aaa_' not in records.data[1].columns
 
             assert records.column_names == ['stamp', 'aaa']
+            for column, column_name in zip(records.columns, ['stamp', 'aaa']):
+                assert column.column_name == column_name
 
             rename_keys = {
                 'aaa': 'aaa_',
@@ -362,10 +364,14 @@ class TestRecords:
             }
 
             records.rename_columns(rename_keys)
+            assert records.column_names == ['stamp_', 'aaa_']
+            for column, column_name in zip(records.columns, ['stamp_', 'aaa_']):
+                assert column.column_name == column_name
             assert 'stamp' not in records.data[0].columns
             assert 'stamp_' in records.data[0].columns
             assert 'stamp' not in records.data[1].columns
             assert 'stamp_' not in records.data[1].columns
+
             records.get_column('stamp_')
             with pytest.raises(ItemNotFoundError):
                 records.get_column('stamp')
@@ -376,6 +382,11 @@ class TestRecords:
             assert 'aaa_' not in records.data[1].columns
 
             assert records.column_names == ['stamp_', 'aaa_']
+
+            with pytest.raises(InvalidArgumentError):
+                records.rename_columns({'stamp_': 'aaa_'})
+            with pytest.raises(InvalidArgumentError):
+                records.rename_columns({'not_exist': 'aaa_'})
 
     def test_rename_colums_validate_argument(self):
         records_py: Records = Records(
@@ -575,7 +586,7 @@ class TestRecords:
             assert column.mapper is None
 
     def test_to_dataframe_with_column_mapper(self):
-        mapper_container = ColumnMapperContainer()
+        mapper = ColumnMapper()
 
         records_py: Records = Records(
             [
@@ -583,8 +594,8 @@ class TestRecords:
                 Record({'a': 3}),
             ],
             [
-                Column('a', [ColumnAttribute.KEY_HASH], mapper_container=mapper_container),
-                Column('b', mapper_container=mapper_container)
+                Column('a', mapper=mapper),
+                Column('b')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -911,7 +922,6 @@ class TestRecords:
         group = records_py.groupby(['a', 'b', 'c'])
 
         assert group.keys() == expect.keys()
-
         for k, v in group.items():
             assert v.equals(expect[k])
 
@@ -1053,14 +1063,14 @@ class TestRecords:
                 ]
             )
             records_ = records.clone()
-            records_.sort_column_order(ascending=True, put_none_at_top=True)
+            records_.sort(records_.column_names, ascending=True)
             assert records_.equals(records_asc)
 
             records_ = records.clone()
-            records_.sort_column_order(ascending=False, put_none_at_top=False)
+            records_.sort(records_.column_names, ascending=False)
             assert records_.equals(records_desc)
 
-    def test_sort_with_sub_key(self):
+    def test_sort_with_multi_keys(self):
         key = 'stamp'
         sub_key = 'stamp_'
 
@@ -1105,11 +1115,11 @@ class TestRecords:
                 ]
             )
             records_ = records.clone()
-            records_.sort(key, sub_key=sub_key, ascending=True)
+            records_.sort([key, sub_key], ascending=True)
             assert records_.equals(records_asc)
 
             records_ = records.clone()
-            records_.sort(key, sub_key=sub_key, ascending=False)
+            records_.sort([key, sub_key], ascending=False)
             assert records_.equals(records_desc)
 
     @pytest.mark.parametrize(
@@ -1398,6 +1408,91 @@ class TestRecords:
             assert merged.column_names == column_names_expect
             assert records_left.column_names == ['stamp', 'value_left']
             assert records_right.column_names == ['stamp_', 'value_right']
+
+    @pytest.mark.parametrize(
+        'how, records_expect_py',
+        [
+            (
+                'inner',
+                Records(
+                    [
+                        Record({'k0': 1, 'k1': 10, 'k0_': 1, 'k1_': 10, 'value': 100, 'value_': 110}),
+                        Record({'k0': 3, 'k1': 20, 'k0_': 3, 'k1_': 20, 'value': 200, 'value_': 210}),
+                        Record({'k0': 3, 'k1': 20, 'k0_': 3, 'k1_': 20, 'value': 200, 'value_': 310}),
+                    ],
+                    [
+                        Column('k0'),
+                        Column('k1'),
+                        Column('value'),
+                        Column('k0_'),
+                        Column('k1_'),
+                        Column('value_')
+                    ]
+                ),
+            ),
+        ],
+    )
+    def test_merge_multiple_columns(self, how: str, records_expect_py: Records):
+        records_left_py: Records = Records(
+            [
+                Record({'k0': 1, 'k1': 10, 'value': 100}),
+                Record({'k0': 3, 'k1': 20, 'value': 200}),
+                Record({'k0': 5, 'k1': 30, 'value': 300}),
+                Record({'k0': 7, 'k1': 40, 'value': 400}),
+                Record({'k0': 9, 'k1': 70}),
+                Record({'value': 600}),
+            ],
+            [
+                Column('k0'),
+                Column('k1'),
+                Column('value'),
+            ]
+        )
+
+        records_right_py: Records = Records(
+            [
+                Record({'k0_': 1, 'k1_': 10, 'k0_': 1, 'value_': 110}),
+                Record({'k0_': 3, 'k1_': 20, 'value_': 210}),
+                Record({'k0_': 3, 'k1_': 20, 'value_': 310}),
+                Record({'k0_': 9, 'value_': 410}),
+                Record({'k1_': 50}),
+                Record({'value_': 610}),
+            ],
+            [
+                Column('k0_'),
+                Column('k1_'),
+                Column('value_'),
+            ]
+        )
+
+        records_left_cpp = to_cpp_records(records_left_py)
+        records_right_cpp = to_cpp_records(records_right_py)
+        records_expect_cpp = to_cpp_records(records_expect_py)
+
+        column_names_expect = [
+            'k0',
+            'k1',
+            'value',
+            'k0_',
+            'k1_',
+            'value_',
+        ]
+        for records_left, records_right, records_expect in zip(
+            [records_left_py, records_left_cpp],
+            [records_right_py, records_right_cpp],
+            [records_expect_py, records_expect_cpp],
+        ):
+            if records_left is None or records_right is None:
+                continue
+
+            merged = records_left.merge(records_right, ['k0', 'k1'], ['k0_', 'k1_'], how=how)
+
+            merged.get_column('value')
+            merged.get_column('value_')
+            assert merged.equals(records_expect)
+            assert merged.column_names == column_names_expect
+            assert records_left.column_names == ['k0', 'k1', 'value']
+            assert records_right.column_names == ['k0_', 'k1_', 'value_']
 
     @pytest.mark.parametrize(
         'how, expect_records_py',
@@ -1875,6 +1970,145 @@ class TestRecords:
             )
 
             assert merged_records.equals(expect_records)
+
+    @pytest.mark.parametrize(
+        'how, expect_records_py',
+        [
+            (
+                'inner',
+                Records(
+                    [
+                        Record({'stamp': 0, 'k0': 0, 'k1': 1, 'sub_stamp': 1}),
+                        Record({'stamp': 5, 'k0': 2, 'k1': 3, 'sub_stamp': 7}),
+                    ],
+                    [
+                        Column('stamp'),
+                        Column('k0'),
+                        Column('k1'),
+                        Column('sub_stamp')
+                    ]
+                ),
+            ),
+            (
+                'left',
+                Records(
+                    [
+                        Record({'stamp': 0, 'k0': 0, 'k1': 1, 'sub_stamp': 1}),
+                        Record({'stamp': 3, 'k0': 1}),
+                        Record({'stamp': 4, 'k0': 2, 'k1': 3}),
+                        Record({'stamp': 5, 'k0': 2, 'k1': 3, 'sub_stamp': 7}),
+                        Record({'stamp': 8}),
+                    ],
+                    [
+                        Column('stamp'),
+                        Column('k0'),
+                        Column('k1'),
+                        Column('sub_stamp')
+                    ]
+                ),
+            ),
+            (
+                'left_use_latest',
+                Records(
+                    [
+                        Record({'stamp': 0, 'k0': 0, 'k1': 1, 'sub_stamp': 1}),
+                        Record({'stamp': 3, 'k0': 1}),
+                        Record({'stamp': 4, 'k0': 2, 'k1': 3}),
+                        Record({'stamp': 5, 'k0': 2, 'k1': 3, 'sub_stamp': 7}),
+                        Record({'stamp': 8}),
+                    ],
+                    [
+                        Column('stamp'),
+                        Column('k0'),
+                        Column('k1'),
+                        Column('sub_stamp')
+                    ]
+                ),
+            ),
+            (
+                'right',
+                Records(
+                    [
+                        Record({'stamp': 0, 'k0': 0, 'k1': 1, 'sub_stamp': 1}),
+                        Record({'stamp': 5, 'k0': 2, 'k1': 3, 'sub_stamp': 7}),
+                        Record({'sub_stamp': 6, 'k1': 3}),
+                    ],
+                    [
+                        Column('stamp'),
+                        Column('k0'),
+                        Column('k1'),
+                        Column('sub_stamp')
+                    ]
+                ),
+            ),
+            (
+                'outer',
+                Records(
+                    [
+                        Record({'stamp': 0, 'k0': 0, 'k1': 1, 'sub_stamp': 1}),
+                        Record({'stamp': 3, 'k0': 1}),
+                        Record({'stamp': 4, 'k0': 2, 'k1': 3}),
+                        Record({'stamp': 5, 'k0': 2, 'k1': 3, 'sub_stamp': 7}),
+                        Record({'sub_stamp': 6, 'k1': 3}),
+                        Record({'stamp': 8}),
+                    ],
+                    [
+                        Column('stamp'),
+                        Column('k0'),
+                        Column('k1'),
+                        Column('sub_stamp')
+                    ]
+                ),
+            ),
+        ],
+    )
+    def test_merge_sequencial_multi_join_key(self, how, expect_records_py):
+        left_records_py: Records = Records(
+            [
+                Record({'stamp': 0, 'k0': 0, 'k1': 1}),
+                Record({'stamp': 3, 'k0': 1}),
+                Record({'stamp': 4, 'k0': 2, 'k1': 3}),
+                Record({'stamp': 5, 'k0': 2, 'k1': 3}),
+                Record({'stamp': 8}),
+            ],
+            [
+                Column('stamp'),
+                Column('k0'),
+                Column('k1'),
+            ]
+        )
+
+        right_records_py: Records = Records(
+            [
+                Record({'sub_stamp': 1, 'k0': 0, 'k1': 1}),
+                Record({'sub_stamp': 6, 'k1': 3}),
+                Record({'sub_stamp': 7, 'k0': 2, 'k1': 3}),
+            ],
+            [
+                Column('sub_stamp'),
+                Column('k0'),
+                Column('k1'),
+            ]
+        )
+
+        for left_records, right_records, expect_records in zip(
+            [left_records_py, to_cpp_records(left_records_py)],
+            [right_records_py, to_cpp_records(right_records_py)],
+            [expect_records_py, to_cpp_records(expect_records_py)],
+        ):
+            if left_records is None and not CppImplEnabled:
+                continue
+
+            merged = left_records.merge_sequencial(
+                right_records=right_records,
+                left_stamp_key='stamp',
+                right_stamp_key='sub_stamp',
+                join_left_key=['k0', 'k1'],
+                join_right_key=['k0', 'k1'],
+                how=how,
+            )
+
+            assert merged.equals(expect_records)
 
     @pytest.mark.parametrize(
         'how, expect_records_py',
