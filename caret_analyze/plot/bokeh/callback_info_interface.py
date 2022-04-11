@@ -42,16 +42,16 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         else:
             self._callbacks = target
 
-    def show(self, xaxis_type: Optional[str] = None, y_axis_scroll: bool = True):
+    def show(self, xaxis_type: Optional[str] = None, ywheel_zoom: bool = True):
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
 
         if(xaxis_type == 'system_time'):
-            self._show_with_system_time(y_axis_scroll)
+            self._show_with_system_time(ywheel_zoom)
         elif(xaxis_type == 'sim_time'):
-            self._show_with_sim_time(y_axis_scroll)
+            self._show_with_sim_time(ywheel_zoom)
         elif(xaxis_type == 'index'):
-            self._show_with_index(y_axis_scroll)
+            self._show_with_index(ywheel_zoom)
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
         xaxis_type = xaxis_type or 'system_time'
@@ -86,13 +86,13 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             for i in range(len(latency_table)):
                 latency_table[c][i] = converter.convert(latency_table[c][i])
 
-    def _get_fig_args(self, x_axis_label: str, y_axis_label: str, y_axis_scroll: bool) -> dict:
+    def _get_fig_args(self, x_axis_label: str, y_axis_label: str, ywheel_zoom: bool) -> dict:
         fig_args = {'height': 300,
                     'width': 1000,
                     'x_axis_label': x_axis_label,
                     'y_axis_label': y_axis_label,
                     'title': f'Time-line of callbacks {y_axis_label}'}
-        if(y_axis_scroll):
+        if(ywheel_zoom):
             fig_args['active_scroll'] = 'wheel_zoom'
         else:
             fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
@@ -100,11 +100,11 @@ class TimeSeriesPlot(metaclass=ABCMeta):
 
         return fig_args
 
-    def _show_with_index(self, y_axis_scroll: bool):
+    def _show_with_index(self, ywheel_zoom: bool):
         source_df = self._to_dataframe_core('index')
         l1_columns = source_df.columns.get_level_values(1).to_list()
         colors = d3['Category20'][20]
-        fig_args = self._get_fig_args('index', l1_columns[1], y_axis_scroll)
+        fig_args = self._get_fig_args('index', l1_columns[1], ywheel_zoom)
         p = figure(**fig_args)
 
         for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
@@ -117,11 +117,11 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         p.add_layout(p.legend[0], 'right')
         show(p)
 
-    def _show_with_sim_time(self, y_axis_scroll: bool):
+    def _show_with_sim_time(self, ywheel_zoom: bool):
         source_df = self._to_dataframe_core('sim_time')
         l1_columns = source_df.columns.get_level_values(1).to_list()
         colors = d3['Category20'][20]
-        fig_args = self._get_fig_args('simulation time [s]', l1_columns[1], y_axis_scroll)
+        fig_args = self._get_fig_args('simulation time [s]', l1_columns[1], ywheel_zoom)
         p = figure(**fig_args)
 
         for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
@@ -134,11 +134,11 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         p.add_layout(p.legend[0], 'right')
         show(p)
 
-    def _show_with_system_time(self, y_axis_scroll: bool):
+    def _show_with_system_time(self, ywheel_zoom: bool):
         source_df = self._to_dataframe_core('system_time')
         l1_columns = source_df.columns.get_level_values(1).to_list()
         colors = d3['Category20'][20]
-        fig_args = self._get_fig_args('system time [s]', l1_columns[1], y_axis_scroll)
+        fig_args = self._get_fig_args('system time [s]', l1_columns[1], ywheel_zoom)
         p = figure(**fig_args)
 
         frame_min, frame_max = get_range(self._callbacks)
