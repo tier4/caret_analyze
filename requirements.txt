@@ -18,3 +18,5 @@ bokeh
 pandas-bokeh
 jupyterlab
 graphviz
+
+tqdm
