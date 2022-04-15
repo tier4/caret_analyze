@@ -12,14 +12,14 @@ jobs:
 
       - name: Install ros2 trace dependent packages
         run : |
-          sudo apt install -y ros-galactic-ros2trace
-          sudo apt install -y ros-galactic-ros2trace-analysis
-          sudo apt install -y ros-galactic-tracetools
-          sudo apt install -y ros-galactic-tracetools-analysis
-          sudo apt install -y ros-galactic-tracetools-launch
-          sudo apt install -y ros-galactic-tracetools-read
-          sudo apt install -y ros-galactic-tracetools-test
-          sudo apt install -y ros-galactic-tracetools-trace
+          sudo apt-get install -y ros-galactic-ros2trace
+          sudo apt-get install -y ros-galactic-ros2trace-analysis
+          sudo apt-get install -y ros-galactic-tracetools
+          sudo apt-get install -y ros-galactic-tracetools-analysis
+          sudo apt-get install -y ros-galactic-tracetools-launch
+          sudo apt-get install -y ros-galactic-tracetools-read
+          sudo apt-get install -y ros-galactic-tracetools-test
+          sudo apt-get install -y ros-galactic-tracetools-trace
         shell: bash
 
       - name: Install dependent packages
