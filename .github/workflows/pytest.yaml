@@ -29,6 +29,10 @@ jobs:
           # pip3 install tracetools_analysis
           source /opt/ros/galactic/setup.sh
         shell: bash
+        
+      - name: ROSDEP install
+        run: |
+          rosdep install -i --from-paths . -y
 
       - name: Install dependent packages
         run: python3 -m pip install -r requirements.txt
