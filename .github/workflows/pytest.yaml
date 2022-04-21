@@ -12,7 +12,11 @@ jobs:
         uses: actions/checkout@v3
       
       - name: show info
-        run : python3 -V
+        run : |
+          python3 -V
+          echo "======================"
+          ros2 pkg list
+          echo "======================"
 
       - name: Install ros2 trace dependent packages
         run : |
