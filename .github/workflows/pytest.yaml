@@ -11,8 +11,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
       
-      - name: show file
-        run : ls
+      - name: show info
+        run : python3 -V
 
       - name: Install ros2 trace dependent packages
         run : |
