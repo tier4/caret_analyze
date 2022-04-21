@@ -13,6 +13,10 @@ jobs:
       
       - name: show info
         run : |
+          pwd
+          echo "======================"
+          ls
+          echo "======================"          
           python3 -V
           echo "======================"
           . /opt/ros/galactic/setup.sh
