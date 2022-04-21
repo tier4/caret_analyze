@@ -10,6 +10,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+      
+      - name: show file
+        run : ls
 
       - name: Install ros2 trace dependent packages
         run : |

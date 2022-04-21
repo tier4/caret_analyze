@@ -7,11 +7,17 @@
   <maintainer email="hasegawa@isp.co.jp">hsgwa</maintainer>
   <license>Apache License 2.0</license>
 
-  <exec_depend>tracetools_analysis</exec_depend>
+  <depend>tracetools_analysis</depend>
+  <depend>ament_copyright</depend>
+  <depend>ament_flake8</depend>
+  <depend>ament_pep257</depend>
+  <depend>python3-pytest</depend>
+
+  <!-- <exec_depend>tracetools_analysis</exec_depend>
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <test_depend>python3-pytest</test_depend> -->
 
   <export>
     <build_type>ament_python</build_type>
