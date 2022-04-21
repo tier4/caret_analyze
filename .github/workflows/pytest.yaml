@@ -39,6 +39,7 @@ jobs:
           sudo rosdep init
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro galactic
+          source /opt/ros/galactic/setup.sh
 
       - name: Install dependent packages
         run: python3 -m pip install -r requirements.txt
