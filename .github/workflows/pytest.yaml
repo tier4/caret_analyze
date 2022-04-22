@@ -22,6 +22,8 @@ jobs:
           . /opt/ros/galactic/setup.sh
           ros2 pkg list
           echo "======================"
+          dpkg -l | grep tracetools
+          echo "======================"
 
       - name: Install ros2 trace dependent packages
         run : |
@@ -61,6 +63,14 @@ jobs:
           rosdep install -i --from-paths . -y --rosdistro galactic
           . /opt/ros/galactic/setup.sh
 
+      - name: show info2
+        run : |
+          echo "======================"
+          . /opt/ros/galactic/setup.sh
+          echo "======================"
+          dpkg -l | grep tracetools
+          echo "======================"
+          
       - name: Install dependent packages
         run: python3 -m pip install -r requirements.txt
 
