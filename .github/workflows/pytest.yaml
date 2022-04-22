@@ -24,6 +24,7 @@ jobs:
           echo "======================"
           dpkg -l | grep tracetools
           echo "======================"
+        shell: bash
 
       - name: Install ros2 trace dependent packages
         run : |
@@ -70,7 +71,10 @@ jobs:
           echo "======================"
           dpkg -l | grep tracetools
           echo "======================"
-          
+          ros2 trace --help
+          echo "======================"
+        shell: bash
+  
       - name: Install dependent packages
         run: python3 -m pip install -r requirements.txt
 
