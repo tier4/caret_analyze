@@ -22,7 +22,7 @@ jobs:
           #. /opt/ros/galactic/setup.sh
           #ros2 pkg list
           echo "======================"
-          dpkg -l | grep tracetools
+          #dpkg -l | grep tracetools
           echo "======================"
         shell: bash
 
