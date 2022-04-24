@@ -43,6 +43,10 @@ jobs:
           sudo apt-get install -y ros-galactic-ament-copyright
           # sudo pip install tracetools_analysis
           # sudo pip3 install tracetools_analysis
+          sudo apt-add-repository ppa:lttng/stable-2.12
+          sudo apt-get update
+          sudo apt-get install lttng-tools lttng-modules-dkms liblttng-ust-dev
+          sudo apt-get install python3-babeltrace python3-lttng
           . /opt/ros/galactic/setup.sh
         shell: bash
         
