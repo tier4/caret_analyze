@@ -6,7 +6,7 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-#     container: ghcr.io/autowarefoundation/autoware-universe:latest
+    container: ghcr.io/autowarefoundation/autoware-universe:latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -19,10 +19,10 @@ jobs:
           echo "======================"          
           python3 -V
           echo "======================"
-          #. /opt/ros/galactic/setup.sh
-          #ros2 pkg list
+          . /opt/ros/galactic/setup.sh
+          ros2 pkg list
           echo "======================"
-          #dpkg -l | grep tracetools
+          dpkg -l | grep tracetools
           echo "======================"
         shell: bash
 
@@ -42,8 +42,8 @@ jobs:
           sudo apt-get install -y ros-galactic-tracetools-trace
           sudo apt-get install -y ros-galactic-ament-copyright
           # sudo pip install tracetools_analysis
-          sudo pip3 install tracetools_analysis
-          #. /opt/ros/galactic/setup.sh
+          # sudo pip3 install tracetools_analysis
+          . /opt/ros/galactic/setup.sh
         shell: bash
         
       - name: Install LTTng
@@ -62,7 +62,6 @@ jobs:
           # sudo rosdep init
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro galactic
-          #
           . /opt/ros/galactic/setup.sh
 
       - name: show info2
