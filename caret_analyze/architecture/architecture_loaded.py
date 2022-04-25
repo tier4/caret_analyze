@@ -747,7 +747,7 @@ class TimersLoaded:
         reader: ArchitectureReader,
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue
-    ) -> TimerStructValue:
+    ) -> None:
         timer_values = reader.get_timers(node)
         self._data = tuple(self._to_struct(callbacks_loaded, timer)
                            for timer in timer_values)
@@ -758,11 +758,11 @@ class TimersLoaded:
         timer_value: TimerValue
     ) -> TimerStructValue:
 
-        timer_callback: Optional[CallbackStructValue] = None
+        timer_callback: Optional[TimerCallbackStructValue] = None
 
         if timer_value.callback_id is not None:
             timer_callback = callbacks_loaded.find_callback(
-                timer_value.callback_id)
+                timer_value.callback_id)  # type: ignore
 
         return TimerStructValue(
             timer_value.node_name,

@@ -24,7 +24,7 @@ class TimerValue(ValueObject):
 
     def __init__(
         self,
-        period: str,
+        period: int,
         node_name: str,
         node_id: Optional[str],
         callback_id: Optional[str],
@@ -43,7 +43,7 @@ class TimerValue(ValueObject):
         return self._node_id
 
     @property
-    def period(self) -> str:
+    def period(self) -> int:
         return self._period
 
     @property

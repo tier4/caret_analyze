@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -145,7 +145,7 @@ class Node(Summarizable):
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
-    def get_callbacks(self, *callback_names: Tuple[str, ...]) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
         callbacks = []
         for callback_name in callback_names:
             callbacks.append(self.get_callback(callback_name))

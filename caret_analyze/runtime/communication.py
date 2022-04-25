@@ -117,6 +117,7 @@ class Communication(PathBase, Summarizable):
         return is_valid
 
     def _to_records_core(self) -> RecordsInterface:
+        assert self._records_provider is not None
         records = self._records_provider.communication_records(self._val)
 
         return records

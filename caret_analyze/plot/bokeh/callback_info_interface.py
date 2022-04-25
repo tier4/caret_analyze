@@ -36,7 +36,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         target: CallbacksType
     ) -> None:
         super().__init__()
-        self._callbacks = []
+        self._callbacks: List[CallbackBase] = []
         if(isinstance(target, (Application, Executor, Node, CallbackGroup))):
             self._callbacks = target.callbacks
         else:

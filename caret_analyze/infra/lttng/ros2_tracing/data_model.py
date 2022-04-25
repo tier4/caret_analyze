@@ -87,7 +87,10 @@ class Ros2DataModel(DataModel):
                    'message', 'message_timestamp']
         )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
-            None, ['tid', 'rclcpp_publish_timestamp', 'publisher_handle', 'message', 'message_timestamp']
+            None, [
+                'tid', 'rclcpp_publish_timestamp', 'publisher_handle',
+                'message', 'message_timestamp'
+            ]
         )
         self.rcl_publish_instances = RecordsFactory.create_instance(
             None, ['tid', 'rcl_publish_timestamp', 'publisher_handle', 'message']

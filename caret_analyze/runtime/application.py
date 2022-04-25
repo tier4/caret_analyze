@@ -14,7 +14,7 @@
 
 from __future__ import annotations, unicode_literals
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -544,7 +544,7 @@ class Application(Summarizable):
 
         return Util.find_one(is_target_callback, self.callbacks)
 
-    def get_callbacks(self, *callback_names: Tuple[str, ...]) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
         """
         Get callbacks that match the condition.
 

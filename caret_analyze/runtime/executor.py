@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import List
 
 from caret_analyze.common import Summarizable, Summary, Util
 from caret_analyze.exceptions import InvalidArgumentError
@@ -67,7 +67,7 @@ class Executor(Summarizable):
 
         return Util.find_one(is_target_callback, self.callbacks)
 
-    def get_callbacks(self, *callback_names: Tuple[str, ...]) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
         callbacks = []
         for callback_name in callback_names:
             callbacks.append(self.get_callback(callback_name))
