@@ -76,6 +76,8 @@ jobs:
           echo "======================"
           dpkg -l | grep lttng
           echo "======================"
+          ros2 trace-analysis --help
+          echo "======================"
         shell: bash
   
       - name: Install dependent packages
