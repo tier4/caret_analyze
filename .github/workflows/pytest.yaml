@@ -63,6 +63,7 @@ jobs:
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro galactic
           . /opt/ros/galactic/setup.sh
+          pip install -e .
 
       - name: show info2
         run : |
