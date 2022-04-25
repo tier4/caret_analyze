@@ -1961,6 +1961,7 @@ class TestRecords:
                 Record({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 1}),
                 Record({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 11}),
                 Record({'addr_from': 3, 'addr_to': 13, 'copy_stamp': 21}),
+                Record({'addr_from': 13, 'addr_to': 23, 'copy_stamp': 22}),
             ],
             ['addr_from', 'addr_to', 'copy_stamp']
         )
@@ -1970,10 +1971,11 @@ class TestRecords:
                 Record({'sink_addr': 13, 'sink_stamp': 2}),
                 Record({'sink_addr': 1, 'sink_stamp': 3}),
                 Record({'sink_addr': 13, 'sink_stamp': 12}),
-                Record({'sink_addr': 13, 'sink_stamp': 22}),
-                Record({'sink_addr': 3, 'sink_stamp': 23}),
-                Record({'sink_addr': 13, 'sink_stamp': 24}),
-                Record({'sink_addr': 3, 'sink_stamp': 25}),
+                Record({'sink_addr': 13, 'sink_stamp': 23}),
+                Record({'sink_addr': 3, 'sink_stamp': 24}),
+                Record({'sink_addr': 13, 'sink_stamp': 25}),
+                Record({'sink_addr': 3, 'sink_stamp': 26}),
+                Record({'sink_addr': 23, 'sink_stamp': 27}),
             ],
             ['sink_addr', 'sink_stamp']
         )
@@ -1989,10 +1991,13 @@ class TestRecords:
                     'source_addr': 1, 'source_stamp': 10, 'sink_stamp': 12,
                 }),
                 Record({
-                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 22,
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 23,
                 }),
                 Record({
-                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 23,
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 24,
+                }),
+                Record({
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 27,
                 }),
             ],
             ['source_addr', 'source_stamp', 'sink_stamp']

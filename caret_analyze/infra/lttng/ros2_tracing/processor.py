@@ -380,9 +380,10 @@ class Ros2Handler(EventHandler):
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
+        tid = metadata.tid
         message_timestamp = get_field(event, 'message_timestamp')
         self.data.add_rclcpp_publish_instance(
-            timestamp, publisher_handle, message, message_timestamp)
+            tid, timestamp, publisher_handle, message, message_timestamp)
 
     def _handle_rcl_publish(
         self,
@@ -391,9 +392,10 @@ class Ros2Handler(EventHandler):
     ) -> None:
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
+        tid = metadata.tid
         message = get_field(event, 'message')
         self.data.add_rcl_publish_instance(
-            timestamp, publisher_handle, message)
+            tid, timestamp, publisher_handle, message)
 
     def _handle_message_construct(
         self,
@@ -415,8 +417,9 @@ class Ros2Handler(EventHandler):
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message_timestamp = get_field(event, 'message_timestamp')
+        tid = metadata.tid
         self.data.add_rclcpp_intra_publish_instance(
-            timestamp, publisher_handle, message, message_timestamp)
+            tid, timestamp, publisher_handle, message, message_timestamp)
 
     def _handle_dispatch_subscription_callback(
         self,
@@ -461,7 +464,8 @@ class Ros2Handler(EventHandler):
     ) -> None:
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
-        self.data.add_dds_write_instance(timestamp, message)
+        tid = metadata.tid
+        self.data.add_dds_write_instance(tid, timestamp, message)
 
     def _handle_dds_bind_addr_to_stamp(
         self,
@@ -470,8 +474,9 @@ class Ros2Handler(EventHandler):
     ) -> None:
         timestamp = metadata.timestamp
         addr = get_field(event, 'addr')
+        tid = metadata.tid
         source_stamp = get_field(event, 'source_stamp')
-        self.data.add_dds_bind_addr_to_stamp(timestamp, addr, source_stamp)
+        self.data.add_dds_bind_addr_to_stamp(tid, timestamp, addr, source_stamp)
 
     def _handle_dds_bind_addr_to_addr(
         self,

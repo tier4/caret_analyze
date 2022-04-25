@@ -244,14 +244,15 @@ class RecordsSource():
                 right_records=rcl_publish_records,
                 left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                join_left_key=COLUMN_NAME.MESSAGE,
-                join_right_key=COLUMN_NAME.MESSAGE,
+                join_left_key='tid',
+                join_right_key='tid',
                 how='left',
                 columns=[
                     COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
                     COLUMN_NAME.PUBLISHER_HANDLE,
                     COLUMN_NAME.MESSAGE,
+                    'tid',
                     COLUMN_NAME.MESSAGE_TIMESTAMP,
                 ],
                 progress_label='binding: rclcpp_publish and rcl_publish',
@@ -264,31 +265,24 @@ class RecordsSource():
                 right_records=dds_write,
                 left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-                join_left_key=COLUMN_NAME.MESSAGE,
-                join_right_key=COLUMN_NAME.MESSAGE,
+                join_left_key='tid',
+                join_right_key='tid',
                 columns=Columns(inter_proc_publish.columns + dds_write.columns).as_list(),
                 how='left',
                 progress_label='binding: rclcppp_publish and dds_write',
             )
 
-        inter_proc_publish = merge_sequencial_for_addr_track(
-            source_records=inter_proc_publish,
-            copy_records=self._data.dds_bind_addr_to_addr,
-            sink_records=self._data.dds_bind_addr_to_stamp,
-            source_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            source_key=COLUMN_NAME.MESSAGE,
-            copy_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP,
-            copy_from_key=COLUMN_NAME.ADDR_FROM,
-            copy_to_key=COLUMN_NAME.ADDR_TO,
-            sink_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-            sink_from_key=COLUMN_NAME.ADDR,
-            columns=[
-                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-                COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.SOURCE_TIMESTAMP,
-            ],
-            progress_label='binding: message_addr and rclcpp_publish',
+        inter_proc_publish = merge_sequencial(
+            left_records=inter_proc_publish,
+            right_records=self._data.dds_bind_addr_to_stamp,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
+            join_left_key='tid',
+            join_right_key='tid',
+            columns=Columns(
+                inter_proc_publish.columns + self._data.dds_bind_addr_to_stamp.columns).as_list(),
+            how='left',
+            progress_label='binding: rclcppp_publish and source_timestamp',
         )
 
         inter_proc_publish.drop_columns(
@@ -545,6 +539,27 @@ class RecordsSource():
                 COLUMN_NAME.MESSAGE_TIMESTAMP,
             ],
             progress_label='bindig: publish_timestamp and message_addr',
+        )
+
+        # note: Incorrect latency is calculated when intra_publish of ros-rclcpp is included.
+        intra_publish_records = merge(
+            left_records=intra_publish_records,
+            right_records=sink_records,
+            join_left_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            join_right_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            columns=intra_publish_records.columns + [COLUMN_NAME.MESSAGE],
+            how='inner'
+        )
+
+        intra_publish_records = merge_sequencial(
+            left_records=intra_publish_records,
+            right_records=sink_records,
+            left_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            join_left_key=COLUMN_NAME.MESSAGE,
+            join_right_key=COLUMN_NAME.MESSAGE,
+            columns=intra_publish_records.columns,
+            how='left_use_latest'
         )
 
         callback_start_instances = self.intra_callback_records

@@ -55,12 +55,12 @@ class TestEventCounter:
         data.add_tilde_publisher(0, 0, 0, 0)
         data.add_callback_start_instance(0, 0, False)
         data.add_callback_end_instance(0, 0)
-        data.add_rclcpp_intra_publish_instance(0, 0, 0, 0)
-        data.add_rclcpp_publish_instance(0, 0, 0, 0)
-        data.add_rcl_publish_instance(0, 0, 0)
-        data.add_dds_write_instance(0, 0)
+        data.add_rclcpp_intra_publish_instance(0, 0, 0, 0, 0)
+        data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)
+        data.add_rcl_publish_instance(0, 0, 0, 0)
+        data.add_dds_write_instance(0, 0, 0)
         data.add_dds_bind_addr_to_addr(0, 0, 0)
-        data.add_dds_bind_addr_to_stamp(0, 0, 0)
+        data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)
         data.add_on_data_available_instance(0, 0)
         data.add_message_construct_instance(0, 0, 0)
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
@@ -88,7 +88,7 @@ class TestEventCounter:
         mocker: MockerFixture,
     ):
         data = Ros2DataModel()
-        data.add_dds_write_instance(0, 0)
+        data.add_dds_write_instance(0, 0, 0)
         data.finalize()
 
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
@@ -117,7 +117,7 @@ class TestEventCounter:
     ):
         data = Ros2DataModel()
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
-        data.add_dds_write_instance(0, 0)
+        data.add_dds_write_instance(0, 0, 0)
         data.finalize()
 
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
