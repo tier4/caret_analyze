@@ -84,4 +84,6 @@ jobs:
         run: python3 -m pip install -r requirements.txt
 
       - name: Run pytest
-        run: python3 -m pytest
+        run: |
+          . /opt/ros/galactic/setup.sh
+          python3 -m pytest
