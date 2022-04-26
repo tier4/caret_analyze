@@ -143,7 +143,8 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         callback_group_type: CallbackGroupType,
         node_name: str,
         callback_values: Tuple[CallbackStructValue, ...],
-        callback_group_name: str
+        callback_group_name: str,
+        callback_group_id: str,
     ) -> None:
         """
         Construct callback group value object.
@@ -158,6 +159,7 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         self._node_name = node_name
         self._callback_values = callback_values
         self._callback_group_name = callback_group_name
+        self._callback_group_id = callback_group_id
 
     @property
     def callback_group_type(self) -> CallbackGroupType:
@@ -188,6 +190,10 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         return self._callback_group_name
 
     @property
+    def callback_group_id(self) -> str:
+        return self._callback_group_id
+
+    @property
     def node_name(self) -> str:
         """
         Get node name.
@@ -207,6 +213,10 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
     @property
     def callback_names(self) -> Tuple[str, ...]:
         return tuple(i.callback_name for i in self._callback_values)
+
+    @property
+    def callback_ids(self) -> Tuple[str, ...]:
+        return tuple(i.callback_id for i in self._callback_values)
 
     @property
     def summary(self) -> Summary:

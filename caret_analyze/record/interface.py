@@ -236,17 +236,17 @@ class RecordsInterface:
 
     @abstractmethod
     def sort(
-        self, key: str, sub_key: Optional[str] = None, ascending=True
+        self,
+        key: Union[str, List[str]],
+        ascending=True
     ) -> None:
         """
         Sort records.
 
         Parameters
         ----------
-        key : str
+        key : Union[str, List[str]]
             key name to used for sort.
-        sub_key : str
-            second key name to used for sort.
         ascending : bool
             ascending if True, descending if false.
 
@@ -443,8 +443,8 @@ class RecordsInterface:
         right_records: RecordsInterface,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
+        join_left_key: Optional[Union[str, List[str]]],
+        join_right_key: Optional[Union[str, List[str]]],
         how: str,
         *,
         progress_label: Optional[str] = None

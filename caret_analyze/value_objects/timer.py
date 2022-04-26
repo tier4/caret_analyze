@@ -58,11 +58,11 @@ class TimerStructValue(ValueObject, Summarizable):
         self,
         node_name: str,
         period_ns: int,
-        callback_info: Optional[TimerCallbackStructValue],
+        callback: Optional[TimerCallbackStructValue],
     ) -> None:
         self._node_name: str = node_name
         self._period_ns: int = period_ns
-        self._callback_value = callback_info
+        self._callback_value = callback
 
     @property
     def node_name(self) -> str:

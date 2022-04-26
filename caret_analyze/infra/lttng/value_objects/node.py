@@ -14,8 +14,24 @@
 
 from __future__ import annotations
 
-from ....value_objects import NodeValueWithId
+from ....value_objects import NodeValue
 
 
-class NodeValueLttng(NodeValueWithId):
-    pass
+class NodeValueLttng(NodeValue):
+    def __init__(
+        self,
+        node_name: str,
+        node_handle: str,
+        node_id: str,
+    ):
+        super().__init__(node_name, node_id)
+        self._node_id = node_id
+        self._node_handle = node_handle
+
+    @property
+    def node_handle(self) -> str:
+        return self._node_handle
+
+    @property
+    def node_id(self) -> str:
+        return self._node_id

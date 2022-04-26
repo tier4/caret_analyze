@@ -21,6 +21,7 @@ from typing import Optional, Tuple, Union
 from .communication import CommunicationStructValue
 from .node_path import NodePathStructValue, NodePathValue
 from .value_object import ValueObject
+from .transform import TransformCommunicationStructValue
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError
 
@@ -47,11 +48,14 @@ class PathValue(ValueObject):
         return self._node_paths_info
 
 
+CommunicationTypes = Union[CommunicationStructValue, TransformCommunicationStructValue]
+
+
 class PathStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         path_name: Optional[str],
-        child: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...],
+        child: Tuple[Union[NodePathStructValue, CommunicationTypes], ...],
     ) -> None:
         self._path_name = path_name
         self._child = child
@@ -113,25 +117,19 @@ class PathStructValue(ValueObject, Summarizable):
         return d
 
     @property
-    def child(self) -> Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]:
+    def child(self) -> Tuple[Union[NodePathStructValue, CommunicationTypes], ...]:
         return self._child
 
     @staticmethod
-    def _validate(path_elements: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]):
+    def _validate(path_elements: Tuple[Union[NodePathStructValue, CommunicationTypes], ...]):
         if len(path_elements) == 0:
             return
 
-        t = NodePathStructValue \
-            if isinstance(path_elements[0], NodePathStructValue) \
-            else CommunicationStructValue
+        is_node_path = [isinstance(e, NodePathStructValue) for e in path_elements]
+        is_node_path_indexes = [i for i, _ in enumerate(is_node_path) if _ is True]
+        is_even_number = [i % 2 == 0 for i in is_node_path_indexes]
 
-        for e in path_elements[1:]:
-            if t == CommunicationStructValue:
-                t = NodePathStructValue
-            else:
-                t = CommunicationStructValue
-            if isinstance(e, t):
-                continue
+        if len(set(is_even_number)) >= 2:
             msg = 'NodePath and Communication should be alternated.'
             raise InvalidArgumentError(msg)
 

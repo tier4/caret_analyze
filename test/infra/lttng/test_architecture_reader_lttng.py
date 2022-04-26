@@ -17,7 +17,7 @@ from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.architecture_reader_lttng import \
     ArchitectureReaderLttng
 from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
-                                         NodeValueWithId, PublisherValue,
+                                         NodeValue, PublisherValue,
                                          SubscriptionCallbackValue,
                                          TimerCallbackValue)
 
@@ -34,7 +34,7 @@ class TestArchitectureReaderLttng:
         reader = ArchitectureReaderLttng('trace_dir')
         assert reader.get_nodes() == []
 
-        node = NodeValueWithId('node_name', 'node_id')
+        node = NodeValue('node_name')
         mocker.patch.object(lttng_mock, 'get_nodes', return_value=[node])
         reader = ArchitectureReaderLttng(lttng_mock)
         assert reader.get_nodes() == [node]
@@ -45,7 +45,7 @@ class TestArchitectureReaderLttng:
         mocker.patch.object(lttng_mock, 'get_publishers', return_value=[])
         mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
         reader = ArchitectureReaderLttng('trace_dir')
-        node = NodeValueWithId('node_name', 'node_id')
+        node = NodeValue('node_name')
         assert reader.get_publishers(node) == []
 
         pub_mock = mocker.Mock(spec=PublisherValue)
@@ -60,7 +60,7 @@ class TestArchitectureReaderLttng:
         mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
         reader = ArchitectureReaderLttng('trace_dir')
 
-        node = NodeValueWithId('node_name', 'node_id')
+        node = NodeValue('node_name')
         assert reader.get_timer_callbacks(node) == []
 
         timer_cb_mock = mocker.Mock(spec=TimerCallbackValue)
@@ -74,7 +74,7 @@ class TestArchitectureReaderLttng:
         mocker.patch.object(lttng_mock, 'get_subscription_callbacks', return_value=[])
         mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
         reader = ArchitectureReaderLttng('trace_dir')
-        node = NodeValueWithId('node_name', 'node_id')
+        node = NodeValue('node_name')
         assert reader.get_subscription_callbacks(node) == []
 
         subscription_cb_mock = mocker.Mock(spec=SubscriptionCallbackValue)
@@ -102,7 +102,7 @@ class TestArchitectureReaderLttng:
         lttng_mock = mocker.Mock(spec=Lttng)
         mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
         reader = ArchitectureReaderLttng('trace_dir')
-        node = NodeValueWithId('node_name', 'node_id')
+        node = NodeValue('node_name')
         assert reader.get_variable_passings(node) == []
 
     def test_get_named_paths(self, mocker: MockerFixture):
@@ -120,7 +120,7 @@ class TestArchitectureReaderLttng:
             lttng_mock,
             'get_subscription_callbacks',
             return_value=[])
-        node_ = NodeValueWithId('node_name', 'node_id')
+        node_ = NodeValue('node_name')
         assert reader.get_subscriptions(node_) == []
 
         node = ['node0', 'node1']
@@ -151,7 +151,7 @@ class TestArchitectureReaderLttng:
         mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
         reader = ArchitectureReaderLttng('trace_dir')
         mocker.patch.object(lttng_mock, 'get_callback_groups', return_value=[])
-        node_ = NodeValueWithId('node_name', 'node_id')
+        node_ = NodeValue('node_name')
         assert reader.get_callback_groups(node_) == []
 
         cbg = mocker.Mock(spec=CallbackGroupValue)

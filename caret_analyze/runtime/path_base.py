@@ -14,13 +14,13 @@
 
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Sequence
 
 import numpy as np
 import pandas as pd
 
 from ..exceptions import InvalidRecordsError
-from ..record import RecordsInterface
+from ..record import RecordsInterface, ColumnAttribute
 from ..record.data_frame_shaper import DataFrameShaper, Strip
 
 
@@ -30,7 +30,7 @@ class PathBase(metaclass=ABCMeta):
     def __init__(self) -> None:
         self.__records_cache: Optional[RecordsInterface] = None
 
-    def to_records(self) -> RecordsInterface:
+    def to_records(self, attrs: Optional[Sequence[ColumnAttribute]] = None) -> RecordsInterface:
         """
         Convert to records.
 
@@ -40,7 +40,14 @@ class PathBase(metaclass=ABCMeta):
             Information for each delay.
 
         """
-        return self.__records.clone()
+        records = self.__records.clone()
+        if attrs is None:
+            return records
+        drop_column_names = [c.column_name
+                             for c in records.columns
+                             if len(set(c.attrs) & set(attrs)) == 0]
+        records.drop_columns(drop_column_names)
+        return records
 
     @abstractmethod
     def _to_records_core(self) -> RecordsInterface:
@@ -74,7 +81,7 @@ class PathBase(metaclass=ABCMeta):
             column names
 
         """
-        return deepcopy(self.__records.columns)
+        return deepcopy(self.__records.column_names)
 
     def to_dataframe(
         self,

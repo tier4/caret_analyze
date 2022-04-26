@@ -114,6 +114,19 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         return self._cb_write.callback_name
 
     @property
+    def callback_id_write(self) -> str:
+        """
+        Get write-side callback id.
+
+        Returns
+        -------
+        [str]
+            write-side callback id.
+
+        """
+        return self._cb_write.callback_id
+
+    @property
     def callback_name_read(self):
         """
         Get read-side callback name.
@@ -125,6 +138,19 @@ class VariablePassingStructValue(ValueObject, Summarizable):
 
         """
         return self._cb_read.callback_name
+
+    @property
+    def callback_id_read(self):
+        """
+        Get read-side callback id.
+
+        Returns
+        -------
+        [str]
+            read-side callback id.
+
+        """
+        return self._cb_read.callback_id
 
     @property
     def callback_write(self) -> CallbackStructValue:

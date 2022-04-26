@@ -58,11 +58,11 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         self,
         node_name: str,
         topic_name: str,
-        callback_info: Optional[SubscriptionCallbackStructValue],
+        callback: Optional[SubscriptionCallbackStructValue],
     ) -> None:
         self._node_name: str = node_name
         self._topic_name: str = topic_name
-        self._callback_value = callback_info
+        self._callback_value = callback
 
     def __eq__(self, other) -> bool:
         # It is not necessary because __eq__ is defined in ValueObject type,
@@ -89,6 +89,13 @@ class SubscriptionStructValue(ValueObject, Summarizable):
             return None
 
         return self._callback_value.callback_name
+
+    @property
+    def callback_id(self) -> Optional[str]:
+        if self._callback_value is None:
+            return None
+
+        return self._callback_value.callback_id
 
     @property
     def summary(self) -> Summary:

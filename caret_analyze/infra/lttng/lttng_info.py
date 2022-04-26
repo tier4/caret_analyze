@@ -14,27 +14,86 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from functools import cached_property, lru_cache
 from logging import getLogger
-from typing import Callable, Dict, List, Optional, Sequence, Union
-
-from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
-from caret_analyze.value_objects.timer import TimerValue
+from typing import (
+    Any,
+    Callable,
+    DefaultDict,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+)
 
 import numpy as np
 import pandas as pd
 
 from .ros2_tracing.data_model import Ros2DataModel
-from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
-                            PublisherValueLttng,
-                            SubscriptionCallbackValueLttng,
-                            TimerCallbackValueLttng,
-                            TimerControl)
+from .value_objects import (
+    CallbackGroupValueLttng,
+    NodeValueLttng,
+    PublisherValueLttng,
+    SubscriptionCallbackValueLttng,
+    TimerCallbackValueLttng,
+    TimerControl,
+    TimerInit,
+    TransformBroadcasterValueLttng,
+    TransformBufferValueLttng,
+    ServiceCallbackValueLttng,
+    ClientCallbackValueLttng,
+)
 from ...common import Util
 from ...exceptions import InvalidArgumentError
-from ...value_objects import ExecutorValue, NodeValue, Qos
+from ...value_objects import (
+    ExecutorValue,
+    NodeValue,
+    Qos,
+    TimerValue,
+    TransformValue
+)
 
 logger = getLogger(__name__)
+
+
+class Collection(Iterable):
+
+    def __init__(self) -> None:
+        self._data: DefaultDict = defaultdict(list)
+
+    def add(self, node_id: int, val: Any) -> None:
+        self._data[node_id].append(val)
+
+    def gets(self, node: NodeValueLttng) -> List[Any]:
+        return self._data[node.node_id]
+
+    def __iter__(self) -> Iterator[Any]:
+        return iter(Util.flatten(self._data.values()))
+
+
+class Callbacks():
+
+    def __init__(
+        self,
+        timer_cbs: Collection,
+        sub_cbs: Collection,
+    ) -> None:
+        self._timer_cbs = timer_cbs
+        self._sub_cbs = sub_cbs
+
+    def is_user_defined(
+        self,
+        callback_id: str
+    ) -> bool:
+        for cb in self._sub_cbs:
+            assert isinstance(cb, SubscriptionCallbackValueLttng)
+            if cb.callback_id == callback_id:
+                return cb.subscribe_topic_name not in ['/clock', '/parameter_events']
+
+        return False
 
 
 class LttngInfo:
@@ -44,38 +103,15 @@ class LttngInfo:
 
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iloc[0, 0] if len(data.rmw_impl) > 0 else ''
-        # self._source = records_source
-        # self._binder_cache: Dict[str, PublisherBinder] = {}
-
-        self._timer_cb_cache: Dict[str, Sequence[TimerCallbackValueLttng]] = {}
-        self._sub_cb_cache: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
-        self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
-        self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
+        self._timer_cbs = LttngInfo._load_timer_cbs(self._formatted)
+        self._sub_cbs = LttngInfo._load_sub_cbs(self._formatted)
+        self._srv_cbs = LttngInfo._load_srv_cbs(self._formatted)
+        self._clt_cbs = LttngInfo._load_clt_cbs(self._formatted)
+        self._pubs = LttngInfo._load_pubs(self._formatted)
+        callbacks = Callbacks(self._timer_cbs, self._sub_cbs)
+        self._cbgs = LttngInfo._load_cbgs(self._formatted, callbacks)
 
         self._id_to_topic: Dict[str, str] = {}
-        self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
-        self._sub_cb_cache_without_pub = None
-
-        self._timer_cb_cache_without_pub: Optional[Dict[str, List[TimerCallbackValueLttng]]]
-        self._timer_cb_cache_without_pub = None
-
-    def _get_timer_cbs_without_pub(self, node_id: str) -> List[TimerCallbackValueLttng]:
-        if self._timer_cb_cache_without_pub is None:
-            self._timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
-
-        if node_id not in self._timer_cb_cache_without_pub:
-            return []
-
-        return self._timer_cb_cache_without_pub[node_id]
-
-    def _get_sub_cbs_without_pub(self, node_id: str) -> List[SubscriptionCallbackValueLttng]:
-        if self._sub_cb_cache_without_pub is None:
-            self._sub_cb_cache_without_pub = self._load_sub_cbs_without_pub()
-
-        if node_id not in self._sub_cb_cache_without_pub:
-            return []
-
-        return self._sub_cb_cache_without_pub[node_id]
 
     def get_rmw_impl(self) -> str:
         """
@@ -89,22 +125,17 @@ class LttngInfo:
         """
         return self._rmw_implementation
 
-    def _load_timer_cbs_without_pub(self) -> Dict[str, List[TimerCallbackValueLttng]]:
-        timer_cbs_info: Dict[str, List[TimerCallbackValueLttng]] = {}
+    @staticmethod
+    def _load_timer_cbs(formatted: pd.DataFrame) -> Collection:
+        timer_cbs_info = Collection()
 
-        for node in self.get_nodes():
-            timer_cbs_info[node.node_id] = []
-
-        timer_df = self._formatted.timer_callbacks_df
-        timer_df = merge(timer_df, self._formatted.nodes_df, 'node_handle')
+        timer_df = formatted.timer_callbacks_df
+        timer_df = merge(timer_df, formatted.nodes_df, 'node_handle')
 
         for _, row in timer_df.iterrows():
-            node_name = row['node_name']
-            node_id = row['node_id']
-            timer_cbs_info[node_id].append(
-                TimerCallbackValueLttng(
+            val = TimerCallbackValueLttng(
                     callback_id=row['callback_id'],
-                    node_name=node_name,
+                    node_name=row['node_name'],
                     node_id=row['node_id'],
                     symbol=row['symbol'],
                     period_ns=row['period_ns'],
@@ -112,24 +143,51 @@ class LttngInfo:
                     publish_topic_names=None,
                     callback_object=row['callback_object']
                 )
-            )
+            timer_cbs_info.add(row['node_id'], val)
 
         return timer_cbs_info
 
-    def _get_timer_callbacks(self, node: NodeValue) -> Sequence[TimerCallbackValueLttng]:
-        node_id = node.node_id
-        assert node_id is not None
+    @staticmethod
+    def _load_srv_cbs(formatted: pd.DataFrame) -> Collection:
+        cbs = Collection()
+        service_df = formatted.service_callbacks_df
+        service_df = merge(service_df, formatted.nodes_df, 'node_handle')
 
-        timer_cbs = self._get_timer_cbs_without_pub(node_id)
+        for _, row in service_df.iterrows():
+            val = ServiceCallbackValueLttng(
+                    callback_id=row['callback_id'],
+                    node_id=row['node_id'],
+                    node_name=row['node_name'],
+                    symbol=row['symbol'],
+                    service_handle=row['service_handle'],
+                    callback_object=row['callback_object'],
+                    service_name=row['service_name'],
+                )
+            cbs.add(row['node_id'], val)
 
-        # if node_id not in self._binder_cache.keys():
-        #     self._binder_cache[node_id] = PublisherBinder(self, self._source)
+        return cbs
 
-        # binder = self._binder_cache[node_id]
-        # if binder.can_bind(node) and len(timer_cbs) > 0:
-        #     timer_cbs = binder.bind_pub_topics_and_timer_cbs(node_id, timer_cbs)
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValueLttng]:
+        node_lttng = self._get_node_lttng(node)
+        return self._srv_cbs.gets(node_lttng)
 
-        return timer_cbs
+    @staticmethod
+    def _load_clt_cbs(formatted: pd.DataFrame) -> Collection:
+        # not implemented yet
+        return Collection()
+
+    @lru_cache
+    def get_tf_frames(self) -> Sequence[TransformValue]:
+        nodes = self.get_nodes()
+        tfs: List[TransformValue] = []
+        for node in nodes:
+            bf = self.get_tf_broadcaster(node)
+            if bf is not None:
+                tfs += bf.broadcast_transforms
+        return tfs
 
     def get_timer_callbacks(self, node: NodeValue) -> Sequence[TimerCallbackValueLttng]:
         """
@@ -145,21 +203,9 @@ class LttngInfo:
         Sequence[TimerCallbackInfo]
 
         """
-        def get_timer_cb_local(node: NodeValueLttng):
-            node_id = node.node_id
-            if node.node_id not in self._timer_cb_cache.keys():
-                self._timer_cb_cache[node_id] = self._get_timer_callbacks(node)
-            return self._timer_cb_cache[node_id]
 
-        if node.node_id is None:
-            return Util.flatten([
-                get_timer_cb_local(node)
-                for node
-                in self._get_nodes(node.node_name)
-            ])
-
-        node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_timer_cb_local(node_lttng)
+        node_lttng = self._get_node_lttng(node)
+        return self._timer_cbs.gets(node_lttng)
 
     @lru_cache
     def get_nodes(self) -> Sequence[NodeValueLttng]:
@@ -180,11 +226,14 @@ class LttngInfo:
 
         for _, row in nodes_df.iterrows():
             node_name = row['node_name']
+            if str(node_name).startswith('_ros2_cli'):
+                continue
             node_id = row['node_id']
+            node_handle = row['node_handle']
             if node_name in added_nodes:
                 duplicate_nodes.add(node_name)
             added_nodes.add(node_name)
-            nodes.append(NodeValueLttng(node_name, node_id))
+            nodes.append(NodeValueLttng(node_name, node_handle, node_id))
 
         for duplicate_node in duplicate_nodes:
             logger.warning(
@@ -193,17 +242,103 @@ class LttngInfo:
 
         return nodes
 
-    def _load_sub_cbs_without_pub(
-        self
-    ) -> Dict[str, List[SubscriptionCallbackValueLttng]]:
-        sub_cbs_info: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
+    def get_tf_buffer(
+        self,
+        node: NodeValue
+    ) -> Optional[TransformBufferValueLttng]:
+        nodes = self.get_nodes()
 
-        for node in self.get_nodes():
-            sub_cbs_info[node.node_id] = []
+        listen_transforms = self.get_tf_frames()
 
-        sub_df = self._formatted.subscription_callbacks_df
-        sub_df = merge(sub_df, self._formatted.nodes_df, 'node_handle')
-        tilde_sub = self._formatted.tilde_subscriptions_df
+        for tf_buffer_core, group in self._formatted.tf_buffers_df.groupby('tf_buffer_core'):
+            transforms = []
+            tf_map = self.get_tf_buffer_frame_compact_map(tf_buffer_core)
+            for _, row in group.iterrows():
+                frame_id = tf_map[row['frame_id_compact']]
+                child_frame_id = tf_map[row['child_frame_id_compact']]
+                transforms.append(TransformValue(frame_id, child_frame_id))
+
+            row = group.iloc[0, :]
+
+            if row['listener_node_id'] is None or row['lookup_node_id'] is None:
+                continue
+
+            listener_node = Util.find_one(lambda x: x.node_id == row['listener_node_id'], nodes)
+            lookup_node = Util.find_one(lambda x: x.node_id == row['lookup_node_id'], nodes)
+            if lookup_node.node_name != node.node_name:
+                continue
+
+            return TransformBufferValueLttng(
+                    listener_node_id=listener_node.node_id,
+                    listener_node_name=listener_node.node_name,
+                    lookup_node_id=lookup_node.node_id,
+                    lookup_node_name=lookup_node.node_name,
+                    lookup_transforms=tuple(transforms),
+                    listen_transforms=tuple(listen_transforms),
+                    buffer_handler=tf_buffer_core
+                )
+        return None
+
+    def _get_node_lttng(self, node: NodeValue) -> NodeValueLttng:
+        nodes = self.get_nodes()
+        return Util.find_one(lambda x: x.node_name == node.node_name, nodes)
+
+    def get_tf_broadcaster(
+        self,
+        node: NodeValue
+    ) -> Optional[TransformBroadcasterValueLttng]:
+        node_lttng = self._get_node_lttng(node)
+        pubs = self._get_tf_publishers_without_cb_bind(node_lttng.node_id)
+
+        br_df = self._formatted.tf_broadcasters_df
+        br_df = br_df[br_df['node_handle'] == node_lttng.node_handle]
+        if len(br_df) == 0:
+            return None
+
+        pub_id = br_df['publisher_id'].values[0]
+        transforms = tuple(
+            TransformValue(tf['frame_id'], tf['child_frame_id'])
+            for _, tf
+            in br_df.iterrows()
+        )
+        br_pub = Util.find_one(lambda x: x.publisher_id == pub_id, pubs)
+        transform_broadcaster = br_df['transform_broadcaster'].values[0]
+        cb_ids = ()
+        return TransformBroadcasterValueLttng(br_pub, transforms, cb_ids, transform_broadcaster)
+
+    def get_tf_broadcaster_frame_compact_map(self, broadcaster: int) -> Dict[int, str]:
+        maps = self._broadcaster_frame_comact_maps
+        assert broadcaster in maps
+        return maps[broadcaster]
+
+    @cached_property
+    def _broadcaster_frame_comact_maps(self) -> Dict[int, Dict[int, str]]:
+        m: DefaultDict = defaultdict(dict)
+        for _, row in self._formatted.tf_broadcaster_frame_id_df.iterrows():
+            broadcater_map = m[row['tf_broadcaster']]
+            broadcater_map[row['frame_id_compact']] = row['frame_id']
+        return m
+
+    def get_tf_buffer_frame_compact_map(self, buffer_core: int) -> Dict[int, str]:
+        maps = self._buffer_frame_compact_maps
+        return maps[buffer_core]
+
+    @cached_property
+    def _buffer_frame_compact_maps(self) -> Dict[int, Dict[int, str]]:
+        m: DefaultDict = defaultdict(dict)
+        for _, row in self._formatted.tf_buffer_frame_id_df.iterrows():
+            buffer_map = m[row['tf_buffer_core']]
+            buffer_map[row['frame_id_compact']] = row['frame_id']
+        return m
+
+    def _load_sub_cbs(
+        formatted: pd.DataFrame
+    ) -> Collection:
+        sub_cbs_info = Collection()
+
+        sub_df = formatted.subscription_callbacks_df
+        sub_df = merge(sub_df, formatted.nodes_df, 'node_handle')
+        tilde_sub = formatted.tilde_subscriptions_df
         sub_df = pd.merge(sub_df, tilde_sub, on=['node_name', 'topic_name'], how='left')
         sub_df = sub_df.astype({'tilde_subscription': 'Int64'})
 
@@ -220,10 +355,8 @@ class LttngInfo:
                 callback_object_intra = None
             else:
                 callback_object_intra = int(record_callback_object_intra)
-            self._id_to_topic[row['callback_id']] = row['topic_name']
 
-            sub_cbs_info[node_id].append(
-                SubscriptionCallbackValueLttng(
+            val = SubscriptionCallbackValueLttng(
                     callback_id=row['callback_id'],
                     node_id=node_id,
                     node_name=node_name,
@@ -235,25 +368,7 @@ class LttngInfo:
                     callback_object_intra=callback_object_intra,
                     tilde_subscription=tilde_subscription
                 )
-            )
-        return sub_cbs_info
-
-    def _get_subscription_callback_values(
-        self,
-        node: NodeValue
-    ) -> List[SubscriptionCallbackValueLttng]:
-        node_id = node.node_id
-        assert node_id is not None
-
-        sub_cbs_info: List[SubscriptionCallbackValueLttng]
-        sub_cbs_info = self._get_sub_cbs_without_pub(node_id)
-
-        # if node_id not in self._binder_cache.keys():
-        #     self._binder_cache[node_id] = PublisherBinder(self, self._source)
-
-        # binder = self._binder_cache[node_id]
-        # if binder.can_bind(node):
-        #     sub_cbs_info = binder.bind_pub_topics_and_sub_cbs(node_id, sub_cbs_info)
+            sub_cbs_info.add(node_id, val)
 
         return sub_cbs_info
 
@@ -274,55 +389,42 @@ class LttngInfo:
         Sequence[SubscriptionCallbackInfo]
 
         """
-        def get_sub_cb_local(node: NodeValueLttng):
-            node_id = node.node_id
-            if node_id not in self._sub_cb_cache.keys():
-                self._sub_cb_cache[node_id] = self._get_subscription_callback_values(node)
-            return self._sub_cb_cache[node_id]
-
-        if node.node_id is None:
-            return Util.flatten([
-                get_sub_cb_local(node)
-                for node
-                in self._get_nodes(node.node_name)
-            ])
-
-        node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_sub_cb_local(node_lttng)
+        node_lttng = self._get_node_lttng(node)
+        return self._sub_cbs.gets(node_lttng)
 
     @property
     def tilde_sub_id_map(self) -> Dict[int, int]:
         return self._formatted.tilde_sub_id_map
 
-    def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
-        node_id = node.node_id
+    # def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
+        # node_id = node.node_id
         # if node_id not in self._binder_cache.keys():
         #     self._binder_cache[node_id] = PublisherBinder(self, self._source)
 
         # binder = self._binder_cache[node_id]
         # if not binder.can_bind(node):
-        return self.get_publishers_without_cb_bind(node_id)
+        # return self.get_publishers_without_cb_bind(node_id)
 
-        cbs: List[Union[TimerCallbackValueLttng,
-                        SubscriptionCallbackValueLttng]] = []
-        cbs += self.get_timer_callbacks(node)
-        cbs += self.get_subscription_callbacks(node)
-        pubs_info = self.get_publishers_without_cb_bind(node_id)
+        # cbs: List[Union[TimerCallbackValueLttng,
+        #                 SubscriptionCallbackValueLttng]] = []
+        # cbs += self.get_timer_callbacks(node)
+        # cbs += self.get_subscription_callbacks(node)
+        # pubs_info = self.get_publishers_without_cb_bind(node_id)
 
-        for i, pub_info in enumerate(pubs_info):
-            topic_name = pub_info.topic_name
-            cbs_pubs = Util.filter_items(
-                lambda x: topic_name in x.publish_topic_names, cbs)
-            cb_ids = tuple(c.callback_id for c in cbs_pubs)
-            pubs_info[i] = PublisherValueLttng(
-                node_name=pub_info.node_name,
-                node_id=pub_info.node_id,
-                topic_name=pub_info.topic_name,
-                callback_ids=cb_ids,
-                publisher_handle=pub_info.publisher_handle
-            )
+        # for i, pub_info in enumerate(pubs_info):
+        #     topic_name = pub_info.topic_name
+        #     cbs_pubs = Util.filter_items(
+        #         lambda x: topic_name in x.publish_topic_names, cbs)
+        #     cb_ids = tuple(c.callback_id for c in cbs_pubs)
+        #     pubs_info[i] = PublisherValueLttng(
+        #         node_name=pub_info.node_name,
+        #         node_id=pub_info.node_id,
+        #         topic_name=pub_info.topic_name,
+        #         callback_ids=cb_ids,
+        #         publisher_handle=pub_info.publisher_handle
+        #     )
 
-        return pubs_info
+        # return pubs_info
 
     def get_publishers(self, node: NodeValue) -> List[PublisherValueLttng]:
         """
@@ -338,23 +440,9 @@ class LttngInfo:
         List[PublisherInfo]
 
         """
-        def get_publishers_local(node: NodeValueLttng):
-            node_id = node.node_id
 
-            if node_id not in self._pub_cache.keys():
-                self._pub_cache[node_id] = self._get_publishers(node)
-
-            return self._pub_cache[node_id]
-
-        if node.node_id is None:
-            return Util.flatten([
-                get_publishers_local(node)
-                for node
-                in self._get_nodes(node.node_name)
-            ])
-
-        node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_publishers_local(node_lttng)
+        node_lttng = self._get_node_lttng(node)
+        return self._pubs.gets(node_lttng)
 
     def _get_nodes(
         self,
@@ -362,7 +450,51 @@ class LttngInfo:
     ) -> Sequence[NodeValueLttng]:
         return Util.filter_items(lambda x: x.node_name == node_name, self.get_nodes())
 
-    def get_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
+    @staticmethod
+    def _load_pubs(
+        formatted: pd.DataFrame
+    ) -> Collection:
+        """
+        Get publishers information.
+
+        Parameters
+        ----------
+        node_name : str
+            target node name.
+
+        Returns
+        -------
+        List[PublisherInfo]
+
+        """
+        pubs = Collection()
+
+        pub_df = formatted.publishers_df
+        pub_df = merge(pub_df, formatted.nodes_df, 'node_handle')
+        tilde_pub = formatted.tilde_publishers_df
+
+        pub_df = pd.merge(pub_df, tilde_pub, on=['node_name', 'topic_name'], how='left')
+        pub_df = pub_df.astype({'tilde_publisher': 'Int64'})
+
+        for _, row in pub_df.iterrows():
+            tilde_publisher = row['tilde_publisher']
+            if tilde_publisher is pd.NA:
+                tilde_publisher = None
+
+            val = PublisherValueLttng(
+                    node_name=row['node_name'],
+                    topic_name=row['topic_name'],
+                    node_id=row['node_id'],
+                    callback_ids=None,
+                    publisher_handle=row['publisher_handle'],
+                    publisher_id=row['publisher_id'],
+                    tilde_publisher=tilde_publisher
+                )
+            pubs.add(row['node_id'], val)
+
+        return pubs
+
+    def _get_tf_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
         """
         Get publishers information.
 
@@ -386,6 +518,8 @@ class LttngInfo:
         for _, row in pub_df.iterrows():
             if row['node_id'] != node_id:
                 continue
+            if row['topic_name'] not in ['/tf', '/tf_static']:
+                continue
             tilde_publisher = row['tilde_publisher']
             if tilde_publisher is pd.NA:
                 tilde_publisher = None
@@ -397,66 +531,54 @@ class LttngInfo:
                     node_id=row['node_id'],
                     callback_ids=None,
                     publisher_handle=row['publisher_handle'],
+                    publisher_id=row['publisher_id'],
                     tilde_publisher=tilde_publisher
                 )
             )
 
         return pubs_info
 
-    def _is_user_made_callback(
-        self,
-        callback_id: str
-    ) -> bool:
-        is_subscription = callback_id in self._id_to_topic.keys()
-        if not is_subscription:
-            return True
-        topic_name = self._id_to_topic[callback_id]
-        return topic_name not in ['/clock', '/parameter_events']
+    @staticmethod
+    def _load_cbgs(
+        formatted: pd.DataFrame,
+        callbacks: Callbacks
+    ) -> Collection:
+        cbgs = Collection()
 
-    def _get_callback_groups(
-        self,
-        node_id: str
-    ) -> List[CallbackGroupValueLttng]:
         concate_target_dfs = []
-        concate_target_dfs.append(self._formatted.timer_callbacks_df)
-        concate_target_dfs.append(self._formatted.subscription_callbacks_df)
+        concate_target_dfs.append(formatted.timer_callbacks_df)
+        concate_target_dfs.append(formatted.subscription_callbacks_df)
+        concate_target_dfs.append(formatted.service_callbacks_df)
 
-        try:
-            column_names = [
-                'callback_group_addr', 'callback_id', 'node_handle'
-            ]
-            concat_df = concat(column_names, concate_target_dfs)
+        column_names = [
+            'callback_group_addr', 'callback_id', 'node_handle'
+        ]
+        concat_df = concat(column_names, concate_target_dfs)
 
-            concat_df = merge(
-                concat_df, self._formatted.nodes_df, 'node_handle')
-            concat_df = merge(
-                concat_df, self._formatted.callback_groups_df, 'callback_group_addr')
+        concat_df = merge(
+            concat_df, formatted.nodes_df, 'node_handle')
+        concat_df = merge(
+            concat_df, formatted.callback_groups_df, 'callback_group_addr')
 
-            cbgs = []
-            for _, group_df in concat_df.groupby(['callback_group_addr']):
-                row = group_df.iloc[0, :]
-                node_id_ = row['node_id']
-                if node_id != node_id_:
-                    continue
+        for _, group_df in concat_df.groupby(['callback_group_addr']):
+            row = group_df.iloc[0, :]
 
-                callback_ids = tuple(group_df['callback_id'].values)
-                callback_ids = tuple(Util.filter_items(self._is_user_made_callback, callback_ids))
+            callback_ids = tuple(group_df['callback_id'].values)
+            callback_ids = tuple(Util.filter_items(callbacks.is_user_defined, callback_ids))
 
-                cbgs.append(
-                    CallbackGroupValueLttng(
-                        callback_group_type_name=row['group_type_name'],
-                        node_name=row['node_name'],
-                        node_id=node_id,
-                        callback_ids=callback_ids,
-                        callback_group_id=row['callback_group_id'],
-                        callback_group_addr=row['callback_group_addr'],
-                        executor_addr=row['executor_addr'],
-                    )
+            val = CallbackGroupValueLttng(
+                    callback_group_type_name=row['group_type_name'],
+                    node_name=row['node_name'],
+                    node_id=row['node_id'],
+                    callback_ids=callback_ids,
+                    callback_group_id=row['callback_group_id'],
+                    callback_group_addr=row['callback_group_addr'],
+                    executor_addr=row['executor_addr'],
                 )
 
-            return cbgs
-        except KeyError:
-            return []
+            cbgs.add(row['node_id'], val)
+
+        return cbgs
 
     def get_callback_groups(
         self,
@@ -470,23 +592,8 @@ class LttngInfo:
         List[CallbackGroupInfo]
 
         """
-        def get_cbg_local(node: NodeValueLttng):
-            node_id = node.node_id
-
-            if node_id not in self._cbg_cache:
-                self._cbg_cache[node_id] = self._get_callback_groups(node.node_id)
-
-            return self._cbg_cache[node_id]
-
-        if node.node_id is None:
-            return Util.flatten([
-                get_cbg_local(node)
-                for node
-                in self._get_nodes(node.node_name)
-            ])
-
-        node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_cbg_local(node_lttng)
+        node_lttng = self._get_node_lttng(node)
+        return self._cbgs.gets(node_lttng)
 
     def get_executors(self) -> List[ExecutorValue]:
         """
@@ -502,13 +609,15 @@ class LttngInfo:
         exec_df = merge(exec_df, cbg_df, 'executor_addr')
         execs = []
 
-        for _, group in exec_df.groupby('executor_addr'):
+        for i, (_, group) in enumerate(exec_df.groupby('executor_addr')):
             row = group.iloc[0, :]
             executor_type_name = row['executor_type_name']
 
             cbg_ids = group['callback_group_id'].values
+            executor_id = f'executor_{i}'
             execs.append(
                 ExecutorValue(
+                    executor_id,
                     executor_type_name,
                     tuple(cbg_ids))
             )
@@ -878,6 +987,16 @@ class DataFrameFormatted:
         self._tilde_pub = self._build_tilde_publisher_df(data)
         self._tilde_sub_id_to_sub = self._build_tilde_sub_id_df(data, self._tilde_sub)
         self._timer_control = self._build_timer_control_df(data)
+        self._tf_broadcasters = self._build_tf_broadcasters_df(data, self._pub_df)
+        self._tf_buffers = self._build_tf_buffers_df(
+            data,
+            self._nodes_df,
+            self._timer_callbacks_df,
+            self._sub_callbacks_df,
+            self._srv_callbacks_df,
+        )
+        self._broadcaster_frame_id_df = data.broadcaster_frame_id_compact.reset_index()
+        self._buffer_frame_id_df = data.buffer_frame_id_compact.reset_index()
 
     @staticmethod
     def _ensure_columns(
@@ -983,7 +1102,19 @@ class DataFrameFormatted:
         return self._pub_df
 
     @property
-    def services_df(self) -> pd.DataFrame:
+    def tf_broadcasters_df(self) -> pd.DataFrame:
+        return self._tf_broadcasters
+
+    @property
+    def tf_broadcaster_frame_id_df(self) -> pd.DataFrame:
+        return self._broadcaster_frame_id_df
+
+    @property
+    def tf_buffer_frame_id_df(self) -> pd.DataFrame:
+        return self._buffer_frame_id_df
+
+    @property
+    def service_callbacks_df(self) -> pd.DataFrame:
         """
         Get service info table.
 
@@ -995,6 +1126,7 @@ class DataFrameFormatted:
             - callback_object
             - node_handle
             - service_handle
+            - callback_group_addr
             - service_name
             - symbol
 
@@ -1068,18 +1200,143 @@ class DataFrameFormatted:
     def timer_controls_df(self) -> pd.DataFrame:
         return self._timer_control
 
+    @property
+    def tf_buffers_df(self):
+        return self._tf_buffers
+
+    @staticmethod
+    def _build_tf_buffers_df(
+        data: Ros2DataModel,
+        node_df: pd.DataFrame,
+        timer_df: pd.DataFrame,
+        sub_df: pd.DataFrame,
+        srv_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        columns = [
+            'tf_buffer',
+            'tf_buffer_core',
+            'callback',
+            'clock',
+            'listener_node_id',
+            'lookup_node_id',
+            'frame_id_compact',
+            'child_frame_id_compact',
+        ]
+        try:
+            df = data.construct_tf_buffer.reset_index().convert_dtypes()
+            df = pd.merge(
+                df,
+                data.init_bind_tf_buffer_core.reset_index(),
+                left_on='tf_buffer_core',
+                right_on='tf_buffer_core'
+            )
+
+            lookup_df = data.tf_buffer_lookup_transforms.reset_index().convert_dtypes()
+            df = pd.merge(
+                df,
+                lookup_df,
+                on='tf_buffer_core',
+            )
+
+            cb_columns = ['callback_object', 'node_handle']
+            cb_df = pd.concat(
+                [
+                    timer_df[cb_columns],
+                    sub_df[cb_columns],
+                    srv_df[cb_columns]
+                ]
+            )
+            df = pd.merge(
+                df, cb_df,
+                left_on='callback',
+                right_on='callback_object',
+                how='left'
+            )
+
+            df = pd.merge(
+                df,
+                node_df,
+                on='node_handle',
+                how='left'
+            )
+            df.rename(
+                {'node_id': 'listener_node_id', 'node_handle': 'listener_node_handle'},
+                axis=1, inplace=True
+            )
+
+            df = pd.merge(
+                df,
+                data.construct_node_hook.reset_index(),
+                left_on='clock',
+                right_on='clock',
+                how='left'
+            )
+
+            df = pd.merge(
+                df,
+                node_df,
+                on='node_handle',
+                how='left'
+            )
+            df.dropna(inplace=True)
+
+            df.rename(
+                {'node_id': 'lookup_node_id', 'node_handle': 'lookup_node_handle'},
+                axis=1, inplace=True)
+        except KeyError:
+            pass
+
+        df = DataFrameFormatted._ensure_columns(df, columns)
+        return df[columns]
+
     @staticmethod
     def _build_publisher_df(
         data: Ros2DataModel,
     ) -> pd.DataFrame:
-        columns = ['publisher_id', 'publisher_handle', 'node_handle', 'topic_name', 'depth']
+        columns = [
+            'publisher_id',
+            'publisher_handle',
+            'node_handle',
+            'topic_name',
+            'depth',
+        ]
         df = data.publishers.reset_index()
 
-        def to_publisher_id(row: pd.Series):
-            publisher_handle = row['publisher_handle']
-            return f'publisher_{publisher_handle}'
+        def to_publisher_id(i: int, row: pd.Series):
+            return f'publisher_{i}'
 
         df = DataFrameFormatted._add_column(df, 'publisher_id', to_publisher_id)
+        df = DataFrameFormatted._ensure_columns(df, columns)
+        return df[columns]
+
+    @staticmethod
+    def _build_tf_broadcasters_df(
+        data: Ros2DataModel,
+        pub_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        columns = [
+            'transform_broadcaster',
+            'publisher_id',
+            'publisher_handle',
+            'node_handle',
+            'topic_name',
+            'depth',
+            'frame_id',
+            'child_frame_id'
+        ]
+        try:
+            df = data.transform_broadcaster.reset_index()
+            tf_frames = data.transform_broadcaster_frames.reset_index()
+            df = pd.merge(
+                df,
+                tf_frames,
+                on='transform_broadcaster',
+                how='outer'
+            )
+
+            df = pd.merge(df, pub_df, on='publisher_handle', how='left')
+        except KeyError:
+            pass
         df = DataFrameFormatted._ensure_columns(df, columns)
         return df[columns]
 
@@ -1107,9 +1364,8 @@ class DataFrameFormatted:
             columns_ = columns[1:]  # ignore executor_id
             df = concat(columns_, [df, df_])
 
-        def to_executor_id(row: pd.Series) -> str:
-            addr = row['executor_addr']
-            return f'executor_{addr}'
+        def to_executor_id(i: int, row: pd.Series) -> str:
+            return f'executor_{i}'
 
         df = DataFrameFormatted._add_column(df, 'executor_id', to_executor_id)
         df = DataFrameFormatted._ensure_columns(df, columns)
@@ -1137,9 +1393,8 @@ class DataFrameFormatted:
             columns_ = columns[1:]  # ignore callback_group_id
             df = concat(columns_, [df, df_static])
 
-        def to_callback_group_id(row: pd.Series) -> str:
-            addr = row['callback_group_addr']
-            return f'callback_group_{addr}'
+        def to_callback_group_id(i: int, row: pd.Series) -> str:
+            return f'callback_group_{i}'
 
         df = DataFrameFormatted._add_column(df, 'callback_group_id', to_callback_group_id)
         df = DataFrameFormatted._ensure_columns(df, columns)
@@ -1154,7 +1409,7 @@ class DataFrameFormatted:
             if len(group) >= 2:
                 msg = ('Multiple executors using the same callback group were detected.'
                        'The last executor will be used. ')
-                exec_addr = list(group['executor_addr'].values)
+                exec_addr = list(set(group['executor_addr'].values))
                 msg += f'executor address: {exec_addr}'
                 logger.warn(msg)
                 executor_duplicated_indexes += list(group.index)[:-1]
@@ -1174,9 +1429,8 @@ class DataFrameFormatted:
             'period_ns', 'symbol',
         ]
 
-        def callback_id(row: pd.Series) -> str:
-            cb_object = row['callback_object']
-            return f'timer_callback_{cb_object}'
+        def callback_id(i: int, row: pd.Series) -> str:
+            return f'timer_callback_{i}'
         try:
             df = data.timers.reset_index()
 
@@ -1212,9 +1466,8 @@ class DataFrameFormatted:
             'subscription_handle', 'callback_group_addr', 'topic_name', 'symbol', 'depth'
         ]
 
-        def callback_id(row: pd.Series) -> str:
-            cb_object = row['callback_object']
-            return f'subscription_callback_{cb_object}'
+        def callback_id(i: int, row: pd.Series) -> str:
+            return f'subscription_callback_{i}'
 
         try:
             df = data.subscriptions.reset_index()
@@ -1244,12 +1497,11 @@ class DataFrameFormatted:
     ) -> pd.DataFrame:
         columns = [
             'callback_id', 'callback_object', 'node_handle',
-            'service_handle', 'service_name', 'symbol'
+            'service_handle', 'callback_group_addr', 'service_name', 'symbol'
         ]
 
-        def callback_id(row: pd.Series) -> str:
-            cb_object = row['callback_object']
-            return f'service_callback_{cb_object}'
+        def callback_id(i: int, row: pd.Series) -> str:
+            return f'service_callback_{i}'
 
         try:
             df = data.services.reset_index()
@@ -1260,6 +1512,9 @@ class DataFrameFormatted:
 
             symbols_df = data.callback_symbols.reset_index()
             df = merge(df, symbols_df, 'callback_object')
+
+            cbg = data.callback_group_service.reset_index()
+            df = merge(df, cbg, 'service_handle')
 
             df = DataFrameFormatted._add_column(
                 df, 'callback_id', callback_id
@@ -1328,9 +1583,8 @@ class DataFrameFormatted:
             'subscription_handle', 'callback_group_addr', 'topic_name', 'symbol', 'depth'
         ]
 
-        def callback_id(row: pd.Series) -> str:
-            cb_object = row['callback_object']
-            return f'subscription_callback_{cb_object}'
+        def callback_id(i: int, row: pd.Series) -> str:
+            return f'subscription_callback_{i}'
 
         try:
             df = data.subscriptions.reset_index()
@@ -1436,7 +1690,7 @@ class DataFrameFormatted:
     def _add_column(
         df: pd.DataFrame,
         column_name: str,
-        cell_rule: Callable[[pd.Series], str]
+        cell_rule: Callable[[int, pd.Series], str]
     ) -> pd.DataFrame:
         from copy import deepcopy
         df_ = deepcopy(df)
@@ -1444,7 +1698,7 @@ class DataFrameFormatted:
         df_[column_name] = ''
         for i in range(len(df_)):
             row = df_.iloc[i, :]
-            df_.loc[i, column_name] = cell_rule(row)
+            df_.loc[i, column_name] = cell_rule(i, row)
 
         return df_
 
@@ -1456,7 +1710,7 @@ class DataFrameFormatted:
 
         node_df = data.nodes.reset_index()
 
-        def ns_and_node_name(row: pd.Series) -> str:
+        def ns_and_node_name(i: int, row: pd.Series) -> str:
             ns: str = row['namespace']
             name: str = row['name']
 
@@ -1467,7 +1721,7 @@ class DataFrameFormatted:
 
         node_df = DataFrameFormatted._add_column(node_df, 'node_name', ns_and_node_name)
 
-        def to_node_id(row: pd.Series) -> str:
+        def to_node_id(i: int, row: pd.Series) -> str:
             node_name = row['node_name']
             node_handle = row['node_handle']
             return f'{node_name}_{node_handle}'
@@ -1512,7 +1766,7 @@ def concat(
         has_columns = (set(df.columns) & set(
             column_names)) == set(column_names)
         if not has_columns:
-            continue
+            raise InvalidArgumentError('')
         concat_targets.append(df[column_names])
 
     return pd.concat(concat_targets, axis=0).reset_index(drop=True)

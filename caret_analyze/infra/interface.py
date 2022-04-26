@@ -18,12 +18,21 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional, Union
 
 from ..common import ClockConverter
-from ..record.interface import RecordsInterface
-from ..value_objects import (CallbackStructValue, CommunicationStructValue,
-                             NodePathStructValue, PublisherStructValue, Qos,
-                             SubscriptionStructValue,
-                             TimerStructValue,
-                             VariablePassingStructValue)
+from ..record import RecordsInterface
+from ..value_objects import (
+    CallbackStructValue,
+    CommunicationStructValue,
+    NodePathStructValue,
+    PublisherStructValue,
+    Qos,
+    SubscriptionStructValue,
+    TimerStructValue,
+    TransformCommunicationStructValue,
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
+    TransformValue,
+    VariablePassingStructValue,
+)
 
 
 class RecordsProvider(metaclass=ABCMeta):
@@ -83,9 +92,6 @@ class RecordsProvider(metaclass=ABCMeta):
     ) -> RecordsInterface:
         pass
 
-    # callback_publish
-    # any
-    # callback_start
     @abstractmethod
     def communication_records(
         self,
@@ -104,6 +110,42 @@ class RecordsProvider(metaclass=ABCMeta):
     def publish_records(
         self,
         publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def tf_broadcast_records(
+        self,
+        broadcaster: TransformFrameBroadcasterStructValue,
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def tf_lookup_records(
+        self,
+        buffer: TransformFrameBufferStructValue,
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def tf_communication_records(
+        self,
+        communication: TransformCommunicationStructValue
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def tf_set_records(
+        self,
+        buffer: TransformFrameBufferStructValue,
+        transform: TransformValue,
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def tf_set_lookup_records(
+        self,
+        buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
         pass
 

@@ -12,17 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import cached_property
+from functools import cached_property, lru_cache
 
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Tuple
+
+from caret_analyze.record.column import ColumnMapper
 
 from .column_names import COLUMN_NAME
 from .events_factory import EventsFactory
 from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import TimerCallbackValueLttng, TimerControl, TimerInit
-from ...common import Columns, Util
-from ...record import (merge, merge_sequencial,
+from ...common import Util
+from ...record import (Column, ColumnAttribute, merge, merge_sequencial,
                        merge_sequencial_for_addr_track,
                        RecordFactory,
                        RecordsFactory,
@@ -46,14 +48,14 @@ class RecordsSource():
             {COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP}
         )
 
-    @cached_property
-    def _grouped_callback_start(self) -> Dict[int, RecordsInterface]:
+    @lru_cache
+    def _grouped_callback_start(self) -> Tuple[List[Column], Dict[int, RecordsInterface]]:
         records = self._data.callback_start_instances.clone()
         group: Dict[int, RecordsInterface] = {}
         for k, v in records.groupby([COLUMN_NAME.IS_INTRA_PROCESS]).items():
             assert len(k) == 1
             group[k[0]] = v
-        return group
+        return records.columns, group
 
     @cached_property
     def inter_proc_comm_records(self) -> RecordsInterface:
@@ -96,12 +98,6 @@ class RecordsSource():
             copy_to_key=COLUMN_NAME.ADDR_TO,
             sink_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
             sink_from_key=COLUMN_NAME.ADDR,
-            columns=[
-                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-                COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.SOURCE_TIMESTAMP,
-            ],
             progress_label='binding: message_addr and rclcpp_publish',
         )
 
@@ -116,13 +112,6 @@ class RecordsSource():
                 join_left_key=COLUMN_NAME.MESSAGE,
                 join_right_key=COLUMN_NAME.MESSAGE,
                 how='left',
-                columns=[
-                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.PUBLISHER_HANDLE,
-                    COLUMN_NAME.MESSAGE,
-                    COLUMN_NAME.MESSAGE_TIMESTAMP,
-                ],
                 progress_label='binding: rclcpp_publish and rcl_publish',
             )
 
@@ -135,7 +124,6 @@ class RecordsSource():
                 right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
                 join_left_key=COLUMN_NAME.MESSAGE,
                 join_right_key=COLUMN_NAME.MESSAGE,
-                columns=Columns(publish.columns + dds_write.columns).as_list(),
                 how='left',
                 progress_label='binding: rcl_publish and dds_write',
             )
@@ -154,17 +142,19 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
             join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
-            columns=Columns(intra_publish.columns + publish.columns).as_list(),
             how='right'
         )
-        rclcpp_publish = [None] * len(publish.data)
-        for i, record in enumerate(publish.data):
+        rclcpp_publish: List[int] = []
+        for record in publish.data:
             if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.data:
-                rclcpp_publish[i] = record.data[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP]
+                rclcpp_publish.append(record.data[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP])
             else:
-                rclcpp_publish[i] = record.data[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP]
+                rclcpp_publish.append(
+                    record.data[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP])
+
         publish.append_column(
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, rclcpp_publish)
+            Column(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, [ColumnAttribute.SYSTEM_TIME]),
+            rclcpp_publish)
         publish.drop_columns([
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP
@@ -180,7 +170,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns(subscription.columns + callback_start_instances.columns).as_list(),
             how='left',
             progress_label='binding: dispatch_subscription_callback and callback_start',
         )
@@ -200,7 +189,6 @@ class RecordsSource():
             subscription,
             join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
             join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
-            columns=Columns(publish.columns + subscription.columns).as_list(),
             how='left',
             progress_label='binding: source_timestamp and callback_start',
         )
@@ -247,14 +235,6 @@ class RecordsSource():
                 join_left_key='tid',
                 join_right_key='tid',
                 how='left',
-                columns=[
-                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.PUBLISHER_HANDLE,
-                    COLUMN_NAME.MESSAGE,
-                    'tid',
-                    COLUMN_NAME.MESSAGE_TIMESTAMP,
-                ],
                 progress_label='binding: rclcpp_publish and rcl_publish',
             )
 
@@ -267,7 +247,6 @@ class RecordsSource():
                 right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
                 join_left_key='tid',
                 join_right_key='tid',
-                columns=Columns(inter_proc_publish.columns + dds_write.columns).as_list(),
                 how='left',
                 progress_label='binding: rclcppp_publish and dds_write',
             )
@@ -279,8 +258,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
             join_left_key='tid',
             join_right_key='tid',
-            columns=Columns(
-                inter_proc_publish.columns + self._data.dds_bind_addr_to_stamp.columns).as_list(),
             how='left',
             progress_label='binding: rclcppp_publish and source_timestamp',
         )
@@ -311,7 +288,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
             join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
-            columns=Columns(inter_proc_publish.columns + intra_proc_publish.columns).as_list(),
             how='outer',
             progress_label='binding intra_publish and inter_publish'
         )
@@ -327,23 +303,185 @@ class RecordsSource():
             inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
             publish_stamps.append(inter_intra_publish)
 
-        publish.append_column(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, publish_stamps)
+        publish.append_column(
+            Column(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                   [ColumnAttribute.SYSTEM_TIME]),
+            publish_stamps)
 
         columns = []
         columns.append(COLUMN_NAME.PUBLISHER_HANDLE)
         columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in publish.columns:
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in publish.column_names:
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in publish.columns:
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in publish.column_names:
             columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
         columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
         columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
 
-        drop_columns = set(publish.columns) - set(columns)
-        publish.drop_columns(list(drop_columns))
+        drop_columns = list(set(publish.column_names) - set(columns))
+        publish.drop_columns(drop_columns)
         publish.reindex(columns)
 
         return publish
+
+    @lru_cache
+    def send_transform_records(
+        self,
+        frame_mapper: ColumnMapper
+    ) -> RecordsInterface:
+        records = self._data.send_transform
+
+        frame_ids: List[int] = []
+        child_frame_ids: List[int] = []
+        for record in records:
+            to_frame_id = self._info.get_tf_broadcaster_frame_compact_map(
+                record.get('broadcaster'))
+            frame_id = to_frame_id[record.get('frame_id_compact')]
+            frame_ids.append(frame_mapper.get_key(frame_id))
+            child_frame_id = to_frame_id[record.get('child_frame_id_compact')]
+            child_frame_ids.append(frame_mapper.get_key(child_frame_id))
+        records.append_column(
+            Column('frame_id', mapper=frame_mapper),
+            frame_ids
+        )
+        records.append_column(
+            Column('child_frame_id', mapper=frame_mapper),
+            child_frame_ids
+        )
+
+        records.drop_columns(['frame_id_compact', 'child_frame_id_compact'])
+
+        return records
+
+    @lru_cache
+    def lookup_transform_records(
+        self,
+        frame_mapper: ColumnMapper
+    ) -> RecordsInterface:
+        lookup_start = self._data.tf_lookup_transform_start
+        lookup_end = self._data.tf_lookup_transform_end
+        records = merge_sequencial(
+            left_records=lookup_start,
+            right_records=lookup_end,
+            join_left_key='tf_buffer_core',
+            join_right_key='tf_buffer_core',
+            left_stamp_key='lookup_transform_start_timestamp',
+            right_stamp_key='lookup_transform_end_timestamp',
+            how='left'
+        )
+
+        frame_ids = []
+        child_frame_ids = []
+        for record in records:
+            to_frame_id = self._info.get_tf_buffer_frame_compact_map(
+                record.get('tf_buffer_core'))
+            frame_id = to_frame_id[record.get('frame_id_compact')]
+            frame_ids.append(frame_mapper.get_key(frame_id))
+            child_frame_id = to_frame_id[record.get('child_frame_id_compact')]
+            child_frame_ids.append(frame_mapper.get_key(child_frame_id))
+        records.append_column(
+            Column('frame_id', mapper=frame_mapper),
+            frame_ids
+        )
+        records.append_column(
+            Column('child_frame_id', mapper=frame_mapper),
+            child_frame_ids
+        )
+
+        records.drop_columns(['frame_id_compact', 'child_frame_id_compact'])
+        return records
+        # df = .to_dataframe()
+        # end_df = self._data.tf_lookup_transform_end.to_dataframe()
+
+        # cache_df = self._data.buffer_cache.reset_index()
+        # mapper = self._info.get_tf_buffer_frame_mapper()
+        # closest_df = self._data.tf_find_closest.to_dataframe()
+        # set_df = self._data.tf_set_transform.to_dataframe()
+        # TODO: 座標ごと、broadcaster毎で別々につくる。
+
+        # raise NotImplementedError('')
+        # return self._data.send_transform
+
+    @lru_cache
+    def set_transform_records(
+        self,
+        frame_mapper: ColumnMapper
+    ) -> RecordsInterface:
+        cb_start = self._data.callback_start_instances.clone()
+        set_tf = self._data.tf_set_transform.clone()
+        cb_end = self._data.callback_end_instances.clone()
+
+        records = set_tf
+        frame_ids = []
+        child_frame_ids = []
+        for record in records:
+            to_frame_id = self._info.get_tf_buffer_frame_compact_map(
+                record.get('tf_buffer_core'))
+            frame_id = to_frame_id[record.get('frame_id_compact')]
+            frame_ids.append(frame_mapper.get_key(frame_id))
+            child_frame_id = to_frame_id[record.get('child_frame_id_compact')]
+            child_frame_ids.append(frame_mapper.get_key(child_frame_id))
+        records.append_column(
+            Column('frame_id', mapper=frame_mapper),
+            frame_ids
+        )
+        records.append_column(
+            Column('child_frame_id', mapper=frame_mapper),
+            child_frame_ids
+        )
+        records.drop_columns(['frame_id_compact', 'child_frame_id_compact'])
+
+        records = merge_sequencial(
+            left_records=cb_start,
+            right_records=set_tf,
+            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key='set_transform_timestamp',
+            join_left_key='tid',
+            join_right_key='tid',
+            how='right',
+        )
+        records = merge_sequencial(
+            left_records=records,
+            right_records=cb_end,
+            left_stamp_key='set_transform_timestamp',
+            right_stamp_key=COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+            join_left_key='tid',
+            join_right_key='tid',
+            how='left',
+        )
+        records.drop_columns([
+            'tid',
+            'callback_object',
+            'is_intra_process',
+        ])
+        return records
+
+    @lru_cache
+    def find_closest_records(
+        self,
+        frame_mapper: ColumnMapper
+    ) -> RecordsInterface:
+        records = self._data.tf_find_closest.clone()
+
+        frame_ids: List[int] = []
+        child_frame_ids: List[int] = []
+        for record in records:
+            to_frame_id = self._info.get_tf_buffer_frame_compact_map(
+                record.get('tf_buffer_core'))
+            frame_id = to_frame_id[record.get('frame_id_compact')]
+            frame_ids.append(frame_mapper.get_key(frame_id))
+            child_frame_id = to_frame_id[record.get('child_frame_id_compact')]
+            child_frame_ids.append(frame_mapper.get_key(child_frame_id))
+        records.append_column(Column('frame_id', mapper=frame_mapper),
+                              frame_ids
+                              )
+        records.append_column(
+            Column('child_frame_id', mapper=frame_mapper),
+            child_frame_ids
+        )
+        records.drop_columns(['frame_id_compact', 'child_frame_id_compact'])
+
+        return records
 
     def create_timer_events_factory(
         self,
@@ -370,7 +508,7 @@ class RecordsSource():
             def create(self, until_ns: int) -> RecordsInterface:
 
                 columns = [
-                    COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+                    Column(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
                 ]
 
                 records = RecordsFactory.create_instance(None, columns)
@@ -419,7 +557,7 @@ class RecordsSource():
             subscription_id = record.get('subscription_id')
             subscription.append(self._info.tilde_sub_id_map[subscription_id])
 
-        records.append_column('tilde_subscription', subscription)
+        records.append_column(Column('tilde_subscription'), subscription)
         records.drop_columns(['subscription_id'])
         return records
 
@@ -443,23 +581,19 @@ class RecordsSource():
 
     @cached_property
     def intra_callback_records(self) -> RecordsInterface:
-        intra_proc_subscribe = RecordsFactory.create_instance(
-            None,
-            ['callback_start_timestamp', 'callback_object', 'is_intra_process']
-        )
-        if 1 in self._grouped_callback_start:
-            intra_callback_start = self._grouped_callback_start[1].clone()
+        columns, group = self._grouped_callback_start()
+        intra_proc_subscribe = RecordsFactory.create_instance(None, columns)
+        if 1 in group:
+            intra_callback_start = group[1].clone()
             intra_proc_subscribe.concat(intra_callback_start)
         return intra_proc_subscribe
 
     @cached_property
     def inter_callback_records(self) -> RecordsInterface:
-        intra_proc_subscribe = RecordsFactory.create_instance(
-            None,
-            ['callback_start_timestamp', 'callback_object', 'is_intra_process']
-        )
-        if 0 in self._grouped_callback_start:
-            intra_callback_start = self._grouped_callback_start[0].clone()
+        columns, group = self._grouped_callback_start()
+        intra_proc_subscribe = RecordsFactory.create_instance(None, columns)
+        if 0 in group:
+            intra_callback_start = group[0].clone()
             intra_proc_subscribe.concat(intra_callback_start)
         return intra_proc_subscribe
 
@@ -475,8 +609,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns(
-                inter_proc_subscrube.columns + callback_start_instances.columns).as_list(),
             how='left',
             progress_label='binding: dispatch_subscription_callback and callback_start',
         )
@@ -490,7 +622,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns(inter_proc_subscrube.columns + intra_proc_subscribe.columns).as_list(),
             how='outer',
             progress_label='binding intra and inter subscribe'
         )
@@ -531,13 +662,6 @@ class RecordsSource():
             copy_to_key=COLUMN_NAME.CONSTRUCTED_MESSAGE,
             sink_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
             sink_from_key=COLUMN_NAME.MESSAGE,
-            columns=[
-                COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.MESSAGE_TIMESTAMP,
-            ],
             progress_label='bindig: publish_timestamp and message_addr',
         )
 
@@ -547,7 +671,6 @@ class RecordsSource():
             right_records=sink_records,
             join_left_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
             join_right_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
-            columns=intra_publish_records.columns + [COLUMN_NAME.MESSAGE],
             how='inner'
         )
 
@@ -558,7 +681,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
             join_left_key=COLUMN_NAME.MESSAGE,
             join_right_key=COLUMN_NAME.MESSAGE,
-            columns=intra_publish_records.columns,
             how='left_use_latest'
         )
 
@@ -571,8 +693,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=intra_publish_records.columns + [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP, COLUMN_NAME.IS_INTRA_PROCESS],
             how='left',
             progress_label='bindig: dispath_subsription and callback_start',
         )
@@ -619,12 +739,6 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_END_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=[
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.IS_INTRA_PROCESS,
-            ],
             how='inner',
             progress_label='binding: callback_start and callback_end'
         )

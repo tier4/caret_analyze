@@ -1,0 +1,366 @@
+# Copyright 2021 Research Institute of Systems Planning, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import annotations
+
+from logging import getLogger
+
+from typing import Union, Optional, List, Tuple, Iterable, Iterator
+from multimethod import multimethod as singledispatchmethod
+
+from caret_analyze.value_objects.node_path import NodePathValue
+
+from .publisher import PublisherStruct
+from .struct_interface import (
+    CallbackStructInterface,
+    NodeInputType,
+    NodeOutputType,
+    NodePathStructInterface,
+    NodePathsStructInterface,
+    NodeStructInterface,
+    TransformFrameBroadcasterStructInterface,
+    TransformFrameBufferStructInterface,
+)
+from .subscription import SubscriptionStruct
+from .callback_path import CallbackPathStruct
+from .transform import TransformFrameBroadcasterStruct, TransformFrameBufferStruct
+from .variable_passing import VariablePassingStruct
+from ..reader_interface import ArchitectureReader
+from ...value_objects import MessageContext, NodePathStructValue
+from ...exceptions import (
+    ItemNotFoundError,
+)
+
+logger = getLogger(__name__)
+
+
+NodeSend = Union[PublisherStruct, TransformFrameBroadcasterStruct]
+NodeRecv = Union[SubscriptionStruct, TransformFrameBufferStruct]
+
+
+class NodePathStruct(NodePathStructInterface):
+
+    def __init__(
+        self,
+        node_name: str,
+        node_input: Optional[NodeInputType],
+        node_output: Optional[NodeOutputType],
+        callback_path: Optional[CallbackPathStruct] = None,
+        message_context: Optional[MessageContext] = None,
+    ) -> None:
+        self._node_name = node_name
+        self._node_input = node_input
+        self._node_output = node_output
+        self._callback_path = callback_path
+        self._message_context = message_context
+
+    @property
+    def publisher(self) -> Optional[PublisherStruct]:
+        if isinstance(self._node_output, PublisherStruct):
+            return self._node_output
+        return None
+
+    @property
+    def node_input(self) -> Optional[NodeInputType]:
+        return self._node_input
+
+    @property
+    def node_output(self) -> Optional[NodeOutputType]:
+        return self._node_output
+
+    @property
+    def tf_frame_broadcaster(self) -> Optional[TransformFrameBroadcasterStructInterface]:
+        if isinstance(self._node_output, TransformFrameBroadcasterStructInterface):
+            return self._node_output
+        return None
+
+    @property
+    def subscription(self) -> Optional[SubscriptionStruct]:
+        if isinstance(self._node_input, SubscriptionStruct):
+            return self._node_input
+        return None
+
+    @property
+    def tf_frame_buffer(self) -> Optional[TransformFrameBufferStructInterface]:
+        if isinstance(self._node_input, TransformFrameBufferStructInterface):
+            return self._node_input
+        return None
+
+    def to_value(self) -> NodePathStructValue:
+        assert self.node_name is not None
+        # assert self.publisher is not None or self.tf_frame_broadcaster is not None
+        if self.publisher is not None and self.publisher.topic_name == '/tf':
+            assert None
+
+        publisher = None if self.publisher is None else self.publisher.to_value()
+        subscription = None if self.subscription is None else self.subscription.to_value()
+        tf_frame_buffer = None if self.tf_frame_buffer is None else self.tf_frame_buffer.to_value()
+        tf_frame_br = None if self.tf_frame_broadcaster is None \
+            else self.tf_frame_broadcaster.to_value()
+        msg_contxt = self.message_context
+        child = self.callback_path.to_value() if self.callback_path is not None else None
+
+        return NodePathStructValue(
+            node_name=self.node_name,
+            subscription=subscription,
+            publisher=publisher,
+            tf_frame_buffer=tf_frame_buffer,
+            tf_frame_broadcaster=tf_frame_br,
+            child=child,
+            message_context=msg_contxt
+        )
+
+    @property
+    def node_name(self) -> str:
+        assert self._node_name is not None
+        return self._node_name
+
+    # @node_name.setter
+    # def node_name(self, node_name: str) -> None:
+    #     self._node_name = node_name
+
+    # @property
+    # def publish_topic_name(self) -> Optional[str]:
+    #     if self.publisher is not None:
+    #         return self.publisher.topic_name
+    #     return None
+
+    # @property
+    # def subscribe_topic_name(self) -> Optional[str]:
+    #     if self.subscription is not None:
+    #         return self.subscription.topic_name
+    #     return None
+
+    @property
+    def message_context(self) -> Optional[MessageContext]:
+        return self._message_context
+
+    @message_context.setter
+    def message_context(self, message_context: MessageContext):
+        self._message_context = message_context
+
+    @property
+    def child(self) -> Optional[CallbackPathStruct]:
+        return self.callback_path
+
+    @property
+    def callback_path(self) -> Optional[CallbackPathStruct]:
+        return self._callback_path
+
+    @callback_path.setter
+    def callback_path(self, callback_path: CallbackPathStruct) -> None:
+        self._callback_path = callback_path
+
+    # def __eq__(self, __o: object) -> bool:
+    #     if isinstance(__o, NodePathStruct):
+    #         return self.key == __o.key
+    #     return False
+
+    # def __hash__(self) -> int:
+    #     h = 17
+    #     for k in self.key:
+    #         h += h * 31 + hash(k)
+    #     return h
+
+    # def _create_callack_chain(
+    #     self
+    # ) -> List[MessageContext]:
+    #     chains: List[MessageContext] = []
+    #     for path in node_paths:
+    #         if path.callbacks is not None:
+    #             chains.append(
+    #                 CallbackChain(
+    #                     path.node_name,
+    #                     {},
+    #                     path.subscription,
+    #                     path.publisher,
+    #                     path.callbacks)
+    #             )
+    #     return chains
+
+    # @property
+    # def key(self) -> Tuple[str, ...]:
+    #     keys: List[str] = []
+    #     sub_topic_name = ''
+    #     if self.subscription is not None:
+    #         sub_topic_name = self.subscription.topic_name
+    #     keys.append(sub_topic_name)
+
+    #     if self.tf_broadcaster is not None:
+    #         keys.append(self.tf_broadcaster.transform.frame_id)
+    #         keys.append(self.tf_broadcaster.transform.child_frame_id)
+
+    #     pub_topic_name = ''
+    #     if self.publisher is not None:
+    #         pub_topic_name = self.publisher.topic_name
+    #     keys.append(pub_topic_name)
+
+    #     if self.tf_buffer is not None:
+    #         keys.append(self.tf_buffer.transform.frame_id)
+    #         keys.append(self.tf_buffer.transform.child_frame_id)
+
+    #     return tuple(keys)
+
+
+class NodePathsStruct(NodePathsStructInterface, Iterable):
+
+    def __init__(
+        self,
+    ) -> None:
+        self._data: List[NodePathStruct] = []
+
+    def insert(self, node_path: NodePathStruct) -> None:
+        self._data.append(node_path)
+
+    def to_value(self) -> Tuple[NodePathStructValue, ...]:
+        return tuple(_.to_value() for _ in self._data)
+
+    def __iter__(self) -> Iterator[NodePathStruct]:
+        return iter(self._data)
+
+    @singledispatchmethod
+    def get(self, obj):
+        raise NotImplementedError('Not implemented')
+
+    @get.register
+    def _get_struct(
+        self,
+        node_input: Optional[NodeInputType],
+        node_output: Optional[NodeOutputType]
+    ) -> NodePathStruct:
+        node_name = None
+
+        if isinstance(node_input, SubscriptionStruct):
+            node_name = node_input.node_name if node_input is not None else None
+        elif isinstance(node_input, TransformFrameBufferStruct):
+            node_name = node_name or node_input.lookup_node_name \
+                if node_input is not None else None
+        if isinstance(node_output, PublisherStruct):
+            node_name = node_name or node_output.node_name if node_output is not None else None
+        elif isinstance(node_output, TransformFrameBroadcasterStruct):
+            node_name = node_name or node_output.node_name if node_output is not None else None
+
+        assert node_input is not None or node_output is not None
+        assert node_name is not None
+
+        for node_path in self:
+            if node_path.node_input == node_input and \
+                node_path.node_output == node_output and \
+                    node_path.node_name == node_name:
+                return node_path
+
+        raise ItemNotFoundError('Failed to find node path')
+
+    @get.register
+    def _get_node_path(self, node_path: NodePathValue):
+        return self._get_dict(
+            node_name=node_path.node_name,
+            subscribe_topic_name=node_path.subscribe_topic_name,
+            publish_topic_name=node_path.publish_topic_name,
+            broadcast_frame_id=node_path.broadcast_frame_id,
+            broadcast_child_frame_id=node_path.broadcast_child_frame_id,
+            buffer_listen_frame_id=node_path.buffer_listen_frame_id,
+            buffer_listen_child_frame_id=node_path.buffer_listen_child_frame_id,
+            buffer_lookup_frame_id=node_path.buffer_lookup_frame_id,
+            buffer_lookup_child_frame_id=node_path.buffer_lookup_child_frame_id,
+        )
+
+    @get.register
+    def _get_dict(
+        self,
+        node_name: str,
+        subscribe_topic_name: Optional[str],
+        publish_topic_name: Optional[str],
+        broadcast_frame_id: Optional[str] = None,
+        broadcast_child_frame_id: Optional[str] = None,
+        buffer_listen_frame_id: Optional[str] = None,
+        buffer_listen_child_frame_id: Optional[str] = None,
+        buffer_lookup_frame_id: Optional[str] = None,
+        buffer_lookup_child_frame_id: Optional[str] = None,
+    ) -> NodePathStruct:
+        # TODO(hsgwa): add assertion here.
+        is_publisher = publish_topic_name is not None
+        is_subscrioption = subscribe_topic_name is not None
+        is_tf_br = broadcast_frame_id is not None or broadcast_child_frame_id is not None
+        is_tf_buff = buffer_listen_frame_id is not None or buffer_listen_child_frame_id is not None
+
+        for node_path in self:
+            if node_path.node_name != node_name:
+                continue
+
+            node_out_matched = False
+            node_in_matched = False
+
+            if node_path.publisher is None and node_path.tf_frame_broadcaster is None and \
+                    is_publisher is False and is_tf_br is False:
+                node_out_matched = True
+
+            if node_path.publisher is not None and \
+                    node_path.publisher.topic_name == publish_topic_name:
+                node_out_matched = True
+
+            tf_br = node_path.tf_frame_broadcaster
+            if tf_br is not None and \
+                tf_br.frame_id == broadcast_frame_id and \
+                    tf_br.child_frame_id == broadcast_child_frame_id:
+                node_out_matched = True
+
+            if node_path.subscription is None and node_path.tf_frame_broadcaster is None and \
+                    is_subscrioption is False and is_tf_buff is False:
+                node_in_matched = True
+
+            if node_path.subscription is not None and \
+                    node_path.subscription.topic_name == subscribe_topic_name:
+                node_in_matched = True
+
+            tf_buf = node_path.tf_frame_buffer
+            if tf_buf is not None and \
+                tf_buf.listen_frame_id == buffer_listen_frame_id and \
+                    tf_buf.listen_child_frame_id == buffer_listen_child_frame_id and \
+                    tf_buf.lookup_frame_id == buffer_lookup_frame_id and \
+                    tf_buf.lookup_child_frame_id == buffer_lookup_child_frame_id:
+                node_in_matched = True
+
+            if node_in_matched and node_out_matched:
+                return node_path
+
+        raise ItemNotFoundError('Failed to find node path')
+
+    def create(
+        self,
+        node_name: str,
+        node_input: Optional[NodeInputType],
+        node_output: Optional[NodeOutputType]
+    ) -> None:
+        node_path = NodePathStruct(node_name, node_input, node_output)
+        self._data.append(node_path)
+
+    @staticmethod
+    def _search_node_paths(
+        node: NodeStructInterface,
+        reader: ArchitectureReader
+    ) -> List[NodePathStruct]:
+        raise NotImplementedError('')
+
+    # def get_node_in(
+    #     self,
+    #     node_in: NodeIOValue
+    # ) -> Union[SubscriptionStruct, TransformFrameBufferStruct]:
+    #     raise NotImplementedError('')
+
+    # def get_node_out(
+    #     self,
+    #     node_in: NodeIOValue
+    # ) -> Union[PublisherStruct, TransformFrameBroadcasterStruct]:
+    #     raise NotImplementedError('')

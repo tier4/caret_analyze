@@ -12,37 +12,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import cached_property
+from functools import lru_cache
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
-
-from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
+from caret_analyze.record.interface import RecordInterface
 
 from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
-from ...common import ClockConverter, Columns, Util
+from ...common import ClockConverter, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
                            UnsupportedTypeError)
 from ...infra.interface import RuntimeDataProvider
 from ...infra.lttng.column_names import COLUMN_NAME
-from ...record import (merge, merge_sequencial, RecordsFactory, RecordsInterface)
-from ...value_objects import (CallbackChain,
-                              CallbackStructValue,
-                              CommunicationStructValue,
-                              InheritUniqueStamp,
-                              NodePathStructValue,
-                              PublisherStructValue,
-                              Qos,
-                              SubscriptionCallbackStructValue,
-                              SubscriptionStructValue,
-                              Tilde,
-                              TimerCallbackStructValue,
-                              TimerStructValue,
-                              UseLatestMessage,
-                              VariablePassingStructValue)
+from ...record import (
+    Column,
+    Columns,
+    merge,
+    merge_sequencial,
+    RecordsFactory,
+    RecordsInterface)
+from ...value_objects import (
+    CallbackChain,
+    CallbackStructValue,
+    MessageContext,
+    MessageContextType,
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
+    CommunicationStructValue,
+    InheritUniqueStamp,
+    NodePathStructValue,
+    PublisherStructValue,
+    Qos,
+    SubscriptionCallbackStructValue,
+    SubscriptionStructValue,
+    Tilde,
+    TimerCallbackStructValue,
+    TimerStructValue,
+    TransformBroadcasterStructValue,
+    TransformBufferStructValue,
+    TransformCommunicationStructValue,
+    TransformValue,
+    UseLatestMessage,
+    VariablePassingStructValue,
+)
 
 logger = getLogger(__name__)
 
@@ -85,7 +100,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [callback_name]/callback_start_timestamp
 
         """
-        assert comm_val.subscribe_callback_name is not None
+        assert comm_val.subscription_callback_name is not None
 
         if self.is_intra_process_communication(comm_val):
             return self._compose_intra_proc_comm_records(comm_val)
@@ -101,6 +116,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             msg = 'message context is None. return dummy record. '
             msg += f'node_name: {node_path_val.node_name}'
             logger.info(msg)
+            assert False
             return RecordsFactory.create_instance()
 
         if node_path_val.message_context_type == MessageContextType.CALLBACK_CHAIN:
@@ -148,7 +164,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             COLUMN_NAME.CALLBACK_END_TIMESTAMP
         ]
         self._format(callback_records, columns)
-        self._rename_column(callback_records, callback.callback_name, None)
+        self._rename_column(callback_records, callback.callback_name, None, callback.node_name)
         callback_records.drop_columns([COLUMN_NAME.CALLBACK_OBJECT])
 
         return callback_records
@@ -235,10 +251,216 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(
             sub_records,
             callback.callback_name,
-            subscription.topic_name
+            subscription.topic_name,
+            subscription.node_name
         )
 
         return sub_records
+
+    def tf_broadcast_records(
+        self,
+        broadcaster: TransformFrameBroadcasterStructValue,
+    ) -> RecordsInterface:
+        """
+        Compose transform broadcast records.
+
+        Parameters
+        ----------
+        broadcaster : TransformBroadcasterStructValue
+            target bradcaster
+        transform : Optional[TransformValue]
+            target transform
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - frame_id
+            - child_frame_id
+            - same as publlish records
+
+        """
+        broadcaster_handler = self._helper.get_tf_broadcaster_handler(broadcaster)
+        records = self._source.send_transform(broadcaster_handler, broadcaster.transform)
+
+        pub_records = self.publish_records(broadcaster.publisher)
+        pub_records.drop_columns([
+            column
+            for column
+            in pub_records.column_names
+            if COLUMN_NAME.MESSAGE_TIMESTAMP in column or
+            COLUMN_NAME.SOURCE_TIMESTAMP in column
+        ])
+        records = merge_sequencial(
+            left_records=records,
+            right_records=pub_records,
+            left_stamp_key='send_transform_timestamp',
+            right_stamp_key=pub_records.columns[0].column_name,
+            join_left_key=None,
+            join_right_key=None,
+            how='inner'
+        )
+        records.drop_columns(['send_transform_timestamp', 'broadcaster'])
+        return records
+
+    def tf_communication_records(
+        self,
+        communication: TransformCommunicationStructValue
+    ) -> RecordsInterface:
+        set_to_lookup_records = self.tf_set_lookup_records(communication.buffer)
+        send_records = self.tf_broadcast_records(communication.broadcaster)
+        from ...record.column import get_column_name
+        comm_records = merge(
+            left_records=send_records,
+            right_records=set_to_lookup_records,
+            join_left_key=get_column_name(send_records.columns, 'tf_timestamp'),
+            join_right_key=get_column_name(set_to_lookup_records.columns, 'tf_timestamp'),
+            how='left'
+        )
+        comm_records.drop_columns([
+            'frame_id',
+            'child_frame_id',
+            'tf_timestamp',
+            get_column_name(comm_records.columns, 'find_closest_timestamp'),
+            get_column_name(comm_records.columns, 'callback_end_timestamp'),
+        ])
+        return comm_records
+
+    def tf_lookup_records(
+        self,
+        frame_buffer: TransformFrameBufferStructValue,
+    ) -> RecordsInterface:
+        buffer_handle = self._helper.get_tf_buffer_handler(frame_buffer)
+        records = self._source.lookup_transform(buffer_handle, frame_buffer.lookup_transform)
+        records.drop_columns(['tf_buffer_core',
+                              'frame_id',
+                              'child_frame_id'])
+        self._rename_column(
+            records,
+            None,
+            frame_buffer.topic_name,
+            frame_buffer.lookup_node_name)
+        return records
+
+    def tf_set_records(
+        self,
+        buffer: TransformFrameBufferStructValue,
+        transform: TransformValue
+    ) -> RecordsInterface:
+        """
+        Compose transform set records.
+
+        Parameters
+        ----------
+        buffer : TransformFrameBufferStructValue
+            target buffer
+        transform : TransformValue
+            target transform
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - frame_id
+            - child_frame_id
+            - same as publlish records
+
+        """
+        buffer_handle = self._helper.get_tf_buffer_handler(buffer)
+
+        filtered = self._source.set_transform(buffer_handle, transform)
+
+        filtered.drop_columns(['tf_buffer_core',
+                               'frame_id',
+                               'child_frame_id'])
+        self._rename_column(
+            filtered,
+            '/transform_listener_impl/callback',
+            '/tf',
+            '/transform_listener_impl')
+
+        return filtered
+
+    def _tf_find_closest_records(
+        self,
+        buffer: TransformFrameBufferStructValue
+    ) -> RecordsInterface:
+        buffer_handle = self._helper.get_tf_buffer_handler(buffer)
+
+        filtered = self._source.find_closest(buffer_handle)
+
+        from ...record.column import get_column
+        frame_id_column = get_column(filtered.columns, 'frame_id')
+        child_frame_id_column = get_column(filtered.columns, 'child_frame_id')
+
+        def is_target_frame(record: RecordInterface):
+            frame_id = frame_id_column.get_mapped(record.get('frame_id'))
+            child_frame_id = child_frame_id_column.get_mapped(record.get('child_frame_id'))
+            return frame_id == buffer.listen_frame_id and \
+                child_frame_id == buffer.listen_child_frame_id
+        filtered.filter_if(is_target_frame)
+
+        filtered.drop_columns(['tf_buffer_core',
+                               'frame_id',
+                               'child_frame_id'])
+        node_name = buffer.lookup_node_name
+        filtered.rename_columns({
+            'stamp': 'tf_timestamp',
+            'find_closest_timestamp': f'{node_name}/find_closest_timestamp',
+        })
+
+        return filtered
+
+    def tf_set_lookup_records(
+        self,
+        buffer: TransformFrameBufferStructValue,
+    ) -> RecordsInterface:
+        lookup_records = self.tf_lookup_records(buffer)
+        # lookup_records.rename_columns(
+        #     {
+        #         'frame_id': 'lookup_frame_id',
+        #         'child_frame_id': 'lookup_child_frame_id'
+        #     }
+        # )
+        from ...record.column import get_column_name
+
+        closest = self._tf_find_closest_records(buffer)
+
+        # TODO(hsgwa): 遅延ありの２つ目の座標版も追加する。
+        # ここはスレッドIDを使わないとダメなやつか？
+        records = merge_sequencial(
+            left_records=closest,
+            right_records=lookup_records,
+            left_stamp_key=get_column_name(
+                closest.columns, 'find_closest_timestamp'),
+            right_stamp_key=get_column_name(
+                lookup_records.columns, 'lookup_transform_end_timestamp'),
+            join_left_key=None,
+            join_right_key=None,
+            how='left_use_latest'
+        )
+
+        set_records = self.tf_set_records(buffer, buffer.listen_transform)
+        records = merge(
+            left_records=set_records,
+            right_records=records,
+            join_left_key=get_column_name(set_records.columns, 'tf_timestamp'),
+            join_right_key=get_column_name(records.columns, 'tf_timestamp'),
+            how='left',
+        )
+
+        # group_records = records.groupby(['set_frame_id', 'set_child_frame_id'])
+        # records_ = RecordsFactory.create_instance(
+        #     None, Columns(
+        #         [
+        #             Column('callback_start_timestamp'),
+        #             Column('set_transform_timestamp'),
+        #             Column('tf_timestamp'),
+        #             Column('callback_end_timestamp')
+        #         ] + records.columns).as_list())
+
+        records.drop_columns(['find_closest_timestamp'])
+        return records
 
     def _subscribe_records_with_tilde(
         self,
@@ -292,7 +514,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 join_left_key=None,
                 join_right_key=None,
                 how='left',
-                columns=Columns(sub_records.columns + tilde_records.columns).as_list(),
                 progress_label='binding: tilde_records',
             )
 
@@ -308,7 +529,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(
             sub_records,
             callback.callback_name,
-            subscription.topic_name
+            subscription.topic_name,
+            subscription.node_name,
         )
 
         return sub_records
@@ -337,19 +559,20 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         publisher_handles = self._helper.get_publisher_handles(publisher)
+        assert len(publisher_handles) > 0
         pub_records = self._source.publish_records(publisher_handles)
 
         columns = []
         columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in pub_records.columns:
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in pub_records.column_names:
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in pub_records.columns:
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in pub_records.column_names:
             columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
         columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
         columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
 
         self._format(pub_records, columns)
-        self._rename_column(pub_records, None, publisher.topic_name)
+        self._rename_column(pub_records, None, publisher.topic_name, publisher.node_name)
 
         return pub_records
 
@@ -427,7 +650,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             right_stamp_key='rclcpp_publish_timestamp',
             join_left_key=None,
             join_right_key=None,
-            columns=Columns(tilde_records.columns + pub_records.columns).as_list(),
             how='right',
             progress_label='binding: tilde_records',
         )
@@ -445,7 +667,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
 
         self._format(pub_records, columns)
-        self._rename_column(pub_records, None, publisher.topic_name)
+        self._rename_column(pub_records, None, publisher.topic_name, publisher.node_name)
 
         return pub_records
 
@@ -473,27 +695,26 @@ class RecordsProviderLttng(RuntimeDataProvider):
         timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
         callback_records = self.callback_records(timer.callback)
         last_record = callback_records.data[-1]
-        last_callback_start = last_record.get(callback_records.columns[0])
+        last_callback_start = last_record.get(callback_records.column_names[0])
         timer_events = timer_events_factory.create(last_callback_start)
         timer_records = merge_sequencial(
             left_records=timer_events,
             right_records=callback_records,
             left_stamp_key=COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
-            right_stamp_key=callback_records.columns[0],
+            right_stamp_key=callback_records.column_names[0],
             join_left_key=None,
             join_right_key=None,
-            columns=Columns(timer_events.columns + callback_records.columns).as_list(),
             how='left'
         )
 
         columns = [
             COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
-            callback_records.columns[0],
-            callback_records.columns[1],
+            callback_records.column_names[0],
+            callback_records.column_names[1],
         ]
 
         self._format(timer_records, columns)
-        self._rename_column(timer_records, timer.callback_name, None)
+        self._rename_column(timer_records, timer.callback_name, None, timer.node_name)
 
         return timer_records
 
@@ -518,7 +739,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             right_records=pub_records,
             join_left_key=COLUMN_NAME.TILDE_MESSAGE_ID,
             join_right_key=COLUMN_NAME.TILDE_MESSAGE_ID,
-            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
             how='left',
             progress_label='binding: tilde pub and sub records'
         )
@@ -586,12 +806,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
         write_records: RecordsInterface = self.callback_records(
             variable_passing_info.callback_write)
 
-        read_records.drop_columns([read_records.columns[-1]])  # callback end
-        write_records.drop_columns([write_records.columns[0]])  # callback_start
+        read_records.drop_columns([read_records.column_names[-1]])  # callback end
+        write_records.drop_columns([write_records.column_names[0]])  # callback_start
 
         columns = [
-            write_records.columns[0],
-            read_records.columns[0],
+            write_records.column_names[0],
+            read_records.column_names[0],
         ]
 
         merged_records = merge_sequencial(
@@ -601,7 +821,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             right_stamp_key=columns[1],
             join_left_key=None,
             join_right_key=None,
-            columns=columns,
             how='left_use_latest',
             progress_label='binding: callback_end and callback_start'
         )
@@ -684,7 +903,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         publisher = comm_info.publisher
-        subscription_cb = comm_info.subscribe_callback
+        subscription_cb = comm_info.subscription.callback
 
         assert subscription_cb is not None
         assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
@@ -701,7 +920,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         ]
         self._format(records, columns)
 
-        self._rename_column(records, comm_info.subscribe_callback_name, comm_info.topic_name)
+        self._rename_column(records, subscription_cb.callback_name, comm_info.topic_name, None)
 
         return records
 
@@ -728,7 +947,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         publisher = comm_value.publisher
-        subscription_cb = comm_value.subscribe_callback
+        subscription_cb = comm_value.subscription_callback
 
         assert subscription_cb is not None
         assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
@@ -747,13 +966,16 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         self._format(records, columns)
 
-        self._rename_column(records, comm_value.subscribe_callback_name, comm_value.topic_name)
+        self._rename_column(records,
+                            comm_value.subscription_callback_name,
+                            comm_value.topic_name,
+                            None)
 
         return records
 
     @staticmethod
     def _format(records: RecordsInterface, columns: List[str]):
-        drop = list(set(records.columns) - set(columns))
+        drop = list(set(records.column_names) - set(columns))
         records.drop_columns(drop)
         records.reindex(columns)
 
@@ -761,53 +983,70 @@ class RecordsProviderLttng(RuntimeDataProvider):
     def _rename_column(
         records: RecordsInterface,
         callback_name: Optional[str],
-        topic_name: Optional[str]
+        topic_name: Optional[str],
+        node_name: Optional[str],
     ) -> None:
         rename_dict = {}
 
-        if COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in records.columns:
+        if COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}'
 
-        if COLUMN_NAME.TIMER_EVENT_TIMESTAMP in records.columns:
+        if COLUMN_NAME.TIMER_EVENT_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.TIMER_EVENT_TIMESTAMP] = \
                 f'{callback_name}/{COLUMN_NAME.TIMER_EVENT_TIMESTAMP}'
 
-        if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
+        if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
                 f'{callback_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
 
-        if COLUMN_NAME.CALLBACK_END_TIMESTAMP in records.columns:
+        if COLUMN_NAME.CALLBACK_END_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.CALLBACK_END_TIMESTAMP] = \
                 f'{callback_name}/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}'
 
-        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.columns:
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.RCL_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.RCL_PUBLISH_TIMESTAMP}'
 
-        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.columns:
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.DDS_WRITE_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.DDS_WRITE_TIMESTAMP}'
 
-        if COLUMN_NAME.MESSAGE_TIMESTAMP in records.columns:
+        if COLUMN_NAME.MESSAGE_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.MESSAGE_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'
 
-        if COLUMN_NAME.SOURCE_TIMESTAMP in records.columns:
+        if COLUMN_NAME.SOURCE_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.SOURCE_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.SOURCE_TIMESTAMP}'
 
-        if COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in records.columns:
+        if COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP}'
 
-        if COLUMN_NAME.TILDE_MESSAGE_ID in records.columns:
+        if COLUMN_NAME.TILDE_MESSAGE_ID in records.column_names:
             rename_dict[COLUMN_NAME.TILDE_MESSAGE_ID] = \
                 f'{topic_name}/{COLUMN_NAME.TILDE_MESSAGE_ID}'
 
-        if COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in records.columns:
+        if COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in records.column_names:
             rename_dict[COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP] = \
                 f'{topic_name}/{COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP}'
+
+        if 'lookup_transform_start_timestamp' in records.column_names:
+            rename_dict['lookup_transform_start_timestamp'] = \
+                f'{node_name}/lookup_transform_start_timestamp'
+
+        if 'lookup_transform_end_timestamp' in records.column_names:
+            rename_dict['lookup_transform_end_timestamp'] = \
+                f'{node_name}/lookup_transform_end_timestamp'
+
+        if 'tf_lookup_target_time' in records.column_names:
+            rename_dict['tf_lookup_target_time'] = \
+                f'{node_name}/tf_lookup_target_time'
+
+        if 'set_transform_timestamp' in records.column_names:
+            rename_dict['set_transform_timestamp'] = \
+                f'{node_name}/set_transform_timestamp'
 
         records.rename_columns(rename_dict)
 
@@ -872,6 +1111,20 @@ class RecordsProviderLttngHelper:
         callback: SubscriptionCallbackStructValue
     ) -> Tuple[int, Optional[int]]:
         return self.get_callback_objects(callback)
+
+    def get_tf_broadcaster_handler(
+        self,
+        broadcaster: Union[TransformBroadcasterStructValue,
+                           TransformFrameBroadcasterStructValue]
+    ) -> int:
+        return self._bridge.get_tf_broadcaster(broadcaster).broadcaster_handler
+
+    def get_tf_buffer_handler(
+        self,
+        buffer: Union[TransformBufferStructValue, TransformFrameBufferStructValue]
+    ) -> int:
+        buf = self._bridge.get_tf_buffer(buffer)
+        return buf.buffer_handler
 
     def get_subscription_callback_object_inter(
         self,
@@ -957,13 +1210,12 @@ class NodeRecordsCallbackChain:
         for chain_element in chain_info[1:]:
             if isinstance(chain_element, CallbackStructValue):
                 records_ = self._provider.callback_records(chain_element)
-                join_key = records_.columns[0]
+                join_key = records_.column_names[0]
                 records = merge(
                     left_records=records,
                     right_records=records_,
                     join_left_key=join_key,
                     join_right_key=join_key,
-                    columns=Columns(records.columns + records_.columns),
                     how='left',
                     progress_label='binding: callback_start and callback end'
                 )
@@ -972,13 +1224,12 @@ class NodeRecordsCallbackChain:
             if isinstance(chain_element, VariablePassingStructValue):
                 records_ = self._provider.variable_passing_records(chain_element)
                 # self._rename_var_pass_records(records_, chain_element)
-                join_key = records_.columns[0]
+                join_key = records_.column_names[0]
                 records = merge(
                     left_records=records,
                     right_records=records_,
                     join_left_key=join_key,
                     join_right_key=join_key,
-                    columns=Columns(records.columns + records_.columns).as_list(),
                     how='left',
                     progress_label='binding: callback_end and callback start'
                 )
@@ -988,27 +1239,26 @@ class NodeRecordsCallbackChain:
         if isinstance(last_element, CallbackStructValue) \
                 and self._val.publisher is not None:
             last_callback_end_name = Util.filter_items(
-                lambda x: COLUMN_NAME.CALLBACK_END_TIMESTAMP in x, records.columns)[-1]
+                lambda x: COLUMN_NAME.CALLBACK_END_TIMESTAMP in x, records.column_names)[-1]
             records.drop_columns([last_callback_end_name])
             last_callback_start_name = Util.filter_items(
-                lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns)[-1]
+                lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.column_names)[-1]
 
             publish_records = self._provider.publish_records(self._val.publisher)
             publish_column = publish_records.columns[0]
-            columns = records.columns + [publish_column]
+            column_names = [str(c) for c in records.columns + [publish_column]]
             records = merge_sequencial(
                 left_records=records,
                 right_records=publish_records,
                 join_left_key=None,
                 join_right_key=None,
                 left_stamp_key=last_callback_start_name,
-                right_stamp_key=publish_column,
-                columns=Columns(records.columns + publish_records.columns).as_list(),
+                right_stamp_key=publish_column.column_name,
                 how='left',
                 progress_label='binding: callback_start and publish',
             )
-            records.drop_columns(list(set(records.columns) - set(columns)))
-            records.reindex(columns)
+            records.drop_columns(list(set(records.column_names) - set(column_names)))
+            records.reindex(column_names)
         return records
 
     @staticmethod
@@ -1117,34 +1367,44 @@ class NodeRecordsUseLatestMessage:
 
         self._provider = provider
         self._context: UseLatestMessage = node_path.message_context
-        self._validate(node_path, self._context)
+        # self._validate(node_path, self._context)  # TODO: uncomment here
         self._node_path = node_path
 
     def to_records(self):
-        sub_records = self._provider.subscribe_records(self._node_path.subscription)
-        pub_records = self._provider.publish_records(self._node_path.publisher)
 
-        columns = [
-            sub_records.columns[0],
+        if self._node_path.subscription is not None:
+            node_in_records = self._provider.subscribe_records(self._node_path.subscription)
+        elif self._node_path.tf_frame_buffer is not None:
+            node_in_records = self._provider.tf_lookup_records(self._node_path.tf_frame_buffer)
+
+        if self._node_path.publisher is not None:
+            node_out_records = self._provider.publish_records(self._node_path.publisher)
+        elif self._node_path.tf_frame_broadcaster is not None and \
+                self._node_path.tf_frame_broadcaster.publisher is not None:
+            node_out_records = self._provider.publish_records(
+                self._node_path.tf_frame_broadcaster.publisher)
+        else:
+            raise UnsupportedNodeRecordsError('node_path.publisher is None')
+
+        column_names = [
+            node_in_records.columns[0].column_name,
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
-
-        pub_sub_records = merge_sequencial(
-            left_records=sub_records,
-            right_records=pub_records,
-            left_stamp_key=sub_records.columns[0],
-            right_stamp_key=pub_records.columns[0],
+        node_io_records = merge_sequencial(
+            left_records=node_in_records,
+            right_records=node_out_records,
+            left_stamp_key=node_in_records.columns[0].column_name,
+            right_stamp_key=node_out_records.columns[0].column_name,
             join_left_key=None,
             join_right_key=None,
-            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
             how='left_use_latest',
             progress_label='binding use_latest_message.'
         )
 
-        drop_columns = list(set(pub_sub_records.columns) - set(columns))
-        pub_sub_records.drop_columns(drop_columns)
-        pub_sub_records.reindex(columns)
-        return pub_sub_records
+        drop_columns = list(set(node_io_records.column_names) - set(column_names))
+        node_io_records.drop_columns(drop_columns)
+        node_io_records.reindex(column_names)
+        return node_io_records
 
     @staticmethod
     def _validate(
@@ -1250,7 +1510,10 @@ class NodeRecordsTilde:
 
 class FilteredRecordsSource:
 
-    def __init__(self, lttng: Lttng):
+    def __init__(
+        self,
+        lttng: Lttng,
+    ) -> None:
         self._lttng = lttng
 
     def tilde_subscribe_records(
@@ -1275,18 +1538,10 @@ class FilteredRecordsSource:
             records.drop_columns(['tilde_subscription])
 
         """
-        grouped_records = self._grouped_tilde_sub_records
+        columns, grouped_records = self._grouped_tilde_sub_records()
         if len(grouped_records) == 0:
-            return RecordsFactory.create_instance(
-                None,
-                [
-                    COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP,
-                    COLUMN_NAME.TILDE_SUBSCRIPTION,
-                    COLUMN_NAME.TILDE_MESSAGE_ID
-                ]
-            )
-        sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
+            return RecordsFactory.create_instance(None, columns)
+
         sub_records = RecordsFactory.create_instance(None, columns)
 
         if tilde_subscription is not None and tilde_subscription in grouped_records:
@@ -1321,16 +1576,10 @@ class FilteredRecordsSource:
             )
 
         """
-        grouped_records = self._grouped_sub_records
+        columns, grouped_records = self._grouped_sub_records()
         if len(grouped_records) == 0:
-            return RecordsFactory.create_instance(
-                None,
-                [
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                    COLUMN_NAME.MESSAGE_TIMESTAMP,
-                    COLUMN_NAME.SOURCE_TIMESTAMP,
-                ]
-            )
+            return RecordsFactory.create_instance(None, columns)
+
         sample_records = list(grouped_records.values())[0]
         columns = sample_records.columns
         sub_records = RecordsFactory.create_instance(None, columns)
@@ -1369,31 +1618,194 @@ class FilteredRecordsSource:
         merged = merge(
             left_records=pub_records,
             right_records=sub_records,
-            join_left_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            join_right_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            columns=Columns(pub_records.columns + sub_records.columns).as_list(),
+            join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
+            join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
             how='left'
         )
 
-        columns = [
+        column_names = [
             COLUMN_NAME.CALLBACK_OBJECT,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
         ]
         if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in merged.columns:
-            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+            column_names.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in merged.columns:
-            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        columns += [
+            column_names.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        column_names += [
             COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP
         ]
-        drop = list(set(merged.columns) - set(columns))
+        drop = list(set(merged.column_names) - set(column_names))
         merged.drop_columns(drop)
-        merged.reindex(columns)
+        merged.reindex(column_names)
 
         return merged
+
+    def send_transform(
+        self,
+        broadcaster: int,
+        transform: Optional[TransformValue]
+    ) -> RecordsInterface:
+        """
+        Compose filtered send transform records.
+
+        Parameters
+        ----------
+        broadcaster : TransformBufferStructValue
+            Target broadcaster
+        transform : Optional[TransformValue]
+            target frames
+
+        Returns
+        -------
+        RecordsInterface
+            Equivalent to the following process.
+            records = lttng.compose_send_transform()
+            TODO: comment here.
+
+        """
+        columns, grouped_records = self._grouped_send_transform_records()
+        records = RecordsFactory.create_instance(None, columns)
+        if transform is None:
+            for key in grouped_records:
+                records.concat(grouped_records[key].clone())
+            return records
+
+        mapper = self._lttng.tf_frame_id_mapper
+        frame_id = mapper.get_key(transform.frame_id)
+        child_frame_id = mapper.get_key(transform.child_frame_id)
+        key = (broadcaster, frame_id, child_frame_id)
+
+        if key in grouped_records:
+            records.concat(grouped_records[key].clone())
+
+        return records
+
+    def set_transform(
+        self,
+        buffer_core: int,
+        transform: Optional[TransformValue]
+    ) -> RecordsInterface:
+        """
+        Compose filtered lookup transform records.
+
+        Parameters
+        ----------
+        broadcaster : TransformBufferStructValue
+            Target broadcaster
+        transform : Optional[TransformValue]
+            target frames
+
+        Returns
+        -------
+        RecordsInterface
+            Equivalent to the following process.
+            TODO: comment here.
+
+        """
+        columns, grouped_records = self._grouped_tf_set_records()
+
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(None, columns)
+
+        if transform is None:
+            records = RecordsFactory.create_instance(None, columns)
+            for key in grouped_records:
+                if key[0] == buffer_core:
+                    records_ = grouped_records[key].clone()
+                    records.concat(records_)
+            return records
+
+        mapper = self._lttng.tf_frame_id_mapper
+        key = (
+            buffer_core,
+            mapper.get_key(transform.frame_id),
+            mapper.get_key(transform.child_frame_id),
+        )
+        if key in grouped_records:
+            return grouped_records[key].clone()
+
+        records = RecordsFactory.create_instance(None, columns)
+        return records
+
+    def lookup_transform(
+        self,
+        buffer_core: int,
+        transform: Optional[TransformValue]
+    ) -> RecordsInterface:
+        """
+        Compose filtered lookup transform records.
+
+        Parameters
+        ----------
+        broadcaster : TransformBufferStructValue
+            Target broadcaster
+        transform : Optional[TransformValue]
+            target frames
+
+        Returns
+        -------
+        RecordsInterface
+            Equivalent to the following process.
+            TODO: comment here.
+
+        """
+        columns, grouped_records = self._grouped_lookup_records()
+
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(None, columns)
+
+        if transform is None:
+            records = RecordsFactory.create_instance(None, columns)
+            for key in grouped_records:
+                if key[0] == buffer_core:
+                    records.concat(grouped_records[key].clone())
+            return records
+
+        mapper = self._lttng.tf_frame_id_mapper
+        frame_id = mapper.get_key(transform.frame_id)
+        child_frame_id = mapper.get_key(transform.child_frame_id)
+
+        key = (
+            buffer_core,
+            frame_id,
+            child_frame_id
+        )
+        if key in grouped_records:
+            return grouped_records[key].clone()
+
+        return RecordsFactory.create_instance(None, columns)
+
+    def find_closest(
+        self,
+        buffer_core: int
+    ) -> RecordsInterface:
+        """
+        Compose filtered lookup transform records.
+
+        Parameters
+        ----------
+        broadcaster : TransformBufferStructValue
+            Target broadcaster
+        transform : Optional[TransformValue]
+            target frames
+
+        Returns
+        -------
+        RecordsInterface
+            Equivalent to the following process.
+            TODO: comment here.
+
+        """
+        columns, grouped_records = self._grouped_closest_records()
+
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(None, columns)
+
+        key = buffer_core
+        return grouped_records[key]
 
     def intra_comm_records(
         self,
@@ -1420,16 +1832,10 @@ class FilteredRecordsSource:
 
 
         """
-        grouped_records = self._grouped_intra_comm_records
+        columns, grouped_records = self._grouped_intra_comm_records()
 
         if len(grouped_records) == 0:
-            return RecordsFactory.create_instance(None, [
-                COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.MESSAGE_TIMESTAMP
-            ])
+            return RecordsFactory.create_instance(None, columns)
 
         sample_records = list(grouped_records.values())[0]
         columns = sample_records.columns
@@ -1476,20 +1882,11 @@ class FilteredRecordsSource:
         - tilde_message_id
 
         """
-        grouped_records = self._grouped_publish_records
+        columns, grouped_records = self._grouped_publish_records()
+
         if len(grouped_records) == 0:
-            return RecordsFactory.create_instance(
-                None,
-                [
-                    COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.MESSAGE_TIMESTAMP,
-                    COLUMN_NAME.SOURCE_TIMESTAMP,
-                    COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.TILDE_MESSAGE_ID,
-                ]
-            )
-        sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
+            return RecordsFactory.create_instance(None, columns)
+
         pub_records = RecordsFactory.create_instance(None, columns)
 
         for publisher_handle in publisher_handles:
@@ -1520,19 +1917,10 @@ class FilteredRecordsSource:
             )
 
         """
-        grouped_records = self._grouped_tilde_pub_records
+        columns, grouped_records = self._grouped_tilde_pub_records()
         if len(grouped_records) == 0:
-            return RecordsFactory.create_instance(
-                None,
-                [
-                    COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.TILDE_PUBLISHER,
-                    COLUMN_NAME.TILDE_MESSAGE_ID,
-                    COLUMN_NAME.TILDE_SUBSCRIPTION,
-                ]
-            )
-        sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
+            return RecordsFactory.create_instance(None, columns)
+
         tilde_records = RecordsFactory.create_instance(None, columns)
 
         for tilde_publisher in tilde_publishers:
@@ -1576,15 +1964,8 @@ class FilteredRecordsSource:
             )
 
         """
-        records = self._grouped_callback_records
-        callback_records = RecordsFactory.create_instance(
-            None,
-            [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_OBJECT
-            ]
-        )
+        columns, records = self._grouped_callback_records()
+        callback_records = RecordsFactory.create_instance(None, columns)
 
         if inter_callback_object in records:
             inter_callback_records = records[inter_callback_object].clone()
@@ -1597,42 +1978,103 @@ class FilteredRecordsSource:
 
         return callback_records
 
-    @cached_property
-    def _grouped_callback_records(self) -> Dict[int, RecordsInterface]:
+    @lru_cache
+    def _grouped_lookup_records(
+        self,
+    ) -> Tuple[List[Column], Dict[Tuple[int, ...], RecordsInterface]]:
+        records = self._lttng.compose_lookup_transform()
+        columns = records.columns
+        group = records.groupby(
+            ['tf_buffer_core', 'frame_id', 'child_frame_id'])
+        return columns, group
+
+    @lru_cache
+    def _grouped_send_transform_records(
+        self,
+    ) -> Tuple[List[Column], Dict[Tuple[int, ...], RecordsInterface]]:
+        records = self._lttng.compose_send_transform()
+        columns = records.columns
+        group = records.groupby(['broadcaster', 'frame_id', 'child_frame_id'])
+        return columns, group
+
+    @lru_cache
+    def _grouped_callback_records(
+        self
+    ) -> Tuple[List[Column], Dict[int, RecordsInterface]]:
         records = self._lttng.compose_callback_records()
+        columns = records.columns
         group = records.groupby([COLUMN_NAME.CALLBACK_OBJECT])
-        return self._expand_key_tuple(group)
+        return columns, self._expand_key_tuple(group)
 
-    @cached_property
-    def _grouped_inter_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:
+    @lru_cache
+    def _grouped_inter_comm_records(
+        self
+    ) -> Tuple[List[Column], Dict[Tuple[int, ...], RecordsInterface]]:
         records = self._lttng.compose_inter_proc_comm_records()
-        return records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
+        columns = records.columns
+        group = records.groupby(
+            [COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
+        return columns, group
 
-    @cached_property
-    def _grouped_intra_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:
+    @lru_cache
+    def _grouped_intra_comm_records(
+        self
+    ) -> Tuple[List[Column], Dict[Tuple[int, ...], RecordsInterface]]:
         records = self._lttng.compose_intra_proc_comm_records()
-        return records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
+        columns = records.columns
+        group = records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
+        return columns, group
 
-    @cached_property
-    def _grouped_publish_records(self) -> Dict[int, RecordsInterface]:
+    @lru_cache
+    def _grouped_publish_records(
+        self
+    ) -> Tuple[List[Column], Dict[int, RecordsInterface]]:
         records = self._lttng.compose_publish_records()
+        columns = records.columns
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
-        return self._expand_key_tuple(group)
+        return columns, self._expand_key_tuple(group)
 
-    @cached_property
-    def _grouped_sub_records(self) -> Dict[int, RecordsInterface]:
+    @lru_cache
+    def _grouped_sub_records(
+        self
+    ) -> Tuple[List[Column], Dict[int, RecordsInterface]]:
         records = self._lttng.compose_subscribe_records()
+        columns = records.columns
         group = records.groupby([COLUMN_NAME.CALLBACK_OBJECT])
-        return self._expand_key_tuple(group)
+        return columns, self._expand_key_tuple(group)
 
-    @cached_property
-    def _grouped_tilde_pub_records(self) -> Dict[int, RecordsInterface]:
+    @lru_cache
+    def _grouped_tf_set_records(
+        self,
+    ) -> Tuple[List[Column], Dict[Tuple[int, ...], RecordsInterface]]:
+        records = self._lttng.compose_set_transform()
+        columns = records.columns
+        group = records.groupby(['tf_buffer_core', 'frame_id', 'child_frame_id'])
+        return columns, group
+
+    @lru_cache
+    def _grouped_closest_records(
+        self,
+    ) -> Tuple[List[Column], Dict[int, RecordsInterface]]:
+        records = self._lttng.compose_find_closest()
+        columns = records.columns
+        group = records.groupby(['tf_buffer_core'])
+        return columns, self._expand_key_tuple(group)
+
+    @lru_cache
+    def _grouped_tilde_pub_records(
+        self
+    ) -> Tuple[List[Column], Dict[int, RecordsInterface]]:
         records = self._lttng.compose_tilde_publish_records()
+        columns = records.columns
         group = records.groupby([COLUMN_NAME.TILDE_PUBLISHER])
-        return self._expand_key_tuple(group)
+        return columns, self._expand_key_tuple(group)
 
-    @cached_property
-    def _grouped_tilde_sub_records(self) -> Dict[int, RecordsInterface]:
+    @lru_cache
+    def _grouped_tilde_sub_records(
+        self
+    ) -> Tuple[List[Column], Dict[int, RecordsInterface]]:
         records = self._lttng.compose_tilde_subscribe_records()
+        columns = records.columns
         group = records.groupby([COLUMN_NAME.TILDE_SUBSCRIPTION])
-        return self._expand_key_tuple(group)
+        return columns, self._expand_key_tuple(group)

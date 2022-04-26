@@ -14,12 +14,13 @@
 
 from .infra_base import InfraBase
 from .interface import RecordsProvider, RuntimeDataProvider
-from .lttng import Lttng, RecordsProviderLttng
+from .lttng import Lttng
+from .records_provider_factory import RecordsProviderFactory
 
 __all__ = [
     'InfraBase',
     'Lttng',
     'RecordsProvider',
-    'RecordsProviderLttng',
+    'RecordsProviderFactory',
     'RuntimeDataProvider',
 ]

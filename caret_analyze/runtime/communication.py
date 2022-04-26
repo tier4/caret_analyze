@@ -16,15 +16,17 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
-from .callback import CallbackBase
+# from .callback import CallbackBase
 from .node import Node
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
+from .transform import TransformFrameBroadcaster, TransformFrameBuffer
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
 from ..value_objects import CommunicationStructValue
+from ..value_objects import TransformCommunicationStructValue
 
 
 class Communication(PathBase, Summarizable):
@@ -37,16 +39,16 @@ class Communication(PathBase, Summarizable):
         subscription: Subscription,
         communication_value: CommunicationStructValue,
         records_provider: Union[RecordsProvider, RuntimeDataProvider, None],
-        callbacks_publish: Optional[List[CallbackBase]],
-        callback_subscription: Optional[CallbackBase],
+        # callbacks_publish: Optional[List[CallbackBase]],
+        # callback_subscription: Optional[CallbackBase],
     ) -> None:
         super().__init__()
         self._node_pub = node_publish
         self._node_sub = node_subscription
         self._val = communication_value
         self._records_provider = records_provider
-        self._callbacks_publish = callbacks_publish
-        self._callback_subscription = callback_subscription
+        # self._callbacks_publish = callbacks_publish
+        # self._callback_subscription = callback_subscription
         self._is_intra_process: Optional[bool] = None
         self._rmw_implementation: Optional[str] = None
         if isinstance(records_provider, RuntimeDataProvider):
@@ -69,13 +71,14 @@ class Communication(PathBase, Summarizable):
     def is_intra_proc_comm(self) -> Optional[bool]:
         return self._is_intra_process
 
-    @property
-    def callback_publish(self) -> Optional[List[CallbackBase]]:
-        return self._callbacks_publish
+    # # TODO(hsgwa): このコールバックは不要では？？
+    # @property
+    # def callback_publish(self) -> Optional[List[CallbackBase]]:
+    #     return self._callbacks_publish
 
-    @property
-    def callback_subscription(self) -> Optional[CallbackBase]:
-        return self._callback_subscription
+    # @property
+    # def callback_subscription(self) -> Optional[CallbackBase]:
+    #     return self._callback_subscription
 
     @property
     def publisher(self) -> Publisher:
@@ -108,7 +111,7 @@ class Communication(PathBase, Summarizable):
     @property
     def column_names(self) -> List[str]:
         records = self.to_records()
-        return records.columns
+        return records.column_names
 
     def verify(self) -> bool:
         is_valid = True
@@ -119,5 +122,110 @@ class Communication(PathBase, Summarizable):
     def _to_records_core(self) -> RecordsInterface:
         assert self._records_provider is not None
         records = self._records_provider.communication_records(self._val)
+
+        return records
+
+
+# TODO(hsgwa) add summary interface
+class TransformCommunication(PathBase):
+
+    def __init__(
+        self,
+        node_br: Node,
+        node_buf: Node,
+        tf_broadcaster: TransformFrameBroadcaster,
+        tf_buffer: TransformFrameBuffer,
+        communication_value: TransformCommunicationStructValue,
+        records_provider: Union[RecordsProvider, RuntimeDataProvider, None],
+        # callbacks_publish: Optional[List[CallbackBase]],
+        # callback_subscription: Optional[CallbackBase],
+    ) -> None:
+        super().__init__()
+        self._node_br = node_br
+        self._node_buf = node_buf
+        self._val = communication_value
+        self._records_provider = records_provider
+        self._is_intra_process: Optional[bool] = None
+        self._rmw_implementation: Optional[str] = None
+        if isinstance(records_provider, RuntimeDataProvider):
+            # self._is_intra_process = \
+            #     records_provider.is_intra_process_communication(communication_value)
+            self._rmw_implementation = \
+                records_provider.get_rmw_implementation()
+        self._tf_broadcaster = tf_broadcaster
+        self._tf_buffer = tf_buffer
+
+    @property
+    def rmw_implementation(self) -> Optional[str]:
+        return self._rmw_implementation
+
+    @property
+    def topic_name(self) -> str:
+        return self._tf_broadcaster.topic_name
+
+    # @property
+    # def summary(self) -> Summary:
+    #     return self._val.summary
+
+    # @property
+    # def is_intra_proc_comm(self) -> Optional[bool]:
+    #     return self._is_intra_process
+
+    # # TODO(hsgwa): このコールバックは不要では？？
+    # @property
+    # def callback_publish(self) -> Optional[List[CallbackBase]]:
+    #     return self._callbacks_publish
+
+    # @property
+    # def callback_subscription(self) -> Optional[CallbackBase]:
+    #     return self._callback_subscription
+
+    @property
+    def tf_broadcaster(self) -> TransformFrameBroadcaster:
+        return self._tf_broadcaster
+
+    @property
+    def tf_buffer(self) -> TransformFrameBuffer:
+        return self._tf_buffer
+
+    # @property
+    # def subscribe_node_name(self) -> str:
+    #     return self._val.subscribe_node_name
+
+    # @property
+    # def publish_node_name(self) -> str:
+    #     return self._val.publish_node_name
+
+    @property
+    def lookup_node(self) -> Node:
+        return self._node_buf
+
+    @property
+    def lookup_node_name(self) -> str:
+        return self._node_buf.node_name
+
+    @property
+    def broadcast_node(self) -> Node:
+        return self._node_br
+
+    @property
+    def broadcast_node_name(self) -> str:
+        return self._node_br.node_name
+
+    @property
+    def column_names(self) -> List[str]:
+        records = self.to_records()
+        return records.column_names
+
+    def verify(self) -> bool:
+        raise NotImplementedError('')
+        # is_valid = True
+        # if self._records_provider is not None:
+        #     is_valid &= self._records_provider.verify_communication(self._val)
+        # return is_valid
+
+    def _to_records_core(self) -> RecordsInterface:
+        assert self._records_provider is not None
+        records = self._records_provider.tf_communication_records(self._val)
 
         return records

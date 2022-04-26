@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .column import Column, ColumnAttribute, ColumnMapper, ColumnMapperContainer
+from .column import Column, Columns, ColumnAttribute, ColumnMapper
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
 from .pandas_extensions import PandasExtensions
 from .record import (merge,
@@ -27,9 +27,9 @@ from .record_factory import RecordFactory, RecordsFactory
 __all__ = [
     'Clip',
     'Column',
+    'Columns',
     'ColumnAttribute',
     'ColumnMapper',
-    'ColumnMapperContainer',
     'DataFrameShaper',
     'PandasExtensions',
     'Record',

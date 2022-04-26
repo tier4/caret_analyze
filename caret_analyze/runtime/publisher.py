@@ -28,8 +28,13 @@ class Publisher(PathBase, Summarizable):
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         super().__init__()
+        self.__publisher = publisher
         self._val = publisher
         self._provider = provider
+
+    def _to_records_core(self) -> RecordsInterface:
+        records = self._provider.publish_records(self.__publisher)
+        return records
 
     @property
     def node_name(self) -> str:
@@ -55,7 +60,3 @@ class Publisher(PathBase, Summarizable):
         if isinstance(self._provider, RuntimeDataProvider):
             return self._provider.get_qos(self._val)
         return None
-
-    def _to_records_core(self) -> RecordsInterface:
-        records = self._provider.publish_records(self._val)
-        return records

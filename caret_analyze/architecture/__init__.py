@@ -13,9 +13,11 @@
 # limitations under the License.
 
 from .architecture import Architecture
+from .architecture_reader_factory import ArchitectureReaderFactory
 from .util import check_procedure
 
 __all__ = [
     'Architecture',
+    'ArchitectureReaderFactory',
     'check_procedure'
 ]

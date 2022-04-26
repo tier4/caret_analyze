@@ -15,14 +15,31 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Sequence
+from typing import Dict, Optional, Sequence
 
-from ..value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
-                             NodeValueWithId, PathValue, PublisherValue,
-                             SubscriptionCallbackValue, SubscriptionValue,
-                             TimerCallbackValue, TimerValue, VariablePassingValue)
+from functools import lru_cache
 
-UNDEFINED_STR = 'UNDEFINED'
+from caret_analyze.value_objects.transform import TransformValue
+
+from ..common import Util
+
+from ..value_objects import (
+    CallbackGroupValue,
+    ClientCallbackValue,
+    ExecutorValue,
+    NodeValue,
+    PathValue,
+    PublisherValue,
+    ServiceCallbackValue,
+    SubscriptionCallbackValue,
+    SubscriptionValue,
+    TimerCallbackValue,
+    TimerValue,
+    TransformBroadcasterValue,
+    TransformBufferValue,
+    VariablePassingValue,
+)
+
 IGNORE_TOPICS = ['/parameter_events', '/rosout', '/clock']
 
 
@@ -32,7 +49,7 @@ class ArchitectureReader(metaclass=ABCMeta):
     @abstractmethod
     def get_nodes(
         self
-    ) -> Sequence[NodeValueWithId]:
+    ) -> Sequence[NodeValue]:
         """
         Get nodes.
 
@@ -44,8 +61,27 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
+    @lru_cache
+    def get_node(
+        self,
+        node_name: str
+    ) -> NodeValue:
+        nodes = self.get_nodes()
+        return Util.find_one(lambda x: x.node_name == node_name, nodes)
+
     @abstractmethod
+    def get_tf_frames(self) -> Sequence[TransformValue]:
+        pass
+
     def get_timer_callbacks(
+        self,
+        node_name: str
+    ) -> Sequence[TimerCallbackValue]:
+        node = self.get_node(node_name)
+        return self._get_timer_callbacks(node)
+
+    @abstractmethod
+    def _get_timer_callbacks(
         self,
         node: NodeValue
     ) -> Sequence[TimerCallbackValue]:
@@ -65,8 +101,71 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def get_subscription_callbacks(
+        self,
+        node_name: str
+    ) -> Sequence[SubscriptionCallbackValue]:
+        node = self.get_node(node_name)
+        return self._get_subscription_callbacks(node)
+
+    def get_service_callbacks(
+        self,
+        node_name: str
+    ) -> Sequence[ServiceCallbackValue]:
+        node = self.get_node(node_name)
+        return self._get_service_callbacks(node)
+
+    @abstractmethod
+    def _get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValue]:
+        """
+        Get service callback values.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node
+
+        Returns
+        -------
+        Sequence[ServiceCallbackStructInfo]
+            service callback values
+
+        """
+        pass
+
+    def get_client_callbacks(
+        self,
+        node_name: str
+    ) -> Sequence[ClientCallbackValue]:
+        node = self.get_node(node_name)
+        return self._get_service_callbacks(node)
+
+    @abstractmethod
+    def _get_client_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ClientCallbackValue]:
+        """
+        Get client callback values.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node
+
+        Returns
+        -------
+        Sequence[ClientCallbackStructInfo]
+            client callback values
+
+        """
+        pass
+
+    @abstractmethod
+    def _get_subscription_callbacks(
         self,
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValue]:
@@ -86,10 +185,17 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def get_publishers(
         self,
-        node_info: NodeValue
+        node_name: str
+    ) -> Sequence[PublisherValue]:
+        node = self.get_node(node_name)
+        return self._get_publishers(node)
+
+    @abstractmethod
+    def _get_publishers(
+        self,
+        node: NodeValue
     ) -> Sequence[PublisherValue]:
         """
         Get publishers info.
@@ -107,8 +213,15 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def get_timers(
+        self,
+        node_name: str
+    ) -> Sequence[TimerValue]:
+        node = self.get_node(node_name)
+        return self._get_timers(node)
+
+    @abstractmethod
+    def _get_timers(
         self,
         node: NodeValue
     ) -> Sequence[TimerValue]:
@@ -128,8 +241,15 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def get_subscriptions(
+        self,
+        node_name: str
+    ) -> Sequence[SubscriptionValue]:
+        node = self.get_node(node_name)
+        return self._get_subscriptions(node)
+
+    @abstractmethod
+    def _get_subscriptions(
         self,
         node: NodeValue
     ) -> Sequence[SubscriptionValue]:
@@ -162,8 +282,15 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def get_message_contexts(
+        self,
+        node_name: str
+    ) -> Sequence[Dict]:
+        node = self.get_node(node_name)
+        return self._get_message_contexts(node)
+
+    @abstractmethod
+    def _get_message_contexts(
         self,
         node: NodeValue
     ) -> Sequence[Dict]:
@@ -182,8 +309,15 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def get_variable_passings(
+        self,
+        node_name: str
+    ) -> Sequence[VariablePassingValue]:
+        node = self.get_node(node_name)
+        return self._get_variable_passings(node)
+
+    @abstractmethod
+    def _get_variable_passings(
         self,
         node: NodeValue
     ) -> Sequence[VariablePassingValue]:
@@ -216,8 +350,21 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def get_callback_groups(
+        self,
+        node_name: str
+    ) -> Sequence[CallbackGroupValue]:
+        node = self.get_node(node_name)
+        return self._get_callback_groups(node)
+        # @staticmethod
+        # def _validate(cbg: CallbackGroupValue, node: NodeValue):
+        #     # TODO: add callback group id validation
+
+        #     if len(cbg.callback_ids) != len(set(cbg.callback_ids)):
+        #         raise InvalidReaderError(f'duplicated callback id. {node}, {cbg}')
+
+    @abstractmethod
+    def _get_callback_groups(
         self,
         node: NodeValue
     ) -> Sequence[CallbackGroupValue]:
@@ -235,4 +382,33 @@ class ArchitectureReader(metaclass=ABCMeta):
             callback group values
 
         """
+        pass
+
+    @lru_cache
+    def get_tf_buffer(
+        self,
+        node_name: str
+    ) -> Optional[TransformBufferValue]:
+        node = self.get_node(node_name)
+        return self._get_tf_buffer(node)
+
+    @abstractmethod
+    def _get_tf_buffer(
+        self,
+        node: NodeValue
+    ) -> Optional[TransformBufferValue]:
+        pass
+
+    def get_tf_broadcaster(
+        self,
+        node_name: str
+    ) -> Optional[TransformBroadcasterValue]:
+        node = self.get_node(node_name)
+        return self._get_tf_broadcaster(node)
+
+    @abstractmethod
+    def _get_tf_broadcaster(
+        self,
+        node: NodeValue
+    ) -> Optional[TransformBroadcasterValue]:
         pass

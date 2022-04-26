@@ -16,7 +16,12 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ....value_objects import SubscriptionCallbackValue, TimerCallbackValue
+from ....value_objects import (
+    ClientCallbackValue,
+    ServiceCallbackValue,
+    SubscriptionCallbackValue,
+    TimerCallbackValue,
+)
 
 
 class TimerCallbackValueLttng(TimerCallbackValue):
@@ -94,3 +99,63 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
     @property
     def subscription_handle(self) -> int:
         return self._subscription_handle
+
+
+class ServiceCallbackValueLttng(ServiceCallbackValue):
+    def __init__(
+        self,
+        callback_id: str,
+        node_id: str,
+        node_name: str,
+        symbol: str,
+        callback_object: Optional[int],
+        service_name: str,
+        service_handle: int
+    ) -> None:
+        super().__init__(
+            callback_id=callback_id,
+            node_id=node_id,
+            node_name=node_name,
+            symbol=symbol,
+            service_name=service_name,
+        )
+        self._callback_object = callback_object
+        self._service_handle = service_handle
+
+    @property
+    def callback_object(self) -> Optional[int]:
+        return self._callback_object
+
+    @property
+    def service_handle(self) -> int:
+        return self._service_handle
+
+
+class ClientCallbackValueLttng(ClientCallbackValue):
+    def __init__(
+        self,
+        callback_id: str,
+        node_id: str,
+        node_name: str,
+        symbol: str,
+        callback_object: Optional[int],
+        service_name: str,
+        client_handle: int,
+    ) -> None:
+        super().__init__(
+            callback_id=callback_id,
+            node_id=node_id,
+            node_name=node_name,
+            symbol=symbol,
+            service_name=service_name,
+        )
+        self._callback_object = callback_object
+        self._client_handle = client_handle
+
+    @property
+    def callback_object(self) -> Optional[int]:
+        return self._callback_object
+
+    @property
+    def client_handle(self) -> int:
+        return self._client_handle

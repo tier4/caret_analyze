@@ -59,12 +59,14 @@ class ExecutorStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         executor_type: ExecutorType,
-        callback_group_values: Tuple[CallbackGroupStructValue, ...],
+        callback_groups: Tuple[CallbackGroupStructValue, ...],
         executor_name: str,
+        executor_id: str,
     ) -> None:
         self._executor_type = executor_type
-        self._cbg_values: Tuple[CallbackGroupStructValue, ...] = callback_group_values
+        self._cbg_values: Tuple[CallbackGroupStructValue, ...] = callback_groups
         self._executor_name = executor_name
+        self._executor_id = executor_id
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
@@ -81,6 +83,10 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def executor_type_name(self) -> str:
         return self._executor_type.type_name
+
+    @property
+    def executor_id(self) -> str:
+        return self._executor_id
 
     @property
     def executor_name(self) -> str:
@@ -109,6 +115,7 @@ class ExecutorValue(ValueObject):
 
     def __init__(
         self,
+        executor_id: str,
         executor_type_name: str,
         callback_group_ids: Tuple[str, ...],
         *,
@@ -117,6 +124,11 @@ class ExecutorValue(ValueObject):
         self._executor_type = ExecutorType(executor_type_name)
         self._cbg_ids = callback_group_ids
         self._executor_name = executor_name
+        self._executor_id = executor_id
+
+    @property
+    def executor_id(self) -> str:
+        return self._executor_id
 
     @property
     def executor_type(self) -> ExecutorType:

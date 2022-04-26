@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
-
 from .callback import CallbackStructValue
 from .node import NodeStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .value_object import ValueObject
-from ..common import Summarizable, Summary, Util
+from ..common import Summary, Util
 
 
-class CommunicationStructValue(ValueObject, Summarizable):
+class CommunicationStructValue(ValueObject):
 
     def __init__(
         self,
@@ -30,16 +28,12 @@ class CommunicationStructValue(ValueObject, Summarizable):
         node_subscription: NodeStructValue,
         publisher_value: PublisherStructValue,
         subscription_value: SubscriptionStructValue,
-        publish_callback_values: Optional[Tuple[CallbackStructValue, ...]],
-        subscription_callback_value: Optional[CallbackStructValue],
     ) -> None:
         self._publisher_value = publisher_value
         self._subscription_value = subscription_value
         self._topic_name = subscription_value.topic_name
         self._node_pub = node_publish
         self._node_sub = node_subscription
-        self._subscription_callback_value = subscription_callback_value
-        self._publish_callbacks_value = publish_callback_values
 
     def _find_publish_value(self, node: NodeStructValue, topic_name: str):
         def is_target(pub: PublisherStructValue):
@@ -64,18 +58,6 @@ class CommunicationStructValue(ValueObject, Summarizable):
         return self._topic_name
 
     @property
-    def publish_callback_names(self) -> Optional[Tuple[str, ...]]:
-        if self._publish_callbacks_value is None:
-            return None
-        return tuple(p.callback_name for p in self._publish_callbacks_value)
-
-    @property
-    def subscribe_callback_name(self) -> Optional[str]:
-        if self._subscription_callback_value is None:
-            return None
-        return self._subscription_callback_value.callback_name
-
-    @property
     def publisher(self) -> PublisherStructValue:
         return self._publisher_value
 
@@ -84,16 +66,17 @@ class CommunicationStructValue(ValueObject, Summarizable):
         return self._subscription_value
 
     @property
-    def publish_callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
-        return self._publish_callbacks_value
-
-    @property
-    def subscribe_callback(self) -> Optional[CallbackStructValue]:
-        return self._subscription_callback_value
-
-    @property
     def subscribe_node_name(self) -> str:
         return self._node_sub.node_name
+
+    @property
+    def subscription_callback_name(self) -> str:
+        return self.subscription_callback.callback_name
+
+    @property
+    def subscription_callback(self) -> CallbackStructValue:
+        assert self._subscription_value.callback is not None
+        return self._subscription_value.callback
 
     @property
     def publish_node_name(self) -> str:

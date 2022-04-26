@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ..infra.lttng import Lttng
+from ..infra.lttng.lttng import LttngEventFilter
 from ..infra.lttng.architecture_reader_lttng import ArchitectureReaderLttng
 from ..infra.yaml.architecture_reader_yaml import ArchitectureReaderYaml
 
@@ -23,6 +25,8 @@ class ArchitectureReaderFactory:
         if file_type in ['yaml', 'yml']:
             return ArchitectureReaderYaml(file_path)
         elif file_type in ['lttng', 'ctf']:
-            return ArchitectureReaderLttng(file_path)
+            lttng = Lttng(file_path, event_filters=[LttngEventFilter.init_pass_filter()])
+            # lttng = Lttng(file_path)
+            return ArchitectureReaderLttng(lttng)
 
         raise ValueError(f'unsupported file_type: {file_type}')

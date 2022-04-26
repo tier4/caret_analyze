@@ -14,24 +14,41 @@
 
 from typing import List, Union
 
+from caret_analyze.value_objects.transform import TransformFrameBroadcasterStructValue, TransformFrameBufferStructValue
+
+from .architecture_reader_lttng import ArchitectureReaderLttng
 from .lttng import Lttng
-from .value_objects import (PublisherValueLttng,
-                            SubscriptionCallbackValueLttng,
-                            TimerCallbackValueLttng)
+from .value_objects import (
+    PublisherValueLttng,
+    SubscriptionCallbackValueLttng,
+    TimerCallbackValueLttng,
+    TransformBroadcasterValueLttng,
+    TransformBufferValueLttng,
+)
 from ...common import Util
 from ...exceptions import ItemNotFoundError, MultipleItemFoundError
-from ...value_objects import (NodeValue, PublisherStructValue, PublisherValue,
-                              SubscriptionCallbackStructValue,
-                              SubscriptionCallbackValue,
-                              TimerCallbackStructValue, TimerCallbackValue)
+from ...value_objects import (
+    PublisherStructValue,
+    PublisherValue,
+    SubscriptionCallbackStructValue,
+    SubscriptionCallbackValue,
+    TimerCallbackStructValue,
+    TimerCallbackValue,
+    TransformBroadcasterStructValue,
+    TransformBroadcasterValue,
+    TransformBufferStructValue,
+    TransformBufferValue
+)
 
 
 class LttngBridge:
+
     def __init__(
         self,
         lttng: Lttng
     ) -> None:
         self._lttng = lttng
+        self._reader = ArchitectureReaderLttng(lttng)
 
     def get_timer_callback(
         self,
@@ -66,8 +83,7 @@ class LttngBridge:
         """
         try:
             condition = TimerCallbackBindCondition(callback)
-            node = NodeValue(callback.node_name, None)
-            timer_callbacks = self._lttng.get_timer_callbacks(node)
+            timer_callbacks = self._reader.get_timer_callbacks(callback.node_name)
             timer_callback = Util.find_one(condition, timer_callbacks)
         except ItemNotFoundError:
             msg = 'No value matching the search condition is found. {condition}'
@@ -112,8 +128,7 @@ class LttngBridge:
 
         """
         try:
-            node = NodeValue(callback.node_name, None)
-            sub_callbacks = self._lttng.get_subscription_callbacks(node)
+            sub_callbacks = self._reader.get_subscription_callbacks(callback.node_name)
             condition = SubscriptionCallbackBindCondition(callback)
             sub_callback = Util.find_one(condition, sub_callbacks)
         except ItemNotFoundError:
@@ -126,6 +141,34 @@ class LttngBridge:
             raise MultipleItemFoundError(msg)
 
         return sub_callback
+
+    def get_tf_broadcaster(
+        self,
+        broadcaster: Union[TransformBroadcasterStructValue,
+                           TransformFrameBroadcasterStructValue]
+    ) -> TransformBroadcasterValueLttng:
+        condition = TransformBroadcasterBindCondition(broadcaster)
+        br = self._reader.get_tf_broadcaster(broadcaster.node_name)
+        if br is None:
+            msg = 'No value matching the search condition is found. '
+            msg += str(condition)
+            raise ItemNotFoundError(msg)
+
+        assert isinstance(br, TransformBroadcasterValueLttng)
+        return br
+
+    def get_tf_buffer(
+        self,
+        buffer: Union[TransformBufferStructValue, TransformFrameBufferStructValue]
+    ) -> TransformBufferValueLttng:
+        condition = TransformBufferBindCondition(buffer)
+        buf = self._reader.get_tf_buffer(buffer.lookup_node_name)
+        if buf is None:
+            msg = 'No value matching the search condition is found. '
+            msg += str(condition)
+            raise ItemNotFoundError(msg)
+        assert isinstance(buf, TransformBufferValueLttng)
+        return buf
 
     def get_publishers(
         self,
@@ -147,8 +190,7 @@ class LttngBridge:
         """
         try:
             condition = PublisherBindCondition(publisher_value)
-            node = NodeValue(publisher_value.node_name, None)
-            pubs = self._lttng.get_publishers(node)
+            pubs = self._reader.get_publishers(publisher_value.node_name)
             pubs_filtered = Util.filter_items(condition, pubs)
         except ItemNotFoundError:
             msg = 'Failed to find publisher instance. '
@@ -256,6 +298,112 @@ class SubscriptionCallbackBindCondition:
             value.callback_type == struct_value.callback_type and \
             value.subscribe_topic_name == struct_value.subscribe_topic_name and \
             value.symbol == struct_value.symbol
+
+    def __str__(self):
+        return str(self._target)
+
+
+class TransformBroadcasterBindCondition:
+    """
+    Get transform broadcaster value with the same conditions.
+
+    used conditions:
+    - transforms
+    - node_name
+
+    """
+
+    def __init__(
+        self,
+        target_condition: Union[TransformBroadcasterValue,
+                                TransformBroadcasterStructValue,
+                                TransformFrameBroadcasterStructValue]
+    ) -> None:
+        assert isinstance(target_condition, TransformBroadcasterValue) or \
+            isinstance(target_condition, TransformBroadcasterStructValue) or \
+            isinstance(target_condition, TransformFrameBroadcasterStructValue)
+        self._target = target_condition
+
+    def __call__(
+        self,
+        callback_value: Union[
+            TransformBroadcasterValue,
+            TransformBroadcasterStructValue,
+            TransformFrameBroadcasterStructValue],
+    ) -> bool:
+        if isinstance(self._target, TransformBroadcasterValue) and \
+                isinstance(callback_value, TransformBroadcasterStructValue):
+            return self._compare(self._target, callback_value)
+
+        if isinstance(self._target, TransformBroadcasterStructValue) and \
+                isinstance(callback_value, TransformBroadcasterValue):
+            return self._compare(callback_value, self._target)
+
+        if isinstance(self._target, TransformFrameBroadcasterStructValue) and \
+                isinstance(callback_value, TransformBroadcasterValue):
+            return self._compare(callback_value, self._target)
+
+        raise NotImplementedError()
+
+    def _compare(
+        self,
+        value: TransformBroadcasterValue,
+        struct_value: Union[TransformBroadcasterStructValue, TransformFrameBroadcasterStructValue]
+    ) -> bool:
+        return value.node_name == struct_value.node_name
+
+    def __str__(self):
+        return str(self._target)
+
+
+class TransformBufferBindCondition:
+    """
+    Get transform buffer value with the same conditions.
+
+    used conditions:
+    - lookup_node_name
+    - listener_node_name
+
+    """
+
+    def __init__(
+        self,
+        target_condition: Union[TransformBufferValue,
+                                TransformBufferStructValue,
+                                TransformFrameBufferStructValue]
+    ) -> None:
+        assert isinstance(target_condition, TransformBufferValue) or \
+            isinstance(target_condition, TransformBufferStructValue) or \
+            isinstance(target_condition, TransformFrameBufferStructValue)
+        self._target = target_condition
+
+    def __call__(
+        self,
+        callback_value: Union[TransformBufferValue,
+                              TransformBufferStructValue,
+                              TransformFrameBufferStructValue],
+    ) -> bool:
+        if isinstance(self._target, TransformBufferValue) and \
+                isinstance(callback_value, TransformBufferStructValue):
+            return self._compare(self._target, callback_value)
+
+        if isinstance(self._target, TransformBufferStructValue) and \
+                isinstance(callback_value, TransformBufferValue):
+            return self._compare(callback_value, self._target)
+
+        if isinstance(self._target, TransformFrameBufferStructValue) and \
+                isinstance(callback_value, TransformBufferValue):
+            return self._compare(callback_value, self._target)
+
+        raise NotImplementedError()
+
+    def _compare(
+        self,
+        value: TransformBufferValue,
+        struct_value: Union[TransformBufferStructValue, TransformFrameBufferStructValue]
+    ) -> bool:
+        return value.lookup_node_name == struct_value.lookup_node_name and \
+            value.listener_node_name == struct_value.listener_node_name
 
     def __str__(self):
         return str(self._target)

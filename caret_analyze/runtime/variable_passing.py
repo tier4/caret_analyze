@@ -34,7 +34,7 @@ class VariablePassing(PathBase, Summarizable):
 
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.variable_passing_records(self._val)
-        records.sort(records.columns[0])
+        records.sort(records.column_names[0])
 
         return records
 

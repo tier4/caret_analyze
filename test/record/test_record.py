@@ -583,10 +583,12 @@ class TestRecords:
             assert df.equals(expect_df)
 
             column = records.get_column('a')
-            assert column.mapper is None
+            assert column.has_mapper() is False
 
     def test_to_dataframe_with_column_mapper(self):
         mapper = ColumnMapper()
+        mapper.add(0, 'test0')
+        mapper.add(3, 'test3')
 
         records_py: Records = Records(
             [
@@ -612,10 +614,9 @@ class TestRecords:
                 continue
 
             column = records.get_column('a')
-            column.mapper.add(0, 'test0')
-            column.mapper.add(3, 'test3')
             df = records.to_dataframe()
             assert df.equals(expect_df)
+            assert column.has_mapper() is True
 
     def test_iter(self):
         records_py: Records = Records(
@@ -951,7 +952,7 @@ class TestRecords:
                 continue
             records = records_type([record_type()], [])
             assert records.columns == []
-            records.append_column('value', [0])
+            records.append_column(Column('value'), [0])
             assert records.equals(expects)
 
     def test_get_column(self):
@@ -1409,6 +1410,13 @@ class TestRecords:
             assert records_left.column_names == ['stamp', 'value_left']
             assert records_right.column_names == ['stamp_', 'value_right']
 
+            with pytest.raises(InvalidArgumentError):
+                records_left.merge(
+                    records_right,
+                    'value_left',
+                    'not_exist',
+                    how=how)
+
     @pytest.mark.parametrize(
         'how, records_expect_py',
         [
@@ -1451,7 +1459,7 @@ class TestRecords:
 
         records_right_py: Records = Records(
             [
-                Record({'k0_': 1, 'k1_': 10, 'k0_': 1, 'value_': 110}),
+                Record({'k0_': 1, 'k1_': 10, 'value_': 110}),
                 Record({'k0_': 3, 'k1_': 20, 'value_': 210}),
                 Record({'k0_': 3, 'k1_': 20, 'value_': 310}),
                 Record({'k0_': 9, 'value_': 410}),
@@ -1493,6 +1501,87 @@ class TestRecords:
             assert merged.column_names == column_names_expect
             assert records_left.column_names == ['k0', 'k1', 'value']
             assert records_right.column_names == ['k0_', 'k1_', 'value_']
+
+    @pytest.mark.parametrize(
+        'how, records_expect_py',
+        [
+            (
+                'inner',
+                Records(
+                    [
+                        Record({'k0': 1, 'k1': 10, 'value': 100, 'value_': 110}),
+                        Record({'k0': 3, 'k1': 20, 'value': 200, 'value_': 210}),
+                        Record({'k0': 3, 'k1': 20, 'value': 200, 'value_': 310}),
+                    ],
+                    [
+                        Column('k0'),
+                        Column('k1'),
+                        Column('value'),
+                        Column('value_')
+                    ]
+                ),
+            ),
+        ],
+    )
+    def test_merge_multiple_columns_duplicated_key(self, how: str, records_expect_py: Records):
+        records_left_py: Records = Records(
+            [
+                Record({'k0': 1, 'k1': 10, 'value': 100}),
+                Record({'k0': 3, 'k1': 20, 'value': 200}),
+                Record({'k0': 5, 'k1': 30, 'value': 300}),
+                Record({'k0': 7, 'k1': 40, 'value': 400}),
+                Record({'k0': 9, 'k1': 70}),
+                Record({'value': 600}),
+            ],
+            [
+                Column('k0'),
+                Column('k1'),
+                Column('value'),
+            ]
+        )
+
+        records_right_py: Records = Records(
+            [
+                Record({'k0': 1, 'k1': 10, 'value_': 110}),
+                Record({'k0': 3, 'k1': 20, 'value_': 210}),
+                Record({'k0': 3, 'k1': 20, 'value_': 310}),
+                Record({'k0': 9, 'value_': 410}),
+                Record({'k1': 50}),
+                Record({'value_': 610}),
+            ],
+            [
+                Column('k0'),
+                Column('k1'),
+                Column('value_'),
+            ]
+        )
+
+        records_left_cpp = to_cpp_records(records_left_py)
+        records_right_cpp = to_cpp_records(records_right_py)
+        records_expect_cpp = to_cpp_records(records_expect_py)
+
+        column_names_expect = [
+            'k0',
+            'k1',
+            'value',
+            'value_',
+        ]
+        for records_left, records_right, records_expect in zip(
+            [records_left_py, records_left_cpp],
+            [records_right_py, records_right_cpp],
+            [records_expect_py, records_expect_cpp],
+        ):
+            if records_left is None or records_right is None:
+                continue
+
+            merged = records_left.merge(records_right, ['k0', 'k1'], ['k0', 'k1'], how=how)
+
+            merged.get_column('value')
+            merged.get_column('value_')
+            assert merged.equals(records_expect)
+            assert merged.column_names == column_names_expect
+            assert records_left.column_names == ['k0', 'k1', 'value']
+            assert records_right.column_names == ['k0', 'k1', 'value_']
 
     @pytest.mark.parametrize(
         'how, expect_records_py',
@@ -2234,6 +2323,26 @@ class TestRecords:
                 how=how,
             )
 
+            with pytest.raises(InvalidArgumentError):
+                left_records.merge_sequencial(
+                    right_records=right_records,
+                    left_stamp_key='stamp',
+                    right_stamp_key='not_exist',
+                    join_left_key=None,
+                    join_right_key=None,
+                    how=how,
+                )
+
+            with pytest.raises(InvalidArgumentError):
+                left_records.merge_sequencial(
+                    right_records=right_records,
+                    left_stamp_key='stamp',
+                    right_stamp_key='sub_stamp',
+                    join_left_key='not_exist',
+                    join_right_key=None,
+                    how=how,
+                )
+
             assert merged.equals(expect_records)
 
     @pytest.mark.parametrize(
@@ -2662,6 +2771,8 @@ class TestRecords:
             ]
         )
 
+        from copy import deepcopy
+
         for source_records, copy_records, sink_records, expect_records in zip(
             [source_records, to_cpp_records(source_records)],
             [copy_records, to_cpp_records(copy_records)],
@@ -2671,16 +2782,20 @@ class TestRecords:
             if source_records is None and not CppImplEnabled:
                 continue
 
+            valid_args = {
+                'source_stamp_key': 'source_stamp',
+                'source_key': 'source_addr',
+                'copy_stamp_key': 'copy_stamp',
+                'copy_from_key': 'addr_from',
+                'copy_to_key': 'addr_to',
+                'sink_stamp_key': 'sink_stamp',
+                'sink_from_key': 'sink_addr'
+            }
+
             merged = source_records.merge_sequencial_for_addr_track(
-                source_stamp_key='source_stamp',
-                source_key='source_addr',
                 copy_records=copy_records,
-                copy_stamp_key='copy_stamp',
-                copy_from_key='addr_from',
-                copy_to_key='addr_to',
                 sink_records=sink_records,
-                sink_stamp_key='sink_stamp',
-                sink_from_key='sink_addr'
+                **valid_args
             )
 
             merged.sort(key='sink_stamp')
@@ -2691,3 +2806,14 @@ class TestRecords:
             assert sink_records.column_names == ['sink_addr', 'sink_stamp']
 
             assert merged.equals(expect_records)
+
+            for key in valid_args:
+                invalid_args = deepcopy(valid_args)
+                invalid_args[key] = 'not_exist'
+
+                with pytest.raises(InvalidArgumentError):
+                    source_records.merge_sequencial_for_addr_track(
+                                    copy_records=copy_records,
+                                    sink_records=sink_records,
+                                    **invalid_args
+                                )

@@ -22,6 +22,7 @@ from .node_path import NodePath
 from .publisher import Publisher
 from .subscription import Subscription
 from .timer import Timer
+from .transform import TransformBuffer, TransformBroadcaster
 from .variable_passing import VariablePassing
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
@@ -37,8 +38,10 @@ class Node(Summarizable):
         subscription: List[Subscription],
         timers: List[Timer],
         node_paths: List[NodePath],
-        callback_groups: Optional[List[CallbackGroup]],
+        callback_groups: List[CallbackGroup],
         variable_passings: Optional[List[VariablePassing]],
+        tf_buffer: Optional[TransformBuffer],
+        tf_broadcaster: Optional[TransformBroadcaster]
     ) -> None:
         self._val = node
         self._publishers = publishers
@@ -47,26 +50,32 @@ class Node(Summarizable):
         self._paths = node_paths
         self._callback_groups = callback_groups
         self._variable_passings = variable_passings
+        self._tf_buffer = tf_buffer
+        self._tf_broadcaster = tf_broadcaster
 
     @property
-    def callback_groups(self) -> Optional[List[CallbackGroup]]:
-        if self._callback_groups is None:
-            return None
+    def callback_groups(self) -> List[CallbackGroup]:
         return sorted(self._callback_groups, key=lambda x: x.callback_group_name)
+
+    @property
+    def tf_buffer(self) -> Optional[TransformBuffer]:
+        return self._tf_buffer
+
+    @property
+    def tf_broadcaster(self) -> Optional[TransformBroadcaster]:
+        return self._tf_broadcaster
 
     @property
     def node_name(self) -> str:
         return self._val.node_name
 
     @property
-    def callbacks(self) -> Optional[List[CallbackBase]]:
-        if self.callback_groups is None:
-            return None
+    def callbacks(self) -> List[CallbackBase]:
         cbs = Util.flatten([cbg.callbacks for cbg in self.callback_groups])
         return sorted(cbs, key=lambda x: x.callback_name)
 
     @property
-    def callback_names(self) -> Optional[List[str]]:
+    def callback_names(self) -> List[str]:
         if self.callbacks is None:
             return None
         return sorted(c.callback_name for c in self.callbacks)
@@ -100,9 +109,7 @@ class Node(Summarizable):
         return sorted(_.topic_name for _ in self._subscriptions)
 
     @property
-    def callback_group_names(self) -> Optional[List[str]]:
-        if self.callback_groups is None:
-            return None
+    def callback_group_names(self) -> List[str]:
         return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property

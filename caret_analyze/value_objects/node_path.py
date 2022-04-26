@@ -21,6 +21,10 @@ from .callback import CallbackStructValue
 from .message_context import MessageContext, MessageContextType
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
+from .transform import (
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
+)
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
 from ..common import Summarizable, Summary, Util
@@ -34,10 +38,47 @@ class NodePathValue(ValueObject):
         node_name: str,
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
+        broadcast_frame_id: Optional[str],
+        broadcast_child_frame_id: Optional[str],
+        buffer_listen_frame_id: Optional[str],
+        buffer_listen_child_frame_id: Optional[str],
+        buffer_lookup_frame_id: Optional[str],
+        buffer_lookup_child_frame_id: Optional[str],
     ) -> None:
         self._node_name = node_name
         self._publish_topic_name = publish_topic_name
         self._subscribe_topic_name = subscribe_topic_name
+        self._broadcast_frame_id = broadcast_frame_id
+        self._broadcast_child_frame_id = broadcast_child_frame_id
+        self._buffer_listen_frame_id = buffer_listen_frame_id
+        self._buffer_listen_child_frame_id = buffer_listen_child_frame_id
+        self._buffer_lookup_frame_id = buffer_lookup_frame_id
+        self._buffer_lookup_child_frame_id = buffer_lookup_child_frame_id
+        # TODO(hsgwa) insert assertion here.
+
+    @property
+    def broadcast_frame_id(self) -> Optional[str]:
+        return self._broadcast_frame_id
+
+    @property
+    def broadcast_child_frame_id(self) -> Optional[str]:
+        return self._broadcast_child_frame_id
+
+    @property
+    def buffer_listen_frame_id(self) -> Optional[str]:
+        return self._buffer_listen_frame_id
+
+    @property
+    def buffer_listen_child_frame_id(self) -> Optional[str]:
+        return self._buffer_listen_child_frame_id
+
+    @property
+    def buffer_lookup_frame_id(self) -> Optional[str]:
+        return self._buffer_lookup_frame_id
+
+    @property
+    def buffer_lookup_child_frame_id(self) -> Optional[str]:
+        return self._buffer_lookup_child_frame_id
 
     @property
     def node_name(self) -> str:
@@ -53,11 +94,14 @@ class NodePathValue(ValueObject):
 
 
 class NodePathStructValue(ValueObject, Summarizable):
+
     def __init__(
         self,
         node_name: str,
         subscription: Optional[SubscriptionStructValue],
         publisher: Optional[PublisherStructValue],
+        tf_frame_buffer: Optional[TransformFrameBufferStructValue],
+        tf_frame_broadcaster: Optional[TransformFrameBroadcasterStructValue],
         child: Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]],
         message_context: Optional[MessageContext],
     ) -> None:
@@ -66,6 +110,8 @@ class NodePathStructValue(ValueObject, Summarizable):
         self._subscription = subscription
         self._publisher = publisher
         self._context = message_context
+        self._tf_frame_buffer = tf_frame_buffer
+        self._tf_frame_broadcaster = tf_frame_broadcaster
 
     @property
     def node_name(self) -> str:
@@ -81,6 +127,50 @@ class NodePathStructValue(ValueObject, Summarizable):
             self._child
         )
         return tuple(cb_values)
+
+    @property
+    def tf_frame_buffer(self) -> Optional[TransformFrameBufferStructValue]:
+        return self._tf_frame_buffer
+
+    @property
+    def tf_buffer_lookup_frame_id(self) -> Optional[str]:
+        if self._tf_frame_buffer is None:
+            return None
+        return self._tf_frame_buffer.lookup_frame_id
+
+    @property
+    def tf_buffer_lookup_child_frame_id(self) -> Optional[str]:
+        if self._tf_frame_buffer is None:
+            return None
+        return self._tf_frame_buffer.lookup_child_frame_id
+
+    @property
+    def tf_buffer_listen_frame_id(self) -> Optional[str]:
+        if self._tf_frame_buffer is None:
+            return None
+        return self._tf_frame_buffer.listen_frame_id
+
+    @property
+    def tf_buffer_listen_child_frame_id(self) -> Optional[str]:
+        if self._tf_frame_buffer is None:
+            return None
+        return self._tf_frame_buffer.listen_child_frame_id
+
+    @property
+    def tf_broadcast_frame_id(self) -> Optional[str]:
+        if self._tf_frame_broadcaster is None:
+            return None
+        return self._tf_frame_broadcaster.frame_id
+
+    @property
+    def tf_broadcast_child_frame_id(self) -> Optional[str]:
+        if self._tf_frame_broadcaster is None:
+            return None
+        return self._tf_frame_broadcaster.child_frame_id
+
+    @property
+    def tf_frame_broadcaster(self) -> Optional[TransformFrameBroadcasterStructValue]:
+        return self._tf_frame_broadcaster
 
     @property
     def summary(self) -> Summary:
@@ -142,12 +232,20 @@ class NodePathStructValue(ValueObject, Summarizable):
 
     @property
     def publish_topic_name(self) -> Optional[str]:
-        if self._publisher is None:
-            return None
-        return self._publisher.topic_name
+        if self._publisher is not None:
+            return self._publisher.topic_name
+
+        if self._tf_frame_broadcaster is not None:
+            return '/tf'
+
+        return None
 
     @property
     def subscribe_topic_name(self) -> Optional[str]:
-        if self._subscription is None:
-            return None
-        return self._subscription.topic_name
+        if self._subscription is not None:
+            return self._subscription.topic_name
+
+        if self._tf_frame_buffer is not None:
+            return '/tf'
+
+        return None

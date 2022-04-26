@@ -22,12 +22,12 @@ from caret_analyze.architecture.architecture_exporter import (ArchitectureExport
                                                               PubDicts,
                                                               SubDicts,
                                                               VarPassDicts)
-from caret_analyze.architecture.reader_interface import UNDEFINED_STR
 from caret_analyze.exceptions import UnsupportedTypeError
 from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CallbackStructValue,
                                          ExecutorStructValue,
-                                         NodePathStructValue, NodeStructValue,
+                                         NodePathStructValue,
+                                         NodeStructValue,
                                          PathStructValue, PublisherStructValue,
                                          SubscriptionCallbackStructValue,
                                          SubscriptionStructValue,
@@ -198,8 +198,8 @@ class TestNamedPathsDicts:
                 'node_chain': [
                     {
                         'node_name': 'node',
-                        'publish_topic_name': UNDEFINED_STR,
-                        'subscribe_topic_name': UNDEFINED_STR
+                        'publish_topic_name': None,
+                        'subscribe_topic_name': None
                     }
                 ]
             }
@@ -509,7 +509,7 @@ class TestSubDicts:
         sub_dict = SubDicts((sub_info,))
         expect = [{
             'topic_name': 'topic',
-            'callback_name': UNDEFINED_STR
+            'callback_name': None
         }]
 
         assert sub_dict.data == expect
@@ -530,9 +530,9 @@ class TestSubDicts:
         sub_dict = SubDicts((sub_mock_1, sub_mock_2, sub_mock_0,))
 
         expect = [
-            {'topic_name': 'A', 'callback_name': UNDEFINED_STR},
-            {'topic_name': 'B', 'callback_name': UNDEFINED_STR},
-            {'topic_name': 'C', 'callback_name': UNDEFINED_STR},
+            {'topic_name': 'A', 'callback_name': None},
+            {'topic_name': 'B', 'callback_name': None},
+            {'topic_name': 'C', 'callback_name': None},
         ]
 
         assert sub_dict.data == expect
@@ -561,7 +561,7 @@ class TestPubDicts:
 
         expect = [{
             'topic_name': 'topic',
-            'callback_names': [UNDEFINED_STR],
+            'callback_names': [None],
         }]
 
         assert pub_dict.data == expect
@@ -582,9 +582,9 @@ class TestPubDicts:
         pub_dict = PubDicts((pub_mock_1, pub_mock_2, pub_mock_0))
 
         expect = [
-            {'topic_name': 'A', 'callback_names': [UNDEFINED_STR]},
-            {'topic_name': 'B', 'callback_names': [UNDEFINED_STR]},
-            {'topic_name': 'C', 'callback_names': [UNDEFINED_STR]},
+            {'topic_name': 'A', 'callback_names': [None]},
+            {'topic_name': 'B', 'callback_names': [None]},
+            {'topic_name': 'C', 'callback_names': [None]},
         ]
 
         assert pub_dict.data == expect
@@ -688,16 +688,16 @@ class TestVarPassDicts:
     def test_empty(self):
         var_pass_dicts = VarPassDicts([])
         expect = [{
-            'callback_name_write': UNDEFINED_STR,
-            'callback_name_read': UNDEFINED_STR,
+            'callback_name_write': None,
+            'callback_name_read': None,
         }]
 
         assert var_pass_dicts.data == expect
 
         var_pass_dicts = VarPassDicts(None)
         expect = [{
-            'callback_name_write': UNDEFINED_STR,
-            'callback_name_read': UNDEFINED_STR,
+            'callback_name_write': None,
+            'callback_name_read': None,
         }]
 
         assert var_pass_dicts.data == expect

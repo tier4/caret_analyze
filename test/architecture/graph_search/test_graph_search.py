@@ -1,31 +1,30 @@
 # Copyright 2021 Research Institute of Systems Planning, Inc.
-#
+
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
+
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
+
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.architecture.graph_search import (CallbackPathSearcher,
-                                                     Graph, GraphCore,
-                                                     GraphEdge, GraphEdgeCore,
-                                                     GraphNode, GraphPath,
-                                                     GraphPathCore,
-                                                     NodePathSearcher)
-from caret_analyze.value_objects import (CallbackStructValue,
-                                         CommunicationStructValue,
-                                         NodePathStructValue, NodeStructValue,
-                                         PathStructValue, PublisherStructValue,
-                                         SubscriptionStructValue,
-                                         VariablePassingStructValue)
+from caret_analyze.architecture.graph_search.graph_search import (
+    Graph,
+    GraphCore,
+    GraphEdge,
+    GraphEdgeCore,
+    GraphNode,
+    GraphPath,
+    GraphPathCore)
+
+from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 
 from pytest_mock import MockerFixture
+import pytest
 
 
 class TestGraphNode:
@@ -241,6 +240,22 @@ class TestGraph:
             [GraphEdgeCore(0, 1), GraphEdgeCore(1, 0)]
         ]
 
+    def test_search_double_loop_case(self):
+        g = GraphCore()
+        g.add_edge(0, 1)
+        g.add_edge(1, 0)
+
+        g.add_edge(0, 2)
+
+        g.add_edge(2, 3)
+        g.add_edge(3, 2)
+
+        r = g.search_paths(0, 2)
+        assert r == [
+            [GraphEdgeCore(0, 2)],
+            [GraphEdgeCore(0, 1), GraphEdgeCore(1, 0), GraphEdgeCore(0, 2)],
+        ]
+
     def test_search_complex_loop_case(self):
         g = Graph()
         node_0 = GraphNode('0')
@@ -348,232 +363,208 @@ class TestGraph:
         assert [
             GraphEdge(node_0, node_1), GraphEdge(node_1, node_3)] in r
 
+    def test_search_paths_seq_simple(self):
+        g = Graph()
+        node_0 = GraphNode('0')
+        node_1 = GraphNode('1')
+        node_2 = GraphNode('2')
 
-class TestCallbackPathSearcher:
+        g.add_edge(node_0, node_1)
+        g.add_edge(node_1, node_2)
 
-    def test_empty(self, mocker: MockerFixture):
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock, 'callbacks', ())
-        mocker.patch.object(node_mock, 'variable_passings', ())
-        searcher = CallbackPathSearcher(node_mock)
+        with pytest.raises(InvalidArgumentError):
+            g.search_paths([node_0])
 
-        sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
-        pub_cb_mock = mocker.Mock(spec=CallbackStructValue)
-        paths = searcher.search(sub_cb_mock, pub_cb_mock)
-        assert paths == ()
+        r = g.search_paths([node_0, node_2])
+        assert len(r) == 1
+        assert r[0] == [
+            GraphEdge(node_0, node_1),
+            GraphEdge(node_1, node_2),
+        ]
 
-    def test_search(self, mocker: MockerFixture):
-        node_mock = mocker.Mock(spec=NodeStructValue)
+        r = g.search_paths([node_0, node_1, node_2])
+        assert len(r) == 1
+        assert r[0] == [
+            GraphEdge(node_0, node_1),
+            GraphEdge(node_1, node_2),
+        ]
 
-        sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
-        pub_cb_mock = mocker.Mock(spec=CallbackStructValue)
+    def test_search_paths_seq_with_label(self):
+        g = Graph()
+        node_0 = GraphNode('0')
+        node_1 = GraphNode('1')
+        node_2 = GraphNode('2')
 
-        mocker.patch.object(node_mock, 'callbacks', [])
-        mocker.patch.object(node_mock, 'variable_passings', [])
+        g.add_edge(node_0, node_1, '/topic_a')
+        g.add_edge(node_0, node_1, '/topic_b')
+        g.add_edge(node_1, node_2, '/topic_c')
+        g.add_edge(node_1, node_2, '/topic_d')
 
-        searcher_mock = mocker.Mock(spec=Graph)
-        mocker.patch(
-            'caret_analyze.architecture.graph_search.Graph',
-            return_value=searcher_mock
-        )
-        mocker.patch.object(searcher_mock, 'search_paths',
-                            return_value=[GraphPath()])
-        searcher = CallbackPathSearcher(node_mock)
+        expect = [
+            [
+                GraphEdge(node_0, node_1, '/topic_a'),
+                GraphEdge(node_1, node_2, '/topic_c'),
+            ],
+            [
+                GraphEdge(node_0, node_1, '/topic_b'),
+                GraphEdge(node_1, node_2, '/topic_c'),
+            ],
+            [
+                GraphEdge(node_0, node_1, '/topic_a'),
+                GraphEdge(node_1, node_2, '/topic_d'),
+            ],
+            [
+                GraphEdge(node_0, node_1, '/topic_b'),
+                GraphEdge(node_1, node_2, '/topic_d'),
+            ],
+        ]
 
-        path_mock = mocker.Mock(spec=NodePathStructValue)
-        mocker.patch.object(searcher, '_to_paths', return_value=[path_mock])
+        r = g.search_paths([node_0, node_2])
+        assert len(r) == 4
+        assert r[0] in expect
+        assert r[1] in expect
+        assert r[2] in expect
+        assert r[3] in expect
 
-        sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
-        pub_cb_mock = mocker.Mock(spec=CallbackStructValue)
+        r = g.search_paths([node_0, node_1, node_2])
+        assert len(r) == 4
+        assert r[0] in expect
+        assert r[1] in expect
+        assert r[2] in expect
+        assert r[3] in expect
 
-        paths = searcher.search(sub_cb_mock, pub_cb_mock)
-        assert paths == (path_mock,)
+    def test_search_paths_seq_loop(self):
+        g = Graph()
+        node_0 = GraphNode('0')
+        node_1 = GraphNode('1')
+        node_2 = GraphNode('2')
+        node_3 = GraphNode('3')
 
-    def test_to_path(self, mocker: MockerFixture):
-        node_mock = mocker.Mock(spec=NodeStructValue)
+        g.add_edge(node_0, node_1)
+        g.add_edge(node_1, node_2)
+        g.add_edge(node_2, node_1)
+        g.add_edge(node_1, node_3)
 
-        sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
-        pub_cb_mock = mocker.Mock(spec=CallbackStructValue)
-        var_pas_mock = mocker.Mock(spec=VariablePassingStructValue)
+        r = g.search_paths([node_0, node_1, node_3])
+        assert len(r) == 2
+        expect = [
+            [
+                GraphEdge(node_0, node_1),
+                GraphEdge(node_1, node_3),
+            ],
+            [
+                GraphEdge(node_0, node_1),
+                GraphEdge(node_1, node_2),
+                GraphEdge(node_2, node_1),
+                GraphEdge(node_1, node_3),
+            ],
+        ]
+        assert r[0] in expect
+        assert r[1] in expect
 
-        sub_topic_name = '/sub'
-        pub_topic_name = '/pub'
+# class TestCallbackPathSearcher:
 
-        mocker.patch.object(node_mock, 'node_name', '/node')
-        mocker.patch.object(node_mock, 'callbacks', [pub_cb_mock, sub_cb_mock])
-        mocker.patch.object(node_mock, 'variable_passings', [var_pas_mock])
+#     def test_empty(self, mocker: MockerFixture):
+#         node_mock = mocker.Mock(spec=Node)
+#         mocker.patch.object(node_mock, 'callbacks', ())
+#         mocker.patch.object(node_mock, 'variable_passings', ())
+#         searcher = CallbackPathSearcher(node_mock)
 
-        searcher = CallbackPathSearcher(node_mock)
+#         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
+#         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
+#         paths = searcher.search(sub_cb_mock, pub_cb_mock)
+#         assert paths == ()
 
-        sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
-        pub_info_mock = mocker.Mock(spec=PublisherStructValue)
+#     def test_search(self, mocker: MockerFixture):
+#         node_mock = mocker.Mock(spec=Node)
 
-        mocker.patch.object(sub_info_mock, 'topic_name', sub_topic_name)
-        mocker.patch.object(pub_info_mock, 'topic_name', pub_topic_name)
+#         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
+#         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
 
-        mocker.patch.object(sub_cb_mock, 'callback_name', 'cb0')
-        mocker.patch.object(pub_cb_mock, 'callback_name', 'cb1')
-        mocker.patch.object(var_pas_mock, 'callback_name_read', 'cb1')
-        mocker.patch.object(var_pas_mock, 'callback_name_write', 'cb0')
+#         mocker.patch.object(node_mock, 'callbacks', [])
+#         mocker.patch.object(node_mock, 'variable_passings', [])
 
-        graph_node_mock_0 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(sub_cb_mock.callback_name, 'read')
-        )
-        graph_node_mock_1 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(sub_cb_mock.callback_name, 'write')
-        )
-        graph_node_mock_2 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(pub_cb_mock.callback_name, 'read')
-        )
-        graph_node_mock_3 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(pub_cb_mock.callback_name, 'write')
-        )
+#         searcher_mock = mocker.Mock(spec=Graph)
+#         mocker.patch(
+#             'caret_analyze.architecture.graph_search.Graph',
+#             return_value=searcher_mock
+#         )
+#         mocker.patch.object(searcher_mock, 'search_paths',
+#                             return_value=[GraphPath()])
+#         searcher = CallbackPathSearcher(node_mock)
 
-        chain = [sub_cb_mock, var_pas_mock, pub_cb_mock]
-        graph_path_mock = mocker.Mock(spec=GraphPath)
-        mocker.patch.object(graph_path_mock, 'nodes',
-                            [
-                                graph_node_mock_0,
-                                graph_node_mock_1,
-                                graph_node_mock_2,
-                                graph_node_mock_3,
-                            ])
+#         path_mock = mocker.Mock(spec=NodePathStructValue)
+#         mocker.patch.object(searcher, '_to_paths', return_value=[path_mock])
 
-        node_path = searcher._to_path(
-            graph_path_mock, sub_topic_name, pub_topic_name)
-        expected = NodePathStructValue(
-            '/node', sub_info_mock, pub_info_mock, tuple(chain), None)
-        assert node_path == expected
+#         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
+#         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
 
-        node_path = searcher._to_path(graph_path_mock, None, pub_topic_name)
-        expected = NodePathStructValue(
-            '/node', None, pub_info_mock, tuple(chain), None)
-        assert node_path == expected
+#         paths = searcher.search(sub_cb_mock, pub_cb_mock)
+#         assert paths == (path_mock,)
 
-        node_path = searcher._to_path(graph_path_mock, sub_topic_name, None)
-        expected = NodePathStructValue(
-            '/node', sub_info_mock, None, tuple(chain), None)
-        assert node_path == expected
+#     def test_to_path(self, mocker: MockerFixture):
+#         node_mock = mocker.Mock(spec=Node)
 
+#         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
+#         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
+#         var_pas_mock = mocker.Mock(spec=VariablePassingStructValue)
 
-class TestNodePathSearcher:
+#         sub_topic_name = '/sub'
+#         pub_topic_name = '/pub'
 
-    def test_empty(self, mocker: MockerFixture):
-        searcher = NodePathSearcher((), ())
+#         mocker.patch.object(node_mock, 'node_name', '/node')
+#         mocker.patch.object(node_mock, 'callbacks', [pub_cb_mock, sub_cb_mock])
+#         mocker.patch.object(node_mock, 'variable_passings', [var_pas_mock])
 
-        assert searcher.search('node_name_not_exist', 'node_name_not_exist', 0) == []
+#         searcher = CallbackPathSearcher(node_mock)
 
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock, 'paths', [])
-        mocker.patch.object(node_mock, 'node_name', 'node')
-        mocker.patch.object(node_mock, 'publish_topic_names', [])
-        mocker.patch.object(node_mock, 'subscribe_topic_names', [])
-        searcher = NodePathSearcher((node_mock,), ())
-        paths = searcher.search('node', 'node')
-        assert paths == []
+#         sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
+#         pub_info_mock = mocker.Mock(spec=PublisherStructValue)
 
-    def test_search(self, mocker: MockerFixture):
-        graph_mock = mocker.Mock(spec=Graph)
-        mocker.patch(
-            'caret_analyze.architecture.graph_search.Graph',
-            return_value=graph_mock)
-        searcher = NodePathSearcher((), ())
+#         mocker.patch.object(sub_info_mock, 'topic_name', sub_topic_name)
+#         mocker.patch.object(pub_info_mock, 'topic_name', pub_topic_name)
 
-        src_node = GraphNode('start_node_name')
-        dst_node = GraphNode('end_node_name')
+#         mocker.patch.object(sub_cb_mock, 'callback_name', 'cb0')
+#         mocker.patch.object(pub_cb_mock, 'callback_name', 'cb1')
+#         mocker.patch.object(var_pas_mock, 'callback_name_read', 'cb1')
+#         mocker.patch.object(var_pas_mock, 'callback_name_write', 'cb0')
 
-        graph_path_mock = mocker.Mock(spec=GraphPathCore)
-        mocker.patch.object(graph_mock, 'search_paths',
-                            return_value=[graph_path_mock])
+#         graph_node_mock_0 = GraphNode(
+#             CallbackPathSearcher._to_node_point_name(sub_cb_mock.callback_name, 'read')
+#         )
+#         graph_node_mock_1 = GraphNode(
+#             CallbackPathSearcher._to_node_point_name(sub_cb_mock.callback_name, 'write')
+#         )
+#         graph_node_mock_2 = GraphNode(
+#             CallbackPathSearcher._to_node_point_name(pub_cb_mock.callback_name, 'read')
+#         )
+#         graph_node_mock_3 = GraphNode(
+#             CallbackPathSearcher._to_node_point_name(pub_cb_mock.callback_name, 'write')
+#         )
 
-        path_mock = mocker.Mock(spec=PathStructValue)
-        mocker.patch.object(searcher, '_to_path', return_value=path_mock)
-        paths = searcher.search('start_node_name', 'end_node_name')
+#         chain = [sub_cb_mock, var_pas_mock, pub_cb_mock]
+#         graph_path_mock = mocker.Mock(spec=GraphPath)
+#         mocker.patch.object(graph_path_mock, 'nodes',
+#                             [
+#                                 graph_node_mock_0,
+#                                 graph_node_mock_1,
+#                                 graph_node_mock_2,
+#                                 graph_node_mock_3,
+#                             ])
 
-        assert paths == [path_mock]
-        assert graph_mock.search_paths.call_args == (
-            (src_node, dst_node, 0), )
+#         node_path = searcher._to_path(
+#             graph_path_mock, sub_topic_name, pub_topic_name)
+#         expected = NodePathStructValue(
+#             '/node', sub_info_mock, pub_info_mock, tuple(chain), None)
+#         assert node_path == expected
 
-    def test_to_path(self, mocker: MockerFixture):
-        node_name = '/node'
-        topic_name = '/topic'
+#         node_path = searcher._to_path(graph_path_mock, None, pub_topic_name)
+#         expected = NodePathStructValue(
+#             '/node', None, pub_info_mock, tuple(chain), None)
+#         assert node_path == expected
 
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        comm_mock = mocker.Mock(spec=CommunicationStructValue)
-        node_path_mock = mocker.Mock(spec=NodePathStructValue)
+#         node_path = searcher._to_path(graph_path_mock, sub_topic_name, None)
+#         expected = NodePathStructValue(
+#             '/node', sub_info_mock, None, tuple(chain), None)
+#         assert node_path == expected
 
-        mocker.patch.object(node_path_mock, 'publish_topic_name', topic_name)
-        mocker.patch.object(node_path_mock, 'subscribe_topic_name', topic_name)
-        mocker.patch.object(node_path_mock, 'node_name', node_name)
-
-        mocker.patch.object(comm_mock, 'publish_node_name', node_name)
-        mocker.patch.object(comm_mock, 'subscribe_node_name', node_name)
-        mocker.patch.object(comm_mock, 'topic_name', topic_name)
-
-        mocker.patch.object(node_mock, 'paths', [node_path_mock])
-
-        mocker.patch.object(
-            NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock)
-
-        mocker.patch.object(
-            NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
-
-        searcher = NodePathSearcher((node_mock,), (comm_mock,))
-        graph_path_mock = mocker.Mock(spec=GraphPath)
-        edge_mock = mocker.Mock(GraphEdge)
-        mocker.patch.object(
-            graph_path_mock, 'nodes',
-            [GraphNode(node_name)],
-        )
-        mocker.patch.object(edge_mock, 'node_name_from', node_name)
-        mocker.patch.object(edge_mock, 'node_name_to', node_name)
-        mocker.patch.object(edge_mock, 'label', topic_name)
-        mocker.patch.object(
-            graph_path_mock, 'edges', [edge_mock]
-        )
-        pub_mock = mocker.Mock(spec=PublisherStructValue)
-        mocker.patch.object(NodePathSearcher, '_get_publisher', return_value=pub_mock)
-        sub_mock = mocker.Mock(spec=SubscriptionStructValue)
-        mocker.patch.object(NodePathSearcher, '_get_subscription', return_value=sub_mock)
-        path = searcher._to_path(graph_path_mock)
-
-        expected = PathStructValue(
-            None, (node_path_mock, comm_mock, node_path_mock)
-        )
-        assert path == expected
-
-    def test_single_node_cyclic_case(self, mocker: MockerFixture):
-        node_name = '/node'
-        topic_name = '/chatter'
-
-        node_mock = mocker.Mock(spec=NodeStructValue)
-
-        node_path_mock = mocker.Mock(spec=NodePathStructValue)
-        mocker.patch.object(node_mock, 'paths', (node_path_mock,))
-        mocker.patch.object(node_mock, 'node_name', node_name)
-        mocker.patch.object(node_mock, 'publish_topic_names', [topic_name])
-        mocker.patch.object(node_mock, 'subscribe_topic_names', [topic_name])
-
-        mocker.patch.object(node_path_mock, 'publish_topic_name', topic_name)
-        mocker.patch.object(node_path_mock, 'subscribe_topic_name', topic_name)
-        mocker.patch.object(node_path_mock, 'node_name', node_name)
-
-        comm_mock = mocker.Mock(spec=CommunicationStructValue)
-        mocker.patch.object(comm_mock, 'topic_name', topic_name)
-        mocker.patch.object(comm_mock, 'publish_node_name', node_name)
-        mocker.patch.object(comm_mock, 'subscribe_node_name', node_name)
-
-        mocker.patch.object(
-            NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock)
-
-        mocker.patch.object(
-            NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock)
-
-        searcher = NodePathSearcher((node_mock,), (comm_mock,))
-        paths = searcher.search(node_name, node_name)
-
-        expect = PathStructValue(
-            None,
-            (node_path_mock, comm_mock, node_path_mock),
-        )
-        assert paths == [expect]

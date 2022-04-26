@@ -26,6 +26,8 @@ class CallbackType(ValueObject):
 
     TIMER: CallbackType
     SUBSCRIPTION: CallbackType
+    SERVICE: CallbackType
+    CLIENT: CallbackType
 
     def __init__(self, name: str) -> None:
         """
@@ -34,10 +36,17 @@ class CallbackType(ValueObject):
         Parameters
         ----------
         name : str
-            callback type name ['timer_callback', 'subscription_callback']
+            callback type name
+            - timer_callback
+            - subscription_callback
+            - service_callback
+            - client_callback
 
         """
-        if name not in ['timer_callback', 'subscription_callback']:
+        if name not in ['timer_callback',
+                        'subscription_callback',
+                        'service_callback',
+                        'client_callback']:
             raise ValueError(f'Unsupported callback type: {name}')
 
         self._name = name
@@ -61,6 +70,8 @@ class CallbackType(ValueObject):
 
 CallbackType.TIMER = CallbackType('timer_callback')
 CallbackType.SUBSCRIPTION = CallbackType('subscription_callback')
+CallbackType.SERVICE = CallbackType('service_callback')
+CallbackType.CLIENT = CallbackType('client_callback')
 
 
 class CallbackValue(ValueObject, metaclass=ABCMeta):
@@ -74,6 +85,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         symbol: str,
         subscribe_topic_name: Optional[str],
         publish_topic_names: Optional[Tuple[str, ...]],
+        service_name: Optional[str],
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -84,6 +96,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
         self._publish_topic_names = publish_topic_names
+        self._service_name = service_name
 
     @property
     def callback_id(self) -> str:
@@ -101,6 +114,19 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
 
         """
         return self._callback_id
+
+    @property
+    def service_name(self) -> Optional[str]:
+        """
+        Get service name.
+
+        Returns
+        -------
+        str
+            service name.
+
+        """
+        return self._service_name
 
     @property
     def node_id(self) -> str:
@@ -200,6 +226,7 @@ class TimerCallbackValue(CallbackValue):
             symbol,
             None,
             publish_topic_names,
+            None,
             callback_name=callback_name)
         self._period_ns = period_ns
 
@@ -234,6 +261,7 @@ class SubscriptionCallbackValue(CallbackValue):
             symbol,
             subscribe_topic_name,
             publish_topic_names,
+            None,
             callback_name=callback_name)
 
     @property
@@ -243,6 +271,68 @@ class SubscriptionCallbackValue(CallbackValue):
     @property
     def subscribe_topic_name(self) -> str:
         return self.__subscribe_topic_name
+
+
+class ServiceCallbackValue(CallbackValue):
+
+    def __init__(
+        self,
+        callback_id: str,
+        node_name: str,
+        node_id: str,
+        symbol: str,
+        service_name: str,
+        callback_name: Optional[str] = None
+    ) -> None:
+        self.__service_name = service_name
+        super().__init__(
+            callback_id,
+            node_name,
+            node_id,
+            symbol,
+            None,
+            None,
+            service_name,
+            callback_name=callback_name)
+
+    @property
+    def callback_type(self) -> CallbackType:
+        return CallbackType.SERVICE
+
+    @property
+    def service_topic_name(self) -> str:
+        return self.__service_name
+
+
+class ClientCallbackValue(CallbackValue):
+
+    def __init__(
+        self,
+        callback_id: str,
+        node_name: str,
+        node_id: str,
+        symbol: str,
+        service_name: str,
+        callback_name: Optional[str] = None
+    ) -> None:
+        self.__service_name = service_name
+        super().__init__(
+            callback_id,
+            node_name,
+            node_id,
+            symbol,
+            None,
+            None,
+            service_name,
+            callback_name=callback_name)
+
+    @property
+    def callback_type(self) -> CallbackType:
+        return CallbackType.CLIENT
+
+    @property
+    def service_topic_name(self) -> str:
+        return self.__service_name
 
 
 class CallbackStructValue(Summarizable, metaclass=ABCMeta):
@@ -255,9 +345,11 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         subscribe_topic_name: Optional[str],
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_name: str,
+        callback_id: str,
     ) -> None:
         self._node_name = node_name
         self._callback_name = callback_name
+        self._callback_id = callback_id
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
         self._publish_topic_names = publish_topic_names
@@ -302,6 +394,19 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         return self._callback_name
 
     @property
+    def callback_id(self) -> str:
+        """
+        Get callback id.
+
+        Returns
+        -------
+        str
+            callback id
+
+        """
+        return self._callback_id
+
+    @property
     @abstractmethod
     def callback_type(self) -> CallbackType:
         """
@@ -343,13 +448,15 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
         period_ns: int,
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_name: str,
+        callback_id: str,
     ) -> None:
         super().__init__(
-            node_name,
-            symbol,
-            None,
-            publish_topic_names,
-            callback_name)
+            node_name=node_name,
+            symbol=symbol,
+            subscribe_topic_name=None,
+            publish_topic_names=publish_topic_names,
+            callback_name=callback_name,
+            callback_id=callback_id)
         self._period_ns = period_ns
 
     @property
@@ -379,9 +486,15 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
         subscribe_topic_name: str,
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_name: str,
+        callback_id: str,
     ) -> None:
-        super().__init__(node_name, symbol, subscribe_topic_name,
-                         publish_topic_names, callback_name)
+        super().__init__(
+            node_name=node_name,
+            symbol=symbol,
+            subscribe_topic_name=subscribe_topic_name,
+            publish_topic_names=publish_topic_names,
+            callback_name=callback_name,
+            callback_id=callback_id)
 
     @property
     def callback_type(self) -> CallbackType:
@@ -394,3 +507,5 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
             'type': self.callback_type_name,
             'topic': self.subscribe_topic_name
         })
+
+

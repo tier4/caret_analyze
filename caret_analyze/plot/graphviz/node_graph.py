@@ -21,7 +21,7 @@ from ...runtime import Application, Communication, Node
 from ...value_objects import CommunicationStructValue, NodeStructValue
 
 ArchClass = Union[Architecture, Application]
-NodeClass = Union[NodeStructValue, Node]
+NodeClass = Union[Node, NodeStructValue]
 CommunicationClass = Union[CommunicationStructValue, Communication]
 
 

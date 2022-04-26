@@ -18,16 +18,21 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from logging import getLogger
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 from .callback import CallbackStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
+from .transform import TransformFrameBroadcasterStructValue, TransformFrameBufferStructValue
 from .value_object import ValueObject
 from ..common import Summarizable, Summary
 from ..exceptions import UnsupportedTypeError
 
 logger = getLogger(__name__)
+
+
+NodeInType = Union[TransformFrameBufferStructValue, SubscriptionStructValue]
+NodeOutType = Union[TransformFrameBroadcasterStructValue, PublisherStructValue]
 
 
 class MessageContextType(ValueObject):
@@ -64,16 +69,15 @@ class MessageContext(ValueObject, Summarizable):
     def __init__(
         self,
         node_name: str,
-        message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
+        node_in: Optional[NodeInType],
+        node_out: Optional[NodeOutType],
         child: Optional[Tuple[CallbackStructValue, ...]],
     ) -> None:
         # Since it is used as a value object,
         # mutable types such as dict should not be used.
         self._node_name = node_name
-        self._sub = subscription
-        self._pub = publisher
+        self._node_in = node_in
+        self._node_out = node_out
         self._callbacks = child
 
     @property
@@ -90,45 +94,101 @@ class MessageContext(ValueObject, Summarizable):
         return self._node_name
 
     @property
+    def node_in(self) -> Optional[NodeInType]:
+        return self._node_in
+
+    @property
+    def node_out(self) -> Optional[NodeOutType]:
+        return self._node_out
+
+    @property
+    def publisher(self) -> Optional[PublisherStructValue]:
+        if isinstance(self.node_out, PublisherStructValue):
+            return self.node_out
+        return None
+
+    @property
+    def subscription(self) -> Optional[SubscriptionStructValue]:
+        if isinstance(self._node_in, SubscriptionStructValue):
+            return self._node_in
+        return None
+
+    @property
     def callbacks(
         self
     ) -> Optional[Tuple[CallbackStructValue, ...]]:
         return self._callbacks
 
     def to_dict(self) -> Dict:
-        return {
-            'context_type': str(self.type_name),
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name
-        }
+        # return {
+        #     'context_type': str(self.type_name),
+        #     'subscription_topic_name': self.subscription_topic_name,
+        #     'publisher_topic_name': self.publisher_topic_name
+        # }
 
-    def is_applicable_path(
-        self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
-    ) -> bool:
-        return self._sub == subscription and self._pub == publisher
+        d: Dict[str, Optional[str]] = {
+            'context_type': self.context_type.type_name,
+        }
+        d['subscription_topic_name'] = self.subscription_topic_name
+        if self.tf_frame_buffer is not None:
+            d['subscription_topic_name'] = '/tf'
+            d['lookup_frame_id'] = self.tf_frame_buffer.lookup_frame_id
+            d['lookup_child_frame_id'] = self.tf_frame_buffer.lookup_child_frame_id
+            d['listen_frame_id'] = self.tf_frame_buffer.listen_frame_id
+            d['listen_child_frame_id'] = self.tf_frame_buffer.listen_child_frame_id
+
+        d['publisher_topic_name'] = self.publisher_topic_name
+        if self.tf_frame_broadcaster is not None:
+            d['publisher_topic_name'] = '/tf'
+            d['broadcast_frame_id'] = self.tf_frame_broadcaster.frame_id
+            d['broadcast_child_frame_id'] = self.tf_frame_broadcaster.child_frame_id
+
+        return d
+
+    # def is_applicable_path(
+    #     self,
+    #     subscription: Optional[SubscriptionStructValue],
+    #     publisher: Optional[PublisherStructValue],
+    #     callbacks: Optional[Tuple[CallbackStructValue, ...]]
+    # ) -> bool:
+    #     return self._sub == subscription and self._pub == publisher
+
+    @property
+    def tf_frame_broadcaster(
+        self
+    ) -> Optional[TransformFrameBroadcasterStructValue]:
+        if isinstance(self.node_out, TransformFrameBroadcasterStructValue):
+            return self.node_out
+        return None
+
+    @property
+    def tf_frame_buffer(
+        self
+    ) -> Optional[TransformFrameBufferStructValue]:
+        if isinstance(self.node_in, TransformFrameBufferStructValue):
+            return self.node_in
+        return None
 
     @property
     def publisher_topic_name(self) -> Optional[str]:
-        if self._pub is None:
-            return None
-        return self._pub.topic_name
+        if self.publisher is not None:
+            return self.publisher.topic_name
+        return None
 
     @property
     def subscription_topic_name(self) -> Optional[str]:
-        if self._sub is None:
-            return None
-        return self._sub.topic_name
+        if self.subscription is not None:
+            return self.subscription.topic_name
+        return None
 
     @property
     def summary(self) -> Summary:
-        return Summary({
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name,
-            'type': str(self.type_name)
-        })
+        raise NotImplementedError('')
+        # return Summary({
+        #     'subscription_topic_name': self.subscription_topic_name,
+        #     'publisher_topic_name': self.publisher_topic_name,
+        #     'type': str(self.type_name)
+        # })
 
     @abstractmethod
     def verify(self) -> bool:
@@ -139,18 +199,21 @@ class MessageContext(ValueObject, Summarizable):
         context_type_name: str,
         context_dict: Dict,
         node_name: str,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
+        node_in: Optional[NodeInType],
+        node_out: Optional[NodeOutType],
         child: Optional[Tuple[CallbackStructValue, ...]]
     ) -> MessageContext:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
-            return CallbackChain(node_name, context_dict, subscription, publisher, child)
+            assert isinstance(node_in, SubscriptionStructValue)
+            assert isinstance(node_out, PublisherStructValue)
+            return CallbackChain(node_name, context_dict, node_in, node_out, child)
         if context_type_name == str(MessageContextType.INHERIT_UNIQUE_STAMP):
-            return InheritUniqueStamp(node_name, context_dict, subscription, publisher, child)
+            assert False, 'deprecated'
+            # return InheritUniqueStamp(node_name, context_dict, subscription, publisher, child)
         if context_type_name == str(MessageContextType.USE_LATEST_MESSAGE):
-            return UseLatestMessage(node_name, context_dict, subscription, publisher, child)
+            return UseLatestMessage(node_name, node_in, node_out, child)
         if context_type_name == str(MessageContextType.TILDE):
-            return Tilde(node_name, context_dict, subscription, publisher, child)
+            return Tilde(node_name, context_dict, node_in, node_out, child)
 
         raise UnsupportedTypeError(
             f'Failed to load message context. message_context={context_type_name}')
@@ -209,21 +272,21 @@ class CallbackChain(MessageContext):
         publisher: Optional[PublisherStructValue],
         callbacks: Optional[Tuple[CallbackStructValue, ...]]
     ) -> None:
-        super().__init__(node_name, message_context_dict, subscription, publisher, callbacks)
+        super().__init__(node_name, subscription, publisher, callbacks)
 
     @property
     def context_type(self) -> MessageContextType:
         return MessageContextType.CALLBACK_CHAIN
 
-    def is_applicable_path(
-        self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
-    ) -> bool:
-        if not super().is_applicable_path(subscription, publisher, callbacks):
-            return False
-        return self.callbacks == callbacks
+    # def is_applicable_path(
+    #     self,
+    #     subscription: Optional[SubscriptionStructValue],
+    #     publisher: Optional[PublisherStructValue],
+    #     callbacks: Optional[Tuple[CallbackStructValue, ...]]
+    # ) -> bool:
+    #     if not super().is_applicable_path(subscription, publisher, callbacks):
+    #         return False
+    #     return self.callbacks == callbacks
 
     def to_dict(self) -> Dict:
         d = super().to_dict()
@@ -256,25 +319,25 @@ class Tilde(MessageContext):
         self,
         node_name: str,
         message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
+        node_in: Optional[NodeInType],
+        node_out: Optional[NodeOutType],
         callbacks: Optional[Tuple[CallbackStructValue, ...]]
     ) -> None:
-        super().__init__(node_name, message_context_dict, subscription, publisher, callbacks)
+        super().__init__(node_name, node_in, node_out, callbacks)
 
     @property
     def context_type(self) -> MessageContextType:
         return MessageContextType.TILDE
 
-    def is_applicable_path(
-        self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
-    ) -> bool:
-        if not super().is_applicable_path(subscription, publisher, callbacks):
-            return False
-        return True
+    # def is_applicable_path(
+    #     self,
+    #     subscription: Optional[SubscriptionStructValue],
+    #     publisher: Optional[PublisherStructValue],
+    #     callbacks: Optional[Tuple[CallbackStructValue, ...]]
+    # ) -> bool:
+    #     if not super().is_applicable_path(subscription, publisher, callbacks):
+    #         return False
+    #     return True
 
     def verify(self) -> bool:
         return True

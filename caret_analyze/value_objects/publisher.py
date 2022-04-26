@@ -95,6 +95,12 @@ class PublisherStructValue(ValueObject, Summarizable):
         return tuple(c.callback_name for c in self._callbacks)
 
     @property
+    def callback_ids(self) -> Optional[Tuple[str, ...]]:
+        if self._callbacks is None:
+            return None
+        return tuple(c.callback_id for c in self._callbacks)
+
+    @property
     def summary(self) -> Summary:
         return Summary({
             'topic_name': self.topic_name,

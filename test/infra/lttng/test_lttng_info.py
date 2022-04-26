@@ -812,7 +812,7 @@ class TestDataFrameFormatted:
         assert formatted.timer_controls_df == timer_control_mock
         assert formatted.subscription_callbacks_df == sub_mock
         assert formatted.callback_groups_df == cbg_mock
-        assert formatted.services_df == srv_mock
+        assert formatted.service_callbacks_df == srv_mock
         assert formatted.publishers_df == pub_mock
 
     # def test_build_subscription_callbacks_df(self):

@@ -72,7 +72,7 @@ class TestRecordsProviderLttng:
         mocker.patch.object(source_mock, 'callback_records', return_value=records_mock)
 
         provider = RecordsProviderLttng(lttng_mock)
-        callback_mock = mocker.Mock(spec=CallbackStructValue)
+        callback_mock = mocker.Mock(spec=CallbackStruct)
         records = provider.callback_records(callback_mock)
 
         assert records == records_mock

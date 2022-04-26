@@ -22,11 +22,9 @@ from ..value_objects import Qos, SubscriptionStructValue
 
 
 class Subscription(PathBase, Summarizable):
-
     def __init__(
-        self,
-        val: SubscriptionStructValue,
-        data_provider: Union[RecordsProvider, RuntimeDataProvider],
+        self, val: SubscriptionStructValue,
+        data_provider: Union[RecordsProvider, RuntimeDataProvider]
     ) -> None:
         super().__init__()
         self._val = val

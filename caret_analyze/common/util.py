@@ -93,3 +93,8 @@ class Util:
         ns = '/'.join(strs[:-1]) + '/'
         name = strs[-1]
         return ns, name
+
+    @staticmethod
+    def indexed_name(base_name: str, i: int, num_digit: int = 4):
+        index_str = str(i).zfill(num_digit)
+        return f'{base_name}_{index_str}'

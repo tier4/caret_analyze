@@ -15,10 +15,13 @@
 from __future__ import annotations
 
 from logging import getLogger
+from turtle import right
 from typing import Dict, List, Optional, Sequence, Union
 
+from caret_analyze.record.column import ColumnAttribute
+
 from .callback import CallbackBase
-from .communication import Communication
+from .communication import Communication, TransformCommunication
 from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
@@ -42,7 +45,7 @@ class ColumnMerger():
     ) -> str:
         key = column_name
 
-        if key == records.columns[0] and len(self._count) > 0 and key in self._count.keys():
+        if key == records.column_names[0] and len(self._count) > 0 and key in self._count.keys():
             count = max(self._count.get(key, 0) - 1, 0)
             return self._to_column_name(count, key)
 
@@ -59,7 +62,7 @@ class ColumnMerger():
         records: RecordsInterface,
     ) -> List[str]:
         renamed_columns: List[str] = []
-        for column in records.columns:
+        for column in records.column_names:
             renamed_columns.append(
                 self.append_column(records, column)
             )
@@ -70,7 +73,7 @@ class ColumnMerger():
         records: RecordsInterface,
     ) -> Dict[str, str]:
         renamed_columns: List[str] = self.append_columns(records)
-        return self._to_rename_rule(records.columns, renamed_columns)
+        return self._to_rename_rule(records.column_names, renamed_columns)
 
     @property
     def column_names(
@@ -101,7 +104,7 @@ class RecordsMerged:
 
     def __init__(
         self,
-        merge_targets: List[Union[NodePath, Communication]],
+        merge_targets: List[Union[NodePath, Communication, TransformCommunication]],
     ) -> None:
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')
@@ -113,7 +116,7 @@ class RecordsMerged:
 
     @staticmethod
     def _merge_records(
-        targets: List[Union[NodePath, Communication]]
+        targets: List[Union[NodePath, Communication, TransformCommunication]]
     ) -> RecordsInterface:
         logger.info('Started merging path records.')
 
@@ -121,7 +124,7 @@ class RecordsMerged:
         if len(targets[0].to_records().data) == 0:
             targets = targets[1:]
 
-        first_element = targets[0].to_records()
+        first_element = targets[0].to_records([ColumnAttribute.SYSTEM_TIME])
         left_records = first_element
 
         rename_rule = column_merger.append_columns_and_return_rename_rule(
@@ -131,11 +134,7 @@ class RecordsMerged:
         first_column = first_element.columns[0]
 
         for target_, target in zip(targets[:-1], targets[1:]):
-            right_records: RecordsInterface = target.to_records()
-
-            is_dummy_records = len(right_records.columns) == 0
-
-            if is_dummy_records:
+            if isinstance(target, NodePath) and target.message_context is None:
                 if target == targets[-1]:
                     msg = 'Detected dummy_records. merge terminated.'
                     logger.info(msg)
@@ -143,16 +142,26 @@ class RecordsMerged:
                     msg = 'Detected dummy_records before merging end_records. merge terminated.'
                     logger.warn(msg)
                 break
+
+            right_records: RecordsInterface = target.to_records([ColumnAttribute.SYSTEM_TIME])
+
             rename_rule = column_merger.append_columns_and_return_rename_rule(
                 right_records)
             right_records.rename_columns(rename_rule)
 
-            if left_records.columns[-1] != right_records.columns[0]:
+            right_column = right_records.column_names[0]
+            match_column_index = [i for (i, column)
+                                  in enumerate(left_records.column_names)
+                                  if column == right_column][0]
+            drop_left_columns = left_records.column_names[match_column_index+1:]
+            left_records.drop_columns(drop_left_columns)
+
+            if left_records.column_names[-1] != right_records.column_names[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
-            right_records.drop_columns([left_records.columns[0]])
+            right_records.drop_columns([left_records.column_names[0]])
             right_stamp_key = right_records.columns[0]
 
             logger.info(
@@ -177,11 +186,14 @@ class RecordsMerged:
                     progress_label='binding: node records'
                 )
             else:
+                left_df = left_records.to_dataframe()
+                right_df = right_records.to_dataframe()
+                # tf to tf がpublish recordsとうまく結合されていない。
                 left_records = merge(
                     left_records=left_records,
                     right_records=right_records,
-                    join_left_key=left_records.columns[-1].column_name,
-                    join_right_key=right_records.columns[0].column_name,
+                    join_left_key=left_records.column_names[-1],
+                    join_right_key=right_records.column_names[0],
                     how='left'
                 )
 
@@ -195,7 +207,7 @@ class Path(PathBase, Summarizable):
     def __init__(
         self,
         path: PathStructValue,
-        child: List[Union[NodePath, Communication]],
+        child: List[Union[NodePath, Communication, TransformCommunication]],
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
         super().__init__()
@@ -257,18 +269,17 @@ class Path(PathBase, Summarizable):
         return self._callbacks
 
     @staticmethod
-    def _validate(path_elements: List[Union[NodePath, Communication]]):
+    def _validate(
+        path_elements: List[Union[NodePath, Communication, TransformCommunication]]
+    ) -> None:
         if len(path_elements) == 0:
             return
-        t = NodePath if isinstance(
-            path_elements[0], NodePath) else Communication
-        for e in path_elements[1:]:
-            if t == Communication:
-                t = NodePath
-            else:
-                t = Communication
-            if isinstance(e, t):
-                continue
+
+        is_node_path = [isinstance(e, NodePath) for e in path_elements]
+        is_node_path_indexes = [i for i, _ in enumerate(is_node_path) if _ is True]
+        is_even_number = [i % 2 == 0 for i in is_node_path_indexes]
+
+        if len(set(is_even_number)) >= 2:
             msg = 'NodePath and Communication should be alternated.'
             raise InvalidArgumentError(msg)
 
@@ -297,7 +308,7 @@ class Path(PathBase, Summarizable):
         return sorted(self._value.topic_names)
 
     @property
-    def child(self) -> List[Union[NodePath, Communication]]:
+    def child(self) -> List[Union[NodePath, Communication, TransformCommunication]]:
         return self._child
 
     @property

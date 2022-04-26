@@ -21,6 +21,7 @@ from .node_path import NodePathStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
 from .timer import TimerStructValue
+from .transform import TransformBroadcasterStructValue, TransformBufferStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
 from ..common import Summarizable, Summary, Util
@@ -31,7 +32,7 @@ class NodeValue(ValueObject):
     def __init__(
         self,
         node_name: str,
-        node_id: Optional[str],
+        node_id: str,
     ) -> None:
         self.__node_name = node_name
         self.__node_id = node_id
@@ -41,22 +42,8 @@ class NodeValue(ValueObject):
         return self.__node_name
 
     @property
-    def node_id(self) -> Optional[str]:
-        return self.__node_id
-
-
-class NodeValueWithId(NodeValue):
-    def __init__(
-        self,
-        node_name: str,
-        node_id: str,
-    ) -> None:
-        super().__init__(node_name, node_id)
-        self._node_id = node_id
-
-    @property
     def node_id(self) -> str:
-        return self._node_id
+        return self.__node_id
 
 
 class NodeStructValue(ValueObject, Summarizable):
@@ -65,24 +52,44 @@ class NodeStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         node_name: str,
+        node_id: str,
         publishers: Tuple[PublisherStructValue, ...],
-        subscriptions_info: Tuple[SubscriptionStructValue, ...],
+        subscriptions: Tuple[SubscriptionStructValue, ...],
         timers: Tuple[TimerStructValue, ...],
         node_paths: Tuple[NodePathStructValue, ...],
+        callbacks: Optional[Tuple[CallbackStructValue, ...]],
         callback_groups: Optional[Tuple[CallbackGroupStructValue, ...]],
         variable_passings: Optional[Tuple[VariablePassingStructValue, ...]],
+        tf_buffer: Optional[TransformBufferStructValue],
+        tf_broadcaster: Optional[TransformBroadcasterStructValue]
     ) -> None:
+        self._node_id = node_id
         self._node_name = node_name
         self._publishers = publishers
-        self._subscriptions = subscriptions_info
+        self._subscriptions = subscriptions
         self._timers = timers
+        self._callbacks = callbacks
         self._callback_groups = callback_groups
         self._node_paths = node_paths
         self._variable_passings_info = variable_passings
+        self._tf_buffer = tf_buffer
+        self._tf_broadcaster = tf_broadcaster
+
+    @property
+    def node_id(self) -> str:
+        return self._node_id
 
     @property
     def node_name(self) -> str:
         return self._node_name
+
+    @property
+    def tf_buffer(self) -> Optional[TransformBufferStructValue]:
+        return self._tf_buffer
+
+    @property
+    def tf_broadcaster(self) -> Optional[TransformBroadcasterStructValue]:
+        return self._tf_broadcaster
 
     @property
     def publishers(self) -> Tuple[PublisherStructValue, ...]:
@@ -117,9 +124,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
     @property
     def callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
-        if self._callback_groups is None:
-            return None
-        return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
+        return self._callbacks
 
     @property
     def callback_names(self) -> Optional[Tuple[str, ...]]:
