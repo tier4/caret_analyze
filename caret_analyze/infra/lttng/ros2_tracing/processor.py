@@ -337,11 +337,10 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'timer_handle')
         timestamp = metadata.timestamp
         period = get_field(event, 'period')
-        tid = metadata.tid
         self.data.add_timer(
             metadata.pid,
             metadata.tid,
-            handle, timestamp, period, tid)
+            handle, timestamp, period)
 
     def _handle_rclcpp_timer_callback_added(
         self,

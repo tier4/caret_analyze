@@ -116,6 +116,15 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2_caret:tilde_subscription_init',
             'ros2_caret:tilde_publisher_init',
             'ros2_caret:tilde_subscribe_added',
+            'ros2_caret:construct_tf_buffer',
+            'ros2_caret:construct_node_hook',
+            'init_bind_transform_broadcaster',
+            'ros2_caret:init_bind_transform_broadcaster_frames',
+            'ros2_caret:init_tf_broadcaster_frame_id_compact',
+            'ros2_caret:init_tf_buffer_frame_id_compact',
+            'ros2_caret:init_bind_tf_buffer_cache',
+            'ros2_caret:init_bind_tf_buffer_core',
+            'ros2_caret:tf_lookup_transform_start',  # TODO(hsgwa): refactor
         }
 
         return event[self.NAME] in init_events
@@ -190,6 +199,8 @@ class Lttng(InfraBase):
         from .records_source import RecordsSource
         from .event_counter import EventCounter
 
+        event_filters = event_filters or []
+
         if self._last_load_dir == trace_dir_or_events and use_singleton_cache is True and \
                 event_filters == self._last_filters:
             return
@@ -197,12 +208,13 @@ class Lttng(InfraBase):
         data, events = self._parse_lttng_data(
             trace_dir_or_events,
             force_conversion,
-            event_filters or []
+            event_filters
         )
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
-        # TODO(hsgwa): フィルタリング後のデータに対して数を出力してしまう。
-        self._counter = EventCounter(data)
+        skip_validation = len(event_filters) == 1 and \
+            isinstance(event_filters[0], InitEventPassFilter)
+        self._counter = EventCounter(data, validation=not skip_validation)
         self.events = events if store_events else None
         self.tf_frame_id_mapper = self._init_tf_column_mapper()
 

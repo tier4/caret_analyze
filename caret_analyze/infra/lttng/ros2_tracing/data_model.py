@@ -1196,52 +1196,17 @@ class Ros2DataModel(DataModel):
 
     def _finalize(self) -> None:
         self.contexts = pd.DataFrame.from_dict(self._contexts)
-        if self._contexts:
-            self.contexts.set_index('context_handle', inplace=True, drop=True)
         self.nodes = pd.DataFrame.from_dict(self._nodes)
-        if self._nodes:
-            self.nodes.set_index('node_handle', inplace=True, drop=True)
         self.publishers = pd.DataFrame.from_dict(self._publishers)
-        if self._publishers:
-            self.publishers.set_index(
-                'publisher_handle', inplace=True, drop=True)
         self.subscriptions = pd.DataFrame.from_dict(self._subscriptions)
-        if self._subscriptions:
-            self.subscriptions.set_index(
-                'subscription_handle', inplace=True, drop=True)
-        self.subscription_objects = pd.DataFrame.from_dict(
-            self._subscription_objects)
-        if self._subscription_objects:
-            self.subscription_objects.set_index(
-                'subscription', inplace=True, drop=True)
+        self.subscription_objects = pd.DataFrame.from_dict(self._subscription_objects)
         self.services = pd.DataFrame.from_dict(self._services)
-        if self._services:
-            self.services.set_index('service_handle', inplace=True, drop=True)
         self.clients = pd.DataFrame.from_dict(self._clients)
-        if self._clients:
-            self.clients.set_index('client_handle', inplace=True, drop=True)
         self.timers = pd.DataFrame.from_dict(self._timers)
-        if self._timers:
-            self.timers.set_index('timer_handle', inplace=True, drop=True)
         self.timer_node_links = pd.DataFrame.from_dict(self._timer_node_links)
-        if self._timer_node_links:
-            self.timer_node_links.set_index(
-                'timer_handle', inplace=True, drop=True)
         self.callback_objects = pd.DataFrame.from_dict(self._callback_objects)
-        if self._callback_objects:
-            self.callback_objects.set_index(
-                'reference', inplace=True, drop=True)
         self.construct_tf_buffer = pd.DataFrame.from_dict(self._construct_tf_buffer)
-        if self._construct_tf_buffer:
-            self.construct_tf_buffer.set_index(
-                'tf_buffer', inplace=True, drop=True
-            )
-        self.init_bind_tf_buffer_core = pd.DataFrame.from_dict(
-            self._init_bind_tf_buffer_core)
-        if self._init_bind_tf_buffer_core:
-            self.init_bind_tf_buffer_core.set_index(
-                'tf_buffer_core', inplace=True, drop=True
-            )
+        self.init_bind_tf_buffer_core = pd.DataFrame.from_dict(self._init_bind_tf_buffer_core)
 
         tf_buffer_lookup_transforms_dict = [
                 {'tf_buffer_core': t[0], 'frame_id_compact': t[1], 'child_frame_id_compact': t[2]}
@@ -1251,28 +1216,12 @@ class Ros2DataModel(DataModel):
         self.tf_buffer_lookup_transforms = pd.DataFrame.from_dict(
             tf_buffer_lookup_transforms_dict
         )
-        if len(self._tf_buffer_lookup_transforms) > 0:
-            self.tf_buffer_lookup_transforms.set_index(
-                'tf_buffer_core', inplace=True, drop=True
-            )
-
         self.construct_node_hook = pd.DataFrame.from_dict(self._construct_node_hook)
-        if self._construct_node_hook:
-            self.construct_node_hook.set_index(
-                'node_handle', inplace=True, drop=True
-            )
         self.broadcaster_frame_id_compact = pd.DataFrame.from_dict(
-            self._broadcaster_frame_id_compact)
-        if self._broadcaster_frame_id_compact:
-            self.broadcaster_frame_id_compact.set_index(
-                'tf_broadcaster', inplace=True, drop=True
-            )
+            self._broadcaster_frame_id_compact
+        )
         self.buffer_frame_id_compact = pd.DataFrame.from_dict(
             self._buffer_frame_id_compact)
-        if self._buffer_frame_id_compact:
-            self.buffer_frame_id_compact.set_index(
-                'tf_buffer_core', inplace=True, drop=True
-            )
         self.symbol_rename = pd.DataFrame.from_dict(self._symbol_rename)
         symbol_map = {
             symbol['symbol_from']: symbol['symbol_to'] for symbol in self._symbol_rename
@@ -1280,87 +1229,25 @@ class Ros2DataModel(DataModel):
         for callback_symbol in self._callback_symbols:
             while callback_symbol['symbol'] in symbol_map:
                 callback_symbol['symbol'] = symbol_map[callback_symbol['symbol']]
+        self.callback_symbols = pd.DataFrame.from_dict(self._callback_symbols)
 
         self.transform_broadcaster = pd.DataFrame.from_dict(self._transform_broadcaster)
-        if self._transform_broadcaster:
-            self.transform_broadcaster.set_index(
-                'transform_broadcaster', inplace=True, drop=True
-            )
         self.transform_broadcaster_frames = pd.DataFrame.from_dict(
             self._transform_broadcaster_frames)
-        if self._transform_broadcaster_frames:
-            self.transform_broadcaster_frames.set_index(
-                'transform_broadcaster', inplace=True, drop=True
-            )
 
-        self.callback_symbols = pd.DataFrame.from_dict(self._callback_symbols)
-        if self._callback_symbols:
-            self.callback_symbols.set_index(
-                'callback_object', inplace=True, drop=True)
-        self.lifecycle_state_machines = pd.DataFrame.from_dict(
-            self._lifecycle_state_machines)
-        if self._lifecycle_state_machines:
-            self.lifecycle_state_machines.set_index(
-                'state_machine_handle', inplace=True, drop=True
-            )
-        self.lifecycle_transitions = pd.DataFrame.from_dict(
-            self._lifecycle_transitions)
+        self.lifecycle_state_machines = pd.DataFrame.from_dict(self._lifecycle_state_machines)
+        self.lifecycle_transitions = pd.DataFrame.from_dict(self._lifecycle_transitions)
         self.executors = pd.DataFrame.from_dict(self._executors)
-        if self._executors:
-            self.executors.set_index(
-                'executor_addr', inplace=True, drop=True
-            )
         self.executors_static = pd.DataFrame.from_dict(self._executors_static)
-        if self._executors_static:
-            self.executors_static.set_index(
-                'executor_addr', inplace=True, drop=True
-            )
         self.callback_groups = pd.DataFrame.from_dict(self._callback_groups)
-        if self._callback_groups:
-            self.callback_groups.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
         self.callback_groups_static = pd.DataFrame.from_dict(self._callback_groups_static)
-        if self._callback_groups_static:
-            self.callback_groups_static.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
         self.callback_group_timer = pd.DataFrame.from_dict(self._callback_group_timer)
-        if self._callback_group_timer:
-            self.callback_group_timer.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
-        self.callback_group_subscription = pd.DataFrame.from_dict(
-            self._callback_group_subscription)
-        if self._callback_group_subscription:
-            self.callback_group_subscription.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
+        self.callback_group_subscription = pd.DataFrame.from_dict(self._callback_group_subscription)
         self.callback_group_service = pd.DataFrame.from_dict(self._callback_group_service)
-        if self._callback_group_service:
-            self.callback_group_service.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
         self.callback_group_client = pd.DataFrame.from_dict(self._callback_group_client)
-        if self._callback_group_client:
-            self.callback_group_client.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
         self.tilde_subscriptions = pd.DataFrame.from_dict(self._tilde_subscriptions)
-        if self._tilde_subscriptions:
-            self.tilde_subscriptions.set_index(
-                'subscription', inplace=True, drop=True
-            )
         self.tilde_publishers = pd.DataFrame.from_dict(self._tilde_publishers)
-        if self._tilde_publishers:
-            self.tilde_publishers.set_index(
-                'publisher', inplace=True, drop=True
-            )
         self.tilde_subscribe_added = pd.DataFrame.from_dict(self._tilde_subscribe_added)
-        if self._tilde_subscribe_added:
-            self.tilde_subscribe_added.set_index(
-                'subscription_id', inplace=True, drop=True
-            )
 
         self.rmw_impl = pd.DataFrame.from_dict(self._rmw_impl)
 

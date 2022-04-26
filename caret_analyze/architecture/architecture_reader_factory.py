@@ -25,8 +25,8 @@ class ArchitectureReaderFactory:
         if file_type in ['yaml', 'yml']:
             return ArchitectureReaderYaml(file_path)
         elif file_type in ['lttng', 'ctf']:
-            lttng = Lttng(file_path, event_filters=[LttngEventFilter.init_pass_filter()])
-            # lttng = Lttng(file_path)
+            lttng = Lttng(file_path, event_filters=[
+                          LttngEventFilter.init_pass_filter()])
             return ArchitectureReaderLttng(lttng)
 
         raise ValueError(f'unsupported file_type: {file_type}')
