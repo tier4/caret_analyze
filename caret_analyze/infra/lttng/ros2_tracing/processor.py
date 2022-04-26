@@ -132,6 +132,8 @@ class Ros2Handler(EventHandler):
             self._handle_tf_buffer_find_closest
         handler_map['ros2_caret:tf_set_transform'] = \
             self._handle_tf_set_transform
+        handler_map['ros2_caret:init_tf_buffer_lookup_transform'] = \
+            self._handle_init_tf_buffer_lookup_transform
 
         super().__init__(
             handler_map=handler_map,
@@ -1005,6 +1007,23 @@ class Ros2Handler(EventHandler):
             timestamp,
             buffer_core,
             stamp,
+            frame_id_compact,
+            child_frame_id_compact,
+        )
+
+    def _handle_init_tf_buffer_lookup_transform(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        buffer_core = get_field(event, 'tf_buffer_core')
+        frame_id_compact = get_field(event, 'frame_id_compact')
+        child_frame_id_compact = get_field(event, 'child_frame_id_compact')
+
+        self.data.add_init_tf_buffer_lookup_transform(
+            metadata.pid,
+            metadata.tid,
+            buffer_core,
             frame_id_compact,
             child_frame_id_compact,
         )

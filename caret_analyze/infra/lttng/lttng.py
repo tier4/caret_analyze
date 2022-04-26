@@ -124,7 +124,7 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2_caret:init_tf_buffer_frame_id_compact',
             'ros2_caret:init_bind_tf_buffer_cache',
             'ros2_caret:init_bind_tf_buffer_core',
-            'ros2_caret:tf_lookup_transform_start',  # TODO(hsgwa): refactor
+            'ros2_caret:init_tf_buffer_lookup_transform',
         }
 
         return event[self.NAME] in init_events

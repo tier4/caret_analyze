@@ -67,10 +67,10 @@ class Ros2DataModel(DataModel):
         self._transform_broadcaster_frames: DataModelIntermediateStorage = []
         self._construct_tf_buffer: DataModelIntermediateStorage = []
         self._init_bind_tf_buffer_core: DataModelIntermediateStorage = []
-        self._tf_buffer_lookup_transforms: Set[Tuple[int, int, int]] = set()
         self._construct_node_hook: DataModelIntermediateStorage = []
         self._broadcaster_frame_id_compact: DataModelIntermediateStorage = []
         self._buffer_frame_id_compact: DataModelIntermediateStorage = []
+        self._tf_buffer_lookup_transform: DataModelIntermediateStorage = []
 
         # Events (multiple instances, may not have a meaningful index)
         # string argument
@@ -948,6 +948,25 @@ class Ros2DataModel(DataModel):
         )
         self.send_transform.append(record)
 
+    def add_init_tf_buffer_lookup_transform(
+        self,
+        pid: int,
+        tid: int,
+        buffer_core: int,
+        frame_id_compact: int,
+        child_frame_id_compact: int,
+    ) -> None:
+
+        self._tf_buffer_lookup_transform.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'tf_buffer_core': buffer_core,
+                'frame_id_compact': frame_id_compact,
+                'child_frame_id_compact': child_frame_id_compact,
+            }
+        )
+
     def add_tf_lookup_transform_start(
         self,
         pid: int,
@@ -970,9 +989,6 @@ class Ros2DataModel(DataModel):
             }
         )
 
-        self._tf_buffer_lookup_transforms.add(
-            (buffer_core, frame_id_compact, child_frame_id_compact)
-        )
         self.tf_lookup_transform_start.append(record)
 
     def add_tf_lookup_transform_end(
@@ -1208,20 +1224,14 @@ class Ros2DataModel(DataModel):
         self.construct_tf_buffer = pd.DataFrame.from_dict(self._construct_tf_buffer)
         self.init_bind_tf_buffer_core = pd.DataFrame.from_dict(self._init_bind_tf_buffer_core)
 
-        tf_buffer_lookup_transforms_dict = [
-                {'tf_buffer_core': t[0], 'frame_id_compact': t[1], 'child_frame_id_compact': t[2]}
-                for t
-                in self._tf_buffer_lookup_transforms
-            ]
         self.tf_buffer_lookup_transforms = pd.DataFrame.from_dict(
-            tf_buffer_lookup_transforms_dict
+            self._tf_buffer_lookup_transform
         )
         self.construct_node_hook = pd.DataFrame.from_dict(self._construct_node_hook)
         self.broadcaster_frame_id_compact = pd.DataFrame.from_dict(
             self._broadcaster_frame_id_compact
         )
-        self.buffer_frame_id_compact = pd.DataFrame.from_dict(
-            self._buffer_frame_id_compact)
+        self.buffer_frame_id_compact = pd.DataFrame.from_dict(self._buffer_frame_id_compact)
         self.symbol_rename = pd.DataFrame.from_dict(self._symbol_rename)
         symbol_map = {
             symbol['symbol_from']: symbol['symbol_to'] for symbol in self._symbol_rename
