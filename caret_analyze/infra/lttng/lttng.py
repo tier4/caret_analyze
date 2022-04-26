@@ -15,8 +15,11 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from logging import getLogger
 
 from typing import Dict, List, Optional, Sequence, Tuple, Union
+
+import bt2
 
 from caret_analyze.value_objects.timer import TimerValue
 
@@ -37,6 +40,8 @@ from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos
 
 Event = Dict[str, int]
+
+logger = getLogger(__name__)
 
 
 class LttngEventFilter(metaclass=ABCMeta):
@@ -196,6 +201,15 @@ class Lttng(InfraBase):
         event_filters: List[LttngEventFilter]
     ) -> Tuple[DataModel, Dict]:
         if isinstance(trace_dir_or_events, str):
+            # Check for traces lost
+            for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
+                if(type(msg) is bt2._DiscardedEventsMessageConst):
+                    msg = ('Tracer discarded '
+                           f'{msg.count} events between '
+                           f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
+                           f'{msg.end_default_clock_snapshot.ns_from_origin}.')
+                    logger.warning(msg)
+
             Lttng._last_load_dir = trace_dir_or_events
             Lttng._last_filters = event_filters
             events = load_file(trace_dir_or_events, force_conversion=force_conversion)
