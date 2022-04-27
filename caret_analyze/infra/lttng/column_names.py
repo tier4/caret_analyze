@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from re import S
 from typing import NamedTuple
 
 
@@ -33,6 +34,8 @@ class ColumnName(NamedTuple):
         'dispatch_subscription_callback_timestamp'
     SOURCE_TIMESTAMP: str = 'source_timestamp'
     CALLBACK_OBJECT: str = 'callback_object'
+    PID: str = 'pid'
+    TID: str = 'tid'
     MESSAGE_CONSTRUCT_TIMESTAMP: str = 'message_construct_timestamp'
     ORIGINAL_MESSAGE: str = 'original_message'
     CONSTRUCTED_MESSAGE: str = 'constructed_message'

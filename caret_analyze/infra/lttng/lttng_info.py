@@ -45,7 +45,6 @@ from .value_objects import (
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
     ServiceCallbackValueLttng,
-    ClientCallbackValueLttng,
 )
 from ...common import Util
 from ...exceptions import InvalidArgumentError
@@ -103,7 +102,8 @@ class LttngInfo:
         self._formatted = DataFrameFormatted(data)
 
         # TODO(hsgwa): check rmw_impl for each process.
-        self._rmw_implementation = data.rmw_impl.iloc[0, 0] if len(data.rmw_impl) > 0 else ''
+        self._rmw_implementation = data.rmw_implementation.df.iloc[0, 0] \
+            if len(data.rmw_implementation.df) > 0 else ''
         self._timer_cbs = LttngInfo._load_timer_cbs(self._formatted)
         self._sub_cbs = LttngInfo._load_sub_cbs(self._formatted)
         self._srv_cbs = LttngInfo._load_srv_cbs(self._formatted)
@@ -347,15 +347,6 @@ class LttngInfo:
             node_name = row['node_name']
             node_id = row['node_id']
             tilde_subscription = row['tilde_subscription']
-            if tilde_subscription is pd.NA:
-                tilde_subscription = None
-
-            # Since callback_object_intra contains nan, it is of type np.float.
-            record_callback_object_intra = row['callback_object_intra']
-            if record_callback_object_intra is pd.NA:
-                callback_object_intra = None
-            else:
-                callback_object_intra = int(record_callback_object_intra)
 
             val = SubscriptionCallbackValueLttng(
                     callback_id=row['callback_id'],
@@ -366,7 +357,7 @@ class LttngInfo:
                     publish_topic_names=None,
                     subscription_handle=row['subscription_handle'],
                     callback_object=row['callback_object'],
-                    callback_object_intra=callback_object_intra,
+                    callback_object_intra=row['callback_object_intra'],
                     tilde_subscription=tilde_subscription
                 )
             sub_cbs_info.add(node_id, val)
@@ -996,8 +987,8 @@ class DataFrameFormatted:
             self._sub_callbacks_df,
             self._srv_callbacks_df,
         )
-        self._broadcaster_frame_id_df = data.broadcaster_frame_id_compact.reset_index()
-        self._buffer_frame_id_df = data.buffer_frame_id_compact.reset_index()
+        self._broadcaster_frame_id_df = data.init_tf_broadcaster_frame_id_compact.df
+        self._buffer_frame_id_df = data.init_tf_buffer_frame_id_compact.df
 
     @staticmethod
     def _ensure_columns(
@@ -1223,72 +1214,69 @@ class DataFrameFormatted:
             'frame_id_compact',
             'child_frame_id_compact',
         ]
-        try:
-            df = data.construct_tf_buffer
-            df = pd.merge(
-                df,
-                data.init_bind_tf_buffer_core,
-                left_on='tf_buffer_core',
-                right_on='tf_buffer_core'
-            )
 
-            lookup_df = data.tf_buffer_lookup_transforms
-            df = pd.merge(
-                df,
-                lookup_df,
-                on='tf_buffer_core',
-            )
+        df = data.construct_tf_buffer.df
+        df = pd.merge(
+            df,
+            data.init_bind_tf_buffer_core.df,
+            left_on='tf_buffer_core',
+            right_on='tf_buffer_core'
+        )
 
-            cb_columns = ['callback_object', 'node_handle']
-            cb_df = pd.concat(
-                [
-                    timer_df[cb_columns],
-                    sub_df[cb_columns],
-                    srv_df[cb_columns]
-                ]
-            )
-            df = pd.merge(
-                df, cb_df,
-                left_on='callback',
-                right_on='callback_object',
-                how='left'
-            )
+        lookup_df = data.tf_buffer_lookup_transform.df
+        df = pd.merge(
+            df,
+            lookup_df,
+            on='tf_buffer_core',
+        )
 
-            df = pd.merge(
-                df,
-                node_df,
-                on='node_handle',
-                how='left'
-            )
-            df.rename(
-                {'node_id': 'listener_node_id', 'node_handle': 'listener_node_handle'},
-                axis=1, inplace=True
-            )
+        cb_columns = ['callback_object', 'node_handle']
+        cb_df = pd.concat(
+            [
+                timer_df[cb_columns],
+                sub_df[cb_columns],
+                srv_df[cb_columns]
+            ]
+        )
+        df = pd.merge(
+            df, cb_df,
+            left_on='callback',
+            right_on='callback_object',
+            how='left'
+        )
 
-            df = pd.merge(
-                df,
-                data.construct_node_hook,
-                left_on='clock',
-                right_on='clock',
-                how='left'
-            )
+        df = pd.merge(
+            df,
+            node_df,
+            on='node_handle',
+            how='left'
+        )
+        df.rename(
+            {'node_id': 'listener_node_id', 'node_handle': 'listener_node_handle'},
+            axis=1, inplace=True
+        )
 
-            df = pd.merge(
-                df,
-                node_df,
-                on='node_handle',
-                how='left'
-            )
-            df.dropna(inplace=True)
+        df = pd.merge(
+            df,
+            data.construct_node_hook.df,
+            left_on='clock',
+            right_on='clock',
+            how='left'
+        )
 
-            df.rename(
-                {'node_id': 'lookup_node_id', 'node_handle': 'lookup_node_handle'},
-                axis=1, inplace=True)
-        except KeyError:
-            pass
+        df = pd.merge(
+            df,
+            node_df,
+            on='node_handle',
+            how='left'
+        )
+        df.dropna(inplace=True)
 
-        df = DataFrameFormatted._ensure_columns(df, columns)
-        return df[columns].astype('object')
+        df.rename(
+            {'node_id': 'lookup_node_id', 'node_handle': 'lookup_node_handle'},
+            axis=1, inplace=True)
+
+        return df[columns]
 
     @staticmethod
     def _build_publisher_df(
@@ -1301,14 +1289,14 @@ class DataFrameFormatted:
             'topic_name',
             'depth',
         ]
-        df = data.publishers
+        df = data.rcl_publisher_init.df
 
         def to_publisher_id(i: int, row: pd.Series):
             return f'publisher_{i}'
 
         df = DataFrameFormatted._add_column(df, 'publisher_id', to_publisher_id)
-        df = DataFrameFormatted._ensure_columns(df, columns)
-        return df[columns].astype('object')
+
+        return df[columns]
 
     @staticmethod
     def _build_tf_broadcasters_df(
@@ -1325,28 +1313,25 @@ class DataFrameFormatted:
             'frame_id',
             'child_frame_id'
         ]
-        try:
-            df = data.transform_broadcaster.reset_index()
-            tf_frames = data.transform_broadcaster_frames
-            df = pd.merge(
-                df,
-                tf_frames,
-                on='transform_broadcaster',
-                how='outer'
-            )
+        df = data.transform_broadcaster.df
+        tf_frames = data.transform_broadcaster_frames.df
+        df = pd.merge(
+            df,
+            tf_frames,
+            on='transform_broadcaster',
+            how='outer'
+        )
 
-            df = pd.merge(df, pub_df, on='publisher_handle', how='left')
-        except KeyError:
-            pass
-        df = DataFrameFormatted._ensure_columns(df, columns)
-        return df[columns].astype('object')
+        df = pd.merge(df, pub_df, on='publisher_handle', how='left')
+
+        return df[columns]
 
     @staticmethod
     def _build_timer_control_df(
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = ['timestamp', 'timer_handle', 'type', 'params']
-        df = data.timers
+        df = data.rcl_timer_init.df
         df['type'] = 'init'
         df['params'] = [{'period': row['period']} for (_, row) in df.iterrows()]
         df = DataFrameFormatted._ensure_columns(df, columns)
@@ -1358,9 +1343,9 @@ class DataFrameFormatted:
     ) -> pd.DataFrame:
         columns = ['executor_id', 'executor_addr', 'executor_type_name']
 
-        df = data.executors
+        df = data.construct_executor.df
 
-        df_ = data.executors_static
+        df_ = data.construct_static_executor.df
         if len(df_) > 0:
             columns_ = columns[1:]  # ignore executor_id
             df = concat(columns_, [df, df_])
@@ -1384,10 +1369,10 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = ['callback_group_id', 'callback_group_addr', 'group_type_name', 'executor_addr']
-        df = data.callback_groups
+        df = data.add_callback_group.df
 
-        df_static = data.callback_groups_static
-        df_static_exec = data.executors_static
+        df_static = data.add_callback_group_static_executor.df
+        df_static_exec = data.construct_static_executor.df
 
         if len(df_static) > 0 and len(df_static_exec) > 0:
             df_static = merge(df_static, df_static_exec, 'entities_collector_addr')
@@ -1432,31 +1417,26 @@ class DataFrameFormatted:
 
         def callback_id(i: int, row: pd.Series) -> str:
             return f'timer_callback_{i}'
-        try:
-            df = data.timers
 
-            timer_node_links_df = data.timer_node_links
-            df = merge(df, timer_node_links_df, 'timer_handle')
+        df = data.rcl_timer_init.df
 
-            callback_objects_df = data.callback_objects.rename(
-                columns={'reference': 'timer_handle'})
-            df = merge(df, callback_objects_df, 'timer_handle')
+        timer_node_links_df = data.rclcpp_timer_link_node.df
+        df = merge(df, timer_node_links_df, ['pid', 'timer_handle'])
 
-            symbols_df = data.callback_symbols
-            df = merge(df, symbols_df, 'callback_object')
+        callback_objects_df = data.rclcpp_timer_callback_added.df
+        df = merge(df, callback_objects_df, ['pid', 'timer_handle'])
 
-            cbg = data.callback_group_timer
-            df = merge(df, cbg, 'timer_handle')
+        symbols_df = data.rclcpp_callback_register.df
+        df = merge(df, symbols_df, ['pid', 'callback_object'])
 
-            df = DataFrameFormatted._add_column(df, 'callback_id', callback_id)
+        cbg = data.callback_group_add_timer.df
+        df = merge(df, cbg, ['pid', 'timer_handle'])
 
-            df.rename({'period': 'period_ns'}, inplace=True, axis=1)
+        df = DataFrameFormatted._add_column(df, 'callback_id', callback_id)
 
-            df = DataFrameFormatted._ensure_columns(df, columns)
+        df.rename({'period': 'period_ns'}, inplace=True, axis=1)
 
-            return df[columns].astype('object')
-        except KeyError:
-            return pd.DataFrame(columns=columns)
+        return df[columns]
 
     @staticmethod
     def _build_sub_callbacks_df(
@@ -1470,27 +1450,20 @@ class DataFrameFormatted:
         def callback_id(i: int, row: pd.Series) -> str:
             return f'subscription_callback_{i}'
 
-        try:
-            df = data.subscriptions
+        df = data.rcl_subscription_init.df
 
-            callback_objects_df = DataFrameFormatted._format_subscription_callback_object(data)
-            df = merge(df, callback_objects_df, ['pid', 'subscription_handle'])
+        callback_objects_df = DataFrameFormatted._format_subscription_callback_object(data)
+        df = merge(df, callback_objects_df, ['pid', 'subscription_handle'])
 
-            symbols_df = data.callback_symbols
-            df = merge(df, symbols_df, ['pid', 'callback_object'])
+        symbols_df = data.rclcpp_callback_register.df
+        df = merge(df, symbols_df, ['pid', 'callback_object'])
 
-            cbg = data.callback_group_subscription
-            df = merge(df, cbg, 'subscription_handle')
+        cbg = data.callback_group_add_subscription.df
+        df = merge(df, cbg, ['pid', 'subscription_handle'])
 
-            df = DataFrameFormatted._add_column(
-                df, 'callback_id', callback_id
-            )
+        df = DataFrameFormatted._add_column(df, 'callback_id', callback_id)
 
-            df = DataFrameFormatted._ensure_columns(df, columns)
-
-            return df[columns].astype('object')
-        except KeyError:
-            return pd.DataFrame(columns=columns).astype('object')
+        return df[columns]
 
     @staticmethod
     def _build_srv_callbacks_df(
@@ -1504,28 +1477,21 @@ class DataFrameFormatted:
         def callback_id(i: int, row: pd.Series) -> str:
             return f'service_callback_{i}'
 
-        try:
-            df = data.services
+        # try:
+        df = data.rcl_service_init.df
 
-            callback_objects_df = data.callback_objects.rename(
-                {'reference': 'service_handle'}, axis=1)
-            df = merge(df, callback_objects_df, ['pid', 'service_handle'])
+        callback_objects_df = data.rclcpp_service_callback_added.df
+        df = merge(df, callback_objects_df, ['pid', 'service_handle'])
 
-            symbols_df = data.callback_symbols
-            df = merge(df, symbols_df, ['callback_object', 'pid'])
+        symbols_df = data.rclcpp_callback_register.df
+        df = merge(df, symbols_df, ['pid', 'callback_object'])
 
-            cbg = data.callback_group_service
-            df = merge(df, cbg, ['pid', 'service_handle'])
+        cbg = data.callback_group_add_service.df
+        df = merge(df, cbg, ['pid', 'service_handle'])
 
-            df = DataFrameFormatted._add_column(
-                df, 'callback_id', callback_id
-            )
+        df = DataFrameFormatted._add_column(df, 'callback_id', callback_id)
 
-            df = DataFrameFormatted._ensure_columns(df, columns)
-
-            return df[columns].astype('object')
-        except KeyError:
-            return pd.DataFrame(columns=columns)
+        return df[columns]
 
     @staticmethod
     def _build_tilde_subscription_df(
@@ -1533,31 +1499,22 @@ class DataFrameFormatted:
     ) -> pd.DataFrame:
         columns = ['tilde_subscription', 'node_name', 'topic_name']
 
-        try:
-            df = data.tilde_subscriptions
+        df = data.tilde_subscription_init.df
+        df.rename({'subscription': 'tilde_subscription'}, axis=1, inplace=True)
+        df = DataFrameFormatted._ensure_columns(df, columns)
 
-            df.rename({'subscription': 'tilde_subscription'}, axis=1, inplace=True)
-            df = DataFrameFormatted._ensure_columns(df, columns)
-
-            return df[columns].astype('object')
-        except KeyError:
-            return pd.DataFrame(columns=columns)
+        return df[columns]
 
     @staticmethod
     def _build_tilde_publisher_df(
         data: Ros2DataModel,
     ) -> pd.DataFrame:
-        columns = ['tilde_publisher', 'tilde_subscription', 'node_name', 'topic_name']
+        columns = ['tilde_publisher', 'node_name', 'topic_name']
 
-        try:
-            df = data.tilde_publishers
+        df = data.tilde_publisher_init.df
+        df.rename({'publisher': 'tilde_publisher'}, axis=1, inplace=True)
 
-            df.rename({'publisher': 'tilde_publisher'}, axis=1, inplace=True)
-            df = DataFrameFormatted._ensure_columns(df, columns)
-
-            return df[columns].astype('object')
-        except KeyError:
-            return pd.DataFrame(columns=columns)
+        return df[columns]
 
     @staticmethod
     def _build_tilde_sub_id_df(
@@ -1565,15 +1522,9 @@ class DataFrameFormatted:
         sub_df: pd.DataFrame
     ) -> pd.DataFrame:
         columns = ['subscription_id', 'tilde_subscription', 'node_name', 'topic_name']
-        try:
-            df = data.tilde_subscribe_added
-            df = pd.merge(df, sub_df, on=['node_name', 'topic_name'], how='left')
-
-            df = DataFrameFormatted._ensure_columns(df, columns)
-
-            return df[columns].astype('object')
-        except KeyError:
-            return pd.DataFrame(columns=columns)
+        df = data.tilde_subscribe_added.df
+        df = pd.merge(df, sub_df, on=['node_name', 'topic_name'], how='left')
+        return df[columns]
 
     @staticmethod
     def _build_tilde_sub(
@@ -1587,36 +1538,32 @@ class DataFrameFormatted:
         def callback_id(i: int, row: pd.Series) -> str:
             return f'subscription_callback_{i}'
 
-        try:
-            df = data.subscriptions
+        df = data.subscriptions
 
-            callback_objects_df = DataFrameFormatted._format_subscription_callback_object(data)
-            df = merge(df, callback_objects_df, 'subscription_handle')
+        callback_objects_df = DataFrameFormatted._format_subscription_callback_object(data)
+        df = merge(df, callback_objects_df, 'subscription_handle')
 
-            symbols_df = data.callback_symbols
-            df = merge(df, symbols_df, 'callback_object')
+        symbols_df = data.rclcpp_callback_register
+        df = merge(df, symbols_df, 'callback_object')
 
-            cbg = data.callback_group_subscription
-            df = merge(df, cbg, 'subscription_handle')
+        cbg = data.callback_group_add_subscription
+        df = merge(df, cbg, 'subscription_handle')
 
-            df = DataFrameFormatted._add_column(
-                df, 'callback_id', callback_id
-            )
-
-            df = DataFrameFormatted._ensure_columns(df, columns)
-
-            return df[columns].astype('object')
-        except KeyError:
-            return pd.DataFrame(columns=columns)
+        df = DataFrameFormatted._add_column(df, 'callback_id', callback_id)
+        return df[columns]
 
     @staticmethod
     def _is_ignored_subscription(
         data: Ros2DataModel,
-        subscription_handle: int
+        pid: int,
+        subscription_handle: int,
     ) -> bool:
-        sub_df = data.subscriptions
-        sub_df = sub_df[sub_df.index == subscription_handle]
-        sub_df = merge(sub_df, data.nodes, 'node_handle')
+        sub_df = data.rcl_subscription_init.df
+        sub_df = sub_df[
+            (sub_df['subscription_handle'] == subscription_handle) &
+            (sub_df['pid'] == pid)
+        ]
+        sub_df = merge(sub_df, data.rcl_node_init.df, 'node_handle')
 
         ns = sub_df.at[0, 'namespace']
         name = sub_df.at[0, 'name']
@@ -1649,30 +1596,32 @@ class DataFrameFormatted:
             columns
             - subscription_handle
             - callback_object
-            - callback_object_intra [Optional]
+            - callback_object_intra
 
         Raises
         ------
         InvalidArgumentError
 
         """
-        callback_objects_df = data.callback_objects.rename(
-            columns={'reference': 'subscription'})
-        sub_df = data.subscription_objects
-        sub_df = merge(sub_df, callback_objects_df, 'subscription')
+        callback_objects_df = data.rclcpp_subscription_callback_added.df
+        sub_df = data.rclcpp_subscription_init.df
+        sub_df = merge(sub_df, callback_objects_df, ['pid', 'subscription'])
 
         dicts = []
-        for key, group in sub_df.groupby('subscription_handle'):
+        for key, group in sub_df.groupby(['pid', 'subscription_handle']):
+            pid, subscription_handle = key[0], key[1]
             group.reset_index(drop=True, inplace=True)
 
-            if DataFrameFormatted._is_ignored_subscription(data, key):
+            if DataFrameFormatted._is_ignored_subscription(data, pid, subscription_handle):
                 continue
 
             record = {
-                'subscription_handle': key,
+                'pid': pid,
+                'subscription_handle': subscription_handle,
             }
             if len(group) == 1:
                 record['callback_object'] = group.at[0, 'callback_object']
+                record['callback_object_intra'] = None
             elif len(group) == 2:
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
@@ -1681,10 +1630,13 @@ class DataFrameFormatted:
                 logger.warning(
                     'More than three callbacks are registered in one subscription_handle. '
                     'Skip loading callback info. The following callbacks cannot be measured.'
-                    f'subscription_handle = {key}, '
+                    f'pid = {pid}, '
+                    f'subscription_handle = {subscription_handle}, '
                     f'callback_objects = {cb_objs}')
             dicts.append(record)
-        df = pd.DataFrame.from_dict(dicts, dtype='Int64')
+
+        df = pd.DataFrame.from_dict(dicts, dtype='object')
+
         return df
 
     @staticmethod
@@ -1709,7 +1661,7 @@ class DataFrameFormatted:
     ) -> pd.DataFrame:
         columns = ['node_id', 'node_handle', 'node_name']
 
-        node_df = data.nodes
+        node_df = data.rcl_node_init.df
 
         def ns_and_node_name(i: int, row: pd.Series) -> str:
             ns: str = row['namespace']
@@ -1731,7 +1683,7 @@ class DataFrameFormatted:
         node_df.drop(['namespace', 'name'], inplace=True, axis=1)
 
         node_df.reset_index(drop=True, inplace=True)
-        return node_df[columns].astype('object')
+        return node_df[columns]
 
 
 def merge(

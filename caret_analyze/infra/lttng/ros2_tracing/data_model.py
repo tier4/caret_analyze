@@ -15,15 +15,11 @@
 
 """Module for ROS 2 data model."""
 
-from typing import Set, Tuple
-
 from caret_analyze.record.column import Column, ColumnAttribute
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
+from caret_analyze.infra.lttng.data_frame import TracePointData
 
-import pandas as pd
-
-from tracetools_analysis.data_model import (DataModel,
-                                            DataModelIntermediateStorage)
+from tracetools_analysis.data_model import DataModel
 
 
 class Ros2DataModel(DataModel):
@@ -37,47 +33,225 @@ class Ros2DataModel(DataModel):
         """Create a Ros2DataModel."""
         super().__init__()
         # Objects (one-time events, usually when something is created)
-        self._contexts: DataModelIntermediateStorage = []
-        self._nodes: DataModelIntermediateStorage = []
-        self._publishers: DataModelIntermediateStorage = []
-        self._subscriptions: DataModelIntermediateStorage = []
-        self._subscription_objects: DataModelIntermediateStorage = []
-        self._services: DataModelIntermediateStorage = []
-        self._clients: DataModelIntermediateStorage = []
-        self._timers: DataModelIntermediateStorage = []
-        self._timer_node_links: DataModelIntermediateStorage = []
-        self._callback_objects: DataModelIntermediateStorage = []
-        self._callback_symbols: DataModelIntermediateStorage = []
-        self._lifecycle_state_machines: DataModelIntermediateStorage = []
-        self._executors: DataModelIntermediateStorage = []
-        self._executors_static: DataModelIntermediateStorage = []
-        self._callback_groups: DataModelIntermediateStorage = []
-        self._callback_groups_static: DataModelIntermediateStorage = []
-        self._callback_group_timer: DataModelIntermediateStorage = []
-        self._callback_group_subscription: DataModelIntermediateStorage = []
-        self._callback_group_service: DataModelIntermediateStorage = []
-        self._callback_group_client: DataModelIntermediateStorage = []
-        self._rmw_impl: DataModelIntermediateStorage = []
-        self._symbol_rename: DataModelIntermediateStorage = []
+        self.rcl_init = TracePointData([
+            'pid', 'tid', 'timestamp', 'context_handle', 'version'
+        ])
+        self.rcl_node_init = TracePointData([
+            'pid', 'tid', 'timestamp', 'node_handle', 'namespace', 'name', 'rmw_handle'
+        ])
+        self.rcl_publisher_init = TracePointData([
+            'pid', 'tid', 'timestamp', 'publisher_handle',
+            'node_handle', 'rmw_handle', 'topic_name', 'depth'
+        ])
+        self.rcl_subscription_init = TracePointData([
+            'pid', 'tid', 'timestamp', 'subscription_handle',
+            'node_handle', 'rmw_handle', 'topic_name', 'depth'
+        ])
+        self.rclcpp_subscription_init = TracePointData([
+            'pid', 'tid', 'timestamp', 'subscription', 'subscription_handle'
+        ])
+        self.rcl_service_init = TracePointData([
+            'service_handle', 'timestamp', 'pid', 'tid',
+            'node_handle', 'rmw_handle', 'service_name',
+        ])
+        self.rcl_client_init = TracePointData([
+            'client_handle', 'timestamp', 'pid', 'tid', 'node_handle',
+            'rmw_handle', 'service_name',
+        ])
+        self.rcl_timer_init = TracePointData([
+            'pid', 'tid', 'timestamp', 'timer_handle', 'period'
+        ])
+        self.rclcpp_timer_link_node = TracePointData([
+            'pid', 'tid', 'timestamp', 'timer_handle', 'node_handle'
+        ])
+        self.rclcpp_subscription_callback_added = TracePointData([
+            'subscription',
+            'timestamp',
+            'pid',
+            'tid',
+            'callback_object',
+        ])
+        self.rclcpp_service_callback_added = TracePointData([
+            'service_handle', 'timestamp', 'pid', 'tid', 'callback_object',
+        ])
+        self.rclcpp_timer_callback_added = TracePointData([
+            'timestamp',
+            'pid',
+            'tid',
+            'timer_handle',
+            'callback_object',
+        ])
+        self.rclcpp_callback_register = TracePointData([
+            'callback_object',
+            'timestamp',
+            'symbol',
+            'pid',
+            'tid',
+        ])
+        self.rcl_lifecycle_state_machine_init = TracePointData([
+            'state_machine_handle',
+            'node_handle',
+            'pid',
+            'tid',
+        ])
+        self.construct_executor = TracePointData([
+            'pid', 'tid', 'timestamp', 'executor_addr', 'executor_type_name'
+        ])
+        self.construct_static_executor = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'executor_addr',
+            'entities_collector_addr',
+            'executor_type_name',
+        ])
+        self.add_callback_group = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'executor_addr',
+            'callback_group_addr',
+            'group_type_name'
 
-        self._tilde_subscriptions: DataModelIntermediateStorage = []
-        self._tilde_publishers: DataModelIntermediateStorage = []
-        self._tilde_subscribe_added: DataModelIntermediateStorage = []
-        self._transform_broadcaster: DataModelIntermediateStorage = []
-        self._transform_broadcaster_frames: DataModelIntermediateStorage = []
-        self._construct_tf_buffer: DataModelIntermediateStorage = []
-        self._init_bind_tf_buffer_core: DataModelIntermediateStorage = []
-        self._construct_node_hook: DataModelIntermediateStorage = []
-        self._broadcaster_frame_id_compact: DataModelIntermediateStorage = []
-        self._buffer_frame_id_compact: DataModelIntermediateStorage = []
-        self._tf_buffer_lookup_transform: DataModelIntermediateStorage = []
+        ])
+        self.add_callback_group_static_executor = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'entities_collector_addr',
+            'callback_group_addr',
+            'group_type_name',
+        ])
+        self.callback_group_add_timer = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'callback_group_addr',
+            'timer_handle',
+        ])
+        self.callback_group_add_subscription = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'callback_group_addr',
+            'subscription_handle',
+        ])
+        self.callback_group_add_service = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'callback_group_addr',
+            'service_handle',
+        ])
+        self.callback_group_add_client = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'callback_group_addr',
+            'client_handle',
+        ])
+        self.rmw_implementation = TracePointData([
+            'pid', 'tid', 'rmw_impl'
+        ])
+        self.symbol_rename = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'symbol_from',
+            'symbol_to',
+        ])
+        self.tilde_subscription_init = TracePointData([
+            'subscription',
+            'node_name',
+            'topic_name',
+            'timestamp',
+            'pid',
+            'tid',
+        ])
+        self.tilde_publisher_init = TracePointData([
+            'publisher',
+            'node_name',
+            'topic_name',
+            'timestamp',
+            'pid',
+            'tid',
+        ])
+        self.tilde_subscribe_added = TracePointData([
+            'subscription_id',
+            'node_name',
+            'topic_name',
+            'pid',
+            'tid',
+            'timestamp',
+        ])
+        self.transform_broadcaster = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'transform_broadcaster',
+            'publisher_handle',
+        ])
+        self.transform_broadcaster_frames = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'transform_broadcaster',
+            'frame_id',
+            'child_frame_id',
+        ])
+        self.construct_tf_buffer = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'tf_buffer',
+            'tf_buffer_core',
+            'clock',
+        ])
+        self.init_bind_tf_buffer_core = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'tf_buffer_core',
+            'callback',
+        ])
+
+        self.construct_node_hook = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'node_handle',
+            'clock'
+        ])
+        self.init_tf_broadcaster_frame_id_compact = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'tf_broadcaster',
+            'frame_id',
+            'frame_id_compact',
+        ])
+        self.init_tf_buffer_frame_id_compact = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'tf_buffer_core',
+            'frame_id',
+            'frame_id_compact',
+        ])
+        self.tf_buffer_lookup_transform = TracePointData([
+            'pid',
+            'tid',
+            'tf_buffer_core',
+            'frame_id_compact',
+            'child_frame_id_compact',
+        ])
+
+        # not supported
+        # self.lifecycle_transitions = DataFrame([
+        # ])
 
         # Events (multiple instances, may not have a meaningful index)
-        # string argument
-        self._lifecycle_transitions: DataModelIntermediateStorage = []
-
-        # Events (multiple instances, may not have a meaningful index)
-        self.callback_start_instances = RecordsFactory.create_instance(
+        self.callback_start = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -87,7 +261,7 @@ class Ros2DataModel(DataModel):
                 Column('is_intra_process')
             ]
         )
-        self.callback_end_instances = RecordsFactory.create_instance(
+        self.callback_end = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -96,7 +270,7 @@ class Ros2DataModel(DataModel):
                 Column('callback_object')
             ]
         )
-        self.dds_write_instances = RecordsFactory.create_instance(
+        self.dds_write = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -125,7 +299,7 @@ class Ros2DataModel(DataModel):
                 Column('addr_to')
             ]
         )
-        self.on_data_available_instances = RecordsFactory.create_instance(
+        self.on_data_available = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -134,7 +308,7 @@ class Ros2DataModel(DataModel):
                 Column('source_timestamp')
             ]
         )
-        self.rclcpp_intra_publish_instances = RecordsFactory.create_instance(
+        self.rclcpp_intra_publish = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -145,7 +319,7 @@ class Ros2DataModel(DataModel):
                 Column('message_timestamp')
             ]
         )
-        self.rclcpp_publish_instances = RecordsFactory.create_instance(
+        self.rclcpp_publish = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -156,7 +330,7 @@ class Ros2DataModel(DataModel):
                 Column('message_timestamp')
             ]
         )
-        self.rcl_publish_instances = RecordsFactory.create_instance(
+        self.rcl_publish = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -166,7 +340,7 @@ class Ros2DataModel(DataModel):
                 Column('message')
             ]
         )
-        self.dispatch_subscription_callback_instances = RecordsFactory.create_instance(
+        self.dispatch_subscription_callback = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -178,7 +352,7 @@ class Ros2DataModel(DataModel):
                 Column('message_timestamp')
             ]
         )
-        self.dispatch_intra_process_subscription_callback_instances = \
+        self.dispatch_intra_process_subscription_callback = \
             RecordsFactory.create_instance(
                 None,
                 [
@@ -190,7 +364,7 @@ class Ros2DataModel(DataModel):
                     Column('message_timestamp')
                 ]
             )
-        self.message_construct_instances = RecordsFactory.create_instance(
+        self.message_construct = RecordsFactory.create_instance(
             None,
             [
                 Column('pid'),
@@ -298,7 +472,7 @@ class Ros2DataModel(DataModel):
             ]
         )
 
-    def add_context(self, pid, tid, context_handle, timestamp, version) -> None:
+    def add_rcl_init(self, pid, tid, context_handle, timestamp, version) -> None:
         record = {
             'context_handle': context_handle,
             'timestamp': timestamp,
@@ -306,9 +480,11 @@ class Ros2DataModel(DataModel):
             'tid': tid,
             'version': version,  # Comment out to align with Dict[str: int64_t]
         }
-        self._contexts.append(record)
+        self.rcl_init.append(record)
 
-    def add_node(self, pid, tid, node_handle, timestamp, rmw_handle, name, namespace) -> None:
+    def add_rcl_node_init(
+        self, pid, tid, node_handle, timestamp, rmw_handle, name, namespace
+    ) -> None:
         record = {
             'node_handle': node_handle,
             'timestamp': timestamp,
@@ -318,9 +494,11 @@ class Ros2DataModel(DataModel):
             'namespace': namespace,
             'name': name,
         }
-        self._nodes.append(record)
+        self.rcl_node_init.append(record)
 
-    def add_publisher(self, pid, tid, handle, timestamp, node_handle, rmw_handle, topic_name, depth) -> None:
+    def add_rcl_publisher_init(
+        self, pid, tid, handle, timestamp, node_handle, rmw_handle, topic_name, depth
+    ) -> None:
         record = {
             'publisher_handle': handle,
             'timestamp': timestamp,
@@ -331,9 +509,9 @@ class Ros2DataModel(DataModel):
             'topic_name': topic_name,
             'depth': depth,
         }
-        self._publishers.append(record)
+        self.rcl_publisher_init.append(record)
 
-    def add_rcl_subscription(
+    def add_rcl_subscription_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, topic_name, depth
     ) -> None:
         record = {
@@ -346,9 +524,9 @@ class Ros2DataModel(DataModel):
             'topic_name': topic_name,
             'depth': depth,
         }
-        self._subscriptions.append(record)
+        self.rcl_subscription_init.append(record)
 
-    def add_rclcpp_subscription(
+    def add_rclcpp_subscription_init(
         self, pid, tid, subscription_pointer, timestamp, subscription_handle
     ) -> None:
         record = {
@@ -358,9 +536,21 @@ class Ros2DataModel(DataModel):
             'tid': tid,
             'subscription_handle': subscription_handle,
         }
-        self._subscription_objects.append(record)
+        self.rclcpp_subscription_init.append(record)
 
-    def add_service(
+    def add_rclcpp_subscription_callback_added(
+        self, pid, tid, subscription_pointer, timestamp, callback_object
+    ) -> None:
+        record = {
+            'subscription': subscription_pointer,
+            'timestamp': timestamp,
+            'pid': pid,
+            'tid': tid,
+            'callback_object': callback_object,
+        }
+        self.rclcpp_subscription_callback_added.append(record)
+
+    def add_rcl_service_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, service_name
     ) -> None:
         record = {
@@ -372,9 +562,21 @@ class Ros2DataModel(DataModel):
             'rmw_handle': rmw_handle,
             'service_name': service_name,
         }
-        self._services.append(record)
+        self.rcl_service_init.append(record)
 
-    def add_client(
+    def add_rclcpp_service_callback_added(
+        self, pid, tid, service_handle, timestamp, callback_object
+    ) -> None:
+        record = {
+            'service_handle': service_handle,
+            'timestamp': timestamp,
+            'pid': pid,
+            'tid': tid,
+            'callback_object': callback_object,
+        }
+        self.rclcpp_service_callback_added.append(record)
+
+    def add_rcl_client_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, service_name
     ) -> None:
         record = {
@@ -386,9 +588,9 @@ class Ros2DataModel(DataModel):
             'rmw_handle': rmw_handle,
             'service_name': service_name,
         }
-        self._clients.append(record)
+        self.rcl_client_init.append(record)
 
-    def add_timer(
+    def add_rcl_timer_init(
         self, pid, tid, handle, timestamp, period
     ) -> None:
         record = {
@@ -398,22 +600,21 @@ class Ros2DataModel(DataModel):
             'pid': pid,
             'tid': tid,
         }
-        self._timers.append(record)
+        self.rcl_timer_init.append(record)
 
-    def add_tilde_subscribe_added(
-        self, pid, tid, subscription_id, node_name, topic_name, timestamp
+    def add_rclcpp_timer_callback_added(
+        self, pid, tid, timer_handle, timestamp, callback_object
     ) -> None:
         record = {
-            'subscription_id': subscription_id,
-            'node_name': node_name,
-            'topic_name': topic_name,
+            'timestamp': timestamp,
             'pid': pid,
             'tid': tid,
-            'timestamp': timestamp
+            'timer_handle': timer_handle,
+            'callback_object': callback_object,
         }
-        self._tilde_subscribe_added.append(record)
+        self.rclcpp_timer_callback_added.append(record)
 
-    def add_timer_node_link(self, pid, tid, handle, timestamp, node_handle) -> None:
+    def add_rclcpp_timer_link_node(self, pid, tid, handle, timestamp, node_handle) -> None:
         record = {
             'timer_handle': handle,
             'timestamp': timestamp,
@@ -421,95 +622,40 @@ class Ros2DataModel(DataModel):
             'tid': tid,
             'node_handle': node_handle,
         }
-        self._timer_node_links.append(record)
+        self.rclcpp_timer_link_node.append(record)
 
-    def add_callback_object(self, pid, tid, reference, timestamp, callback_object) -> None:
-        record = {
-            'reference': reference,
-            'timestamp': timestamp,
-            'callback_object': callback_object,
-            'pid': pid,
-            'tid': tid,
-        }
-        self._callback_objects.append(record)
+    # def add_rclcpp_callback_register(
+    #     self, pid, tid, callback_group_pointer, timestamp, callback_group_handle
+    # ) -> None:
+    #     record = {
+    #         'callback_group': callback_group_pointer,
+    #         'timestamp': timestamp,
+    #         'pid': pid,
+    #         'tid': tid,
+    #         'callback_group_handle': callback_group_handle,
+    #     }
+    #     self.rclcpp_callback_register.append(record)
 
-    def add_callback_symbol(self, pid, tid, callback_object, timestamp, symbol) -> None:
-        record = {
-            'callback_object': callback_object,
-            'timestamp': timestamp,
-            'symbol': symbol,
-            'pid': pid,
-            'tid': tid,
-        }
-        self._callback_symbols.append(record)
-
-    def add_lifecycle_state_machine(self, pid, tid, handle, node_handle) -> None:
-        record = {
-            'state_machine_handle': handle,
-            'node_handle': node_handle,
-            'pid': pid,
-            'tid': tid,
-        }
-        self._lifecycle_state_machines.append(record)
-
-    def add_lifecycle_state_transition(
-        self, pid, tid, state_machine_handle, start_label, goal_label, timestamp
-    ) -> None:
-        record = {
-            'state_machine_handle': state_machine_handle,
-            'start_label': start_label,
-            'goal_label': goal_label,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-        }
-        self._lifecycle_transitions.append(record)
-
-    def add_tilde_subscription(
-        self, pid, tid, subscription, node_name, topic_name, timestamp
-    ) -> None:
-        record = {
-            'subscription': subscription,
-            'node_name': node_name,
-            'topic_name': topic_name,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-        }
-        self._tilde_subscriptions.append(record)
-
-    def add_tilde_publisher(
-        self, pid, tid, publisher, node_name, topic_name, timestamp
-    ) -> None:
-        record = {
-            'publisher': publisher,
-            'node_name': node_name,
-            'topic_name': topic_name,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-        }
-        self._tilde_publishers.append(record)
-
-    def add_callback_start_instance(
-        self, timestamp: int,
+    def add_callback_start(
+        self,
         pid: int,
         tid: int,
+        timestamp: int,
         callback: int,
         is_intra_process: bool,
     ) -> None:
         record = RecordFactory.create_instance(
             {
-                'callback_start_timestamp': timestamp,
                 'pid': pid,
                 'tid': tid,
+                'callback_start_timestamp': timestamp,
                 'callback_object': callback,
                 'is_intra_process': is_intra_process,
             }
         )
-        self.callback_start_instances.append(record)
+        self.callback_start.append(record)
 
-    def add_callback_end_instance(
+    def add_callback_end(
         self,
         pid: int,
         tid: int,
@@ -524,30 +670,31 @@ class Ros2DataModel(DataModel):
                 'callback_object': callback
             }
         )
-        self.callback_end_instances.append(record)
+        self.callback_end.append(record)
 
-    def add_rclcpp_intra_publish_instance(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        publisher_handle: int,
-        message: int,
-        message_timestamp: int,
+    def add_rcl_lifecycle_state_machine_init(self, pid, tid, handle, node_handle) -> None:
+        record = {
+            'state_machine_handle': handle,
+            'node_handle': node_handle,
+            'pid': pid,
+            'tid': tid,
+        }
+        self.rcl_lifecycle_state_machine_init.append(record)
+
+    def add_rcl_lifecycle_transition(
+        self, pid, tid, state_machine_handle, start_label, goal_label, timestamp
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'rclcpp_intra_publish_timestamp': timestamp,
-                'publisher_handle': publisher_handle,
-                'message': message,
-                'message_timestamp': message_timestamp,
-            }
-        )
-        self.rclcpp_intra_publish_instances.append(record)
+        record = {
+            'state_machine_handle': state_machine_handle,
+            'start_label': start_label,
+            'goal_label': goal_label,
+            'timestamp': timestamp,
+            'pid': pid,
+            'tid': tid,
+        }
+        self.rcl_lifecycle_transition.append(record)
 
-    def add_rclcpp_publish_instance(
+    def add_rclcpp_publish(
         self,
         pid: int,
         tid: int,
@@ -566,100 +713,9 @@ class Ros2DataModel(DataModel):
                 'message_timestamp': message_timestamp,
             }
         )
-        self.rclcpp_publish_instances.append(record)
+        self.rclcpp_publish.append(record)
 
-    def add_rcl_publish_instance(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        publisher_handle: int,
-        message: int,
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'rcl_publish_timestamp': timestamp,
-                'publisher_handle': publisher_handle,
-                'message': message,
-            }
-        )
-        self.rcl_publish_instances.append(record)
-
-    def add_dds_write_instance(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        message: int,
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'dds_write_timestamp': timestamp,
-                'message': message,
-            }
-        )
-        self.dds_write_instances.append(record)
-
-    def add_dds_bind_addr_to_addr(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        addr_from: int,
-        addr_to: int,
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'dds_bind_addr_to_addr_timestamp': timestamp,
-                'addr_from': addr_from,
-                'addr_to': addr_to,
-            }
-        )
-        self.dds_bind_addr_to_addr.append(record)
-
-    def add_dds_bind_addr_to_stamp(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        addr: int,
-        source_timestamp: int,
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'dds_bind_addr_to_stamp_timestamp': timestamp,
-                'addr': addr,
-                'source_timestamp': source_timestamp,
-            }
-        )
-        self.dds_bind_addr_to_stamp.append(record)
-
-    def add_on_data_available_instance(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        source_timestamp: int,
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'on_data_available_timestamp': timestamp,
-                'source_timestamp': source_timestamp,
-            }
-        )
-        self.on_data_available_instances.append(record)
-
-    def add_message_construct_instance(
+    def add_message_construct(
         self, pid: int, tid: int, timestamp: int, original_message: int, constructed_message: int
     ) -> None:
         record = RecordFactory.create_instance(
@@ -671,9 +727,30 @@ class Ros2DataModel(DataModel):
                 'constructed_message': constructed_message,
             }
         )
-        self.message_construct_instances.append(record)
+        self.message_construct.append(record)
 
-    def add_dispatch_subscription_callback_instance(
+    def add_rclcpp_intra_publish(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        publisher_handle: int,
+        message: int,
+        message_timestamp: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'rclcpp_intra_publish_timestamp': timestamp,
+                'publisher_handle': publisher_handle,
+                'message': message,
+                'message_timestamp': message_timestamp,
+            }
+        )
+        self.rclcpp_intra_publish.append(record)
+
+    def add_dispatch_subscription_callback(
         self,
         pid: int,
         tid: int,
@@ -694,176 +771,9 @@ class Ros2DataModel(DataModel):
                 'message_timestamp': message_timestamp,
             }
         )
-        self.dispatch_subscription_callback_instances.append(record)
+        self.dispatch_subscription_callback.append(record)
 
-    def add_sim_time(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        sim_time: int
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'system_time': timestamp,
-                'sim_time': sim_time
-            }
-        )
-        self.sim_time.append(record)
-
-    def add_rmw_implementation(self, rmw_impl: str):
-        self._rmw_impl.append({'rmw_impl': rmw_impl})
-
-    def add_symbol_rename(
-        self, pid: int, tid: int, timestamp: int, symbol_from: str, symbol_to: str
-    ):
-        self._symbol_rename.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'symbol_from': symbol_from,
-                'symbol_to': symbol_to
-            }
-        )
-
-    def add_transform_broadcaster(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        broadcaster: int,
-        publisher_handle: int,
-    ) -> None:
-        self._transform_broadcaster.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'transform_broadcaster': broadcaster,
-                'publisher_handle': publisher_handle
-            }
-        )
-
-    def add_transform_broadcaster_frames(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        transform_broadcaster: int,
-        frame_id: str,
-        child_frame_id: str
-    ) -> None:
-        self._transform_broadcaster_frames.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'transform_broadcaster': transform_broadcaster,
-                'frame_id': frame_id,
-                'child_frame_id': child_frame_id
-            }
-        )
-
-    def add_construct_tf_buffer(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        tf_buffer: int,
-        tf_buffer_core: int,
-        clock: int
-    ) -> None:
-        self._construct_tf_buffer.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer': tf_buffer,
-                'tf_buffer_core': tf_buffer_core,
-                'clock': clock
-            }
-        )
-
-    def add_init_bind_tf_buffer_core(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        tf_buffer_core: int,
-        callback: int
-    ) -> None:
-        self._init_bind_tf_buffer_core.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer_core': tf_buffer_core,
-                'callback': callback
-            }
-        )
-
-    def add_construct_node_hook(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        node_handle: int,
-        clock: int
-    ) -> None:
-        self._construct_node_hook.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'node_handle': node_handle,
-                'clock': clock
-            }
-        )
-
-    def add_broadcaster_frame_id_compact(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        broadcaster: int,
-        frame_id: str,
-        frame_id_compact: int
-    ) -> None:
-        self._broadcaster_frame_id_compact.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_broadcaster': broadcaster,
-                'frame_id': frame_id,
-                'frame_id_compact': frame_id_compact,
-            }
-        )
-
-    def add_buffer_frame_id_compact(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        buffer_core: int,
-        frame_id: str,
-        frame_id_compact: int
-    ) -> None:
-        self._buffer_frame_id_compact.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer_core': buffer_core,
-                'frame_id': frame_id,
-                'frame_id_compact': frame_id_compact,
-            }
-        )
-
-    def add_dispatch_intra_process_subscription_callback_instance(
+    def add_dispatch_intra_process_subscription_callback(
         self,
         pid: int,
         tid: int,
@@ -882,8 +792,263 @@ class Ros2DataModel(DataModel):
                 'message_timestamp': message_timestamp
             }
         )
-        self.dispatch_intra_process_subscription_callback_instances.append(
-            record)
+        self.dispatch_intra_process_subscription_callback.append(record)
+
+    def add_on_data_available(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        source_timestamp: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'on_data_available_timestamp': timestamp,
+                'source_timestamp': source_timestamp,
+            }
+        )
+        self.on_data_available.append(record)
+
+    def add_rcl_publish(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        publisher_handle: int,
+        message: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'rcl_publish_timestamp': timestamp,
+                'publisher_handle': publisher_handle,
+                'message': message,
+            }
+        )
+        self.rcl_publish.append(record)
+
+    def add_dds_write(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        message: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'dds_write_timestamp': timestamp,
+                'message': message,
+            }
+        )
+        self.dds_write.append(record)
+
+    def add_dds_bind_addr_to_stamp(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        addr: int,
+        source_timestamp: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'dds_bind_addr_to_stamp_timestamp': timestamp,
+                'addr': addr,
+                'source_timestamp': source_timestamp,
+            }
+        )
+        self.dds_bind_addr_to_stamp.append(record)
+
+    def add_dds_bind_addr_to_addr(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        addr_from: int,
+        addr_to: int,
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'dds_bind_addr_to_addr_timestamp': timestamp,
+                'addr_from': addr_from,
+                'addr_to': addr_to,
+            }
+        )
+        self.dds_bind_addr_to_addr.append(record)
+
+    def add_rmw_implementation(self, pid: int, tid: int, rmw_impl: str):
+        self.rmw_implementation.append({
+            'rmw_impl': rmw_impl,
+            'pid': pid,
+            'tid': tid,
+        })
+
+    def add_add_callback_group(
+        self,
+        pid: int,
+        tid: int,
+        executor_addr: int,
+        timestamp: int,
+        callback_group_addr: int,
+        group_type_name: str
+    ) -> None:
+        self.add_callback_group.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'executor_addr': executor_addr,
+            'callback_group_addr': callback_group_addr,
+            'group_type_name': group_type_name
+        })
+
+    def add_add_callback_group_static_executor(
+        self,
+        pid: int,
+        tid: int,
+        entities_collector_addr: int,
+        timestamp: int,
+        callback_group_addr: int,
+        group_type_name: str
+    ) -> None:
+        self.add_callback_group_static_executor.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'entities_collector_addr': entities_collector_addr,
+            'callback_group_addr': callback_group_addr,
+            'group_type_name': group_type_name
+        })
+
+    def add_construct_executor(
+        self,
+        pid: int,
+        tid: int,
+        executor_addr: int,
+        timestamp: int,
+        executor_type_name: str
+    ) -> None:
+        self.construct_executor.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'executor_addr': executor_addr,
+            'executor_type_name': executor_type_name,
+        })
+
+    def add_construct_static_executor(
+        self,
+        pid: int,
+        tid: int,
+        executor_addr: int,
+        entities_collector_addr: int,
+        timestamp: int,
+        executor_type_name: str
+    ) -> None:
+        self.construct_static_executor.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'executor_addr': executor_addr,
+            'entities_collector_addr': entities_collector_addr,
+            'executor_type_name': executor_type_name,
+        })
+
+    def add_callback_group_add_timer(
+        self,
+        pid: int,
+        tid: int,
+        callback_group_addr: int,
+        timestamp: int,
+        timer_handle: int
+    ) -> None:
+        self.callback_group_add_timer.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'callback_group_addr': callback_group_addr,
+            'timer_handle': timer_handle,
+        })
+
+    def add_callback_group_add_subscription(
+        self,
+        pid: int,
+        tid: int,
+        callback_group_addr: int,
+        timestamp: int,
+        subscription_handle: int
+    ) -> None:
+        self.callback_group_add_subscription.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'callback_group_addr': callback_group_addr,
+            'subscription_handle': subscription_handle,
+        })
+
+    def add_callback_group_add_service(
+        self,
+        pid: int,
+        tid: int,
+        callback_group_addr: int,
+        timestamp: int,
+        service_handle: int
+    ) -> None:
+        self.callback_group_add_service.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'callback_group_addr': callback_group_addr,
+            'service_handle': service_handle,
+        })
+
+    def add_callback_group_add_client(
+        self,
+        pid: int,
+        tid: int,
+        callback_group_addr: int,
+        timestamp: int,
+        client_handle: int
+    ) -> None:
+        self.callback_group_add_client.append({
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp,
+            'callback_group_addr': callback_group_addr,
+            'client_handle': client_handle,
+        })
+
+    def add_tilde_subscription_init(
+        self, pid, tid, subscription, node_name, topic_name, timestamp
+    ) -> None:
+        self.tilde_subscription_init.append({
+            'subscription': subscription,
+            'node_name': node_name,
+            'topic_name': topic_name,
+            'timestamp': timestamp,
+            'pid': pid,
+            'tid': tid,
+        })
+
+    def add_tilde_publisher_init(
+        self, pid, tid, publisher, node_name, topic_name, timestamp
+    ) -> None:
+        self.tilde_publisher_init.append({
+            'publisher': publisher,
+            'node_name': node_name,
+            'topic_name': topic_name,
+            'timestamp': timestamp,
+            'pid': pid,
+            'tid': tid,
+        })
 
     def add_tilde_subscribe(
         self,
@@ -925,6 +1090,142 @@ class Ros2DataModel(DataModel):
         )
         self.tilde_publish.append(record)
 
+    def add_tilde_subscribe_added(
+        self, pid, tid, subscription_id, node_name, topic_name, timestamp
+    ) -> None:
+        self.tilde_subscribe_added.append({
+            'subscription_id': subscription_id,
+            'node_name': node_name,
+            'topic_name': topic_name,
+            'pid': pid,
+            'tid': tid,
+            'timestamp': timestamp
+        })
+
+    def add_sim_time(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        sim_time: int
+    ) -> None:
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'system_time': timestamp,
+                'sim_time': sim_time
+            }
+        )
+        self.sim_time.append(record)
+
+    def add_symbol_rename(
+        self, pid: int, tid: int, timestamp: int, symbol_from: str, symbol_to: str
+    ):
+        self.symbol_rename.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'symbol_from': symbol_from,
+                'symbol_to': symbol_to
+            }
+        )
+
+    def add_init_bind_transform_broadcaster(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        broadcaster: int,
+        publisher_handle: int,
+    ) -> None:
+        self.transform_broadcaster.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'transform_broadcaster': broadcaster,
+                'publisher_handle': publisher_handle
+            }
+        )
+
+    def add_init_bind_transform_broadcaster_frames(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        transform_broadcaster: int,
+        frame_id: str,
+        child_frame_id: str
+    ) -> None:
+        self.transform_broadcaster_frames.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'transform_broadcaster': transform_broadcaster,
+                'frame_id': frame_id,
+                'child_frame_id': child_frame_id
+            }
+        )
+
+    def add_construct_tf_buffer(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        tf_buffer: int,
+        tf_buffer_core: int,
+        clock: int
+    ) -> None:
+        self.construct_tf_buffer.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'tf_buffer': tf_buffer,
+                'tf_buffer_core': tf_buffer_core,
+                'clock': clock
+            }
+        )
+
+    def add_init_bind_tf_buffer_core(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        tf_buffer_core: int,
+        callback: int
+    ) -> None:
+        self.init_bind_tf_buffer_core.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'tf_buffer_core': tf_buffer_core,
+                'callback': callback
+            }
+        )
+
+    def add_construct_node_hook(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        node_handle: int,
+        clock: int
+    ) -> None:
+        self.construct_node_hook.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'node_handle': node_handle,
+                'clock': clock
+            }
+        )
+
     def add_send_transform(
         self,
         pid: int,
@@ -948,22 +1249,43 @@ class Ros2DataModel(DataModel):
         )
         self.send_transform.append(record)
 
-    def add_init_tf_buffer_lookup_transform(
+    def add_init_tf_broadcaster_frame_id_compact(
         self,
         pid: int,
         tid: int,
-        buffer_core: int,
-        frame_id_compact: int,
-        child_frame_id_compact: int,
+        timestamp: int,
+        broadcaster: int,
+        frame_id: str,
+        frame_id_compact: int
     ) -> None:
-
-        self._tf_buffer_lookup_transform.append(
+        self.init_tf_broadcaster_frame_id_compact.append(
             {
                 'pid': pid,
                 'tid': tid,
-                'tf_buffer_core': buffer_core,
+                'timestamp': timestamp,
+                'tf_broadcaster': broadcaster,
+                'frame_id': frame_id,
                 'frame_id_compact': frame_id_compact,
-                'child_frame_id_compact': child_frame_id_compact,
+            }
+        )
+
+    def add_init_tf_buffer_frame_id_compact(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        buffer_core: int,
+        frame_id: str,
+        frame_id_compact: int
+    ) -> None:
+        self.init_tf_buffer_frame_id_compact.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'tf_buffer_core': buffer_core,
+                'frame_id': frame_id,
+                'frame_id_compact': frame_id_compact,
             }
         )
 
@@ -1007,6 +1329,28 @@ class Ros2DataModel(DataModel):
             }
         )
         self.tf_lookup_transform_end.append(record)
+
+    # def add_callback_object(self, pid, tid, reference, timestamp, callback_object) -> None:
+    #     record = {
+    #         'reference': reference,
+    #         'timestamp': timestamp,
+    #         'callback_object': callback_object,
+    #         'pid': pid,
+    #         'tid': tid,
+    #     }
+    #     self.callback_objects.append(record)
+
+    def add_rclcpp_callback_register(
+        self, pid, tid, callback_object, timestamp, symbol
+    ) -> None:
+        record = {
+            'callback_object': callback_object,
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'pid': pid,
+            'tid': tid,
+        }
+        self.rclcpp_callback_register.append(record)
 
     def add_tf_find_closest(
         self,
@@ -1068,200 +1412,72 @@ class Ros2DataModel(DataModel):
         )
         self.tf_set_transform.append(record)
 
-    def add_executor(
+    def add_init_tf_buffer_lookup_transform(
         self,
         pid: int,
         tid: int,
-        executor_addr: int,
-        timestamp: int,
-        executor_type_name: str
+        buffer_core: int,
+        frame_id_compact: int,
+        child_frame_id_compact: int,
     ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'executor_addr': executor_addr,
-            'executor_type_name': executor_type_name,
-        }
-        self._executors.append(record)
 
-    def add_executor_static(
-        self,
-        pid: int,
-        tid: int,
-        executor_addr: int,
-        entities_collector_addr: int,
-        timestamp: int,
-        executor_type_name: str
-    ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'executor_addr': executor_addr,
-            'entities_collector_addr': entities_collector_addr,
-            'executor_type_name': executor_type_name,
-        }
-        self._executors_static.append(record)
-
-    def add_callback_group(
-        self,
-        pid: int,
-        tid: int,
-        executor_addr: int,
-        timestamp: int,
-        callback_group_addr: int,
-        group_type_name: str
-    ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'executor_addr': executor_addr,
-            'callback_group_addr': callback_group_addr,
-            'group_type_name': group_type_name
-        }
-        self._callback_groups.append(record)
-
-    def add_callback_group_static_executor(
-        self,
-        pid: int,
-        tid: int,
-        entities_collector_addr: int,
-        timestamp: int,
-        callback_group_addr: int,
-        group_type_name: str
-    ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'entities_collector_addr': entities_collector_addr,
-            'callback_group_addr': callback_group_addr,
-            'group_type_name': group_type_name
-        }
-        self._callback_groups_static.append(record)
-
-    def callback_group_add_timer(
-        self,
-        pid: int,
-        tid: int,
-        callback_group_addr: int,
-        timestamp: int,
-        timer_handle: int
-    ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'timer_handle': timer_handle,
-        }
-        self._callback_group_timer.append(record)
-
-    def callback_group_add_subscription(
-        self,
-        pid: int,
-        tid: int,
-        callback_group_addr: int,
-        timestamp: int,
-        subscription_handle: int
-    ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'subscription_handle': subscription_handle,
-        }
-        self._callback_group_subscription.append(record)
-
-    def callback_group_add_service(
-        self,
-        pid: int,
-        tid: int,
-        callback_group_addr: int,
-        timestamp: int,
-        service_handle: int
-    ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'service_handle': service_handle,
-        }
-        self._callback_group_service.append(record)
-
-    def callback_group_add_client(
-        self,
-        pid: int,
-        tid: int,
-        callback_group_addr: int,
-        timestamp: int,
-        client_handle: int
-    ) -> None:
-        record = {
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'client_handle': client_handle,
-        }
-        self._callback_group_client.append(record)
+        self.tf_buffer_lookup_transform.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'tf_buffer_core': buffer_core,
+                'frame_id_compact': frame_id_compact,
+                'child_frame_id_compact': child_frame_id_compact,
+            }
+        )
 
     def _finalize(self) -> None:
-        self.contexts = pd.DataFrame.from_dict(self._contexts)
-        self.nodes = pd.DataFrame.from_dict(self._nodes)
-        self.publishers = pd.DataFrame.from_dict(self._publishers)
-        self.subscriptions = pd.DataFrame.from_dict(self._subscriptions)
-        self.subscription_objects = pd.DataFrame.from_dict(self._subscription_objects)
-        self.services = pd.DataFrame.from_dict(self._services)
-        self.clients = pd.DataFrame.from_dict(self._clients)
-        self.timers = pd.DataFrame.from_dict(self._timers)
-        self.timer_node_links = pd.DataFrame.from_dict(self._timer_node_links)
-        self.callback_objects = pd.DataFrame.from_dict(self._callback_objects)
-        self.construct_tf_buffer = pd.DataFrame.from_dict(self._construct_tf_buffer)
-        self.init_bind_tf_buffer_core = pd.DataFrame.from_dict(self._init_bind_tf_buffer_core)
+        self.rcl_init.finalize()
+        self.rcl_node_init.finalize()
+        self.rcl_publisher_init.finalize()
+        self.rcl_subscription_init.finalize()
+        self.rclcpp_subscription_init.finalize()
+        self.rclcpp_subscription_callback_added.finalize()
+        self.rcl_service_init.finalize()
+        self.rclcpp_service_callback_added.finalize()
+        self.rcl_client_init.finalize()
+        self.rcl_timer_init.finalize()
+        self.rclcpp_timer_callback_added.finalize()
+        self.rclcpp_timer_link_node.finalize()
 
-        self.tf_buffer_lookup_transforms = pd.DataFrame.from_dict(
-            self._tf_buffer_lookup_transform
-        )
-        self.construct_node_hook = pd.DataFrame.from_dict(self._construct_node_hook)
-        self.broadcaster_frame_id_compact = pd.DataFrame.from_dict(
-            self._broadcaster_frame_id_compact
-        )
-        self.buffer_frame_id_compact = pd.DataFrame.from_dict(self._buffer_frame_id_compact)
-        self.symbol_rename = pd.DataFrame.from_dict(self._symbol_rename)
+        self.construct_tf_buffer.finalize()
+        self.init_bind_tf_buffer_core.finalize()
+        self.tf_buffer_lookup_transform.finalize()
+        self.construct_node_hook.finalize()
+        self.symbol_rename.finalize()
         symbol_map = {
-            symbol['symbol_from']: symbol['symbol_to'] for symbol in self._symbol_rename
+            symbol['symbol_from']: symbol['symbol_to']
+            for _, symbol
+            in self.symbol_rename.df.iterrows()
         }
-        for callback_symbol in self._callback_symbols:
-            while callback_symbol['symbol'] in symbol_map:
-                callback_symbol['symbol'] = symbol_map[callback_symbol['symbol']]
-        self.callback_symbols = pd.DataFrame.from_dict(self._callback_symbols)
-
-        self.transform_broadcaster = pd.DataFrame.from_dict(self._transform_broadcaster)
-        self.transform_broadcaster_frames = pd.DataFrame.from_dict(
-            self._transform_broadcaster_frames)
-
-        self.lifecycle_state_machines = pd.DataFrame.from_dict(self._lifecycle_state_machines)
-        self.lifecycle_transitions = pd.DataFrame.from_dict(self._lifecycle_transitions)
-        self.executors = pd.DataFrame.from_dict(self._executors)
-        self.executors_static = pd.DataFrame.from_dict(self._executors_static)
-        self.callback_groups = pd.DataFrame.from_dict(self._callback_groups)
-        self.callback_groups_static = pd.DataFrame.from_dict(self._callback_groups_static)
-        self.callback_group_timer = pd.DataFrame.from_dict(self._callback_group_timer)
-        self.callback_group_subscription = pd.DataFrame.from_dict(self._callback_group_subscription)
-        self.callback_group_service = pd.DataFrame.from_dict(self._callback_group_service)
-        self.callback_group_client = pd.DataFrame.from_dict(self._callback_group_client)
-        self.tilde_subscriptions = pd.DataFrame.from_dict(self._tilde_subscriptions)
-        self.tilde_publishers = pd.DataFrame.from_dict(self._tilde_publishers)
-        self.tilde_subscribe_added = pd.DataFrame.from_dict(self._tilde_subscribe_added)
-
-        self.rmw_impl = pd.DataFrame.from_dict(self._rmw_impl)
+        self.rclcpp_callback_register.replace('symbol', symbol_map)
+        self.rclcpp_callback_register.finalize()
+        self.init_tf_broadcaster_frame_id_compact.finalize()
+        self.transform_broadcaster.finalize()
+        self.transform_broadcaster_frames.finalize()
+        self.init_tf_buffer_frame_id_compact.finalize()
+        # self.lifecycle_state_machines.finalize()
+        # self.lifecycle_transitions.finalize()
+        self.construct_executor.finalize()
+        self.construct_static_executor.finalize()
+        self.add_callback_group.finalize()
+        self.add_callback_group_static_executor.finalize()
+        self.callback_group_add_timer.finalize()
+        self.callback_group_add_subscription.finalize()
+        self.callback_group_add_service.finalize()
+        self.callback_group_add_client.finalize()
+        self.tilde_subscription_init.finalize()
+        self.tilde_publisher_init.finalize()
+        self.tilde_subscribe_added.finalize()
+        self.rmw_implementation.finalize()
 
     def print_data(self) -> None:
+        raise NotImplementedError('')
         print('====================ROS 2 DATA MODEL===================')
         print('Contexts:')
         print(self.contexts.to_string())
@@ -1294,7 +1510,7 @@ class Ros2DataModel(DataModel):
         print(self.callback_objects.to_string())
         print()
         print('Callback symbols:')
-        print(self.callback_symbols.to_string())
+        print(self.rclcpp_callback_register.to_string())
         print()
         print('Callback instances:')
         print(self.callback_instances.to_string())

@@ -57,11 +57,12 @@ class Ros2Handler(EventHandler):
         handler_map['ros2:rclcpp_timer_callback_added'] = self._handle_rclcpp_timer_callback_added
         handler_map['ros2:rclcpp_timer_link_node'] = self._handle_rclcpp_timer_link_node
         handler_map['ros2:rclcpp_callback_register'] = self._handle_rclcpp_callback_register
-        handler_map['ros2:callback_start'] = self._handle_callback_start
-        handler_map['ros2:callback_end'] = self._handle_callback_end
         handler_map[
             'ros2:rcl_lifecycle_state_machine_init'
         ] = self._handle_rcl_lifecycle_state_machine_init
+
+        handler_map['ros2:callback_start'] = self._handle_callback_start
+        handler_map['ros2:callback_end'] = self._handle_callback_end
         handler_map['ros2:rcl_lifecycle_transition'] = self._handle_rcl_lifecycle_transition
         handler_map['ros2:rclcpp_publish'] = self._handle_rclcpp_publish
         handler_map['ros2:message_construct'] = self._handle_message_construct
@@ -77,6 +78,7 @@ class Ros2Handler(EventHandler):
         handler_map['ros2_caret:dds_write'] = self._handle_dds_write
         handler_map['ros2_caret:dds_bind_addr_to_stamp'] = self._handle_dds_bind_addr_to_stamp
         handler_map['ros2_caret:dds_bind_addr_to_addr'] = self._handle_dds_bind_addr_to_addr
+
         handler_map['ros2_caret:rmw_implementation'] = self._handle_rmw_implementation
         handler_map['ros2_caret:add_callback_group'] = self._handle_add_callback_group
         handler_map['ros2_caret:add_callback_group_static_executor'] = \
@@ -107,9 +109,9 @@ class Ros2Handler(EventHandler):
         handler_map['ros2_caret:symbol_rename'] = \
             self._handle_symbol_rename
         handler_map['ros2_caret:init_bind_transform_broadcaster'] = \
-            self._handle_transform_broadcaster
+            self._handle_init_bind_transform_broadcaster
         handler_map['ros2_caret:init_bind_transform_broadcaster_frames'] = \
-            self._handle_transform_broadcaster_frames
+            self._handle_init_bind_transform_broadcaster_frames
         handler_map['ros2_caret:construct_tf_buffer'] = \
             self._handle_construct_tf_buffer
         handler_map['ros2_caret:init_bind_tf_buffer_core'] = \
@@ -126,8 +128,6 @@ class Ros2Handler(EventHandler):
             self._handle_tf_lookup_transform_start
         handler_map['ros2_caret:tf_lookup_transform_end'] = \
             self._handle_tf_lookup_transform_end
-        handler_map['ros2_caret:init_bind_tf_buffer_cache'] = \
-            self._handle_init_bind_tf_buffer_cache
         handler_map['ros2_caret:tf_buffer_find_closest'] = \
             self._handle_tf_buffer_find_closest
         handler_map['ros2_caret:tf_set_transform'] = \
@@ -141,8 +141,6 @@ class Ros2Handler(EventHandler):
             **kwargs,
         )
 
-        # Temporary buffers
-        self._callback_instances: Dict[int, Tuple[Dict, EventMetadata]] = {}
 
     @staticmethod
     def get_trace_points() -> List[str]:
@@ -211,7 +209,7 @@ class Ros2Handler(EventHandler):
         pid = metadata.pid
         tid = metadata.tid
         version = get_field(event, 'version')
-        self.data.add_context(context_handle, timestamp, pid, tid, version)
+        self.data.add_rcl_init(context_handle, timestamp, pid, tid, version)
 
     def _handle_rcl_node_init(
         self,
@@ -223,7 +221,8 @@ class Ros2Handler(EventHandler):
         rmw_handle = get_field(event, 'rmw_handle')
         name = get_field(event, 'node_name')
         namespace = get_field(event, 'namespace')
-        self.data.add_node(metadata.pid, metadata.tid, handle, timestamp, rmw_handle, name, namespace)
+        self.data.add_rcl_node_init(
+            metadata.pid, metadata.tid, handle, timestamp, rmw_handle, name, namespace)
 
     def _handle_rcl_publisher_init(
         self,
@@ -236,7 +235,7 @@ class Ros2Handler(EventHandler):
         rmw_handle = get_field(event, 'rmw_publisher_handle')
         topic_name = get_field(event, 'topic_name')
         depth = get_field(event, 'queue_depth')
-        self.data.add_publisher(
+        self.data.add_rcl_publisher_init(
             metadata.pid, metadata.tid,
             handle, timestamp, node_handle, rmw_handle, topic_name, depth)
 
@@ -251,7 +250,7 @@ class Ros2Handler(EventHandler):
         rmw_handle = get_field(event, 'rmw_subscription_handle')
         topic_name = get_field(event, 'topic_name')
         depth = get_field(event, 'queue_depth')
-        self.data.add_rcl_subscription(
+        self.data.add_rcl_subscription_init(
             metadata.pid,
             metadata.tid,
             handle,
@@ -270,7 +269,7 @@ class Ros2Handler(EventHandler):
         subscription_pointer = get_field(event, 'subscription')
         timestamp = metadata.timestamp
         handle = get_field(event, 'subscription_handle')
-        self.data.add_rclcpp_subscription(
+        self.data.add_rclcpp_subscription_init(
             metadata.pid,
             metadata.tid,
             subscription_pointer, timestamp, handle)
@@ -283,7 +282,7 @@ class Ros2Handler(EventHandler):
         subscription_pointer = get_field(event, 'subscription')
         timestamp = metadata.timestamp
         callback_object = get_field(event, 'callback')
-        self.data.add_callback_object(
+        self.data.add_rclcpp_subscription_callback_added(
             metadata.pid,
             metadata.tid,
             subscription_pointer, timestamp, callback_object)
@@ -298,7 +297,7 @@ class Ros2Handler(EventHandler):
         node_handle = get_field(event, 'node_handle')
         rmw_handle = get_field(event, 'rmw_service_handle')
         service_name = get_field(event, 'service_name')
-        self.data.add_service(
+        self.data.add_rcl_service_init(
             metadata.pid,
             metadata.tid,
             handle, timestamp, node_handle, rmw_handle, service_name)
@@ -311,7 +310,7 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'service_handle')
         timestamp = metadata.timestamp
         callback_object = get_field(event, 'callback')
-        self.data.add_callback_object(
+        self.data.add_rclcpp_service_callback_added(
             metadata.pid,
             metadata.tid,
             handle, timestamp, callback_object)
@@ -326,7 +325,7 @@ class Ros2Handler(EventHandler):
         node_handle = get_field(event, 'node_handle')
         rmw_handle = get_field(event, 'rmw_client_handle')
         service_name = get_field(event, 'service_name')
-        self.data.add_client(
+        self.data.add_rcl_client_init(
             metadata.pid,
             metadata.tid,
             handle, timestamp, node_handle, rmw_handle, service_name)
@@ -339,7 +338,7 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'timer_handle')
         timestamp = metadata.timestamp
         period = get_field(event, 'period')
-        self.data.add_timer(
+        self.data.add_rcl_timer_init(
             metadata.pid,
             metadata.tid,
             handle, timestamp, period)
@@ -352,7 +351,7 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'timer_handle')
         timestamp = metadata.timestamp
         callback_object = get_field(event, 'callback')
-        self.data.add_callback_object(
+        self.data.add_rclcpp_timer_callback_added(
             metadata.pid,
             metadata.tid,
             handle, timestamp, callback_object)
@@ -365,7 +364,7 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'timer_handle')
         timestamp = metadata.timestamp
         node_handle = get_field(event, 'node_handle')
-        self.data.add_timer_node_link(
+        self.data.add_rclcpp_timer_link_node(
             metadata.pid,
             metadata.tid,
             handle, timestamp, node_handle)
@@ -378,7 +377,7 @@ class Ros2Handler(EventHandler):
         callback_object = get_field(event, 'callback')
         timestamp = metadata.timestamp
         symbol = get_field(event, 'symbol')
-        self.data.add_callback_symbol(
+        self.data.add_rclcpp_callback_register(
             metadata.pid,
             metadata.tid,
             callback_object, timestamp, symbol)
@@ -392,7 +391,7 @@ class Ros2Handler(EventHandler):
         callback = get_field(event, 'callback')
         timestamp = metadata.timestamp
         is_intra_process = get_field(event, 'is_intra_process', raise_if_not_found=False)
-        self.data.add_callback_start_instance(
+        self.data.add_callback_start(
             metadata.pid,
             metadata.tid,
             timestamp,
@@ -407,7 +406,7 @@ class Ros2Handler(EventHandler):
         # Fetch from dict
         callback = get_field(event, 'callback')
         timestamp = metadata.timestamp
-        self.data.add_callback_end_instance(
+        self.data.add_callback_end(
             metadata.pid,
             metadata.tid,
             timestamp,
@@ -421,7 +420,7 @@ class Ros2Handler(EventHandler):
     ) -> None:
         node_handle = get_field(event, 'node_handle')
         state_machine = get_field(event, 'state_machine')
-        self.data.add_lifecycle_state_machine(
+        self.data.add_rcl_lifecycle_state_machine_init(
             metadata.pid,
             metadata.tid,
             state_machine, node_handle)
@@ -435,7 +434,7 @@ class Ros2Handler(EventHandler):
         state_machine = get_field(event, 'state_machine')
         start_label = get_field(event, 'start_label')
         goal_label = get_field(event, 'goal_label')
-        self.data.add_lifecycle_state_transition(
+        self.data.add_rcl_lifecycle_transition(
             metadata.pid,
             metadata.tid,
             state_machine, start_label, goal_label, timestamp)
@@ -449,7 +448,7 @@ class Ros2Handler(EventHandler):
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
         message_timestamp = get_field(event, 'message_timestamp')
-        self.data.add_rclcpp_publish_instance(
+        self.data.add_rclcpp_publish(
             metadata.pid,
             metadata.tid,
             timestamp, publisher_handle, message, message_timestamp)
@@ -462,7 +461,7 @@ class Ros2Handler(EventHandler):
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
-        self.data.add_rcl_publish_instance(
+        self.data.add_rcl_publish(
             metadata.pid,
             metadata.tid,
             timestamp, publisher_handle, message)
@@ -475,7 +474,7 @@ class Ros2Handler(EventHandler):
         original_message = get_field(event, 'original_message')
         constructed_message = get_field(event, 'constructed_message')
         timestamp = metadata.timestamp
-        self.data.add_message_construct_instance(
+        self.data.add_message_construct(
             metadata.pid,
             metadata.tid,
             timestamp, original_message, constructed_message)
@@ -489,7 +488,7 @@ class Ros2Handler(EventHandler):
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message_timestamp = get_field(event, 'message_timestamp')
-        self.data.add_rclcpp_intra_publish_instance(
+        self.data.add_rclcpp_intra_publish(
             metadata.pid,
             metadata.tid,
             timestamp, publisher_handle, message, message_timestamp)
@@ -504,7 +503,7 @@ class Ros2Handler(EventHandler):
         timestamp = metadata.timestamp
         source_stamp = get_field(event, 'source_stamp')
         message_timestamp = get_field(event, 'message_timestamp')
-        self.data.add_dispatch_subscription_callback_instance(
+        self.data.add_dispatch_subscription_callback(
             metadata.pid,
             metadata.tid,
             timestamp, callback_object, message, source_stamp, message_timestamp
@@ -519,7 +518,7 @@ class Ros2Handler(EventHandler):
         message = get_field(event, 'message')
         timestamp = metadata.timestamp
         message_timestamp = get_field(event, 'message_timestamp')
-        self.data.add_dispatch_intra_process_subscription_callback_instance(
+        self.data.add_dispatch_intra_process_subscription_callback(
             metadata.pid,
             metadata.tid,
             timestamp, callback_object, message, message_timestamp
@@ -532,7 +531,7 @@ class Ros2Handler(EventHandler):
     ) -> None:
         timestamp = metadata.timestamp
         source_stamp = get_field(event, 'source_stamp')
-        self.data.add_on_data_available_instance(
+        self.data.add_on_data_available(
             metadata.pid,
             metadata.tid,
             timestamp, source_stamp)
@@ -544,7 +543,7 @@ class Ros2Handler(EventHandler):
     ) -> None:
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
-        self.data.add_dds_write_instance(
+        self.data.add_dds_write(
             metadata.pid,
             metadata.tid,
             timestamp, message)
@@ -582,7 +581,10 @@ class Ros2Handler(EventHandler):
     ) -> None:
         metadata
         rmw_impl = get_field(event, 'rmw_impl')
-        self.data.add_rmw_implementation(rmw_impl)
+        self.data.add_rmw_implementation(
+            metadata.pid,
+            metadata.tid,
+            rmw_impl)
 
     def _handle_construct_executor(
         self,
@@ -592,7 +594,7 @@ class Ros2Handler(EventHandler):
         stamp = metadata.timestamp
         executor_addr = get_field(event, 'executor_addr')
         executor_type_name = get_field(event, 'executor_type_name')
-        self.data.add_executor(
+        self.data.add_construct_executor(
             metadata.pid,
             metadata.tid,
             executor_addr, stamp, executor_type_name)
@@ -606,7 +608,7 @@ class Ros2Handler(EventHandler):
         executor_addr = get_field(event, 'executor_addr')
         collector_addr = get_field(event, 'entities_collector_addr')
         executor_type_name = get_field(event, 'executor_type_name')
-        self.data.add_executor_static(
+        self.data.add_construct_static_executor(
             metadata.pid,
             metadata.tid,
             executor_addr, collector_addr, stamp, executor_type_name)
@@ -620,7 +622,7 @@ class Ros2Handler(EventHandler):
         executor_addr = get_field(event, 'executor_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
-        self.data.add_callback_group(
+        self.data.add_add_callback_group(
             metadata.pid,
             metadata.tid,
             executor_addr, stamp, callback_group_addr, group_type_name)
@@ -634,7 +636,7 @@ class Ros2Handler(EventHandler):
         collector_addr = get_field(event, 'entities_collector_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
-        self.data.add_callback_group_static_executor(
+        self.data.add_add_callback_group_static_executor(
             metadata.pid,
             metadata.tid,
             collector_addr, stamp, callback_group_addr, group_type_name)
@@ -647,7 +649,7 @@ class Ros2Handler(EventHandler):
         stamp = metadata.timestamp
         callback_group_addr = get_field(event, 'callback_group_addr')
         timer_handle = get_field(event, 'timer_handle')
-        self.data.callback_group_add_timer(
+        self.data.add_callback_group_add_timer(
             metadata.pid,
             metadata.tid,
             callback_group_addr, stamp, timer_handle)
@@ -660,7 +662,7 @@ class Ros2Handler(EventHandler):
         stamp = metadata.timestamp
         callback_group_addr = get_field(event, 'callback_group_addr')
         subscription_handle = get_field(event, 'subscription_handle')
-        self.data.callback_group_add_subscription(
+        self.data.add_callback_group_add_subscription(
             metadata.pid,
             metadata.tid,
             callback_group_addr, stamp, subscription_handle)
@@ -673,7 +675,7 @@ class Ros2Handler(EventHandler):
         stamp = metadata.timestamp
         callback_group_addr = get_field(event, 'callback_group_addr')
         service_handle = get_field(event, 'service_handle')
-        self.data.callback_group_add_service(
+        self.data.add_callback_group_add_service(
             metadata.pid,
             metadata.tid,
             callback_group_addr, stamp, service_handle)
@@ -686,7 +688,7 @@ class Ros2Handler(EventHandler):
         stamp = metadata.timestamp
         callback_group_addr = get_field(event, 'callback_group_addr')
         client_handle = get_field(event, 'client_handle')
-        self.data.callback_group_add_client(
+        self.data.add_callback_group_add_client(
             metadata.pid,
             metadata.tid,
             callback_group_addr, stamp, client_handle)
@@ -700,7 +702,7 @@ class Ros2Handler(EventHandler):
         subscription = get_field(event, 'subscription')
         node_name = get_field(event, 'node_name')
         topic_name = get_field(event, 'topic_name')
-        self.data.add_tilde_subscription(
+        self.data.add_tilde_subscription_init(
             metadata.pid,
             metadata.tid,
             subscription, node_name, topic_name, timestamp)
@@ -714,7 +716,7 @@ class Ros2Handler(EventHandler):
         publisher = get_field(event, 'publisher')
         node_name = get_field(event, 'node_name')
         topic_name = get_field(event, 'topic_name')
-        self.data.add_tilde_publisher(
+        self.data.add_tilde_publisher_init(
             metadata.pid,
             metadata.tid,
             publisher, node_name, topic_name, timestamp)
@@ -789,7 +791,7 @@ class Ros2Handler(EventHandler):
             metadata.tid,
             timestamp, symbol_from, symbol_to)
 
-    def _handle_transform_broadcaster(
+    def _handle_init_bind_transform_broadcaster(
         self,
         event: Dict,
         metadata: EventMetadata
@@ -797,12 +799,12 @@ class Ros2Handler(EventHandler):
         timestamp = metadata.timestamp
         broadcaster = get_field(event, 'tf_broadcaster')
         publisher_handle = get_field(event, 'publisher_handle')
-        self.data.add_transform_broadcaster(
+        self.data.add_init_bind_transform_broadcaster(
             metadata.pid,
             metadata.tid,
             timestamp, broadcaster, publisher_handle)
 
-    def _handle_transform_broadcaster_frames(
+    def _handle_init_bind_transform_broadcaster_frames(
         self,
         event: Dict,
         metadata: EventMetadata
@@ -811,7 +813,7 @@ class Ros2Handler(EventHandler):
         broadcaster = get_field(event, 'tf_broadcaster')
         frame_id = get_field(event, 'frame_id')
         child_frame_id = get_field(event, 'child_frame_id')
-        self.data.add_transform_broadcaster_frames(
+        self.data.add_init_bind_transform_broadcaster_frames(
             metadata.pid,
             metadata.tid,
             timestamp, broadcaster, frame_id, child_frame_id)
@@ -886,7 +888,7 @@ class Ros2Handler(EventHandler):
         broadcaster = get_field(event, 'tf_broadcaster')
         frame_id = get_field(event, 'frame_id')
         frame_id_compact = get_field(event, 'frame_id_compact')
-        self.data.add_broadcaster_frame_id_compact(
+        self.data.add_init_tf_broadcaster_frame_id_compact(
             metadata.pid,
             metadata.tid,
             timestamp,
@@ -904,7 +906,7 @@ class Ros2Handler(EventHandler):
         transform_buffer_core = get_field(event, 'tf_buffer_core')
         frame_id = get_field(event, 'frame_id')
         frame_id_compact = get_field(event, 'frame_id_compact')
-        self.data.add_buffer_frame_id_compact(
+        self.data.add_init_tf_buffer_frame_id_compact(
             metadata.pid,
             metadata.tid,
             timestamp,
@@ -947,22 +949,6 @@ class Ros2Handler(EventHandler):
             buffer_core,
         )
 
-    def _handle_init_bind_tf_buffer_cache(
-        self,
-        event: Dict,
-        metadata: EventMetadata
-    ) -> None:
-        timestamp = metadata.timestamp
-        buffer_core = get_field(event, 'tf_buffer_core')
-        buffer_cache = get_field(event, 'tf_buffer_cache')
-        self.data.add_init_bind_tf_buffer_cache(
-            metadata.pid,
-            metadata.tid,
-            timestamp,
-            buffer_core,
-            buffer_cache
-        )
-
     def _handle_tf_buffer_find_closest(
         self,
         event: Dict,
@@ -977,7 +963,7 @@ class Ros2Handler(EventHandler):
         child_frame_id_compact_ = get_field(event, 'child_frame_id_compact_')
         stamp_ = get_field(event, 'stamp_')
 
-        self.data.add_tf_find_closest(
+        self.data.add_tf_buffer_find_closest(
             metadata.pid,
             metadata.tid,
             timestamp,

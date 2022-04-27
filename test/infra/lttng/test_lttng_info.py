@@ -461,11 +461,11 @@ class TestDataFrameFormatted:
         callback_group_addr = 13
         symbol = 'symbol1'
 
-        data.add_node(node_handle, 0, 0, rmw_handle, 'node1', '/')
+        data.add_rcl_node_init(node_handle, 0, 0, rmw_handle, 'node1', '/')
 
-        data.add_timer(timer_handle, 0, period_ns, 0)
+        data.add_rcl_timer_init(timer_handle, 0, period_ns, 0)
         data.add_callback_object(timer_handle, 0, callback_object)
-        data.add_timer_node_link(timer_handle, 0, node_handle)
+        data.add_rclcpp_timer_link_node(timer_handle, 0, node_handle)
         data.add_callback_symbol(callback_object, 0, symbol)
 
         data.callback_group_add_timer(
@@ -498,7 +498,7 @@ class TestDataFrameFormatted:
         params = {'period': period}
         type_name = 'init'
 
-        data.add_timer(timer_handle, timestamp, period, 0)
+        data.add_rcl_timer_init(timer_handle, timestamp, period, 0)
 
         data.finalize()
 
@@ -530,17 +530,17 @@ class TestDataFrameFormatted:
         topic_name = ['topic1', 'topic2']
         callback_group_addr = [15, 16]
 
-        data.add_node(node_handle, 0, 0, rmw_handle, 'node1', '/')
+        data.add_rcl_node_init(node_handle, 0, 0, rmw_handle, 'node1', '/')
 
         # When intra-process communication is set, add_rclcpp_subscription is called twice.
         # The first one will be the record of intra-process communication.
-        data.add_rclcpp_subscription(sub_ptr[0], 0, subscription_handle[0])
-        data.add_rclcpp_subscription(sub_ptr[1], 0, subscription_handle[0])
-        data.add_rclcpp_subscription(sub_ptr[2], 0, subscription_handle[1])
+        data.add_rclcpp_subscription_init(sub_ptr[0], 0, subscription_handle[0])
+        data.add_rclcpp_subscription_init(sub_ptr[1], 0, subscription_handle[0])
+        data.add_rclcpp_subscription_init(sub_ptr[2], 0, subscription_handle[1])
 
-        data.add_rcl_subscription(
+        data.add_rcl_subscription_init(
             subscription_handle[0], 0, node_handle[0], rmw_handle[0], topic_name[0], depth[0])
-        data.add_rcl_subscription(
+        data.add_rcl_subscription_init(
             subscription_handle[1], 0, node_handle[1], rmw_handle[1], topic_name[1], depth[1])
 
         data.add_callback_object(sub_ptr[0], 0, callback_object_intra[0])
@@ -645,13 +645,13 @@ class TestDataFrameFormatted:
 
         # When intra-process communication is set, add_rclcpp_subscription is called twice.
         # The first one will be the record of intra-process communication.
-        data.add_rclcpp_subscription(sub_ptr[0], 0, subscription_handle[0])
+        data.add_rclcpp_subscription_init(sub_ptr[0], 0, subscription_handle[0])
         data.add_callback_object(sub_ptr[0], 0, callback_object_intra[0])
 
-        data.add_rclcpp_subscription(sub_ptr[1], 0, subscription_handle[0])
+        data.add_rclcpp_subscription_init(sub_ptr[1], 0, subscription_handle[0])
         data.add_callback_object(sub_ptr[1], 0, callback_object_inter[0])
 
-        data.add_rclcpp_subscription(sub_ptr[2], 0, subscription_handle[1])
+        data.add_rclcpp_subscription_init(sub_ptr[2], 0, subscription_handle[1])
         data.add_callback_object(sub_ptr[2], 0, callback_object_inter[1])
 
         data.finalize()
@@ -680,7 +680,7 @@ class TestDataFrameFormatted:
 
         node_handle = 0
         rmw_handle = 2
-        data.add_node(
+        data.add_rcl_node_init(
             node_handle=node_handle,
             timestamp=0,
             tid=0,
@@ -751,7 +751,7 @@ class TestDataFrameFormatted:
         depth = 5
 
         data = Ros2DataModel()
-        data.add_publisher(pub_handle, 0, node_handle,
+        data.add_rcl_publisher_init(pub_handle, 0, node_handle,
                            rmw_handle, topic_name, depth)
         data.finalize()
 
