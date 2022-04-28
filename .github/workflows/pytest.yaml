@@ -29,7 +29,7 @@ jobs:
           # sudo pip install tracetools_analysis
           # sudo pip3 install tracetools_analysis
           #. /opt/ros/galactic/setup.sh
-          sudo apt install python3-bt2
+          #sudo apt install python3-bt2
         shell: bash
         
       - name: Install LTTng
@@ -39,7 +39,7 @@ jobs:
           sudo apt-add-repository ppa:lttng/stable-2.12
           sudo apt-get update
           sudo apt-get install -y lttng-tools lttng-modules-dkms liblttng-ust-dev
-          sudo apt-get install -y python3-babeltrace python3-lttng
+          sudo apt-get install -y python3-babeltrace python3-lttng python3-bt2
         shell: bash
         
       - name: ROSDEP install
