@@ -29,6 +29,7 @@ jobs:
           # sudo pip install tracetools_analysis
           # sudo pip3 install tracetools_analysis
           #. /opt/ros/galactic/setup.sh
+          sudo apt install python3-bt2
         shell: bash
         
       - name: Install LTTng
