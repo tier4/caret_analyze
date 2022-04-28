@@ -15,7 +15,7 @@
 
 """Module for trace events processor and ROS 2 model creation."""
 
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 
 from tracetools_analysis.processor import (EventHandler, EventMetadata,
                                            HandlerMap)
@@ -134,6 +134,14 @@ class Ros2Handler(EventHandler):
             self._handle_tf_set_transform
         handler_map['ros2_caret:init_tf_buffer_lookup_transform'] = \
             self._handle_init_tf_buffer_lookup_transform
+        handler_map['ros2_caret:construct_ipm'] = \
+            self._handle_construct_ipm
+        handler_map['ros2_caret:ipm_add_publisher'] = \
+            self._handle_ipm_add_publisher
+        handler_map['ros2_caret:ipm_add_subscription'] = \
+            self._handle_ipm_add_subscription
+        handler_map['ros2_caret:ipm_insert_sub_id_for_pub'] = \
+            self._handle_ipm_insert_sub_id_for_pub
 
         super().__init__(
             handler_map=handler_map,
@@ -1012,4 +1020,55 @@ class Ros2Handler(EventHandler):
             buffer_core,
             frame_id_compact,
             child_frame_id_compact,
+        )
+
+    def _handle_construct_ipm(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_construct_ipm(
+            metadata.pid,
+            metadata.tid,
+            get_field(event, 'ipm')
+        )
+
+    def _handle_ipm_add_publisher(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_ipm_add_publisher(
+            metadata.pid,
+            metadata.tid,
+            get_field(event, 'ipm'),
+            get_field(event, 'publisher_handle'),
+            get_field(event, 'pub_id'),
+        )
+
+    def _handle_ipm_add_subscription(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_ipm_add_subscription(
+            metadata.pid,
+            metadata.tid,
+            get_field(event, 'ipm'),
+            get_field(event, 'subscription_handle'),
+            get_field(event, 'sub_id'),
+        )
+
+    def _handle_ipm_insert_sub_id_for_pub(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_ipm_insert_sub_id_for_pub(
+            metadata.pid,
+            metadata.tid,
+            get_field(event, 'ipm'),
+            get_field(event, 'sub_id'),
+            get_field(event, 'pub_id'),
+            get_field(event, 'use_take_shared_method'),
         )

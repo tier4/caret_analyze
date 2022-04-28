@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
+from functools import cached_property
 
 from typing import List, Optional, Union
 
@@ -67,7 +68,7 @@ class Communication(PathBase, Summarizable):
     def summary(self) -> Summary:
         return self._val.summary
 
-    @property
+    @cached_property
     def is_intra_proc_comm(self) -> Optional[bool]:
         return self._is_intra_process
 

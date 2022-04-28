@@ -245,6 +245,33 @@ class Ros2DataModel(DataModel):
             'frame_id_compact',
             'child_frame_id_compact',
         ])
+        self.construct_ipm = TracePointData([
+            'pid',
+            'tid',
+            'ipm',
+        ])
+        self.ipm_add_publisher = TracePointData([
+            'pid',
+            'tid',
+            'ipm',
+            'publisher_handle',
+            'pub_id',
+        ])
+        self.ipm_add_subscription = TracePointData([
+            'pid',
+            'tid',
+            'ipm',
+            'subscription_handle',
+            'sub_id',
+        ])
+        self.ipm_insert_sub_id_for_pub = TracePointData([
+            'pid',
+            'tid',
+            'ipm',
+            'sub_id',
+            'pub_id',
+            'use_take_shared_method'
+        ])
 
         # not supported
         # self.lifecycle_transitions = DataFrame([
@@ -1431,6 +1458,76 @@ class Ros2DataModel(DataModel):
             }
         )
 
+    def add_construct_ipm(
+        self,
+        pid: int,
+        tid: int,
+        ipm: int,
+    ) -> None:
+        self.construct_ipm.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'ipm': ipm,
+            }
+        )
+
+    def add_ipm_add_publisher(
+        self,
+        pid: int,
+        tid: int,
+        ipm: int,
+        publisher_handle: int,
+        pub_id: int,
+    ) -> None:
+        self.ipm_add_publisher.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'ipm': ipm,
+                'publisher_handle': publisher_handle,
+                'pub_id': pub_id,
+            }
+        )
+
+    def add_ipm_add_subscription(
+        self,
+        pid: int,
+        tid: int,
+        ipm: int,
+        subscription_handle: int,
+        sub_id: int,
+    ) -> None:
+        self.ipm_add_subscription.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'ipm': ipm,
+                'subscription_handle': subscription_handle,
+                'sub_id': sub_id,
+            }
+        )
+
+    def add_ipm_insert_sub_id_for_pub(
+        self,
+        pid: int,
+        tid: int,
+        ipm: int,
+        sub_id: int,
+        pub_id: int,
+        use_take_shared_method: int
+    ) -> None:
+        self.ipm_insert_sub_id_for_pub.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'ipm': ipm,
+                'sub_id': sub_id,
+                'pub_id': pub_id,
+                'use_take_shared_method': use_take_shared_method,
+            }
+        )
+
     def _finalize(self) -> None:
         self.rcl_init.finalize()
         self.rcl_node_init.finalize()
@@ -1475,6 +1572,10 @@ class Ros2DataModel(DataModel):
         self.tilde_publisher_init.finalize()
         self.tilde_subscribe_added.finalize()
         self.rmw_implementation.finalize()
+        self.construct_ipm.finalize()
+        self.ipm_add_publisher.finalize()
+        self.ipm_add_subscription.finalize()
+        self.ipm_insert_sub_id_for_pub.finalize()
 
     def print_data(self) -> None:
         raise NotImplementedError('')

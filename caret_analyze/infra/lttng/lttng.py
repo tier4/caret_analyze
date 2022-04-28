@@ -50,6 +50,7 @@ from ...value_objects import (
     Qos,
     TimerValue,
     TransformValue,
+    CommunicationStructValue,
 )
 
 Event = Dict[str, int]
@@ -487,6 +488,12 @@ class Lttng(InfraBase):
         self
     ) -> Sequence[TransformValue]:
         return self._info.get_tf_frames()
+
+    def is_intra_process_communication(
+        self,
+        comm: CommunicationStructValue
+    ) -> bool:
+        return self._info.is_intra_process_communication(comm)
 
     def compose_inter_proc_comm_records(
         self,

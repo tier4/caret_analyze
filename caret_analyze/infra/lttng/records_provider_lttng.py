@@ -833,8 +833,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self,
         communication_value: CommunicationStructValue
     ) -> Optional[bool]:
-        intra_record = self._compose_intra_proc_comm_records(communication_value)
-        return len(intra_record) > 0
+        return self._lttng.is_intra_process_communication(communication_value)
 
     def _verify_trace_points(
         self,

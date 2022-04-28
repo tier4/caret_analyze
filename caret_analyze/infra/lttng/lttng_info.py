@@ -33,6 +33,8 @@ from typing import (
 import numpy as np
 import pandas as pd
 
+from caret_analyze.value_objects.communication import CommunicationStructValue
+
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (
     CallbackGroupValueLttng,
@@ -45,15 +47,16 @@ from .value_objects import (
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
     ServiceCallbackValueLttng,
+    SubscriptionValueLttng,
 )
 from ...common import Util
-from ...exceptions import InvalidArgumentError
+from ...exceptions import InvalidArgumentError, ItemNotFoundError
 from ...value_objects import (
     ExecutorValue,
     NodeValue,
     Qos,
     TimerValue,
-    TransformValue
+    TransformValue,
 )
 
 logger = getLogger(__name__)
@@ -311,6 +314,75 @@ class LttngInfo:
         maps = self._broadcaster_frame_comact_maps
         assert broadcaster in maps
         return maps[broadcaster]
+
+    def is_intra_process_communication(
+        self,
+        comm: CommunicationStructValue
+    ) -> bool:
+        pub_lttng = self._get_pub_lttng(comm.publish_node_name, comm.topic_name)
+        sub_lttng = self._get_sub_lttng(comm.subscribe_node_name, comm.topic_name)
+        return self._is_intra_process_communication(
+            pub_lttng.publisher_handle, sub_lttng.subscription_handle)
+
+    def _is_intra_process_communication(
+        self,
+        publisher_handle: int,
+        subscription_handle: int
+    ) -> bool:
+        df = self._formatted.ipm_df
+        df = df[
+            (df['publisher_handle'] == publisher_handle) &
+            (df['subscription_handle'] == subscription_handle)
+        ]
+        return len(df) > 0
+
+    def _get_pub_lttng(self, node_name: str, topic_name: str) -> PublisherValueLttng:
+        node = self._get_node_lttng(NodeValue(node_name, ''))
+
+        for pub in self.get_publishers(node):
+            if pub.topic_name == topic_name:
+                return pub
+
+        raise ItemNotFoundError('')
+
+    def _get_sub_lttng(self, node_name: str, topic_name: str) -> SubscriptionValueLttng:
+        node = self._get_node_lttng(NodeValue(node_name, ''))
+
+        for sub in self.get_subscriptions(node):
+            if sub.topic_name == topic_name:
+                return sub
+
+        raise ItemNotFoundError('')
+
+    def get_subscriptions(self, node: NodeValue) -> List[SubscriptionValueLttng]:
+        formatted = self._formatted
+        sub_df = formatted.subscription_callbacks_df
+        sub_df = merge(sub_df, formatted.nodes_df, 'node_handle')
+        tilde_sub = formatted.tilde_subscriptions_df
+        sub_df = pd.merge(sub_df, tilde_sub, on=['node_name', 'topic_name'], how='left')
+        sub_df = sub_df.astype({'tilde_subscription': 'Int64'})
+
+        subs_info = []
+        for _, row in sub_df.iterrows():
+            node_name = row['node_name']
+            node_id = row['node_id']
+            tilde_subscription = row['tilde_subscription']
+            if node_name != node.node_name:
+                continue
+
+            val = SubscriptionValueLttng(
+                    node_id=node_id,
+                    node_name=node_name,
+                    callback_id=row['callback_id'],
+                    topic_name=row['topic_name'],
+                    subscription_id='TODO',
+                    subscription_handle=row['subscription_handle'],
+                    tilde_subscription=tilde_subscription
+                )
+            # subs_info.add(node_id, val)
+            subs_info.append(val)
+
+        return subs_info
 
     @cached_property
     def _broadcaster_frame_comact_maps(self) -> Dict[int, Dict[int, str]]:
@@ -989,6 +1061,7 @@ class DataFrameFormatted:
         )
         self._broadcaster_frame_id_df = data.init_tf_broadcaster_frame_id_compact.df
         self._buffer_frame_id_df = data.init_tf_buffer_frame_id_compact.df
+        self._ipm_df = self._build_ipm_df(data, self._pub_df, self._sub_callbacks_df)
 
     @staticmethod
     def _ensure_columns(
@@ -1195,6 +1268,45 @@ class DataFrameFormatted:
     @property
     def tf_buffers_df(self):
         return self._tf_buffers
+
+    @property
+    def ipm_df(self):
+        return self._ipm_df
+
+    @staticmethod
+    def _build_ipm_df(
+        data: Ros2DataModel,
+        pub: pd.DataFrame,
+        sub: pd.DataFrame,
+    ):
+        columns = [
+            'pid',
+            'ipm',
+            'publisher_handle',
+            'subscription_handle',
+            'use_take_shared_method'
+        ]
+
+        df = data.construct_ipm.df
+
+        df = merge(
+            df,
+            data.ipm_add_publisher.df,
+            join_key=['pid', 'ipm']
+        )
+
+        df = merge(
+            df,
+            data.ipm_add_subscription.df,
+            join_key=['pid', 'ipm']
+        )
+
+        df = merge(
+            df,
+            data.ipm_insert_sub_id_for_pub.df,
+            join_key=['pid', 'ipm', 'pub_id', 'sub_id']
+        )
+        return df[columns]
 
     @staticmethod
     def _build_tf_buffers_df(
