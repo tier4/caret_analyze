@@ -57,7 +57,7 @@ jobs:
           echo "======================"
           dpkg -l | grep tracetools
           echo "======================"
-          ros2 trace --help
+          #ros2 trace --help
           echo "======================"
           dpkg -l | grep lttng
           echo "======================"
