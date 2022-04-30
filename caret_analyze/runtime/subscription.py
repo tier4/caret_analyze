@@ -18,7 +18,22 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import Qos, SubscriptionStructValue
+from ..value_objects import Qos, SubscriptionStructValue, IntraProcessBufferStructValue
+
+
+class IntraProcessBuffer(PathBase):
+
+    def __init__(
+        self,
+        val: IntraProcessBufferStructValue,
+        data_provider: Union[RecordsProvider, RuntimeDataProvider]
+    ) -> None:
+        self._val = val
+        self._provider = data_provider
+
+    def _to_records_core(self) -> RecordsInterface:
+        records = self._provider.ipc_buffer_records(self._val)
+        return records
 
 
 class Subscription(PathBase, Summarizable):

@@ -213,6 +213,34 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
+    def get_subscriptions(
+        self,
+        node_name: str
+    ) -> Sequence[SubscriptionValue]:
+        node = self.get_node(node_name)
+        return self._get_subscriptions(node)
+
+    @abstractmethod
+    def _get_subscriptions(
+        self,
+        node: NodeValue
+    ) -> Sequence[SubscriptionValue]:
+        """
+        Get subscriptions info.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node
+
+        Returns
+        -------
+        Sequence[SubscriptionValue]
+            subscription values
+
+        """
+        pass
+
     def get_timers(
         self,
         node_name: str

@@ -38,6 +38,8 @@ from .value_objects import (
     TransformBufferValueLttng,
     ClientCallbackValueLttng,
     ServiceCallbackValueLttng,
+    SubscriptionValueLttng,
+    IntraProcessBufferValueLttng,
 )
 from ..infra_base import InfraBase
 from ...common import ClockConverter
@@ -51,6 +53,7 @@ from ...value_objects import (
     TimerValue,
     TransformValue,
     CommunicationStructValue,
+    IntraProcessBufferStructValue,
 )
 
 Event = Dict[str, int]
@@ -126,6 +129,11 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2_caret:init_bind_tf_buffer_cache',
             'ros2_caret:init_bind_tf_buffer_core',
             'ros2_caret:init_tf_buffer_lookup_transform',
+            'ros2:construct_ring_buffer',
+            'ros2_caret:ipm_insert_sub_id_for_pub',
+            'ros2_caret:ipm_add_subscription',
+            'ros2_caret:ipm_add_publisher',
+            'ros2_caret:construct_ipm',
         }
 
         return event[self.NAME] in init_events
@@ -361,6 +369,25 @@ class Lttng(InfraBase):
         """
         return self._info.get_publishers(node)
 
+    def get_subscriptions(
+        self,
+        node: NodeValue
+    ) -> Sequence[SubscriptionValueLttng]:
+        """
+        Get subscriptions information.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node.
+
+        Returns
+        -------
+        Sequence[SubscriptionInfoLttng]
+
+        """
+        return self._info.get_subscriptions(node)
+
     def get_tf_broadcaster(
         self,
         node: NodeValue
@@ -471,6 +498,17 @@ class Lttng(InfraBase):
             raise InvalidArgumentError(
                 'Failed to load sim_time. Please measure again with clock_recorder running.')
 
+    def get_ipc_buffers(
+        self,
+        node: NodeValue,
+    ) -> Sequence[IntraProcessBufferValueLttng]:
+        return self._info.get_ipc_buffers(node)
+
+    def ipc_buffer_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.ipc_buffer_records()
+
     def get_count(
         self,
         groupby: Optional[List[str]] = None
@@ -557,10 +595,20 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.publish_records.clone()
 
+    def compose_intra_publish_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.intra_publish_records().clone()
+
     def compose_subscribe_records(
         self,
     ) -> RecordsInterface:
         return self._source.subscribe_records.clone()
+
+    def compose_intra_subscribe_records(
+        self,
+    ) -> RecordsInterface:
+        return self._source.intra_subscribe_records.clone()
 
     def create_timer_events_factory(
         self,

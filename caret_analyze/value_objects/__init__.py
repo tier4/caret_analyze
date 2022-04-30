@@ -36,7 +36,9 @@ from .publisher import (PublisherStructValue,
                         PublisherValue)
 from .qos import Qos
 from .subscription import (SubscriptionStructValue,
-                           SubscriptionValue)
+                           SubscriptionValue,
+                           IntraProcessBufferStructValue,
+                           IntraProcessBufferValue)
 from .service import ServiceValue
 from .callback_path import CallbackPathStructValue, CallbackPathValue
 from .timer import TimerStructValue, TimerValue
@@ -72,6 +74,8 @@ __all__ = [
     'ExecutorType',
     'ExecutorValue',
     'InheritUniqueStamp',
+    'IntraProcessBufferStructValue',
+    'IntraProcessBufferValue',
     'MessageContext',
     'MessageContextType',
     'NodePathStructValue',

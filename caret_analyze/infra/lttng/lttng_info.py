@@ -48,6 +48,7 @@ from .value_objects import (
     TransformBufferValueLttng,
     ServiceCallbackValueLttng,
     SubscriptionValueLttng,
+    IntraProcessBufferValueLttng,
 )
 from ...common import Util
 from ...exceptions import InvalidArgumentError, ItemNotFoundError
@@ -58,6 +59,7 @@ from ...value_objects import (
     TimerValue,
     TransformValue,
 )
+from ...record import PandasExtensions as pe
 
 logger = getLogger(__name__)
 
@@ -112,8 +114,10 @@ class LttngInfo:
         self._srv_cbs = LttngInfo._load_srv_cbs(self._formatted)
         self._clt_cbs = LttngInfo._load_clt_cbs(self._formatted)
         self._pubs = LttngInfo._load_pubs(self._formatted)
+        self._subs = LttngInfo._load_subs(self._formatted)
         callbacks = Callbacks(self._timer_cbs, self._sub_cbs)
         self._cbgs = LttngInfo._load_cbgs(self._formatted, callbacks)
+        self._ipc_buffers = LttngInfo._load_ipc_buffers(self._formatted)
 
         self._id_to_topic: Dict[str, str] = {}
 
@@ -171,6 +175,22 @@ class LttngInfo:
 
         return cbs
 
+    @staticmethod
+    def _load_ipc_buffers(formatted: DataFrameFormatted) -> Collection:
+        buffers = Collection()
+        buffer_df = formatted.ipc_buffers_df
+
+        for _, row in buffer_df.iterrows():
+            val = IntraProcessBufferValueLttng(
+                row['node_name'],
+                row['topic_name'],
+                row['capacity'],
+                row['buffer']
+            )
+            buffers.add(row['node_id'], val)
+
+        return buffers
+
     def get_service_callbacks(
         self,
         node: NodeValue
@@ -179,9 +199,16 @@ class LttngInfo:
         return self._srv_cbs.gets(node_lttng)
 
     @staticmethod
-    def _load_clt_cbs(formatted: pd.DataFrame) -> Collection:
+    def _load_clt_cbs(formatted: DataFrameFormatted) -> Collection:
         # not implemented yet
         return Collection()
+
+    def get_ipc_buffers(
+        self,
+        node: NodeValue
+    ) -> Sequence[IntraProcessBufferValueLttng]:
+        node_lttng = self._get_node_lttng(node)
+        return self._ipc_buffers.gets(node_lttng)
 
     @lru_cache
     def get_tf_frames(self) -> Sequence[TransformValue]:
@@ -355,20 +382,23 @@ class LttngInfo:
         raise ItemNotFoundError('')
 
     def get_subscriptions(self, node: NodeValue) -> List[SubscriptionValueLttng]:
-        formatted = self._formatted
+        node_lttng = self._get_node_lttng(node)
+        return self._subs.gets(node_lttng)
+
+    @staticmethod
+    def _load_subs(formatted: DataFrameFormatted) -> Collection:
         sub_df = formatted.subscription_callbacks_df
         sub_df = merge(sub_df, formatted.nodes_df, 'node_handle')
         tilde_sub = formatted.tilde_subscriptions_df
         sub_df = pd.merge(sub_df, tilde_sub, on=['node_name', 'topic_name'], how='left')
         sub_df = sub_df.astype({'tilde_subscription': 'Int64'})
 
-        subs_info = []
+        subs_info = Collection()
+
         for _, row in sub_df.iterrows():
             node_name = row['node_name']
             node_id = row['node_id']
             tilde_subscription = row['tilde_subscription']
-            if node_name != node.node_name:
-                continue
 
             val = SubscriptionValueLttng(
                     node_id=node_id,
@@ -379,8 +409,7 @@ class LttngInfo:
                     subscription_handle=row['subscription_handle'],
                     tilde_subscription=tilde_subscription
                 )
-            # subs_info.add(node_id, val)
-            subs_info.append(val)
+            subs_info.add(node_id, val)
 
         return subs_info
 
@@ -1062,6 +1091,8 @@ class DataFrameFormatted:
         self._broadcaster_frame_id_df = data.init_tf_broadcaster_frame_id_compact.df
         self._buffer_frame_id_df = data.init_tf_buffer_frame_id_compact.df
         self._ipm_df = self._build_ipm_df(data, self._pub_df, self._sub_callbacks_df)
+        self. _ipc_buffers_df = self._build_ipc_buffer_df(
+            data, self._sub_callbacks_df, self._nodes_df)
 
     @staticmethod
     def _ensure_columns(
@@ -1177,6 +1208,10 @@ class DataFrameFormatted:
     @property
     def tf_buffer_frame_id_df(self) -> pd.DataFrame:
         return self._buffer_frame_id_df
+
+    @property
+    def ipc_buffers_df(self) -> pd.DataFrame:
+        return self._ipc_buffers_df
 
     @property
     def service_callbacks_df(self) -> pd.DataFrame:
@@ -1306,6 +1341,42 @@ class DataFrameFormatted:
             data.ipm_insert_sub_id_for_pub.df,
             join_key=['pid', 'ipm', 'pub_id', 'sub_id']
         )
+        return df[columns]
+
+    @staticmethod
+    def _build_ipc_buffer_df(
+        data: Ros2DataModel,
+        sub_df: pd.DataFrame,
+        node_df: pd.DataFarme
+    ):
+        columns = [
+            'pid', 'buffer', 'capacity', 'topic_name', 'node_name', 'node_id'
+        ]
+
+        df = data.construct_ring_buffer.df
+        df.rename(columns={'timestamp': 'buffer_construct_timestamp'}, inplace=True)
+        df_ = data.rclcpp_subscription_init.df
+        df_.rename(columns={'timestamp': 'rclcpp_sub_init_timestamp'}, inplace=True)
+        df = pe.merge_sequencial(
+            left_df=df,
+            right_df=df_,
+            left_stamp_key='buffer_construct_timestamp',
+            right_stamp_key='rclcpp_sub_init_timestamp',
+            how='inner',
+            join_left_key=['pid', 'tid'],
+            join_right_key=['pid', 'tid'],
+        )
+        df = merge(
+            df,
+            data.rcl_subscription_init.df,
+            join_key=['subscription_handle', 'pid'],
+        )
+        df = merge(
+            df,
+            node_df,
+            join_key=['node_handle'],
+        )
+
         return df[columns]
 
     @staticmethod

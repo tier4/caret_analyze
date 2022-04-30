@@ -16,11 +16,14 @@ from functools import lru_cache
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 from caret_analyze.record.interface import RecordInterface
+from caret_analyze.value_objects.subscription import IntraProcessBufferStructValue
 
 from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
-                            TimerCallbackValueLttng)
+                            TimerCallbackValueLttng,
+                            IntraProcessBufferValueLttng,
+                            )
 from ...common import ClockConverter, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
@@ -103,7 +106,16 @@ class RecordsProviderLttng(RuntimeDataProvider):
         assert comm_val.subscription_callback_name is not None
 
         if self.is_intra_process_communication(comm_val):
-            return self._compose_intra_proc_comm_records(comm_val)
+            records = self._compose_intra_proc_comm_records(comm_val)
+            columns = [
+                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
+                COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            ]
+
+            self._format(records, columns)
+            return records
 
         return self._compose_inter_proc_comm_records(comm_val)
 
@@ -256,6 +268,60 @@ class RecordsProviderLttng(RuntimeDataProvider):
         )
 
         return sub_records
+
+    def intra_subscribe_records(
+        self,
+        subscription: SubscriptionStructValue
+    ) -> RecordsInterface:
+        callback = subscription.callback
+        assert callback is not None
+
+        records = self._intra_subscribe_records(subscription)
+        self._rename_column(
+            records,
+            callback.callback_name,
+            subscription.topic_name,
+            subscription.node_name
+        )
+        return records
+
+
+    def _intra_subscribe_records(
+        self,
+        subscription: SubscriptionStructValue
+    ) -> RecordsInterface:
+
+        callback = subscription.callback
+        if callback is None:
+            raise InvalidArgumentError(
+                'callback_value is None. '
+                f'node_name: {subscription.node_name}'
+                f'callback_name: {subscription.callback_name}'
+                f'topic_name: {subscription.topic_name}'
+            )
+
+        callback_objects = self._helper.get_subscription_callback_objects(
+            callback)
+
+        # TODO: 複数のsubscriptionに対応
+        sub_records = self._source.intra_sub_records(callback_objects[1])
+
+        # columns = [
+        #     COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #     COLUMN_NAME.MESSAGE_TIMESTAMP,
+        #     COLUMN_NAME.SOURCE_TIMESTAMP,
+        # ]
+        # self._format(sub_records, columns)
+
+        return sub_records
+
+    def ipc_buffer_records(
+        self,
+        ipc_buffer: IntraProcessBufferStructValue
+    ) -> RecordsInterface:
+        buffer = self._helper.get_ipc_buffer(ipc_buffer)
+        records = self._source.ipc_buffer_records(buffer)
+        return records
 
     def tf_broadcast_records(
         self,
@@ -563,7 +629,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         pub_records = self._source.publish_records(publisher_handles)
 
         columns = []
-        columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+        columns.append(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in pub_records.column_names:
             columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
         if COLUMN_NAME.DDS_WRITE_TIMESTAMP in pub_records.column_names:
@@ -575,6 +641,29 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(pub_records, None, publisher.topic_name, publisher.node_name)
 
         return pub_records
+
+    def _intra_publish_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        publisher_handles = self._helper.get_lttng_publishers(publisher)
+        assert len(publisher_handles) > 0
+        pub_records = self._source.intra_publish_records(publisher_handles)
+
+        # columns = []
+        # columns.append(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
+
+        # self._format(pub_records, columns)
+
+        return pub_records
+
+    def intra_publish_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        records = self._intra_publish_records(publisher)
+        self._rename_column(pub_records, None, publisher.topic_name, publisher.node_name)
+        return records
 
     def publish_records(
         self,
@@ -902,24 +991,36 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         publisher = comm_info.publisher
-        subscription_cb = comm_info.subscription.callback
 
-        assert subscription_cb is not None
-        assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
+        publish_records = self._intra_publish_records(publisher)
+        assert comm_info.subscription.intra_process_buffer is not None
+        buf_records = self.ipc_buffer_records(
+            comm_info.subscription.intra_process_buffer)
+        # publisher handleでjoin onを選びつつsequencial merge
+        subscribe_records = self._intra_subscribe_records(
+            comm_info.subscription)
 
-        publisher_handles = self._helper.get_publisher_handles(publisher)
-        callback_object_intra = self._helper.get_subscription_callback_object_intra(
-            subscription_cb)
+        records = merge_sequencial(
+            left_records=publish_records,
+            right_records=buf_records,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
+            join_left_key=['pid', 'tid'],
+            join_right_key=['pid', 'enqueue_tid'],
+            how='left'
+        )
 
-        records = self._source.intra_comm_records(publisher_handles, callback_object_intra)
-
-        columns = [
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-        ]
-        self._format(records, columns)
-
-        self._rename_column(records, subscription_cb.callback_name, comm_info.topic_name, None)
+        column = [name for name in subscribe_records.column_names if
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP in name][0]
+        records = merge_sequencial(
+            left_records=records,
+            right_records=subscribe_records,
+            left_stamp_key=COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
+            right_stamp_key=column,
+            join_left_key=['pid', 'tid'],
+            join_right_key=['pid', 'tid'],
+            how='left'
+        )
 
         return records
 
@@ -1183,6 +1284,12 @@ class RecordsProviderLttngHelper:
         callback: TimerCallbackStructValue
     ) -> TimerCallbackValueLttng:
         return self._bridge.get_timer_callback(callback)
+
+    def get_ipc_buffer(
+        self,
+        ipc_buffer: IntraProcessBufferStructValue,
+    ) -> IntraProcessBufferValueLttng:
+        return self._bridge.get_ipc_buffer(ipc_buffer)
 
 
 class NodeRecordsCallbackChain:
@@ -1550,6 +1657,27 @@ class FilteredRecordsSource:
         sub_records.drop_columns([COLUMN_NAME.TILDE_SUBSCRIPTION])
         return sub_records
 
+    def intra_publish_records(
+        self,
+        publishers: Sequence[PublisherValueLttng],
+    ) -> RecordsInterface:
+        records = self._lttng.compose_intra_publish_records()
+
+        publisher_handles = set(pub.publisher_handle for pub in publishers)
+        records.filter_if(
+            lambda x: x.get(COLUMN_NAME.PUBLISHER_HANDLE) in publisher_handles
+        )
+
+        return records
+
+    def ipc_buffer_records(
+        self,
+        buffer: IntraProcessBufferValueLttng
+    ) -> RecordsInterface:
+        records = self._lttng.ipc_buffer_records()
+        records.filter_if(lambda x: x.get('buffer') == buffer.buffer)
+        return records
+
     def sub_records(
         self,
         inter_callback_object: int,
@@ -1591,6 +1719,16 @@ class FilteredRecordsSource:
             sub_records.concat(intra_sub_records)
             sub_records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
 
+        return sub_records
+
+    def intra_sub_records(
+        self,
+        intra_callback_object: Optional[int]
+    ) -> RecordsInterface:
+        sub_records = self._lttng.compose_intra_subscribe_records()
+        sub_records.filter_if(
+            lambda x: x.get('callback_object') == intra_callback_object
+        )
         return sub_records
 
     def inter_comm_records(

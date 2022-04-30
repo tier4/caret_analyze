@@ -17,6 +17,8 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Union
 
+from caret_analyze.value_objects.subscription import IntraProcessBufferStructValue
+
 from ..common import ClockConverter
 from ..record import RecordsInterface
 from ..value_objects import (
@@ -80,6 +82,13 @@ class RecordsProvider(metaclass=ABCMeta):
         RecordsInterface
 
         """
+        pass
+
+    @abstractmethod
+    def ipc_buffer_records(
+        self,
+        ipc_buffer: IntraProcessBufferStructValue
+    ) -> RecordsInterface:
         pass
 
     # callback_start

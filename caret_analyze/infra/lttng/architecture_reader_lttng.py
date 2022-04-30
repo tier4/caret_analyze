@@ -22,6 +22,7 @@ from .value_objects import (
     TimerCallbackValueLttng,
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
+    IntraProcessBufferValueLttng,
 )
 from ...architecture.reader_interface import IGNORE_TOPICS, ArchitectureReader
 from ...value_objects import (
@@ -65,6 +66,12 @@ class ArchitectureReaderLttng(ArchitectureReader):
         node: NodeValue
     ) -> Sequence[VariablePassingValue]:
         return []
+
+    def _get_subscriptions(
+        self,
+        node: NodeValue
+    ) -> Sequence[SubscriptionValue]:
+        return self._lttng.get_subscriptions(node)
 
     def _get_message_contexts(
         self,
@@ -193,6 +200,13 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self
     ) -> Sequence[TransformValue]:
         return self._lttng.get_tf_frames()
+
+    def get_ipc_buffers(
+        self,
+        node_name: str,
+    ) -> Sequence[IntraProcessBufferValueLttng]:
+        node = self.get_node(node_name)
+        return self._lttng.get_ipc_buffers(node)
 
     def _get_subscriptions(
         self,

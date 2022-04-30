@@ -142,6 +142,14 @@ class Ros2Handler(EventHandler):
             self._handle_ipm_add_subscription
         handler_map['ros2_caret:ipm_insert_sub_id_for_pub'] = \
             self._handle_ipm_insert_sub_id_for_pub
+        handler_map['ros2:construct_ring_buffer'] = \
+            self._handle_construct_ring_buffer
+        handler_map['ros2:ring_buffer_enqueue'] = \
+            self._handle_ring_buffer_enqueue
+        handler_map['ros2:ring_buffer_dequeue'] = \
+            self._handle_ring_buffer_dequeue
+        handler_map['ros2:ring_buffer_clear'] = \
+            self._handle_ring_buffer_clear
 
         super().__init__(
             handler_map=handler_map,
@@ -989,7 +997,6 @@ class Ros2Handler(EventHandler):
         event: Dict,
         metadata: EventMetadata
     ) -> None:
-        timestamp = metadata.timestamp
         buffer_core = get_field(event, 'tf_buffer_core')
         stamp = get_field(event, 'stamp')
         frame_id_compact = get_field(event, 'frame_id_compact')
@@ -998,7 +1005,7 @@ class Ros2Handler(EventHandler):
         self.data.add_tf_set_transform(
             metadata.pid,
             metadata.tid,
-            timestamp,
+            metadata.timestamp,
             buffer_core,
             stamp,
             frame_id_compact,
@@ -1017,6 +1024,7 @@ class Ros2Handler(EventHandler):
         self.data.add_init_tf_buffer_lookup_transform(
             metadata.pid,
             metadata.tid,
+            metadata.timestamp,
             buffer_core,
             frame_id_compact,
             child_frame_id_compact,
@@ -1030,6 +1038,7 @@ class Ros2Handler(EventHandler):
         self.data.add_construct_ipm(
             metadata.pid,
             metadata.tid,
+            metadata.timestamp,
             get_field(event, 'ipm')
         )
 
@@ -1041,6 +1050,7 @@ class Ros2Handler(EventHandler):
         self.data.add_ipm_add_publisher(
             metadata.pid,
             metadata.tid,
+            metadata.timestamp,
             get_field(event, 'ipm'),
             get_field(event, 'publisher_handle'),
             get_field(event, 'pub_id'),
@@ -1054,6 +1064,7 @@ class Ros2Handler(EventHandler):
         self.data.add_ipm_add_subscription(
             metadata.pid,
             metadata.tid,
+            metadata.timestamp,
             get_field(event, 'ipm'),
             get_field(event, 'subscription_handle'),
             get_field(event, 'sub_id'),
@@ -1067,8 +1078,63 @@ class Ros2Handler(EventHandler):
         self.data.add_ipm_insert_sub_id_for_pub(
             metadata.pid,
             metadata.tid,
+            metadata.timestamp,
             get_field(event, 'ipm'),
             get_field(event, 'sub_id'),
             get_field(event, 'pub_id'),
             get_field(event, 'use_take_shared_method'),
+        )
+
+    def _handle_construct_ring_buffer(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_construct_ring_buffer(
+            metadata.pid,
+            metadata.tid,
+            metadata.timestamp,
+            get_field(event, 'buffer'),
+            get_field(event, 'capacity'),
+        )
+
+    def _handle_ring_buffer_enqueue(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_ring_buffer_enqueue(
+            metadata.pid,
+            metadata.tid,
+            metadata.timestamp,
+            get_field(event, 'buffer'),
+            get_field(event, 'message'),
+            get_field(event, 'size'),
+            get_field(event, 'is_full'),
+        )
+
+    def _handle_ring_buffer_dequeue(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_ring_buffer_dequeue(
+            metadata.pid,
+            metadata.tid,
+            metadata.timestamp,
+            get_field(event, 'buffer'),
+            get_field(event, 'message'),
+            get_field(event, 'size'),
+        )
+
+    def _handle_ring_buffer_clear(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_ring_buffer_clear(
+            metadata.pid,
+            metadata.tid,
+            metadata.timestamp,
+            get_field(event, 'buffer'),
         )

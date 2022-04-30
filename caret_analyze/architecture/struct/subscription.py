@@ -18,7 +18,7 @@ from logging import getLogger
 from typing import Any, Iterable, Iterator, List, Optional, Dict, Tuple
 
 from caret_analyze.value_objects.callback import SubscriptionCallbackStructValue
-from caret_analyze.value_objects.subscription import SubscriptionValue
+from caret_analyze.value_objects.subscription import IntraProcessBufferStructValue, SubscriptionValue
 
 from .struct_interface import (
     CallbacksStructInterface,
@@ -35,6 +35,33 @@ from ...value_objects import (
 logger = getLogger(__name__)
 
 
+class IntraProcessBufferStruct():
+
+    def __init__(
+        self,
+        node_name: str,
+        topic_name: str
+    ) -> None:
+        self._node_name = node_name
+        self._topic_name = topic_name
+
+    @property
+    def node_name(self) -> str:
+        return self._node_name
+
+    @property
+    def topic_name(self) -> str:
+        return self._topic_name
+
+    def to_value(
+        self,
+    ) -> IntraProcessBufferStructValue:
+        return IntraProcessBufferStructValue(
+            self.node_name,
+            self.topic_name
+        )
+
+
 class SubscriptionStruct(SubscriptionStructInterface):
 
     def __init__(
@@ -42,12 +69,14 @@ class SubscriptionStruct(SubscriptionStructInterface):
         callback_id: Optional[str],
         node_name: str,
         topic_name: str,
+        buffer: Optional[IntraProcessBufferStruct],
     ) -> None:
         self._node_name: str = node_name
         self._topic_name: str = topic_name
         self._callback_id = callback_id
         self._is_transformed = False
         self._callback: Optional[CallbackStructInterface] = None
+        self._buffer = buffer
 
     @property
     def node_name(self) -> str:
@@ -61,14 +90,22 @@ class SubscriptionStruct(SubscriptionStructInterface):
     def callback(self) -> Optional[CallbackStructInterface]:
         return self._callback
 
+    @property
+    def intra_process_buffer(self) -> Optional[IntraProcessBufferStruct]:
+        return self._buffer
+
     def to_value(self) -> SubscriptionStructValue:
         self._is_transformed = True
         callback = None if self.callback is None else self.callback.to_value()
         assert callback is None or isinstance(callback, SubscriptionCallbackStructValue)
+        buffer = None if self.intra_process_buffer is None \
+            else self.intra_process_buffer.to_value()
+
         return SubscriptionStructValue(
             node_name=self.node_name,
             topic_name=self.topic_name,
-            callback=callback
+            callback=callback,
+            intra_process_buffer=buffer,
         )
 
     def is_pair(self, other: Any) -> bool:

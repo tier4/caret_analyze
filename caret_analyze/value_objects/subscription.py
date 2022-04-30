@@ -51,6 +51,55 @@ class SubscriptionValue(ValueObject):
         return self._callback_id
 
 
+class IntraProcessBufferValue(ValueObject):
+
+    def __init__(
+        self,
+        node_name: str,
+        topic_name: str,
+        capacity: int,
+    ) -> None:
+        self._node_name = node_name
+        self._topic_name = topic_name
+        self._capacity = capacity
+
+    @property
+    def node_name(self) -> str:
+        return self._node_name
+
+    @property
+    def topic_name(self) -> str:
+        return self._topic_name
+
+    @property
+    def capacity(self) -> int:
+        return self._capacity
+
+
+class IntraProcessBufferStructValue(ValueObject):
+
+    def __init__(
+        self,
+        node_name: str,
+        topic_name: str,
+    ) -> None:
+        self._node_name = node_name
+        self._topic_name = topic_name
+        self._capacity = None
+
+    @property
+    def node_name(self) -> str:
+        return self._node_name
+
+    @property
+    def topic_name(self) -> str:
+        return self._topic_name
+
+    @property
+    def capacity(self) -> int:
+        return self._capacity
+
+
 class SubscriptionStructValue(ValueObject, Summarizable):
     """Subscription info."""
 
@@ -59,10 +108,16 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         node_name: str,
         topic_name: str,
         callback: Optional[SubscriptionCallbackStructValue],
+        intra_process_buffer: Optional[IntraProcessBufferStructValue],
     ) -> None:
         self._node_name: str = node_name
         self._topic_name: str = topic_name
         self._callback_value = callback
+        self._buffer = intra_process_buffer
+
+    @property
+    def intra_process_buffer(self) -> Optional[IntraProcessBufferStructValue]:
+        return self._buffer
 
     def __eq__(self, other) -> bool:
         # It is not necessary because __eq__ is defined in ValueObject type,

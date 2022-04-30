@@ -16,7 +16,24 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ....value_objects import SubscriptionValue
+from ....value_objects import SubscriptionValue, IntraProcessBufferValue
+
+
+class IntraProcessBufferValueLttng(IntraProcessBufferValue):
+
+    def __init__(
+        self,
+        node_name: str,
+        topic_name: str,
+        capacity: int,
+        buffer: int,
+    ) -> None:
+        super().__init__(node_name, topic_name, capacity)
+        self._buffer = buffer
+
+    @property
+    def buffer(self) -> int:
+        return self._buffer
 
 
 class SubscriptionValueLttng(SubscriptionValue):

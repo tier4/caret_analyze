@@ -291,12 +291,12 @@ class RecordsCppImpl(RecordsInterface):
         join_left_keys = [join_left_key] if isinstance(join_left_key, str) else join_left_key
         join_right_keys = [join_right_key] if isinstance(join_right_key, str) else join_right_key
 
-        if not set(join_left_keys) <= set(self.column_names) or \
-                left_stamp_key not in self.column_names:
-            raise InvalidArgumentError('Failed to find columns')
-        if not set(join_right_keys) <= set(right_records.column_names) or \
-                right_stamp_key not in right_records.column_names:
-            raise InvalidArgumentError('Failed to find columns')
+        missing_left_columns = set(join_left_keys) - set(self.column_names)
+        if len(missing_left_columns) > 0:
+            raise InvalidArgumentError(f'Failed to find columns. {missing_left_columns}')
+        missing_right_columns = set(join_right_keys) - set(right_records.column_names)
+        if len(missing_right_columns) > 0:
+            raise InvalidArgumentError(f'Failed to find columns. {missing_right_columns}')
 
         merged_cpp_base = self._records.merge_sequencial(
             right_records._records,

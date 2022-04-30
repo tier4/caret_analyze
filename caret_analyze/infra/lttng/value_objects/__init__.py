@@ -21,7 +21,7 @@ from .callback import (
 from .callback_group import CallbackGroupValueLttng
 from .node import NodeValueLttng
 from .publisher import PublisherValueLttng
-from .subscription import SubscriptionValueLttng
+from .subscription import SubscriptionValueLttng, IntraProcessBufferValueLttng
 from .timer_control import TimerControl, TimerInit
 from .transform import TransformBroadcasterValueLttng, TransformBufferValueLttng
 
@@ -37,5 +37,6 @@ __all__ = [
     'TimerControl',
     'TimerInit',
     'TransformBroadcasterValueLttng',
-    'TransformBufferValueLttng'
+    'TransformBufferValueLttng',
+    'IntraProcessBufferValueLttng',
 ]

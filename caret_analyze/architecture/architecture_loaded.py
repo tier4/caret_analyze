@@ -43,6 +43,7 @@ from .struct import (
     NodeInputType,
     VariablePassingStruct,
     VariablePassingsStruct,
+    IntraProcessBufferStruct,
 )
 from ..common import Progress, Util
 from ..exceptions import InvalidReaderError, Error
@@ -334,9 +335,16 @@ def create_subscriptions(
     subscription_values = reader.get_subscriptions(node.node_name)
     for sub_value in subscription_values:
         try:
-            sub = SubscriptionStruct(sub_value.callback_id,
-                                     sub_value.node_name,
-                                     sub_value.topic_name)
+
+            buffer = IntraProcessBufferStruct(
+                sub_value.node_name,
+                sub_value.topic_name)
+            sub = SubscriptionStruct(
+                sub_value.callback_id,
+                sub_value.node_name,
+                sub_value.topic_name,
+                buffer,
+            )
             subscriptions.add(sub)
         except Error as e:
             logger.warning(e)

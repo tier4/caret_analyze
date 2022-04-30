@@ -13,8 +13,7 @@
 # limitations under the License.
 
 from typing import List, Union
-
-from caret_analyze.value_objects.transform import TransformFrameBroadcasterStructValue, TransformFrameBufferStructValue
+from caret_analyze.value_objects.subscription import IntraProcessBufferValue
 
 from .architecture_reader_lttng import ArchitectureReaderLttng
 from .lttng import Lttng
@@ -24,6 +23,7 @@ from .value_objects import (
     TimerCallbackValueLttng,
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
+    IntraProcessBufferValueLttng,
 )
 from ...common import Util
 from ...exceptions import ItemNotFoundError, MultipleItemFoundError
@@ -36,8 +36,11 @@ from ...value_objects import (
     TimerCallbackValue,
     TransformBroadcasterStructValue,
     TransformBroadcasterValue,
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
     TransformBufferStructValue,
-    TransformBufferValue
+    TransformBufferValue,
+    IntraProcessBufferStructValue,
 )
 
 
@@ -198,6 +201,33 @@ class LttngBridge:
             raise ItemNotFoundError(msg)
 
         return pubs_filtered
+
+    def get_ipc_buffer(
+        self,
+        ipc_buffer: IntraProcessBufferStructValue,
+    ) -> IntraProcessBufferValueLttng:
+        """
+        Get publisher handles.
+
+        Parameters
+        ----------
+        node_name : str
+        topic_name : str
+
+        Returns
+        -------
+        List[PublisherValueLttng]
+            publisher values that matches the condition
+
+        """
+        try:
+            condition = IntraProcessBufferBindCondition(ipc_buffer)
+            bufs = self._reader.get_ipc_buffers(ipc_buffer.node_name)
+            return Util.find_one(condition, bufs)
+        except ItemNotFoundError:
+            msg = 'Failed to find publisher instance. '
+            msg += str(condition)
+            raise ItemNotFoundError(msg)
 
 
 class TimerCallbackBindCondition:
@@ -421,30 +451,66 @@ class PublisherBindCondition:
 
     def __init__(
         self,
-        target_condition: Union[PublisherValue, PublisherStructValue]
+        target_condition: Union[PublisherValueLttng, PublisherStructValue]
     ) -> None:
-        assert isinstance(target_condition, PublisherValue) or \
+        assert isinstance(target_condition, PublisherValueLttng) or \
             isinstance(target_condition, PublisherStructValue)
         self._target = target_condition
 
     def __call__(
         self,
-        publisher_value: Union[PublisherValue, PublisherStructValue],
+        publisher_value: Union[PublisherValueLttng, PublisherStructValue],
     ) -> bool:
-        if isinstance(self._target, PublisherValue) and \
+        if isinstance(self._target, PublisherValueLttng) and \
                 isinstance(publisher_value, PublisherStructValue):
             return self._compare(self._target, publisher_value)
 
         if isinstance(self._target, PublisherStructValue) and \
-                isinstance(publisher_value, PublisherValue):
+                isinstance(publisher_value, PublisherValueLttng):
             return self._compare(publisher_value, self._target)
 
         raise NotImplementedError()
 
     def _compare(
         self,
-        value: PublisherValue,
+        value: PublisherValueLttng,
         struct_value: PublisherStructValue
+    ) -> bool:
+        return value.node_name == struct_value.node_name and \
+            value.topic_name == struct_value.topic_name
+
+    def __str__(self):
+        return self._target
+
+
+class IntraProcessBufferBindCondition:
+
+    def __init__(
+        self,
+        target_condition: Union[IntraProcessBufferValueLttng, IntraProcessBufferStructValue]
+    ) -> None:
+        assert isinstance(target_condition, IntraProcessBufferValue) or \
+            isinstance(target_condition, IntraProcessBufferStructValue)
+        self._target = target_condition
+
+    def __call__(
+        self,
+        value: Union[IntraProcessBufferValueLttng, IntraProcessBufferStructValue],
+    ) -> bool:
+        if isinstance(self._target, IntraProcessBufferValueLttng) and \
+                isinstance(value, IntraProcessBufferStructValue):
+            return self._compare(self._target, value)
+
+        if isinstance(self._target, IntraProcessBufferStructValue) and \
+                isinstance(value, IntraProcessBufferValueLttng):
+            return self._compare(value, self._target)
+
+        raise NotImplementedError()
+
+    def _compare(
+        self,
+        value: IntraProcessBufferValueLttng,
+        struct_value: IntraProcessBufferStructValue
     ) -> bool:
         return value.node_name == struct_value.node_name and \
             value.topic_name == struct_value.topic_name

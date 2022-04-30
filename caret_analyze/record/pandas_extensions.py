@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List, Union
 import pandas as pd
 import numpy as np
 
@@ -17,8 +17,8 @@ class PandasExtensions:
         right_df: pd.DataFrame,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
+        join_left_key: Union[str, List[str]],
+        join_right_key: Union[str, List[str]],
         how: str
     ) -> pd.DataFrame:
         left_records = PandasExtensions.to_records(left_df)
@@ -40,8 +40,8 @@ class PandasExtensions:
     def to_records(
         df: pd.DataFrame
     ) -> RecordsInterface:
-        if (set(df.dtypes) - {pd.Int64Dtype()}):
-            raise InvalidArgumentError('to_records only supports Int64 dtype.')
+        # if (set(df.dtypes) - {pd.Int64Dtype()}):
+        #     raise InvalidArgumentError('to_records only supports Int64 dtype.')
 
         rows = []
         for _, row in df.iterrows():
@@ -51,7 +51,7 @@ class PandasExtensions:
                         column: row[column]
                         for column
                         in df.columns
-                        if row[column] is not pd.NA and not np.isnan(row[column])
+                        if row[column] is not None
                     }
                 )
             )

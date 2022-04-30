@@ -241,6 +241,7 @@ class Ros2DataModel(DataModel):
         self.tf_buffer_lookup_transform = TracePointData([
             'pid',
             'tid',
+            'timestamp',
             'tf_buffer_core',
             'frame_id_compact',
             'child_frame_id_compact',
@@ -248,12 +249,14 @@ class Ros2DataModel(DataModel):
         self.construct_ipm = TracePointData([
             'pid',
             'tid',
+            'timestamp',
             'ipm',
         ])
         self.ipm_add_publisher = TracePointData([
             'pid',
             'tid',
             'ipm',
+            'timestamp',
             'publisher_handle',
             'pub_id',
         ])
@@ -261,6 +264,7 @@ class Ros2DataModel(DataModel):
             'pid',
             'tid',
             'ipm',
+            'timestamp',
             'subscription_handle',
             'sub_id',
         ])
@@ -268,9 +272,17 @@ class Ros2DataModel(DataModel):
             'pid',
             'tid',
             'ipm',
+            'timestamp',
             'sub_id',
             'pub_id',
             'use_take_shared_method'
+        ])
+        self.construct_ring_buffer = TracePointData([
+            'pid',
+            'tid',
+            'timestamp',
+            'buffer',
+            'capacity',
         ])
 
         # not supported
@@ -496,6 +508,38 @@ class Ros2DataModel(DataModel):
                 Column('tf_timestamp'),
                 Column('frame_id_compact'),
                 Column('child_frame_id_compact'),
+            ]
+        )
+        self.ring_buffer_enqueue = RecordsFactory.create_instance(
+            None,
+            [
+                Column('pid'),
+                Column('tid'),
+                Column('enqueue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                Column('buffer'),
+                Column('message'),
+                Column('size'),
+                Column('is_full'),
+            ]
+        )
+        self.ring_buffer_dequeue = RecordsFactory.create_instance(
+            None,
+            [
+                Column('pid'),
+                Column('tid'),
+                Column('dequeue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                Column('buffer'),
+                Column('size'),
+                Column('message'),
+            ]
+        )
+        self.ring_buffer_clear = RecordsFactory.create_instance(
+            None,
+            [
+                Column('pid'),
+                Column('tid'),
+                Column('clear_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                Column('buffer'),
             ]
         )
 
@@ -1443,6 +1487,7 @@ class Ros2DataModel(DataModel):
         self,
         pid: int,
         tid: int,
+        timestamp: int,
         buffer_core: int,
         frame_id_compact: int,
         child_frame_id_compact: int,
@@ -1452,6 +1497,7 @@ class Ros2DataModel(DataModel):
             {
                 'pid': pid,
                 'tid': tid,
+                'timestamp': timestamp,
                 'tf_buffer_core': buffer_core,
                 'frame_id_compact': frame_id_compact,
                 'child_frame_id_compact': child_frame_id_compact,
@@ -1462,12 +1508,14 @@ class Ros2DataModel(DataModel):
         self,
         pid: int,
         tid: int,
+        timestamp: int,
         ipm: int,
     ) -> None:
         self.construct_ipm.append(
             {
                 'pid': pid,
                 'tid': tid,
+                'timestamp': timestamp,
                 'ipm': ipm,
             }
         )
@@ -1476,6 +1524,7 @@ class Ros2DataModel(DataModel):
         self,
         pid: int,
         tid: int,
+        timestamp: int,
         ipm: int,
         publisher_handle: int,
         pub_id: int,
@@ -1484,6 +1533,7 @@ class Ros2DataModel(DataModel):
             {
                 'pid': pid,
                 'tid': tid,
+                'timestamp': timestamp,
                 'ipm': ipm,
                 'publisher_handle': publisher_handle,
                 'pub_id': pub_id,
@@ -1494,6 +1544,7 @@ class Ros2DataModel(DataModel):
         self,
         pid: int,
         tid: int,
+        timestamp: int,
         ipm: int,
         subscription_handle: int,
         sub_id: int,
@@ -1502,6 +1553,7 @@ class Ros2DataModel(DataModel):
             {
                 'pid': pid,
                 'tid': tid,
+                'timestamp': timestamp,
                 'ipm': ipm,
                 'subscription_handle': subscription_handle,
                 'sub_id': sub_id,
@@ -1512,6 +1564,7 @@ class Ros2DataModel(DataModel):
         self,
         pid: int,
         tid: int,
+        timestamp: int,
         ipm: int,
         sub_id: int,
         pub_id: int,
@@ -1521,11 +1574,94 @@ class Ros2DataModel(DataModel):
             {
                 'pid': pid,
                 'tid': tid,
+                'timestamp': timestamp,
                 'ipm': ipm,
                 'sub_id': sub_id,
                 'pub_id': pub_id,
                 'use_take_shared_method': use_take_shared_method,
             }
+        )
+
+    def add_construct_ring_buffer(
+        self,
+        pid: int,
+        tid: int,
+        timestamp: int,
+        buffer: int,
+        capacity: int
+    ) -> None:
+        self.construct_ring_buffer.append(
+            {
+                'pid': pid,
+                'tid': tid,
+                'timestamp': timestamp,
+                'buffer': buffer,
+                'capacity': capacity,
+            }
+        )
+
+    def add_ring_buffer_enqueue(
+        self,
+        pid: int,
+        tid: int,
+        enqueue_timestamp: int,
+        buffer: int,
+        message: int,
+        size: int,
+        is_full: int
+    ) -> None:
+        self.ring_buffer_enqueue.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'enqueue_timestamp': enqueue_timestamp,
+                    'buffer': buffer,
+                    'message': message,
+                    'size': size,
+                    'is_full': is_full,
+                }
+            )
+        )
+
+    def add_ring_buffer_dequeue(
+        self,
+        pid: int,
+        tid: int,
+        dequeue_timestamp: int,
+        buffer: int,
+        message: int,
+        size: int,
+    ) -> None:
+        self.ring_buffer_dequeue.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'dequeue_timestamp': dequeue_timestamp,
+                    'buffer': buffer,
+                    'message': message,
+                    'size': size,
+                }
+            )
+        )
+
+    def add_ring_buffer_clear(
+        self,
+        pid: int,
+        tid: int,
+        clear_timestamp: int,
+        buffer: int,
+    ) -> None:
+        self.ring_buffer_clear.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'clear_timestamp': clear_timestamp,
+                    'buffer': buffer,
+                }
+            )
         )
 
     def _finalize(self) -> None:
@@ -1576,6 +1712,7 @@ class Ros2DataModel(DataModel):
         self.ipm_add_publisher.finalize()
         self.ipm_add_subscription.finalize()
         self.ipm_insert_sub_id_for_pub.finalize()
+        self.construct_ring_buffer.finalize()
 
     def print_data(self) -> None:
         raise NotImplementedError('')
