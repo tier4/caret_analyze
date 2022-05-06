@@ -17,7 +17,7 @@ jobs:
           sudo apt-get install -y software-properties-common
           sudo apt-add-repository ppa:lttng/stable-2.12
           sudo apt-get update
-          sudo apt-get install -y lttng-tools lttng-modules-dkms liblttng-ust-dev
+          #sudo apt-get install -y lttng-tools lttng-modules-dkms liblttng-ust-dev
           sudo apt-get install -y python3-babeltrace python3-lttng python3-bt2
         shell: bash
         
@@ -27,9 +27,6 @@ jobs:
           # sudo rosdep init
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro galactic
-          #. /opt/ros/galactic/setup.sh
-          # pip install -e .
-
   
       - name: Install dependent packages
         run: python3 -m pip install -r requirements.txt
