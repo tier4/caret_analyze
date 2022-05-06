@@ -54,7 +54,8 @@ class Communication(PathBase, Summarizable):
         self._rmw_implementation: Optional[str] = None
         if isinstance(records_provider, RuntimeDataProvider):
             self._is_intra_process = \
-                records_provider.is_intra_process_communication(communication_value)
+                records_provider.is_intra_process_communication(
+                    communication_value.publisher, communication_value.subscription)
             self._rmw_implementation = \
                 records_provider.get_rmw_implementation()
         self._publisher = publisher

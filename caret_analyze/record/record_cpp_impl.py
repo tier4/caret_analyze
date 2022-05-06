@@ -14,37 +14,47 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 from record_cpp_impl import RecordBase, RecordsBase
 
-from .column import Column, Columns
-from .record import RecordInterface, Records, RecordsInterface, validate_rename_rule
+from .column import Column, ColumnValue, Columns, ColumnEventObserver, UniqueList
+from .record import RecordInterface, Records, RecordsInterface
 from ..common import Progress
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
+from ..exceptions import InvalidArgumentError
 
 
 class RecordCppImpl(RecordBase, RecordInterface):
     pass
 
 
-class RecordsCppImpl(RecordsInterface):
+class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
 
     def __init__(
         self,
         init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[Column]] = None,
+        columns: Optional[List[ColumnValue]] = None,
     ):
-        columns = columns or []
-        Records._validate(init, columns)
-        column_names = [str(c) for c in columns]
-        self._records = RecordsBase(init or [], column_names)
-        self._name_to_column = {}
-        if columns is not None:
-            for c in columns:
-                assert isinstance(c, Column)
-            self._name_to_column = {str(c): c for c in columns}
+        assert columns is not None
+        self._columns: Columns = Columns(self, columns)
+        assert isinstance(self._columns, Columns)
+        Records._validate(init, self._columns)
+        self._records = RecordsBase(init or [], [str(c) for c in columns])
+        # self._name_to_column = {}
+        # if columns is not None:
+        self._columns.attach(self)
+        #         assert isinstance(c, Column)
+        #     self._name_to_column = {str(c): c for c in columns}
+
+    def on_column_renamed(self, old: str, new: str) -> None:
+        self._records.rename_columns({old: new})
+        []
+
+    def on_column_dropped(self, column: str) -> None:
+        self._drop_columns([column])
+
+    def on_column_reindexed(self, columns: Sequence[str]):
+        self._reindex(columns)
 
     @property
     def column_names(self) -> List[str]:
@@ -97,13 +107,14 @@ class RecordsCppImpl(RecordsInterface):
         self._records.sort(keys, ascending)
         return None
 
-    def get_column(
-        self,
-        column_name: str
-    ) -> Column:
-        if column_name in self._name_to_column:
-            return self._name_to_column[column_name]
-        raise ItemNotFoundError(f'Failed to find column: {column_name}')
+    # def get_column(
+    #     self,
+    #     column_name: str
+    # ) -> Column:
+    #     if column in self.columns:
+
+    #         return self._name_to_column[column_name]
+    #     raise ItemNotFoundError(f'Failed to find column: {column_name}')
 
     def bind_drop_as_delay(self) -> None:
         self._records.bind_drop_as_delay()
@@ -112,19 +123,19 @@ class RecordsCppImpl(RecordsInterface):
         data_dict = [record.data for record in self.data]
         return Records._to_dataframe(data_dict, self.columns)
 
-    def rename_columns(
-        self,
-        column_names: Dict[str, str]
-    ) -> None:
-        validate_rename_rule(column_names, self.column_names)
-        self._records.rename_columns(column_names)
+    # def rename_columns(
+    #     self,
+    #     column_names: Dict[str, str]
+    # ) -> None:
+    #     validate_rename_rule(column_names, self.column_names)
+    #     self._records.rename_columns(column_names)
 
-        for k, v in column_names.items():
-            if k in self._name_to_column:
-                old_column = self._name_to_column.pop(k)
-                new_column = old_column.create_renamed(v)
-                self._name_to_column[v] = new_column
-        return None
+    #     for k, v in column_names.items():
+    #         if k in self._name_to_column:
+    #             old_column = self._name_to_column.pop(k)
+    #             new_column = old_column.create_renamed(v)
+    #             self._name_to_column[v] = new_column
+    #     return None
 
     def merge(
         self,
@@ -154,7 +165,7 @@ class RecordsCppImpl(RecordsInterface):
         if not set(join_right_keys) <= set(right_records.column_names):
             raise InvalidArgumentError('Failed to find column')
 
-        columns = Columns(self.columns + right_records.columns).as_list()
+        columns = UniqueList(self.columns.to_value() + right_records.columns.to_value()).as_list()
         column_names = [str(c) for c in columns]
 
         merged_cpp_base = self._records.merge(
@@ -162,9 +173,10 @@ class RecordsCppImpl(RecordsInterface):
             column_names, how,
             Progress.records_label(progress_label))
 
-        merged = RecordsCppImpl()
-        merged._insert_records(merged_cpp_base)
-        merged._insert_columns(self.columns + right_records.columns)
+        merged_columns = UniqueList(
+            self.columns.to_value() + right_records.columns.to_value()).as_list()
+        merged = RecordsCppImpl(None, merged_columns)
+        merged._records = merged_cpp_base
         return merged
 
     def groupby(
@@ -176,9 +188,8 @@ class RecordsCppImpl(RecordsInterface):
         group_cpp_base = self._records.groupby(*column_names)
         group: Dict[Tuple[int, ...], RecordsInterface] = {}
         for k, v in group_cpp_base.items():
-            records = RecordsCppImpl()
-            records._insert_records(v)
-            records._insert_columns(self.columns)
+            records = RecordsCppImpl(None, list(self.columns.to_value()))
+            records._records = v
             group[k] = records
         return group
 
@@ -197,8 +208,8 @@ class RecordsCppImpl(RecordsInterface):
         return Records._get_column_series_core(self, column_name)
 
     @property
-    def columns(self) -> List[Column]:
-        return [self._name_to_column[c] for c in self._records.columns]
+    def columns(self) -> Columns:
+        return self._columns
 
     def equals(
         self,
@@ -208,7 +219,7 @@ class RecordsCppImpl(RecordsInterface):
             return False
         return self._records.equals(other._records) and self.columns == other.columns
 
-    def reindex(self, column_names: List[str]) -> None:
+    def _reindex(self, column_names: Sequence[str]) -> None:
         miss_match_columns = set(column_names) ^ set(self.column_names)
         if len(miss_match_columns) > 0:
             msg = 'Contains an unknown columns. '
@@ -220,47 +231,32 @@ class RecordsCppImpl(RecordsInterface):
         self
     ) -> RecordsCppImpl:
         records_clone = self._records.clone()
-        records = RecordsCppImpl(None, deepcopy(self.columns))
-        records._insert_records(records_clone)
+        records = RecordsCppImpl(None, list(self.columns.to_value()))
+        records._records = records_clone
         return records
-
-    def _insert_records(
-        self,
-        records: RecordsBase
-    ) -> None:
-        self._records = records
-
-    def _insert_columns(
-        self,
-        columns: List[Column]
-    ) -> None:
-        for c in columns:
-            self._name_to_column[str(c)] = c
 
     def append_column(
         self,
-        column: Union[Column, str],
+        column: Union[ColumnValue, str],
         values: List[int]
     ) -> None:
-        assert isinstance(column, Column) or isinstance(column, str)
+        assert isinstance(column, ColumnValue) or isinstance(column, str)
 
         if len(values) != len(self):
             raise InvalidArgumentError('len(values) != len(records)')
 
-        if isinstance(column, Column):
-            column_tmp = column
+        column_tmp: Column
+        if isinstance(column, ColumnValue):
+            column_tmp = Column.from_value(self, column)
         elif isinstance(column, str):
-            column_tmp = Column(column)
+            column_tmp = Column(self, column)
         self._records.append_column(column_tmp.column_name, values)
-        self._name_to_column[column_tmp.column_name] = column_tmp
+        self._columns.append(column_tmp)
 
-    def drop_columns(self, columns: List[str]) -> None:
+    def _drop_columns(self, columns: List[str]) -> None:
         if not isinstance(columns, list):
             raise InvalidArgumentError('columns must be list.')
         self._records.drop_columns(columns)
-        for c in columns:
-            if c in self._name_to_column:
-                self._name_to_column.pop(c)
 
     def filter_if(
         self,
@@ -284,8 +280,10 @@ class RecordsCppImpl(RecordsInterface):
         progress_label: Optional[str] = None,
     ) -> RecordsInterface:
         progress_label = progress_label or ''
+        assert left_stamp_key in self.column_names
+        assert right_stamp_key in right_records.column_names
         assert isinstance(right_records, RecordsCppImpl)
-        columns = Columns(self.columns + right_records.columns).as_list()
+        columns = UniqueList(self.columns.to_value() + right_records.columns.to_value()).as_list()
         join_left_key = join_left_key or []
         join_right_key = join_right_key or []
         join_left_keys = [join_left_key] if isinstance(join_left_key, str) else join_left_key
@@ -309,9 +307,8 @@ class RecordsCppImpl(RecordsInterface):
             Progress.records_label(progress_label)
         )
 
-        merged = RecordsCppImpl()
-        merged._insert_records(merged_cpp_base)
-        merged._insert_columns(columns)
+        merged = RecordsCppImpl(None, columns)
+        merged._records = merged_cpp_base
         return merged
 
     def merge_sequencial_for_addr_track(
@@ -356,6 +353,6 @@ class RecordsCppImpl(RecordsInterface):
         )
 
         merged = RecordsCppImpl()
-        merged._insert_records(merged_cpp_base)
-        merged._insert_columns(self.columns + sink_records.columns)
+        merged._records = merged_cpp_base
+        merged._columns = self.columns + sink_records.columns
         return merged

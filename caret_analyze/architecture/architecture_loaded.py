@@ -18,6 +18,7 @@ from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from itertools import product
+from caret_analyze.architecture.struct.struct_interface import SubscriptionsStructInterface
 from caret_analyze.value_objects.transform import TransformTreeValue
 from .graph_search import CallbackPathSearcher
 from .reader_interface import ArchitectureReader
@@ -292,7 +293,7 @@ def create_nodes(reader: ArchitectureReader) -> NodesStruct:
 
 def create_node(node: NodeValue, reader: ArchitectureReader) -> NodeStruct:
     node_struct = NodeStruct(
-        node_id=node.node_name,
+        node_id=node.node_id,
         node_name=node.node_name
     )
 
@@ -360,12 +361,16 @@ def create_transform_buffer(
 
     if buffer is None:
         return None
+    subscriptions = create_subscriptions(
+        reader, NodeValue(buffer.listener_node_name, buffer.listener_node_id))
+    tf_sub = subscriptions.get(buffer.listener_node_name, '/tf')
 
     assert buffer.lookup_transforms is not None and len(
         buffer.lookup_transforms) > 0
     assert buffer.listen_transforms is not None
     return TransformBufferStruct(
         tf_tree=tf_tree,
+        listener_subscription=tf_sub,
         lookup_node_name=buffer.lookup_node_name,
         listener_node_name=buffer.listener_node_name,
         lookup_transforms=list(buffer.lookup_transforms),

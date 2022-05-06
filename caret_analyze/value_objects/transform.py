@@ -20,10 +20,13 @@ from itertools import groupby, product
 
 from typing import Optional, Sequence, Set, Tuple
 
+
 from .publisher import PublisherStructValue, PublisherValue
-from .value_object import ValueObject
 from ..common.util import Util
+from ..value_objects.value_object import ValueObject
+from ..value_objects.subscription import SubscriptionStructValue
 from ..exceptions import ItemNotFoundError, InvalidArgumentError
+
 
 
 class TransformValue(ValueObject):
@@ -215,7 +218,8 @@ class TransformBufferStructValue(ValueObject):
         lookup_node_name: str,
         listener_node_name: Optional[str],
         lookup_transforms: Tuple[TransformValue, ...],
-        listen_transforms: Tuple[TransformValue, ...]
+        listen_transforms: Tuple[TransformValue, ...],
+        listener_subscription: SubscriptionStructValue
     ) -> None:
         self._lookup_node_name = lookup_node_name
         self._listener_node_name = listener_node_name
@@ -232,6 +236,7 @@ class TransformBufferStructValue(ValueObject):
                         listener_node_name,
                         listen_transform,
                         lookup_transform,
+                        listener_subscription
                     )
                 )
         self._frame_buffers = tuple(frame_buffers)
@@ -296,12 +301,14 @@ class TransformFrameBufferStructValue(ValueObject):
         lookup_node_name: str,
         listener_node_name: Optional[str],
         listen_transform: TransformValue,
-        lookup_transform: TransformValue
+        lookup_transform: TransformValue,
+        listener_subscription: SubscriptionStructValue,
     ) -> None:
         self._lookup_node_name = lookup_node_name
         self._listener_node_name = listener_node_name
         self._listen_transform = listen_transform
         self._lookup_transform = lookup_transform
+        self._listener_subscription = listener_subscription
 
     @property
     def lookup_node_name(self) -> str:
@@ -338,6 +345,10 @@ class TransformFrameBufferStructValue(ValueObject):
     @property
     def topic_name(self) -> str:
         return '/tf'
+
+    @property
+    def listener_subscription(self) -> SubscriptionStructValue:
+        return self._listener_subscription
 
 
 class TransformCommunicationStructValue():

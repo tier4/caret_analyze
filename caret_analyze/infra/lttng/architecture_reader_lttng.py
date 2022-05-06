@@ -208,22 +208,6 @@ class ArchitectureReaderLttng(ArchitectureReader):
         node = self.get_node(node_name)
         return self._lttng.get_ipc_buffers(node)
 
-    def _get_subscriptions(
-        self,
-        node: NodeValue
-    ) -> Sequence[SubscriptionValue]:
-        info: List[SubscriptionValue] = []
-        for sub_cb in self._get_subscription_callbacks(node):
-            topic_name = sub_cb.subscribe_topic_name
-            assert topic_name is not None
-            info.append(SubscriptionValue(
-                topic_name,
-                sub_cb.node_name,
-                sub_cb.node_id,
-                sub_cb.callback_id
-            ))
-        return info
-
     def _get_tf_broadcaster(
         self,
         node: NodeValue

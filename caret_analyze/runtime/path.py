@@ -15,8 +15,7 @@
 from __future__ import annotations
 
 from logging import getLogger
-from turtle import right
-from typing import Dict, List, Optional, Sequence, Union
+from typing import List, Optional, Union
 
 from caret_analyze.record.column import ColumnAttribute
 
@@ -27,77 +26,9 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record.record import merge, merge_sequencial, RecordsInterface
-from ..value_objects import CallbackChain, PathStructValue
+from ..value_objects import PathStructValue
 
 logger = getLogger(__name__)
-
-
-class ColumnMerger():
-
-    def __init__(self) -> None:
-        self._count: Dict[str, int] = {}
-        self._column_names: List[str] = []
-
-    def append_column(
-        self,
-        records: RecordsInterface,
-        column_name: str
-    ) -> str:
-        key = column_name
-
-        if key == records.column_names[0] and len(self._count) > 0 and key in self._count.keys():
-            count = max(self._count.get(key, 0) - 1, 0)
-            return self._to_column_name(count, key)
-
-        if key not in self._count.keys():
-            self._count[key] = 0
-
-        column_name = self._to_column_name(self._count[key], key)
-        self._column_names.append(column_name)
-        self._count[key] += 1
-        return column_name
-
-    def append_columns(
-        self,
-        records: RecordsInterface,
-    ) -> List[str]:
-        renamed_columns: List[str] = []
-        for column in records.column_names:
-            renamed_columns.append(
-                self.append_column(records, column)
-            )
-        return renamed_columns
-
-    def append_columns_and_return_rename_rule(
-        self,
-        records: RecordsInterface,
-    ) -> Dict[str, str]:
-        renamed_columns: List[str] = self.append_columns(records)
-        return self._to_rename_rule(records.column_names, renamed_columns)
-
-    @property
-    def column_names(
-        self
-    ) -> List[str]:
-        return self._column_names
-
-    @staticmethod
-    def _to_column_name(
-        count: int,
-        tracepoint_name: str,
-    ) -> str:
-        return f'{tracepoint_name}/{count}'
-
-    @staticmethod
-    def _to_rename_rule(
-        old_columns: Sequence[str],
-        new_columns: Sequence[str],
-    ):
-        return {
-            old_column: new_column
-            for old_column, new_column
-            in zip(old_columns, new_columns)
-        }
 
 
 class RecordsMerged:
@@ -120,20 +51,20 @@ class RecordsMerged:
     ) -> RecordsInterface:
         logger.info('Started merging path records.')
 
-        column_merger = ColumnMerger()
         if len(targets[0].to_records().data) == 0:
             targets = targets[1:]
 
-        first_element = targets[0].to_records([ColumnAttribute.SYSTEM_TIME])
+        first_element = targets[0].to_records([
+            ColumnAttribute.SYSTEM_TIME,
+            ColumnAttribute.NODE_IO])
         left_records = first_element
 
-        rename_rule = column_merger.append_columns_and_return_rename_rule(
-            left_records)
+        for column in left_records.columns:
+            column.add_prefix('0')
 
-        left_records.rename_columns(rename_rule)
         first_column = first_element.columns[0]
 
-        for target_, target in zip(targets[:-1], targets[1:]):
+        for i, (target_, target) in enumerate(zip(targets[:-1], targets[1:])):
             if isinstance(target, NodePath) and target.message_context is None:
                 if target == targets[-1]:
                     msg = 'Detected dummy_records. merge terminated.'
@@ -143,25 +74,30 @@ class RecordsMerged:
                     logger.warn(msg)
                 break
 
-            right_records: RecordsInterface = target.to_records([ColumnAttribute.SYSTEM_TIME])
+            right_records: RecordsInterface = target.to_records([
+                ColumnAttribute.SYSTEM_TIME,
+                ColumnAttribute.NODE_IO
+            ])
 
-            rename_rule = column_merger.append_columns_and_return_rename_rule(
-                right_records)
-            right_records.rename_columns(rename_rule)
+            right_records.columns[0].add_prefix(f'{i}')
+            right_records.columns[1].add_prefix(f'{i+1}')
+            # rename_rule = column_merger.append_columns_and_return_rename_rule(
+            #     right_records)
+            # right_records.columns.rename(rename_rule)
 
-            right_column = right_records.column_names[0]
-            match_column_index = [i for (i, column)
-                                  in enumerate(left_records.column_names)
-                                  if column == right_column][0]
-            drop_left_columns = left_records.column_names[match_column_index+1:]
-            left_records.drop_columns(drop_left_columns)
+            # right_column = right_records.column_names[0]
+            # match_column_index = [i for (i, column)
+            #                       in enumerate(left_records.column_names)
+            #                       if column == right_column][0]
+            # drop_left_columns = left_records.column_names[match_column_index+1:]
+            # left_records.columns.drop(drop_left_columns)
 
             if left_records.column_names[-1] != right_records.column_names[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
-            right_records.drop_columns([left_records.column_names[0]])
+            # right_records.columns.drop([left_records.column_names[0]])
             right_stamp_key = right_records.columns[0]
 
             logger.info(
@@ -170,9 +106,9 @@ class RecordsMerged:
                 f'- right_column: {right_stamp_key} \n'
             )
 
-            is_sequencial = isinstance(target_, NodePath) and \
-                isinstance(target, Communication) and \
-                isinstance(target_.message_context, CallbackChain)
+            # is_sequencial = isinstance(target_, NodePath) and \
+            #     isinstance(target, Communication)
+            is_sequencial = False
 
             if is_sequencial:
                 left_records = merge_sequencial(
@@ -186,8 +122,6 @@ class RecordsMerged:
                     progress_label='binding: node records'
                 )
             else:
-                left_df = left_records.to_dataframe()
-                right_df = right_records.to_dataframe()
                 # tf to tf がpublish recordsとうまく結合されていない。
                 left_records = merge(
                     left_records=left_records,

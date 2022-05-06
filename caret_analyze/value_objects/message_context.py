@@ -225,7 +225,30 @@ class UseLatestMessage(MessageContext):
     """Use messsage context"""
 
     def verify(self) -> bool:
+        # raise NotImplementedError('')
         return True
+        # if node_path.callbacks is None:
+        #     raise UnsupportedNodeRecordsError('')
+
+        # if node_path.callbacks is None:
+        #     raise UnsupportedNodeRecordsError('callback values is None.')
+
+        # if not isinstance(node_path.message_context, CallbackChain):
+        #     msg = 'node_path.message context is not CallbackChain'
+        #     raise UnsupportedNodeRecordsError(msg)
+
+        # head_callback = node_path.callbacks[0]
+        # tail_callback = node_path.callbacks[-1]
+
+        # if node_path.publish_topic_name is not None and \
+        #     tail_callback.publish_topic_names is not None and \
+        #     len(tail_callback.publish_topic_names) != 0 and \
+        #         node_path.publish_topic_name not in tail_callback.publish_topic_names:
+        #     raise UnsupportedNodeRecordsError('')
+
+        # if node_path.subscribe_topic_name is not None and \
+        #         node_path.subscribe_topic_name != head_callback.subscribe_topic_name:
+        #     raise UnsupportedNodeRecordsError('')
 
     @property
     def context_type(self) -> MessageContextType:
@@ -303,6 +326,20 @@ class CallbackChain(MessageContext):
                 f'{self.node_name}')
 
         return is_valid
+
+        # def is_valid() -> bool:
+        #     if context.publisher_topic_name != node_path.publish_topic_name:
+        #         return False
+        #     if context.subscription_topic_name != node_path.subscribe_topic_name:
+        #         return False
+
+        #     return True
+
+        # if is_valid():
+        #     return None
+
+        # msg = f'UseLatest cannot build records. \n{node_path} \n{context}'
+        # raise UnsupportedNodeRecordsError(msg)
 
 
 class Tilde(MessageContext):

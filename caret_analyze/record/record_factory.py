@@ -13,10 +13,12 @@
 # limitations under the License.
 
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Collection
+
+from multimethod import multimethod as singledispatchmethod
 
 from .record import Record, RecordInterface, Records, RecordsInterface
-from .column import Column
+from .column import Column, ColumnValue, Columns
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl
@@ -55,10 +57,27 @@ class RecordsFactory:
     def is_cpp_impl_valid() -> bool:
         return use_cpp_impl
 
+    @singledispatchmethod
+    def create_instance(self):
+        raise NotImplementedError('')
+
+    # @staticmethod
+    # @create_instance.register
+    # def _create_instance(
+    #     init: Optional[List[RecordInterface]] = None,
+    #     columns: Optional[Columns] = None
+    # ) -> RecordsInterface:
+    #     if use_cpp_impl:
+    #         return RecordsFactory._create_cpp_instance(init, columns)
+    #     else:
+    #         return Records(init, columns)
+
     @staticmethod
-    def create_instance(
+    @create_instance.register
+    def _create_instance_tuple(
         init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[Column]] = None
+        columns: Optional[List[ColumnValue]] = None,
+        # columns: Optional[List[Column]] = None
     ) -> RecordsInterface:
         if use_cpp_impl:
             return RecordsFactory._create_cpp_instance(init, columns)
@@ -68,6 +87,8 @@ class RecordsFactory:
     @staticmethod
     def _create_cpp_instance(
         init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[Column]] = None,
+        columns: Optional[List[ColumnValue]] = None,
     ) -> RecordsInterface:
-        return cpp_impl.RecordsCppImpl(init or [], columns or [])
+        records = init or []
+        columns = columns or []
+        return cpp_impl.RecordsCppImpl(records, columns)

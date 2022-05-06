@@ -16,8 +16,9 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
+from ..value_objects import PublisherValueLttng, SubscriptionCallbackValueLttng
+
 from ....value_objects import (
-    PublisherValue,
     TransformBroadcasterValue,
     TransformBufferValue,
     TransformValue,
@@ -27,13 +28,18 @@ from ....value_objects import (
 class TransformBroadcasterValueLttng(TransformBroadcasterValue):
     def __init__(
         self,
-        pub: PublisherValue,
+        pub: PublisherValueLttng,
         transforms: Tuple[TransformValue, ...],
         callback_ids: Tuple[str, ...],
         broadcaster_handler: int,
     ) -> None:
         super().__init__(pub, transforms, callback_ids)
+        self.__pub = pub
         self._broadcaster_handler = broadcaster_handler
+
+    @property
+    def publisher(self) -> PublisherValueLttng:
+        return self.__pub
 
     @property
     def broadcaster_handler(self) -> int:
@@ -49,7 +55,8 @@ class TransformBufferValueLttng(TransformBufferValue):
         listener_node_id: Optional[str],
         lookup_transforms: Optional[Tuple[TransformValue, ...]],
         listen_transforms: Optional[Tuple[TransformValue, ...]],
-        buffer_handler: int
+        buffer_handler: int,
+        listener_callback: SubscriptionCallbackValueLttng,
     ) -> None:
         super().__init__(
             lookup_node_name,
@@ -59,7 +66,16 @@ class TransformBufferValueLttng(TransformBufferValue):
             lookup_transforms,
             listen_transforms)
         self._buffer_handler = buffer_handler
+        self._listener_callback = listener_callback
 
     @property
     def buffer_handler(self) -> int:
         return self._buffer_handler
+
+    @property
+    def listener_callback(self) -> SubscriptionCallbackValueLttng:
+        return self._listener_callback
+
+    @property
+    def listener_subscription_handler(self) -> int:
+        return self._listener_callback.subscription_handle

@@ -17,7 +17,7 @@ from caret_analyze.record import Column, Record, Records
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
-from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
+from caret_analyze.runtime.path import Path, RecordsMerged
 from caret_analyze.value_objects import PathStructValue
 
 import pytest

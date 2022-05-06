@@ -14,10 +14,13 @@
 
 from __future__ import annotations
 
-from collections import UserList
-from copy import deepcopy
+from abc import ABCMeta, abstractmethod
 
-from typing import Dict, List, Optional, Set, Tuple
+from collections import UserList
+from readline import set_auto_history
+from multimethod import multimethod as singledispatchmethod
+
+from typing import Dict, List, Optional, Set, Tuple, Collection, Sequence
 
 from ..value_objects import ValueObject
 
@@ -78,6 +81,8 @@ class ColumnAttribute(ValueObject):
     MSG_PIPELINE: ColumnAttribute
     SEND_MSG: ColumnAttribute
     TAKE_MSG: ColumnAttribute
+    OPTIONAL: ColumnAttribute
+    NODE_IO: ColumnAttribute
 
     def __init__(self, attr_name: str) -> None:
         self._attr_name = attr_name
@@ -91,6 +96,8 @@ ColumnAttribute.SYSTEM_TIME = ColumnAttribute('system_time')
 ColumnAttribute.MSG_PIPELINE = ColumnAttribute('msg_pipeline')
 ColumnAttribute.SEND_MSG = ColumnAttribute('send_msg')
 ColumnAttribute.TAKE_MSG = ColumnAttribute('take_msg')
+ColumnAttribute.OPTIONAL = ColumnAttribute('optional')
+ColumnAttribute.NODE_IO = ColumnAttribute('node_io')
 
 
 def get_column_name(columns: List[Column], column_name: str) -> str:
@@ -107,43 +114,109 @@ def get_column(columns: List[Column], column_name: str) -> Column:
     raise ValueError(f'Column name "{column_name}" not found.')
 
 
-class Column(ValueObject):
+class ColumnValue(ValueObject):
 
     def __init__(
         self,
-        column_name: str,
-        attrs: Optional[List[ColumnAttribute]] = None,
+        base_column_name: str,
+        attrs: Optional[Set[ColumnAttribute]] = None,
+        prefix: Optional[Collection[str]] = None,
         *,
-        mapper: Optional[ColumnMapper] = None
+        mapper: Optional[ColumnMapper] = None,
     ) -> None:
-        assert isinstance(column_name, str)
-        self._column_name = column_name
+        self._base_column_name = base_column_name
+        self._attrs = attrs or set()
+        self._prefix = () if prefix is None else tuple(prefix)
         self._mapper = mapper
-        self._attrs = () if attrs is None else tuple(attrs)
 
     def __str__(self) -> str:
-        return self.column_name
+        return '/'.join(list(self.prefix) + [self._base_column_name])
+
+    @property
+    def base_column_name(self) -> str:
+        return self._base_column_name
+
+    @property
+    def attrs(self) -> Set[ColumnAttribute]:
+        return self._attrs
+
+    @property
+    def prefix(self) -> Tuple[str, ...]:
+        return self._prefix
+
+    @property
+    def mapper(self) -> Optional[ColumnMapper]:
+        return self._mapper
+
+
+class Column():
+
+    def __init__(
+        self,
+        observer: ColumnEventObserver,
+        base_column_name: str,
+        attrs: Optional[Collection[ColumnAttribute]] = None,
+        prefix: Optional[List[str]] = None,
+        *,
+        mapper: Optional[ColumnMapper] = None,
+    ) -> None:
+        assert isinstance(base_column_name, str)
+        self._base_column_name = base_column_name
+        self._mapper = mapper
+        self._attrs = set() if attrs is None else set(attrs)
+        self._prefix: List[str] = prefix or []
+        self._observer = observer
+
+    def __str__(self) -> str:
+        return '/'.join(self._prefix + [self._base_column_name])
 
     @property
     def column_name(self) -> str:
-        return self._column_name
+        return str(self)
+
+    @property
+    def base_column_name(self) -> str:
+        return self._base_column_name
+
+    def rename(self, new: str) -> None:
+        old = str(self)
+        self._base_column_name = new
+        new = str(self)
+        self._observer.on_column_renamed(old, new)
+
+    def to_value(self) -> ColumnValue:
+        return ColumnValue(self.base_column_name, self.attrs, tuple(self._prefix))
 
     # def add_attr(self, attr: ColumnAttribute):
     #     self._attrs.append(attr)
 
+    def add_prefix(self, prefix: str) -> None:
+        old = str(self)
+        self._prefix.append(prefix)
+        # assert len(self._prefix) <= 1
+        new = str(self)
+        self._observer.on_column_renamed(old, new)
+
     @property
-    def attrs(self) -> Tuple[ColumnAttribute, ...]:
+    def attrs(self) -> Set[ColumnAttribute]:
         return self._attrs
 
-    def create_renamed(
-        self,
-        column_name: str,
-    ) -> Column:
-        return Column(
-            column_name,
-            list(self._attrs),
-            mapper=deepcopy(self._mapper)
-        )
+    # def clone(self) -> Column:
+    #     return Column(
+    #         self._base_column_name,
+    #         self.attrs,
+    #         # mapper=deepcopy(self._mapper),
+    #         prefix=self._prefix)
+
+    # def create_renamed(
+    #     self,
+    #     column_name: str,
+    # ) -> Column:
+    #     return Column(
+    #         column_name,
+    #         list(self._attrs),
+    #         mapper=deepcopy(self._mapper)
+    #     )
 
     def get_mapped(self, value: int) -> object:
         assert self._mapper is not None
@@ -152,10 +225,26 @@ class Column(ValueObject):
     def has_mapper(self) -> bool:
         return self._mapper is not None
 
+    def attach(self, observer: ColumnEventObserver):
+        self._observer = observer
+
+    @staticmethod
+    def from_value(observer: ColumnEventObserver, column: ColumnValue) -> Column:
+        return Column(
+            observer, column.base_column_name, column.attrs, list(column.prefix),
+            mapper=column.mapper)
+
+    @property
+    def prefix(self) -> List[str]:
+        return self._prefix
+
 
 class UniqueList(UserList):
 
-    def __init__(self, init=None):
+    def __init__(
+        self,
+        init=None,
+    ) -> None:
         super().__init__(None)
         init = init or []
         for i in init:
@@ -174,11 +263,142 @@ class UniqueList(UserList):
             self.append(i)
         return self
 
+    def as_list(self) -> List[ColumnValue]:
+        return self.data
 
-class Columns(UniqueList):
 
-    def __init__(self, init: Optional[List[Column]] = None):
-        super().__init__(init=init)
+class Columns(UserList):
+
+    def __init__(
+        self,
+        observer: ColumnEventObserver,
+        init: Optional[List[ColumnValue]] = None,
+    ) -> None:
+        columns = [Column.from_value(observer, value) for value in init or []]
+        super().__init__(columns)
+        self._observer: ColumnEventObserver = observer
 
     def as_list(self) -> List[Column]:
         return list(self)
+
+    def drop(self, columns: Collection[str]) -> None:
+        self.data = [
+            column
+            for column
+            in self.data
+            if str(column) not in columns
+        ]
+        if self._observer is not None:
+            for column in columns:
+                self._observer.on_column_dropped(column)
+
+    # def clone(self) -> Columns:
+    #     return Columns([c.clone() for c in self.data])
+
+    def reindex(self, columns: Sequence[str]) -> None:
+        tmp = []
+        for column_name in columns:
+            for i, column in enumerate(self.data):
+                if column.column_name == column_name:
+                    tmp.append(self.data.pop(i))
+                    break
+        self.data = tmp
+
+    def get_by_base_name(self, name: str, take: Optional[str] = None) -> Column:
+        if take is not None:
+            assert take in ['head', 'tail']
+
+        columns = [
+            c
+            for c
+            in self.data
+            if c.base_column_name == name]
+
+        assert len(columns) > 0
+        if take is not None and take == 'tail':
+            return columns[-1]
+
+        if take is not None and take == 'head':
+            return columns[0]
+
+        assert len(columns) == 1
+        return columns[0]
+
+    def get_by_attrs(
+        self,
+        attrs: Collection[ColumnAttribute],
+        take: Optional[str] = None,
+    ) -> Column:
+        if take is not None:
+            assert take in ['head', 'tail']
+
+        set_attrs = set(attrs)
+        columns = [
+            c
+            for c
+            in self.data
+            if set(c.attrs) == set_attrs]
+
+        assert len(columns) > 0
+        if take is not None and take == 'tail':
+            return columns[-1]
+
+        if take is not None and take == 'head':
+            return columns[0]
+
+        assert len(columns) == 1
+        return columns[0]
+
+    def gets_by_base_name(self, *name: str) -> List[Column]:
+        return [self.get_by_base_name(_) for _ in name]
+
+    def attach(self, observer: ColumnEventObserver):
+        self._observer = observer
+        for column in self.data:
+            column.attach(observer)
+
+    @property
+    def column_names(self) -> List[str]:
+        return [str(_) for _ in self.data]
+
+    def rename(self, rename_rule: Dict[str, str]):
+        for column in self.data:
+            if column.column_name in rename_rule:
+                old = column.column_name
+                new = rename_rule[old]
+                column.rename(new)
+
+    # @singledispatchmethod
+    # def unique_concat(self, args):
+    #     raise NotImplementedError('')
+
+    # @staticmethod
+    # @unique_concat.register
+    # def _unique_concat_list(
+    #     left: Tuple[ColumnValue, ...],
+    #     right: Tuple[ColumnValue, ...]
+    # ) -> Columns:
+    #     uniqued_column_values = UniqueList(left + right).as_list()
+    #     columns = [
+    #         Column(column.base_column_name, column.attrs)
+    #         for column
+    #         in uniqued_column_values]
+    #     return Columns(columns)
+
+    def to_value(self) -> Tuple[ColumnValue, ...]:
+        return tuple(c.to_value() for c in self.data)
+
+
+class ColumnEventObserver(metaclass=ABCMeta):
+
+    @abstractmethod
+    def on_column_renamed(self, old: str, new: str):
+        pass
+
+    @abstractmethod
+    def on_column_dropped(self, column: str):
+        pass
+
+    @abstractmethod
+    def on_column_reindexed(self, columns: Sequence[str]):
+        pass

@@ -45,8 +45,8 @@ class PathBase(metaclass=ABCMeta):
             return records
         drop_column_names = [c.column_name
                              for c in records.columns
-                             if len(set(c.attrs) & set(attrs)) == 0]
-        records.drop_columns(drop_column_names)
+                             if not set(attrs) <= set(c.attrs)]
+        records.columns.drop(drop_column_names)
         return records
 
     @abstractmethod

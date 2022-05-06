@@ -26,11 +26,11 @@ from .value_objects import (
     IntraProcessBufferValueLttng,
 )
 from ...common import Util
-from ...exceptions import ItemNotFoundError, MultipleItemFoundError
+from ...exceptions import ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError
 from ...value_objects import (
     PublisherStructValue,
-    PublisherValue,
     SubscriptionCallbackStructValue,
+    CallbackStructValue,
     SubscriptionCallbackValue,
     TimerCallbackStructValue,
     TimerCallbackValue,
@@ -172,6 +172,20 @@ class LttngBridge:
             raise ItemNotFoundError(msg)
         assert isinstance(buf, TransformBufferValueLttng)
         return buf
+
+    def get_callback(
+        self, callback: CallbackStructValue
+    ) -> Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]:
+
+        if isinstance(callback, TimerCallbackStructValue):
+            return self.get_timer_callback(callback)
+
+        if isinstance(callback, SubscriptionCallbackStructValue):
+            return self.get_subscription_callback(callback)
+
+        msg = 'Failed to get callback object. '
+        msg += f'{callback.callback_type.type_name} is not supported.'
+        raise UnsupportedTypeError(msg)
 
     def get_publishers(
         self,

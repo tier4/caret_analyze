@@ -6,6 +6,8 @@ from itertools import product
 from caret_analyze.value_objects.transform import TransformTreeValue
 
 from .struct_interface import (
+    SubscriptionStructInterface,
+    SubscriptionsStructInterface,
     TransformBroadcasterStructInterface,
     TransformBufferStructInterface,
     TransformFrameBroadcasterStructInterface,
@@ -71,6 +73,7 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
     def __init__(
         self,
         tf_tree: TransformTreeValue,
+        listener_subscription: SubscriptionsStructInterface,
         lookup_transform: Optional[TransformValue] = None,
         listen_transform: Optional[TransformValue] = None,
         lookup_node_name: Optional[str] = None,
@@ -83,6 +86,7 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
         self._lookup_node_name = lookup_node_name
         self._listener_node_name = listener_node_name
         self._tf_tree = tf_tree
+        self._listener_subscription = listener_subscription
 
     @property
     def lookup_frame_id(self) -> str:
@@ -105,7 +109,8 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
             lookup_node_name=self.lookup_node_name,
             listener_node_name=self.listener_node_name,
             lookup_transform=self.lookup_transform,
-            listen_transform=self.listen_transform
+            listen_transform=self.listen_transform,
+            listener_subscription=self.listener_subscription,
         )
 
     def is_pair(self, other: Any) -> bool:
@@ -122,6 +127,10 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
     @property
     def listener_node_name(self) -> Optional[str]:
         return self._listener_node_name
+
+    @property
+    def listener_subscription(self) -> SubscriptionStructInterface:
+        return self._listener_subscription
 
     # @property
     # def publisher(self) -> PublisherStruct:
@@ -261,6 +270,7 @@ class TransformBufferStruct(TransformBufferStructInterface):
         tf_tree: TransformTreeValue,
         lookup_transforms: List[TransformValue],
         listen_transforms: List[TransformValue],
+        listener_subscription: SubscriptionStructInterface,
         listener_node_name: Optional[str] = None,
     ) -> None:
         self._lookup_node_name = lookup_node_name
@@ -268,12 +278,14 @@ class TransformBufferStruct(TransformBufferStructInterface):
         self._lookup_transforms = lookup_transforms
         self._listen_transforms = listen_transforms
         self._frame_buffs = TransformFrameBuffersStruct()
+        self._listener_subscription = listener_subscription
         tf_tree = TransformTreeValue.create_from_transforms(listen_transforms)
         for listen_tf, lookup_tf in product(listen_transforms, lookup_transforms):
             if not tf_tree.is_in(lookup_tf, listen_tf):
                 continue
             buf = TransformFrameBufferStruct(
                 tf_tree=tf_tree,
+                listener_subscription=listener_subscription,
                 lookup_node_name=lookup_node_name,
                 listener_node_name=listener_node_name,
                 lookup_transform=lookup_tf,
@@ -326,8 +338,13 @@ class TransformBufferStruct(TransformBufferStructInterface):
             lookup_node_name=self.lookup_node_name,
             listener_node_name=self.listener_node_name,
             lookup_transforms=lookup_transforms,
-            listen_transforms=listen_transforms
+            listen_transforms=listen_transforms,
+            listener_subscription=self.listener_subscription.to_value(),
         )
+
+    @property
+    def listener_subscription(self) -> SubscriptionStructInterface:
+        return self._listener_subscription
 
     @property
     def frame_buffers(self) -> TransformFrameBuffersStruct:

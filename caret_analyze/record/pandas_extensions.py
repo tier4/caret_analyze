@@ -1,12 +1,10 @@
 from typing import List, Union
 import pandas as pd
-import numpy as np
 
-from ..exceptions import InvalidArgumentError
 from .record_factory import RecordFactory, RecordsFactory
 from .interface import RecordsInterface
 from .record import merge_sequencial
-from .column import Column
+from .column import ColumnValue
 
 
 class PandasExtensions:
@@ -55,6 +53,6 @@ class PandasExtensions:
                     }
                 )
             )
-        columns = [Column(c) for c in df.columns]
+        columns = [ColumnValue(c) for c in df.columns]
         records = RecordsFactory.create_instance(rows, columns)
         return records

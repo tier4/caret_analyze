@@ -15,7 +15,7 @@
 
 """Module for ROS 2 data model."""
 
-from caret_analyze.record.column import Column, ColumnAttribute
+from caret_analyze.record.column import ColumnAttribute, ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.infra.lttng.data_frame import TracePointData
 
@@ -293,253 +293,271 @@ class Ros2DataModel(DataModel):
         self.callback_start = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('callback_start_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('callback_object'),
-                Column('is_intra_process')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('callback_start_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.TAKE_MSG,
+                    ColumnAttribute.NODE_IO
+                    ]),
+                ColumnValue('callback_object'),
+                ColumnValue('is_intra_process')
             ]
         )
         self.callback_end = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('callback_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('callback_object')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('callback_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('callback_object')
             ]
         )
         self.dds_write = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('dds_write_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('message')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('dds_write_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.OPTIONAL,
+                ]),
+                ColumnValue('message')
             ]
         )
         self.dds_bind_addr_to_stamp = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('dds_bind_addr_to_stamp_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('addr'),
-                Column('source_timestamp')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('dds_bind_addr_to_stamp_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('addr'),
+                ColumnValue('source_timestamp')
             ]
         )
         self.dds_bind_addr_to_addr = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('dds_bind_addr_to_addr_timestamp'),
-                Column('addr_from'),
-                Column('addr_to')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('dds_bind_addr_to_addr_timestamp'),
+                ColumnValue('addr_from'),
+                ColumnValue('addr_to')
             ]
         )
         self.on_data_available = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('on_data_available_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('source_timestamp')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('on_data_available_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('source_timestamp')
             ]
         )
         self.rclcpp_intra_publish = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('rclcpp_intra_publish_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('publisher_handle'),
-                Column('message'),
-                Column('message_timestamp')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_intra_publish_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.NODE_IO,
+                    ColumnAttribute.SEND_MSG,
+                ]),
+                ColumnValue('publisher_handle'),
+                ColumnValue('message'),
+                ColumnValue('message_timestamp')
             ]
         )
         self.rclcpp_publish = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('rclcpp_publish_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('publisher_handle'),
-                Column('message'),
-                Column('message_timestamp')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_publish_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.NODE_IO,
+                    ColumnAttribute.SEND_MSG,
+                    ]),
+                ColumnValue('publisher_handle'),
+                ColumnValue('message'),
+                ColumnValue('message_timestamp')
             ]
         )
         self.rcl_publish = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('rcl_publish_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('publisher_handle'),
-                Column('message')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('rcl_publish_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.OPTIONAL
+                ]),
+                ColumnValue('publisher_handle'),
+                ColumnValue('message')
             ]
         )
         self.dispatch_subscription_callback = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('dispatch_subscription_callback_timestamp'),
-                Column('callback_object'),
-                Column('message'),
-                Column('source_timestamp'),
-                Column('message_timestamp')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('dispatch_subscription_callback_timestamp'),
+                ColumnValue('callback_object'),
+                ColumnValue('message'),
+                ColumnValue('source_timestamp'),
+                ColumnValue('message_timestamp')
             ]
         )
         self.dispatch_intra_process_subscription_callback = \
             RecordsFactory.create_instance(
                 None,
                 [
-                    Column('pid'),
-                    Column('tid'),
-                    Column('dispatch_intra_process_subscription_callback_timestamp'),
-                    Column('callback_object'),
-                    Column('message'),
-                    Column('message_timestamp')
+                    ColumnValue('pid'),
+                    ColumnValue('tid'),
+                    ColumnValue('dispatch_intra_process_subscription_callback_timestamp'),
+                    ColumnValue('callback_object'),
+                    ColumnValue('message'),
+                    ColumnValue('message_timestamp')
                 ]
             )
         self.message_construct = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('message_construct_timestamp'),
-                Column('original_message'),
-                Column('constructed_message')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('message_construct_timestamp'),
+                ColumnValue('original_message'),
+                ColumnValue('constructed_message')
             ]
         )
 
         self.tilde_subscribe = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('tilde_subscribe_timestamp'),
-                Column('subscription'),
-                Column('tilde_message_id')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('tilde_subscribe_timestamp'),
+                ColumnValue('subscription'),
+                ColumnValue('tilde_message_id')
             ]
         )
 
         self.tilde_publish = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('tilde_publish_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('publisher'),
-                Column('message_info_id'),
-                Column('message_id')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('tilde_publish_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('publisher'),
+                ColumnValue('message_info_id'),
+                ColumnValue('message_id')
             ]
         )
         self.sim_time = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('system_time', [ColumnAttribute.SYSTEM_TIME]),
-                Column('sim_time')
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('system_time', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('sim_time')
             ]
         )
         self.timer_event = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('time_event_stamp', [ColumnAttribute.SYSTEM_TIME])
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('time_event_stamp', [ColumnAttribute.SYSTEM_TIME])
             ]
         )
         self.send_transform = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('send_transform_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('broadcaster'),
-                Column('tf_timestamp'),
-                Column('frame_id_compact'),
-                Column('child_frame_id_compact'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('send_transform_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('broadcaster'),
+                ColumnValue('tf_timestamp'),
+                ColumnValue('frame_id_compact'),
+                ColumnValue('child_frame_id_compact'),
             ]
         )
         self.tf_lookup_transform_start = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('lookup_transform_start_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('tf_buffer_core'),
-                Column('tf_lookup_target_time'),
-                Column('frame_id_compact'),
-                Column('child_frame_id_compact'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('lookup_transform_start_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('tf_lookup_target_time'),
+                ColumnValue('frame_id_compact'),
+                ColumnValue('child_frame_id_compact'),
             ]
         )
         self.tf_lookup_transform_end = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('lookup_transform_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('tf_buffer_core'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('lookup_transform_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('tf_buffer_core'),
             ]
         )
-        self.tf_find_closest = RecordsFactory.create_instance(
+        self.tf_buffer_find_closest = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('find_closest_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('tf_buffer_core'),
-                Column('frame_id_compact'),
-                Column('child_frame_id_compact'),
-                Column('stamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('find_closest_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('frame_id_compact'),
+                ColumnValue('child_frame_id_compact'),
+                ColumnValue('stamp'),
             ]
         )
         self.tf_set_transform = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('set_transform_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('tf_buffer_core'),
-                Column('tf_timestamp'),
-                Column('frame_id_compact'),
-                Column('child_frame_id_compact'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('set_transform_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('tf_timestamp'),
+                ColumnValue('frame_id_compact'),
+                ColumnValue('child_frame_id_compact'),
             ]
         )
         self.ring_buffer_enqueue = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('enqueue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('buffer'),
-                Column('message'),
-                Column('size'),
-                Column('is_full'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('enqueue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('buffer'),
+                ColumnValue('message'),
+                ColumnValue('size'),
+                ColumnValue('is_full'),
             ]
         )
         self.ring_buffer_dequeue = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('dequeue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('buffer'),
-                Column('size'),
-                Column('message'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('dequeue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('buffer'),
+                ColumnValue('size'),
+                ColumnValue('message'),
             ]
         )
         self.ring_buffer_clear = RecordsFactory.create_instance(
             None,
             [
-                Column('pid'),
-                Column('tid'),
-                Column('clear_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                Column('buffer'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('clear_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('buffer'),
             ]
         )
 
@@ -1423,7 +1441,7 @@ class Ros2DataModel(DataModel):
         }
         self.rclcpp_callback_register.append(record)
 
-    def add_tf_find_closest(
+    def add_tf_buffer_find_closest(
         self,
         pid: int,
         tid: int,
@@ -1447,7 +1465,7 @@ class Ros2DataModel(DataModel):
                 'stamp': stamp,
             }
         )
-        self.tf_find_closest.append(record)
+        self.tf_buffer_find_closest.append(record)
         if frame_id_compact_ != 0 and frame_id_compact_ != 0:
             record = RecordFactory.create_instance(
                 {
@@ -1458,7 +1476,7 @@ class Ros2DataModel(DataModel):
                     'stamp': stamp_,
                 }
             )
-            self.tf_find_closest.append(record)
+            self.tf_buffer_find_closest.append(record)
 
     def add_tf_set_transform(
         self,

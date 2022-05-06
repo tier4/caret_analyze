@@ -49,6 +49,7 @@ from .value_objects import (
     ServiceCallbackValueLttng,
     SubscriptionValueLttng,
     IntraProcessBufferValueLttng,
+    ClientCallbackValueLttng,
 )
 from ...common import Util
 from ...exceptions import InvalidArgumentError, ItemNotFoundError
@@ -112,7 +113,7 @@ class LttngInfo:
         self._timer_cbs = LttngInfo._load_timer_cbs(self._formatted)
         self._sub_cbs = LttngInfo._load_sub_cbs(self._formatted)
         self._srv_cbs = LttngInfo._load_srv_cbs(self._formatted)
-        self._clt_cbs = LttngInfo._load_clt_cbs(self._formatted)
+        # self._clt_cbs = LttngInfo._load_clt_cbs(self._formatted)
         self._pubs = LttngInfo._load_pubs(self._formatted)
         self._subs = LttngInfo._load_subs(self._formatted)
         callbacks = Callbacks(self._timer_cbs, self._sub_cbs)
@@ -200,8 +201,15 @@ class LttngInfo:
 
     @staticmethod
     def _load_clt_cbs(formatted: DataFrameFormatted) -> Collection:
-        # not implemented yet
-        return Collection()
+        cbs = Collection()
+        return cbs
+
+    def get_client_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ClientCallbackValueLttng]:
+        node_lttng = self._get_node_lttng(node)
+        return self._srv_cbs.gets(node_lttng)
 
     def get_ipc_buffers(
         self,
@@ -299,6 +307,10 @@ class LttngInfo:
             if lookup_node.node_name != node.node_name:
                 continue
 
+            listener_callbacks = self.get_subscription_callbacks(listener_node)
+            assert len(listener_callbacks) == 2  # /tf and /tf_static
+            listener_callback = listener_callbacks[0]
+
             return TransformBufferValueLttng(
                     listener_node_id=listener_node.node_id,
                     listener_node_name=listener_node.node_name,
@@ -306,7 +318,8 @@ class LttngInfo:
                     lookup_node_name=lookup_node.node_name,
                     lookup_transforms=tuple(transforms),
                     listen_transforms=tuple(listen_transforms),
-                    buffer_handler=tf_buffer_core
+                    buffer_handler=tf_buffer_core,
+                    listener_callback=listener_callback
                 )
         return None
 
@@ -344,22 +357,13 @@ class LttngInfo:
 
     def is_intra_process_communication(
         self,
-        comm: CommunicationStructValue
-    ) -> bool:
-        pub_lttng = self._get_pub_lttng(comm.publish_node_name, comm.topic_name)
-        sub_lttng = self._get_sub_lttng(comm.subscribe_node_name, comm.topic_name)
-        return self._is_intra_process_communication(
-            pub_lttng.publisher_handle, sub_lttng.subscription_handle)
-
-    def _is_intra_process_communication(
-        self,
-        publisher_handle: int,
-        subscription_handle: int
+        publisher: PublisherValueLttng,
+        subscription: SubscriptionCallbackValueLttng,
     ) -> bool:
         df = self._formatted.ipm_df
         df = df[
-            (df['publisher_handle'] == publisher_handle) &
-            (df['subscription_handle'] == subscription_handle)
+            (df['publisher_handle'] == publisher._publisher_handle) &
+            (df['subscription_handle'] == subscription._subscription_handle)
         ]
         return len(df) > 0
 
@@ -442,7 +446,6 @@ class LttngInfo:
         sub_df = merge(sub_df, formatted.nodes_df, 'node_handle')
         tilde_sub = formatted.tilde_subscriptions_df
         sub_df = pd.merge(sub_df, tilde_sub, on=['node_name', 'topic_name'], how='left')
-        sub_df = sub_df.astype({'tilde_subscription': 'Int64'})
 
         for _, row in sub_df.iterrows():
             node_name = row['node_name']
@@ -1074,6 +1077,7 @@ class DataFrameFormatted:
         self._timer_callbacks_df = self._build_timer_callbacks_df(data)
         self._sub_callbacks_df = self._build_sub_callbacks_df(data)
         self._srv_callbacks_df = self._build_srv_callbacks_df(data)
+        # self._clt_callbacks_df = self._build_clt_callbacks_df(data)
         self._cbg_df = self._build_cbg_df(data)
         self._pub_df = self._build_publisher_df(data)
         self._tilde_sub = self._build_tilde_subscription_df(data)
@@ -1402,15 +1406,15 @@ class DataFrameFormatted:
         df = pd.merge(
             df,
             data.init_bind_tf_buffer_core.df,
-            left_on='tf_buffer_core',
-            right_on='tf_buffer_core'
+            left_on=['tf_buffer_core', 'pid'],
+            right_on=['tf_buffer_core', 'pid']
         )
 
         lookup_df = data.tf_buffer_lookup_transform.df
         df = pd.merge(
             df,
             lookup_df,
-            on='tf_buffer_core',
+            on=['tf_buffer_core', 'pid'],
         )
 
         cb_columns = ['callback_object', 'node_handle']
@@ -1423,15 +1427,15 @@ class DataFrameFormatted:
         )
         df = pd.merge(
             df, cb_df,
-            left_on='callback',
-            right_on='callback_object',
+            left_on=['callback'],
+            right_on=['callback_object'],
             how='left'
         )
 
         df = pd.merge(
             df,
             node_df,
-            on='node_handle',
+            on=['node_handle'],
             how='left'
         )
         df.rename(
@@ -1442,15 +1446,15 @@ class DataFrameFormatted:
         df = pd.merge(
             df,
             data.construct_node_hook.df,
-            left_on='clock',
-            right_on='clock',
+            left_on=['pid', 'clock'],
+            right_on=['pid', 'clock'],
             how='left'
         )
 
         df = pd.merge(
             df,
             node_df,
-            on='node_handle',
+            on=['node_handle'],
             how='left'
         )
         df.dropna(inplace=True)
@@ -1459,7 +1463,7 @@ class DataFrameFormatted:
             {'node_id': 'lookup_node_id', 'node_handle': 'lookup_node_handle'},
             axis=1, inplace=True)
 
-        return df[columns]
+        return df[columns].drop_duplicates()
 
     @staticmethod
     def _build_publisher_df(
@@ -1675,6 +1679,12 @@ class DataFrameFormatted:
         df = DataFrameFormatted._add_column(df, 'callback_id', callback_id)
 
         return df[columns]
+
+    @staticmethod
+    def _build_clt_callbacks_df(
+        data: Ros2DataModel,
+    ) -> pd.DataFrame:
+        raise NotImplementedError('')
 
     @staticmethod
     def _build_tilde_subscription_df(

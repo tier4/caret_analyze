@@ -32,7 +32,6 @@ from ..value_objects import (
     TransformCommunicationStructValue,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
-    TransformValue,
     VariablePassingStructValue,
 )
 
@@ -144,21 +143,6 @@ class RecordsProvider(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def tf_set_records(
-        self,
-        buffer: TransformFrameBufferStructValue,
-        transform: TransformValue,
-    ) -> RecordsInterface:
-        pass
-
-    @abstractmethod
-    def tf_set_lookup_records(
-        self,
-        buffer: TransformFrameBufferStructValue,
-    ) -> RecordsInterface:
-        pass
-
-    @abstractmethod
     def timer_records(
         self,
         timer: TimerStructValue
@@ -190,7 +174,8 @@ class RuntimeDataProvider(RecordsProvider):
     @abstractmethod
     def is_intra_process_communication(
         self,
-        communication_info: CommunicationStructValue
+        publisher: PublisherStructValue,
+        subscription: SubscriptionStructValue,
     ) -> Optional[bool]:
         pass
 

@@ -18,11 +18,7 @@ from caret_analyze.exceptions import UnsupportedNodeRecordsError
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.bridge import LttngBridge
 from caret_analyze.infra.lttng.column_names import COLUMN_NAME
-from caret_analyze.infra.lttng.records_provider_lttng import (FilteredRecordsSource,
-                                                              NodeRecordsCallbackChain,
-                                                              NodeRecordsInheritUniqueTimestamp,
-                                                              RecordsProviderLttng,
-                                                              RecordsProviderLttngHelper)
+from caret_analyze.infra.lttng.records_provider_lttng import (RecordsProviderLttng)
 from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)

@@ -9,6 +9,7 @@ from .executor import (
 from .subscription import (
     SubscriptionStruct,
     SubscriptionsStruct,
+    IntraProcessBufferStruct,
 )
 from .transform import (
     TransformBroadcasterStruct,
@@ -79,4 +80,5 @@ __all__ = [
     'TimersStruct',
     'CallbackStruct',
     'CallbacksStruct',
+    'IntraProcessBufferStruct',
 ]

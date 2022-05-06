@@ -16,8 +16,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union, Collection
 
 import bt2
 
@@ -30,6 +29,7 @@ from tracetools_analysis.loading import load_file
 from .events_factory import EventsFactory
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
+from .event_filter import LttngEventFilter, InitEventPassFilter, Event
 from .value_objects import (
     PublisherValueLttng,
     SubscriptionCallbackValueLttng,
@@ -53,134 +53,7 @@ from ...value_objects import (
     TimerValue,
     TransformValue,
     CommunicationStructValue,
-    IntraProcessBufferStructValue,
 )
-
-Event = Dict[str, int]
-
-logger = getLogger(__name__)
-
-
-class LttngEventFilter(metaclass=ABCMeta):
-    NAME = '_name'
-    TIMESTAMP = '_timestamp'
-    CPU_ID = '_cpuid'
-    VPID = 'vpid'
-    VTID = 'vtid'
-
-    class Common:
-        start_time: int
-        end_time: int
-
-    @staticmethod
-    def duration_filter(duration_s: float, offset_s: float) -> LttngEventFilter:
-        return EventDurationFilter(duration_s, offset_s)
-
-    @staticmethod
-    def strip_filter(lsplit_s: Optional[float], rsplit_s: Optional[float]) -> LttngEventFilter:
-        return EventStripFilter(lsplit_s, rsplit_s)
-
-    @staticmethod
-    def init_pass_filter() -> LttngEventFilter:
-        return InitEventPassFilter()
-
-    @abstractmethod
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        pass
-
-
-class InitEventPassFilter(LttngEventFilter):
-
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        init_events = {
-            'ros2:rcl_init',
-            'ros2:rcl_node_init',
-            'ros2:rcl_publisher_init',
-            'ros2:rcl_subscription_init',
-            'ros2:rclcpp_subscription_init',
-            'ros2:rclcpp_subscription_callback_added',
-            'ros2:rcl_service_init',
-            'ros2:rclcpp_service_callback_added',
-            'ros2:rcl_client_init',
-            'ros2:rcl_timer_init',
-            'ros2:rclcpp_timer_callback_added',
-            'ros2:rclcpp_timer_link_node',
-            'ros2:rclcpp_callback_register',
-            'ros2:rcl_lifecycle_state_machine_init',
-            'ros2:rcl_lifecycle_transition',
-            'ros2_caret:rmw_implementation',
-            'ros2_caret:add_callback_group',
-            'ros2_caret:add_callback_group_static_executor',
-            'ros2_caret:construct_executor',
-            'ros2_caret:construct_static_executor',
-            'ros2_caret:callback_group_add_timer',
-            'ros2_caret:callback_group_add_subscription',
-            'ros2_caret:callback_group_add_service',
-            'ros2_caret:callback_group_add_client',
-            'ros2_caret:tilde_subscription_init',
-            'ros2_caret:tilde_publisher_init',
-            'ros2_caret:tilde_subscribe_added',
-            'ros2_caret:construct_tf_buffer',
-            'ros2_caret:construct_node_hook',
-            'init_bind_transform_broadcaster',
-            'ros2_caret:init_bind_transform_broadcaster_frames',
-            'ros2_caret:init_tf_broadcaster_frame_id_compact',
-            'ros2_caret:init_tf_buffer_frame_id_compact',
-            'ros2_caret:init_bind_tf_buffer_cache',
-            'ros2_caret:init_bind_tf_buffer_core',
-            'ros2_caret:init_tf_buffer_lookup_transform',
-            'ros2:construct_ring_buffer',
-            'ros2_caret:ipm_insert_sub_id_for_pub',
-            'ros2_caret:ipm_add_subscription',
-            'ros2_caret:ipm_add_publisher',
-            'ros2_caret:construct_ipm',
-        }
-
-        return event[self.NAME] in init_events
-
-
-class EventStripFilter(LttngEventFilter):
-    def __init__(
-        self,
-        lstrip_s: Optional[float],
-        rstrip_s: Optional[float]
-    ) -> None:
-        self._lstrip = lstrip_s
-        self._rstrip = rstrip_s
-        self._init_events = InitEventPassFilter()
-
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        if self._init_events.accept(event, common):
-            return True
-
-        if self._lstrip:
-            diff_ns = event[self.TIMESTAMP] - common.start_time
-            diff_s = diff_ns * 1.0e-9
-            if diff_s < self._lstrip:
-                return False
-
-        if self._rstrip:
-            diff_ns = common.end_time - event[self.TIMESTAMP]
-            diff_s = diff_ns * 1.0e-9
-            if diff_s < self._rstrip:
-                return False
-        return True
-
-
-class EventDurationFilter(LttngEventFilter):
-
-    def __init__(self, duration_s: float, offset_s: float) -> None:
-        self._duration = duration_s
-        self._offset = offset_s
-        self._init_events = InitEventPassFilter()
-
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        if self._init_events.accept(event, common):
-            return True
-
-        elapsed_ns = event[self.TIMESTAMP] - common.start_time
-        elapsed_s = elapsed_ns * 1.0e-9
-        return self._offset <= elapsed_s and elapsed_s < (self._offset + self._duration)
 
 
 class Lttng(InfraBase):
@@ -506,8 +379,9 @@ class Lttng(InfraBase):
 
     def ipc_buffer_records(
         self,
+        buffer: IntraProcessBufferValueLttng
     ) -> RecordsInterface:
-        return self._source.ipc_buffer_records()
+        return self._source.ipc_buffer_records(buffer).clone()
 
     def get_count(
         self,
@@ -529,12 +403,25 @@ class Lttng(InfraBase):
 
     def is_intra_process_communication(
         self,
-        comm: CommunicationStructValue
+        publisher: PublisherValueLttng,
+        subscription: SubscriptionCallbackValueLttng
     ) -> bool:
-        return self._info.is_intra_process_communication(comm)
+        return self._info.is_intra_process_communication(publisher, subscription)
 
-    def compose_inter_proc_comm_records(
+    def get_inter_proc_tf_comm_records(
         self,
+        broadcaster: TransformBroadcasterValueLttng,
+        listen_transform: TransformValue,
+        buffer: TransformBufferValueLttng,
+        lookup_transform: TransformValue,
+    ) -> RecordsInterface:
+        return self._source.get_inter_proc_tf_comm_records(
+            broadcaster, listen_transform, buffer, lookup_transform)
+
+    def get_inter_proc_comm_records(
+        self,
+        publisher: PublisherValueLttng,
+        callback: SubscriptionCallbackValueLttng,
     ) -> RecordsInterface:
         """
         Compose inter process communication records of all communications in one records.
@@ -551,64 +438,80 @@ class Lttng(InfraBase):
             - dds_write_timestamp (Optional)
 
         """
-        return self._source.inter_proc_comm_records.clone()
+        return self._source.inter_proc_comm_records(publisher, callback).clone()
 
-    def compose_intra_proc_comm_records(
+    def get_intra_proc_comm_records(
         self,
+        publisher: PublisherValueLttng,
+        buffer: IntraProcessBufferValueLttng,
+        callback: SubscriptionCallbackValueLttng,
     ) -> RecordsInterface:
         """
-        Compose intra process communication records of all communications in one records.
+        Compose inter process communication records of all communications in one records.
 
         Returns
         -------
         RecordsInterface
-            columns:
+            columns
             - callback_object
             - callback_start_timestamp
             - publisher_handle
             - rclcpp_publish_timestamp
-            - message_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
 
         """
-        return self._source.intra_proc_comm_records.clone()
+        return self._source.intra_proc_comm_records(publisher, buffer, callback).clone()
 
-    def compose_callback_records(
+    def get_callback_records(
         self,
+        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
     ) -> RecordsInterface:
-        """
-        Compose callback records of all communications in one records.
+        return self._source.callback_records(callback).clone()
 
-        Returns
-        -------
-        RecordsInterface
-            columns:
-            - callback_start_timestamp
-            - callback_end_timestamp
-            - is_intra_process
-            - callback_object
-
-        """
-        return self._source.callback_records.clone()
-
-    def compose_publish_records(
+    def get_node_use_latest_message(
         self,
+        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng],
+        publisher: PublisherValueLttng
     ) -> RecordsInterface:
-        return self._source.publish_records.clone()
+        return self._source.node_use_latest_message(callback, publisher)
 
-    def compose_intra_publish_records(
+    def get_node_callback_chain(
         self,
+        callbacks: Collection[Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]],
+        publisher: PublisherValueLttng,
     ) -> RecordsInterface:
-        return self._source.intra_publish_records().clone()
+        return self._source.node_callback_chain(callbacks, publisher)
 
-    def compose_subscribe_records(
+    def get_publish_records(
         self,
+        publisher: PublisherValueLttng
     ) -> RecordsInterface:
-        return self._source.subscribe_records.clone()
+        return self._source.publish_records(publisher).clone()
 
-    def compose_intra_subscribe_records(
+    def get_intra_publish_records(
         self,
+        publisher: PublisherValueLttng
     ) -> RecordsInterface:
-        return self._source.intra_subscribe_records.clone()
+        return self._source.intra_publish_records(publisher).clone()
+
+    def get_timer_callback(
+        self,
+        callback: TimerCallbackValueLttng,
+    ) -> RecordsInterface:
+        return self._source.timer_callback(callback)
+
+    def get_subscribe_records(
+        self,
+        subscription: SubscriptionCallbackValueLttng
+    ) -> RecordsInterface:
+        return self._source.subscribe_records(subscription).clone()
+
+    def get_intra_subscribe_records(
+        self,
+        subscription: SubscriptionCallbackValueLttng
+    ) -> RecordsInterface:
+        return self._source.intra_subscribe_records(subscription).clone()
 
     def create_timer_events_factory(
         self,
@@ -626,22 +529,79 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.tilde_subscribe_records.clone()
 
-    def compose_send_transform(
+    def get_send_transform(
         self,
+        broadcaster: TransformBroadcasterValueLttng,
+        transform: TransformValue,
     ) -> RecordsInterface:
-        return self._source.send_transform_records(self.tf_frame_id_mapper).clone()
+        return self._source.send_transform_records(
+            self.tf_frame_id_mapper, broadcaster, transform).clone()
 
-    def compose_lookup_transform(
+    def get_lookup_transform(
         self,
+        buffer: TransformBufferValueLttng,
+        transform: TransformValue,
     ) -> RecordsInterface:
-        return self._source.lookup_transform_records(self.tf_frame_id_mapper).clone()
+        return self._source.lookup_transform_records(
+            self.tf_frame_id_mapper, buffer, transform).clone()
 
-    def compose_set_transform(
+    def get_set_transform(
         self,
+        buffer: TransformBufferValueLttng,
+        transform: TransformValue,
     ) -> RecordsInterface:
-        return self._source.set_transform_records(self.tf_frame_id_mapper).clone()
+        return self._source.set_transform_records(
+            self.tf_frame_id_mapper, buffer, transform).clone()
 
-    def compose_find_closest(
+    def get_node_tilde(
         self,
+        node: NodePat
     ) -> RecordsInterface:
-        return self._source.find_closest_records(self.tf_frame_id_mapper).clone()
+
+        tilde_records = self._provider.tilde_records(
+            self._node_path.subscription, self._node_path.publisher)
+        sub_records = self._provider.subscribe_records(self._node_path.subscription)
+        pub_records = self._provider.publish_records(self._node_path.publisher)
+
+        left_stamp_key = Util.find_one(
+            lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, sub_records.columns)
+        right_stamp_key = Util.find_one(
+            lambda x: COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in x, sub_records.columns)
+
+        records = merge(
+            left_records=sub_records,
+            right_records=tilde_records,
+            join_left_key=right_stamp_key,
+            join_right_key=right_stamp_key,
+            columns=Columns(sub_records.columns + tilde_records.columns).as_list(),
+            how='left',
+            progress_label='binding tilde subscribe records.'
+        )
+
+        left_stamp_key = Util.find_one(
+            lambda x: COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in x, records.columns)
+
+        records = merge(
+            left_records=records,
+            right_records=pub_records,
+            join_left_key=left_stamp_key,
+            join_right_key=left_stamp_key,
+            columns=Columns(records.columns + pub_records.columns).as_list(),
+            how='left',
+            progress_label='binding tilde publish records.'
+        )
+
+        columns = [
+            Util.find_one(lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns),
+            Util.find_one(lambda x: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in x, records.columns),
+        ]
+
+        drop_columns = list(set(records.columns) - set(columns))
+        records.drop_columns(drop_columns)
+        records.reindex(columns)
+
+    def get_find_closest(
+        self,
+        buffer: TransformBufferValueLttng,
+    ) -> RecordsInterface:
+        return self._source.find_closest_records(self.tf_frame_id_mapper, buffer).clone()

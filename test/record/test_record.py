@@ -17,7 +17,7 @@ from typing import Any, Optional
 
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.record import (
-    Column,
+    ColumnValue,
     merge,
     Record,
     RecordInterface,
@@ -200,19 +200,19 @@ class TestRecords:
             Records([Record({'a': 1})], None)
 
         with pytest.raises(InvalidArgumentError):
-            Records(None, [Column('a'), Column('a')])
+            Records(None, [ColumnValue('a'), ColumnValue('a')])
 
         RecordsCppImpl()
         with pytest.raises(InvalidArgumentError):
             RecordsCppImpl([RecordCppImpl({'a': 1})], None)
 
         with pytest.raises(InvalidArgumentError):
-            RecordsCppImpl(None, [Column('a'), Column('a')])
+            RecordsCppImpl(None, [ColumnValue('a'), ColumnValue('a')])
 
     def test_columns(self):
         columns = [
-            Column('value'),
-            Column('stamp'),
+            ColumnValue('value'),
+            ColumnValue('stamp'),
         ]
 
         for records_type in [Records, RecordsCppImpl]:
@@ -229,8 +229,8 @@ class TestRecords:
                 Record({'value': 2, 'stamp': 4}),
             ],
             [
-                Column('value'),
-                Column('stamp')
+                ColumnValue('value'),
+                ColumnValue('stamp')
             ]
         )
         expects_cpp = to_cpp_records(expects_py)
@@ -248,8 +248,8 @@ class TestRecords:
                 Record({'value': 2, 'stamp': 4}),
             ],
             [
-                Column('value'),
-                Column('stamp')
+                ColumnValue('value'),
+                ColumnValue('stamp')
             ]
         )
         expects_cpp = to_cpp_records(expects_py)
@@ -266,8 +266,8 @@ class TestRecords:
                 Record({'value': 2, 'stamp': 4}),
             ],
             [
-                Column('value'),
-                Column('stamp')
+                ColumnValue('value'),
+                ColumnValue('stamp')
             ]
         )
         expects_cpp = to_cpp_records(expects_py)
@@ -275,7 +275,7 @@ class TestRecords:
                 zip([expects_py, expects_cpp], [Record, RecordCppImpl], [Records, RecordsCppImpl]):
             if records_type == RecordsCppImpl and not CppImplEnabled:
                 continue
-            records = records_type(None, [Column('value'), Column('stamp')])
+            records = records_type(None, [ColumnValue('value'), ColumnValue('stamp')])
             records.append(expects.data[0])
             records.append(expects.data[1])
             assert records.equals(expects)
@@ -291,8 +291,8 @@ class TestRecords:
                 Record({key: 2, value: 5}),
             ],
             [
-                Column(key),
-                Column(value)
+                ColumnValue(key),
+                ColumnValue(value)
             ]
         )
 
@@ -333,8 +333,8 @@ class TestRecords:
                 Record(),
             ],
             [
-                Column('stamp'),
-                Column('aaa')
+                ColumnValue('stamp'),
+                ColumnValue('aaa')
             ]
         )
 
@@ -394,8 +394,8 @@ class TestRecords:
                 Record({'AAA': 0, 'BBB': 0}),
             ],
             [
-                Column('AAA'),
-                Column('BBB')
+                ColumnValue('AAA'),
+                ColumnValue('BBB')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -431,7 +431,7 @@ class TestRecords:
                 Record({'stamp': 0}),
             ],
             [
-                Column('stamp')
+                ColumnValue('stamp')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -442,7 +442,7 @@ class TestRecords:
             records_ = records.clone()
             with pytest.raises(ItemNotFoundError):
                 records_.get_column('aaa')
-            records_.append_column(Column('aaa'), [9])
+            records_.append_column(ColumnValue('aaa'), [9])
             records_.get_column('aaa')
             assert records_.column_names == ['stamp', 'aaa']
             assert records.column_names == ['stamp']
@@ -457,7 +457,7 @@ class TestRecords:
                 Record({key: 2}),
             ],
             [
-                Column(key)
+                ColumnValue(key)
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -488,7 +488,7 @@ class TestRecords:
                     record_type({'a': 1}),
                 ],
                 [
-                    Column('a')
+                    ColumnValue('a')
                 ]
             )
             records_right = records_type(
@@ -498,24 +498,24 @@ class TestRecords:
                     record_type({'b': 5}),
                 ],
                 [
-                    Column('b')
+                    ColumnValue('b')
                 ]
             )
 
             records_expect = records_type(
                 records_left.data + records_right.data,
                 [
-                    Column('a'),
-                    Column('b')
+                    ColumnValue('a'),
+                    ColumnValue('b')
                 ]
             )
 
-            records_concat = Records(None, [Column('a'), Column('b')])
+            records_concat = Records(None, [ColumnValue('a'), ColumnValue('b')])
             records_concat.concat(records_left)
             records_concat.concat(records_right)
             assert records_concat.equals(records_expect)
 
-            records_concat = Records(None, [Column('a')])
+            records_concat = Records(None, [ColumnValue('a')])
             with pytest.raises(InvalidArgumentError):
                 records_concat.concat(records_right)
 
@@ -533,9 +533,9 @@ class TestRecords:
                     record_type({'sort_key': 5}),
                 ],
                 [
-                    Column('sort_key'),
-                    Column('stamp'),
-                    Column('stamp_')
+                    ColumnValue('sort_key'),
+                    ColumnValue('stamp'),
+                    ColumnValue('stamp_')
                 ]
             )
             records.bind_drop_as_delay()
@@ -548,9 +548,9 @@ class TestRecords:
                     record_type({'sort_key': 5}),
                 ],
                 [
-                    Column('sort_key'),
-                    Column('stamp'),
-                    Column('stamp_')
+                    ColumnValue('sort_key'),
+                    ColumnValue('stamp'),
+                    ColumnValue('stamp_')
                 ]
             )
 
@@ -564,9 +564,9 @@ class TestRecords:
                 Record({'c': 2, 'a': 5}),
             ],
             [
-                Column('b'),
-                Column('a'),
-                Column('c')
+                ColumnValue('b'),
+                ColumnValue('a'),
+                ColumnValue('c')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -596,8 +596,8 @@ class TestRecords:
                 Record({'a': 3}),
             ],
             [
-                Column('a', mapper=mapper),
-                Column('b')
+                ColumnValue('a', mapper=mapper),
+                ColumnValue('b')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -625,7 +625,7 @@ class TestRecords:
                 Record({'a': 3}),
                 Record({'a': 5}),
             ],
-            [Column('a')]
+            [ColumnValue('a')]
         )
         records_cpp = to_cpp_records(records_py)
 
@@ -644,8 +644,8 @@ class TestRecords:
                 Record({'a': 5}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -668,8 +668,8 @@ class TestRecords:
                 Record({'a': 5}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -693,8 +693,8 @@ class TestRecords:
                 Record({'a': 5, 'b': 3}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
         expect = {}
@@ -704,8 +704,8 @@ class TestRecords:
                 Record({'a': 0, 'b': 2}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
 
@@ -714,8 +714,8 @@ class TestRecords:
                 Record({'a': 5, 'b': 3}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
 
@@ -745,8 +745,8 @@ class TestRecords:
                 Record({'a': 5, 'b': 3}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
         expect = {}
@@ -755,8 +755,8 @@ class TestRecords:
                 Record({'a': 0, 'b': 1}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
 
@@ -765,8 +765,8 @@ class TestRecords:
                 Record({'a': 5, 'b': 3}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
         expect[(2**64-1,)] = Records(
@@ -774,8 +774,8 @@ class TestRecords:
                 Record({'b': 2}),
             ],
             [
-                Column('a'),
-                Column('b')
+                ColumnValue('a'),
+                ColumnValue('b')
             ]
         )
 
@@ -806,9 +806,9 @@ class TestRecords:
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
 
@@ -818,9 +818,9 @@ class TestRecords:
                 Record({'a': 0, 'b': 1, 'c': 2}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
         expect[(0, 3)] = Records(
@@ -828,9 +828,9 @@ class TestRecords:
                 Record({'a': 0, 'b': 2, 'c': 3}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
         expect[(5, 3)] = Records(
@@ -839,9 +839,9 @@ class TestRecords:
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
 
@@ -872,9 +872,9 @@ class TestRecords:
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
 
@@ -884,9 +884,9 @@ class TestRecords:
                 Record({'a': 0, 'b': 1, 'c': 2}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
         expect[(0, 2, 3)] = Records(
@@ -894,9 +894,9 @@ class TestRecords:
                 Record({'a': 0, 'b': 2, 'c': 3}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
         expect[(5, 3, 3)] = Records(
@@ -904,9 +904,9 @@ class TestRecords:
                 Record({'a': 5, 'b': 3, 'c': 3}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
         expect[(5, 4, 3)] = Records(
@@ -914,9 +914,9 @@ class TestRecords:
                 Record({'a': 5, 'b': 4, 'c': 3}),
             ],
             [
-                Column('a'),
-                Column('b'),
-                Column('c')
+                ColumnValue('a'),
+                ColumnValue('b'),
+                ColumnValue('c')
             ]
         )
 
@@ -942,7 +942,7 @@ class TestRecords:
             [
                 Record({'value': 0}),
             ],
-            [Column('value')]
+            [ColumnValue('value')]
         )
 
         expects_cpp = to_cpp_records(expects_py)
@@ -952,7 +952,7 @@ class TestRecords:
                 continue
             records = records_type([record_type()], [])
             assert records.columns == []
-            records.append_column(Column('value'), [0])
+            records.append_column(ColumnValue('value'), [0])
             assert records.equals(expects)
 
     def test_get_column(self):
@@ -960,7 +960,7 @@ class TestRecords:
             [
                 Record({'value': 0}),
             ],
-            [Column('value')]
+            [ColumnValue('value')]
         )
 
         records_cpp = to_cpp_records(records_py)
@@ -983,7 +983,7 @@ class TestRecords:
                     record_type({key: 0}),
                     record_type({key: 1}),
                 ],
-                [Column(key)]
+                [ColumnValue(key)]
             )
             records_asc = records_type(
                 [
@@ -991,7 +991,7 @@ class TestRecords:
                     record_type({key: 1}),
                     record_type({key: 2}),
                 ],
-                [Column(key)]
+                [ColumnValue(key)]
             )
             records_desc = records_type(
                 [
@@ -999,7 +999,7 @@ class TestRecords:
                     record_type({key: 1}),
                     record_type({key: 0}),
                 ],
-                [Column(key)]
+                [ColumnValue(key)]
             )
             records_ = records.clone()
             records_.sort(key, ascending=True)
@@ -1028,9 +1028,9 @@ class TestRecords:
                     record_type({key: 1}),
                 ],
                 [
-                    Column(key),
-                    Column(key_),
-                    Column(key__)
+                    ColumnValue(key),
+                    ColumnValue(key_),
+                    ColumnValue(key__)
                 ]
             )
             records_asc = records_type(
@@ -1043,9 +1043,9 @@ class TestRecords:
                     record_type({key: 2, key_: 2}),
                 ],
                 [
-                    Column(key),
-                    Column(key_),
-                    Column(key__)
+                    ColumnValue(key),
+                    ColumnValue(key_),
+                    ColumnValue(key__)
                 ]
             )
             records_desc = records_type(
@@ -1058,9 +1058,9 @@ class TestRecords:
                     record_type({key: 0, key_: 5, key__: 5}),
                 ],
                 [
-                    Column(key),
-                    Column(key_),
-                    Column(key__)
+                    ColumnValue(key),
+                    ColumnValue(key_),
+                    ColumnValue(key__)
                 ]
             )
             records_ = records.clone()
@@ -1087,8 +1087,8 @@ class TestRecords:
                     record_type({key: 1, sub_key: 3}),
                 ],
                 [
-                    Column(key),
-                    Column(sub_key)
+                    ColumnValue(key),
+                    ColumnValue(sub_key)
                 ]
             )
             records_asc = records_type(
@@ -1099,8 +1099,8 @@ class TestRecords:
                     record_type({key: 2, sub_key: 2}),
                 ],
                 [
-                    Column(key),
-                    Column(sub_key)
+                    ColumnValue(key),
+                    ColumnValue(sub_key)
                 ]
             )
             records_desc = records_type(
@@ -1111,8 +1111,8 @@ class TestRecords:
                     record_type({key: 0, sub_key: 5}),
                 ],
                 [
-                    Column(key),
-                    Column(sub_key)
+                    ColumnValue(key),
+                    ColumnValue(sub_key)
                 ]
             )
             records_ = records.clone()
@@ -1132,14 +1132,14 @@ class TestRecords:
                         Record({'stamp': 0}),
                         Record({'stamp': 1}),
                     ],
-                    [Column('stamp')]
+                    [ColumnValue('stamp')]
                 ),
                 Records(
                     [
                         Record({'stamp': 0}),
                         Record({'stamp': 1}),
                     ],
-                    [Column('stamp')]
+                    [ColumnValue('stamp')]
                 ),
                 True,
             ),
@@ -1148,13 +1148,13 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 5, 'stamp_': 6}),
-                    ], [Column('stamp'), Column('stamp_')]
+                    ], [ColumnValue('stamp'), ColumnValue('stamp_')]
                 ),
                 Records(
                     [
                         Record({'stamp_': 1, 'stamp': 0}),
                         Record({'stamp_': 6, 'stamp': 5}),
-                    ], [Column('stamp_'), Column('stamp')]
+                    ], [ColumnValue('stamp_'), ColumnValue('stamp')]
                 ),
                 False,
             ),
@@ -1163,13 +1163,13 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 5, 'stamp_': 7}),
-                    ], [Column('stamp'), Column('stamp_')]
+                    ], [ColumnValue('stamp'), ColumnValue('stamp_')]
                 ),
                 Records(
                     [
                         Record({'stamp_': 1, 'stamp': 0}),
                         Record({'stamp_': 6, 'stamp': 5}),
-                    ], [Column('stamp'), Column('stamp_')]
+                    ], [ColumnValue('stamp'), ColumnValue('stamp_')]
                 ),
                 False,
             ),
@@ -1178,13 +1178,13 @@ class TestRecords:
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 5, 'stamp_': 7}),
-                    ], [Column('stamp'), Column('stamp_'), Column('stamp__')]
+                    ], [ColumnValue('stamp'), ColumnValue('stamp_'), ColumnValue('stamp__')]
                 ),
                 Records(
                     [
                         Record({'stamp_': 1, 'stamp': 0}),
                         Record({'stamp_': 6, 'stamp': 5}),
-                    ], [Column('stamp'), Column('stamp_')]
+                    ], [ColumnValue('stamp'), ColumnValue('stamp_')]
                 ),
                 False,
             ),
@@ -1192,13 +1192,13 @@ class TestRecords:
                 Records(
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
-                    ], [Column('stamp'), Column('stamp_')]
+                    ], [ColumnValue('stamp'), ColumnValue('stamp_')]
                 ),
                 Records(
                     [
                         Record({'stamp': 0, 'stamp_': 1}),
                         Record({'stamp': 0, 'stamp_': 7}),
-                    ], [Column('stamp'), Column('stamp_')]
+                    ], [ColumnValue('stamp'), ColumnValue('stamp_')]
                 ),
                 False,
             ),
@@ -1221,10 +1221,10 @@ class TestRecords:
                 Record({'b': 4, 'c': 5}),
             ],
             [
-                Column('b'),
-                Column('c'),
-                Column('d'),
-                Column('a')
+                ColumnValue('b'),
+                ColumnValue('c'),
+                ColumnValue('d'),
+                ColumnValue('a')
             ]
         )
         records_cpp = to_cpp_records(records_py)
@@ -1263,10 +1263,10 @@ class TestRecords:
                                'stamp': 10, 'stamp_': 11}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1289,10 +1289,10 @@ class TestRecords:
                         Record({'value_left': 40, 'stamp': 7}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1315,10 +1315,10 @@ class TestRecords:
                         Record({'value_right': 50, 'stamp_': 10}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1342,10 +1342,10 @@ class TestRecords:
                         Record({'value_right': 50, 'stamp_': 10}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1362,8 +1362,8 @@ class TestRecords:
                 Record({'stamp': 10, 'value_left': 70}),
             ],
             [
-                Column('stamp', []),
-                Column('value_left', []),
+                ColumnValue('stamp', []),
+                ColumnValue('value_left', []),
             ]
         )
 
@@ -1377,8 +1377,8 @@ class TestRecords:
                 Record({'stamp_': 11, 'value_right': 70}),
             ],
             [
-                Column('stamp_', []),
-                Column('value_right', []),
+                ColumnValue('stamp_', []),
+                ColumnValue('value_right', []),
             ]
         )
 
@@ -1429,12 +1429,12 @@ class TestRecords:
                         Record({'k0': 3, 'k1': 20, 'k0_': 3, 'k1_': 20, 'value': 200, 'value_': 310}),
                     ],
                     [
-                        Column('k0'),
-                        Column('k1'),
-                        Column('value'),
-                        Column('k0_'),
-                        Column('k1_'),
-                        Column('value_')
+                        ColumnValue('k0'),
+                        ColumnValue('k1'),
+                        ColumnValue('value'),
+                        ColumnValue('k0_'),
+                        ColumnValue('k1_'),
+                        ColumnValue('value_')
                     ]
                 ),
             ),
@@ -1451,9 +1451,9 @@ class TestRecords:
                 Record({'value': 600}),
             ],
             [
-                Column('k0'),
-                Column('k1'),
-                Column('value'),
+                ColumnValue('k0'),
+                ColumnValue('k1'),
+                ColumnValue('value'),
             ]
         )
 
@@ -1467,9 +1467,9 @@ class TestRecords:
                 Record({'value_': 610}),
             ],
             [
-                Column('k0_'),
-                Column('k1_'),
-                Column('value_'),
+                ColumnValue('k0_'),
+                ColumnValue('k1_'),
+                ColumnValue('value_'),
             ]
         )
 
@@ -1514,10 +1514,10 @@ class TestRecords:
                         Record({'k0': 3, 'k1': 20, 'value': 200, 'value_': 310}),
                     ],
                     [
-                        Column('k0'),
-                        Column('k1'),
-                        Column('value'),
-                        Column('value_')
+                        ColumnValue('k0'),
+                        ColumnValue('k1'),
+                        ColumnValue('value'),
+                        ColumnValue('value_')
                     ]
                 ),
             ),
@@ -1534,9 +1534,9 @@ class TestRecords:
                 Record({'value': 600}),
             ],
             [
-                Column('k0'),
-                Column('k1'),
-                Column('value'),
+                ColumnValue('k0'),
+                ColumnValue('k1'),
+                ColumnValue('value'),
             ]
         )
 
@@ -1550,9 +1550,9 @@ class TestRecords:
                 Record({'value_': 610}),
             ],
             [
-                Column('k0'),
-                Column('k1'),
-                Column('value_'),
+                ColumnValue('k0'),
+                ColumnValue('k1'),
+                ColumnValue('value_'),
             ]
         )
 
@@ -1612,12 +1612,12 @@ class TestRecords:
                         ),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1649,12 +1649,12 @@ class TestRecords:
                         Record({'other_stamp': 16}),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1686,12 +1686,12 @@ class TestRecords:
                         Record({'other_stamp_': 14}),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1725,12 +1725,12 @@ class TestRecords:
                         Record({'other_stamp_': 14}),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -1745,9 +1745,9 @@ class TestRecords:
                 Record({'other_stamp': 16}),
             ],
             [
-                Column('other_stamp'),
-                Column('stamp'),
-                Column('value_left'),
+                ColumnValue('other_stamp'),
+                ColumnValue('stamp'),
+                ColumnValue('value_left'),
             ]
         )
 
@@ -1759,9 +1759,9 @@ class TestRecords:
                 Record({'other_stamp_': 14}),
             ],
             [
-                Column('other_stamp_'),
-                Column('stamp_'),
-                Column('value_right'),
+                ColumnValue('other_stamp_'),
+                ColumnValue('stamp_'),
+                ColumnValue('value_right'),
             ]
         )
 
@@ -1800,10 +1800,10 @@ class TestRecords:
                         Record({'key_left': 2, 'key_right': 2, 'stamp': 1, 'sub_stamp': 2}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1817,10 +1817,10 @@ class TestRecords:
                         Record({'key_left': 2, 'stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1836,10 +1836,10 @@ class TestRecords:
                         Record({'key_left': 2, 'stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1853,10 +1853,10 @@ class TestRecords:
                         Record({'key_right': 2, 'sub_stamp': 5}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1872,10 +1872,10 @@ class TestRecords:
                         Record({'key_left': 2, 'stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1890,8 +1890,8 @@ class TestRecords:
                 Record({'key_left': 2, 'stamp': 7}),
             ],
             [
-                Column('key_left'),
-                Column('stamp')
+                ColumnValue('key_left'),
+                ColumnValue('stamp')
             ]
         )
 
@@ -1903,8 +1903,8 @@ class TestRecords:
                 Record({'key_right': 2, 'sub_stamp': 5}),
             ],
             [
-                Column('key_right'),
-                Column('sub_stamp')
+                ColumnValue('key_right'),
+                ColumnValue('sub_stamp')
             ]
         )
 
@@ -1938,9 +1938,9 @@ class TestRecords:
                         Record({'key': 2, 'stamp': 1, 'sub_stamp': 2}),
                     ],
                     [
-                        Column('key'),
-                        Column('stamp'),
-                        Column('sub_stamp')
+                        ColumnValue('key'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1954,9 +1954,9 @@ class TestRecords:
                         Record({'key': 2, 'stamp': 7}),
                     ],
                     [
-                        Column('key'),
-                        Column('stamp'),
-                        Column('sub_stamp')
+                        ColumnValue('key'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1972,9 +1972,9 @@ class TestRecords:
                         Record({'key': 2, 'stamp': 7}),
                     ],
                     [
-                        Column('key'),
-                        Column('stamp'),
-                        Column('sub_stamp')
+                        ColumnValue('key'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -1988,9 +1988,9 @@ class TestRecords:
                         Record({'key': 2, 'sub_stamp': 5}),
                     ],
                     [
-                        Column('key'),
-                        Column('stamp'),
-                        Column('sub_stamp')
+                        ColumnValue('key'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2006,9 +2006,9 @@ class TestRecords:
                         Record({'key': 2, 'stamp': 7}),
                     ],
                     [
-                        Column('key'),
-                        Column('stamp'),
-                        Column('sub_stamp')
+                        ColumnValue('key'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2023,8 +2023,8 @@ class TestRecords:
                 Record({'key': 2, 'stamp': 7}),
             ],
             [
-                Column('key'),
-                Column('stamp'),
+                ColumnValue('key'),
+                ColumnValue('stamp'),
             ]
         )
 
@@ -2036,8 +2036,8 @@ class TestRecords:
                 Record({'key': 2, 'sub_stamp': 5}),
             ],
             [
-                Column('key'),
-                Column('sub_stamp'),
+                ColumnValue('key'),
+                ColumnValue('sub_stamp'),
             ]
         )
 
@@ -2071,10 +2071,10 @@ class TestRecords:
                         Record({'stamp': 5, 'k0': 2, 'k1': 3, 'sub_stamp': 7}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('k0'),
-                        Column('k1'),
-                        Column('sub_stamp')
+                        ColumnValue('stamp'),
+                        ColumnValue('k0'),
+                        ColumnValue('k1'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2089,10 +2089,10 @@ class TestRecords:
                         Record({'stamp': 8}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('k0'),
-                        Column('k1'),
-                        Column('sub_stamp')
+                        ColumnValue('stamp'),
+                        ColumnValue('k0'),
+                        ColumnValue('k1'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2107,10 +2107,10 @@ class TestRecords:
                         Record({'stamp': 8}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('k0'),
-                        Column('k1'),
-                        Column('sub_stamp')
+                        ColumnValue('stamp'),
+                        ColumnValue('k0'),
+                        ColumnValue('k1'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2123,10 +2123,10 @@ class TestRecords:
                         Record({'sub_stamp': 6, 'k1': 3}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('k0'),
-                        Column('k1'),
-                        Column('sub_stamp')
+                        ColumnValue('stamp'),
+                        ColumnValue('k0'),
+                        ColumnValue('k1'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2142,10 +2142,10 @@ class TestRecords:
                         Record({'stamp': 8}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('k0'),
-                        Column('k1'),
-                        Column('sub_stamp')
+                        ColumnValue('stamp'),
+                        ColumnValue('k0'),
+                        ColumnValue('k1'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2161,9 +2161,9 @@ class TestRecords:
                 Record({'stamp': 8}),
             ],
             [
-                Column('stamp'),
-                Column('k0'),
-                Column('k1'),
+                ColumnValue('stamp'),
+                ColumnValue('k0'),
+                ColumnValue('k1'),
             ]
         )
 
@@ -2174,9 +2174,9 @@ class TestRecords:
                 Record({'sub_stamp': 7, 'k0': 2, 'k1': 3}),
             ],
             [
-                Column('sub_stamp'),
-                Column('k0'),
-                Column('k1'),
+                ColumnValue('sub_stamp'),
+                ColumnValue('k0'),
+                ColumnValue('k1'),
             ]
         )
 
@@ -2210,8 +2210,8 @@ class TestRecords:
                         Record({'stamp': 5, 'sub_stamp': 6}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('sub_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp'),
                     ]
                 ),
             ),
@@ -2226,8 +2226,8 @@ class TestRecords:
                         Record({'stamp': 8}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('sub_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp'),
                     ]
                 ),
             ),
@@ -2243,8 +2243,8 @@ class TestRecords:
                         Record({'stamp': 8}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('sub_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp'),
                     ]
                 ),
             ),
@@ -2257,8 +2257,8 @@ class TestRecords:
                         Record({'sub_stamp': 7}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('sub_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp'),
                     ]
                 ),
             ),
@@ -2274,8 +2274,8 @@ class TestRecords:
                         Record({'stamp': 8}),
                     ],
                     [
-                        Column('stamp'),
-                        Column('sub_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('sub_stamp'),
                     ]
                 ),
             ),
@@ -2291,7 +2291,7 @@ class TestRecords:
                 Record({'stamp': 8}),
             ],
             [
-                Column('stamp'),
+                ColumnValue('stamp'),
             ]
         )
 
@@ -2302,7 +2302,7 @@ class TestRecords:
                 Record({'sub_stamp': 7}),
             ],
             [
-                Column('sub_stamp'),
+                ColumnValue('sub_stamp'),
             ]
         )
 
@@ -2356,10 +2356,10 @@ class TestRecords:
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2373,10 +2373,10 @@ class TestRecords:
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2394,10 +2394,10 @@ class TestRecords:
                                'stamp': 6, 'sub_stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2411,10 +2411,10 @@ class TestRecords:
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2430,10 +2430,10 @@ class TestRecords:
                         Record({'key_left': 1, 'key_right': 1, 'stamp': 6, 'sub_stamp': 7}),
                     ],
                     [
-                        Column('key_left'),
-                        Column('stamp'),
-                        Column('key_right'),
-                        Column('sub_stamp')
+                        ColumnValue('key_left'),
+                        ColumnValue('stamp'),
+                        ColumnValue('key_right'),
+                        ColumnValue('sub_stamp')
                     ]
                 ),
             ),
@@ -2448,8 +2448,8 @@ class TestRecords:
                 Record({'key_left': 1, 'stamp': 6}),
             ],
             [
-                Column('key_left'),
-                Column('stamp'),
+                ColumnValue('key_left'),
+                ColumnValue('stamp'),
             ]
         )
 
@@ -2461,8 +2461,8 @@ class TestRecords:
                 Record({'key_right': 1, 'sub_stamp': 7}),
             ],
             [
-                Column('key_right'),
-                Column('sub_stamp')
+                ColumnValue('key_right'),
+                ColumnValue('sub_stamp')
             ]
         )
 
@@ -2504,12 +2504,12 @@ class TestRecords:
                         ),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -2532,12 +2532,12 @@ class TestRecords:
                         Record({'other_stamp': 16}),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -2570,12 +2570,12 @@ class TestRecords:
                         Record({'other_stamp': 16}),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -2604,12 +2604,12 @@ class TestRecords:
                         Record({'other_stamp_': 14, 'value_right': 2}),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -2641,12 +2641,12 @@ class TestRecords:
                         Record({'other_stamp_': 14, 'value_right': 2}),
                     ],
                     [
-                        Column('other_stamp'),
-                        Column('stamp'),
-                        Column('value_left'),
-                        Column('other_stamp_'),
-                        Column('stamp_'),
-                        Column('value_right')
+                        ColumnValue('other_stamp'),
+                        ColumnValue('stamp'),
+                        ColumnValue('value_left'),
+                        ColumnValue('other_stamp_'),
+                        ColumnValue('stamp_'),
+                        ColumnValue('value_right')
                     ]
                 ),
             ),
@@ -2661,9 +2661,9 @@ class TestRecords:
                 Record({'other_stamp': 16}),
             ],
             [
-                Column('other_stamp'),
-                Column('stamp'),
-                Column('value_left'),
+                ColumnValue('other_stamp'),
+                ColumnValue('stamp'),
+                ColumnValue('value_left'),
             ]
         )
 
@@ -2675,9 +2675,9 @@ class TestRecords:
                 Record({'other_stamp_': 14, 'value_right': 2}),
             ],
             [
-                Column('other_stamp_'),
-                Column('stamp_'),
-                Column('value_right')
+                ColumnValue('other_stamp_'),
+                ColumnValue('stamp_'),
+                ColumnValue('value_right')
             ]
         )
 
@@ -2708,8 +2708,8 @@ class TestRecords:
                 Record({'source_addr': 3, 'source_stamp': 20}),
             ],
             [
-                Column('source_addr'),
-                Column('source_stamp')
+                ColumnValue('source_addr'),
+                ColumnValue('source_stamp')
             ]
         )
 
@@ -2721,9 +2721,9 @@ class TestRecords:
                 Record({'addr_from': 13, 'addr_to': 23, 'copy_stamp': 22}),
             ],
             [
-                Column('addr_from'),
-                Column('addr_to'),
-                Column('copy_stamp')
+                ColumnValue('addr_from'),
+                ColumnValue('addr_to'),
+                ColumnValue('copy_stamp')
             ]
         )
 
@@ -2739,8 +2739,8 @@ class TestRecords:
                 Record({'sink_addr': 23, 'sink_stamp': 27}),
             ],
             [
-                Column('sink_addr'),
-                Column('sink_stamp')
+                ColumnValue('sink_addr'),
+                ColumnValue('sink_stamp')
             ]
         )
 
@@ -2765,9 +2765,9 @@ class TestRecords:
                 }),
             ],
             [
-                Column('source_addr'),
-                Column('source_stamp'),
-                Column('sink_stamp')
+                ColumnValue('source_addr'),
+                ColumnValue('source_stamp'),
+                ColumnValue('sink_stamp')
             ]
         )
 

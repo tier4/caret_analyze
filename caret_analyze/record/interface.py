@@ -19,7 +19,7 @@ from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tupl
 
 import pandas as pd
 
-from .column import Column
+from .column import ColumnValue, Columns
 
 
 class RecordInterface:
@@ -253,12 +253,12 @@ class RecordsInterface:
         """
         pass
 
-    @abstractmethod
-    def get_column(
-        self,
-        column_name: str
-    ) -> Column:
-        pass
+    # @abstractmethod
+    # def get_column(
+    #     self,
+    #     column_name: str
+    # ) -> Column:
+    #     pass
 
     @abstractmethod
     def filter_if(
@@ -319,7 +319,7 @@ class RecordsInterface:
     def __iter__(self) -> Iterator:
         return iter(self.data)
 
-    def reindex(self, column_names: List[str]) -> None:
+    def _reindex(self, column_names: List[str]) -> None:
         """
         Reindex columns.
 
@@ -330,46 +330,45 @@ class RecordsInterface:
         """
         pass
 
-    @abstractmethod
-    def drop_columns(
-        self, column_names: List[str]
-    ) -> None:
-        """
-        Drop columns.
+    # @abstractmethod
+    # def drop_columns(
+    #     self, column_names: List[str]
+    # ) -> None:
+    #     """
+    #     Drop cnameolumns.
 
-        Parameters
-        ----------
-        column_names : List[str]
-            columns to be dropped.
+    #     Parameters
+    #     ----------
+    #     column_names : List[str]
+    #         columns to be dropped.
 
-        """
-        pass
+    #     """
+    #     pass
 
-    @abstractmethod
-    def rename_columns(
-        self, column_names: Dict[str, str]
-    ) -> None:
-        """
-        Rename columns.
+    # @abstractmethod
+    # def rename_columns(
+    #     self, column_names: Dict[str, str]
+    # ) -> None:
+    #     """
+    #     Rename columns.
 
-        Parameters
-        ----------
-        column_names : Dict[str, str]
-            rename params. same as dataframe rename.
+    #     Parameters
+    #     ----------
+    #     column_names : Dict[str, str]
+    #         rename params. same as dataframe rename.
 
-        """
-        pass
+    #     """
+    #     pass
 
     @property
     @abstractmethod
-    def columns(self) -> List[Column]:
+    def columns(self) -> Columns:
         """
-        Get columnnames.
+        Get columns.
 
         Returns
         -------
-        Sequence[str]
-            Column names.
+        Columns
 
         """
         pass
@@ -572,7 +571,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def append_column(self, column: Column, values: List[int]) -> None:
+    def append_column(self, column: ColumnValue, values: List[int]) -> None:
         """
         Append column to records.
 
