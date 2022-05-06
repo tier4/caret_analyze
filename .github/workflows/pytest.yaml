@@ -21,15 +21,6 @@ jobs:
           sudo apt-get install -y ros-galactic-ros2trace-analysis
           sudo apt-get install -y ros-galactic-tracetools
           sudo apt-get install -y ros-galactic-tracetools-analysis
-          sudo apt-get install -y ros-galactic-tracetools-launch
-          sudo apt-get install -y ros-galactic-tracetools-read
-          sudo apt-get install -y ros-galactic-tracetools-test
-          sudo apt-get install -y ros-galactic-tracetools-trace
-          sudo apt-get install -y ros-galactic-ament-copyright
-          # sudo pip install tracetools_analysis
-          # sudo pip3 install tracetools_analysis
-          #. /opt/ros/galactic/setup.sh
-          #sudo apt install python3-bt2
         shell: bash
         
       - name: Install LTTng
