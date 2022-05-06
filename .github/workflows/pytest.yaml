@@ -27,23 +27,9 @@ jobs:
           # sudo rosdep init
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro galactic
-          . /opt/ros/galactic/setup.sh
-          pip install -e .
+          #. /opt/ros/galactic/setup.sh
+          # pip install -e .
 
-      - name: show info2
-        run : |
-          echo "======================"
-          . /opt/ros/galactic/setup.sh
-          echo "======================"
-          dpkg -l | grep tracetools
-          echo "======================"
-          #ros2 trace --help
-          echo "======================"
-          dpkg -l | grep lttng
-          echo "======================"
-          ros2 trace-analysis --help
-          echo "======================"
-        shell: bash
   
       - name: Install dependent packages
         run: python3 -m pip install -r requirements.txt
