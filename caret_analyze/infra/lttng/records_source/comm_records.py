@@ -1,41 +1,33 @@
-from typing import Union
-
-from functools import lru_cache
-
-from caret_analyze.record.column import ColumnValue
-
+from caret_analyze.record.column import ColumnAttribute
 from .subscribe_records import SubscribeRecordsContainer
 from .ipc_buffer_records import IpcBufferRecordsContainer
 from .publish_records import PublishRecordsContainer
 
 from ..column_names import COLUMN_NAME
 from ..ros2_tracing.data_model import Ros2DataModel
-from ..value_objects import (
-    PublisherValueLttng,
-    SubscriptionCallbackValueLttng,
-    IntraProcessBufferValueLttng
-)
+from ..bridge import LttngBridge
 from ....record import RecordsInterface, merge_sequencial
+from ....value_objects import CommunicationStructValue
 
 
 class CommRecordsContainer:
 
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
         sub_records: SubscribeRecordsContainer,
         buffer_records: IpcBufferRecordsContainer,
         pub_records: PublishRecordsContainer,
     ) -> None:
+        self._bridge = bridge
         self._sub_records = sub_records
         self._buffer_records = buffer_records
         self._pub_records = pub_records
 
     def get_intra_records(
         self,
-        publisher: PublisherValueLttng,
-        buffer: IntraProcessBufferValueLttng,
-        callback: SubscriptionCallbackValueLttng,
+        comm: CommunicationStructValue
     ) -> RecordsInterface:
         columns = [
             COLUMN_NAME.PID,
@@ -54,16 +46,18 @@ class CommRecordsContainer:
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             COLUMN_NAME.CALLBACK_END_TIMESTAMP,
             ]
-        publish_records = self._pub_records.get_intra_records(publisher)
-        callback_records = self._sub_records.get_intra_records(callback)
-        buffer_records = self._buffer_records.get_records(buffer)
+        publish_records = self._pub_records.get_intra_records(comm.publisher)
+        callback_records = self._sub_records.get_intra_records(comm.subscription_callback)
+        buffer_records = self._buffer_records.get_records(comm.subscription.intra_process_buffer)
 
-        pub_column = publish_records.columns.get_by_base_name(
-            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
+        pub_column = publish_records.columns.get(
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP, base_name_match=True)
         pub_column.rename(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
 
-        enqueue_column = buffer_records.columns.get_by_base_name(
-            COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP)
+        enqueue_column = buffer_records.columns.get(
+            COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
+            base_name_match=True
+        )
 
         records = merge_sequencial(
             left_records=publish_records,
@@ -75,11 +69,13 @@ class CommRecordsContainer:
             how='left'
         )
 
-        dequeue_column = records.columns.get_by_base_name(
-            COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP
+        dequeue_column = records.columns.get(
+            COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
+            base_name_match=True
         )
-        callback_start_column = callback_records.columns.get_by_base_name(
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP
+        callback_start_column = callback_records.columns.get(
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            base_name_match=True
         )
 
         records = merge_sequencial(
@@ -95,30 +91,37 @@ class CommRecordsContainer:
         records.columns.drop([
             'dequeue_tid',
             'enqueue_tid',
-        ])
-        ordered_columns = records.columns.gets_by_base_name(*columns)
-        ordered_column_names = [str(c) for c in ordered_columns]
-        records.columns.reindex(ordered_column_names)
+        ], base_name_match=True)
+        records.columns.reindex(columns, base_name_match=True)
         return records
 
     def get_inter_records(
         self,
-        publisher: PublisherValueLttng,
-        callback: SubscriptionCallbackValueLttng
+        comm: CommunicationStructValue
     ) -> RecordsInterface:
-        publish_records = self._pub_records.get_inter_records(publisher)
-        callback_records = self._sub_records.get_inter_records(callback)
+        columns = [
+            'rclcpp_publish_timestamp',
+            'rcl_publish_timestamp',
+            'dds_write_timestamp',
+            'message_timestamp',
+            'callback_start_timestamp',
+            'callback_end_timestamp']
+        publish_records = self._pub_records.get_inter_records(comm.publisher)
+        callback_records = self._sub_records.get_inter_records(comm.subscription_callback)
 
-        publish_column = publish_records.columns.get_by_base_name(
-            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP
+        publish_column = publish_records.columns.get(
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            base_name_match=True
         )
         publish_column.rename(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
 
-        left_source_stamp_column = publish_records.columns.get_by_base_name(
-            COLUMN_NAME.SOURCE_TIMESTAMP
+        left_source_stamp_column = publish_records.columns.get(
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            base_name_match=True
         )
-        right_source_stamp_column = callback_records.columns.get_by_base_name(
-            COLUMN_NAME.SOURCE_TIMESTAMP
+        right_source_stamp_column = callback_records.columns.get(
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            base_name_match=True
         )
 
         records = merge_sequencial(
@@ -130,6 +133,23 @@ class CommRecordsContainer:
             join_right_key=None,
             how='left'
         )
+
+        records.columns.drop([
+            COLUMN_NAME.PID,
+            COLUMN_NAME.TID,
+            COLUMN_NAME.PUBLISHER_HANDLE,
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_OBJECT,
+            ], base_name_match=True)
+
+        records.columns.reindex(columns, base_name_match=True)
+
+        pub_column = records.columns.get(
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, base_name_match=True)
+        pub_column.attrs.add(ColumnAttribute.NODE_IO)
+
+        cb_column = records.columns.get(COLUMN_NAME.CALLBACK_START_TIMESTAMP, base_name_match=True)
+        cb_column.attrs.add(ColumnAttribute.NODE_IO)
 
         return records
     # @cached_property

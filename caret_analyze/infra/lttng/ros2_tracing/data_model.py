@@ -298,7 +298,6 @@ class Ros2DataModel(DataModel):
                 ColumnValue('callback_start_timestamp', [
                     ColumnAttribute.SYSTEM_TIME,
                     ColumnAttribute.TAKE_MSG,
-                    ColumnAttribute.NODE_IO
                     ]),
                 ColumnValue('callback_object'),
                 ColumnValue('is_intra_process')
@@ -361,7 +360,6 @@ class Ros2DataModel(DataModel):
                 ColumnValue('tid'),
                 ColumnValue('rclcpp_intra_publish_timestamp', [
                     ColumnAttribute.SYSTEM_TIME,
-                    ColumnAttribute.NODE_IO,
                     ColumnAttribute.SEND_MSG,
                 ]),
                 ColumnValue('publisher_handle'),
@@ -374,9 +372,8 @@ class Ros2DataModel(DataModel):
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
-                ColumnValue('rclcpp_publish_timestamp', [
+                ColumnValue('rclcpp_inter_publish_timestamp', [
                     ColumnAttribute.SYSTEM_TIME,
-                    ColumnAttribute.NODE_IO,
                     ColumnAttribute.SEND_MSG,
                     ]),
                 ColumnValue('publisher_handle'),
@@ -796,7 +793,7 @@ class Ros2DataModel(DataModel):
             {
                 'pid': pid,
                 'tid': tid,
-                'rclcpp_publish_timestamp': timestamp,
+                'rclcpp_inter_publish_timestamp': timestamp,
                 'publisher_handle': publisher_handle,
                 'message': message,
                 'message_timestamp': message_timestamp,

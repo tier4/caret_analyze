@@ -86,7 +86,7 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         self, other: RecordsInterface
     ) -> None:
         assert isinstance(other, RecordsCppImpl)
-        unknown_columns = set(other.column_names) - set(self.column_names)
+        unknown_columns = set(other.column_names) ^ set(self.column_names)
         if len(unknown_columns) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'

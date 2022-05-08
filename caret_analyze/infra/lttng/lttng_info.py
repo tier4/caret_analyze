@@ -281,6 +281,14 @@ class LttngInfo:
 
         return nodes
 
+    @lru_cache
+    def get_node(self, node_name: str) -> NodeValue:
+        nodes = self.get_nodes()
+        for node in nodes:
+            if node.node_name == node_name:
+                return node
+        raise NotImplementedError('')
+
     def get_tf_buffer(
         self,
         node: NodeValue
@@ -358,7 +366,7 @@ class LttngInfo:
     def is_intra_process_communication(
         self,
         publisher: PublisherValueLttng,
-        subscription: SubscriptionCallbackValueLttng,
+        subscription: SubscriptionValueLttng,
     ) -> bool:
         df = self._formatted.ipm_df
         df = df[

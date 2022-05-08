@@ -55,6 +55,9 @@ class ArchitectureReaderLttng(ArchitectureReader):
     def get_nodes(self) -> Sequence[NodeValue]:
         return self._lttng.get_nodes()
 
+    def get_node(self, node_name) -> NodeValue:
+        return self._lttng.get_node(node_name)
+
     def _get_timer_callbacks(
         self,
         node: NodeValue

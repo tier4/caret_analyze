@@ -27,7 +27,7 @@ from pytest_mock import MockerFixture
 class TestPath:
 
     def test_empty(self, mocker: MockerFixture):
-        column_merger_mock = mocker.Mock(spec=ColumnMerger)
+        # column_merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
                      return_value=column_merger_mock)
 

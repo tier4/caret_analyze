@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Optional
 
 from ....value_objects import SubscriptionValue, IntraProcessBufferValue
 

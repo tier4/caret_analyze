@@ -17,7 +17,7 @@ from __future__ import annotations
 from logging import getLogger
 from typing import Optional, Tuple, Union
 
-from .callback import CallbackStructValue
+from .callback import CallbackStructValue, SubscriptionCallbackStructValue
 from .message_context import MessageContext, MessageContextType
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
@@ -30,6 +30,9 @@ from .variable_passing import VariablePassingStructValue
 from ..common import Summarizable, Summary, Util
 
 logger = getLogger(__name__)
+
+NodeOutputType = Union[TransformFrameBroadcasterStructValue, PublisherStructValue]
+NodeInputType = Union[TransformFrameBufferStructValue, SubscriptionStructValue]
 
 
 class NodePathValue(ValueObject):
@@ -105,6 +108,9 @@ class NodePathStructValue(ValueObject, Summarizable):
         child: Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]],
         message_context: Optional[MessageContext],
     ) -> None:
+        if tf_frame_broadcaster is not None:
+            assert publisher is None
+
         self._node_name = node_name
         self._child = child
         self._subscription = subscription
@@ -149,6 +155,14 @@ class NodePathStructValue(ValueObject, Summarizable):
         if self._tf_frame_buffer is None:
             return None
         return self._tf_frame_buffer.listen_frame_id
+
+    @property
+    def node_input(self) -> NodeInputType:
+        raise NotImplementedError('')
+
+    @property
+    def node_output(self) -> NodeOutputType:
+        raise NotImplementedError('')
 
     @property
     def tf_buffer_listen_child_frame_id(self) -> Optional[str]:
@@ -229,6 +243,12 @@ class NodePathStructValue(ValueObject, Summarizable):
     @property
     def subscription(self) -> Optional[SubscriptionStructValue]:
         return self._subscription
+
+    @property
+    def subscription_callback(self) -> Optional[SubscriptionCallbackStructValue]:
+        if self._subscription is not None:
+            return self._subscription.callback
+        return None
 
     @property
     def publish_topic_name(self) -> Optional[str]:

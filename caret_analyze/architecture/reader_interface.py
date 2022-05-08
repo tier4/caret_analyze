@@ -61,13 +61,12 @@ class ArchitectureReader(metaclass=ABCMeta):
         """
         pass
 
-    @lru_cache
+    @abstractmethod
     def get_node(
         self,
         node_name: str
     ) -> NodeValue:
-        nodes = self.get_nodes()
-        return Util.find_one(lambda x: x.node_name == node_name, nodes)
+        pass
 
     @abstractmethod
     def get_tf_frames(self) -> Sequence[TransformValue]:

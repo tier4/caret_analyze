@@ -134,6 +134,9 @@ class TopicIgnoredReader(ArchitectureReader):
             publishers.append(publisher)
         return publishers
 
+    def get_node(self, node_name: str) -> NodeValue:
+        return self._reader.get_node(node_name)
+
     def get_tf_frames(self) -> Sequence[TransformValue]:
         return self._reader.get_tf_frames()
 
@@ -361,9 +364,12 @@ def create_transform_buffer(
 
     if buffer is None:
         return None
-    subscriptions = create_subscriptions(
-        reader, NodeValue(buffer.listener_node_name, buffer.listener_node_id))
-    tf_sub = subscriptions.get(buffer.listener_node_name, '/tf')
+
+    tf_sub = None
+    if buffer.listener_node_name is not None and buffer.listener_node_id is not None:
+        subscriptions = create_subscriptions(
+            reader, NodeValue(buffer.listener_node_name, buffer.listener_node_id))
+        tf_sub = subscriptions.get(buffer.listener_node_name, '/tf')
 
     assert buffer.lookup_transforms is not None and len(
         buffer.lookup_transforms) > 0

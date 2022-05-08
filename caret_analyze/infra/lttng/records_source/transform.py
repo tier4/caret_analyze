@@ -1,22 +1,21 @@
-from typing import Union, List
 
+from typing import Optional
 from functools import lru_cache
 
-from caret_analyze.record.column import ColumnMapper, ColumnValue
+from caret_analyze.record.column import ColumnAttribute
 
 from .publish_records import PublishRecordsContainer
 from .callback_records import CallbackRecordsContainer
 from ..column_names import COLUMN_NAME
 from ..ros2_tracing.data_model import Ros2DataModel
+from ..bridge import LttngBridge
 from ..lttng_info import LttngInfo
-from ..value_objects import (
-    PublisherValueLttng,
-    TransformBroadcasterValueLttng,
-    TransformBufferValueLttng,
+from ....value_objects import (
+    TransformFrameBroadcasterStructValue, TransformFrameBufferStructValue,
+    TransformCommunicationStructValue,
 )
-from ....value_objects import TransformValue
 from ....record import (
-    RecordsInterface, merge_sequencial, GroupedRecords, Column, ColumnAttribute, merge
+    RecordsInterface, merge_sequencial, GroupedRecords, merge
 )
 
 
@@ -24,10 +23,12 @@ class TransformSendRecordsContainer:
 
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
         info: LttngInfo,
         pub_records: PublishRecordsContainer,
     ) -> None:
+        self._bridge = bridge
         self._send_transform = GroupedRecords(
             data.send_transform,
             [
@@ -42,9 +43,12 @@ class TransformSendRecordsContainer:
     @lru_cache
     def get_records(
         self,
-        broadcaster: TransformBroadcasterValueLttng,
-        transform: TransformValue,
+        broadcaster: TransformFrameBroadcasterStructValue,
     ) -> RecordsInterface:
+
+        broadcaster_lttng = self._bridge.get_tf_broadcaster(broadcaster)
+        transform = broadcaster.transform
+
         columns = [
             'pid',
             'tid',
@@ -52,28 +56,30 @@ class TransformSendRecordsContainer:
             'dds_write_timestamp'
         ]
         to_frame_id = self._info.get_tf_broadcaster_frame_compact_map(
-            broadcaster.broadcaster_handler)
+            broadcaster_lttng.broadcaster_handler)
         to_compact_frame_id = {v: k for k, v in to_frame_id.items()}
         frame_id_compact = to_compact_frame_id[transform.frame_id]
         child_frame_id_compact = to_compact_frame_id[transform.child_frame_id]
 
         records = self._send_transform.get(
-            broadcaster.broadcaster_handler,
+            broadcaster_lttng.broadcaster_handler,
             frame_id_compact,
             child_frame_id_compact)
         pub_records = self._pub_records.get_records(broadcaster.publisher)
 
-        drop_columns = pub_records.columns.gets_by_base_name(
+        drop_columns = pub_records.columns.gets([
             COLUMN_NAME.SOURCE_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP
+        ], base_name_match=True
         )
         pub_records.columns.drop([str(c) for c in drop_columns])
 
-        send_tf_column = records.columns.get_by_base_name(
+        send_tf_column = records.columns.get(
             'send_transform_timestamp'
         )
-        publish_column = pub_records.columns.get_by_base_name(
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP
+        publish_column = pub_records.columns.get(
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            base_name_match=True
         )
         records = merge_sequencial(
             left_records=records,
@@ -104,12 +110,15 @@ class TransformSendRecordsContainer:
         #     child_frame_ids
         # )
 
-        records.columns.drop([
-            'frame_id_compact', 'child_frame_id_compact', 'broadcaster', 'send_transform_timestamp'])
+        records.columns.drop(
+            [
+                'frame_id_compact', 'child_frame_id_compact', 'broadcaster',
+                'send_transform_timestamp', COLUMN_NAME.PUBLISHER_HANDLE
+            ],
+            base_name_match=True
+        )
 
-        ordered_columns = records.columns.gets_by_base_name(*columns)
-        ordered_column_names = [str(_) for _ in ordered_columns]
-        records.columns.reindex(ordered_column_names)
+        records.columns.reindex(columns, base_name_match=True)
 
         return records
         # columns = [
@@ -338,10 +347,12 @@ class TransformSendRecordsContainer:
 class TransformSetRecordsContainer:
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
         info: LttngInfo,
         cb_records: CallbackRecordsContainer
     ) -> None:
+        self._bridge = bridge
         self._info = info
         self._data = data
         self._cb_records = cb_records
@@ -352,26 +363,25 @@ class TransformSetRecordsContainer:
 
     def get_records(
         self,
-        buffer: TransformBufferValueLttng,
-        transform: TransformValue,
+        buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
         columns = [
             'pid',
             'tid',
-            'callback_start_timestamp',
             'set_transform_timestamp',
-            'callback_end_timestamp',
             'tf_timestamp']
-        cb_records = self._cb_records.get_records(buffer.listener_callback)
+
+        buffer_lttng = self._bridge.get_tf_buffer(buffer)
+        transform = buffer.listen_transform
 
         to_frame_id = self._info.get_tf_buffer_frame_compact_map(
-            buffer.buffer_handler)
+            buffer_lttng.buffer_handler)
         to_compact_frame_id = {v: k for k, v in to_frame_id.items()}
         frame_id_compact = to_compact_frame_id[transform.frame_id]
         child_frame_id_compact = to_compact_frame_id[transform.child_frame_id]
 
-        set_tf_records = self._set_records.get(
-            buffer.buffer_handler, frame_id_compact, child_frame_id_compact)
+        records = self._set_records.get(
+            buffer_lttng.buffer_handler, frame_id_compact, child_frame_id_compact)
 
         # records = set_tf
         # frame_ids = []
@@ -391,29 +401,12 @@ class TransformSetRecordsContainer:
         #     Column('child_frame_id', mapper=frame_mapper),
         #     child_frame_ids
         # )
-
-        callback_start_column = cb_records.columns.get_by_base_name(
-            COLUMN_NAME.CALLBACK_START_TIMESTAMP
-        )
-        set_transform_column = set_tf_records.columns.get_by_base_name(
-            'set_transform_timestamp'
-        )
-        records = merge_sequencial(
-            left_records=cb_records,
-            right_records=set_tf_records,
-            left_stamp_key=callback_start_column.column_name,
-            right_stamp_key=set_transform_column.column_name,
-            join_left_key='tid',
-            join_right_key='tid',
-            how='right',
-        )
-
         records.columns.drop([
-            'frame_id_compact', 'child_frame_id_compact', 'tf_buffer_core'])
+            'frame_id_compact', 'child_frame_id_compact',
+            'tf_buffer_core'
+        ], base_name_match=True)
 
-        ordered_columns = records.columns.gets_by_base_name(*columns)
-        ordered_column_names = [str(_) for _ in ordered_columns]
-        records.columns.reindex(ordered_column_names)
+        records.columns.reindex(columns, base_name_match=True)
 
         return records
 
@@ -422,9 +415,11 @@ class TransformLookupContainer:
 
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
         info: LttngInfo,
     ) -> None:
+        self._bridge = bridge
         self._data = data
         self._info = info
         self._lookup_start = GroupedRecords(
@@ -438,23 +433,25 @@ class TransformLookupContainer:
 
     def get_records(
         self,
-        buffer: TransformBufferValueLttng,
-        transform: TransformValue,
+        buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
         columns = ['pid', 'tid', 'tf_buffer_core', 'lookup_transform_start_timestamp',
-        'tf_lookup_target_time', 'lookup_transform_end_timestamp']
+                   'tf_lookup_target_time', 'lookup_transform_end_timestamp']
+
+        transform = buffer.lookup_transform
+        buffer_lttng = self._bridge.get_tf_buffer(buffer)
 
         to_frame_id = self._info.get_tf_buffer_frame_compact_map(
-            buffer.buffer_handler)
+            buffer_lttng.buffer_handler)
         to_compact_frame_id = {v: k for k, v in to_frame_id.items()}
         frame_id_compact = to_compact_frame_id[transform.frame_id]
         child_frame_id_compact = to_compact_frame_id[transform.child_frame_id]
 
         lookup_start = self._lookup_start.get(
-            buffer.buffer_handler, frame_id_compact, child_frame_id_compact
+            buffer_lttng.buffer_handler, frame_id_compact, child_frame_id_compact
         )
         lookup_end = self._lookup_end.get(
-            buffer.buffer_handler
+            buffer_lttng.buffer_handler
         )
 
         join_key = [
@@ -470,13 +467,16 @@ class TransformLookupContainer:
             how='left'
         )
 
-        records.columns.drop(['frame_id_compact', 'child_frame_id_compact'])
+        records.columns.drop(['frame_id_compact', 'child_frame_id_compact'], base_name_match=True)
+        records.columns.reindex(columns, base_name_match=True)
 
-        ordered_columns = records.columns.gets_by_base_name(*columns)
-        ordered_column_names = [str(_) for _ in ordered_columns]
-        records.columns.reindex(ordered_column_names)
-
-        for column in records.columns.data[3:]:
+        prefix_columns = records.columns.gets(
+            [
+                'lookup_transform_start_timestamp', 'tf_lookup_target_time',
+                'lookup_transform_end_timestamp'
+            ], base_name_match=True
+        )
+        for column in prefix_columns:
             column.add_prefix(buffer.lookup_node_name)
 
         return records
@@ -486,12 +486,14 @@ class TransformCommRecordsContainer:
 
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
         info: LttngInfo,
         send_records: TransformSendRecordsContainer,
         set_records: TransformSetRecordsContainer,
         lookup_records: TransformLookupContainer,
     ) -> None:
+        self._bridge = bridge
         self._data = data
         self._info = info
         self._send_records = send_records
@@ -506,14 +508,14 @@ class TransformCommRecordsContainer:
 
     def get_inter_records(
         self,
-        broadcaster: TransformBroadcasterValueLttng,
-        listen_transform: TransformValue,
-        buffer: TransformBufferValueLttng,
-        lookup_transform: TransformValue,
+        comm: TransformCommunicationStructValue,
     ) -> RecordsInterface:
+        buffer = self._bridge.get_tf_buffer(comm.buffer)
+        listen_transform = comm.listen_transform
+
         columns = [
             'pid', 'tid', 'rclcpp_publish_timestamp', 'rcl_publish_timestamp',
-            'dds_write_timestamp', 'callback_start_timestamp', 'set_transform_timestamp',
+            'dds_write_timestamp', 'set_transform_timestamp',
             'lookup_transform_start_timestamp',
             'tf_lookup_target_time',
             'lookup_transform_end_timestamp'
@@ -528,12 +530,14 @@ class TransformCommRecordsContainer:
             buffer.buffer_handler, buffer_frame_id_compact, child_buffer_frame_id_compact)
 
         # TODO(hsgwa): 遅延ありの２つ目の座標版も追加する。
-        lookup_records = self._lookup_records.get_records(buffer, lookup_transform)
-        find_closest_column = closest.columns.get_by_base_name(
-            'find_closest_timestamp'
+        lookup_records = self._lookup_records.get_records(comm.buffer)
+        find_closest_column = closest.columns.get(
+            'find_closest_timestamp',
+            base_name_match=True
         )
-        lookup_end_timestamp = lookup_records.columns.get_by_base_name(
-            'lookup_transform_end_timestamp'
+        lookup_end_timestamp = lookup_records.columns.get(
+            'lookup_transform_end_timestamp',
+            base_name_match=True
         )
 
         join_keys = [
@@ -549,17 +553,20 @@ class TransformCommRecordsContainer:
             how='left_use_latest'
         )
 
-        set_records = self._set_records.get_records(buffer, listen_transform)
-        set_callback_end_column = set_records.columns.get_by_base_name(
-            COLUMN_NAME.CALLBACK_END_TIMESTAMP
-        )
-        set_records.columns.drop(set_callback_end_column.column_name)
+        set_records = self._set_records.get_records(comm.buffer)
+        if COLUMN_NAME.CALLBACK_END_TIMESTAMP in set_records.column_names:
+            set_records.columns.drop(
+                [COLUMN_NAME.CALLBACK_END_TIMESTAMP],
+                base_name_match=True
+            )
 
-        set_tf_timestamp_column = set_records.columns.get_by_base_name(
-            'tf_timestamp'
+        set_tf_timestamp_column = set_records.columns.get(
+            'tf_timestamp',
+            base_name_match=True
         )
-        records_tf_timestamp_column = records.columns.get_by_base_name(
-            'tf_timestamp'
+        records_tf_timestamp_column = records.columns.get(
+            'tf_timestamp',
+            base_name_match=True
         )
         records = merge(
             left_records=set_records,
@@ -569,9 +576,10 @@ class TransformCommRecordsContainer:
             how='left',
         )
 
-        send_records = self._send_records.get_records(broadcaster, listen_transform)
-        send_timestamp_column = send_records.columns.get_by_base_name(
-            'tf_timestamp'
+        send_records = self._send_records.get_records(comm.broadcaster)
+        send_timestamp_column = send_records.columns.get(
+            'tf_timestamp',
+            base_name_match=True
         )
 
         records = merge(
@@ -591,8 +599,11 @@ class TransformCommRecordsContainer:
             'find_closest_timestamp',
         ])
 
-        ordered_columns = records.columns.gets_by_base_name(*columns)
-        ordered_column_names = [str(_) for _ in ordered_columns]
-        records.columns.reindex(ordered_column_names)
+        records.columns.reindex(columns, base_name_match=True)
+        lookup_end_column = records.columns.get(
+            'lookup_transform_end_timestamp',
+            base_name_match=True
+        )
+        lookup_end_column.attrs.add(ColumnAttribute.NODE_IO)
 
         return records

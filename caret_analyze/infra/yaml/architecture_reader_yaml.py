@@ -100,6 +100,14 @@ class ArchitectureReaderYaml(ArchitectureReader):
         except ValueError:
             raise InvalidYamlFormatError('Failed to parse yaml.')
 
+    @lru_cache
+    def get_node(self, node_name: str) -> NodeValue:
+        nodes = self.get_nodes()
+        for node in nodes:
+            if node.node_name == node_name:
+                return node
+        raise NotImplementedError('')
+
     def get_nodes(self) -> Sequence[NodeValue]:
         nodes_dict = self._arch_dict.get_dicts('nodes')
         nodes = []

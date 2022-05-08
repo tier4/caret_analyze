@@ -13,10 +13,13 @@
 # limitations under the License.
 
 from typing import List, Union
-from caret_analyze.value_objects.subscription import IntraProcessBufferValue
+from caret_analyze.infra.lttng.lttng_info import LttngInfo
+from caret_analyze.value_objects.subscription import (
+    IntraProcessBufferValue,
+    SubscriptionStructValue,
+    SubscriptionValue,
+)
 
-from .architecture_reader_lttng import ArchitectureReaderLttng
-from .lttng import Lttng
 from .value_objects import (
     PublisherValueLttng,
     SubscriptionCallbackValueLttng,
@@ -24,6 +27,7 @@ from .value_objects import (
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
     IntraProcessBufferValueLttng,
+    SubscriptionValueLttng,
 )
 from ...common import Util
 from ...exceptions import ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError
@@ -44,14 +48,13 @@ from ...value_objects import (
 )
 
 
-class LttngBridge:
+class LttngBridge():
 
     def __init__(
         self,
-        lttng: Lttng
+        lttng_info: LttngInfo
     ) -> None:
-        self._lttng = lttng
-        self._reader = ArchitectureReaderLttng(lttng)
+        self._info = lttng_info
 
     def get_timer_callback(
         self,
@@ -86,7 +89,8 @@ class LttngBridge:
         """
         try:
             condition = TimerCallbackBindCondition(callback)
-            timer_callbacks = self._reader.get_timer_callbacks(callback.node_name)
+            node = self._info.get_node(callback.node_name)
+            timer_callbacks = self._info.get_timer_callbacks(node)
             timer_callback = Util.find_one(condition, timer_callbacks)
         except ItemNotFoundError:
             msg = 'No value matching the search condition is found. {condition}'
@@ -98,6 +102,26 @@ class LttngBridge:
             raise MultipleItemFoundError(msg)
 
         return timer_callback
+
+    def get_subscription(
+        self,
+        subscription: SubscriptionStructValue
+    ) -> SubscriptionValueLttng:
+        try:
+            node = self._info.get_node(subscription.node_name)
+            subs = self._info.get_subscriptions(node)
+            condition = SubscriptionBindCondition(subscription)
+            sub = Util.find_one(condition, subs)
+        except ItemNotFoundError:
+            msg = 'No value matching the search condition is found. '
+            msg += str(condition)
+            raise ItemNotFoundError(msg)
+        except MultipleItemFoundError:
+            msg = 'Multiple pieces of values matching the search condition are found. '
+            msg += str(condition)
+            raise MultipleItemFoundError(msg)
+
+        return sub
 
     def get_subscription_callback(
         self,
@@ -131,7 +155,8 @@ class LttngBridge:
 
         """
         try:
-            sub_callbacks = self._reader.get_subscription_callbacks(callback.node_name)
+            node = self._info.get_node(callback.node_name)
+            sub_callbacks = self._info.get_subscription_callbacks(node)
             condition = SubscriptionCallbackBindCondition(callback)
             sub_callback = Util.find_one(condition, sub_callbacks)
         except ItemNotFoundError:
@@ -151,7 +176,9 @@ class LttngBridge:
                            TransformFrameBroadcasterStructValue]
     ) -> TransformBroadcasterValueLttng:
         condition = TransformBroadcasterBindCondition(broadcaster)
-        br = self._reader.get_tf_broadcaster(broadcaster.node_name)
+        node = self._info.get_node(broadcaster.node_name)
+        br = self._info.get_tf_broadcaster(node)
+
         if br is None:
             msg = 'No value matching the search condition is found. '
             msg += str(condition)
@@ -165,7 +192,8 @@ class LttngBridge:
         buffer: Union[TransformBufferStructValue, TransformFrameBufferStructValue]
     ) -> TransformBufferValueLttng:
         condition = TransformBufferBindCondition(buffer)
-        buf = self._reader.get_tf_buffer(buffer.lookup_node_name)
+        node = self._info.get_node(buffer.lookup_node_name)
+        buf = self._info.get_tf_buffer(node)
         if buf is None:
             msg = 'No value matching the search condition is found. '
             msg += str(condition)
@@ -207,7 +235,8 @@ class LttngBridge:
         """
         try:
             condition = PublisherBindCondition(publisher_value)
-            pubs = self._reader.get_publishers(publisher_value.node_name)
+            node = self._info.get_node(publisher_value.node_name)
+            pubs = self._info.get_publishers(node)
             pubs_filtered = Util.filter_items(condition, pubs)
         except ItemNotFoundError:
             msg = 'Failed to find publisher instance. '
@@ -236,7 +265,8 @@ class LttngBridge:
         """
         try:
             condition = IntraProcessBufferBindCondition(ipc_buffer)
-            bufs = self._reader.get_ipc_buffers(ipc_buffer.node_name)
+            node = self._info.get_node(ipc_buffer.node_name)
+            bufs = self._info.get_ipc_buffers(node)
             return Util.find_one(condition, bufs)
         except ItemNotFoundError:
             msg = 'Failed to find publisher instance. '
@@ -342,6 +372,57 @@ class SubscriptionCallbackBindCondition:
             value.callback_type == struct_value.callback_type and \
             value.subscribe_topic_name == struct_value.subscribe_topic_name and \
             value.symbol == struct_value.symbol
+
+    def __str__(self):
+        return str(self._target)
+
+class SubscriptionBindCondition:
+    """
+    Get subscription callback value with the same conditions.
+
+    used conditions:
+    - node name
+    - callback type
+    - subscription topic name
+    - publish topic names
+
+    """
+
+    def __init__(
+        self,
+        target_condition: Union[SubscriptionValue, SubscriptionStructValue]
+    ) -> None:
+        assert isinstance(target_condition, SubscriptionValue) or \
+            isinstance(target_condition, SubscriptionStructValue)
+        self._target = target_condition
+
+    def __call__(
+        self,
+        value: Union[SubscriptionValue, SubscriptionStructValue],
+    ) -> bool:
+        if isinstance(self._target, SubscriptionValue) and \
+                isinstance(value, SubscriptionStructValue):
+            return self._compare(self._target, value)
+
+        if isinstance(self._target, SubscriptionStructValue) and \
+                isinstance(value, SubscriptionValue):
+            return self._compare(value, self._target)
+
+        raise NotImplementedError()
+
+    def _compare(
+        self,
+        value: SubscriptionValue,
+        struct_value: SubscriptionStructValue
+    ) -> bool:
+        # The value on publish_topic_names obtained from lttng and
+        # publish_topic_names obtained from yaml are different.
+        # pub_match = True
+        # # if value.publish_topic_names is not None:
+        # #     pub_match = value.publish_topic_names == struct_value.publish_topic_names
+
+        return value.node_name == struct_value.node_name and \
+            value.topic_name == struct_value.topic_name
 
     def __str__(self):
         return str(self._target)

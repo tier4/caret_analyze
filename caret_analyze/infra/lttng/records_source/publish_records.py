@@ -1,21 +1,22 @@
-from typing import Union
-
 from functools import lru_cache
 
 from caret_analyze.record.column import ColumnValue
+from caret_analyze.value_objects.publisher import PublisherStructValue
 
 from ..column_names import COLUMN_NAME
+from ..bridge import LttngBridge
 from ..ros2_tracing.data_model import Ros2DataModel
 from ..value_objects import (
     PublisherValueLttng
 )
-from ....record import RecordsInterface, merge_sequencial, GroupedRecords, Column, ColumnAttribute
+from ....record import RecordsInterface, merge_sequencial, GroupedRecords, ColumnAttribute
 
 
 class PublishRecordsContainer:
 
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
     ) -> None:
         self._intra_rclcpp_publish = GroupedRecords(
@@ -40,37 +41,52 @@ class PublishRecordsContainer:
         )
         self._dds_write = data.dds_write
         self._dds_bind_addr_to_stamp = data.dds_bind_addr_to_stamp
+        self._bridge = bridge
 
     @lru_cache
     def get_intra_records(
         self,
-        publisher: PublisherValueLttng,
+        publisher: PublisherStructValue,
     ) -> RecordsInterface:
+        publishers_lttng = self._bridge.get_publishers(publisher)
+        assert len(publishers_lttng) == 1
+        publisher_lttng = publishers_lttng[0]
+
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
+            COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
 
-        records = self._intra_rclcpp_publish.get(publisher.publisher_handle)
+        records = self._intra_rclcpp_publish.get(publisher_lttng.publisher_handle)
         records.columns.drop(
             [
                 COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-            ]
+            ], base_name_match=True
         )
         records.columns.reindex(columns)
-        ordered_columns = records.columns.gets_by_base_name(*columns[3:])
+        ordered_columns = records.columns.gets([
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.MESSAGE_TIMESTAMP], base_name_match=True)
         for column in ordered_columns:
             column.add_prefix(publisher.topic_name)
         return records
 
     @lru_cache
-    def get_inter_records(self, publisher: PublisherValueLttng) -> RecordsInterface:
+    def get_inter_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        publishers_lttng = self._bridge.get_publishers(publisher)
+        assert len(publishers_lttng) == 1
+        publisher_lttng = publishers_lttng[0]
+
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
+            COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             COLUMN_NAME.DDS_WRITE_TIMESTAMP,
@@ -78,19 +94,29 @@ class PublishRecordsContainer:
             COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
 
-        records = self._get_inter_records(publisher)
+        records = self._get_inter_records(publisher_lttng)
 
         records.columns.drop([
             COLUMN_NAME.MESSAGE,
             COLUMN_NAME.ADDR,
-            COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP,
             COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-            COLUMN_NAME.PUBLISHER_HANDLE,
-        ])
+        ], base_name_match=True)
+        if COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP in records.column_names:
+            records.columns.drop([
+                COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP
+            ], base_name_match=True)
 
         records.columns.reindex(columns)
-        ordered_columns = records.columns.gets_by_base_name(*columns[3:])
-        for column in ordered_columns:
+        prefix_columns = records.columns.gets(
+            [
+                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                COLUMN_NAME.SOURCE_TIMESTAMP,
+                COLUMN_NAME.MESSAGE_TIMESTAMP,
+            ], base_name_match=True
+        )
+        for column in prefix_columns:
             column.add_prefix(publisher.topic_name)
 
         return records
@@ -143,10 +169,11 @@ class PublishRecordsContainer:
         )
         return records
 
-    def get_records(self, publisher: PublisherValueLttng) -> RecordsInterface:
+    def get_records(self, publisher: PublisherStructValue) -> RecordsInterface:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
+            COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             COLUMN_NAME.DDS_WRITE_TIMESTAMP,
@@ -167,10 +194,10 @@ class PublishRecordsContainer:
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
         ]
-        intra_publish_column = intra_records.columns.get_by_base_name(
-            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP)
-        inter_publish_column = inter_records.columns.get_by_base_name(
-            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
+        intra_publish_column = intra_records.columns.get(
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP, base_name_match=True)
+        inter_publish_column = inter_records.columns.get(
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP, base_name_match=True)
 
         records = merge_sequencial(
             left_records=intra_records,
@@ -203,8 +230,8 @@ class PublishRecordsContainer:
                 ColumnAttribute.NODE_IO
             ]),
             publish_stamps)
-        publish_column = records.columns.get_by_base_name(
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+        publish_column = records.columns.get(
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, base_name_match=True)
         publish_column.add_prefix(publisher.topic_name)
 
         # columns = []
@@ -250,14 +277,10 @@ class PublishRecordsContainer:
         # columns.append(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP)
         # columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
 
-        remove_columns = records.columns.gets_by_base_name(
+        records.columns.drop([
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-        )
-        records.columns.drop([str(c) for c in remove_columns])
-
-        ordered_columns = records.columns.gets_by_base_name(*columns)
-        ordered_column_names = [str(_) for _ in ordered_columns]
-        records.columns.reindex(ordered_column_names)
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP],
+            base_name_match=True)
+        records.columns.reindex(columns, base_name_match=True)
 
         return records

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
+from functools import singledispatchmethod
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
@@ -23,6 +24,10 @@ import bt2
 from caret_analyze.value_objects.timer import TimerValue
 
 import pandas as pd
+from caret_analyze.value_objects.callback import CallbackStructValue, TimerCallbackStructValue
+from caret_analyze.value_objects.publisher import PublisherStructValue
+from caret_analyze.value_objects.subscription import SubscriptionStructValue
+from caret_analyze.value_objects.transform import TransformFrameBufferStructValue
 
 from tracetools_analysis.loading import load_file
 
@@ -30,6 +35,7 @@ from .events_factory import EventsFactory
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
 from .event_filter import LttngEventFilter, InitEventPassFilter, Event
+from .bridge import LttngBridge
 from .value_objects import (
     PublisherValueLttng,
     SubscriptionCallbackValueLttng,
@@ -53,6 +59,10 @@ from ...value_objects import (
     TimerValue,
     TransformValue,
     CommunicationStructValue,
+    SubscriptionCallbackStructValue,
+    NodePathStructValue,
+    TransformFrameBroadcasterStructValue,
+    TransformCommunicationStructValue,
 )
 
 
@@ -93,7 +103,8 @@ class Lttng(InfraBase):
             event_filters
         )
         self._info = LttngInfo(data)
-        self._source: RecordsSource = RecordsSource(data, self._info)
+        self._bridge = LttngBridge(self._info)
+        self._source: RecordsSource = RecordsSource(data, self._bridge, self._info)
         skip_validation = len(event_filters) == 1 and \
             isinstance(event_filters[0], InitEventPassFilter)
         self._counter = EventCounter(data, validation=not skip_validation)
@@ -181,6 +192,12 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_nodes()
+
+    def get_node(
+        self,
+        node_name: str
+    ) -> NodeValue:
+        return self._info.get_node(node_name)
 
     def get_rmw_impl(
         self
@@ -377,7 +394,7 @@ class Lttng(InfraBase):
     ) -> Sequence[IntraProcessBufferValueLttng]:
         return self._info.get_ipc_buffers(node)
 
-    def ipc_buffer_records(
+    def get_ipc_buffer_records(
         self,
         buffer: IntraProcessBufferValueLttng
     ) -> RecordsInterface:
@@ -403,25 +420,24 @@ class Lttng(InfraBase):
 
     def is_intra_process_communication(
         self,
-        publisher: PublisherValueLttng,
-        subscription: SubscriptionCallbackValueLttng
+        publisher: PublisherStructValue,
+        subscription: SubscriptionStructValue,
     ) -> bool:
-        return self._info.is_intra_process_communication(publisher, subscription)
+        publishers_lttng = self._bridge.get_publishers(publisher)
+        assert len(publishers_lttng) == 1
+        publisher_lttng = publishers_lttng[0]
+        subscription_lttng = self._bridge.get_subscription(subscription)
+        return self._info.is_intra_process_communication(publisher_lttng, subscription_lttng)
 
     def get_inter_proc_tf_comm_records(
         self,
-        broadcaster: TransformBroadcasterValueLttng,
-        listen_transform: TransformValue,
-        buffer: TransformBufferValueLttng,
-        lookup_transform: TransformValue,
+        comm: TransformCommunicationStructValue
     ) -> RecordsInterface:
-        return self._source.get_inter_proc_tf_comm_records(
-            broadcaster, listen_transform, buffer, lookup_transform)
+        return self._source.get_inter_proc_tf_comm_records(comm)
 
     def get_inter_proc_comm_records(
         self,
-        publisher: PublisherValueLttng,
-        callback: SubscriptionCallbackValueLttng,
+        comm: CommunicationStructValue,
     ) -> RecordsInterface:
         """
         Compose inter process communication records of all communications in one records.
@@ -438,13 +454,11 @@ class Lttng(InfraBase):
             - dds_write_timestamp (Optional)
 
         """
-        return self._source.inter_proc_comm_records(publisher, callback).clone()
+        return self._source.inter_proc_comm_records(comm).clone()
 
     def get_intra_proc_comm_records(
         self,
-        publisher: PublisherValueLttng,
-        buffer: IntraProcessBufferValueLttng,
-        callback: SubscriptionCallbackValueLttng,
+        comm: CommunicationStructValue,
     ) -> RecordsInterface:
         """
         Compose inter process communication records of all communications in one records.
@@ -461,51 +475,58 @@ class Lttng(InfraBase):
             - dds_write_timestamp (Optional)
 
         """
-        return self._source.intra_proc_comm_records(publisher, buffer, callback).clone()
+        # publisher: PublisherStructValue,
+        # buffer: IntraProcessBufferStructValue,
+        # callback: SubscriptionCallbackStructValue,
+        return self._source.intra_proc_comm_records(comm).clone()
 
     def get_callback_records(
         self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
+        callback: CallbackStructValue,
     ) -> RecordsInterface:
         return self._source.callback_records(callback).clone()
 
-    def get_node_use_latest_message(
+    def get_node_records(
         self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng],
-        publisher: PublisherValueLttng
+        node_path: NodePathStructValue,
     ) -> RecordsInterface:
-        return self._source.node_use_latest_message(callback, publisher)
-
-    def get_node_callback_chain(
-        self,
-        callbacks: Collection[Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]],
-        publisher: PublisherValueLttng,
-    ) -> RecordsInterface:
-        return self._source.node_callback_chain(callbacks, publisher)
+        return self._source.get_node_records(node_path)
 
     def get_publish_records(
         self,
-        publisher: PublisherValueLttng
+        publisher: PublisherStructValue
     ) -> RecordsInterface:
         return self._source.publish_records(publisher).clone()
 
     def get_intra_publish_records(
         self,
-        publisher: PublisherValueLttng
+        publisher: PublisherValueLttng,
     ) -> RecordsInterface:
         return self._source.intra_publish_records(publisher).clone()
 
     def get_timer_callback(
         self,
-        callback: TimerCallbackValueLttng,
+        callback: TimerCallbackStructValue,
     ) -> RecordsInterface:
         return self._source.timer_callback(callback)
 
-    def get_subscribe_records(
+    @singledispatchmethod
+    def get_subscribe_records( self, args) -> RecordsInterface:
+        raise NotImplementedError('')
+
+    @get_subscribe_records.register
+    def _get_subscribe_records(
         self,
-        subscription: SubscriptionCallbackValueLttng
+        subscription: SubscriptionStructValue
     ) -> RecordsInterface:
-        return self._source.subscribe_records(subscription).clone()
+        return self._source.subscribe_records(subscription.callback).clone()
+
+    @get_subscribe_records.register
+    def _get_subscribe_records_callback(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> RecordsInterface:
+        return self._source.subscribe_records(callback).clone()
 
     def get_intra_subscribe_records(
         self,
@@ -531,19 +552,15 @@ class Lttng(InfraBase):
 
     def get_send_transform(
         self,
-        broadcaster: TransformBroadcasterValueLttng,
-        transform: TransformValue,
+        broadcaster: TransformFrameBroadcasterStructValue,
     ) -> RecordsInterface:
-        return self._source.send_transform_records(
-            self.tf_frame_id_mapper, broadcaster, transform).clone()
+        return self._source.send_transform_records(broadcaster).clone()
 
     def get_lookup_transform(
         self,
-        buffer: TransformBufferValueLttng,
-        transform: TransformValue,
+        buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
-        return self._source.lookup_transform_records(
-            self.tf_frame_id_mapper, buffer, transform).clone()
+        return self._source.lookup_transform_records(buffer).clone()
 
     def get_set_transform(
         self,

@@ -73,7 +73,7 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
     def __init__(
         self,
         tf_tree: TransformTreeValue,
-        listener_subscription: SubscriptionsStructInterface,
+        listener_subscription: Optional[SubscriptionsStructInterface],
         lookup_transform: Optional[TransformValue] = None,
         listen_transform: Optional[TransformValue] = None,
         lookup_node_name: Optional[str] = None,
@@ -270,7 +270,7 @@ class TransformBufferStruct(TransformBufferStructInterface):
         tf_tree: TransformTreeValue,
         lookup_transforms: List[TransformValue],
         listen_transforms: List[TransformValue],
-        listener_subscription: SubscriptionStructInterface,
+        listener_subscription: Optional[SubscriptionStructInterface],
         listener_node_name: Optional[str] = None,
     ) -> None:
         self._lookup_node_name = lookup_node_name
@@ -334,12 +334,16 @@ class TransformBufferStruct(TransformBufferStructInterface):
     def to_value(self) -> TransformBufferStructValue:
         lookup_transforms = tuple(self.lookup_transforms)
         listen_transforms = tuple(self.listen_transforms)
+        listener_subscription = None
+        if self.listener_subscription is not None:
+            listener_subscription = self.listener_subscription.to_value()
+
         return TransformBufferStructValue(
             lookup_node_name=self.lookup_node_name,
             listener_node_name=self.listener_node_name,
             lookup_transforms=lookup_transforms,
             listen_transforms=listen_transforms,
-            listener_subscription=self.listener_subscription.to_value(),
+            listener_subscription=listener_subscription,
         )
 
     @property

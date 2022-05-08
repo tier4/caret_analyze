@@ -1,23 +1,25 @@
 
-from typing import Union
-
 from functools import lru_cache
 
+from caret_analyze.value_objects.callback import CallbackStructValue
+
 from ..column_names import COLUMN_NAME
+from ..bridge import LttngBridge
 from ..ros2_tracing.data_model import Ros2DataModel
 from ..value_objects import (
-    TimerCallbackValueLttng,
     SubscriptionCallbackValueLttng
 )
 from ....record import (
     RecordsInterface, merge_sequencial, GroupedRecords, RecordsFactory, UniqueList
 )
+from ....value_objects import SubscriptionCallbackStructValue
 
 
 class CallbackRecordsContainer:
 
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
     ) -> None:
         self._callback_start = GroupedRecords(
@@ -36,9 +38,11 @@ class CallbackRecordsContainer:
         self._columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
+            COLUMN_NAME.CALLBACK_OBJECT,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             COLUMN_NAME.CALLBACK_END_TIMESTAMP,
         ]
+        self._bridge = bridge
 
     # @property
     # def columns(self) -> Columns:
@@ -57,15 +61,15 @@ class CallbackRecordsContainer:
     @lru_cache
     def get_records(
         self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
+        callback: CallbackStructValue
     ) -> RecordsInterface:
-        if isinstance(callback, SubscriptionCallbackValueLttng):
+        if isinstance(callback, SubscriptionCallbackStructValue):
             intra_records = self.get_intra_records(callback).clone()
             inter_records = self.get_inter_records(callback).clone()
             intra_records.concat(inter_records)
 
-            sort_column = intra_records.columns.get_by_base_name(
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+            sort_column = intra_records.columns.get(
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP, base_name_match=True)
             intra_records.sort(sort_column.column_name)
             return intra_records
 
@@ -74,26 +78,29 @@ class CallbackRecordsContainer:
     @lru_cache
     def get_inter_records(
         self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
+        callback: CallbackStructValue
     ) -> RecordsInterface:
 
         records = self._get_inter_records(callback)
-        records.columns.drop([COLUMN_NAME.IS_INTRA_PROCESS, COLUMN_NAME.CALLBACK_OBJECT])
-
-        records.columns.reindex(self._columns)
+        records.columns.drop([COLUMN_NAME.IS_INTRA_PROCESS], base_name_match=True)
 
         prefix = callback.callback_id
-        records.columns.get_by_base_name(COLUMN_NAME.CALLBACK_START_TIMESTAMP).add_prefix(prefix)
-        records.columns.get_by_base_name(COLUMN_NAME.CALLBACK_END_TIMESTAMP).add_prefix(prefix)
+        records.columns.get(
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP, base_name_match=True).add_prefix(prefix)
+        records.columns.get(
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP, base_name_match=True).add_prefix(prefix)
+
+        records.columns.reindex(self._columns, base_name_match=True)
 
         return records
 
     def _get_inter_records(
         self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
+        callback: CallbackStructValue
     ) -> RecordsInterface:
-        start_records = self._callback_start.get(callback.callback_object, 0)
-        end_records = self._callback_end.get(callback.callback_object)
+        callback_lttng = self._bridge.get_callback(callback)
+        start_records = self._callback_start.get(callback_lttng.callback_object, 0)
+        end_records = self._callback_end.get(callback_lttng.callback_object)
 
         join_keys = [
             COLUMN_NAME.PID,
@@ -116,32 +123,34 @@ class CallbackRecordsContainer:
     @lru_cache
     def get_intra_records(
         self,
-        callback: SubscriptionCallbackValueLttng
+        callback: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
         records = self._get_intra_records(callback)
 
-        records.columns.drop([COLUMN_NAME.IS_INTRA_PROCESS, COLUMN_NAME.CALLBACK_OBJECT])
-
-        records.columns.reindex(self._columns)
+        records.columns.drop([COLUMN_NAME.IS_INTRA_PROCESS], base_name_match=True)
 
         prefix = callback.callback_id
-        records.columns.get_by_base_name(COLUMN_NAME.CALLBACK_START_TIMESTAMP).add_prefix(prefix)
-        records.columns.get_by_base_name(COLUMN_NAME.CALLBACK_END_TIMESTAMP).add_prefix(prefix)
+        records.columns.get(
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP, base_name_match=True).add_prefix(prefix)
+        records.columns.get(
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP, base_name_match=True).add_prefix(prefix)
 
+        records.columns.reindex(self._columns, base_name_match=True)
         return records
 
     def _get_intra_records(
         self,
-        callback: SubscriptionCallbackValueLttng
+        callback: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
-        if callback.callback_object_intra is None:
+        callback_lttng = self._bridge.get_subscription_callback(callback)
+        if callback_lttng.callback_object_intra is None:
             columns = UniqueList(
                 self._callback_start.column_values + self._callback_end.column_values
             ).as_list()
             return RecordsFactory.create_instance(None, columns)
 
-        start_records = self._callback_start.get(callback.callback_object_intra, 1)
-        end_records = self._callback_end.get(callback.callback_object_intra)
+        start_records = self._callback_start.get(callback_lttng.callback_object_intra, 1)
+        end_records = self._callback_end.get(callback_lttng.callback_object_intra)
 
         join_keys = [
             COLUMN_NAME.PID,

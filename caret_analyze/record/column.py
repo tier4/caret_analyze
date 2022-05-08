@@ -17,8 +17,6 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 
 from collections import UserList
-from readline import set_auto_history
-from multimethod import multimethod as singledispatchmethod
 
 from typing import Dict, List, Optional, Set, Tuple, Collection, Sequence
 
@@ -119,13 +117,13 @@ class ColumnValue(ValueObject):
     def __init__(
         self,
         base_column_name: str,
-        attrs: Optional[Set[ColumnAttribute]] = None,
+        attrs: Optional[Collection[ColumnAttribute]] = None,
         prefix: Optional[Collection[str]] = None,
         *,
         mapper: Optional[ColumnMapper] = None,
     ) -> None:
         self._base_column_name = base_column_name
-        self._attrs = attrs or set()
+        self._attrs = set() if attrs is None else set(attrs)
         self._prefix = () if prefix is None else tuple(prefix)
         self._mapper = mapper
 
@@ -281,7 +279,11 @@ class Columns(UserList):
     def as_list(self) -> List[Column]:
         return list(self)
 
-    def drop(self, columns: Collection[str]) -> None:
+    def drop(self, columns: Collection[str], *, base_name_match=False) -> None:
+        if base_name_match:
+            ordered_columns = self.gets(columns, base_name_match=base_name_match)
+            columns = [str(_) for _ in ordered_columns]
+
         self.data = [
             column
             for column
@@ -295,24 +297,38 @@ class Columns(UserList):
     # def clone(self) -> Columns:
     #     return Columns([c.clone() for c in self.data])
 
-    def reindex(self, columns: Sequence[str]) -> None:
+    def reindex(self, columns: Sequence[str], *, base_name_match=False) -> None:
+        if base_name_match:
+            ordered_columns = self.gets(columns, base_name_match=base_name_match)
+            columns = [str(_) for _ in ordered_columns]
+
         tmp = []
         for column_name in columns:
             for i, column in enumerate(self.data):
                 if column.column_name == column_name:
                     tmp.append(self.data.pop(i))
                     break
-        self.data = tmp
+        assert len(tmp) == len(columns)
 
-    def get_by_base_name(self, name: str, take: Optional[str] = None) -> Column:
+        self.data = tmp
+        self._observer.on_column_reindexed(columns)
+
+    def get(self, name: str, take: Optional[str] = None, *, base_name_match=False) -> Column:
         if take is not None:
             assert take in ['head', 'tail']
 
-        columns = [
-            c
-            for c
-            in self.data
-            if c.base_column_name == name]
+        if base_name_match:
+            columns = [
+                c
+                for c
+                in self.data
+                if c.base_column_name == name]
+        else:
+            columns = [
+                c
+                for c
+                in self.data
+                if c.column_name == name]
 
         assert len(columns) > 0
         if take is not None and take == 'tail':
@@ -349,8 +365,8 @@ class Columns(UserList):
         assert len(columns) == 1
         return columns[0]
 
-    def gets_by_base_name(self, *name: str) -> List[Column]:
-        return [self.get_by_base_name(_) for _ in name]
+    def gets(self, names: Collection[str], base_name_match=False) -> List[Column]:
+        return [self.get(_, base_name_match=base_name_match) for _ in names]
 
     def attach(self, observer: ColumnEventObserver):
         self._observer = observer

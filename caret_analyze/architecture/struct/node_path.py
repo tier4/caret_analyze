@@ -45,10 +45,6 @@ from ...exceptions import (
 logger = getLogger(__name__)
 
 
-NodeSend = Union[PublisherStruct, TransformFrameBroadcasterStruct]
-NodeRecv = Union[SubscriptionStruct, TransformFrameBufferStruct]
-
-
 class NodePathStruct(NodePathStructInterface):
 
     def __init__(

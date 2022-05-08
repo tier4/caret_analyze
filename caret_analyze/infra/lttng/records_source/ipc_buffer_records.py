@@ -1,4 +1,7 @@
 from functools import lru_cache
+from typing import Optional
+
+from caret_analyze.infra.lttng.bridge import LttngBridge
 
 from ..column_names import COLUMN_NAME
 from ..ros2_tracing.data_model import Ros2DataModel
@@ -6,12 +9,14 @@ from ..value_objects import (
     IntraProcessBufferValueLttng
 )
 from ....record import RecordsInterface, merge_sequencial, GroupedRecords
+from ....value_objects import IntraProcessBufferStructValue
 
 
 class IpcBufferRecordsContainer:
 
     def __init__(
         self,
+        bridge: LttngBridge,
         data: Ros2DataModel,
     ) -> None:
         self._enqueue_records = GroupedRecords(
@@ -26,13 +31,15 @@ class IpcBufferRecordsContainer:
                 COLUMN_NAME.BUFFER
             ]
         )
+        self._bridge = bridge
 
     @lru_cache
     def get_records(
         self,
-        buffer: IntraProcessBufferValueLttng
+        buffer: IntraProcessBufferStructValue
     ) -> RecordsInterface:
-        columns =[
+        buffer_lttng = self._bridge.get_ipc_buffer(buffer)
+        columns = [
             COLUMN_NAME.PID,
             'enqueue_tid',
             COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
@@ -44,8 +51,8 @@ class IpcBufferRecordsContainer:
             COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
             'dequeued_msg_size'
         ]
-        enqueue_records = self._enqueue_records.get(buffer.buffer)
-        dequeue_records = self._dequque_records.get(buffer.buffer)
+        enqueue_records = self._enqueue_records.get(buffer_lttng.buffer)
+        dequeue_records = self._dequque_records.get(buffer_lttng.buffer)
 
         join_keys = [
             COLUMN_NAME.PID,
@@ -71,10 +78,10 @@ class IpcBufferRecordsContainer:
             how='left'
         )
         records.columns.reindex(columns)
-        columns_ = records.columns.gets_by_base_name(
+        columns_ = records.columns.gets([
             COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
             COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
-        )
+        ], base_name_match=True)
         for column in columns_:
             column.add_prefix(buffer.topic_name)
         return records

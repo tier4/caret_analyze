@@ -25,8 +25,8 @@ from .publisher import PublisherStructValue, PublisherValue
 from ..common.util import Util
 from ..value_objects.value_object import ValueObject
 from ..value_objects.subscription import SubscriptionStructValue
+from ..value_objects.callback import SubscriptionCallbackStructValue
 from ..exceptions import ItemNotFoundError, InvalidArgumentError
-
 
 
 class TransformValue(ValueObject):
@@ -212,6 +212,50 @@ class TransformBufferValue(ValueObject):
         return self._listen_transforms
 
 
+class TransformFrameBufferValue(ValueObject):
+    """transform buffer info."""
+
+    def __init__(
+        self,
+        lookup_node_name: str,
+        lookup_node_id: str,
+        listener_node_name: Optional[str],
+        listener_node_id: Optional[str],
+        lookup_transform: TransformValue,
+        listen_transform: TransformValue,
+    ) -> None:
+        self._listener_node_name = listener_node_name
+        self._listener_node_id = listener_node_id
+        self._lookup_node_name = lookup_node_name
+        self._lookup_node_id = lookup_node_id
+        self._lookup_transform = lookup_transform
+        self._listen_transform = listen_transform
+
+    @property
+    def lookup_node_id(self) -> str:
+        return self._lookup_node_id
+
+    @property
+    def lookup_node_name(self) -> str:
+        return self._lookup_node_name
+
+    @property
+    def listener_node_id(self) -> Optional[str]:
+        return self._listener_node_id
+
+    @property
+    def listener_node_name(self) -> Optional[str]:
+        return self._listener_node_name
+
+    @property
+    def lookup_transform(self) -> TransformValue:
+        return self._lookup_transform
+
+    @property
+    def listen_transforms(self) -> TransformValue:
+        return self._listen_transform
+
+
 class TransformBufferStructValue(ValueObject):
     def __init__(
         self,
@@ -219,7 +263,7 @@ class TransformBufferStructValue(ValueObject):
         listener_node_name: Optional[str],
         lookup_transforms: Tuple[TransformValue, ...],
         listen_transforms: Tuple[TransformValue, ...],
-        listener_subscription: SubscriptionStructValue
+        listener_subscription: Optional[SubscriptionStructValue]
     ) -> None:
         self._lookup_node_name = lookup_node_name
         self._listener_node_name = listener_node_name
@@ -302,7 +346,7 @@ class TransformFrameBufferStructValue(ValueObject):
         listener_node_name: Optional[str],
         listen_transform: TransformValue,
         lookup_transform: TransformValue,
-        listener_subscription: SubscriptionStructValue,
+        listener_subscription: Optional[SubscriptionStructValue],
     ) -> None:
         self._lookup_node_name = lookup_node_name
         self._listener_node_name = listener_node_name
@@ -347,8 +391,14 @@ class TransformFrameBufferStructValue(ValueObject):
         return '/tf'
 
     @property
-    def listener_subscription(self) -> SubscriptionStructValue:
+    def listener_subscription(self) -> Optional[SubscriptionStructValue]:
         return self._listener_subscription
+
+    @property
+    def listener_subscription_callback(self) -> Optional[SubscriptionCallbackStructValue]:
+        if self.listener_subscription is not None:
+            return self.listener_subscription.callback
+        return None
 
 
 class TransformCommunicationStructValue():

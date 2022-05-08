@@ -14,18 +14,20 @@
 
 from functools import cached_property
 
-from typing import List, Sequence, Union, Collection
+from typing import List, Sequence
+from caret_analyze.infra.lttng.bridge import LttngBridge
 from caret_analyze.infra.lttng.value_objects.transform import TransformBufferValueLttng
 
-from caret_analyze.record.column import ColumnMapper
-from caret_analyze.value_objects.transform import TransformValue
+from caret_analyze.record.column import ColumnMapper, ColumnValue
+from caret_analyze.value_objects.callback import CallbackStructValue
+from caret_analyze.value_objects.transform import TransformFrameBroadcasterStructValue
 
 from .callback_records import CallbackRecordsContainer
 from .publish_records import PublishRecordsContainer
 from .subscribe_records import SubscribeRecordsContainer
 from .ipc_buffer_records import IpcBufferRecordsContainer
 from .comm_records import CommRecordsContainer
-from .node_records import NodeUseLatestMessageRecordsContainer
+from .node_records import NodeRecordsContainer
 from .transform import (
     TransformLookupContainer, TransformSendRecordsContainer, TransformSetRecordsContainer,
     TransformCommRecordsContainer
@@ -37,20 +39,23 @@ from ..lttng_info import LttngInfo
 from ..ros2_tracing.data_model import Ros2DataModel
 from ..value_objects import (
     TimerCallbackValueLttng, TimerControl, TimerInit,
-    PublisherValueLttng, SubscriptionCallbackValueLttng,
+    SubscriptionCallbackValueLttng,
     IntraProcessBufferValueLttng,
     TransformBroadcasterValueLttng,
 )
 from ....common import Util
 from ....record import (
     Column,
-    merge_sequencial,
     RecordFactory,
     RecordsFactory,
     RecordsInterface,
 )
 
-from ....value_objects import (TransformValue)
+from ....value_objects import (
+    TransformValue, NodePathStructValue, MessageContextType, CommunicationStructValue,
+    PublisherStructValue, SubscriptionCallbackStructValue, TransformFrameBufferStructValue,
+    TransformCommunicationStructValue
+)
 
 
 class RecordsSource():
@@ -58,31 +63,28 @@ class RecordsSource():
     def __init__(
         self,
         data: Ros2DataModel,
-        info: LttngInfo
+        bridge: LttngBridge,
+        info: LttngInfo,
     ) -> None:
         self._data = data
-        self._preprocess(self._data)
         self._info = info
-        self._cb_records = CallbackRecordsContainer(data)
-        self._sub_records = SubscribeRecordsContainer(data, self._cb_records)
-        self._pub_records = PublishRecordsContainer(data)
-        self._ipc_buffer_records = IpcBufferRecordsContainer(data)
+        self._cb_records = CallbackRecordsContainer(bridge, data)
+        self._sub_records = SubscribeRecordsContainer(bridge, data, self._cb_records)
+        self._pub_records = PublishRecordsContainer(bridge, data)
+        self._ipc_buffer_records = IpcBufferRecordsContainer(bridge, data)
         self._comm_records = CommRecordsContainer(
-            data, self._sub_records, self._ipc_buffer_records, self._pub_records)
-        self._node_records = NodeUseLatestMessageRecordsContainer(
-            self._cb_records, self._pub_records)
-        self._tf_send_records = TransformSendRecordsContainer(data, info, self._pub_records)
-        self._tf_set_records = TransformSetRecordsContainer(data, info, self._cb_records)
-        self._tf_lookup_records = TransformLookupContainer(data, info)
+            bridge, data, self._sub_records, self._ipc_buffer_records, self._pub_records)
+        self._tf_send_records = TransformSendRecordsContainer(
+            bridge, data, info, self._pub_records)
+        self._tf_set_records = TransformSetRecordsContainer(bridge, data, info, self._cb_records)
+        self._tf_lookup_records = TransformLookupContainer(bridge, data, info)
         self._tf_comm_records = TransformCommRecordsContainer(
-            data, info, self._tf_send_records, self._tf_set_records, self._tf_lookup_records
+            bridge, data, info, self._tf_send_records,
+            self._tf_set_records, self._tf_lookup_records
         )
-
-    @staticmethod
-    def _preprocess(data: Ros2DataModel):
-        data.rclcpp_publish.columns.rename(
-            {COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP}
-        )
+        self._node_records = NodeRecordsContainer(
+            bridge, self._cb_records, self._pub_records,
+            self._tf_lookup_records, self._tf_send_records)
 
     def ipc_buffer_records(
         self,
@@ -92,56 +94,51 @@ class RecordsSource():
 
     def intra_publish_records(
         self,
-        publisher: PublisherValueLttng
+        publisher: PublisherStructValue
     ) -> RecordsInterface:
         return self._pub_records.get_intra_records(publisher)
 
     def inter_proc_comm_records(
         self,
-        publisher: PublisherValueLttng,
-        callback: SubscriptionCallbackValueLttng
+        comm: CommunicationStructValue
     ) -> RecordsInterface:
-        return self._comm_records.get_inter_records(publisher, callback)
+        return self._comm_records.get_inter_records(comm)
 
-    def inter_publish_records(
-        self,
-        publisher: PublisherValueLttng
-    ) -> RecordsInterface:
-        return self._pub_records.get_inter_records(publisher)
+    # def inter_publish_records(
+    #     self,
+    #     publisher: PublisherStructValue
+    # ) -> RecordsInterface:
+    #     return self._pub_records.get_inter_records(publisher)
 
     def publish_records(
         self,
-        publisher: PublisherValueLttng
+        publisher: PublisherStructValue
     ) -> RecordsInterface:
         return self._pub_records.get_records(publisher)
 
     def subscribe_records(
         self,
-        subscription: SubscriptionCallbackValueLttng
+        subscription: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
         return self._sub_records.get_records(subscription)
 
-    def intra_subscribe_records(
-        self,
-        subscription: SubscriptionCallbackValueLttng
-    ) -> RecordsInterface:
-        return self._sub_records.get_intra_records(subscription)
+    # def intra_subscribe_records(
+    #     self,
+    #     subscription: SubscriptionCallbackValueLttng
+    # ) -> RecordsInterface:
+    #     return self._sub_records.get_intra_records(subscription)
 
     def send_transform_records(
         self,
-        frame_mapper: ColumnMapper,
-        tf_broadcaster: TransformBroadcasterValueLttng,
-        transform: TransformValue,
+        tf_broadcaster: TransformFrameBroadcasterStructValue,
     ) -> RecordsInterface:
-        return self._tf_send_records.get_records(tf_broadcaster, transform)
+        return self._tf_send_records.get_records(tf_broadcaster)
 
     def lookup_transform_records(
         self,
-        frame_mapper: ColumnMapper,
-        tf_buffer: TransformBufferValueLttng,
-        transform: TransformValue
+        tf_buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
-        records = self._tf_lookup_records.get_records(tf_buffer, transform)
+        records = self._tf_lookup_records.get_records(tf_buffer)
         records.columns.drop(['tf_buffer_core'])
         return records
 
@@ -155,13 +152,9 @@ class RecordsSource():
 
     def get_inter_proc_tf_comm_records(
         self,
-        broadcaster: TransformBroadcasterValueLttng,
-        listen_transform: TransformValue,
-        buffer: TransformBufferValueLttng,
-        lookup_transform: TransformValue,
+        comm: TransformCommunicationStructValue
     ) -> RecordsInterface:
-        return self._tf_comm_records.get_inter_records(
-            broadcaster, listen_transform, buffer, lookup_transform)
+        return self._tf_comm_records.get_inter_records(comm)
 
     def find_closest_records(
         self,
@@ -216,7 +209,7 @@ class RecordsSource():
             def create(self, until_ns: int) -> RecordsInterface:
 
                 columns = [
-                    Column(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
                 ]
 
                 records = RecordsFactory.create_instance(None, columns)
@@ -276,34 +269,48 @@ class RecordsSource():
         self,
         callback: TimerCallbackValueLttng,
     ) -> RecordsInterface:
-        timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
-        callback_records = self.callback_records(timer.callback)
-        last_record = callback_records.data[-1]
-        last_callback_start = last_record.get(callback_records.column_names[0])
-        timer_events = timer_events_factory.create(last_callback_start)
-        timer_records = merge_sequencial(
-            left_records=timer_events,
-            right_records=callback_records,
-            left_stamp_key=COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
-            right_stamp_key=callback_records.column_names[0],
-            join_left_key=None,
-            join_right_key=None,
-            how='left'
-        )
+        raise NotImplementedError('')
+        # timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
+        # callback_records = self.callback_records(timer.callback)
+        # last_record = callback_records.data[-1]
+        # last_callback_start = last_record.get(callback_records.column_names[0])
+        # timer_events = timer_events_factory.create(last_callback_start)
+        # timer_records = merge_sequencial(
+        #     left_records=timer_events,
+        #     right_records=callback_records,
+        #     left_stamp_key=COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+        #     right_stamp_key=callback_records.column_names[0],
+        #     join_left_key=None,
+        #     join_right_key=None,
+        #     how='left'
+        # )
+        # return timer_records
 
-    def node_use_latest_message(
+    def get_node_records(
         self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng],
-        publisher: PublisherValueLttng
+        node_path_val: NodePathStructValue,
     ) -> RecordsInterface:
-        return self._node_records.get_use_latest_message_records(callback, publisher)
+        return self._node_records.get_records(node_path_val)
 
-    def node_callback_chain(
-        self,
-        callbacks: Collection[Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]],
-        publisher: PublisherValueLttng,
-    ) -> RecordsInterface:
-        return self._node_records.get_callback_chain(callbacks, publisher)
+    # def node_use_latest_message(
+    #     self,
+    #     node_path_val: NodePathStructValue,
+    # ) -> RecordsInterface:
+    #     assert node_path_val.message_context_type == MessageContextType.USE_LATEST_MESSAGE
+
+    # def node_callback_chain(
+    #     self,
+    #     # callbacks: Collection[Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]],
+    #     # publisher: Union[PublisherValueLttng, TransformBroadcasterValueLttng],
+    #     node_path_val: NodePathStructValue,
+    # ) -> RecordsInterface:
+    #     return self._node_records.get_callback_chain(node_path_val)
+
+    # def node_tilde(
+    #     self,
+    #     node_path_val: NodePathStructValue,
+    # ) -> RecordsInterface:
+    #     return self._node_records.get_tilde(node_path_val)
 
     def tilde_subscribe_records(self) -> RecordsInterface:
         """
@@ -323,12 +330,12 @@ class RecordsSource():
         records.rename_columns({'subscription': 'tilde_subscription'})
         return records
 
-
     def intra_proc_comm_records(
         self,
-        publisher: PublisherValueLttng,
-        buffer: IntraProcessBufferValueLttng,
-        subscription: SubscriptionCallbackValueLttng,
+        communication: CommunicationStructValue
+        # publisher: PublisherValueLttng,
+        # buffer: IntraProcessBufferValueLttng,
+        # subscription: SubscriptionCallbackValueLttng,
     ) -> RecordsInterface:
         """
         Compose intra process communication records.
@@ -350,19 +357,21 @@ class RecordsSource():
             - message_timestamp
 
         """
-        return self._comm_records.get_intra_records(publisher, buffer, subscription)
+        return self._comm_records.get_intra_records(communication)
 
     def get_comm_records(
         self,
-        publisher: PublisherValueLttng,
-        buffer: IntraProcessBufferValueLttng,
-        subscription: SubscriptionCallbackValueLttng,
+        comm: CommunicationStructValue,
     ) -> RecordsInterface:
-        return self._comm_records.get_records(publisher, buffer, subscription)
+        # publisher: PublisherValueLttng,
+        # buffer: IntraProcessBufferValueLttng,
+        # subscription: SubscriptionCallbackValueLttng,
+        # return self._comm_records.get_records(publisher, buffer, subscription)
+        return self._comm_records.get_records(comm)
 
     def callback_records(
         self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
+        callback: CallbackStructValue,
     ) -> RecordsInterface:
         """
         Compose callback records.
@@ -385,37 +394,3 @@ class RecordsSource():
     @cached_property
     def system_and_sim_times(self) -> RecordsInterface:
         return self._data.sim_time
-
-
-
-
-
-    def callback_records(
-        self,
-        callback: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
-    ) -> RecordsInterface:
-        """
-        Compose callback records.
-
-        Used tracepoints
-        - callback_start
-        - callback_end
-
-        Returns
-        -------
-        RecordsInterface
-            columns:
-            - callback_start_timestamp
-            - callback_end_timestamp
-            - callback_object
-
-        """
-        return self._cb_records.get_records(callback)
-
-    @cached_property
-    def system_and_sim_times(self) -> RecordsInterface:
-        return self._data.sim_time
-
-
-
-
