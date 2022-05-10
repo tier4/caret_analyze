@@ -565,7 +565,7 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            git@github.com:kuboichiTakahisa/CARET_analyze.gitArgument type is invalid.
+            Argument type is invalid.
         ItemNotFoundError
             Failed to find item that match the condition.
         MultipleItemFoundError
