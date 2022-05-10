@@ -14,14 +14,11 @@
 
 from __future__ import annotations, unicode_literals
 
-<<<<<<< HEAD
 import logging
 import re
 
 from typing import List, Optional, Tuple, Union
-=======
 from typing import List, Optional, Union
->>>>>>> 51f2600552cac2693d8a53f6b43d0ae0b516290f
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
