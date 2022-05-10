@@ -14,7 +14,14 @@
 
 from __future__ import annotations, unicode_literals
 
+<<<<<<< HEAD
+import logging
+import re
+
+from typing import List, Optional, Tuple, Union
+=======
 from typing import List, Optional, Union
+>>>>>>> 51f2600552cac2693d8a53f6b43d0ae0b516290f
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -561,16 +568,27 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            git@github.com:kuboichiTakahisa/CARET_analyze.gitArgument type is invalid.
         ItemNotFoundError
             Failed to find item that match the condition.
         MultipleItemFoundError
             Failed to identify item that match the condition.
 
         """
+        def is_match_regex(callback: CallbackBase):
+            return re.match(callback_name, callback.callback_name)
+
         callbacks = []
         for callback_name in callback_names:
-            callbacks.append(self.get_callback(callback_name))
+            try:
+                if '*' in callback_name:
+                    callbacks += Util.filter_items(is_match_regex, self.callbacks)
+                else:
+                    callbacks.append(self.get_callback(callback_name))
+            except InvalidArgumentError as e:
+                print('error')
+                logger = logging.getLogger('LoggingTest')
+                logger.warning(e)
 
         return callbacks
 
