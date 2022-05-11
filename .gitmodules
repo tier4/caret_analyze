@@ -1,9 +1,0 @@
-[submodule "caret_analyze_cpp_impl/pybind11"]
-	path = caret_analyze_cpp_impl/pybind11
-	url = https://github.com/pybind/pybind11
-[submodule "caret_analyze_cpp_impl/json"]
-	path = caret_analyze_cpp_impl/json
-	url = https://github.com/nlohmann/json.git
-[submodule "caret_analyze_cpp_impl/indicators"]
-	path = caret_analyze_cpp_impl/indicators
-	url = https://github.com/p-ranav/indicators.git
