@@ -15,10 +15,13 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Any, Iterable, Iterator, List, Optional, Dict, Tuple
+from typing import Any, Iterable, Iterator, Optional, Dict, Set
 
 from caret_analyze.value_objects.callback import SubscriptionCallbackStructValue
-from caret_analyze.value_objects.subscription import IntraProcessBufferStructValue, SubscriptionValue
+from caret_analyze.value_objects.subscription import (
+    IntraProcessBufferStructValue,
+    SubscriptionValue,
+)
 
 from .struct_interface import (
     CallbacksStructInterface,
@@ -123,6 +126,7 @@ class SubscriptionsStruct(SubscriptionsStructInterface, Iterable):
         self,
     ) -> None:
         self._data: Dict[SubscriptionValue, SubscriptionStruct] = {}
+        self._added_topics: Set[str] = set()
         self._is_transformed = False
 
     def __iter__(self) -> Iterator[SubscriptionStruct]:
@@ -131,6 +135,9 @@ class SubscriptionsStruct(SubscriptionsStructInterface, Iterable):
     def add(self, subscription: SubscriptionStruct) -> None:
         assert self._is_transformed is False
         key = self._get_key(subscription.node_name, subscription.topic_name)
+        if subscription.topic_name in self._added_topics:
+            logger.warning('Topic %s already added', subscription.topic_name)
+        self._added_topics.add(subscription.topic_name)
         self._data[key] = subscription
 
     def get(

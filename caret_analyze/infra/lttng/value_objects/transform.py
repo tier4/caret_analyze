@@ -22,6 +22,7 @@ from ....value_objects import (
     TransformBroadcasterValue,
     TransformBufferValue,
     TransformValue,
+    BroadcastedTransformValue,
 )
 
 
@@ -29,7 +30,7 @@ class TransformBroadcasterValueLttng(TransformBroadcasterValue):
     def __init__(
         self,
         pub: PublisherValueLttng,
-        transforms: Tuple[TransformValue, ...],
+        transforms: Tuple[BroadcastedTransformValue, ...],
         callback_ids: Tuple[str, ...],
         broadcaster_handler: int,
     ) -> None:

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from asyncio.log import logger
 from functools import lru_cache
 from itertools import product
 from typing import Dict, List, Optional, Sequence, Union
@@ -42,7 +43,9 @@ from ...value_objects import (
     UseLatestMessage,
     VariablePassingValue,
     CallbackGroupValue,
+    BroadcastedTransformValue
 )
+from ...exceptions import Error
 
 
 class ArchitectureReaderLttng(ArchitectureReader):
@@ -83,14 +86,14 @@ class ArchitectureReaderLttng(ArchitectureReader):
 
         class TfFrameBroadcasterLocal:
 
-            def __init__(self, transform: TransformValue) -> None:
+            def __init__(self, transform: BroadcastedTransformValue) -> None:
                 self.transform = transform
 
         class TfFrameBufferLocal:
 
             def __init__(
                 self,
-                listen_transform: TransformValue,
+                listen_transform: BroadcastedTransformValue,
                 lookup_transform: TransformValue,
             ) -> None:
                 self.listen_transform = listen_transform
@@ -104,32 +107,37 @@ class ArchitectureReaderLttng(ArchitectureReader):
         node_outputs: List[NodeOutType] = []
 
         for pub in self.get_publishers(node.node_name):
-            if pub.topic_name in IGNORE_TOPICS:
-                continue
-            if pub.topic_name == '/tf':
-                continue
-            if pub.topic_name.endswith('/info/pub'):
-                continue
-            node_outputs.append(pub)
+            try:
+                if pub.topic_name in IGNORE_TOPICS:
+                    continue
+                if pub.topic_name == '/tf':
+                    continue
+                if pub.topic_name.endswith('/info/pub'):
+                    continue
+                node_outputs.append(pub)
+            except Error as e:
+                logger.warning('Error getting publisher: %s', e)
 
         for sub in self.get_subscriptions(node.node_name):
-            if sub.topic_name.endswith('/info/pub'):
-                continue
-            if sub.topic_name in IGNORE_TOPICS:
-                continue
-            node_inputs.append(sub)
+            try:
+                if sub.topic_name.endswith('/info/pub'):
+                    continue
+                if sub.topic_name in IGNORE_TOPICS:
+                    continue
+                node_inputs.append(sub)
+            except Error as e:
+                logger.warning('Error getting subscription: %s', e)
 
         tf_br = self.get_tf_broadcaster(node.node_name)
         tf_buff = self.get_tf_buffer(node.node_name)
 
         if isinstance(tf_buff, TransformBufferValue) and tf_buff.lookup_transforms is not None:
             tf_frames = self.get_tf_frames()
-            if len(tf_frames) > 0:
-                tf_tree = TransformTreeValue.create_from_transforms(tf_frames)
-                for listen_tf, lookup_tf in product(tf_frames, tf_buff.lookup_transforms):
-                    if not tf_tree.is_in(lookup_tf, listen_tf):
-                        continue
-                    node_inputs.append(TfFrameBufferLocal(listen_tf, lookup_tf))
+            tf_tree = TransformTreeValue(tf_frames)
+            for listen_tf, lookup_tf in product(tf_frames, tf_buff.lookup_transforms):
+                if not tf_tree.is_in(lookup_tf, listen_tf):
+                    continue
+                node_inputs.append(TfFrameBufferLocal(listen_tf, lookup_tf))
 
         if isinstance(tf_br, TransformBroadcasterValue):
             for br_tf in tf_br.broadcast_transforms:
@@ -142,8 +150,8 @@ class ArchitectureReaderLttng(ArchitectureReader):
                 context['subscription_topic_name'] = node_in.topic_name
             elif isinstance(node_in, TfFrameBufferLocal):
                 context['subscription_topic_name'] = '/tf'
-                context['lookup_frame_id'] = node_in.lookup_transform.frame_id
-                context['lookup_child_frame_id'] = node_in.lookup_transform.child_frame_id
+                context['lookup_source_frame_id'] = node_in.lookup_transform.source_frame_id
+                context['lookup_target_frame_id'] = node_in.lookup_transform.target_frame_id
                 context['listen_frame_id'] = node_in.listen_transform.frame_id
                 context['listen_child_frame_id'] = node_in.listen_transform.child_frame_id
 
@@ -201,7 +209,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
     @lru_cache
     def get_tf_frames(
         self
-    ) -> Sequence[TransformValue]:
+    ) -> Sequence[BroadcastedTransformValue]:
         return self._lttng.get_tf_frames()
 
     def get_ipc_buffers(

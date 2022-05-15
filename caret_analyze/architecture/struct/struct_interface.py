@@ -69,11 +69,11 @@ class TransformFrameBroadcasterStructInterface(metaclass=ABCMeta):
 
     @property
     def frame_id(self) -> str:
-        return self.transform.frame_id
+        return self.transform.source_frame_id
 
     @property
     def child_frame_id(self) -> str:
-        return self.transform.child_frame_id
+        return self.transform.target_frame_id
 
 
 class TransformFrameBufferStructInterface(metaclass=ABCMeta):
@@ -95,19 +95,19 @@ class TransformFrameBufferStructInterface(metaclass=ABCMeta):
 
     @property
     def listen_frame_id(self) -> str:
-        return self.listen_transform.frame_id
+        return self.listen_transform.source_frame_id
 
     @property
     def listen_child_frame_id(self) -> str:
-        return self.listen_transform.child_frame_id
+        return self.listen_transform.target_frame_id
 
     @property
-    def lookup_frame_id(self) -> str:
-        return self.lookup_transform.frame_id
+    def lookup_source_frame_id(self) -> str:
+        return self.lookup_transform.source_frame_id
 
     @property
-    def lookup_child_frame_id(self) -> str:
-        return self.lookup_transform.child_frame_id
+    def lookup_target_frame_id(self) -> str:
+        return self.lookup_transform.target_frame_id
 
     @abstractmethod
     def to_value(self) -> TransformFrameBufferStructValue:

@@ -83,13 +83,13 @@ class NodePath(PathBase, Summarizable):
     def tf_buffer_lookup_frame_id(self) -> Optional[str]:
         if self.tf_buffer is None:
             return None
-        return self.tf_buffer.lookup_frame_id
+        return self.tf_buffer.lookup_source_frame_id
 
     @property
     def tf_buffer_lookup_child_frame_id(self) -> Optional[str]:
         if self.tf_buffer is None:
             return None
-        return self.tf_buffer.lookup_child_frame_id
+        return self.tf_buffer.lookup_target_frame_id
 
     @property
     def tf_buffer_listen_frame_id(self) -> Optional[str]:

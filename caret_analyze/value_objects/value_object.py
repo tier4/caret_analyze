@@ -14,7 +14,9 @@
 
 import inspect
 
-from typing import Any, Dict
+from typing import Any, Dict, Union, Tuple
+
+IdValueType = Tuple[Union[None, str, int], ...]
 
 
 class ValueObject():
@@ -72,3 +74,13 @@ class ValueObject():
             if callable(value):
                 continue
             yield key
+
+
+class IdValue(ValueObject):
+
+    def __init__(self, *values: Union[None, int, str]) -> None:
+        self._values = values
+
+    @property
+    def values(self) -> Tuple[Union[None, int, str], ...]:
+        return self._values

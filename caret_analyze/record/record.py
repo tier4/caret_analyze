@@ -745,19 +745,19 @@ class Records(RecordsInterface, ColumnEventObserver):
         copy_records = copy_records.clone()
         sink_records = sink_records.clone()
 
-        source_records.append_column(Column(column_type), [RecordType.SOURCE]*len(source_records))
-        copy_records.append_column(Column(column_type), [RecordType.COPY]*len(copy_records))
-        sink_records.append_column(Column(column_type), [RecordType.SINK]*len(sink_records))
+        source_records.append_column(ColumnValue(column_type), [RecordType.SOURCE]*len(source_records))
+        copy_records.append_column(ColumnValue(column_type), [RecordType.COPY]*len(copy_records))
+        sink_records.append_column(ColumnValue(column_type), [RecordType.SINK]*len(sink_records))
 
         source_timestamps = [r.get(source_stamp_key) for r in source_records.data]
-        source_records.append_column(Column(column_timestamp), source_timestamps)
+        source_records.append_column(ColumnValue(column_timestamp), source_timestamps)
         copy_records.rename_columns({copy_stamp_key: column_timestamp})
         sink_timestamps = [r.get(sink_stamp_key) for r in sink_records.data]
-        sink_records.append_column(Column(column_timestamp), sink_timestamps)
+        sink_records.append_column(ColumnValue(column_timestamp), sink_timestamps)
 
-        merged_records_column = source_records.columns.clone()
-        merged_records_column += copy_records.columns
-        merged_records_column += sink_records.columns
+        merged_records_column = list(source_records.columns.to_value())
+        merged_records_column += copy_records.columns.to_value()
+        merged_records_column += sink_records.columns.to_value()
         merged_records: Records = Records(None, merged_records_column)
 
         concat_records = Records(source_records._data + copy_records._data + sink_records._data,

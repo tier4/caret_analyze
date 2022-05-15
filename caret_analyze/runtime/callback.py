@@ -90,6 +90,10 @@ class CallbackBase(PathBase, Summarizable):
     def summary(self) -> Summary:
         return self.__val.summary
 
+    @property
+    def callback_id(self) -> str:
+        return self.__val.callback_id
+
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.callback_records(self.__val)
 

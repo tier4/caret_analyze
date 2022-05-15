@@ -52,18 +52,15 @@ class Communication(PathBase, Summarizable):
         # self._callback_subscription = callback_subscription
         self._is_intra_process: Optional[bool] = None
         self._rmw_implementation: Optional[str] = None
-        if isinstance(records_provider, RuntimeDataProvider):
-            self._is_intra_process = \
-                records_provider.is_intra_process_communication(
-                    communication_value.publisher, communication_value.subscription)
-            self._rmw_implementation = \
-                records_provider.get_rmw_implementation()
         self._publisher = publisher
         self._subscription = subscription
 
-    @property
+    @cached_property
     def rmw_implementation(self) -> Optional[str]:
-        return self._rmw_implementation
+        if self._records_provider is not None and \
+                isinstance(self._records_provider, RuntimeDataProvider):
+            return self._records_provider.get_rmw_implementation()
+        return None
 
     @property
     def summary(self) -> Summary:
@@ -71,7 +68,11 @@ class Communication(PathBase, Summarizable):
 
     @cached_property
     def is_intra_proc_comm(self) -> Optional[bool]:
-        return self._is_intra_process
+        if self._records_provider is not None and \
+                isinstance(self._records_provider, RuntimeDataProvider):
+            return self._records_provider.is_intra_process_communication(
+                self._val.publisher, self._val.subscription)
+        return None
 
     # # TODO(hsgwa): このコールバックは不要では？？
     # @property

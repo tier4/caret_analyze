@@ -10,9 +10,10 @@ from ..value_objects import (
     PublisherValueLttng,
     SubscriptionCallbackValueLttng
 )
-from ....record import RecordsInterface, merge_sequencial, GroupedRecords
+from ....record import (
+    RecordsInterface, merge_sequencial, GroupedRecords, RecordsFactory, UniqueList
+)
 from ....value_objects import SubscriptionCallbackStructValue
-
 
 
 class SubscribeRecordsContainer:
@@ -39,8 +40,8 @@ class SubscribeRecordsContainer:
         self,
         callback: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
-        inter_records = self.get_inter_records(callback).clone()
-        intra_records = self.get_intra_records(callback).clone()
+        inter_records = self.get_inter_records(callback)
+        intra_records = self.get_intra_records(callback)
         inter_records.columns.drop([COLUMN_NAME.SOURCE_TIMESTAMP], base_name_match=True)
         inter_records.concat(intra_records)
         column = inter_records.columns.get(
@@ -50,8 +51,14 @@ class SubscribeRecordsContainer:
         inter_records.sort(column.column_name)
         return inter_records
 
-    @lru_cache
     def get_inter_records(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> RecordsInterface:
+        return self._get_inter_records(callback).clone()
+
+    @lru_cache
+    def _get_inter_records(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
@@ -95,16 +102,22 @@ class SubscribeRecordsContainer:
         records.columns.drop([dispatch_column.column_name])
         records.columns.reindex(columns, base_name_match=True)
 
-        columns = records.columns.gets([
+        add_prefix_columns = records.columns.gets([
             'source_timestamp',
             'message_timestamp',
         ], base_name_match=True)
-        for column in columns:
-            column.add_prefix(callback.subscribe_topic_name)
+        for add_prefix_column in add_prefix_columns:
+            add_prefix_column.add_prefix(callback.subscribe_topic_name)
         return records
 
-    @lru_cache
     def get_intra_records(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> RecordsInterface:
+        return self._get_intra_records(callback).clone()
+
+    @lru_cache
+    def _get_intra_records(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
@@ -112,10 +125,32 @@ class SubscribeRecordsContainer:
             'pid', 'tid', 'callback_object',
             'message_timestamp', 'callback_start_timestamp', 'callback_end_timestamp']
 
+        records = self._get_intra_records_core(callback)
+        column = records.columns.get(COLUMN_NAME.MESSAGE_TIMESTAMP, base_name_match=True)
+        column.add_prefix(callback.subscribe_topic_name)
+        records.columns.reindex(columns, base_name_match=True)
+        return records
+
+    def _get_intra_records_core(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> RecordsInterface:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         callback_records = self._cb_records.get_intra_records(callback)
 
-        assert callback_lttng.callback_object_intra is not None
+        if callback_lttng.callback_object_intra is None:
+            records = RecordsFactory.create_instance(
+                None,
+                UniqueList(
+                    callback_records.columns.to_value() + self._intra_dispatch.column_values
+                ).as_list()
+            )
+            records.columns.drop([
+                COLUMN_NAME.MESSAGE,
+                COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP
+            ], base_name_match=True)
+            return records
+
         intra_dispatch_records = self._intra_dispatch.get(callback_lttng.callback_object_intra)
         intra_dispatch_records.columns.drop(['message'], base_name_match=True)
 
@@ -140,9 +175,8 @@ class SubscribeRecordsContainer:
             how='left',
             progress_label='binding intra and inter subscribe'
         )
+        records.columns.drop([
+            COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP
+        ], base_name_match=True)
 
-        records.columns.drop([dispatch_column.column_name])
-        column = records.columns.get(COLUMN_NAME.MESSAGE_TIMESTAMP, base_name_match=True)
-        column.add_prefix(callback.subscribe_topic_name)
-        records.columns.reindex(columns, base_name_match=True)
         return records

@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from multimethod import multimethod as singledispatchmethod
+
 from logging import getLogger
 from typing import (
     Callable,
@@ -21,6 +23,7 @@ from typing import (
     Optional,
     Tuple,
     Union,
+    Collection,
 )
 
 from .path_searcher import EdgeBase, NodeBase, PathBase, PathSearcher
@@ -70,6 +73,14 @@ class CommunicationWrapper(EdgeBase):
                 br.frame_id,
                 br.child_frame_id,
             )
+            # buf = self._data.buffer
+            # return '{}[frame_id={},child_frame_id={},source_frame_id={},target_frame_id={}]'.format(
+            #     br.topic_name,
+            #     br.frame_id,
+            #     br.child_frame_id,
+            #     buf.lookup_source_frame_id,
+            #     buf.lookup_target_frame_id
+            # )
         else:
             return self._data.topic_name
 
@@ -106,6 +117,13 @@ class NodePathWrapper(NodeBase):
                 buff.listen_frame_id,
                 buff.listen_child_frame_id,
             )
+            # return '{}[frame_id={},child_frame_id={},source_frame_id={},target_frame_id={}]'.format(
+            #     buff.topic_name,
+            #     buff.listen_frame_id,
+            #     buff.listen_child_frame_id,
+            #     buff.lookup_source_frame_id,
+            #     buff.lookup_target_frame_id,
+            # )
         else:
             return self._data.subscribe_topic_name
 
@@ -147,13 +165,14 @@ class NodePathSearcher:
 
         self._searcher = PathSearcher(PathWrapper.create_instance)
 
-        for node_path in Util.flatten([n.paths for n in nodes]):
-            if node_filter is not None and not node_filter(node_path.node_name):
-                continue
+        # for node_path in Util.flatten([n.paths for n in nodes]):
+        for node in nodes:
+            for node_path in node.paths:
+                if node_filter is not None and not node_filter(node_path.node_name):
+                    continue
 
-            node_path_wrapped = NodePathWrapper(node_path)
-            self._searcher.add_node(node_path_wrapped)
-
+                node_path_wrapped = NodePathWrapper(node_path)
+                self._searcher.add_node(node_path_wrapped)
         for comm in communications:
             if communication_filter is not None and \
                     not communication_filter(comm.topic_name):
@@ -166,16 +185,40 @@ class NodePathSearcher:
             comm_wrapped = CommunicationWrapper(comm)
             self._searcher.add_edge(comm_wrapped)
 
-    def search(
+    @singledispatchmethod
+    def search(self, args):
+        raise NotImplementedError('')
+
+    # @search.register
+    # def _search(
+    #     self,
+    #     start_node_name: str,
+    #     end_node_name: str,
+    #     max_node_depth: int = 10
+    # ) -> List[PathStructValue]:
+
+    #     paths = self._searcher.search_paths(
+    #         start_node_name,
+    #         end_node_name,
+    #         max_search_depth=max_node_depth
+    #     )
+
+    #     struct_paths = []
+    #     for path in paths:
+    #         struct_path = PathStructValue(None, path.data)  # type: ignore
+    #         struct_paths.append(struct_path)
+
+    #     return struct_paths
+
+    @search.register
+    def _search_seq(
         self,
-        start_node_name: str,
-        end_node_name: str,
-        max_node_depth: Optional[int] = None
+        node_names: Collection[str],
+        max_node_depth: int = 10
     ) -> List[PathStructValue]:
 
         paths = self._searcher.search_paths(
-            start_node_name,
-            end_node_name,
+            node_names,
             max_search_depth=max_node_depth
         )
 

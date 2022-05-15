@@ -28,6 +28,7 @@ from ..value_objects import (
     TransformFrameBufferStructValue,
     TransformFrameBroadcasterStructValue,
     TransformValue,
+    BroadcastedTransformValue,
 )
 
 
@@ -42,12 +43,12 @@ class TransformFrameBuffer(PathBase):
         self._provider = provider
 
     @property
-    def lookup_frame_id(self) -> str:
-        return self._buff.lookup_frame_id
+    def lookup_source_frame_id(self) -> str:
+        return self._buff.lookup_source_frame_id
 
     @property
-    def lookup_child_frame_id(self) -> str:
-        return self._buff.lookup_child_frame_id
+    def lookup_target_frame_id(self) -> str:
+        return self._buff.lookup_target_frame_id
 
     @property
     def listen_frame_id(self) -> str:
@@ -90,14 +91,14 @@ class TransformBuffer():
     @get.register
     def _get_tf_value(
         self,
-        listen_transform: TransformValue,
+        listen_transform: BroadcastedTransformValue,
         lookup_transform: TransformValue,
     ) -> TransformFrameBuffer:
         return self._get_tf_dist(
             listen_transform.frame_id,
             listen_transform.child_frame_id,
-            lookup_transform.frame_id,
-            lookup_transform.child_frame_id,
+            lookup_transform.source_frame_id,
+            lookup_transform.target_frame_id,
         )
 
     @get.register
@@ -105,14 +106,14 @@ class TransformBuffer():
         self,
         listen_frame_id: str,
         listen_child_frame_id: str,
-        lookup_frame_id: str,
-        lookup_child_frame_id: str,
+        lookup_source_frame_id: str,
+        lookup_target_frame_id: str,
     ) -> TransformFrameBuffer:
         frame_buff = self._buff.get_frame_buffer(
             listen_frame_id,
             listen_child_frame_id,
-            lookup_frame_id,
-            lookup_child_frame_id)
+            lookup_source_frame_id,
+            lookup_target_frame_id)
         return TransformFrameBuffer(frame_buff, self._provider)
 
 

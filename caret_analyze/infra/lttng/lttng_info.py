@@ -17,6 +17,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import cached_property, lru_cache
 from logging import getLogger
+import logging
 from typing import (
     Any,
     Callable,
@@ -28,12 +29,14 @@ from typing import (
     Optional,
     Sequence,
     Union,
+    Set,
 )
 
 import numpy as np
 import pandas as pd
 
 from caret_analyze.value_objects.communication import CommunicationStructValue
+from caret_analyze.value_objects.transform import BroadcastedTransformValue
 
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (
@@ -52,7 +55,7 @@ from .value_objects import (
     ClientCallbackValueLttng,
 )
 from ...common import Util
-from ...exceptions import InvalidArgumentError, ItemNotFoundError
+from ...exceptions import InvalidArgumentError, ItemNotFoundError, Error, MultipleItemFoundError
 from ...value_objects import (
     ExecutorValue,
     NodeValue,
@@ -119,6 +122,7 @@ class LttngInfo:
         callbacks = Callbacks(self._timer_cbs, self._sub_cbs)
         self._cbgs = LttngInfo._load_cbgs(self._formatted, callbacks)
         self._ipc_buffers = LttngInfo._load_ipc_buffers(self._formatted)
+        self._tf_buffers = self._load_tf_buffers(self._formatted)
 
         self._id_to_topic: Dict[str, str] = {}
 
@@ -185,11 +189,58 @@ class LttngInfo:
             val = IntraProcessBufferValueLttng(
                 row['node_name'],
                 row['topic_name'],
-                row['capacity'],
+                # row['capacity'],
                 row['buffer']
             )
             buffers.add(row['node_id'], val)
 
+        return buffers
+
+    def _load_tf_buffers(self, formatted: DataFrameFormatted) -> Collection:
+        buffers = Collection()
+        nodes = self.get_nodes()
+        listen_transforms = self.get_tf_frames()
+
+        for tf_buffer_core, group in formatted.tf_buffers_df.groupby('tf_buffer_core'):
+            try:
+                transforms = []
+                for _, row in group.iterrows():
+                    source_frame_id = row['source_frame_id']
+                    target_frame_id = row['target_frame_id']
+                    transforms.append(TransformValue(source_frame_id, target_frame_id))
+
+                row = group.iloc[0, :]
+
+                if row['listener_node_id'] is None or row['lookup_node_id'] is None:
+                    continue
+
+                listener_node = Util.find_one(lambda x: x.node_id == row['listener_node_id'], nodes)
+                lookup_node = Util.find_one(lambda x: x.node_id == row['lookup_node_id'], nodes)
+
+                listener_callbacks = self.get_subscription_callbacks(listener_node)
+                listener_callback = [
+                    cb
+                    for cb
+                    in listener_callbacks
+                    if isinstance(cb, SubscriptionCallbackValueLttng) and
+                    cb.subscribe_topic_name == '/tf'
+                ][0]
+
+                buffers.add(
+                    lookup_node.node_id,
+                    TransformBufferValueLttng(
+                        listener_node_id=listener_node.node_id,
+                        listener_node_name=listener_node.node_name,
+                        lookup_node_id=lookup_node.node_id,
+                        lookup_node_name=lookup_node.node_name,
+                        lookup_transforms=tuple(transforms),
+                        listen_transforms=tuple(listen_transforms),
+                        buffer_handler=tf_buffer_core,
+                        listener_callback=listener_callback
+                    )
+                )
+            except Error as e:
+                logger.warning(f'Failed to get tf_buffer. skip loading. {e}')
         return buffers
 
     def get_service_callbacks(
@@ -219,14 +270,50 @@ class LttngInfo:
         return self._ipc_buffers.gets(node_lttng)
 
     @lru_cache
-    def get_tf_frames(self) -> Sequence[TransformValue]:
-        nodes = self.get_nodes()
-        tfs: List[TransformValue] = []
-        for node in nodes:
-            bf = self.get_tf_broadcaster(node)
-            if bf is not None:
-                tfs += bf.broadcast_transforms
-        return tfs
+    def get_tf_frames(self) -> Sequence[BroadcastedTransformValue]:
+        tfs: Set[BroadcastedTransformValue] = set()
+        for _, row in self._formatted.tf_frames_df.iterrows():
+            tfs.add(BroadcastedTransformValue(row['frame_id'], row['child_frame_id']))
+        return list(tfs)
+        # self._formatted.
+        # for node in nodes:
+        #     try:
+        #         bf = self.get_tf_broadcaster(node)
+        #         if bf is not None:
+        #             tfs |= set(bf.broadcast_transforms)
+
+        #         buf = self.get_tf_buffer(node)
+        #         if buf is not None and buf.listen_transforms is not None:
+        #             tfs |= set(buf.listen_transforms)
+        #     except Error as e:
+        #         logging.warning(f'Failed to get tf_broadcaster. skip loading {node.node_name}. {e}')
+        # return list(tfs)
+
+        # for tf_buffer_core, group in self._formatted.tf_buffers_df.groupby('tf_buffer_core'):
+        #     try:
+        #         transforms = []
+        #         tf_map = self.get_tf_buffer_frame_compact_map(tf_buffer_core)
+        #         for _, row in group.iterrows():
+        #             frame_id = tf_map[row['frame_id_compact']]
+        #             child_frame_id = tf_map[row['child_frame_id_compact']]
+        #             transforms.append(TransformValue(frame_id, child_frame_id))
+
+        #         buffers.add(
+        #             lookup_node.node_id,
+        #             TransformBufferValueLttng(
+        #                 listener_node_id=listener_node.node_id,
+        #                 listener_node_name=listener_node.node_name,
+        #                 lookup_node_id=lookup_node.node_id,
+        #                 lookup_node_name=lookup_node.node_name,
+        #                 lookup_transforms=tuple(transforms),
+        #                 listen_transforms=tuple(listen_transforms),
+        #                 buffer_handler=tf_buffer_core,
+        #                 listener_callback=listener_callback
+        #             )
+        #         )
+        #     except Error as e:
+        #         logger.warning(f'Failed to get tf_buffer. skip loading. {e}')
+        # return buffers
 
     def get_timer_callbacks(self, node: NodeValue) -> Sequence[TimerCallbackValueLttng]:
         """
@@ -271,6 +358,7 @@ class LttngInfo:
             node_handle = row['node_handle']
             if node_name in added_nodes:
                 duplicate_nodes.add(node_name)
+                continue
             added_nodes.add(node_name)
             nodes.append(NodeValueLttng(node_name, node_handle, node_id))
 
@@ -287,54 +375,26 @@ class LttngInfo:
         for node in nodes:
             if node.node_name == node_name:
                 return node
-        raise NotImplementedError('')
+        raise ItemNotFoundError('Failed to get node. node_name = {}'.format(node_name))
 
     def get_tf_buffer(
         self,
         node: NodeValue
     ) -> Optional[TransformBufferValueLttng]:
-        nodes = self.get_nodes()
+        node_lttng = self._get_node_lttng(node)
+        bufs = self._tf_buffers.gets(node_lttng)
+        if len(bufs) == 0:
+            return None
+        if len(bufs) == 1:
+            return bufs[0]
+        raise MultipleItemFoundError('Multiple tf_buffer found. node_name = {}'.format(node.node_name))
 
-        listen_transforms = self.get_tf_frames()
-
-        for tf_buffer_core, group in self._formatted.tf_buffers_df.groupby('tf_buffer_core'):
-            transforms = []
-            tf_map = self.get_tf_buffer_frame_compact_map(tf_buffer_core)
-            for _, row in group.iterrows():
-                frame_id = tf_map[row['frame_id_compact']]
-                child_frame_id = tf_map[row['child_frame_id_compact']]
-                transforms.append(TransformValue(frame_id, child_frame_id))
-
-            row = group.iloc[0, :]
-
-            if row['listener_node_id'] is None or row['lookup_node_id'] is None:
-                continue
-
-            listener_node = Util.find_one(lambda x: x.node_id == row['listener_node_id'], nodes)
-            lookup_node = Util.find_one(lambda x: x.node_id == row['lookup_node_id'], nodes)
-            if lookup_node.node_name != node.node_name:
-                continue
-
-            listener_callbacks = self.get_subscription_callbacks(listener_node)
-            assert len(listener_callbacks) == 2  # /tf and /tf_static
-            listener_callback = listener_callbacks[0]
-
-            return TransformBufferValueLttng(
-                    listener_node_id=listener_node.node_id,
-                    listener_node_name=listener_node.node_name,
-                    lookup_node_id=lookup_node.node_id,
-                    lookup_node_name=lookup_node.node_name,
-                    lookup_transforms=tuple(transforms),
-                    listen_transforms=tuple(listen_transforms),
-                    buffer_handler=tf_buffer_core,
-                    listener_callback=listener_callback
-                )
-        return None
-
+    @lru_cache
     def _get_node_lttng(self, node: NodeValue) -> NodeValueLttng:
         nodes = self.get_nodes()
         return Util.find_one(lambda x: x.node_name == node.node_name, nodes)
 
+    @lru_cache
     def get_tf_broadcaster(
         self,
         node: NodeValue
@@ -349,7 +409,7 @@ class LttngInfo:
 
         pub_id = br_df['publisher_id'].values[0]
         transforms = tuple(
-            TransformValue(tf['frame_id'], tf['child_frame_id'])
+            BroadcastedTransformValue(tf['frame_id'], tf['child_frame_id'])
             for _, tf
             in br_df.iterrows()
         )
@@ -1093,6 +1153,7 @@ class DataFrameFormatted:
         self._tilde_sub_id_to_sub = self._build_tilde_sub_id_df(data, self._tilde_sub)
         self._timer_control = self._build_timer_control_df(data)
         self._tf_broadcasters = self._build_tf_broadcasters_df(data, self._pub_df)
+        self._tf_frames = self._build_tf_frames_df(data)
         self._tf_buffers = self._build_tf_buffers_df(
             data,
             self._nodes_df,
@@ -1317,6 +1378,10 @@ class DataFrameFormatted:
         return self._tf_buffers
 
     @property
+    def tf_frames_df(self):
+        return self._tf_frames
+
+    @property
     def ipm_df(self):
         return self._ipm_df
 
@@ -1406,8 +1471,8 @@ class DataFrameFormatted:
             'clock',
             'listener_node_id',
             'lookup_node_id',
-            'frame_id_compact',
-            'child_frame_id_compact',
+            'target_frame_id',
+            'source_frame_id',
         ]
 
         df = data.construct_tf_buffer.df
@@ -1518,6 +1583,21 @@ class DataFrameFormatted:
         )
 
         df = pd.merge(df, pub_df, on='publisher_handle', how='left')
+
+        return df[columns]
+
+    @staticmethod
+    def _build_tf_frames_df(
+        data: Ros2DataModel,
+    ) -> pd.DataFrame:
+        columns = [
+            'frame_id',
+            'child_frame_id'
+        ]
+        br_df = data.transform_broadcaster_frames.df[columns]
+        buf_df = data.tf_buffer_set_transform.df[columns]
+        df = pd.concat([br_df, buf_df])
+        df.drop_duplicates(inplace=True)
 
         return df[columns]
 

@@ -30,14 +30,22 @@ class Architecture(Summarizable):
         self,
         file_type: str,
         file_path: str,
+        file_type_sub: Optional[str] = None,
+        file_path_sub: Optional[str] = None,
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
 
         # /parameter events and /rosout measurements are not yet supported.
-        ignore_topics: List[str] = IGNORE_TOPICS
+        # ignore_topics: List[str] = IGNORE_TOPICS
+        ignore_topics: List[str] = []
 
-        reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
+        if file_type_sub is not None and file_path_sub is not None:
+            reader = ArchitectureReaderFactory.create_instance(
+                file_type, file_path, file_type_sub, file_path_sub)
+        else:
+            reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
+
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
         self._nodes: Tuple[NodeStructValue, ...] = loaded.nodes
@@ -77,7 +85,7 @@ class Architecture(Summarizable):
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
-        return tuple(_.callbacks for _ in self.callback_groups)
+        return tuple(Util.flatten([_.callbacks for _ in self.callback_groups]))
 
     def get_communication(
         self,
@@ -144,21 +152,21 @@ class Architecture(Summarizable):
 
     def search_paths(
         self,
-        start_node_name: str,
-        end_node_name: str,
-        max_node_depth: Optional[int] = None,
+        *node_names: str,
+        max_node_depth: int = 10,
         node_filter: Optional[Callable[[str], bool]] = None,
         communication_filter: Optional[Callable[[str], bool]] = None,
     ) -> List[PathStructValue]:
         from .graph_search import NodePathSearcher
-        if start_node_name not in self.node_names:
-            raise InvalidArgumentError(f'Failed to find node. {start_node_name}')
-        if end_node_name not in self.node_names:
-            raise InvalidArgumentError(f'Failed to find node. node_name: {end_node_name}')
+        assert len(node_names) >= 2
+
+        for node_name in node_names:
+            if node_name not in self.node_names:
+                raise InvalidArgumentError(f'Failed to find node. {node_name}')
 
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
-        return path_searcher.search(start_node_name, end_node_name, max_node_depth)
+        return path_searcher.search(node_names, max_node_depth)
 
 
 class NamedPathManager():

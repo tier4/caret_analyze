@@ -25,6 +25,7 @@ from .transform import (
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
 )
+from .callback_path import CallbackPathStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
 from ..common import Summarizable, Summary, Util
@@ -45,8 +46,8 @@ class NodePathValue(ValueObject):
         broadcast_child_frame_id: Optional[str],
         buffer_listen_frame_id: Optional[str],
         buffer_listen_child_frame_id: Optional[str],
-        buffer_lookup_frame_id: Optional[str],
-        buffer_lookup_child_frame_id: Optional[str],
+        buffer_lookup_source_frame_id: Optional[str],
+        buffer_lookup_target_frame_id: Optional[str],
     ) -> None:
         self._node_name = node_name
         self._publish_topic_name = publish_topic_name
@@ -55,8 +56,10 @@ class NodePathValue(ValueObject):
         self._broadcast_child_frame_id = broadcast_child_frame_id
         self._buffer_listen_frame_id = buffer_listen_frame_id
         self._buffer_listen_child_frame_id = buffer_listen_child_frame_id
-        self._buffer_lookup_frame_id = buffer_lookup_frame_id
-        self._buffer_lookup_child_frame_id = buffer_lookup_child_frame_id
+        self._buffer_lookup_source_frame_id = buffer_lookup_source_frame_id
+        self._buffer_lookup_target_frame_id = buffer_lookup_target_frame_id
+        if buffer_lookup_source_frame_id is not None or buffer_lookup_target_frame_id is not None:
+            assert buffer_lookup_source_frame_id is not None and buffer_lookup_target_frame_id is not None
         # TODO(hsgwa) insert assertion here.
 
     @property
@@ -76,12 +79,12 @@ class NodePathValue(ValueObject):
         return self._buffer_listen_child_frame_id
 
     @property
-    def buffer_lookup_frame_id(self) -> Optional[str]:
-        return self._buffer_lookup_frame_id
+    def buffer_lookup_source_frame_id(self) -> Optional[str]:
+        return self._buffer_lookup_source_frame_id
 
     @property
-    def buffer_lookup_child_frame_id(self) -> Optional[str]:
-        return self._buffer_lookup_child_frame_id
+    def buffer_lookup_target_frame_id(self) -> Optional[str]:
+        return self._buffer_lookup_target_frame_id
 
     @property
     def node_name(self) -> str:
@@ -105,7 +108,7 @@ class NodePathStructValue(ValueObject, Summarizable):
         publisher: Optional[PublisherStructValue],
         tf_frame_buffer: Optional[TransformFrameBufferStructValue],
         tf_frame_broadcaster: Optional[TransformFrameBroadcasterStructValue],
-        child: Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]],
+        child: Optional[CallbackPathStructValue],
         message_context: Optional[MessageContext],
     ) -> None:
         if tf_frame_broadcaster is not None:
@@ -142,27 +145,19 @@ class NodePathStructValue(ValueObject, Summarizable):
     def tf_buffer_lookup_frame_id(self) -> Optional[str]:
         if self._tf_frame_buffer is None:
             return None
-        return self._tf_frame_buffer.lookup_frame_id
+        return self._tf_frame_buffer.lookup_source_frame_id
 
     @property
     def tf_buffer_lookup_child_frame_id(self) -> Optional[str]:
         if self._tf_frame_buffer is None:
             return None
-        return self._tf_frame_buffer.lookup_child_frame_id
+        return self._tf_frame_buffer.lookup_target_frame_id
 
     @property
     def tf_buffer_listen_frame_id(self) -> Optional[str]:
         if self._tf_frame_buffer is None:
             return None
         return self._tf_frame_buffer.listen_frame_id
-
-    @property
-    def node_input(self) -> NodeInputType:
-        raise NotImplementedError('')
-
-    @property
-    def node_output(self) -> NodeOutputType:
-        raise NotImplementedError('')
 
     @property
     def tf_buffer_listen_child_frame_id(self) -> Optional[str]:

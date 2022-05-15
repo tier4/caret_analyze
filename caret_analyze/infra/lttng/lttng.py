@@ -26,7 +26,10 @@ from caret_analyze.value_objects.timer import TimerValue
 import pandas as pd
 from caret_analyze.value_objects.callback import CallbackStructValue, TimerCallbackStructValue
 from caret_analyze.value_objects.publisher import PublisherStructValue
-from caret_analyze.value_objects.subscription import SubscriptionStructValue
+from caret_analyze.value_objects.subscription import (
+    IntraProcessBufferStructValue,
+    SubscriptionStructValue
+)
 from caret_analyze.value_objects.transform import TransformFrameBufferStructValue
 
 from tracetools_analysis.loading import load_file
@@ -57,12 +60,12 @@ from ...value_objects import (
     NodeValue,
     Qos,
     TimerValue,
-    TransformValue,
     CommunicationStructValue,
     SubscriptionCallbackStructValue,
     NodePathStructValue,
     TransformFrameBroadcasterStructValue,
     TransformCommunicationStructValue,
+    BroadcastedTransformValue,
 )
 
 
@@ -120,7 +123,8 @@ class Lttng(InfraBase):
         frame_id_mapper = ColumnMapper()
 
         frames = self.get_tf_frames()
-        frame_names = sorted({f.frame_id for f in frames} | {f.child_frame_id for f in frames})
+        frame_names = \
+            sorted({f.source_frame_id for f in frames} | {f.target_frame_id for f in frames})
         for i, frame_name in enumerate(frame_names):
             frame_id_mapper.add(i, frame_name)
 
@@ -396,7 +400,7 @@ class Lttng(InfraBase):
 
     def get_ipc_buffer_records(
         self,
-        buffer: IntraProcessBufferValueLttng
+        buffer: IntraProcessBufferStructValue
     ) -> RecordsInterface:
         return self._source.ipc_buffer_records(buffer).clone()
 
@@ -415,7 +419,7 @@ class Lttng(InfraBase):
 
     def get_tf_frames(
         self
-    ) -> Sequence[TransformValue]:
+    ) -> Sequence[BroadcastedTransformValue]:
         return self._info.get_tf_frames()
 
     def is_intra_process_communication(
@@ -500,7 +504,7 @@ class Lttng(InfraBase):
 
     def get_intra_publish_records(
         self,
-        publisher: PublisherValueLttng,
+        publisher: PublisherStructValue,
     ) -> RecordsInterface:
         return self._source.intra_publish_records(publisher).clone()
 
@@ -511,7 +515,7 @@ class Lttng(InfraBase):
         return self._source.timer_callback(callback)
 
     @singledispatchmethod
-    def get_subscribe_records( self, args) -> RecordsInterface:
+    def get_subscribe_records(self, args) -> RecordsInterface:
         raise NotImplementedError('')
 
     @get_subscribe_records.register
@@ -527,12 +531,6 @@ class Lttng(InfraBase):
         callback: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
         return self._source.subscribe_records(callback).clone()
-
-    def get_intra_subscribe_records(
-        self,
-        subscription: SubscriptionCallbackValueLttng
-    ) -> RecordsInterface:
-        return self._source.intra_subscribe_records(subscription).clone()
 
     def create_timer_events_factory(
         self,
@@ -562,17 +560,9 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.lookup_transform_records(buffer).clone()
 
-    def get_set_transform(
-        self,
-        buffer: TransformBufferValueLttng,
-        transform: TransformValue,
-    ) -> RecordsInterface:
-        return self._source.set_transform_records(
-            self.tf_frame_id_mapper, buffer, transform).clone()
-
     def get_node_tilde(
         self,
-        node: NodePat
+        node: NodePathStructValue,
     ) -> RecordsInterface:
 
         tilde_records = self._provider.tilde_records(

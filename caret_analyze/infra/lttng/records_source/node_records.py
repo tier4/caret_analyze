@@ -1,4 +1,5 @@
 
+from functools import lru_cache
 from .callback_records import CallbackRecordsContainer
 from .publish_records import PublishRecordsContainer
 from .transform import TransformSendRecordsContainer, TransformLookupContainer
@@ -37,13 +38,13 @@ class NodeRecordsContainer:
     ) -> RecordsInterface:
 
         if node_path_val.message_context_type == MessageContextType.CALLBACK_CHAIN:
-            return self._get_callback_chain(node_path_val)
+            return self._get_callback_chain(node_path_val).clone()
 
         if node_path_val.message_context_type == MessageContextType.USE_LATEST_MESSAGE:
-            return self._get_use_latest_message(node_path_val)
+            return self._get_use_latest_message(node_path_val).clone()
 
         if node_path_val.message_context_type == MessageContextType.TILDE:
-            return self._get_tilde(node_path_val)
+            return self._get_tilde(node_path_val).clone()
 
         raise NotImplementedError('')
         # raise UnsupportedNodeRecordsError(
@@ -51,6 +52,7 @@ class NodeRecordsContainer:
         #     f'message_context = {node_path_val.message_context.context_type.type_name}'
         # )
 
+    @lru_cache
     def _get_use_latest_message(
         self,
         node_path_val: NodePathStructValue,
@@ -61,7 +63,7 @@ class NodeRecordsContainer:
         # node_input_lttng = None
 
         node_out_records: RecordsInterface
-        node_in_recoreds: RecordsInterface
+        node_in_records: RecordsInterface
 
         if node_path_val.publisher is not None:
             node_out_records = self._pub_records.get_records(node_path_val.publisher)
@@ -214,9 +216,11 @@ class NodeRecordsContainer:
 
         return records
 
+    @lru_cache
     def _get_tilde(self, node_path: NodePathStructValue) -> RecordsInterface:
         raise NotImplementedError('')
 
+    @lru_cache
     def _get_callback_chain(
         self,
         node_path: NodePathStructValue,

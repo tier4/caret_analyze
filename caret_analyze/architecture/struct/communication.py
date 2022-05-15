@@ -176,16 +176,16 @@ class CommunicationsStruct():
         if topic_name == '/tf':
             assert node_path_send.broadcast_frame_id is not None
             assert node_path_send.broadcast_child_frame_id is not None
-            assert node_path_recv.buffer_lookup_frame_id is not None
-            assert node_path_recv.buffer_lookup_child_frame_id is not None
+            assert node_path_recv.buffer_lookup_source_frame_id is not None
+            assert node_path_recv.buffer_lookup_target_frame_id is not None
 
             return self._get_tf_comm_dict(
                 node_path_send.node_name,
                 node_path_recv.node_name,
                 node_path_send.broadcast_frame_id,
                 node_path_send.broadcast_child_frame_id,
-                node_path_recv.buffer_lookup_frame_id,
-                node_path_recv.buffer_lookup_child_frame_id,
+                node_path_recv.buffer_lookup_source_frame_id,
+                node_path_recv.buffer_lookup_target_frame_id,
             )
 
         return self._get_comm_dict(
@@ -234,8 +234,8 @@ class CommunicationsStruct():
                     comm.buffer.lookup_node_name == lookup_node_name and \
                     comm.broadcaster.frame_id == broadcast_frame_id and \
                     comm.broadcaster.child_frame_id == broadcast_child_frame_id and \
-                    comm.buffer.lookup_frame_id == lookup_frame_id and \
-                    comm.buffer.lookup_child_frame_id == lookup_child_frame_id
+                    comm.buffer.lookup_source_frame_id == lookup_frame_id and \
+                    comm.buffer.lookup_target_frame_id == lookup_child_frame_id
             return False
 
         try:

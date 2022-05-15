@@ -20,7 +20,7 @@ class GroupedRecords:
         if not self.has(*args):
             return RecordsFactory.create_instance(None, self.column_values)
 
-        return self._dict[args]
+        return self._dict[args].clone()
 
     def has(self, *args: int) -> bool:
         return args in self._dict

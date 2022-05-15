@@ -146,9 +146,14 @@ class PublishersStruct(PublishersStructInterface, Iterable):
         node: NodeValue,
     ) -> PublishersStruct:
         publishers = PublishersStruct()
+        added_topic = set()
 
         for publisher_value in reader.get_publishers(node.node_name):
             try:
+                if publisher_value.topic_name in added_topic:
+                    continue
+                added_topic.add(publisher_value.topic_name)
+
                 if publisher_value.topic_name == '/tf':
                     continue
 

@@ -1,12 +1,15 @@
 
 from __future__ import annotations
+from collections import defaultdict
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, DefaultDict, Collection
 
 from .graph_search import Graph, GraphEdge, GraphNode, GraphPath
 from ...exceptions import InvalidArgumentError, ItemNotFoundError
+from ...common import Util
+from itertools import product
 
 logger = getLogger(__name__)
 
@@ -22,18 +25,13 @@ class PathSearcher():
     ) -> None:
         self._graph = Graph()
         self._edge_dict: Dict[EdgeKey, EdgeBase] = {}
-        self._node_dict: Dict[NodeKey, NodeBase] = {}
+        self._node_dict: DefaultDict[NodeKey, List[NodeBase]] = defaultdict(list)
         self._create_path = create_path
 
     def add_edge(self, edge: EdgeBase) -> None:
         key = self._get_edge_key(edge.src_node_name, edge.dst_node_name, edge.edge_name)
 
         if key in self._edge_dict:
-            logger.warning(
-                'duplicated edge found. skip adding.'
-                f'edge_name: {edge.edge_name}, '
-                f'src_node_name: {edge.src_node_name}, '
-                f'dst_node_name: {edge.dst_node_name}, ')
             return None
 
         self._edge_dict[key] = edge
@@ -45,71 +43,70 @@ class PathSearcher():
 
     def add_node(self, node: NodeBase):
         key = self._get_node_key(node.node_name, node.src_edge_name, node.dst_edge_name)
-        if key in self._node_dict:
-            logger.warning(
-                'duplicated node found. skip adding. '
-                f'node_name: {node.node_name}, '
-                f'src_edge_name: {node.src_edge_name}, '
-                f'dst_edge_name: {node.dst_edge_name}')
+        self._node_dict[key].append(node)
 
-        self._node_dict[key] = node
+    # @singledispatchmethod
+    # def search_paths(self, args) -> List[PathBase]:
+    #     raise NotImplementedError('')
+
+    # @search_paths.register
+    # def _search_paths(
+    #     self,
+    #     start_node_name: str,
+    #     end_node_name: str,
+    #     max_search_depth: Optional[int]
+    # ) -> List[PathBase]:
+    #     return self._search_paths_seq(
+    #         start_node_name, end_node_name, max_search_depth=max_search_depth)
 
     def search_paths(
         self,
-        start_node_name: str,
-        end_node_name: str,
+        node_names: Collection[str],
         max_search_depth: Optional[int]
     ) -> List[PathBase]:
 
+        nodes = [GraphNode(node_name) for node_name in node_names]
         graph_paths = self._graph.search_paths(
-            GraphNode(start_node_name),
-            GraphNode(end_node_name),
+            nodes,
             max_depth=max_search_depth
         )
 
-        return [self._to_path(path) for path in graph_paths]
+        return Util.flatten([self._to_paths(path) for path in graph_paths])
 
-    def _to_path(
+    def _to_paths(
         self,
         graph_path: GraphPath
-    ) -> PathBase:
+    ) -> List[PathBase]:
 
-        child: List[Union[NodeBase, EdgeBase]] = []
         # add head node path
         if len(graph_path.edges) == 0:
             raise InvalidArgumentError("path doesn't have any edges")
         # head_node_path = self._create_head_dummy_node_path(self._nodes, graph_path.edges[0])
-        head_edge = graph_path.edges[0]
+        # node_edge = node_edges[0]
 
-        head_node_path = self._find_node(None, head_edge)
+        nodes: List[List[NodeBase]] = []
 
-        child.append(head_node_path)
-
+        nodes.append(self._find_nodes(None, graph_path.edges[0]))
         for edge_, edge in zip(graph_path.edges[:-1], graph_path.edges[1:]):
-            comm = self._find_edge(edge_)
-            child.append(comm)
+            nodes.append(self._find_nodes(edge_, edge))
+        nodes.append(self._find_nodes(graph_path.edges[-1], None))
 
-            node = self._find_node(edge_, edge)
-            child.append(node)
+        paths: List[PathBase] = []
+        for path_nodes in product(*nodes):
+            child: List[Union[NodeBase, EdgeBase]] = []
+            child.append(path_nodes[0])
+            for edge, node in zip(graph_path.edges, path_nodes[1:]):
+                child.append(self._find_edge(edge))
+                child.append(node)
+            paths.append(self._create_path(child))
 
-        # add tail comm
-        tail_edge = graph_path.edges[-1]
-        comm = self._find_edge(tail_edge)
-        child.append(comm)
+        return paths
 
-        # add tail node path
-        tail_node = self._find_node(tail_edge, None)
-        child.append(tail_node)
-
-        path_info = self._create_path(child)
-
-        return path_info
-
-    def _find_node(
+    def _find_nodes(
         self,
         edge_: Optional[GraphEdge],
         edge: Optional[GraphEdge]
-    ) -> NodeBase:
+    ) -> List[NodeBase]:
         node_name: str
         dst_edge_name: Optional[str] = None
         src_edge_name: Optional[str] = None
@@ -128,6 +125,7 @@ class PathSearcher():
             dst_edge_name=dst_edge_name,
             src_edge_name=src_edge_name,
             node_name=node_name)
+        assert key in self._node_dict
         return self._node_dict[key]
 
     def _find_edge(

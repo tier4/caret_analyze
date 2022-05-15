@@ -16,14 +16,13 @@ from __future__ import annotations
 
 from logging import getLogger
 
-from typing import Union, Optional, List, Tuple, Iterable, Iterator
+from typing import Optional, List, Tuple, Iterable, Iterator
 from multimethod import multimethod as singledispatchmethod
 
 from caret_analyze.value_objects.node_path import NodePathValue
 
 from .publisher import PublisherStruct
 from .struct_interface import (
-    CallbackStructInterface,
     NodeInputType,
     NodeOutputType,
     NodePathStructInterface,
@@ -35,7 +34,6 @@ from .struct_interface import (
 from .subscription import SubscriptionStruct
 from .callback_path import CallbackPathStruct
 from .transform import TransformFrameBroadcasterStruct, TransformFrameBufferStruct
-from .variable_passing import VariablePassingStruct
 from ..reader_interface import ArchitectureReader
 from ...value_objects import MessageContext, NodePathStructValue
 from ...exceptions import (
@@ -268,8 +266,8 @@ class NodePathsStruct(NodePathsStructInterface, Iterable):
             broadcast_child_frame_id=node_path.broadcast_child_frame_id,
             buffer_listen_frame_id=node_path.buffer_listen_frame_id,
             buffer_listen_child_frame_id=node_path.buffer_listen_child_frame_id,
-            buffer_lookup_frame_id=node_path.buffer_lookup_frame_id,
-            buffer_lookup_child_frame_id=node_path.buffer_lookup_child_frame_id,
+            buffer_lookup_frame_id=node_path.buffer_lookup_source_frame_id,
+            buffer_lookup_child_frame_id=node_path.buffer_lookup_target_frame_id,
         )
 
     @get.register
@@ -324,8 +322,8 @@ class NodePathsStruct(NodePathsStructInterface, Iterable):
             if tf_buf is not None and \
                 tf_buf.listen_frame_id == buffer_listen_frame_id and \
                     tf_buf.listen_child_frame_id == buffer_listen_child_frame_id and \
-                    tf_buf.lookup_frame_id == buffer_lookup_frame_id and \
-                    tf_buf.lookup_child_frame_id == buffer_lookup_child_frame_id:
+                    tf_buf.lookup_source_frame_id == buffer_lookup_frame_id and \
+                    tf_buf.lookup_target_frame_id == buffer_lookup_child_frame_id:
                 node_in_matched = True
 
             if node_in_matched and node_out_matched:

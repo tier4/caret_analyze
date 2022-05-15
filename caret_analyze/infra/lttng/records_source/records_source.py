@@ -19,7 +19,8 @@ from caret_analyze.infra.lttng.bridge import LttngBridge
 from caret_analyze.infra.lttng.value_objects.transform import TransformBufferValueLttng
 
 from caret_analyze.record.column import ColumnMapper, ColumnValue
-from caret_analyze.value_objects.callback import CallbackStructValue
+from caret_analyze.value_objects.callback import CallbackStructValue, TimerCallbackStructValue
+from caret_analyze.value_objects.subscription import IntraProcessBufferStructValue
 from caret_analyze.value_objects.transform import TransformFrameBroadcasterStructValue
 
 from .callback_records import CallbackRecordsContainer
@@ -39,9 +40,6 @@ from ..lttng_info import LttngInfo
 from ..ros2_tracing.data_model import Ros2DataModel
 from ..value_objects import (
     TimerCallbackValueLttng, TimerControl, TimerInit,
-    SubscriptionCallbackValueLttng,
-    IntraProcessBufferValueLttng,
-    TransformBroadcasterValueLttng,
 )
 from ....common import Util
 from ....record import (
@@ -52,7 +50,7 @@ from ....record import (
 )
 
 from ....value_objects import (
-    TransformValue, NodePathStructValue, MessageContextType, CommunicationStructValue,
+    NodePathStructValue, CommunicationStructValue,
     PublisherStructValue, SubscriptionCallbackStructValue, TransformFrameBufferStructValue,
     TransformCommunicationStructValue
 )
@@ -88,7 +86,7 @@ class RecordsSource():
 
     def ipc_buffer_records(
         self,
-        buffer: IntraProcessBufferValueLttng
+        buffer: IntraProcessBufferStructValue
     ) -> RecordsInterface:
         return self._ipc_buffer_records.get_records(buffer)
 
@@ -141,14 +139,6 @@ class RecordsSource():
         records = self._tf_lookup_records.get_records(tf_buffer)
         records.columns.drop(['tf_buffer_core'])
         return records
-
-    def set_transform_records(
-        self,
-        frame_mapper: ColumnMapper,
-        tf_buffer: TransformBufferValueLttng,
-        transform: TransformValue,
-    ) -> RecordsInterface:
-        return self._tf_set_records.get_records(tf_buffer, transform)
 
     def get_inter_proc_tf_comm_records(
         self,
@@ -267,7 +257,7 @@ class RecordsSource():
 
     def timer_callback(
         self,
-        callback: TimerCallbackValueLttng,
+        callback: TimerCallbackStructValue,
     ) -> RecordsInterface:
         raise NotImplementedError('')
         # timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
@@ -358,16 +348,6 @@ class RecordsSource():
 
         """
         return self._comm_records.get_intra_records(communication)
-
-    def get_comm_records(
-        self,
-        comm: CommunicationStructValue,
-    ) -> RecordsInterface:
-        # publisher: PublisherValueLttng,
-        # buffer: IntraProcessBufferValueLttng,
-        # subscription: SubscriptionCallbackValueLttng,
-        # return self._comm_records.get_records(publisher, buffer, subscription)
-        return self._comm_records.get_records(comm)
 
     def callback_records(
         self,

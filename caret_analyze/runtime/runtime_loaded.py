@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 from asyncio.log import logger
+from functools import lru_cache
+import logging
 
 from typing import List, Optional, Tuple, Union
 from multimethod import multimethod as singledispatchmethod
@@ -114,11 +116,12 @@ class ExecutorsLoaded:
         executor_value: ExecutorStructValue,
         nodes_loaded: NodesLoaded
     ) -> Executor:
-        cbgs = [
-            nodes_loaded.find_callback_group(group_name)
-            for group_name
-            in executor_value.callback_group_names
-        ]
+        cbgs = []
+        for group_name in executor_value.callback_group_names:
+            try:
+                cbgs.append(nodes_loaded.find_callback_group(group_name))
+            except Error as e:
+                logging.warning('Failed to find callback group: %s', e)
 
         return Executor(
             executor_value,
@@ -217,6 +220,7 @@ class NodesLoaded:
                 cbs += node.callbacks
         return cbs
 
+    @lru_cache
     def find_callback_group(
         self,
         callback_group_name: str
@@ -234,6 +238,7 @@ class NodesLoaded:
             raise ItemNotFoundError(
                 f'Failed to find node. callback_group_name = {callback_group_name}')
 
+    @lru_cache
     def find_callback(
         self,
         callback_name: str
@@ -251,6 +256,7 @@ class NodesLoaded:
             raise ItemNotFoundError(
                 f'Failed to find node. callback_name = {callback_name}')
 
+    @lru_cache
     def find_node(
         self,
         node_name: str
@@ -264,6 +270,7 @@ class NodesLoaded:
             raise ItemNotFoundError(
                 f'Failed to find node. node_name = {node_name}')
 
+    @lru_cache
     def find_node_path(
         self,
         node_name: str,
@@ -387,6 +394,7 @@ class SubscriptionsLoaded:
     def data(self) -> List[Subscription]:
         return self._subs
 
+    @lru_cache
     def get_subscription_by_cb_name(
         self,
         callback_name: str
@@ -673,11 +681,14 @@ class PathsLoaded:
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
     ) -> None:
-        self._data = [
-            self._to_runtime(path_info, nodes_loaded, comms_loaded)
-            for path_info
-            in paths_info
-        ]
+        self._data = []
+        for path_info in paths_info:
+            try:
+                self._data.append(
+                    self._to_runtime(path_info, nodes_loaded, comms_loaded)
+                )
+            except Error as e:
+                logging.warning('Failed to load path: %s', e)
 
     @staticmethod
     def _to_runtime(
@@ -857,7 +868,7 @@ class CommunicationsLoaded:
             comm.broadcast_frame_id,
             comm.broadcast_child_frame_id,
             comm.lookup_frame_id,
-            comm.lookup_child_frame_id
+            comm.lookup_target_frame_id
         )
 
     @get.register
@@ -876,8 +887,8 @@ class CommunicationsLoaded:
                     comm.lookup_node_name == lookup_node_name and \
                     comm.tf_broadcaster.frame_id == broadcast_frame_id and \
                     comm.tf_broadcaster.child_frame_id == broadcast_child_frame_id and \
-                    comm.tf_buffer.lookup_frame_id == lookup_frame_id and \
-                    comm.tf_buffer.lookup_child_frame_id == lookup_child_frame_id
+                    comm.tf_buffer.lookup_source_frame_id == lookup_frame_id and \
+                    comm.tf_buffer.lookup_target_frame_id == lookup_child_frame_id
             return False
 
         return Util.find_one(is_target, self._data)
@@ -893,13 +904,15 @@ class CallbacksLoaded:
         subscriptions_loaded: SubscriptionsLoaded,
         timers_loaded: TimersLoaded
     ) -> None:
-        self._callbacks = [
-            self._to_runtime(
-                cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded
-            )
-            for cb_info
-            in callback_values
-        ]
+        self._callbacks = []
+        for cb_info in callback_values:
+            try:
+                self._callbacks.append(
+                    self._to_runtime(
+                        cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded)
+                )
+            except Error as e:
+                logging.warning('Failed to load callback: %s', e)
 
     @staticmethod
     def _to_runtime(
@@ -951,12 +964,15 @@ class CallbackGroupsLoaded:
         timers_loaded: TimersLoaded
     ) -> None:
 
-        self._data = [
-            self._to_runtime(cbg_info, provider,
-                             publishers_loaded, subscriptions_loaded, timers_loaded)
-            for cbg_info
-            in callback_group_value
-        ]
+        self._data = []
+        for cbg_info in callback_group_value:
+            try:
+                self._data.append(
+                    self._to_runtime(
+                        cbg_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded)
+                )
+            except Error as e:
+                logging.warning('Failed to load callback group: %s', e)
 
     @staticmethod
     def _to_runtime(

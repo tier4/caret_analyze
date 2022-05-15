@@ -103,13 +103,8 @@ class PathStructValue(ValueObject, Summarizable):
         d['path'] = []
         for child in self.child:
             if isinstance(child, NodePathStructValue):
-                context = None
-                if child.message_context is not None:
-                    context = child.message_context.summary
-
                 d['path'].append({
                     'node': child.node_name,
-                    'message_context': context
                 })
             if isinstance(child, CommunicationStructValue):
                 d['path'].append({'topic': child.topic_name})

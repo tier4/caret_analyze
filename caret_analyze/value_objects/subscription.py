@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 from .callback import SubscriptionCallbackStructValue
-from .value_object import ValueObject
+from .value_object import ValueObject, IdValue
 from ..common import Summarizable, Summary
 
 
@@ -43,6 +43,10 @@ class SubscriptionValue(ValueObject):
         return self._node_id
 
     @property
+    def id_value(self) -> IdValue:
+        return IdValue(self.node_name, self.topic_name)
+
+    @property
     def topic_name(self) -> str:
         return self._topic_name
 
@@ -57,11 +61,11 @@ class IntraProcessBufferValue(ValueObject):
         self,
         node_name: str,
         topic_name: str,
-        capacity: int,
+        # capacity: int,
     ) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
-        self._capacity = capacity
+        # self._capacity = capacity
 
     @property
     def node_name(self) -> str:
@@ -71,9 +75,13 @@ class IntraProcessBufferValue(ValueObject):
     def topic_name(self) -> str:
         return self._topic_name
 
+    # @property
+    # def capacity(self) -> int:
+    #     return self._capacity
+#
     @property
-    def capacity(self) -> int:
-        return self._capacity
+    def id_value(self) -> IdValue:
+        return IdValue(self.node_name, self.topic_name)
 
 
 class IntraProcessBufferStructValue(ValueObject):
@@ -85,7 +93,11 @@ class IntraProcessBufferStructValue(ValueObject):
     ) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
-        self._capacity = None
+        self._val = IntraProcessBufferValue(node_name, topic_name)
+
+    @property
+    def id_value(self) -> IdValue:
+        return self._val.id_value
 
     @property
     def node_name(self) -> str:
@@ -94,10 +106,6 @@ class IntraProcessBufferStructValue(ValueObject):
     @property
     def topic_name(self) -> str:
         return self._topic_name
-
-    @property
-    def capacity(self) -> int:
-        return self._capacity
 
 
 class SubscriptionStructValue(ValueObject, Summarizable):
@@ -115,9 +123,15 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         self._callback_value = callback
         self._buffer = intra_process_buffer
 
+        self._val = SubscriptionValue(topic_name, node_name, None, None)
+
     @property
     def intra_process_buffer(self) -> Optional[IntraProcessBufferStructValue]:
         return self._buffer
+
+    @property
+    def id_value(self) -> IdValue:
+        return self._val.id_value
 
     def __eq__(self, other) -> bool:
         # It is not necessary because __eq__ is defined in ValueObject type,

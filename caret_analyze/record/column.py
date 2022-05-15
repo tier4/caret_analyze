@@ -302,16 +302,26 @@ class Columns(UserList):
             ordered_columns = self.gets(columns, base_name_match=base_name_match)
             columns = [str(_) for _ in ordered_columns]
 
+        necessary_columns = {
+            column.column_name
+            for column
+            in self.data
+            if ColumnAttribute.OPTIONAL not in column.attrs
+        }
         tmp = []
         for column_name in columns:
             for i, column in enumerate(self.data):
                 if column.column_name == column_name:
                     tmp.append(self.data.pop(i))
                     break
-        assert len(tmp) == len(columns)
+        missing_columns = set(necessary_columns) - {c.column_name for c in tmp}
+        if len(missing_columns) > 0:
+            raise ValueError(
+                f'Not all necessary columns are present in the new order: {missing_columns}')
 
         self.data = tmp
-        self._observer.on_column_reindexed(columns)
+        reindexed = [str(_) for _ in tmp]
+        self._observer.on_column_reindexed(reindexed)
 
     def get(self, name: str, take: Optional[str] = None, *, base_name_match=False) -> Column:
         if take is not None:

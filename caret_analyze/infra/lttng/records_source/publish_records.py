@@ -26,25 +26,66 @@ class PublishRecordsContainer:
             ]
         )
 
+        inter_publish = data.rclcpp_publish.clone()
+        rcl_publish_records = data.rcl_publish.clone()
+        inter_publish = merge_sequencial(
+            left_records=inter_publish,
+            right_records=rcl_publish_records,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            how='left',
+            progress_label='binding: rclcpp_publish and rcl_publish',
+        )
+
+        dds_write_records = data.dds_write.clone()
+        inter_publish = merge_sequencial(
+            left_records=inter_publish,
+            right_records=dds_write_records,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            how='left',
+            progress_label='binding: rclcppp_publish and dds_write',
+        )
+
+        dds_stamp = data.dds_bind_addr_to_stamp.clone()
+        inter_publish = merge_sequencial(
+            left_records=inter_publish,
+            right_records=dds_stamp,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            how='left',
+            progress_label='binding: rclcppp_publish and source_timestamp',
+        )
+        inter_publish.columns.drop([
+            COLUMN_NAME.MESSAGE,
+            COLUMN_NAME.ADDR,
+            COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
+        ], base_name_match=True)
+
         self._inter_rclcpp_publish = GroupedRecords(
-            data.rclcpp_publish,
+            inter_publish,
             [
                 COLUMN_NAME.PUBLISHER_HANDLE
             ]
         )
 
-        self._rcl_publish = GroupedRecords(
-            data.rcl_publish,
-            [
-                COLUMN_NAME.PUBLISHER_HANDLE
-            ]
-        )
-        self._dds_write = data.dds_write
-        self._dds_bind_addr_to_stamp = data.dds_bind_addr_to_stamp
         self._bridge = bridge
 
     @lru_cache
     def get_intra_records(
+        self,
+        publisher: PublisherStructValue,
+    ) -> RecordsInterface:
+        return self._get_intra_records(publisher).clone()
+
+    @lru_cache
+    def _get_intra_records(
         self,
         publisher: PublisherStructValue,
     ) -> RecordsInterface:
@@ -60,7 +101,7 @@ class PublishRecordsContainer:
             COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
 
-        records = self._intra_rclcpp_publish.get(publisher_lttng.publisher_handle)
+        records = self._intra_rclcpp_publish.get(publisher_lttng.publisher_handle).clone()
         records.columns.drop(
             [
                 COLUMN_NAME.MESSAGE,
@@ -74,8 +115,14 @@ class PublishRecordsContainer:
             column.add_prefix(publisher.topic_name)
         return records
 
-    @lru_cache
     def get_inter_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        return self._get_inter_records(publisher).clone()
+
+    @lru_cache
+    def _get_inter_records(
         self,
         publisher: PublisherStructValue
     ) -> RecordsInterface:
@@ -94,13 +141,8 @@ class PublishRecordsContainer:
             COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
 
-        records = self._get_inter_records(publisher_lttng)
+        records = self._inter_rclcpp_publish.get(publisher_lttng.publisher_handle).clone()
 
-        records.columns.drop([
-            COLUMN_NAME.MESSAGE,
-            COLUMN_NAME.ADDR,
-            COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-        ], base_name_match=True)
         if COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP in records.column_names:
             records.columns.drop([
                 COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP
@@ -121,55 +163,11 @@ class PublishRecordsContainer:
 
         return records
 
-    def _get_inter_records(self, publisher: PublisherValueLttng) -> RecordsInterface:
-        records = self._inter_rclcpp_publish.get(publisher.publisher_handle)
-
-        join_keys = [
-            # COLUMN_NAME.PID,
-            COLUMN_NAME.TID,
-            # COLUMN_NAME.PUBLISHER_HANDLE
-        ]
-
-        rcl_publish_records = self._rcl_publish.get(publisher.publisher_handle)
-        records = merge_sequencial(
-            left_records=records,
-            right_records=rcl_publish_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            join_left_key=join_keys,
-            join_right_key=join_keys,
-            how='left',
-            progress_label='binding: rclcpp_publish and rcl_publish',
-        )
-
-        # TODO(hsgwa) split by publisher_handle
-        dds_write_records = self._dds_write
-        records = merge_sequencial(
-            left_records=records,
-            right_records=dds_write_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            join_left_key=join_keys,
-            join_right_key=join_keys,
-            how='left',
-            progress_label='binding: rclcppp_publish and dds_write',
-        )
-
-        # TODO(hsgwa) split by publisher_handle
-        dds_stamp = self._dds_bind_addr_to_stamp
-        records = merge_sequencial(
-            left_records=records,
-            right_records=dds_stamp,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-            join_left_key=join_keys,
-            join_right_key=join_keys,
-            how='left',
-            progress_label='binding: rclcppp_publish and source_timestamp',
-        )
-        return records
-
     def get_records(self, publisher: PublisherStructValue) -> RecordsInterface:
+        return self._get_records(publisher).clone()
+
+    @lru_cache
+    def _get_records(self, publisher: PublisherStructValue) -> RecordsInterface:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,

@@ -86,7 +86,7 @@ class NodeStruct(NodeStructInterface):
         self._variable_passings = variable_passings
         self._tf_buffer = tf_buffer
         self._tf_broadcaster = tf_broadcaster
-        self._cbs = None
+        self._cbs: Optional[CallbacksStruct] = None
 
     def to_value(self) -> NodeStructValue:
         assert self.node_name is not None
@@ -97,6 +97,7 @@ class NodeStruct(NodeStructInterface):
         assert self.callback_groups is not None
         assert self.variable_passings is not None
         assert self.timers is not None
+        callbacks = None if self.callbacks is None else self.callbacks.to_value()
 
         return NodeStructValue(
             node_name=self.node_name,
@@ -105,7 +106,7 @@ class NodeStruct(NodeStructInterface):
             subscriptions=self.subscriptions.to_value(),
             timers=self.timers.to_value(),
             node_paths=self.node_paths.to_value(),
-            callbacks=self.callbacks.to_value(),
+            callbacks=callbacks,
             callback_groups=self.callback_groups.to_value(),
             variable_passings=self.variable_passings.to_value(),
             tf_buffer=None if self.tf_buffer is None else self.tf_buffer.to_value(),

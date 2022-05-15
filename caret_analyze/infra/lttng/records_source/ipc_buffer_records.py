@@ -33,8 +33,14 @@ class IpcBufferRecordsContainer:
         )
         self._bridge = bridge
 
-    @lru_cache
     def get_records(
+        self,
+        buffer: IntraProcessBufferStructValue
+    ) -> RecordsInterface:
+        return self._get_records(buffer).clone()
+
+    @lru_cache
+    def _get_records(
         self,
         buffer: IntraProcessBufferStructValue
     ) -> RecordsInterface:

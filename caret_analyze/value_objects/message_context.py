@@ -132,8 +132,8 @@ class MessageContext(ValueObject, Summarizable):
         d['subscription_topic_name'] = self.subscription_topic_name
         if self.tf_frame_buffer is not None:
             d['subscription_topic_name'] = '/tf'
-            d['lookup_frame_id'] = self.tf_frame_buffer.lookup_frame_id
-            d['lookup_child_frame_id'] = self.tf_frame_buffer.lookup_child_frame_id
+            d['lookup_source_frame_id'] = self.tf_frame_buffer.lookup_source_frame_id
+            d['lookup_target_frame_id'] = self.tf_frame_buffer.lookup_target_frame_id
             d['listen_frame_id'] = self.tf_frame_buffer.listen_frame_id
             d['listen_child_frame_id'] = self.tf_frame_buffer.listen_child_frame_id
 
@@ -183,12 +183,20 @@ class MessageContext(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
-        raise NotImplementedError('')
-        # return Summary({
-        #     'subscription_topic_name': self.subscription_topic_name,
-        #     'publisher_topic_name': self.publisher_topic_name,
-        #     'type': str(self.type_name)
-        # })
+        d = {'type': str(self.type_name)}
+        if self.subscription_topic_name is not None:
+            d['subscription_topic_name'] = self.subscription_topic_name
+        if self.publisher_topic_name is not None:
+            d['publisher_topic_name'] = self.publisher_topic_name
+        if self.tf_frame_buffer is not None:
+            d['subscription_topic_name'] = '/tf'
+            d['listen_frame_id'] = self.tf_frame_buffer.listen_frame_id
+            d['listen_child_frame_id'] = self.tf_frame_buffer.listen_child_frame_id
+        if self.tf_frame_broadcaster is not None:
+            d['publish_topic_name'] = '/tf'
+            d['send_frame_id'] = self.tf_frame_broadcaster.frame_id
+            d['send_child_frame_id'] = self.tf_frame_broadcaster.child_frame_id
+        return Summary(d)
 
     @abstractmethod
     def verify(self) -> bool:

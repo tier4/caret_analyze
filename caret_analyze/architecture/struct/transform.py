@@ -7,7 +7,6 @@ from caret_analyze.value_objects.transform import TransformTreeValue
 
 from .struct_interface import (
     SubscriptionStructInterface,
-    SubscriptionsStructInterface,
     TransformBroadcasterStructInterface,
     TransformBufferStructInterface,
     TransformFrameBroadcasterStructInterface,
@@ -20,14 +19,16 @@ from ...value_objects import (
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
     TransformValue,
+    BroadcastedTransformValue,
 )
+from ...exceptions import ItemNotFoundError
 
 
 class TransformFrameBroadcasterStruct(TransformFrameBroadcasterStructInterface):
     def __init__(
         self,
         publisher: Optional[PublisherStruct] = None,
-        transform: Optional[TransformValue] = None,
+        transform: Optional[BroadcastedTransformValue] = None,
     ) -> None:
         self._publisher = publisher
         self._transform = transform
@@ -56,14 +57,14 @@ class TransformFrameBroadcasterStruct(TransformFrameBroadcasterStructInterface):
 
     @property
     def frame_id(self) -> str:
-        return self.transform.frame_id
+        return self.transform.source_frame_id
 
     @property
     def child_frame_id(self) -> str:
-        return self.transform.child_frame_id
+        return self.transform.target_frame_id
 
     @property
-    def transform(self) -> TransformValue:
+    def transform(self) -> BroadcastedTransformValue:
         assert self._transform is not None
         return self._transform
 
@@ -73,9 +74,9 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
     def __init__(
         self,
         tf_tree: TransformTreeValue,
-        listener_subscription: Optional[SubscriptionsStructInterface],
+        listener_subscription: Optional[SubscriptionStructInterface],
         lookup_transform: Optional[TransformValue] = None,
-        listen_transform: Optional[TransformValue] = None,
+        listen_transform: Optional[BroadcastedTransformValue] = None,
         lookup_node_name: Optional[str] = None,
         listener_node_name: Optional[str] = None,
     ) -> None:
@@ -89,28 +90,30 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
         self._listener_subscription = listener_subscription
 
     @property
-    def lookup_frame_id(self) -> str:
-        return self.lookup_transform.frame_id
+    def lookup_source_frame_id(self) -> str:
+        return self.lookup_transform.source_frame_id
 
     @property
-    def lookup_child_frame_id(self) -> str:
-        return self.lookup_transform.child_frame_id
+    def lookup_target_frame_id(self) -> str:
+        return self.lookup_transform.target_frame_id
 
     @property
     def listen_frame_id(self) -> str:
-        return self.listen_transform.frame_id
+        return self.listen_transform.source_frame_id
 
     @property
     def listen_child_frame_id(self) -> str:
-        return self.listen_transform.child_frame_id
+        return self.listen_transform.target_frame_id
 
     def to_value(self) -> TransformFrameBufferStructValue:
+        listener_subscription = None if self.listener_subscription is None \
+            else self.listener_subscription.to_value()
         return TransformFrameBufferStructValue(
             lookup_node_name=self.lookup_node_name,
             listener_node_name=self.listener_node_name,
             lookup_transform=self.lookup_transform,
             listen_transform=self.listen_transform,
-            listener_subscription=self.listener_subscription,
+            listener_subscription=listener_subscription,
         )
 
     def is_pair(self, other: Any) -> bool:
@@ -129,7 +132,7 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
         return self._listener_node_name
 
     @property
-    def listener_subscription(self) -> SubscriptionStructInterface:
+    def listener_subscription(self) -> Optional[SubscriptionStructInterface]:
         return self._listener_subscription
 
     # @property
@@ -143,7 +146,7 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
         return self._lookup_transform
 
     @property
-    def listen_transform(self) -> TransformValue:
+    def listen_transform(self) -> BroadcastedTransformValue:
         assert self._listen_transform is not None
         return self._listen_transform
 
@@ -205,12 +208,15 @@ class TransformFrameBuffersStruct(Iterable):
     ) -> TransformFrameBufferStruct:
         for buf in self:
             if buf.lookup_node_name == node_name and \
-                buf.lookup_frame_id == lookup_frame_id and \
-                    buf.lookup_child_frame_id == lookup_child_frame_id and \
+                buf.lookup_source_frame_id == lookup_frame_id and \
+                    buf.lookup_target_frame_id == lookup_child_frame_id and \
                     buf.listen_frame_id == listen_frame_id and \
                     buf.listen_child_frame_id == listen_child_frame_id:
                 return buf
-        raise NotImplementedError('')
+        raise ItemNotFoundError(
+            f'{node_name}: {lookup_frame_id}:{lookup_child_frame_id}:'
+            f' {listen_frame_id}:{listen_child_frame_id}'
+        )
 
     def insert(self, br: TransformFrameBufferStruct) -> None:
         self._data.append(br)
@@ -220,7 +226,7 @@ class TransformBroadcasterStruct(TransformBroadcasterStructInterface):
     def __init__(
         self,
         publisher: PublisherStruct,
-        transforms: List[TransformValue],
+        transforms: List[BroadcastedTransformValue],
     ) -> None:
         self._publisher = publisher
         self._transforms = transforms
@@ -253,7 +259,7 @@ class TransformBroadcasterStruct(TransformBroadcasterStructInterface):
         return self._publisher
 
     @property
-    def transforms(self) -> List[TransformValue]:
+    def transforms(self) -> List[BroadcastedTransformValue]:
         assert self._transforms is not None
         return self._transforms
 
@@ -269,7 +275,7 @@ class TransformBufferStruct(TransformBufferStructInterface):
         lookup_node_name: str,
         tf_tree: TransformTreeValue,
         lookup_transforms: List[TransformValue],
-        listen_transforms: List[TransformValue],
+        listen_transforms: List[BroadcastedTransformValue],
         listener_subscription: Optional[SubscriptionStructInterface],
         listener_node_name: Optional[str] = None,
     ) -> None:
@@ -279,10 +285,10 @@ class TransformBufferStruct(TransformBufferStructInterface):
         self._listen_transforms = listen_transforms
         self._frame_buffs = TransformFrameBuffersStruct()
         self._listener_subscription = listener_subscription
-        tf_tree = TransformTreeValue.create_from_transforms(listen_transforms)
+        tf_tree = TransformTreeValue(listen_transforms)
         for listen_tf, lookup_tf in product(listen_transforms, lookup_transforms):
-            if not tf_tree.is_in(lookup_tf, listen_tf):
-                continue
+            # if not tf_tree.is_in(lookup_tf, listen_tf):
+            #     continue
             buf = TransformFrameBufferStruct(
                 tf_tree=tf_tree,
                 listener_subscription=listener_subscription,
@@ -304,7 +310,7 @@ class TransformBufferStruct(TransformBufferStructInterface):
         return self._lookup_transforms
 
     @property
-    def listen_transforms(self) -> List[TransformValue]:
+    def listen_transforms(self) -> List[BroadcastedTransformValue]:
         assert self._listen_transforms is not None
         return self._listen_transforms
 
@@ -321,15 +327,15 @@ class TransformBufferStruct(TransformBufferStructInterface):
         self,
         listen_frame_id: str,
         listen_child_frame_id: str,
-        lookup_frame_id: str,
-        lookup_child_frame_id: str,
+        lookup_source_frame_id: str,
+        lookup_target_frame_id: str,
     ) -> TransformFrameBufferStructInterface:
         return self.frame_buffers.get(
             self.lookup_node_name,
             listen_frame_id,
             listen_child_frame_id,
-            lookup_frame_id,
-            lookup_child_frame_id)
+            lookup_source_frame_id,
+            lookup_target_frame_id)
 
     def to_value(self) -> TransformBufferStructValue:
         lookup_transforms = tuple(self.lookup_transforms)
@@ -347,7 +353,7 @@ class TransformBufferStruct(TransformBufferStructInterface):
         )
 
     @property
-    def listener_subscription(self) -> SubscriptionStructInterface:
+    def listener_subscription(self) -> Optional[SubscriptionStructInterface]:
         return self._listener_subscription
 
     @property

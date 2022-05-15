@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from __future__ import annotations
+from collections import defaultdict
 
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple
@@ -204,15 +205,19 @@ class TopicIgnoredReader(ArchitectureReader):
         nodes = reader.get_nodes()
         for node in Progress.tqdm(nodes, 'Loading callbacks'):
 
-            sub = reader._get_subscription_callbacks(node)
-            for sub_val in sub:
-                if sub_val.subscribe_topic_name not in ignore_topic_set:
-                    continue
+            try:
+                sub = reader._get_subscription_callbacks(node)
+                for sub_val in sub:
+                    if sub_val.subscribe_topic_name not in ignore_topic_set:
+                        continue
 
-                if sub_val.callback_id is None:
-                    continue
+                    if sub_val.callback_id is None:
+                        continue
 
-                ignore_callback_ids.append(sub_val.callback_id)
+                    ignore_callback_ids.append(sub_val.callback_id)
+            except Error as e:
+                logger.warning(
+                    f'Failed to load callback for node {node.node_name}', e)
 
         return set(ignore_callback_ids)
 
@@ -284,12 +289,18 @@ def create_nodes(reader: ArchitectureReader) -> NodesStruct:
     nodes = NodesStruct()
 
     node_values = reader.get_nodes()
+    added_node = set()
+
     for node in Progress.tqdm(node_values, 'Loading nodes.'):
-        # try:
-        node = create_node(node, reader)
-        nodes.insert(node)
-        # except Error as e:
-        #     logger.warn(f'Failed to load node. node_name = {node.node_name}, {e}')
+        if node.node_name in added_node:
+            continue
+        added_node.add(node.node_name)
+        try:
+            node = create_node(node, reader)
+            nodes.insert(node)
+        except Error as e:
+            logger.warn(
+                f'Failed to load node. node_name = {node.node_name}, {e}')
 
     return nodes
 
@@ -307,7 +318,7 @@ def create_node(node: NodeValue, reader: ArchitectureReader) -> NodeStruct:
     transforms = reader.get_tf_frames()
 
     if len(transforms) > 0:
-        tf_tree = TransformTreeValue.create_from_transforms(transforms)
+        tf_tree = TransformTreeValue(transforms)
         node_struct.tf_buffer = create_transform_buffer(reader, tf_tree, node)
         node_struct.tf_broadcaster = create_transform_broadcaster(reader, tf_tree, node)
 
@@ -431,8 +442,7 @@ def create_callback_groups(
     callbacks: CallbacksStruct,
     node: NodeValue
 ) -> CallbackGroupsStruct:
-    cbgs = CallbackGroupsStruct()
-    cbgs.node = node
+    cbgs = CallbackGroupsStruct(node)
 
     for i, cbg_value in enumerate(reader.get_callback_groups(node.node_name)):
         cbg_name = cbg_value.callback_group_name or f'{node.node_name}/callback_group_{i}'
@@ -553,8 +563,7 @@ def create_message_context(
 
             pub_topic_name = context_dict['publisher_topic_name']
             node_output: NodeOutputType
-            if pub_topic_name == '/tf':
-                assert node.tf_broadcaster is not None
+            if pub_topic_name == '/tf' and node.tf_broadcaster is not None:
                 node_output = node.tf_broadcaster.get(
                     context_dict['broadcast_frame_id'],
                     context_dict['broadcast_child_frame_id'],
@@ -566,13 +575,12 @@ def create_message_context(
 
             sub_topic_name = context_dict.get('subscription_topic_name')
             node_input: NodeInputType
-            if sub_topic_name == '/tf':
-                assert node.tf_buffer is not None
+            if sub_topic_name == '/tf' and node.tf_buffer is not None:
                 node_input = node.tf_buffer.get(
                     context_dict['listen_frame_id'],
                     context_dict['listen_child_frame_id'],
-                    context_dict['lookup_frame_id'],
-                    context_dict['lookup_child_frame_id'],
+                    context_dict['lookup_source_frame_id'],
+                    context_dict['lookup_target_frame_id'],
                 )
             else:
                 assert node.subscriptions is not None
@@ -590,4 +598,4 @@ def create_message_context(
                 child=None
             )
         except Error as e:
-            logger.warning(e)
+            pass

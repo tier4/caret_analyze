@@ -1,3 +1,5 @@
+from functools import lru_cache
+from attr import attr
 from caret_analyze.record.column import ColumnAttribute
 from .subscribe_records import SubscribeRecordsContainer
 from .ipc_buffer_records import IpcBufferRecordsContainer
@@ -29,6 +31,13 @@ class CommRecordsContainer:
         self,
         comm: CommunicationStructValue
     ) -> RecordsInterface:
+        return self._get_intra_records(comm).clone()
+
+    @lru_cache()
+    def _get_intra_records(
+        self,
+        comm: CommunicationStructValue
+    ) -> RecordsInterface:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
@@ -36,8 +45,6 @@ class CommRecordsContainer:
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
-            COLUMN_NAME.BUFFER,
-            COLUMN_NAME.MESSAGE,
             'queued_msg_size',
             'is_full',
             COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
@@ -91,11 +98,29 @@ class CommRecordsContainer:
         records.columns.drop([
             'dequeue_tid',
             'enqueue_tid',
+            COLUMN_NAME.MESSAGE,
+            COLUMN_NAME.BUFFER,
         ], base_name_match=True)
         records.columns.reindex(columns, base_name_match=True)
+        attr_columns = records.columns.gets(
+            [
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+            ], base_name_match=True
+        )
+        for column in attr_columns:
+            column.attrs.add(ColumnAttribute.NODE_IO)
+
         return records
 
     def get_inter_records(
+        self,
+        comm: CommunicationStructValue
+    ) -> RecordsInterface:
+        return self._get_inter_records(comm).clone()
+
+    @lru_cache
+    def _get_inter_records(
         self,
         comm: CommunicationStructValue
     ) -> RecordsInterface:
@@ -152,150 +177,3 @@ class CommRecordsContainer:
         cb_column.attrs.add(ColumnAttribute.NODE_IO)
 
         return records
-    # @cached_property
-    # def inter_proc_comm_records(self) -> RecordsInterface:
-    #     """
-    #     Compose inter process communication records.
-
-    #     Used tracepoints
-    #     - rclcpp_publish
-    #     - dds_bind_addr_to_addr
-    #     - dds_bind_addr_to_stamp
-    #     - rcl_publish (Optional)
-    #     - dds_write (Optional)
-    #     - dispatch_subscription_callback
-    #     - callback_start
-
-    #     Returns
-    #     -------
-    #     RecordsInterface
-    #         columns
-    #         - callback_object
-    #         - callback_start_timestamp
-    #         - publisher_handle
-    #         - rclcpp_publish_timestamp
-    #         - rcl_publish_timestamp (Optional)
-    #         - dds_write_timestamp (Optional)
-    #         - message_timestamp
-    #         - source_timestamp
-
-    #     """
-    #     publish = self._data.rclcpp_publish
-
-    #     publish = merge_sequencial_for_addr_track(
-    #         source_records=publish,
-    #         copy_records=self._data.dds_bind_addr_to_addr,
-    #         sink_records=self._data.dds_bind_addr_to_stamp,
-    #         source_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-    #         source_key=COLUMN_NAME.MESSAGE,
-    #         copy_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP,
-    #         copy_from_key=COLUMN_NAME.ADDR_FROM,
-    #         copy_to_key=COLUMN_NAME.ADDR_TO,
-    #         sink_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-    #         sink_from_key=COLUMN_NAME.ADDR,
-    #         progress_label='binding: message_addr and rclcpp_publish',
-    #     )
-
-    #     rcl_publish_records = self._data.rcl_publish
-    #     rcl_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
-    #     if len(rcl_publish_records) > 0:
-    #         publish = merge_sequencial(
-    #             left_records=publish,
-    #             right_records=rcl_publish_records,
-    #             left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-    #             right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-    #             join_left_key=COLUMN_NAME.MESSAGE,
-    #             join_right_key=COLUMN_NAME.MESSAGE,
-    #             how='left',
-    #             progress_label='binding: rclcpp_publish and rcl_publish',
-    #         )
-
-    #     dds_write = self._data.dds_write
-    #     if len(dds_write) > 0:
-    #         publish = merge_sequencial(
-    #             left_records=publish,
-    #             right_records=dds_write,
-    #             left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-    #             right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-    #             join_left_key=COLUMN_NAME.MESSAGE,
-    #             join_right_key=COLUMN_NAME.MESSAGE,
-    #             how='left',
-    #             progress_label='binding: rcl_publish and dds_write',
-    #         )
-
-    #     # When both intra_publish and inter_publish are used, value mismatch occurs when merging.
-    #     # In order to merge at the latency time,
-    #     # align the time to intra_publish if intra_process communication is used.
-    #     intra_publish = self._data.rclcpp_intra_publish.clone()
-    #     intra_publish.drop_columns([
-    #         COLUMN_NAME.MESSAGE, COLUMN_NAME.MESSAGE_TIMESTAMP
-    #     ])
-    #     publish = merge_sequencial(
-    #         left_records=intra_publish,
-    #         right_records=publish,
-    #         left_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-    #         right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-    #         join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
-    #         join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
-    #         how='right'
-    #     )
-    #     rclcpp_publish: List[int] = []
-    #     for record in publish.data:
-    #         if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.data:
-    #             rclcpp_publish.append(record.data[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP])
-    #         else:
-    #             rclcpp_publish.append(
-    #                 record.data[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP])
-
-    #     publish.append_column(
-    #         Column(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, [ColumnAttribute.SYSTEM_TIME]),
-    #         rclcpp_publish)
-    #     publish.drop_columns([
-    #         COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-    #         COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP
-    #     ])
-
-    #     callback_start= self.inter_callback_records
-    #     subscription = self._data.dispatch_subscription_callback
-
-    #     subscription = merge_sequencial(
-    #         left_records=subscription,
-    #         right_records=callback_start,
-    #         left_stamp_key=COLUMN_NAME.DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP,
-    #         right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-    #         join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
-    #         join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-    #         how='left',
-    #         progress_label='binding: dispatch_subscription_callback and callback_start',
-    #     )
-
-    #     # communication = merge(
-    #     #     publish,
-    #     #     self._data.on_data_available,
-    #     #     join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
-    #     #     join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
-    #     #     columns=publish.columns,
-    #     #     how='left',
-    #     #     progress_label='binding: source_timestamp and on_data_available',
-    #     # )
-
-    #     communication = merge(
-    #         publish,
-    #         subscription,
-    #         join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
-    #         join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
-    #         how='left',
-    #         progress_label='binding: source_timestamp and callback_start',
-    #     )
-
-    #     communication.drop_columns(
-    #         [
-    #             COLUMN_NAME.IS_INTRA_PROCESS,
-    #             COLUMN_NAME.ADDR,
-    #             COLUMN_NAME.MESSAGE,
-    #             COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-    #             COLUMN_NAME.DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP,
-    #         ],
-    #     )
-
-    #     return communication

@@ -377,8 +377,8 @@ class TransformSetRecordsContainer:
         to_frame_id = self._info.get_tf_buffer_frame_compact_map(
             buffer_lttng.buffer_handler)
         to_compact_frame_id = {v: k for k, v in to_frame_id.items()}
-        frame_id_compact = to_compact_frame_id[transform.frame_id]
-        child_frame_id_compact = to_compact_frame_id[transform.child_frame_id]
+        frame_id_compact = to_compact_frame_id[transform.source_frame_id]
+        child_frame_id_compact = to_compact_frame_id[transform.target_frame_id]
 
         records = self._set_records.get(
             buffer_lttng.buffer_handler, frame_id_compact, child_frame_id_compact)
@@ -424,7 +424,7 @@ class TransformLookupContainer:
         self._info = info
         self._lookup_start = GroupedRecords(
             data.tf_lookup_transform_start,
-            ['tf_buffer_core', 'frame_id_compact', 'child_frame_id_compact']
+            ['tf_buffer_core', 'target_frame_id_compact', 'source_frame_id_compact']
         )
         self._lookup_end = GroupedRecords(
             data.tf_lookup_transform_end,
@@ -444,11 +444,11 @@ class TransformLookupContainer:
         to_frame_id = self._info.get_tf_buffer_frame_compact_map(
             buffer_lttng.buffer_handler)
         to_compact_frame_id = {v: k for k, v in to_frame_id.items()}
-        frame_id_compact = to_compact_frame_id[transform.frame_id]
-        child_frame_id_compact = to_compact_frame_id[transform.child_frame_id]
+        source_frame_id_compact = to_compact_frame_id[transform.source_frame_id]
+        target_frame_id_compact = to_compact_frame_id[transform.target_frame_id]
 
         lookup_start = self._lookup_start.get(
-            buffer_lttng.buffer_handler, frame_id_compact, child_frame_id_compact
+            buffer_lttng.buffer_handler, target_frame_id_compact, source_frame_id_compact
         )
         lookup_end = self._lookup_end.get(
             buffer_lttng.buffer_handler
@@ -467,7 +467,8 @@ class TransformLookupContainer:
             how='left'
         )
 
-        records.columns.drop(['frame_id_compact', 'child_frame_id_compact'], base_name_match=True)
+        records.columns.drop(
+            ['target_frame_id_compact', 'source_frame_id_compact'], base_name_match=True)
         records.columns.reindex(columns, base_name_match=True)
 
         prefix_columns = records.columns.gets(
@@ -524,8 +525,8 @@ class TransformCommRecordsContainer:
         to_frame_id = self._info.get_tf_buffer_frame_compact_map(
             buffer.buffer_handler)
         to_compact_frame_id = {v: k for k, v in to_frame_id.items()}
-        buffer_frame_id_compact = to_compact_frame_id[listen_transform.frame_id]
-        child_buffer_frame_id_compact = to_compact_frame_id[listen_transform.child_frame_id]
+        buffer_frame_id_compact = to_compact_frame_id[listen_transform.source_frame_id]
+        child_buffer_frame_id_compact = to_compact_frame_id[listen_transform.target_frame_id]
         closest = self._find_closest.get(
             buffer.buffer_handler, buffer_frame_id_compact, child_buffer_frame_id_compact)
 

@@ -113,8 +113,8 @@ class PathBase(metaclass=ABCMeta):
             Information for each delay.
 
         """
-        records = self.to_records()
-        column_names = self.column_names
+        records = self.to_records(attrs=[ColumnAttribute.SYSTEM_TIME])
+        column_names = records.column_names
 
         if remove_dropped is False and treat_drop_as_delay:
             records.bind_drop_as_delay()

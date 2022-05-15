@@ -17,13 +17,9 @@ from typing import Optional, Union
 from caret_analyze.value_objects.subscription import IntraProcessBufferStructValue
 
 from .lttng import Lttng
-from .bridge import LttngBridge
 from ...common import ClockConverter
-from ...exceptions import (InvalidArgumentError,
-                           UnsupportedNodeRecordsError,
-                           )
+from ...exceptions import (UnsupportedNodeRecordsError)
 from ...infra.interface import RuntimeDataProvider
-from ...infra.lttng.column_names import COLUMN_NAME
 from ...record import (
     merge_sequencial,
     RecordsFactory,
@@ -31,7 +27,6 @@ from ...record import (
 from ...value_objects import (
     CallbackStructValue,
     MessageContext,
-    MessageContextType,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
     CommunicationStructValue,
@@ -42,8 +37,6 @@ from ...value_objects import (
     Tilde,
     TimerStructValue,
     TransformCommunicationStructValue,
-    TransformValue,
-    UseLatestMessage,
     VariablePassingStructValue,
 )
 

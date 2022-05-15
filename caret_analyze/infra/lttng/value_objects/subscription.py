@@ -25,10 +25,9 @@ class IntraProcessBufferValueLttng(IntraProcessBufferValue):
         self,
         node_name: str,
         topic_name: str,
-        capacity: int,
         buffer: int,
     ) -> None:
-        super().__init__(node_name, topic_name, capacity)
+        super().__init__(node_name, topic_name)
         self._buffer = buffer
 
     @property

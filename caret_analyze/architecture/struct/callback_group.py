@@ -32,8 +32,11 @@ from ...value_objects import (
     NodeValue,
 )
 
-from ...exceptions import ItemNotFoundError
+from ...exceptions import ItemNotFoundError, Error
 
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 class CallbackGroupStruct():
 
@@ -87,9 +90,10 @@ class CallbackGroupsStruct(Iterable):
 
     def __init__(
         self,
+        node: Optional[NodeValue] = None
     ) -> None:
         self._data: Dict[str, CallbackGroupStruct] = {}
-        self._node: Optional[NodeValue] = None
+        self._node = node
 
     @property
     def node(self) -> NodeValue:
@@ -122,9 +126,11 @@ class CallbackGroupsStruct(Iterable):
         cbgs = CallbackGroupsStruct()
 
         for cbg_id in callback_group_ids:
-            # TODO(hsgwa): implement error
-            cbg = self.get_cbg(cbg_id)
-            cbgs.insert(cbg)
+            try:
+                cbg = self.get_cbg(cbg_id)
+                cbgs.insert(cbg)
+            except Error as e:
+                logger.warning('Failed to get callback group %s: %s', cbg_id, e)
 
         return cbgs
 

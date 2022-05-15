@@ -99,8 +99,8 @@ class NamedPathsDicts:
             if tf_buff is not None:
                 node_path_dict['buffer_listen_frame_id'] = tf_buff.listen_frame_id
                 node_path_dict['buffer_listen_child_frame_id'] = tf_buff.listen_child_frame_id
-                node_path_dict['buffer_lookup_frame_id'] = tf_buff.lookup_frame_id
-                node_path_dict['buffer_lookup_child_frame_id'] = tf_buff.lookup_child_frame_id
+                node_path_dict['buffer_lookup_source_frame_id'] = tf_buff.lookup_source_frame_id
+                node_path_dict['buffer_lookup_target_frame_id'] = tf_buff.lookup_target_frame_id
 
             node_chain.append(node_path_dict)
         obj['node_chain'] = node_chain
@@ -200,6 +200,8 @@ class PubDicts:
         for publisher_value in pubisher_values:
             if publisher_value.topic_name.endswith('/info/pub'):
                 continue  # skip tilde createdtopic
+            if publisher_value.topic_name in ['/clock', '/rosout', '/parameter_events']:
+                continue  # skip tilde createdtopic
             dicts.append(self._to_dict(publisher_value))
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
@@ -247,7 +249,7 @@ class NodesDicts:
         node_values: List[NodeStructValue],
     ) -> None:
         nodes_dicts = [self._to_dict(n)
-                       for n in node_values if self._is_static(n)]
+                       for n in node_values if self._is_ignored(n)]
         self._data = sorted(nodes_dicts, key=lambda x: x['node_name'])
 
     @property
@@ -255,8 +257,10 @@ class NodesDicts:
         return self._data
 
     @staticmethod
-    def _is_static(node: NodeStructValue) -> bool:
+    def _is_ignored(node: NodeStructValue) -> bool:
         if 'transform_listener_impl' in node.node_name:
+            return False
+        if 'rviz2' in node.node_name:
             return False
         return True
 
@@ -332,8 +336,8 @@ class TfBroadcasterDicts:
         for transform in broadcaster.transforms:
             frames.append(
                 {
-                    'frame_id': transform.frame_id,
-                    'child_frame_id': transform.child_frame_id,
+                    'frame_id': transform.source_frame_id,
+                    'child_frame_id': transform.target_frame_id,
                 }
             )
         cb_ids: List[Optional[str]] = []
@@ -360,8 +364,8 @@ class TfBufferDicts:
             for transform in buffer.lookup_transforms:
                 self._data.append(
                     {
-                        'lookup_frame_id': transform.frame_id,
-                        'lookup_child_frame_id': transform.child_frame_id,
+                        'lookup_source_frame_id': transform.source_frame_id,
+                        'lookup_target_frame_id': transform.target_frame_id,
                     }
                 )
 

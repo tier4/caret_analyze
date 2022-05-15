@@ -15,7 +15,7 @@
 from typing import Optional, Tuple
 
 from .callback import CallbackStructValue
-from .value_object import ValueObject
+from .value_object import ValueObject, IdValue
 from ..common import Summarizable, Summary
 
 
@@ -50,6 +50,10 @@ class PublisherValue(ValueObject):
     def callback_ids(self) -> Optional[Tuple[str, ...]]:
         return self._callback_ids
 
+    @property
+    def id_value(self) -> IdValue:
+        return IdValue(self.node_name, self.topic_name)
+
     def __str__(self) -> str:
         msg = ''
         msg += f'node_name: {self.node_name}, '
@@ -69,12 +73,17 @@ class PublisherStructValue(ValueObject, Summarizable):
         self._node_name = node_name
         self._topic_name = topic_name
         self._callbacks = callback_values
+        self._val = PublisherValue(topic_name, node_name, '', None)
 
     def __str__(self) -> str:
         msg = ''
         msg += f'node_name: {self.node_name}, '
         msg += f'topic_name: {self.topic_name}, '
         return msg
+
+    @property
+    def id_value(self) -> IdValue:
+        return self._val.id_value
 
     @property
     def node_name(self) -> str:
