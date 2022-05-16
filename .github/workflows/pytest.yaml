@@ -17,7 +17,7 @@ jobs:
           sudo apt-get install -y software-properties-common
           sudo apt-add-repository ppa:lttng/stable-2.12
           sudo apt-get update
-          sudo apt-get install python3-bt2
+          sudo apt-get install -y python3-bt2
         shell: bash
         
       - name: ROSDEP install
