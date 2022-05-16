@@ -20,4 +20,3 @@ jupyterlab
 graphviz
 
 tqdm
-bt2
