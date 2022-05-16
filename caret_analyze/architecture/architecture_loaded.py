@@ -18,6 +18,7 @@ from itertools import product
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
+
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
 from ..common import Progress, Util
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
@@ -34,8 +35,8 @@ from ..value_objects import (CallbackChain, CallbackGroupStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionCallbackValue,
                              SubscriptionStructValue, SubscriptionValue,
-                             TimerCallbackStructValue, TimerCallbackValue,
-                             VariablePassingStructValue, VariablePassingValue)
+                             TimerCallbackStructValue, TimerCallbackValue, TimerStructValue,
+                             TimerValue, VariablePassingStructValue, VariablePassingValue)
 
 logger = getLogger(__name__)
 
@@ -358,6 +359,9 @@ class NodeValuesLoaded():
         subscriptions: Tuple[SubscriptionStructValue, ...]
         subscriptions = SubscriptionsLoaded(reader, callbacks_loaded, node).data
 
+        timers: Tuple[TimerStructValue, ...]
+        timers = TimersLoaded(reader, callbacks_loaded, node).data
+
         callback_groups: Tuple[CallbackGroupStructValue, ...]
         cbg_loaded = CallbackGroupsLoaded(reader, callbacks_loaded, node)
         callback_groups = cbg_loaded.data
@@ -367,7 +371,7 @@ class NodeValuesLoaded():
             reader, callbacks_loaded, node).data
 
         node_struct = NodeStructValue(
-            node.node_name, publishers, subscriptions, (),
+            node.node_name, publishers, subscriptions, timers, (),
             callback_groups, variable_passings
         )
 
@@ -376,6 +380,7 @@ class NodeValuesLoaded():
             node_path_added = NodeStructValue(
                 node_struct.node_name, node_struct.publishers,
                 node_struct.subscriptions,
+                node_struct.timers,
                 tuple(node_paths), node_struct.callback_groups,
                 node_struct.variable_passings
             )
@@ -733,6 +738,40 @@ class SubscriptionsLoaded:
 
     @property
     def data(self) -> Tuple[SubscriptionStructValue, ...]:
+        return self._data
+
+
+class TimersLoaded:
+    def __init__(
+        self,
+        reader: ArchitectureReader,
+        callbacks_loaded: CallbacksLoaded,
+        node: NodeValue
+    ) -> None:
+        timer_values = reader.get_timers(node)
+        self._data = tuple(self._to_struct(callbacks_loaded, timer)
+                           for timer in timer_values)
+
+    def _to_struct(
+        self,
+        callbacks_loaded: CallbacksLoaded,
+        timer_value: TimerValue
+    ) -> TimerStructValue:
+
+        timer_callback: Optional[TimerCallbackStructValue] = None
+
+        if timer_value.callback_id is not None:
+            timer_callback = callbacks_loaded.find_callback(
+                timer_value.callback_id)  # type: ignore
+
+        return TimerStructValue(
+            timer_value.node_name,
+            timer_value.period,
+            timer_callback
+        )
+
+    @property
+    def data(self) -> Tuple[TimerStructValue, ...]:
         return self._data
 
 
@@ -1167,6 +1206,12 @@ class TopicIgnoredReader(ArchitectureReader):
                 continue
             publishers.append(publisher)
         return publishers
+
+    def get_timers(self, node: NodeValue) -> List[TimerValue]:
+        timers: List[TimerValue] = []
+        for timer in self._reader.get_timers(node):
+            timers.append(timer)
+        return timers
 
     def get_callback_groups(
         self,

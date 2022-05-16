@@ -67,6 +67,13 @@ class Executor(Summarizable):
 
         return Util.find_one(is_target_callback, self.callbacks)
 
+    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+        callbacks = []
+        for callback_name in callback_names:
+            callbacks.append(self.get_callback(callback_name))
+
+        return callbacks
+
     @property
     def callback_names(self) -> List[str]:
         return sorted(c.callback_name for c in self.callbacks)

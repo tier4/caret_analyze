@@ -20,6 +20,7 @@ from .callback_group import CallbackGroupStructValue
 from .node_path import NodePathStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
+from .timer import TimerStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
 from ..common import Summarizable, Summary, Util
@@ -66,6 +67,7 @@ class NodeStructValue(ValueObject, Summarizable):
         node_name: str,
         publishers: Tuple[PublisherStructValue, ...],
         subscriptions_info: Tuple[SubscriptionStructValue, ...],
+        timers: Tuple[TimerStructValue, ...],
         node_paths: Tuple[NodePathStructValue, ...],
         callback_groups: Optional[Tuple[CallbackGroupStructValue, ...]],
         variable_passings: Optional[Tuple[VariablePassingStructValue, ...]],
@@ -73,6 +75,7 @@ class NodeStructValue(ValueObject, Summarizable):
         self._node_name = node_name
         self._publishers = publishers
         self._subscriptions = subscriptions_info
+        self._timers = timers
         self._callback_groups = callback_groups
         self._node_paths = node_paths
         self._variable_passings_info = variable_passings
@@ -96,6 +99,10 @@ class NodeStructValue(ValueObject, Summarizable):
     @property
     def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
         return self._subscriptions
+
+    @property
+    def timers(self) -> Tuple[TimerStructValue, ...]:
+        return self._timers
 
     def get_path(
         self,
@@ -163,6 +170,19 @@ class NodeStructValue(ValueObject, Summarizable):
         except ItemNotFoundError:
             msg = 'Failed to find publisher info. '
             msg += f'topic_name: {publish_topic_name}'
+            raise ItemNotFoundError(msg)
+
+    def get_timer(
+        self,
+        timer_period: str
+    ) -> TimerStructValue:
+        try:
+            return Util.find_one(
+                lambda x: x.period == timer_period,
+                self._publishers)
+        except ItemNotFoundError:
+            msg = 'Failed to find timer info. '
+            msg += f'timer_period: {timer_period}'
             raise ItemNotFoundError(msg)
 
     @property

@@ -22,6 +22,7 @@ from ..record.interface import RecordsInterface
 from ..value_objects import (CallbackStructValue, CommunicationStructValue,
                              NodePathStructValue, PublisherStructValue, Qos,
                              SubscriptionStructValue,
+                             TimerStructValue,
                              VariablePassingStructValue)
 
 
@@ -107,9 +108,23 @@ class RecordsProvider(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def timer_records(
+        self,
+        timer: TimerStructValue
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
     def get_sim_time_converter(
         self,
     ) -> ClockConverter:
+        pass
+
+    @abstractmethod
+    def verify_communication(
+        self,
+        communication: CommunicationStructValue
+    ) -> bool:
         pass
 
 

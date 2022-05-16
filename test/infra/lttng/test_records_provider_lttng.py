@@ -118,6 +118,7 @@ class TestRecordsProviderLttng:
             RecordsProviderLttng, '_format', side_effect=_format)
 
         records_mock = mocker.Mock(spec=RecordsInterface)
+        mocker.patch.object(records_mock, 'columns', return_value=[])
 
         mocker.patch.object(comm_mock, 'publisher', pub_mock)
         mocker.patch.object(comm_mock, 'subscribe_callback', sub_cb_mock)
@@ -184,6 +185,7 @@ class TestRecordsProviderLttng:
             RecordsProviderLttng, '_format', side_effect=_format)
 
         records_mock = mocker.Mock(spec=RecordsInterface)
+        mocker.patch.object(records_mock, 'columns', return_value=[])
 
         helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
         mocker.patch(

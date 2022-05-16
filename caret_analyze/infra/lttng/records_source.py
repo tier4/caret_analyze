@@ -14,14 +14,19 @@
 
 from functools import cached_property
 
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 from .column_names import COLUMN_NAME
+from .events_factory import EventsFactory
 from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
-from ...common import Columns
+from .value_objects import TimerCallbackValueLttng, TimerControl, TimerInit
+from ...common import Columns, Util
 from ...record import (merge, merge_sequencial,
-                       merge_sequencial_for_addr_track, RecordsFactory, RecordsInterface)
+                       merge_sequencial_for_addr_track,
+                       RecordFactory,
+                       RecordsFactory,
+                       RecordsInterface)
 
 
 class RecordsSource():
@@ -55,6 +60,15 @@ class RecordsSource():
         """
         Compose inter process communication records.
 
+        Used tracepoints
+        - rclcpp_publish
+        - dds_bind_addr_to_addr
+        - dds_bind_addr_to_stamp
+        - rcl_publish (Optional)
+        - dds_write (Optional)
+        - dispatch_subscription_callback
+        - callback_start
+
         Returns
         -------
         RecordsInterface
@@ -62,18 +76,20 @@ class RecordsSource():
             - callback_object
             - callback_start_timestamp
             - publisher_handle
-            - rclcpp_inter_publish_timestamp
-            - rcl_publish_timestamp
-            - dds_write_timestamp
+            - rclcpp_publish_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
             - message_timestamp
             - source_timestamp
 
         """
-        dds_write = merge_sequencial_for_addr_track(
-            source_records=self._data.dds_write_instances,
+        publish = self._data.rclcpp_publish_instances
+
+        publish = merge_sequencial_for_addr_track(
+            source_records=publish,
             copy_records=self._data.dds_bind_addr_to_addr,
             sink_records=self._data.dds_bind_addr_to_stamp,
-            source_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+            source_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             source_key=COLUMN_NAME.MESSAGE,
             copy_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP,
             copy_from_key=COLUMN_NAME.ADDR_FROM,
@@ -81,45 +97,78 @@ class RecordsSource():
             sink_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
             sink_from_key=COLUMN_NAME.ADDR,
             columns=[
-                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
                 COLUMN_NAME.MESSAGE,
                 COLUMN_NAME.SOURCE_TIMESTAMP,
             ],
-            progress_label='binding: message_addr and dds_write',
+            progress_label='binding: message_addr and rclcpp_publish',
         )
 
         rcl_publish_records = self._data.rcl_publish_instances
         rcl_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
-        publish = merge_sequencial(
-            left_records=self._data.rclcpp_publish_instances,
-            right_records=rcl_publish_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            join_left_key=COLUMN_NAME.MESSAGE,
-            join_right_key=COLUMN_NAME.MESSAGE,
-            how='left_use_latest',
-            columns=[
-                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.MESSAGE_TIMESTAMP,
-            ],
-            progress_label='binding: rclcpp_publish and rcl_publish',
-        )
+        if len(rcl_publish_records) > 0:
+            publish = merge_sequencial(
+                left_records=publish,
+                right_records=rcl_publish_records,
+                left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                join_left_key=COLUMN_NAME.MESSAGE,
+                join_right_key=COLUMN_NAME.MESSAGE,
+                how='left',
+                columns=[
+                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.PUBLISHER_HANDLE,
+                    COLUMN_NAME.MESSAGE,
+                    COLUMN_NAME.MESSAGE_TIMESTAMP,
+                ],
+                progress_label='binding: rclcpp_publish and rcl_publish',
+            )
 
+        dds_write = self._data.dds_write_instances
+        if len(dds_write) > 0:
+            publish = merge_sequencial(
+                left_records=publish,
+                right_records=dds_write,
+                left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                join_left_key=COLUMN_NAME.MESSAGE,
+                join_right_key=COLUMN_NAME.MESSAGE,
+                columns=Columns(publish.columns + dds_write.columns).as_list(),
+                how='left',
+                progress_label='binding: rcl_publish and dds_write',
+            )
+
+        # When both intra_publish and inter_publish are used, value mismatch occurs when merging.
+        # In order to merge at the latency time,
+        # align the time to intra_publish if intra_process communication is used.
+        intra_publish = self._data.rclcpp_intra_publish_instances.clone()
+        intra_publish.drop_columns([
+            COLUMN_NAME.MESSAGE, COLUMN_NAME.MESSAGE_TIMESTAMP
+        ])
         publish = merge_sequencial(
-            left_records=publish,
-            right_records=dds_write,
-            left_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            join_left_key=COLUMN_NAME.MESSAGE,
-            join_right_key=COLUMN_NAME.MESSAGE,
-            columns=Columns(publish.columns + dds_write.columns).as_list(),
-            how='left',
-            progress_label='binding: rcl_publish and dds_write',
+            left_records=intra_publish,
+            right_records=publish,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
+            join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
+            columns=Columns(intra_publish.columns + publish.columns).as_list(),
+            how='right'
         )
+        rclcpp_publish = [None] * len(publish.data)
+        for i, record in enumerate(publish.data):
+            if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.data:
+                rclcpp_publish[i] = record.data[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP]
+            else:
+                rclcpp_publish[i] = record.data[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP]
+        publish.append_column(
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, rclcpp_publish)
+        publish.drop_columns([
+            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP
+        ])
 
         callback_start_instances = self.inter_callback_records
         subscription = self._data.dispatch_subscription_callback_instances
@@ -132,7 +181,7 @@ class RecordsSource():
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
             columns=Columns(subscription.columns + callback_start_instances.columns).as_list(),
-            how='left_use_latest',
+            how='left',
             progress_label='binding: dispatch_subscription_callback and callback_start',
         )
 
@@ -179,64 +228,61 @@ class RecordsSource():
             Columns
             - publisher_handle
             - rclcpp_publish_timestamp
-            - rclcpp_intra_publish_timestamp
-            - rclcpp_inter_publish_timestamp
-            - rcl_publish_timestamp
-            - dds_write_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
             - message_timestamp
             - source_timestamp
 
         """
-        dds_write = merge_sequencial_for_addr_track(
-            source_records=self._data.dds_write_instances,
-            copy_records=self._data.dds_bind_addr_to_addr,
-            sink_records=self._data.dds_bind_addr_to_stamp,
-            source_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            source_key=COLUMN_NAME.MESSAGE,
-            copy_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP,
-            copy_from_key=COLUMN_NAME.ADDR_FROM,
-            copy_to_key=COLUMN_NAME.ADDR_TO,
-            sink_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-            sink_from_key=COLUMN_NAME.ADDR,
-            columns=[
-                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-                COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-                COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.SOURCE_TIMESTAMP,
-            ],
-            progress_label='binding: message_addr and dds_write',
-        )
+        inter_proc_publish = self._data.rclcpp_publish_instances
 
         rcl_publish_records = self._data.rcl_publish_instances
         rcl_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
-        inter_proc_publish = merge_sequencial(
-            left_records=self._data.rclcpp_publish_instances,
-            right_records=rcl_publish_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            join_left_key=COLUMN_NAME.MESSAGE,
-            join_right_key=COLUMN_NAME.MESSAGE,
-            how='left_use_latest',
-            columns=[
-                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.MESSAGE,
-                COLUMN_NAME.MESSAGE_TIMESTAMP,
-            ],
-            progress_label='binding: rclcpp_publish and rcl_publish',
-        )
+        if len(rcl_publish_records) > 0:
+            inter_proc_publish = merge_sequencial(
+                left_records=inter_proc_publish,
+                right_records=rcl_publish_records,
+                left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                join_left_key='tid',
+                join_right_key='tid',
+                how='left',
+                columns=[
+                    COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.PUBLISHER_HANDLE,
+                    COLUMN_NAME.MESSAGE,
+                    'tid',
+                    COLUMN_NAME.MESSAGE_TIMESTAMP,
+                ],
+                progress_label='binding: rclcpp_publish and rcl_publish',
+            )
+
+        dds_write = self._data.dds_write_instances
+        if len(dds_write) > 0:
+            inter_proc_publish = merge_sequencial(
+                left_records=inter_proc_publish,
+                right_records=dds_write,
+                left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                join_left_key='tid',
+                join_right_key='tid',
+                columns=Columns(inter_proc_publish.columns + dds_write.columns).as_list(),
+                how='left',
+                progress_label='binding: rclcppp_publish and dds_write',
+            )
 
         inter_proc_publish = merge_sequencial(
             left_records=inter_proc_publish,
-            right_records=dds_write,
-            left_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            join_left_key=COLUMN_NAME.MESSAGE,
-            join_right_key=COLUMN_NAME.MESSAGE,
-            columns=Columns(inter_proc_publish.columns + dds_write.columns).as_list(),
+            right_records=self._data.dds_bind_addr_to_stamp,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
+            join_left_key='tid',
+            join_right_key='tid',
+            columns=Columns(
+                inter_proc_publish.columns + self._data.dds_bind_addr_to_stamp.columns).as_list(),
             how='left',
-            progress_label='binding: rcl_publish and dds_write',
+            progress_label='binding: rclcppp_publish and source_timestamp',
         )
 
         inter_proc_publish.drop_columns(
@@ -248,7 +294,9 @@ class RecordsSource():
                 COLUMN_NAME.DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP,
             ],
         )
-        intra_proc_publish = self._data.rclcpp_intra_publish_instances
+
+        intra_proc_publish = self._data.rclcpp_intra_publish_instances.clone()
+        intra_proc_publish.drop_columns([COLUMN_NAME.MESSAGE])
         # intra_proc_publish.drop_columns([COLUMN_NAME.MESSAGE])
 
         # When publishing to both intra-process and inter-process,
@@ -279,20 +327,74 @@ class RecordsSource():
             inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
             publish_stamps.append(inter_intra_publish)
 
-        publish.append_column(
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, publish_stamps)
-        publish.reindex([
-            COLUMN_NAME.PUBLISHER_HANDLE,
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
-            COLUMN_NAME.SOURCE_TIMESTAMP,
-        ])
+        publish.append_column(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, publish_stamps)
+
+        columns = []
+        columns.append(COLUMN_NAME.PUBLISHER_HANDLE)
+        columns.append(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in publish.columns:
+            columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
+        if COLUMN_NAME.DDS_WRITE_TIMESTAMP in publish.columns:
+            columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
+        columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
+        columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
+
+        drop_columns = set(publish.columns) - set(columns)
+        publish.drop_columns(list(drop_columns))
+        publish.reindex(columns)
 
         return publish
+
+    def create_timer_events_factory(
+        self,
+        timer_callback: TimerCallbackValueLttng
+    ) -> EventsFactory:
+        """
+        Create tiemr events factory.
+
+        Parameters
+        ----------
+        timer_callback : TimerCallbackValueLttng
+            target callback to create timer events.
+
+        Returns
+        -------
+        EventsFactory
+
+        """
+        class TimerEventsFactory(EventsFactory):
+
+            def __init__(self, ctrls: Sequence[TimerControl]) -> None:
+                self._ctrls = ctrls
+
+            def create(self, until_ns: int) -> RecordsInterface:
+
+                columns = [
+                    COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+                ]
+
+                records = RecordsFactory.create_instance(None, columns)
+                for ctrl in self._ctrls:
+
+                    if isinstance(ctrl, TimerInit):
+                        ctrl._timestamp
+                        timer_timestamp = ctrl._timestamp
+                        while timer_timestamp < until_ns:
+                            record_dict = {
+                                            COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
+                            }
+                            record = RecordFactory.create_instance(record_dict)
+                            records.append(record)
+                            timer_timestamp = timer_timestamp+ctrl.period_ns
+
+                return records
+
+        timer_ctrls = self._info.get_timer_controls()
+
+        filtered_timer_ctrls = Util.filter_items(
+            lambda x: x.timer_handle == timer_callback.timer_handle, timer_ctrls)
+
+        return TimerEventsFactory(filtered_timer_ctrls)
 
     @cached_property
     def tilde_publish_records(self) -> RecordsInterface:
@@ -375,7 +477,7 @@ class RecordsSource():
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
             columns=Columns(
                 inter_proc_subscrube.columns + callback_start_instances.columns).as_list(),
-            how='left_use_latest',
+            how='left',
             progress_label='binding: dispatch_subscription_callback and callback_start',
         )
 
@@ -400,6 +502,12 @@ class RecordsSource():
         """
         Compose intra process communication records.
 
+        Used tracepoints
+        - dispatch_intra_process_subscription_callback
+        - rclcpp_publish
+        - message_construct
+        - callback_start
+
         Returns
         -------
         RecordsInterface
@@ -407,7 +515,7 @@ class RecordsSource():
             - callback_object
             - callback_start_timestamp
             - publisher_handle
-            - rclcpp_intra_publish_timestamp
+            - rclcpp_publish_timestamp
             - message_timestamp
 
         """
@@ -433,6 +541,27 @@ class RecordsSource():
             progress_label='bindig: publish_timestamp and message_addr',
         )
 
+        # note: Incorrect latency is calculated when intra_publish of ros-rclcpp is included.
+        intra_publish_records = merge(
+            left_records=intra_publish_records,
+            right_records=sink_records,
+            join_left_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            join_right_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            columns=intra_publish_records.columns + [COLUMN_NAME.MESSAGE],
+            how='inner'
+        )
+
+        intra_publish_records = merge_sequencial(
+            left_records=intra_publish_records,
+            right_records=sink_records,
+            left_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            join_left_key=COLUMN_NAME.MESSAGE,
+            join_right_key=COLUMN_NAME.MESSAGE,
+            columns=intra_publish_records.columns,
+            how='left_use_latest'
+        )
+
         callback_start_instances = self.intra_callback_records
 
         intra_records = merge_sequencial(
@@ -444,7 +573,7 @@ class RecordsSource():
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
             columns=intra_publish_records.columns + [
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP, COLUMN_NAME.IS_INTRA_PROCESS],
-            how='left_use_latest',
+            how='left',
             progress_label='bindig: dispath_subsription and callback_start',
         )
 
@@ -455,6 +584,11 @@ class RecordsSource():
                 COLUMN_NAME.IS_INTRA_PROCESS
             ]
         )
+        intra_records.rename_columns(
+            {
+                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP
+            }
+        )
 
         return intra_records
 
@@ -462,6 +596,10 @@ class RecordsSource():
     def callback_records(self) -> RecordsInterface:
         """
         Compose callback records.
+
+        Used tracepoints
+        - callback_start
+        - callback_end
 
         Returns
         -------

@@ -544,6 +544,36 @@ class Application(Summarizable):
 
         return Util.find_one(is_target_callback, self.callbacks)
 
+    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+        """
+        Get callbacks that match the condition.
+
+        Parameters
+        ----------
+        callback_names : Tuple[str, ...]
+            callback names to get.
+
+        Returns
+        -------
+        List[CallbackBase]
+            callbacks that match the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Argument type is invalid.
+        ItemNotFoundError
+            Failed to find item that match the condition.
+        MultipleItemFoundError
+            Failed to identify item that match the condition.
+
+        """
+        callbacks = []
+        for callback_name in callback_names:
+            callbacks.append(self.get_callback(callback_name))
+
+        return callbacks
+
     @property
     def node_names(self) -> List[str]:
         """

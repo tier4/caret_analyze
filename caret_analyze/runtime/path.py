@@ -23,8 +23,8 @@ from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Columns, Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
-from ..record.record import merge_sequencial, RecordsInterface
-from ..value_objects import PathStructValue
+from ..record.record import merge, merge_sequencial, RecordsInterface
+from ..value_objects import CallbackChain, PathStructValue
 
 logger = getLogger(__name__)
 
@@ -101,7 +101,7 @@ class RecordsMerged:
 
     def __init__(
         self,
-        merge_targets: List[RecordsInterface],
+        merge_targets: List[Union[NodePath, Communication]],
     ) -> None:
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')
@@ -113,15 +113,15 @@ class RecordsMerged:
 
     @staticmethod
     def _merge_records(
-        targets: List[RecordsInterface]
+        targets: List[Union[NodePath, Communication]]
     ) -> RecordsInterface:
         logger.info('Started merging path records.')
 
         column_merger = ColumnMerger()
-        if len(targets[0].data) == 0:
+        if len(targets[0].to_records().data) == 0:
             targets = targets[1:]
 
-        first_element = targets[0]
+        first_element = targets[0].to_records()
         left_records = first_element
 
         rename_rule = column_merger.append_columns_and_return_rename_rule(
@@ -130,8 +130,8 @@ class RecordsMerged:
         left_records.rename_columns(rename_rule)
         first_column = first_element.columns[0]
 
-        for target in targets[1:]:
-            right_records = target
+        for target_, target in zip(targets[:-1], targets[1:]):
+            right_records: RecordsInterface = target.to_records()
 
             is_dummy_records = len(right_records.columns) == 0
 
@@ -161,18 +161,32 @@ class RecordsMerged:
                 f'- right_column: {right_stamp_key} \n'
             )
 
-            left_records = merge_sequencial(
-                left_records=left_records,
-                right_records=right_records,
-                join_left_key=None,
-                join_right_key=None,
-                left_stamp_key=left_stamp_key,
-                right_stamp_key=right_stamp_key,
-                columns=Columns(left_records.columns +
-                                right_records.columns).as_list(),
-                how='left_use_latest',
-                progress_label='binding: node records'
-            )
+            is_sequencial = isinstance(target_, NodePath) and \
+                isinstance(target, Communication) and \
+                isinstance(target_.message_context, CallbackChain)
+
+            if is_sequencial:
+                left_records = merge_sequencial(
+                    left_records=left_records,
+                    right_records=right_records,
+                    join_left_key=None,
+                    join_right_key=None,
+                    left_stamp_key=left_stamp_key,
+                    right_stamp_key=right_stamp_key,
+                    columns=Columns(left_records.columns +
+                                    right_records.columns).as_list(),
+                    how='left_use_latest',
+                    progress_label='binding: node records'
+                )
+            else:
+                left_records = merge(
+                    left_records=left_records,
+                    right_records=right_records,
+                    join_left_key=left_records.columns[-1],
+                    join_right_key=right_records.columns[0],
+                    columns=Columns(left_records.columns + right_records.columns).as_list(),
+                    how='left'
+                )
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
@@ -198,8 +212,7 @@ class Path(PathBase, Summarizable):
 
     def _to_records_core(self) -> RecordsInterface:
         self._verify_path(self.node_paths)
-        records = [e.to_records() for e in self._child]
-        return RecordsMerged(records).data
+        return RecordsMerged(self.child).data
 
     @staticmethod
     def _verify_path(
@@ -221,6 +234,9 @@ class Path(PathBase, Summarizable):
             msg += str(child.summary)
             logger.warning(msg)
             is_valid = False
+
+        for comm in self.communications:
+            is_valid &= comm.verify()
         return is_valid
 
     def get_child(self, name: str):

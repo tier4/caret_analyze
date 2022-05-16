@@ -71,10 +71,10 @@ class Ros2DataModel(DataModel):
             None, ['callback_end_timestamp', 'callback_object']
         )
         self.dds_write_instances = RecordsFactory.create_instance(
-            None, ['dds_write_timestamp', 'message']
+            None, ['tid', 'dds_write_timestamp', 'message']
         )
         self.dds_bind_addr_to_stamp = RecordsFactory.create_instance(
-            None, ['dds_bind_addr_to_stamp_timestamp', 'addr', 'source_timestamp']
+            None, ['tid', 'dds_bind_addr_to_stamp_timestamp', 'addr', 'source_timestamp']
         )
         self.dds_bind_addr_to_addr = RecordsFactory.create_instance(
             None, ['dds_bind_addr_to_addr_timestamp', 'addr_from', 'addr_to']
@@ -83,14 +83,17 @@ class Ros2DataModel(DataModel):
             None, ['on_data_available_timestamp', 'source_timestamp']
         )
         self.rclcpp_intra_publish_instances = RecordsFactory.create_instance(
-            None, ['rclcpp_intra_publish_timestamp', 'publisher_handle',
+            None, ['tid', 'rclcpp_intra_publish_timestamp', 'publisher_handle',
                    'message', 'message_timestamp']
         )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
-            None, ['rclcpp_publish_timestamp', 'publisher_handle', 'message', 'message_timestamp']
+            None, [
+                'tid', 'rclcpp_publish_timestamp', 'publisher_handle',
+                'message', 'message_timestamp'
+            ]
         )
         self.rcl_publish_instances = RecordsFactory.create_instance(
-            None, ['rcl_publish_timestamp', 'publisher_handle', 'message']
+            None, ['tid', 'rcl_publish_timestamp', 'publisher_handle', 'message']
         )
         self.dispatch_subscription_callback_instances = RecordsFactory.create_instance(
             None, ['dispatch_subscription_callback_timestamp', 'callback_object', 'message',
@@ -123,6 +126,10 @@ class Ros2DataModel(DataModel):
             None, [
                 'system_time',
                 'sim_time']
+        )
+        self.timer_event = RecordsFactory.create_instance(
+            None, [
+                'time_event_stamp']
         )
 
     def add_context(self, context_handle, timestamp, pid, version) -> None:
@@ -303,6 +310,7 @@ class Ros2DataModel(DataModel):
 
     def add_rclcpp_intra_publish_instance(
         self,
+        tid: int,
         timestamp: int,
         publisher_handle: int,
         message: int,
@@ -310,6 +318,7 @@ class Ros2DataModel(DataModel):
     ) -> None:
         record = RecordFactory.create_instance(
             {
+                'tid': tid,
                 'rclcpp_intra_publish_timestamp': timestamp,
                 'publisher_handle': publisher_handle,
                 'message': message,
@@ -320,6 +329,7 @@ class Ros2DataModel(DataModel):
 
     def add_rclcpp_publish_instance(
         self,
+        tid: int,
         timestamp: int,
         publisher_handle: int,
         message: int,
@@ -327,6 +337,7 @@ class Ros2DataModel(DataModel):
     ) -> None:
         record = RecordFactory.create_instance(
             {
+                'tid': tid,
                 'rclcpp_publish_timestamp': timestamp,
                 'publisher_handle': publisher_handle,
                 'message': message,
@@ -337,12 +348,14 @@ class Ros2DataModel(DataModel):
 
     def add_rcl_publish_instance(
         self,
+        tid: int,
         timestamp: int,
         publisher_handle: int,
         message: int,
     ) -> None:
         record = RecordFactory.create_instance(
             {
+                'tid': tid,
                 'rcl_publish_timestamp': timestamp,
                 'publisher_handle': publisher_handle,
                 'message': message,
@@ -352,11 +365,13 @@ class Ros2DataModel(DataModel):
 
     def add_dds_write_instance(
         self,
+        tid: int,
         timestamp: int,
         message: int,
     ) -> None:
         record = RecordFactory.create_instance(
             {
+                'tid': tid,
                 'dds_write_timestamp': timestamp,
                 'message': message,
             }
@@ -380,12 +395,14 @@ class Ros2DataModel(DataModel):
 
     def add_dds_bind_addr_to_stamp(
         self,
+        tid: int,
         timestamp: int,
         addr: int,
         source_timestamp: int,
     ) -> None:
         record = RecordFactory.create_instance(
             {
+                'tid': tid,
                 'dds_bind_addr_to_stamp_timestamp': timestamp,
                 'addr': addr,
                 'source_timestamp': source_timestamp,

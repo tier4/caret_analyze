@@ -18,6 +18,9 @@ from functools import cached_property, lru_cache
 from logging import getLogger
 from typing import Callable, Dict, List, Optional, Sequence, Union
 
+from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
+from caret_analyze.value_objects.timer import TimerValue
+
 import numpy as np
 import pandas as pd
 
@@ -25,7 +28,8 @@ from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
                             PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
-                            TimerCallbackValueLttng)
+                            TimerCallbackValueLttng,
+                            TimerControl)
 from ...common import Util
 from ...exceptions import InvalidArgumentError
 from ...value_objects import ExecutorValue, NodeValue, Qos
@@ -539,6 +543,37 @@ class LttngInfo:
         depth = int(sub_df['depth'].values[0])
         return Qos(depth)
 
+    def get_timers(self, node: NodeValue) -> Sequence[TimerValue]:
+        try:
+            callbacks = self.get_timer_callbacks(node)
+            timers = []
+            for callback in callbacks:
+                timers.append(
+                        TimerValue(
+                            period=callback.period_ns,
+                            node_name=callback.node_name,
+                            node_id=callback.node_id,
+                            callback_id=callback.callback_id,
+                        )
+                    )
+
+            return timers
+        except ValueError:
+            return []
+
+    def get_timer_controls(self) -> Sequence[TimerControl]:
+        df = self._formatted.timer_controls_df
+        ctrls: List[TimerControl] = []
+        for _, row in df.iterrows():
+            if row['type'] == 'init':
+                params = row['params']
+                ctrl = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
+                ctrls.append(ctrl)
+            else:
+                raise NotImplementedError('Unsupported timer control type.')
+
+        return ctrls
+
 
 # class PublisherBinder:
 #     TARGET_RECORD_MAX_INDEX = 10
@@ -842,6 +877,7 @@ class DataFrameFormatted:
         self._tilde_sub = self._build_tilde_subscription_df(data)
         self._tilde_pub = self._build_tilde_publisher_df(data)
         self._tilde_sub_id_to_sub = self._build_tilde_sub_id_df(data, self._tilde_sub)
+        self._timer_control = self._build_timer_control_df(data)
 
     @staticmethod
     def _ensure_columns(
@@ -1028,6 +1064,10 @@ class DataFrameFormatted:
         """
         return self._tilde_sub
 
+    @property
+    def timer_controls_df(self) -> pd.DataFrame:
+        return self._timer_control
+
     @staticmethod
     def _build_publisher_df(
         data: Ros2DataModel,
@@ -1040,6 +1080,17 @@ class DataFrameFormatted:
             return f'publisher_{publisher_handle}'
 
         df = DataFrameFormatted._add_column(df, 'publisher_id', to_publisher_id)
+        df = DataFrameFormatted._ensure_columns(df, columns)
+        return df[columns]
+
+    @staticmethod
+    def _build_timer_control_df(
+        data: Ros2DataModel,
+    ) -> pd.DataFrame:
+        columns = ['timestamp', 'timer_handle', 'type', 'params']
+        df = data.timers.reset_index()
+        df['type'] = 'init'
+        df['params'] = [{'period': row['period']} for (_, row) in df.iterrows()]
         df = DataFrameFormatted._ensure_columns(df, columns)
         return df[columns]
 

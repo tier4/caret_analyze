@@ -33,6 +33,7 @@ from .path import PathStructValue, PathValue
 from .publisher import PublisherStructValue, PublisherValue
 from .qos import Qos
 from .subscription import SubscriptionStructValue, SubscriptionValue
+from .timer import TimerStructValue, TimerValue
 from .variable_passing import VariablePassingStructValue, VariablePassingValue
 
 
@@ -66,6 +67,8 @@ __all__ = [
     'SubscriptionStructValue',
     'SubscriptionValue',
     'Tilde',
+    'TimerValue',
+    'TimerStructValue',
     'TimerCallbackStructValue',
     'TimerCallbackValue',
     'UseLatestMessage',

@@ -294,6 +294,9 @@ class TestRecords:
             assert records_empty.columns == []
             assert len(records_empty.data) == 0
 
+            with pytest.raises(InvalidArgumentError):
+                records.drop_columns('')
+
     def test_rename_columns(self):
         records_py: Records = Records(
             [
@@ -442,6 +445,10 @@ class TestRecords:
             records_concat.concat(records_left)
             records_concat.concat(records_right)
             assert records_concat.equals(records_expect)
+
+            records_concat = Records(None, ['a'])
+            with pytest.raises(InvalidArgumentError):
+                records_concat.concat(records_right)
 
     def test_bind_drop_as_delay(self):
         for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
@@ -1011,6 +1018,11 @@ class TestRecords:
             records.reindex(['a', 'b', 'c', 'd'])
             assert records.columns == ['a', 'b', 'c', 'd']
 
+            with pytest.raises(InvalidArgumentError):
+                records.reindex(['a', 'b', 'c', 'd', 'e'])
+            with pytest.raises(InvalidArgumentError):
+                records.reindex(['a', 'b', 'c'])
+
     @pytest.mark.parametrize(
         'how, records_expect_py',
         [
@@ -1026,6 +1038,10 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
                 ),
@@ -1042,6 +1058,10 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                         Record({'value_left': 40, 'stamp': 7}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
@@ -1059,6 +1079,10 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                         Record({'value_right': 50, 'stamp_': 10}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
@@ -1076,8 +1100,12 @@ class TestRecords:
                                'stamp': 5, 'stamp_': 6}),
                         Record({'value_left': 30, 'value_right': 30,
                                'stamp': 5, 'stamp_': 6}),
-                        Record({'value_right': 50, 'stamp_': 10}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 9, 'stamp_': 11}),
+                        Record({'value_left': 70, 'value_right': 70,
+                               'stamp': 10, 'stamp_': 11}),
                         Record({'value_left': 40, 'stamp': 7}),
+                        Record({'value_right': 50, 'stamp_': 10}),
                     ],
                     ['stamp', 'value_left',  'stamp_', 'value_right']
                 ),
@@ -1091,6 +1119,8 @@ class TestRecords:
                 Record({'stamp': 3, 'value_left': 20}),
                 Record({'stamp': 5, 'value_left': 30}),
                 Record({'stamp': 7, 'value_left': 40}),
+                Record({'stamp': 9, 'value_left': 70}),
+                Record({'stamp': 10, 'value_left': 70}),
             ],
             ['stamp', 'value_left']
         )
@@ -1102,6 +1132,7 @@ class TestRecords:
                 Record({'stamp_': 6, 'value_right': 30}),
                 Record({'stamp_': 6, 'value_right': 30}),
                 Record({'stamp_': 10, 'value_right': 50}),
+                Record({'stamp_': 11, 'value_right': 70}),
             ],
             ['stamp_', 'value_right']
         )
@@ -1930,6 +1961,7 @@ class TestRecords:
                 Record({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 1}),
                 Record({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 11}),
                 Record({'addr_from': 3, 'addr_to': 13, 'copy_stamp': 21}),
+                Record({'addr_from': 13, 'addr_to': 23, 'copy_stamp': 22}),
             ],
             ['addr_from', 'addr_to', 'copy_stamp']
         )
@@ -1939,7 +1971,11 @@ class TestRecords:
                 Record({'sink_addr': 13, 'sink_stamp': 2}),
                 Record({'sink_addr': 1, 'sink_stamp': 3}),
                 Record({'sink_addr': 13, 'sink_stamp': 12}),
-                Record({'sink_addr': 13, 'sink_stamp': 22}),
+                Record({'sink_addr': 13, 'sink_stamp': 23}),
+                Record({'sink_addr': 3, 'sink_stamp': 24}),
+                Record({'sink_addr': 13, 'sink_stamp': 25}),
+                Record({'sink_addr': 3, 'sink_stamp': 26}),
+                Record({'sink_addr': 23, 'sink_stamp': 27}),
             ],
             ['sink_addr', 'sink_stamp']
         )
@@ -1955,7 +1991,13 @@ class TestRecords:
                     'source_addr': 1, 'source_stamp': 10, 'sink_stamp': 12,
                 }),
                 Record({
-                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 22,
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 23,
+                }),
+                Record({
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 24,
+                }),
+                Record({
+                    'source_addr': 3, 'source_stamp': 20, 'sink_stamp': 27,
                 }),
             ],
             ['source_addr', 'source_stamp', 'sink_stamp']

@@ -51,7 +51,7 @@ class RecordsCppImpl(RecordsInterface):
         self,
         other: RecordInterface
     ) -> None:
-        unknown_columns = set(other.columns) - set(self.columns)
+        unknown_columns = set(other.columns) ^ set(self.columns)
         if len(unknown_columns) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'
@@ -63,6 +63,11 @@ class RecordsCppImpl(RecordsInterface):
         self, other: RecordsInterface
     ) -> None:
         assert isinstance(other, RecordsCppImpl)
+        unknown_columns = set(other.columns) - set(self.columns)
+        if len(unknown_columns) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_columns}'
+            raise InvalidArgumentError(msg)
         self._records.concat(other._records)
         return None
 
@@ -150,6 +155,11 @@ class RecordsCppImpl(RecordsInterface):
         return self._records.equals(other._records)
 
     def reindex(self, columns: List[str]) -> None:
+        miss_match_columns = set(columns) ^ set(self.columns)
+        if len(miss_match_columns) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{miss_match_columns}'
+            raise InvalidArgumentError(msg)
         self._records.reindex(columns)
 
     def clone(self) -> RecordsCppImpl:
@@ -168,6 +178,8 @@ class RecordsCppImpl(RecordsInterface):
         self._records.append_column(column, values)
 
     def drop_columns(self, columns: List[str]) -> None:
+        if not isinstance(columns, list):
+            raise InvalidArgumentError('columns must be list.')
         self._records.drop_columns(columns)
 
     def filter_if(self, f: Callable[[RecordInterface], bool]) -> None:

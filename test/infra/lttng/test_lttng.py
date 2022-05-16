@@ -32,7 +32,7 @@ class TestLttng:
 
     def test_get_nodes(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -54,7 +54,7 @@ class TestLttng:
 
     def test_get_rmw_implementation(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -74,7 +74,7 @@ class TestLttng:
 
     def test_get_publishers(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -94,7 +94,7 @@ class TestLttng:
 
     def test_get_timer_callbacks(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -114,7 +114,7 @@ class TestLttng:
 
     def test_get_subscription_callbacks(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -135,7 +135,7 @@ class TestLttng:
 
     def test_get_executors(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -156,7 +156,7 @@ class TestLttng:
 
     def test_compose_inter_proc_comm_records(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -179,7 +179,7 @@ class TestLttng:
 
     def test_compose_intra_proc_comm_records(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -202,7 +202,7 @@ class TestLttng:
 
     def test_compose_callback_records(self, mocker: MockerFixture):
         data_mock = mocker.Mock(spec=DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=data_mock)
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',

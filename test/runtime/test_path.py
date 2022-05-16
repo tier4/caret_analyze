@@ -146,19 +146,29 @@ class TestRecordsMerged:
             RecordsMerged([])
 
     def test_merge_two_records(self, mocker: MockerFixture):
-        cb_records = Records(
-            [
-                Record({
-                    'callback_start': 0, 'xxx': 1, 'pub': 2
+        node_path = mocker.Mock(spec=NodePath)
+        mocker.patch.object(
+            node_path, 'to_records',
+            return_value=Records(
+                [
+                    Record({
+                        'callback_start': 0, 'xxx': 1, 'pub': 2
                     }),
-            ],
-            ['callback_start', 'xxx', 'pub']
+                ],
+                ['callback_start', 'xxx', 'pub']
+            )
         )
-        comm_records = Records(
-            [
-                Record({'pub': 2, 'write': 4, 'read': 5, 'callback_start': 6}),
-            ],
-            ['pub', 'write', 'read', 'callback_start']
+
+        comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(
+            comm_path, 'to_records',
+            return_value=Records(
+                [
+                    Record({'pub': 2, 'write': 4,
+                            'read': 5, 'callback_start': 6}),
+                ],
+                ['pub', 'write', 'read', 'callback_start']
+            )
         )
 
         # cb_mock = mocker.Mock(spec=Records)
@@ -187,7 +197,7 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([cb_records, comm_records])
+        merged = RecordsMerged([node_path, comm_path])
         records = merged.data
         expected = Records(
             [
@@ -196,28 +206,47 @@ class TestRecordsMerged:
                     'write/0': 4, 'read/0': 5, 'callback_start/1': 6
                 }),
             ],
-            ['callback_start/0', 'xxx/0', 'pub/0', 'write/0', 'read/0', 'callback_start/1']
+            ['callback_start/0', 'xxx/0', 'pub/0',
+                'write/0', 'read/0', 'callback_start/1']
         )
 
         assert records.equals(expected)
 
     def test_loop_case(self, mocker: MockerFixture):
-        cb_records_0 = Records(
+        cb_records = Records(
             [
-                Record({'callback_start': 0, 'xxx': 1, 'pub': 2}),
-                Record({'callback_start': 6, 'xxx': 7, 'pub': 8}),
-                Record({'callback_start': 12, 'xxx': 13, 'pub': 14}),
+                Record(
+                    {'callback_start': 0, 'xxx': 1, 'pub': 2}),
+                Record(
+                    {'callback_start': 6, 'xxx': 7, 'pub': 8}),
+                Record({'callback_start': 12,
+                        'xxx': 13, 'pub': 14}),
             ],
             ['callback_start', 'xxx', 'pub']
         )
-        cb_records_1 = cb_records_0.clone()
+        node_path_0 = mocker.Mock(spec=NodePath)
+        mocker.patch.object(
+            node_path_0, 'to_records',
+            return_value=cb_records.clone()
+        )
+        node_path_1 = mocker.Mock(spec=NodePath)
+        mocker.patch.object(
+            node_path_1, 'to_records',
+            return_value=cb_records.clone()
+        )
 
-        comm_records = Records(
-            [
-                Record({'pub': 2, 'write': 4, 'read': 5, 'callback_start': 6}),
-                Record({'pub': 8, 'write': 10, 'read': 11, 'callback_start': 12}),
-            ],
-            ['pub', 'write', 'read', 'callback_start']
+        comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(
+            comm_path, 'to_records',
+            return_value=Records(
+                [
+                    Record({'pub': 2, 'write': 4,
+                            'read': 5, 'callback_start': 6}),
+                    Record({'pub': 8, 'write': 10,
+                            'read': 11, 'callback_start': 12}),
+                ],
+                ['pub', 'write', 'read', 'callback_start']
+            )
         )
 
         def append_columns_and_return_rename_rule(records):
@@ -246,7 +275,7 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=append_columns_and_return_rename_rule)
 
-        merged = RecordsMerged([cb_records_0, comm_records, cb_records_1])
+        merged = RecordsMerged([node_path_0, comm_path, node_path_1])
         records = merged.data
         expected = Records(
             [

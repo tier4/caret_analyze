@@ -15,13 +15,19 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from logging import getLogger
 
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple, Union
+
+import bt2
+
+from caret_analyze.value_objects.timer import TimerValue
 
 import pandas as pd
 
 from tracetools_analysis.loading import load_file
 
+from .events_factory import EventsFactory
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
 from .value_objects import (PublisherValueLttng,
@@ -34,6 +40,8 @@ from ...record import RecordsInterface
 from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos
 
 Event = Dict[str, int]
+
+logger = getLogger(__name__)
 
 
 class LttngEventFilter(metaclass=ABCMeta):
@@ -83,7 +91,6 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2:rclcpp_callback_register',
             'ros2:rcl_lifecycle_state_machine_init',
             'ros2:rcl_lifecycle_transition',
-            'ros2:dispatch_intra_process_subscription_callback',
             'ros2_caret:rmw_implementation',
             'ros2_caret:add_callback_group',
             'ros2_caret:add_callback_group_static_executor',
@@ -95,6 +102,7 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2_caret:callback_group_add_client',
             'ros2_caret:tilde_subscription_init',
             'ros2_caret:tilde_publisher_init',
+            'ros2_caret:tilde_subscribe_added',
         }
 
         return event[self.NAME] in init_events
@@ -158,44 +166,63 @@ class Lttng(InfraBase):
 
     def __init__(
         self,
-        trace_dir: str,
+        trace_dir_or_events: Union[str, Dict],
         force_conversion: bool = False,
         use_singleton_cache: bool = True,
         *,
-        event_filters: Optional[List[LttngEventFilter]] = None
+        event_filters: Optional[List[LttngEventFilter]] = None,
+        store_events: bool = False,
     ) -> None:
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
         from .event_counter import EventCounter
 
-        if self._last_load_dir == trace_dir and use_singleton_cache is True and \
+        if self._last_load_dir == trace_dir_or_events and use_singleton_cache is True and \
                 event_filters == self._last_filters:
             return
 
-        Lttng._last_load_dir = trace_dir
-        Lttng._last_filters = event_filters
-        data = self._parse_lttng_data(trace_dir, force_conversion, event_filters or [])
+        data, events = self._parse_lttng_data(
+            trace_dir_or_events,
+            force_conversion,
+            event_filters or []
+        )
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
-        self._counter = EventCounter(data, self._info)
+        self._counter = EventCounter(data)
+        self.events = events if store_events else None
 
     def clear_singleton_cache(self) -> None:
         self._last_load_dir = None
 
     @staticmethod
     def _parse_lttng_data(
-        trace_dir: str,
+        trace_dir_or_events: Union[str, Dict],
         force_conversion: bool,
         event_filters: List[LttngEventFilter]
-    ) -> DataModel:
-        events = load_file(trace_dir, force_conversion=force_conversion)
-        print('{} events found.'.format(len(events)))
+    ) -> Tuple[DataModel, Dict]:
+        if isinstance(trace_dir_or_events, str):
+            # Check for traces lost
+            for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
+                if(type(msg) is bt2._DiscardedEventsMessageConst):
+                    msg = ('Tracer discarded '
+                           f'{msg.count} events between '
+                           f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
+                           f'{msg.end_default_clock_snapshot.ns_from_origin}.')
+                    logger.warning(msg)
+
+            Lttng._last_load_dir = trace_dir_or_events
+            Lttng._last_filters = event_filters
+            events = load_file(trace_dir_or_events, force_conversion=force_conversion)
+            print('{} events found.'.format(len(events)))
+        else:
+            events = trace_dir_or_events
+
         if len(event_filters) > 0:
             events = Lttng._filter_events(events, event_filters)
             print('filted to {} events.'.format(len(events)))
 
         handler = Ros2Handler.process(events)
-        return handler.data
+        return handler.data, events
 
     @staticmethod
     def _filter_events(events: List[Event], filters: List[LttngEventFilter]):
@@ -207,7 +234,8 @@ class Lttng(InfraBase):
         common.end_time = events[-1][LttngEventFilter.TIMESTAMP]
 
         filtered = []
-        for event in events:
+        from tqdm import tqdm
+        for event in tqdm(events):
             if all(event_filter.accept(event, common) for event_filter in filters):
                 filtered.append(event)
 
@@ -286,6 +314,20 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_publishers(node)
+
+    def get_timers(
+        self,
+        node: NodeValue
+    ) -> Sequence[TimerValue]:
+        """
+        Get timers information.
+
+        Returns
+        -------
+        Sequence[TimerValue]
+
+        """
+        return self._info.get_timers(node)
 
     def get_timer_callbacks(
         self,
@@ -398,8 +440,8 @@ class Lttng(InfraBase):
             - callback_start_timestamp
             - publisher_handle
             - rclcpp_publish_timestamp
-            - rcl_publish_timestamp
-            - dds_write_timestamp
+            - rcl_publish_timestamp (Optional)
+            - dds_write_timestamp (Optional)
 
         """
         return self._source.inter_proc_comm_records.clone()
@@ -417,7 +459,7 @@ class Lttng(InfraBase):
             - callback_object
             - callback_start_timestamp
             - publisher_handle
-            - rclcpp_intra_publish_timestamp
+            - rclcpp_publish_timestamp
             - message_timestamp
 
         """
@@ -450,6 +492,12 @@ class Lttng(InfraBase):
         self,
     ) -> RecordsInterface:
         return self._source.subscribe_records.clone()
+
+    def create_timer_events_factory(
+        self,
+        timer_callback: TimerCallbackValueLttng
+    ) -> EventsFactory:
+        return self._source.create_timer_events_factory(timer_callback)
 
     def compose_tilde_publish_records(
         self,

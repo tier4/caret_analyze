@@ -54,6 +54,9 @@ class Record(RecordInterface):
         return deepcopy(self._columns)
 
     def drop_columns(self, columns: List[str]) -> None:
+        if not isinstance(columns, list):
+            raise InvalidArgumentError('columns must be list.')
+
         data: Dict[str, int]
 
         data = self._data
@@ -189,6 +192,11 @@ class Records(RecordsInterface):
             raise InvalidArgumentError(msg)
 
     def concat(self, other: RecordsInterface) -> None:
+        unknown_columns = set(other.columns) - set(self.columns)
+        if len(unknown_columns) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_columns}'
+            raise InvalidArgumentError(msg)
         self._data += list(other.data)
 
     def drop_columns(self, columns: List[str]) -> None:
@@ -286,10 +294,21 @@ class Records(RecordsInterface):
 
     @staticmethod
     def _to_dataframe(
-        df_dict: List[Dict[str, int]],
+        df_list: List[Dict[str, int]],
         columns: List[str]
     ) -> pd.DataFrame:
-        df = pd.DataFrame.from_dict(df_dict, dtype='Int64')
+        # When from_dict is used,
+        # dataframe values are rounded to a float type,
+        # so here uses a dictionary type.
+        df_dict: Dict[str, List[Optional[int]]]
+        df_dict = {c: [None]*len(df_list) for c in columns}
+        for i, df_row in enumerate(df_list):
+            for c in columns:
+                if c in df_row:
+                    df_dict[c][i] = df_row[c]
+
+        df = pd.DataFrame(df_dict, dtype='Int64')
+
         missing_columns = set(columns) - set(df.columns)
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
@@ -370,42 +389,49 @@ class Records(RecordsInterface):
         concat_records.sort(key=column_merge_stamp, sub_key=column_side)
 
         empty_records: List[RecordInterface] = []
-        left_record_: Optional[RecordInterface] = None
+        left_records_: List[RecordInterface] = []
+        processed_stamps: Set[int] = set()
 
         merged_records = Records(
             None,
             concat_records.columns + [column_found_right_record]
         )
+
+        def move_left_to_empty(
+            left: List[RecordInterface],
+            empty: List[RecordInterface]
+        ):
+            for left_record in left_records_:
+                if left_record.get(column_found_right_record) is False:
+                    empty_records.append(left_record)
+
         for record in concat_records._data:
 
             if record.get(column_has_valid_join_key) is False:
-                if record.get(column_side) == MergeSide.LEFT and merge_left:
-                    merged_records.append(record)
-                elif record.get(column_side) == MergeSide.RIGHT and merge_right:
-                    merged_records.append(record)
+                empty_records.append(record)
                 continue
 
             join_value = record.get(column_join_key)
+            if join_value not in processed_stamps:
+                move_left_to_empty(left_records_, empty_records)
+                left_records_ = []
+                processed_stamps.add(join_value)
 
             if record.get(column_side) == MergeSide.LEFT:
-                if left_record_ and left_record_.get(column_found_right_record) is False:
-                    empty_records.append(left_record_)
-                left_record_ = record
-                left_record_.add(column_found_right_record, False)
-            else:
-                if (
-                    left_record_
-                    and join_value == left_record_.get(column_join_key)
-                    and record.get(column_has_valid_join_key)
-                ):
-                    left_record_.add(column_found_right_record, True)
-                    merged_record = deepcopy(record)
-                    merged_record.merge(left_record_)
-                    merged_records.append(merged_record)
-                else:
-                    empty_records.append(record)
-        if left_record_ is not None and left_record_.get(column_found_right_record) is False:
-            empty_records.append(left_record_)
+                record.add(column_found_right_record, False)
+                left_records_.append(record)
+                continue
+
+            for left_record in left_records_:
+                left_record.add(column_found_right_record, True)
+                merged_record = deepcopy(record)
+                merged_record.merge(left_record)
+                merged_records.append(merged_record)
+
+            if len(left_records_) == 0:
+                empty_records.append(record)
+
+        move_left_to_empty(left_records_, empty_records)
 
         for record in empty_records:
             side = record.get(column_side)
@@ -629,50 +655,58 @@ class Records(RecordsInterface):
         # Searching for records in chronological order is not good
         # because the lost records stay forever. Sort in reverse chronological order.
 
-        #  List of records to be added by sink and removed by source
-        processing_records: List[RecordInterface] = []
+        #  Dict of records to be added by sink and removed by source
+        processing_records: Dict[int, RecordInterface] = {}
+
+        sink_from_keys = sink_from_key + '_'
 
         def merge_processing_record_keys(processing_record: RecordInterface):
             for processing_record_ in filter(
-                lambda x: x.get(sink_from_key) & processing_record.get(
-                    sink_from_key)
-                and x.get(sink_from_key) != processing_record.get(sink_from_key),
-                processing_records,
+                lambda x: x.get(sink_from_keys) & processing_record.get(
+                    sink_from_keys)
+                and x.get(sink_from_keys) != processing_record.get(sink_from_key),
+                processing_records.values(),
             ):
-                processing_record_keys = processing_record.get(sink_from_key)
+                processing_record_keys = processing_record.get(sink_from_keys)
                 coresponding_record_keys = processing_record_.get(
-                    sink_from_key)
+                    sink_from_keys)
 
                 merged_set = processing_record_keys | coresponding_record_keys
-                processing_record.data[sink_from_key] = merged_set
-                processing_record_.data[sink_from_key] = merged_set
+                processing_record.data[sink_from_keys] = merged_set
+                processing_record_.data[sink_from_keys] = merged_set
 
         for record in concat_records.data:
 
             if record.get(column_type) == RecordType.SINK:
-                record.data[sink_from_key] = {record.get(sink_from_key)}  # type: ignore
-                processing_records.append(record)
+                addr = record.get(sink_from_key)
+                record.data[sink_from_keys] = {record.get(sink_from_key)}  # type: ignore
+                processing_records[addr] = record
 
             elif record.get(column_type) == RecordType.COPY:
                 records_need_to_merge = filter(
-                    lambda x: record.get(copy_to_key) in x.data[sink_from_key],  # type: ignore
-                    processing_records
+                    lambda x: record.get(copy_to_key) in x.data[sink_from_keys],  # type: ignore
+                    processing_records.values()
                 )
                 for processing_record in records_need_to_merge:
-                    processing_record.data[sink_from_key].add(  # type: ignore
+                    processing_record.data[sink_from_keys].add(  # type: ignore
                         record.get(copy_from_key))
                     merge_processing_record_keys(processing_record)
                     # No need for subsequent loops since we integrated them.
                     break
 
             elif record.get(column_type) == RecordType.SOURCE:
+                merged_addrs = []
                 for processing_record in filter(
-                    lambda x: record.get(source_key) in x.data[sink_from_key],  # type: ignore
-                    processing_records[:],
+                    lambda x: record.get(source_key) in x.data[sink_from_keys],  # type: ignore
+                    processing_records.values(),
                 ):
-                    processing_records.remove(processing_record)
+                    addr = processing_record.get(sink_from_key)
+                    merged_addrs.append(addr)
                     processing_record.merge(record)
                     merged_records.append(processing_record)
+                for addr in merged_addrs:
+                    if addr in processing_records:
+                        processing_records.pop(addr)
 
         # Deleting an added key
         merged_records.drop_columns(
@@ -680,6 +714,8 @@ class Records(RecordsInterface):
              copy_from_key, copy_to_key, copy_stamp_key])
 
         merged_records.reindex(columns)
+        for record in merged_records.data:
+            record.data.pop(sink_from_keys)
 
         return merged_records
 

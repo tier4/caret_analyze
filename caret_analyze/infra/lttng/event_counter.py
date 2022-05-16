@@ -19,7 +19,6 @@ from typing import Dict, List
 
 import pandas as pd
 
-from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
 from ...exceptions import InvalidArgumentError, InvalidTraceFormatError
 
@@ -28,9 +27,9 @@ logger = getLogger(__name__)
 
 class EventCounter:
 
-    def __init__(self, data: Ros2DataModel, info: LttngInfo):
+    def __init__(self, data: Ros2DataModel):
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
-        self._count_df = self._build_count_df(data, info)
+        self._count_df = self._build_count_df(data)
         self._validate()
 
     def get_count(self, groupby: List[str]) -> pd.DataFrame:
@@ -88,7 +87,7 @@ class EventCounter:
                 'The binary may have been compiled without using fork-rclcpp.')
 
     @staticmethod
-    def _build_count_df(data: Ros2DataModel, info: LttngInfo) -> pd.DataFrame:
+    def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
         trace_point_and_df = {
             'ros2:rcl_init': data.contexts,
             'ros2:rcl_node_init': data.nodes,
@@ -142,15 +141,22 @@ class EventCounter:
         sub_handle_to_node_name: Dict[int, str] = {}
         pub_handle_to_topic_name: Dict[int, str] = {}
         pub_handle_to_node_name: Dict[int, str] = {}
-        timer_callback_to_node_name: Dict[int, str] = {}
         node_handle_to_node_name: Dict[int, str] = {}
         timer_handle_to_node_name: Dict[int, str] = {}
         sub_cb_to_node_name: Dict[int, str] = {}
         timer_cb_to_node_name: Dict[int, str] = {}
         sub_cb_to_topic_name: Dict[int, str] = {}
+        sub_to_topic_name: Dict[int, str] = {}
+        sub_to_node_name: Dict[int, str] = {}
+
+        def ns_and_node_name(ns: str, name: str) -> str:
+            if ns[-1] == '/':
+                return ns + name
+            else:
+                return ns + '/' + name
 
         for handler, row in data.nodes.iterrows():
-            node_handle_to_node_name[handler] = row['namespace'] + row['name']
+            node_handle_to_node_name[handler] = ns_and_node_name(row['namespace'], row['name'])
 
         for handler, row in data.publishers.iterrows():
             pub_handle_to_node_name[handler] = \
@@ -164,20 +170,38 @@ class EventCounter:
 
         for handler, row in data.timer_node_links.iterrows():
             timer_handle_to_node_name[handler] = \
-                node_handle_to_node_name.get(handler, '-')
+                node_handle_to_node_name.get(row['node_handle'], '-')
+
+        for sub, row in data.subscription_objects.iterrows():
+            sub_handle = row['subscription_handle']
+            sub_to_topic_name[sub] = sub_handle_to_topic_name.get(sub_handle, '-')
+            sub_to_node_name[sub] = sub_handle_to_node_name.get(sub_handle, '-')
 
         for handler, row in data.callback_objects.iterrows():
-            if handler in sub_handle_to_topic_name:
-                sub_cb_to_node_name[row['callback_object']] = \
-                    sub_handle_to_node_name.get(handler, '-')
-                sub_cb_to_topic_name[row['callback_object']] = \
-                    sub_handle_to_topic_name.get(handler, '-')
-            elif handler in timer_callback_to_node_name:
+            if handler in sub_to_topic_name:
+                sub_cb_to_node_name[row['callback_object']] = sub_to_node_name.get(handler, '-')
+                sub_cb_to_topic_name[row['callback_object']] = sub_to_topic_name.get(handler, '-')
+            elif handler in timer_handle_to_node_name:
                 timer_cb_to_node_name[row['callback_object']] = \
                     timer_handle_to_node_name.get(handler, '-')
 
+        tilde_pub_to_topic_name: Dict[int, str] = {}
+        tilde_pub_to_node_name: Dict[int, str] = {}
+        for handler, row in data.tilde_publishers.iterrows():
+            tilde_pub_to_node_name[handler] = row['node_name']
+            tilde_pub_to_topic_name[handler] = row['topic_name']
+
+        tilde_sub_to_topic_name: Dict[int, str] = {}
+        tilde_sub_to_node_name: Dict[int, str] = {}
+        for handler, row in data.tilde_subscriptions.iterrows():
+            tilde_sub_to_node_name[handler] = row['node_name']
+            tilde_sub_to_topic_name[handler] = row['topic_name']
+
         count_dict = []
-        group_keys = ['callback_object', 'publisher_handle', 'subscription_handle']
+        group_keys = [
+            'callback_object', 'publisher_handle', 'subscription_handle',
+            'tilde_publisher', 'tilde_subscription'
+            ]
         for trace_point, df in trace_point_and_df.items():
             df = df.reset_index()
 
@@ -198,24 +222,42 @@ class EventCounter:
             if 'subscription_handle' not in df.columns:
                 df['subscription_handle'] = '-'
 
+            if trace_point in ['ros2_caret:tilde_publish', 'ros2_caret:tilde_publisher_init']:
+                df['tilde_publisher'] = df['publisher']
+            else:
+                df['tilde_publisher'] = '-'
+
+            if trace_point in ['ros2_caret:tilde_subscribe', 'ros2_caret:tilde_subscription_init']:
+                df['tilde_subscription'] = df['subscription']
+            else:
+                df['tilde_subscription'] = '-'
+
             for key, group in df.groupby(group_keys):
                 node_name = '-'
                 topic_name = '-'
 
-                if key[0] in timer_callback_to_node_name:
-                    node_name = timer_callback_to_node_name.get(key[0], '-')
+                if key[0] in timer_cb_to_node_name:
+                    node_name = timer_cb_to_node_name.get(key[0], '-')
                 elif key[0] in sub_cb_to_node_name or key[0] \
                         in sub_cb_to_topic_name:
                     node_name = sub_cb_to_node_name.get(key[0], '-')
                     topic_name = sub_cb_to_topic_name.get(key[0], '-')
                 elif key[1] in pub_handle_to_topic_name or \
                         key[1] in pub_handle_to_node_name:
-                    node_name = pub_handle_to_topic_name.get(key[1], '-')
-                    topic_name = pub_handle_to_node_name.get(key[1], '-')
+                    topic_name = pub_handle_to_topic_name.get(key[1], '-')
+                    node_name = pub_handle_to_node_name.get(key[1], '-')
                 elif key[2] in sub_handle_to_node_name or \
                         key[2] in sub_handle_to_topic_name:
-                    node_name = sub_handle_to_topic_name.get(key[2], '-')
-                    topic_name = sub_handle_to_node_name.get(key[2], '-')
+                    topic_name = sub_handle_to_topic_name.get(key[2], '-')
+                    node_name = sub_handle_to_node_name.get(key[2], '-')
+                elif key[3] in tilde_pub_to_node_name or \
+                        key[3] in tilde_pub_to_topic_name:
+                    topic_name = tilde_pub_to_topic_name.get(key[3], '-')
+                    node_name = tilde_pub_to_node_name.get(key[3], '-')
+                elif key[4] in tilde_sub_to_node_name or \
+                        key[4] in tilde_sub_to_topic_name:
+                    topic_name = tilde_sub_to_topic_name.get(key[4], '-')
+                    node_name = tilde_sub_to_node_name.get(key[4], '-')
 
                 count_dict.append(
                     {

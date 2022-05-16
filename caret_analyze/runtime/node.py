@@ -21,6 +21,7 @@ from .callback_group import CallbackGroup
 from .node_path import NodePath
 from .publisher import Publisher
 from .subscription import Subscription
+from .timer import Timer
 from .variable_passing import VariablePassing
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
@@ -34,6 +35,7 @@ class Node(Summarizable):
         node: NodeStructValue,
         publishers: List[Publisher],
         subscription: List[Subscription],
+        timers: List[Timer],
         node_paths: List[NodePath],
         callback_groups: Optional[List[CallbackGroup]],
         variable_passings: Optional[List[VariablePassing]],
@@ -41,6 +43,7 @@ class Node(Summarizable):
         self._val = node
         self._publishers = publishers
         self._subscriptions = subscription
+        self._timers = timers
         self._paths = node_paths
         self._callback_groups = callback_groups
         self._variable_passings = variable_passings
@@ -75,6 +78,10 @@ class Node(Summarizable):
     @property
     def publishers(self) -> List[Publisher]:
         return sorted(self._publishers, key=lambda x: x.topic_name)
+
+    @property
+    def timers(self) -> List[Timer]:
+        return sorted(self._timers, key=lambda x: x.period_ns)
 
     @property
     def publish_topic_names(self) -> List[str]:
@@ -138,6 +145,13 @@ class Node(Summarizable):
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
+    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+        callbacks = []
+        for callback_name in callback_names:
+            callbacks.append(self.get_callback(callback_name))
+
+        return callbacks
+
     def get_subscription(self, topic_name: str) -> Subscription:
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
@@ -149,3 +163,9 @@ class Node(Summarizable):
             raise InvalidArgumentError('Argument type is invalid.')
 
         return Util.find_one(lambda x: x.topic_name == topic_name, self._publishers)
+
+    def get_timer(self, topic_name: str) -> Timer:
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        return Util.find_one(lambda x: x.topic_name == topic_name, self._timers)

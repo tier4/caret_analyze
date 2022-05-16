@@ -19,6 +19,7 @@ from typing import List, Optional
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
+from .timer import Timer
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
@@ -36,12 +37,14 @@ class CallbackBase(PathBase, Summarizable):
         records_provider: RecordsProvider,
         subscription: Optional[Subscription],
         publishers: Optional[List[Publisher]],
+        timer: Optional[Timer]
     ) -> None:
         super().__init__()
         self.__val = info
         self._provider = records_provider
         self._sub = subscription
         self._pubs = publishers
+        self._timer = timer
 
     @property
     def node_name(self) -> str:
@@ -70,6 +73,10 @@ class CallbackBase(PathBase, Summarizable):
         return sorted(self._pubs, key=lambda x: x.topic_name)
 
     @property
+    def timer(self) -> Optional[Timer]:
+        return self._timer
+
+    @property
     def publish_topic_names(self) -> Optional[List[str]]:
         if self.__val.publish_topic_names is None:
             return None
@@ -95,8 +102,9 @@ class TimerCallback(CallbackBase):
         callback: TimerCallbackStructValue,
         records_provider: RecordsProvider,
         publishers: Optional[List[Publisher]],
+        timer: Timer
     ) -> None:
-        super().__init__(callback, records_provider, None, publishers)
+        super().__init__(callback, records_provider, None, publishers, timer)
         self.__val: TimerCallbackStructValue = callback
 
     @property
@@ -112,4 +120,4 @@ class SubscriptionCallback(CallbackBase):
         subscription: Subscription,
         publishers: Optional[List[Publisher]] = None,
     ) -> None:
-        super().__init__(callback_info, records_provider, subscription, publishers)
+        super().__init__(callback_info, records_provider, subscription, publishers, None)

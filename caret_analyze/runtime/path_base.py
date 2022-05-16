@@ -218,9 +218,7 @@ class PathBase(metaclass=ABCMeta):
 
         _, latency_ns = self.to_timeseries(
             True, treat_drop_as_delay, lstrip_s, rstrip_s, shaper=shaper)
-
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
         bin_num = math.ceil((range_max - range_min) / binsize_ns)
-
         return np.histogram(latency_ns, bins=bin_num, range=(range_min, range_max))
