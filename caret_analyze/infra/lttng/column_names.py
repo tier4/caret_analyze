@@ -24,9 +24,7 @@ class ColumnName(NamedTuple):
     DDS_WRITE_TIMESTAMP: str = 'dds_write_timestamp'
     ON_DATA_AVAILABLE_TIMESTAMP: str = 'on_data_available_timestamp'
     RCLCPP_INTRA_PUBLISH_TIMESTAMP: str = 'rclcpp_intra_publish_timestamp'
-    # add by peng
-    TIMER_START_TIMESTAMP: str = 'time_start_timestamp'
-    TIMER_END_TIMESTAMP: str = 'time_end_timestamp'
+    TIMER_EVENT_TIMESTAMP: str = 'timer_event_timestamp'
 
     MESSAGE: str = 'message'
     DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP: str = \
