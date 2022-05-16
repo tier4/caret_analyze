@@ -9,7 +9,10 @@
 
   <depend>python3-babeltrace</depend>
   <depend>python3-lttng</depend>
-  <depend>python3-bt2</depend>
+  <!-- <depend>python3-bt2</depend> -->
+  <depend>lttng-tools</depend>
+  <depend>lttng-modules-dkms</depend>
+  <depend>liblttng-ust-dev</depend>
 
   <exec_depend>tracetools_analysis</exec_depend>
   <test_depend>ament_copyright</test_depend>
