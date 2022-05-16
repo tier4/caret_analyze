@@ -15,16 +15,15 @@
 from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Union
 
-from bokeh.palettes import d3
-from bokeh.plotting import figure, show
+from bokeh.models import HoverTool
+from bokeh.plotting import ColumnDataSource, figure, show
 
 import pandas as pd
 
-from .callback_sched import get_range
-from .util import apply_x_axis_offset
+from .callback_sched import ColorSelector, get_range
+from .util import apply_x_axis_offset, get_callback_param_desc
 from ...exceptions import UnsupportedTypeError
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
-
 
 CallbacksType = Union[Application, Executor,
                       Node, CallbackGroup, List[CallbackBase]]
@@ -84,7 +83,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         converter = self._callbacks[0]._provider.get_sim_time_converter()
         for c in range(len(latency_table.columns)):
             for i in range(len(latency_table)):
-                latency_table[c][i] = converter.convert(latency_table[c][i])
+                latency_table.iat[i, c] = converter.convert(latency_table.iat[i, c])
 
     def _get_fig_args(self, x_axis_label: str, y_axis_label: str, ywheel_zoom: bool) -> dict:
         fig_args = {'height': 300,
@@ -101,54 +100,152 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         return fig_args
 
     def _show_with_index(self, ywheel_zoom: bool):
+        Hover = HoverTool(
+                tooltips="""
+                <div style="width:400px; word-wrap: break-word;">
+                <br>
+                node_name = @node_name <br>
+                callback_type = @callback_type <br>
+                @callback_param <br>
+                symbol = @symbol
+                </div>
+                """,
+                point_policy='follow_mouse'
+                )
         source_df = self._to_dataframe_core('index')
         l1_columns = source_df.columns.get_level_values(1).to_list()
-        colors = d3['Category20'][20]
         fig_args = self._get_fig_args('index', l1_columns[1], ywheel_zoom)
+        frame_min, frame_max = get_range(self._callbacks)
         p = figure(**fig_args)
-
-        for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
-            single_cb_df = source_df.loc[:, (callback_name,)].dropna()
-            p.line(x=single_cb_df.index,
-                   y=single_cb_df.loc[:, l1_columns[1]].to_list(),
-                   line_color=colors[i],
-                   legend_label=callback_name)
-
+        p.add_tools(Hover)
+        coloring_rule = 'callback'
+        color_selector = ColorSelector.create_instance(coloring_rule)
+        for i, callback in enumerate(self._callbacks):
+            color = color_selector.get_color(
+                callback.node_name,
+                None,
+                callback.callback_name)
+            line_source = get_callback_lines(callback, source_df, l1_columns, frame_min, 'index')
+            p.line('x',
+                   'y',
+                   source=line_source,
+                   legend_label=f'callback{i}',
+                   color=color)
         p.add_layout(p.legend[0], 'right')
         show(p)
 
     def _show_with_sim_time(self, ywheel_zoom: bool):
+        Hover = HoverTool(
+                tooltips="""
+                <div style="width:400px; word-wrap: break-word;">
+                <br>
+                node_name = @node_name <br>
+                callback_type = @callback_type <br>
+                @callback_param <br>
+                symbol = @symbol
+                </div>
+                """,
+                point_policy='follow_mouse'
+                )
         source_df = self._to_dataframe_core('sim_time')
         l1_columns = source_df.columns.get_level_values(1).to_list()
-        colors = d3['Category20'][20]
+        frame_min, frame_max = get_range(self._callbacks)
         fig_args = self._get_fig_args('simulation time [s]', l1_columns[1], ywheel_zoom)
         p = figure(**fig_args)
-
-        for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
-            p.line(l1_columns[0],
-                   l1_columns[1],
-                   source=source_df.loc[:, (callback_name,)].dropna(),
-                   line_color=colors[i],
-                   legend_label=callback_name)
-
+        p.add_tools(Hover)
+        coloring_rule = 'callback'
+        color_selector = ColorSelector.create_instance(coloring_rule)
+        for i, callback in enumerate(self._callbacks):
+            color = color_selector.get_color(
+                callback.node_name,
+                None,
+                callback.callback_name)
+            line_source = get_callback_lines(callback,
+                                             source_df,
+                                             l1_columns,
+                                             frame_min,
+                                             'sim_time')
+            p.line('x',
+                   'y',
+                   source=line_source,
+                   legend_label=f'callback{i}',
+                   color=color)
         p.add_layout(p.legend[0], 'right')
         show(p)
 
     def _show_with_system_time(self, ywheel_zoom: bool):
+        Hover = HoverTool(
+                tooltips="""
+                <div style="width:400px; word-wrap: break-word;">
+                <br>
+                node_name = @node_name <br>
+                callback_type = @callback_type <br>
+                @callback_param <br>
+                symbol = @symbol
+                </div>
+                """,
+                point_policy='follow_mouse'
+                )
         source_df = self._to_dataframe_core('system_time')
         l1_columns = source_df.columns.get_level_values(1).to_list()
-        colors = d3['Category20'][20]
         fig_args = self._get_fig_args('system time [s]', l1_columns[1], ywheel_zoom)
         p = figure(**fig_args)
-
+        p.add_tools(Hover)
         frame_min, frame_max = get_range(self._callbacks)
         apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
-        for i, callback_name in enumerate(source_df.columns.get_level_values(0).to_list()):
-            single_cb_df = source_df.loc[:, (callback_name,)].dropna()
-            p.line(x=((single_cb_df.loc[:, l1_columns[0]]-frame_min)*10**(-9)).to_list(),
-                   y=single_cb_df.loc[:, l1_columns[1]].to_list(),
-                   line_color=colors[i],
-                   legend_label=callback_name)
-
+        coloring_rule = 'callback'
+        color_selector = ColorSelector.create_instance(coloring_rule)
+        for i, callback in enumerate(self._callbacks):
+            color = color_selector.get_color(
+                callback.node_name,
+                None,
+                callback.callback_name)
+            line_source = get_callback_lines(callback,
+                                             source_df,
+                                             l1_columns,
+                                             frame_min,
+                                             'system_time')
+            p.line('x',
+                   'y',
+                   source=line_source,
+                   legend_label=f'callback{i}',
+                   color=color)
         p.add_layout(p.legend[0], 'right')
         show(p)
+
+
+def get_callback_lines(callback: CallbackBase,
+                       source_df,
+                       l1_columns,
+                       frame_min,
+                       type_name) -> ColumnDataSource:
+    single_cb_df = source_df.loc[:, (callback.callback_name,)].dropna()
+    if type_name == 'system_time':
+        x_item = ((single_cb_df.loc[:, l1_columns[0]]-frame_min)*10**(-9)).to_list()
+        y_item = single_cb_df.loc[:, l1_columns[1]].to_list()
+    elif type_name == 'index':
+        x_item = single_cb_df.index
+        y_item = single_cb_df.loc[:, l1_columns[1]].to_list()
+    elif type_name == 'sim_time':
+        x_item = single_cb_df.loc[:, l1_columns[0]].to_list()
+        y_item = single_cb_df.loc[:, l1_columns[1]].to_list()
+    line_source = ColumnDataSource(data={
+                                       'x': [],
+                                       'y': [],
+                                       'node_name': [],
+                                       'callback_type': [],
+                                       'callback_param': [],
+                                       'symbol': []
+                                            })
+    callback_param = get_callback_param_desc(callback)
+    for x, y in zip(x_item, y_item):
+        new_data = {
+                        'x': [x],
+                        'y': [y],
+                        'node_name': [callback.node_name],
+                        'symbol': [callback.symbol],
+                        'callback_param': [callback_param],
+                        'callback_type': [f'{callback.callback_type}']
+                        }
+        line_source.stream(new_data)
+    return line_source
