@@ -30,8 +30,7 @@ class Architecture(Summarizable):
         self,
         file_type: str,
         file_path: str,
-        file_type_sub: Optional[str] = None,
-        file_path_sub: Optional[str] = None,
+        sub_yaml_file_path: Optional[str] = None,
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
@@ -40,9 +39,9 @@ class Architecture(Summarizable):
         # ignore_topics: List[str] = IGNORE_TOPICS
         ignore_topics: List[str] = []
 
-        if file_type_sub is not None and file_path_sub is not None:
+        if sub_yaml_file_path is not None:
             reader = ArchitectureReaderFactory.create_instance(
-                file_type, file_path, file_type_sub, file_path_sub)
+                file_type, file_path, 'yaml', sub_yaml_file_path)
         else:
             reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
 

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from tkinter.tix import COLUMN
 
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.value_objects.publisher import PublisherStructValue
@@ -20,58 +21,15 @@ class PublishRecordsContainer:
         data: Ros2DataModel,
     ) -> None:
         self._intra_rclcpp_publish = GroupedRecords(
-            data.rclcpp_intra_publish,
+            data.intra_publish,
             [
-                COLUMN_NAME.PUBLISHER_HANDLE
+                COLUMN_NAME.PUBLISHER_HANDLE,
             ]
         )
-
-        inter_publish = data.rclcpp_publish.clone()
-        rcl_publish_records = data.rcl_publish.clone()
-        inter_publish = merge_sequencial(
-            left_records=inter_publish,
-            right_records=rcl_publish_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            join_left_key=COLUMN_NAME.TID,
-            join_right_key=COLUMN_NAME.TID,
-            how='left',
-            progress_label='binding: rclcpp_publish and rcl_publish',
-        )
-
-        dds_write_records = data.dds_write.clone()
-        inter_publish = merge_sequencial(
-            left_records=inter_publish,
-            right_records=dds_write_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            join_left_key=COLUMN_NAME.TID,
-            join_right_key=COLUMN_NAME.TID,
-            how='left',
-            progress_label='binding: rclcppp_publish and dds_write',
-        )
-
-        dds_stamp = data.dds_bind_addr_to_stamp.clone()
-        inter_publish = merge_sequencial(
-            left_records=inter_publish,
-            right_records=dds_stamp,
-            left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-            join_left_key=COLUMN_NAME.TID,
-            join_right_key=COLUMN_NAME.TID,
-            how='left',
-            progress_label='binding: rclcppp_publish and source_timestamp',
-        )
-        inter_publish.columns.drop([
-            COLUMN_NAME.MESSAGE,
-            COLUMN_NAME.ADDR,
-            COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
-        ], base_name_match=True)
-
-        self._inter_rclcpp_publish = GroupedRecords(
-            inter_publish,
+        self._inter_publish = GroupedRecords(
+            data.inter_publish,
             [
-                COLUMN_NAME.PUBLISHER_HANDLE
+                COLUMN_NAME.PUBLISHER_HANDLE,
             ]
         )
 
@@ -102,11 +60,6 @@ class PublishRecordsContainer:
         ]
 
         records = self._intra_rclcpp_publish.get(publisher_lttng.publisher_handle).clone()
-        records.columns.drop(
-            [
-                COLUMN_NAME.MESSAGE,
-            ], base_name_match=True
-        )
         records.columns.reindex(columns)
         ordered_columns = records.columns.gets([
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
@@ -141,7 +94,7 @@ class PublishRecordsContainer:
             COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
 
-        records = self._inter_rclcpp_publish.get(publisher_lttng.publisher_handle).clone()
+        records = self._inter_publish.get(publisher_lttng.publisher_handle)
 
         if COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP in records.column_names:
             records.columns.drop([

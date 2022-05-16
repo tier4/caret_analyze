@@ -3,6 +3,7 @@ from typing import Optional
 from functools import lru_cache
 
 from caret_analyze.record.column import ColumnAttribute
+from caret_analyze.record.interface import RecordInterface
 
 from .publish_records import PublishRecordsContainer
 from .callback_records import CallbackRecordsContainer
@@ -422,49 +423,31 @@ class TransformLookupContainer:
         self._bridge = bridge
         self._data = data
         self._info = info
-        self._lookup_start = GroupedRecords(
-            data.tf_lookup_transform_start,
+        self._lookup = GroupedRecords(
+            data.tf_lookup_transform,
             ['tf_buffer_core', 'target_frame_id_compact', 'source_frame_id_compact']
-        )
-        self._lookup_end = GroupedRecords(
-            data.tf_lookup_transform_end,
-            ['tf_buffer_core']
         )
 
     def get_records(
         self,
         buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
-        columns = ['pid', 'tid', 'tf_buffer_core', 'lookup_transform_start_timestamp',
-                   'tf_lookup_target_time', 'lookup_transform_end_timestamp']
+        columns = [
+            'pid', 'tid', 'tf_buffer_core',
+            'lookup_transform_start_timestamp', 'lookup_transform_end_timestamp',
+        ]
 
-        transform = buffer.lookup_transform
+        lookup_transform = buffer.lookup_transform
         buffer_lttng = self._bridge.get_tf_buffer(buffer)
 
         to_frame_id = self._info.get_tf_buffer_frame_compact_map(
             buffer_lttng.buffer_handler)
         to_compact_frame_id = {v: k for k, v in to_frame_id.items()}
-        source_frame_id_compact = to_compact_frame_id[transform.source_frame_id]
-        target_frame_id_compact = to_compact_frame_id[transform.target_frame_id]
+        source_frame_id_compact = to_compact_frame_id[lookup_transform.source_frame_id]
+        target_frame_id_compact = to_compact_frame_id[lookup_transform.target_frame_id]
 
-        lookup_start = self._lookup_start.get(
-            buffer_lttng.buffer_handler, target_frame_id_compact, source_frame_id_compact
-        )
-        lookup_end = self._lookup_end.get(
-            buffer_lttng.buffer_handler
-        )
-
-        join_key = [
-            'pid', 'tid', 'tf_buffer_core'
-        ]
-        records = merge_sequencial(
-            left_records=lookup_start,
-            right_records=lookup_end,
-            join_left_key=join_key,
-            join_right_key=join_key,
-            left_stamp_key='lookup_transform_start_timestamp',
-            right_stamp_key='lookup_transform_end_timestamp',
-            how='left'
+        records = self._lookup.get(
+            buffer_lttng.buffer_handler, target_frame_id_compact, source_frame_id_compact,
         )
 
         records.columns.drop(
@@ -473,8 +456,7 @@ class TransformLookupContainer:
 
         prefix_columns = records.columns.gets(
             [
-                'lookup_transform_start_timestamp', 'tf_lookup_target_time',
-                'lookup_transform_end_timestamp'
+                'lookup_transform_start_timestamp', 'lookup_transform_end_timestamp'
             ], base_name_match=True
         )
         for column in prefix_columns:
@@ -518,7 +500,6 @@ class TransformCommRecordsContainer:
             'pid', 'tid', 'rclcpp_publish_timestamp', 'rcl_publish_timestamp',
             'dds_write_timestamp', 'set_transform_timestamp',
             'lookup_transform_start_timestamp',
-            'tf_lookup_target_time',
             'lookup_transform_end_timestamp'
             ]
 

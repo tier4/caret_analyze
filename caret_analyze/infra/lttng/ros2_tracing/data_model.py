@@ -15,6 +15,8 @@
 
 """Module for ROS 2 data model."""
 
+from typing import Optional
+
 from caret_analyze.record.column import ColumnAttribute, ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.infra.lttng.data_frame import TracePointData
@@ -292,64 +294,69 @@ class Ros2DataModel(DataModel):
             'buffer',
             'capacity',
         ])
+        self._raw_offset: Optional[int] = None
 
         # not supported
         # self.lifecycle_transitions = DataFrame([
         # ])
 
         # Events (multiple instances, may not have a meaningful index)
-        self.callback_start = RecordsFactory.create_instance(
+        self.intra_callback_duration = RecordsFactory.create_instance(
             None,
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
-                ColumnValue('callback_start_timestamp', [
-                    ColumnAttribute.SYSTEM_TIME,
-                    ColumnAttribute.TAKE_MSG,
-                    ]),
                 ColumnValue('callback_object'),
-                ColumnValue('is_intra_process')
-            ]
-        )
-        self.callback_end = RecordsFactory.create_instance(
-            None,
-            [
-                ColumnValue('pid'),
-                ColumnValue('tid'),
+                ColumnValue('callback_start_timestamp', [ColumnAttribute.SYSTEM_TIME]),
                 ColumnValue('callback_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                ColumnValue('callback_object')
+                ColumnValue('message_timestamp', []),
             ]
         )
-        self.dds_write = RecordsFactory.create_instance(
+        self.inter_callback_duration = RecordsFactory.create_instance(
             None,
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
+                ColumnValue('callback_object'),
+                ColumnValue('callback_start_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('callback_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('source_timestamp', []),
+                ColumnValue('message_timestamp', []),
+            ]
+        )
+        self.inter_publish = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('rclcpp_inter_publish_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.SEND_MSG,
+                ]),
+                ColumnValue('rcl_publish_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.OPTIONAL
+                ]),
                 ColumnValue('dds_write_timestamp', [
                     ColumnAttribute.SYSTEM_TIME,
                     ColumnAttribute.OPTIONAL,
                 ]),
-                ColumnValue('message')
+                ColumnValue('source_timestamp'),
+                ColumnValue('message_timestamp')
             ]
         )
-        self.dds_bind_addr_to_stamp = RecordsFactory.create_instance(
+        self.intra_publish = RecordsFactory.create_instance(
             None,
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
-                ColumnValue('dds_bind_addr_to_stamp_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                ColumnValue('addr'),
-                ColumnValue('source_timestamp')
-            ]
-        )
-        self.dds_bind_addr_to_addr = RecordsFactory.create_instance(
-            None,
-            [
-                ColumnValue('pid'),
-                ColumnValue('tid'),
-                ColumnValue('dds_bind_addr_to_addr_timestamp'),
-                ColumnValue('addr_from'),
-                ColumnValue('addr_to')
+                ColumnValue('publisher_handle'),
+                ColumnValue('rclcpp_intra_publish_timestamp', [
+                    ColumnAttribute.SYSTEM_TIME,
+                    ColumnAttribute.SEND_MSG,
+                ]),
+                ColumnValue('message_timestamp', []),
             ]
         )
         self.on_data_available = RecordsFactory.create_instance(
@@ -359,47 +366,6 @@ class Ros2DataModel(DataModel):
                 ColumnValue('tid'),
                 ColumnValue('on_data_available_timestamp', [ColumnAttribute.SYSTEM_TIME]),
                 ColumnValue('source_timestamp')
-            ]
-        )
-        self.rclcpp_intra_publish = RecordsFactory.create_instance(
-            None,
-            [
-                ColumnValue('pid'),
-                ColumnValue('tid'),
-                ColumnValue('rclcpp_intra_publish_timestamp', [
-                    ColumnAttribute.SYSTEM_TIME,
-                    ColumnAttribute.SEND_MSG,
-                ]),
-                ColumnValue('publisher_handle'),
-                ColumnValue('message'),
-                ColumnValue('message_timestamp')
-            ]
-        )
-        self.rclcpp_publish = RecordsFactory.create_instance(
-            None,
-            [
-                ColumnValue('pid'),
-                ColumnValue('tid'),
-                ColumnValue('rclcpp_inter_publish_timestamp', [
-                    ColumnAttribute.SYSTEM_TIME,
-                    ColumnAttribute.SEND_MSG,
-                    ]),
-                ColumnValue('publisher_handle'),
-                ColumnValue('message'),
-                ColumnValue('message_timestamp')
-            ]
-        )
-        self.rcl_publish = RecordsFactory.create_instance(
-            None,
-            [
-                ColumnValue('pid'),
-                ColumnValue('tid'),
-                ColumnValue('rcl_publish_timestamp', [
-                    ColumnAttribute.SYSTEM_TIME,
-                    ColumnAttribute.OPTIONAL
-                ]),
-                ColumnValue('publisher_handle'),
-                ColumnValue('message')
             ]
         )
         self.dispatch_subscription_callback = RecordsFactory.create_instance(
@@ -426,16 +392,6 @@ class Ros2DataModel(DataModel):
                     ColumnValue('message_timestamp')
                 ]
             )
-        self.message_construct = RecordsFactory.create_instance(
-            None,
-            [
-                ColumnValue('pid'),
-                ColumnValue('tid'),
-                ColumnValue('message_construct_timestamp'),
-                ColumnValue('original_message'),
-                ColumnValue('constructed_message')
-            ]
-        )
 
         self.tilde_subscribe = RecordsFactory.create_instance(
             None,
@@ -488,25 +444,16 @@ class Ros2DataModel(DataModel):
                 ColumnValue('child_frame_id_compact'),
             ]
         )
-        self.tf_lookup_transform_start = RecordsFactory.create_instance(
+        self.tf_lookup_transform = RecordsFactory.create_instance(
             None,
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
-                ColumnValue('lookup_transform_start_timestamp', [ColumnAttribute.SYSTEM_TIME]),
                 ColumnValue('tf_buffer_core'),
-                ColumnValue('tf_lookup_target_time'),
+                ColumnValue('lookup_transform_start_timestamp', [ColumnAttribute.SYSTEM_TIME]),
+                ColumnValue('lookup_transform_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
                 ColumnValue('target_frame_id_compact'),
                 ColumnValue('source_frame_id_compact'),
-            ]
-        )
-        self.tf_lookup_transform_end = RecordsFactory.create_instance(
-            None,
-            [
-                ColumnValue('pid'),
-                ColumnValue('tid'),
-                ColumnValue('lookup_transform_end_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                ColumnValue('tf_buffer_core'),
             ]
         )
         self.tf_buffer_find_closest = RecordsFactory.create_instance(
@@ -565,6 +512,10 @@ class Ros2DataModel(DataModel):
                 ColumnValue('buffer'),
             ]
         )
+
+    def _to_system_time(self, raw_timestamp: int) -> int:
+        assert self._raw_offset is not None
+        return raw_timestamp + self._raw_offset
 
     def add_rcl_init(self, pid, tid, context_handle, timestamp, version) -> None:
         record = {
@@ -730,41 +681,109 @@ class Ros2DataModel(DataModel):
     #     }
     #     self.rclcpp_callback_register.append(record)
 
-    def add_callback_start(
+    def add_intra_callback_duration(
         self,
         pid: int,
         tid: int,
-        timestamp: int,
+        callback_end_timestamp: int,
         callback: int,
-        is_intra_process: bool,
+        callback_start_timestamp_raw: int,
+        callback_end_timestamp_raw: int,
+        message_timestamp: int,
     ) -> None:
+        self._raw_offset = callback_end_timestamp - callback_end_timestamp_raw
+
         record = RecordFactory.create_instance(
             {
                 'pid': pid,
                 'tid': tid,
-                'callback_start_timestamp': timestamp,
                 'callback_object': callback,
-                'is_intra_process': is_intra_process,
+                'callback_start_timestamp': self._to_system_time(callback_start_timestamp_raw),
+                'callback_end_timestamp': callback_end_timestamp,
+                'message_timestamp': message_timestamp
             }
         )
-        self.callback_start.append(record)
+        self.intra_callback_duration.append(record)
 
-    def add_callback_end(
+    def add_inter_callback_duration(
         self,
         pid: int,
         tid: int,
-        timestamp: int,
-        callback: int
+        callback_end_timestamp: int,
+        callback: int,
+        callback_start_timestamp_raw: int,
+        callback_end_timestamp_raw: int,
+        source_timestamp: int,
+        message_timestamp: int,
     ) -> None:
+        self._raw_offset = callback_end_timestamp - callback_end_timestamp_raw
+
         record = RecordFactory.create_instance(
             {
-                'callback_end_timestamp': timestamp,
                 'pid': pid,
                 'tid': tid,
-                'callback_object': callback
+                'callback_object': callback,
+                'callback_start_timestamp': self._to_system_time(callback_start_timestamp_raw),
+                'callback_end_timestamp': callback_end_timestamp,
+                'source_timestamp': source_timestamp,
+                'message_timestamp': message_timestamp
             }
         )
-        self.callback_end.append(record)
+
+        self.inter_callback_duration.append(record)
+
+    def add_inter_publish(
+        self,
+        pid: int,
+        tid: int,
+        publisher_handle: int,
+        rclcpp_publish_timestamp_raw: int,
+        rcl_publish_timestamp_raw: int,
+        dds_write_timestamp_raw: int,
+        source_timestamp: int,
+        message_timestamp: int,
+    ) -> None:
+        if self._raw_offset is None:
+            return
+
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'publisher_handle': publisher_handle,
+                'rclcpp_inter_publish_timestamp':
+                    self._to_system_time(rclcpp_publish_timestamp_raw),
+                'rcl_publish_timestamp': self._to_system_time(rcl_publish_timestamp_raw),
+                'dds_write_timestamp': self._to_system_time(dds_write_timestamp_raw),
+                'source_timestamp': source_timestamp,
+                'message_timestamp': message_timestamp,
+            }
+        )
+
+        self.inter_publish.append(record)
+
+    def add_rclcpp_intra_publish(
+        self,
+        pid: int,
+        tid: int,
+        publisher_handle: int,
+        rclcpp_intra_publish_timestamp: int,
+        message_timestamp: int
+    ) -> None:
+        if self._raw_offset is None:
+            return
+
+        record = RecordFactory.create_instance(
+            {
+                'pid': pid,
+                'tid': tid,
+                'publisher_handle': publisher_handle,
+                'rclcpp_intra_publish_timestamp': rclcpp_intra_publish_timestamp,
+                'message_timestamp': message_timestamp
+            }
+        )
+
+        self.intra_publish.append(record)
 
     def add_rcl_lifecycle_state_machine_init(self, pid, tid, handle, node_handle) -> None:
         record = {
@@ -824,27 +843,6 @@ class Ros2DataModel(DataModel):
             }
         )
         self.message_construct.append(record)
-
-    def add_rclcpp_intra_publish(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        publisher_handle: int,
-        message: int,
-        message_timestamp: int,
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'rclcpp_intra_publish_timestamp': timestamp,
-                'publisher_handle': publisher_handle,
-                'message': message,
-                'message_timestamp': message_timestamp,
-            }
-        )
-        self.rclcpp_intra_publish.append(record)
 
     def add_dispatch_subscription_callback(
         self,
@@ -1385,46 +1383,33 @@ class Ros2DataModel(DataModel):
             }
         )
 
-    def add_tf_lookup_transform_start(
+    def add_tf_lookup_transform(
         self,
         pid: int,
         tid: int,
-        timestamp: int,
         buffer_core: int,
-        target_time: int,
+        lookup_transform_timestamp_start_raw: int,
+        lookup_transform_timestamp_end: int,
         target_frame_id_compact: int,
         source_frame_id_compact: int,
     ) -> None:
+        if self._raw_offset is None:
+            return
+
         record = RecordFactory.create_instance(
             {
                 'pid': pid,
                 'tid': tid,
-                'lookup_transform_start_timestamp': timestamp,
                 'tf_buffer_core': buffer_core,
-                'tf_lookup_target_time': target_time,
+                'lookup_transform_start_timestamp':
+                    self._to_system_time(lookup_transform_timestamp_start_raw),
+                'lookup_transform_end_timestamp': lookup_transform_timestamp_end,
                 'target_frame_id_compact': target_frame_id_compact,
                 'source_frame_id_compact': source_frame_id_compact,
             }
         )
 
-        self.tf_lookup_transform_start.append(record)
-
-    def add_tf_lookup_transform_end(
-        self,
-        pid: int,
-        tid: int,
-        timestamp: int,
-        buffer_core: int,
-    ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'pid': pid,
-                'tid': tid,
-                'lookup_transform_end_timestamp': timestamp,
-                'tf_buffer_core': buffer_core,
-            }
-        )
-        self.tf_lookup_transform_end.append(record)
+        self.tf_lookup_transform.append(record)
 
     # def add_callback_object(self, pid, tid, reference, timestamp, callback_object) -> None:
     #     record = {

@@ -61,23 +61,9 @@ class Ros2Handler(EventHandler):
             'ros2:rcl_lifecycle_state_machine_init'
         ] = self._handle_rcl_lifecycle_state_machine_init
 
-        handler_map['ros2:callback_start'] = self._handle_callback_start
-        handler_map['ros2:callback_end'] = self._handle_callback_end
         handler_map['ros2:rcl_lifecycle_transition'] = self._handle_rcl_lifecycle_transition
-        handler_map['ros2:rclcpp_publish'] = self._handle_rclcpp_publish
-        handler_map['ros2:message_construct'] = self._handle_message_construct
         handler_map['ros2:rclcpp_intra_publish'] = self._handle_rclcpp_intra_publish
-        handler_map[
-            'ros2:dispatch_subscription_callback'
-        ] = self._handle_dispatch_subscription_callback
-        handler_map[
-            'ros2:dispatch_intra_process_subscription_callback'
-        ] = self._handle_dispatch_intra_process_subscription_callback
         handler_map['ros2_caret:on_data_available'] = self._handle_on_data_available
-        handler_map['ros2:rcl_publish'] = self._handle_rcl_publish
-        handler_map['ros2_caret:dds_write'] = self._handle_dds_write
-        handler_map['ros2_caret:dds_bind_addr_to_stamp'] = self._handle_dds_bind_addr_to_stamp
-        handler_map['ros2_caret:dds_bind_addr_to_addr'] = self._handle_dds_bind_addr_to_addr
 
         handler_map['ros2_caret:rmw_implementation'] = self._handle_rmw_implementation
         handler_map['ros2_caret:add_callback_group'] = self._handle_add_callback_group
@@ -124,8 +110,8 @@ class Ros2Handler(EventHandler):
             self._handle_init_tf_broadcaster_frame_id_compact
         handler_map['ros2_caret:init_tf_buffer_frame_id_compact'] = \
             self._handle_init_tf_buffer_frame_id_compact
-        handler_map['ros2_caret:tf_lookup_transform_start'] = \
-            self._handle_tf_lookup_transform_start
+        # handler_map['ros2_caret:tf_lookup_transform_start'] = \
+        #     self._handle_tf_lookup_transform_start
         handler_map['ros2_caret:tf_lookup_transform_end'] = \
             self._handle_tf_lookup_transform_end
         handler_map['ros2_caret:tf_buffer_find_closest'] = \
@@ -152,13 +138,22 @@ class Ros2Handler(EventHandler):
             self._handle_ring_buffer_dequeue
         handler_map['ros2:ring_buffer_clear'] = \
             self._handle_ring_buffer_clear
+        handler_map['ros2_caret:intra_callback_duration'] = \
+            self._handle_intra_callback_duration
+        handler_map['ros2_caret:inter_callback_duration'] = \
+            self._handle_inter_callback_duration
+        handler_map['ros2_caret:inter_publish'] = \
+            self._handle_inter_publish
+        handler_map['ros2_caret:rclcpp_intra_publish'] = \
+            self._handle_rclcpp_intra_publish
+        handler_map['ros2_caret:tf_lookup_transform'] = \
+            self._handle_tf_lookup_transform
 
         super().__init__(
             handler_map=handler_map,
             data_model=Ros2DataModel(),
             **kwargs,
         )
-
 
     @staticmethod
     def get_trace_points() -> List[str]:
@@ -510,6 +505,21 @@ class Ros2Handler(EventHandler):
             metadata.pid,
             metadata.tid,
             timestamp, publisher_handle, message, message_timestamp)
+
+    def _handle_tf_lookup_transform(
+        self,
+        event: Dict,
+        metadata: EventMetadata,
+    ) -> None:
+        self.data.add_tf_lookup_transform(
+            metadata.pid,
+            metadata.tid,
+            get_field(event, 'tf_buffer_core'),
+            get_field(event, 'lookup_transform_start_raw'),
+            metadata.timestamp,
+            get_field(event, 'target_frame_id_compact'),
+            get_field(event, 'source_frame_id_compact'),
+        )
 
     def _handle_dispatch_subscription_callback(
         self,
@@ -1157,4 +1167,64 @@ class Ros2Handler(EventHandler):
             metadata.tid,
             metadata.timestamp,
             get_field(event, 'buffer'),
+        )
+
+    def _handle_intra_callback_duration(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_intra_callback_duration(
+            metadata.pid,
+            metadata.tid,
+            metadata.timestamp,
+            get_field(event, 'callback'),
+            get_field(event, 'callback_start_raw'),
+            get_field(event, 'callback_end_raw'),
+            get_field(event, 'message_stamp'),
+        )
+
+    def _handle_inter_callback_duration(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_inter_callback_duration(
+            metadata.pid,
+            metadata.tid,
+            metadata.timestamp,
+            get_field(event, 'callback'),
+            get_field(event, 'callback_start_raw'),
+            get_field(event, 'callback_end_raw'),
+            get_field(event, 'source_timestamp'),
+            get_field(event, 'message_stamp'),
+        )
+
+    def _handle_inter_publish(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_inter_publish(
+            metadata.pid,
+            metadata.tid,
+            get_field(event, 'publisher_handle'),
+            get_field(event, 'rclcpp_publish_raw'),
+            get_field(event, 'rcl_publish_raw'),
+            get_field(event, 'dds_write_raw'),
+            get_field(event, 'source_stamp'),
+            get_field(event, 'message_stamp'),
+        )
+
+    def _handle_rclcpp_intra_publish(
+        self,
+        event: Dict,
+        metadata: EventMetadata
+    ) -> None:
+        self.data.add_rclcpp_intra_publish(
+            metadata.pid,
+            metadata.tid,
+            get_field(event, 'publisher_handle'),
+            metadata.timestamp,
+            get_field(event, 'message_stamp'),
         )
