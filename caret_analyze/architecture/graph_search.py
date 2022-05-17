@@ -132,12 +132,17 @@ class GraphCore:
                     return edge
             return None
 
+        u_start = u
+
         edges_cache.append(deepcopy(self._graph[u]))
         while True:
             if u == d and forward and len(path) > 0:
                 paths.append(deepcopy(path))
 
-            edge = get_next_edge(u, edges_cache)
+            if u != d or u == u_start:
+                edge = get_next_edge(u, edges_cache)
+            else:
+                edge = None
 
             if edge is not None:
                 i = edge.i_to
@@ -253,7 +258,7 @@ class Graph:
 
         self._graph = GraphCore()
 
-    def _add_node(self, node: GraphNode) -> None:
+    def add_node(self, node: GraphNode) -> None:
         index = len(self._nodes)
         self._idx_to_node[index] = node
         self._node_to_idx[node] = index
@@ -261,10 +266,10 @@ class Graph:
 
     def add_edge(self, node_from: GraphNode, node_to: GraphNode, label: Optional[str] = None):
         if node_from not in self._nodes:
-            self._add_node(node_from)
+            self.add_node(node_from)
 
         if node_to not in self._nodes:
-            self._add_node(node_to)
+            self.add_node(node_to)
 
         self._graph.add_edge(
             self._node_to_idx[node_from],
@@ -272,36 +277,43 @@ class Graph:
             label
         )
 
+    def _validate(self, *nodes: GraphNode) -> None:
+        for node in nodes:
+            if node not in self._nodes:
+                raise ItemNotFoundError(
+                    f'Received an unregistered graph node. Return empty paths. {node}')
+
     def search_paths(
         self,
-        start: GraphNode,
-        goal: GraphNode,
+        *nodes: GraphNode,
         max_depth: Optional[int] = None
     ) -> List[GraphPath]:
-        if start not in self._nodes:
-            logger.info(f'Received an unregistered graph node. Return empty paths. {start}')
-            return []
+        if len(nodes) < 2:
+            raise InvalidArgumentError('nodes must be at least 2')
 
-        if goal not in self._nodes:
-            logger.info(f'Received an unregistered graph node. Return empty paths. {goal}')
-            return []
+        self._validate(*nodes)
 
-        paths_core: List[GraphPathCore] = self._graph.search_paths(
-            self._node_to_idx[start],
-            self._node_to_idx[goal],
-            max_depth or 0
-        )
+        path_cores: List[List[GraphPathCore]] = []
+        for start, goal in zip(nodes[:-1], nodes[1:]):
+            path_cores.append(
+                self._graph.search_paths(
+                    self._node_to_idx[start],
+                    self._node_to_idx[goal],
+                    max_depth or 0
+                )
+            )
 
         paths: List[GraphPath] = []
-
-        for path_core in paths_core:
+        for path_cores_ in product(*path_cores):
             path = GraphPath()
-            for edge_core in path_core:
-                node_from = self._idx_to_node[edge_core.i_from]
-                node_to = self._idx_to_node[edge_core.i_to]
-                path.append(GraphEdge(node_from, node_to, edge_core.label))
 
+            for path_core in path_cores_:
+                for edge_core in path_core:
+                    node_from = self._idx_to_node[edge_core.i_from]
+                    node_to = self._idx_to_node[edge_core.i_to]
+                    path.append(GraphEdge(node_from, node_to, edge_core.label))
             paths.append(path)
+
         return paths
 
 
@@ -538,6 +550,13 @@ class NodePathSearcher:
                     f'subscribe_topic_name: {node_path.subscribe_topic_name}, '
                     f'publish_topic_name: {node_path.publish_topic_name}')
 
+        for node in nodes:
+            if node_filter is not None and \
+                    not node_filter(node.node_name):
+                continue
+
+            self._graph.add_node(GraphNode(node.node_name))
+
         for comm in communications:
             if communication_filter is not None and \
                     not communication_filter(comm.topic_name):
@@ -582,18 +601,17 @@ class NodePathSearcher:
 
     def search(
         self,
-        start_node_name: str,
-        end_node_name: str,
+        *node_names: str,
         max_node_depth: Optional[int] = None
     ) -> List[PathStructValue]:
         paths: List[PathStructValue] = []
 
         max_search_depth = max_node_depth or 0
 
+        graph_nodes: List[GraphNode] = [GraphNode(node) for node in node_names]
         graph_paths = self._graph.search_paths(
-            GraphNode(start_node_name),
-            GraphNode(end_node_name),
-            max_search_depth)
+            *graph_nodes,
+            max_depth=max_search_depth)
 
         for graph_path in graph_paths:
             paths.append(self._to_path(graph_path))

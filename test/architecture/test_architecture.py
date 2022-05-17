@@ -22,7 +22,7 @@ from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
                                          ExecutorStructValue, NodeStructValue,
-                                         PathStructValue)
+                                         PathStructValue, NodePathStructValue)
 
 import pytest
 from pytest_mock import MockerFixture
@@ -203,3 +203,62 @@ class TestArchiteture:
 
         path = arch.search_paths('start_node', 'end_node')
         assert path == [path_mock]
+
+    def test_search_paths_three_nodes(self, mocker: MockerFixture):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+
+        node_mock_0 = mocker.Mock(spec=NodeStructValue)
+        node_mock_1 = mocker.Mock(spec=NodeStructValue)
+        node_mock_2 = mocker.Mock(spec=NodeStructValue)
+
+        mocker.patch.object(node_mock_0, 'node_name', '0')
+        mocker.patch.object(node_mock_1, 'node_name', '1')
+        mocker.patch.object(node_mock_2, 'node_name', '2')
+
+        node_path_mock_0 = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock_0, 'subscribe_topic_name', None)
+        mocker.patch.object(node_path_mock_0, 'node_name', '0')
+        mocker.patch.object(node_path_mock_0, 'publish_topic_name', '0->1')
+        node_path_mock_1 = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
+        mocker.patch.object(node_path_mock_1, 'node_name', '1')
+        mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
+        node_path_mock_2 = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock_2, 'subscribe_topic_name', '1->2')
+        mocker.patch.object(node_path_mock_2, 'node_name', '2')
+        mocker.patch.object(node_path_mock_2, 'publish_topic_name', None)
+
+        mocker.patch.object(node_mock_0, 'paths', [node_path_mock_0])
+        mocker.patch.object(node_mock_1, 'paths', [node_path_mock_1])
+        mocker.patch.object(node_mock_2, 'paths', [node_path_mock_2])
+
+        comm_mock_0 = mocker.Mock(spec=CommunicationStructValue)
+        comm_mock_1 = mocker.Mock(spec=CommunicationStructValue)
+
+        mocker.patch.object(comm_mock_0, 'publish_node_name', '0')
+        mocker.patch.object(comm_mock_0, 'subscribe_node_name', '1')
+        mocker.patch.object(comm_mock_0, 'topic_name', '0->1')
+
+        mocker.patch.object(comm_mock_1, 'publish_node_name', '1')
+        mocker.patch.object(comm_mock_1, 'subscribe_node_name', '2')
+        mocker.patch.object(comm_mock_1, 'topic_name', '1->2')
+
+        mocker.patch.object(loaded_mock, 'nodes', [node_mock_0, node_mock_1, node_mock_2])
+        mocker.patch.object(loaded_mock, 'paths', [])
+
+        mocker.patch.object(loaded_mock, 'communications', [comm_mock_0, comm_mock_1])
+        mocker.patch.object(loaded_mock, 'executors', [])
+
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
+        mocker.patch.object(ArchitectureReaderFactory,
+                            'create_instance', return_value=reader_mock)
+
+        arch = Architecture('file_type', 'file_path')
+
+        paths = arch.search_paths('0', '2')
+        assert len(paths) == 1
+
+        paths = arch.search_paths('0', '1', '2')
+        assert len(paths) == 1
