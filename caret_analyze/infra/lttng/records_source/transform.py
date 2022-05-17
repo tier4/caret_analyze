@@ -279,7 +279,6 @@ class TransformSendRecordsContainer:
     #     records.append_column(
     #         ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, [
     #             ColumnAttribute.SYSTEM_TIME,
-    #             ColumnAttribute.SEND_MSG,
     #             ColumnAttribute.NODE_IO
     #         ]),
     #         publish_stamps)

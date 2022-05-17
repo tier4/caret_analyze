@@ -66,5 +66,8 @@ class ColumnName(NamedTuple):
     TILDE_SUBSCRIBE_TIMESTAMP: str = 'tilde_subscribe_timestamp'
     TILDE_MESSAGE_ID: str = 'tilde_message_id'
 
+    TF_LOOKUP_TRANSFORM_START_TIMESTAMP: str = 'lookup_transform_start_timestamp'
+    TF_LOOKUP_TRANSFORM_END_TIMESTAMP: str = 'lookup_transform_end_timestamp'
+
 
 COLUMN_NAME = ColumnName()

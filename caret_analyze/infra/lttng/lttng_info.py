@@ -54,6 +54,7 @@ from .value_objects import (
     IntraProcessBufferValueLttng,
     ClientCallbackValueLttng,
 )
+from .column_names import COLUMN_NAME
 from ...common import Util
 from ...exceptions import InvalidArgumentError, ItemNotFoundError, Error, MultipleItemFoundError
 from ...value_objects import (
@@ -125,6 +126,18 @@ class LttngInfo:
         self._tf_buffers = self._load_tf_buffers(self._formatted)
 
         self._id_to_topic: Dict[str, str] = {}
+
+        self._intra_pub_handles = set(
+            data.rclcpp_intra_publish.get_column_series(COLUMN_NAME.PUBLISHER_HANDLE)
+        )
+        intra_cb_objects = set(
+            data.dispatch_intra_process_subscription_callback.get_column_series(
+                COLUMN_NAME.CALLBACK_OBJECT))
+        sub_df = self._formatted.subscription_callbacks_df
+        intra_sub_df = sub_df[sub_df['callback_object_intra'].isin(intra_cb_objects)]
+        self._intra_sub_handles = {
+            row['subscription_handle'] for _, row in intra_sub_df.iterrows()
+        }
 
     def get_rmw_impl(self) -> str:
         """
@@ -429,11 +442,18 @@ class LttngInfo:
         subscription: SubscriptionValueLttng,
     ) -> bool:
         df = self._formatted.ipm_df
+
         df = df[
-            (df['publisher_handle'] == publisher._publisher_handle) &
-            (df['subscription_handle'] == subscription._subscription_handle)
+            (df['publisher_handle'] == publisher.publisher_handle) &
+            (df['subscription_handle'] == subscription.subscription_handle)
         ]
-        return len(df) > 0
+        if len(df) > 0:
+            return True
+
+        if publisher.publisher_handle in self._intra_pub_handles and \
+                subscription.subscription_handle in self._intra_sub_handles:
+            return True
+        return False
 
     def _get_pub_lttng(self, node_name: str, topic_name: str) -> PublisherValueLttng:
         node = self._get_node_lttng(NodeValue(node_name, ''))

@@ -39,6 +39,7 @@ from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
 from .event_filter import LttngEventFilter, InitEventPassFilter, Event
 from .bridge import LttngBridge
+from .records_post_process import post_process_records
 from .value_objects import (
     PublisherValueLttng,
     SubscriptionCallbackValueLttng,
@@ -105,6 +106,7 @@ class Lttng(InfraBase):
             force_conversion,
             event_filters
         )
+        post_process_records(data)
         self._info = LttngInfo(data)
         self._bridge = LttngBridge(self._info)
         self._source: RecordsSource = RecordsSource(data, self._bridge, self._info)

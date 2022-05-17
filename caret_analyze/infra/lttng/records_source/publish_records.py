@@ -20,8 +20,8 @@ class PublishRecordsContainer:
         bridge: LttngBridge,
         data: Ros2DataModel,
     ) -> None:
-        self._intra_rclcpp_publish = GroupedRecords(
-            data.intra_publish,
+        self._intra_publish = GroupedRecords(
+            data.rclcpp_intra_publish,
             [
                 COLUMN_NAME.PUBLISHER_HANDLE,
             ]
@@ -35,7 +35,6 @@ class PublishRecordsContainer:
 
         self._bridge = bridge
 
-    @lru_cache
     def get_intra_records(
         self,
         publisher: PublisherStructValue,
@@ -59,13 +58,16 @@ class PublishRecordsContainer:
             COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
 
-        records = self._intra_rclcpp_publish.get(publisher_lttng.publisher_handle).clone()
+        records = self._intra_publish.get(publisher_lttng.publisher_handle).clone()
+        records.columns.drop([COLUMN_NAME.MESSAGE], base_name_match=True)
         records.columns.reindex(columns)
         ordered_columns = records.columns.gets([
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP], base_name_match=True)
         for column in ordered_columns:
             column.add_prefix(publisher.topic_name)
+
+        records.columns.reindex(columns, base_name_match=True)
         return records
 
     def get_inter_records(
@@ -177,7 +179,6 @@ class PublishRecordsContainer:
         records.append_column(
             ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, [
                 ColumnAttribute.SYSTEM_TIME,
-                ColumnAttribute.SEND_MSG,
                 ColumnAttribute.NODE_IO
             ]),
             publish_stamps)

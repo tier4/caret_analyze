@@ -102,11 +102,7 @@ class NodeRecordsContainer:
 
         node_in_column.attrs.add(ColumnAttribute.NODE_IO)
         node_out_column.attrs.add(ColumnAttribute.NODE_IO)
-        # node_out_column = node_out_records.columns.get_by_attrs([
-        #     ColumnAttribute.NODE_IO,
-        #     ColumnAttribute.SEND_MSG,
-        #     ColumnAttribute.SYSTEM_TIME,
-        # ], 'head')
+
         records = merge_sequencial(
             left_records=node_in_records,
             right_records=node_out_records,
@@ -162,7 +158,6 @@ class NodeRecordsContainer:
         publish_records = self._pub_records.get_records(publisher)
         publish_column = publish_records.columns.get_by_attrs([
             ColumnAttribute.NODE_IO,
-            ColumnAttribute.SEND_MSG,
             ColumnAttribute.SYSTEM_TIME,
         ], 'head')
         callback_records = self._cb_records.get_records(callback)

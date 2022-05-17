@@ -28,3 +28,7 @@ class GroupedRecords:
     @property
     def column_values(self) -> Tuple[ColumnValue, ...]:
         return self._columns.to_value()
+
+    @property
+    def column_names(self) -> Tuple[ColumnValue, ...]:
+        return tuple(c.column_names for c in self._columns)

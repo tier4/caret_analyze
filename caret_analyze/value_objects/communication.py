@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback import CallbackStructValue
+from .callback import SubscriptionCallbackStructValue
 from .node import NodeStructValue
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
@@ -74,7 +74,7 @@ class CommunicationStructValue(ValueObject):
         return self.subscription_callback.callback_name
 
     @property
-    def subscription_callback(self) -> CallbackStructValue:
+    def subscription_callback(self) -> SubscriptionCallbackStructValue:
         assert self._subscription_value.callback is not None
         return self._subscription_value.callback
 

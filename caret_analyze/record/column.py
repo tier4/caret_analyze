@@ -77,8 +77,6 @@ class ColumnMapper():
 class ColumnAttribute(ValueObject):
     SYSTEM_TIME: ColumnAttribute
     MSG_PIPELINE: ColumnAttribute
-    SEND_MSG: ColumnAttribute
-    TAKE_MSG: ColumnAttribute
     OPTIONAL: ColumnAttribute
     NODE_IO: ColumnAttribute
 
@@ -92,8 +90,6 @@ class ColumnAttribute(ValueObject):
 
 ColumnAttribute.SYSTEM_TIME = ColumnAttribute('system_time')
 ColumnAttribute.MSG_PIPELINE = ColumnAttribute('msg_pipeline')
-ColumnAttribute.SEND_MSG = ColumnAttribute('send_msg')
-ColumnAttribute.TAKE_MSG = ColumnAttribute('take_msg')
 ColumnAttribute.OPTIONAL = ColumnAttribute('optional')
 ColumnAttribute.NODE_IO = ColumnAttribute('node_io')
 

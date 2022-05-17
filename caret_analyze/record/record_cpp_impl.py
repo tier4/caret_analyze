@@ -217,7 +217,9 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
     ) -> bool:
         if not isinstance(other, RecordsCppImpl):
             return False
-        return self._records.equals(other._records) and self.columns == other.columns
+        match_records = self._records.equals(other._records)
+        match_columns = self.columns.to_value() == other.columns.to_value()
+        return match_records and match_columns
 
     def _reindex(self, column_names: Sequence[str]) -> None:
         miss_match_columns = set(column_names) ^ set(self.column_names)
@@ -352,7 +354,9 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
             Progress.records_label(progress_label)
         )
 
-        merged = RecordsCppImpl()
+        columns = UniqueList(
+            self.columns.to_value() + sink_records.columns.to_value()
+        ).as_list()
+        merged = RecordsCppImpl(None, columns)
         merged._records = merged_cpp_base
-        merged._columns = self.columns + sink_records.columns
         return merged

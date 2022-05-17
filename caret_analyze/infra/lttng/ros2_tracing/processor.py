@@ -144,10 +144,26 @@ class Ros2Handler(EventHandler):
             self._handle_inter_callback_duration
         handler_map['ros2_caret:inter_publish'] = \
             self._handle_inter_publish
-        handler_map['ros2_caret:rclcpp_intra_publish'] = \
-            self._handle_rclcpp_intra_publish
         handler_map['ros2_caret:tf_lookup_transform'] = \
             self._handle_tf_lookup_transform
+
+        # for v0.2 compatibility
+        handler_map['ros2:callback_start'] = self._handle_callback_start
+        handler_map['ros2:callback_end'] = self._handle_callback_end
+        handler_map['ros2:rclcpp_publish'] = self._handle_rclcpp_publish
+        handler_map['ros2:message_construct'] = self._handle_message_construct
+        handler_map[
+            'ros2:dispatch_subscription_callback'
+        ] = self._handle_dispatch_subscription_callback
+        handler_map[
+            'ros2:dispatch_intra_process_subscription_callback'
+        ] = self._handle_dispatch_intra_process_subscription_callback
+        handler_map['ros2:rcl_publish'] = self._handle_rcl_publish
+        handler_map['ros2_caret:dds_write'] = self._handle_dds_write
+        handler_map['ros2_caret:dds_bind_addr_to_stamp'] = self._handle_dds_bind_addr_to_stamp
+        handler_map['ros2_caret:dds_bind_addr_to_addr'] = self._handle_dds_bind_addr_to_addr
+        handler_map['ros2_caret:tf_lookup_transform_start'] = \
+            self._handle_tf_lookup_transform_start
 
         super().__init__(
             handler_map=handler_map,
@@ -1224,7 +1240,8 @@ class Ros2Handler(EventHandler):
         self.data.add_rclcpp_intra_publish(
             metadata.pid,
             metadata.tid,
-            get_field(event, 'publisher_handle'),
             metadata.timestamp,
-            get_field(event, 'message_stamp'),
+            get_field(event, 'publisher_handle'),
+            get_field(event, 'message'),
+            get_field(event, 'message_timestamp'),
         )
