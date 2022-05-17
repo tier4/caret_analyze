@@ -1138,7 +1138,7 @@ class Ros2Handler(EventHandler):
             metadata.tid,
             metadata.timestamp,
             get_field(event, 'buffer'),
-            get_field(event, 'message'),
+            get_field(event, 'index'),
             get_field(event, 'size'),
             get_field(event, 'is_full'),
         )
@@ -1153,7 +1153,7 @@ class Ros2Handler(EventHandler):
             metadata.tid,
             metadata.timestamp,
             get_field(event, 'buffer'),
-            get_field(event, 'message'),
+            get_field(event, 'index'),
             get_field(event, 'size'),
         )
 

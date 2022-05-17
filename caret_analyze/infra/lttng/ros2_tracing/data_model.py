@@ -487,7 +487,7 @@ class Ros2DataModel(DataModel):
                 ColumnValue('tid'),
                 ColumnValue('enqueue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
                 ColumnValue('buffer'),
-                ColumnValue('message'),
+                ColumnValue('index'),
                 ColumnValue('size'),
                 ColumnValue('is_full'),
             ]
@@ -500,7 +500,7 @@ class Ros2DataModel(DataModel):
                 ColumnValue('dequeue_timestamp', [ColumnAttribute.SYSTEM_TIME]),
                 ColumnValue('buffer'),
                 ColumnValue('size'),
-                ColumnValue('message'),
+                ColumnValue('index'),
             ]
         )
         self.ring_buffer_clear = RecordsFactory.create_instance(
@@ -1637,7 +1637,7 @@ class Ros2DataModel(DataModel):
         tid: int,
         enqueue_timestamp: int,
         buffer: int,
-        message: int,
+        index: int,
         size: int,
         is_full: int
     ) -> None:
@@ -1648,7 +1648,7 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'enqueue_timestamp': enqueue_timestamp,
                     'buffer': buffer,
-                    'message': message,
+                    'index': index,
                     'size': size,
                     'is_full': is_full,
                 }
@@ -1661,7 +1661,7 @@ class Ros2DataModel(DataModel):
         tid: int,
         dequeue_timestamp: int,
         buffer: int,
-        message: int,
+        index: int,
         size: int,
     ) -> None:
         self.ring_buffer_dequeue.append(
@@ -1671,7 +1671,7 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'dequeue_timestamp': dequeue_timestamp,
                     'buffer': buffer,
-                    'message': message,
+                    'index': index,
                     'size': size,
                 }
             )

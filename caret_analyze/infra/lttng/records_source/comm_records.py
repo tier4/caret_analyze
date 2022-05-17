@@ -98,7 +98,7 @@ class CommRecordsContainer:
         records.columns.drop([
             'dequeue_tid',
             'enqueue_tid',
-            COLUMN_NAME.MESSAGE,
+            'index',
             COLUMN_NAME.BUFFER,
         ], base_name_match=True)
         records.columns.reindex(columns, base_name_match=True)

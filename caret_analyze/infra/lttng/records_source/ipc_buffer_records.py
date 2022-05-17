@@ -50,7 +50,7 @@ class IpcBufferRecordsContainer:
             'enqueue_tid',
             COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
             COLUMN_NAME.BUFFER,
-            COLUMN_NAME.MESSAGE,
+            'index',
             'queued_msg_size',
             'is_full',
             'dequeue_tid',
@@ -63,7 +63,7 @@ class IpcBufferRecordsContainer:
         join_keys = [
             COLUMN_NAME.PID,
             COLUMN_NAME.BUFFER,
-            COLUMN_NAME.MESSAGE
+            'index'
         ]
         enqueue_records.columns.rename({
             'size': 'queued_msg_size',
