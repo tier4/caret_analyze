@@ -152,7 +152,7 @@ class Architecture(Summarizable):
         from .graph_search import NodePathSearcher
         for node_name in node_names:
             if node_name not in self.node_names:
-                raise InvalidArgumentError(f'Failed to find node. {node_name}')
+                raise ItemNotFoundError(f'Failed to find node. {node_name}')
 
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)

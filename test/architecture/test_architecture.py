@@ -198,7 +198,7 @@ class TestArchiteture:
 
         arch = Architecture('file_type', 'file_path')
 
-        with pytest.raises(InvalidArgumentError):
+        with pytest.raises(ItemNotFoundError):
             arch.search_paths('not_exist', 'not_exist')
 
         path = arch.search_paths('start_node', 'end_node')
