@@ -153,38 +153,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return callback_records
 
-    # add by peng
-    def timer_records(
-        self,
-        timer: TimerCallbackStructValue
-    ) -> RecordsInterface:
-        callback = timer.callback
-        if callback is None:
-            raise InvalidArgumentError(
-                'callback_value is None. '
-                f'node_name: {timer.node_name}'
-                f'callback_name: {timer.callback_name}'
-                f'topic_name: {timer.topic_name}'
-            )
-
-        callback_objects = self._helper.get_timer_callback_object(callback)
-        timer_records = self._source.timer_records(*callback_objects)
-
-        columns = [
-            COLUMN_NAME.TIMER_START_TIMESTAMP,
-            COLUMN_NAME.TIMER_END_TIMESTAMP,
-        ]
-        self._format(timer_records, columns)
-
-        self._rename_column(
-            timer_records,
-            callback.callback_name,
-            timer.topic_name
-        )
-
-        return timer_records
-
-
     def subscribe_records(
         self,
         subscription: SubscriptionStructValue
