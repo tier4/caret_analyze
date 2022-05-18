@@ -1,4 +1,3 @@
-from email.mime import base
 from functools import lru_cache
 from caret_analyze.record.column import ColumnAttribute
 from .subscribe_records import SubscribeRecordsContainer
@@ -285,7 +284,7 @@ class CommRecordsContainer:
             [
                 COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            ] , base_name_match=True
+            ], base_name_match=True
         )
         for attr_column in attr_columns:
             attr_column.attrs.add(ColumnAttribute.NODE_IO)

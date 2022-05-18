@@ -17,7 +17,6 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import cached_property, lru_cache
 from logging import getLogger
-import logging
 from typing import (
     Any,
     Callable,
@@ -34,9 +33,6 @@ from typing import (
 
 import numpy as np
 import pandas as pd
-
-from caret_analyze.value_objects.communication import CommunicationStructValue
-from caret_analyze.value_objects.transform import BroadcastedTransformValue
 
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (
@@ -63,6 +59,7 @@ from ...value_objects import (
     Qos,
     TimerValue,
     TransformValue,
+    BroadcastedTransformValue,
 )
 from ...record import PandasExtensions as pe
 
@@ -227,7 +224,8 @@ class LttngInfo:
                 if row['listener_node_id'] is None or row['lookup_node_id'] is None:
                     continue
 
-                listener_node = Util.find_one(lambda x: x.node_id == row['listener_node_id'], nodes)
+                listener_node = Util.find_one(
+                    lambda x: x.node_id == row['listener_node_id'], nodes)
                 lookup_node = Util.find_one(lambda x: x.node_id == row['lookup_node_id'], nodes)
 
                 listener_callbacks = self.get_subscription_callbacks(listener_node)
@@ -299,7 +297,8 @@ class LttngInfo:
         #         if buf is not None and buf.listen_transforms is not None:
         #             tfs |= set(buf.listen_transforms)
         #     except Error as e:
-        #         logging.warning(f'Failed to get tf_broadcaster. skip loading {node.node_name}. {e}')
+        #         logging.warning(
+        # f'Failed to get tf_broadcaster. skip loading {node.node_name}. {e}')
         # return list(tfs)
 
         # for tf_buffer_core, group in self._formatted.tf_buffers_df.groupby('tf_buffer_core'):
@@ -400,7 +399,9 @@ class LttngInfo:
             return None
         if len(bufs) == 1:
             return bufs[0]
-        raise MultipleItemFoundError('Multiple tf_buffer found. node_name = {}'.format(node.node_name))
+        raise MultipleItemFoundError(
+            'Multiple tf_buffer found. node_name = {}'.format(node.node_name)
+        )
 
     @lru_cache
     def _get_node_lttng(self, node: NodeValue) -> NodeValueLttng:

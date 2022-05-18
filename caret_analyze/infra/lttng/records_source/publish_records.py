@@ -1,5 +1,4 @@
 from functools import lru_cache
-from tkinter.tix import COLUMN
 
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.value_objects.publisher import PublisherStructValue
@@ -7,9 +6,6 @@ from caret_analyze.value_objects.publisher import PublisherStructValue
 from ..column_names import COLUMN_NAME
 from ..bridge import LttngBridge
 from ..ros2_tracing.data_model import Ros2DataModel
-from ..value_objects import (
-    PublisherValueLttng
-)
 from ....record import RecordsInterface, merge_sequencial, GroupedRecords, ColumnAttribute
 
 

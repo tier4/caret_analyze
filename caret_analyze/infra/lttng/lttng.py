@@ -15,13 +15,11 @@
 from __future__ import annotations
 from functools import singledispatchmethod
 
-from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Tuple, Union, Collection
+
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import bt2
-
-from caret_analyze.value_objects.timer import TimerValue
 
 import pandas as pd
 from caret_analyze.value_objects.callback import CallbackStructValue, TimerCallbackStructValue
@@ -70,7 +68,11 @@ from ...value_objects import (
 )
 
 
+logger = getLogger(__name__)
+
+
 class Lttng(InfraBase):
+
     """
     Lttng data container class.
 
@@ -567,47 +569,47 @@ class Lttng(InfraBase):
         node: NodePathStructValue,
     ) -> RecordsInterface:
 
-        tilde_records = self._provider.tilde_records(
-            self._node_path.subscription, self._node_path.publisher)
-        sub_records = self._provider.subscribe_records(self._node_path.subscription)
-        pub_records = self._provider.publish_records(self._node_path.publisher)
+        raise NotImplementedError('')
+        # tilde_records = self._provider.tilde_records(
+        #     self._node_path.subscription, self._node_path.publisher)
+        # sub_records = self._provider.subscribe_records(self._node_path.subscription)
+        # pub_records = self._provider.publish_records(self._node_path.publisher)
 
-        left_stamp_key = Util.find_one(
-            lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, sub_records.columns)
-        right_stamp_key = Util.find_one(
-            lambda x: COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in x, sub_records.columns)
+        # left_stamp_key = Util.find_one(
+        #     lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, sub_records.columns)
+        # right_stamp_key = Util.find_one(
+        #     lambda x: COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in x, sub_records.columns)
 
-        records = merge(
-            left_records=sub_records,
-            right_records=tilde_records,
-            join_left_key=right_stamp_key,
-            join_right_key=right_stamp_key,
-            columns=Columns(sub_records.columns + tilde_records.columns).as_list(),
-            how='left',
-            progress_label='binding tilde subscribe records.'
-        )
+        # records = merge(
+        #     left_records=sub_records,
+        #     right_records=tilde_records,
+        #     join_left_key=right_stamp_key,
+        #     join_right_key=right_stamp_key,
+        #     how='left',
+        #     progress_label='binding tilde subscribe records.'
+        # )
 
-        left_stamp_key = Util.find_one(
-            lambda x: COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in x, records.columns)
+        # left_stamp_key = Util.find_one(
+        #     lambda x: COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in x, records.columns)
 
-        records = merge(
-            left_records=records,
-            right_records=pub_records,
-            join_left_key=left_stamp_key,
-            join_right_key=left_stamp_key,
-            columns=Columns(records.columns + pub_records.columns).as_list(),
-            how='left',
-            progress_label='binding tilde publish records.'
-        )
+        # records = merge(
+        #     left_records=records,
+        #     right_records=pub_records,
+        #     join_left_key=left_stamp_key,
+        #     join_right_key=left_stamp_key,
+        #     # columns=Columns(records.columns + pub_records.columns).as_list(),
+        #     how='left',
+        #     progress_label='binding tilde publish records.'
+        # )
 
-        columns = [
-            Util.find_one(lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns),
-            Util.find_one(lambda x: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in x, records.columns),
-        ]
+        # columns = [
+        #     Util.find_one(lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns),
+        #     Util.find_one(lambda x: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in x, records.columns),
+        # ]
 
-        drop_columns = list(set(records.columns) - set(columns))
-        records.drop_columns(drop_columns)
-        records.reindex(columns)
+        # drop_columns = list(set(records.columns) - set(columns))
+        # records.drop_columns(drop_columns)
+        # records.reindex(columns)
 
     def get_find_closest(
         self,

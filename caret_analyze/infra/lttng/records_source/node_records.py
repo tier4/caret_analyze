@@ -1,19 +1,16 @@
 
 from functools import lru_cache
+
+from caret_analyze.value_objects.transform import TransformFrameBufferStructValue
 from .callback_records import CallbackRecordsContainer
 from .publish_records import PublishRecordsContainer
 from .transform import TransformSendRecordsContainer, TransformLookupContainer
 
 from ..column_names import COLUMN_NAME
 from ..bridge import LttngBridge
-from ..value_objects import (
-    PublisherValueLttng,
-    TransformBufferValueLttng,
-
-)
 
 from ....record import RecordsInterface, merge_sequencial, ColumnAttribute
-from ....value_objects import NodePathStructValue, MessageContextType
+from ....value_objects import NodePathStructValue, MessageContextType, PublisherStructValue
 
 
 class NodeRecordsContainer:
@@ -151,8 +148,8 @@ class NodeRecordsContainer:
 
     def get_use_latest_message_records_tf_lookup_to_pub(
         self,
-        tf_buffer: TransformBufferValueLttng,
-        publisher: PublisherValueLttng,
+        tf_buffer: TransformFrameBufferStructValue,
+        publisher: PublisherStructValue,
     ) -> RecordsInterface:
 
         publish_records = self._pub_records.get_records(publisher)
@@ -160,7 +157,7 @@ class NodeRecordsContainer:
             ColumnAttribute.NODE_IO,
             ColumnAttribute.SYSTEM_TIME,
         ], 'head')
-        callback_records = self._cb_records.get_records(callback)
+        callback_records = self._cb_records.get_records()
 
         callback_column = callback_records.columns.get(
             COLUMN_NAME.CALLBACK_START_TIMESTAMP

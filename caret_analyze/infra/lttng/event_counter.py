@@ -32,7 +32,7 @@ class EventCounter:
         # self._count_df = self._build_count_df(data)
 
         # if validation:
-            # self._validate()
+        #    self._validate()
 
     def get_count(self, groupby: List[str]) -> pd.DataFrame:
         if len(set(groupby) - self._allowed_keys) > 0:

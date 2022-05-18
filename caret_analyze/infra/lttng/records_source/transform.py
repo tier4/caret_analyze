@@ -1,9 +1,7 @@
 
-from typing import Optional
 from functools import lru_cache
 
 from caret_analyze.record.column import ColumnAttribute
-from caret_analyze.record.interface import RecordInterface
 
 from .publish_records import PublishRecordsContainer
 from .callback_records import CallbackRecordsContainer

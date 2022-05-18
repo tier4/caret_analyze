@@ -508,20 +508,6 @@ class Ros2Handler(EventHandler):
             metadata.tid,
             timestamp, original_message, constructed_message)
 
-    def _handle_rclcpp_intra_publish(
-        self,
-        event: Dict,
-        metadata: EventMetadata,
-    ) -> None:
-        message = get_field(event, 'message')
-        publisher_handle = get_field(event, 'publisher_handle')
-        timestamp = metadata.timestamp
-        message_timestamp = get_field(event, 'message_timestamp')
-        self.data.add_rclcpp_intra_publish(
-            metadata.pid,
-            metadata.tid,
-            timestamp, publisher_handle, message, message_timestamp)
-
     def _handle_tf_lookup_transform(
         self,
         event: Dict,

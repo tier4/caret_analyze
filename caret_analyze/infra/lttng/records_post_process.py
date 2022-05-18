@@ -1,8 +1,6 @@
 
-from typing import Optional
-
 from .ros2_tracing.data_model import Ros2DataModel
-from caret_analyze.record import RecordsInterface, merge_sequencial
+from caret_analyze.record import merge_sequencial
 from .column_names import COLUMN_NAME
 
 
