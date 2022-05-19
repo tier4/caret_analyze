@@ -22,6 +22,7 @@ from ....value_objects import PublisherValue
 class PublisherValueLttng(PublisherValue):
     def __init__(
         self,
+        pid: int,
         node_name: str,
         topic_name: str,
         node_id: str,
@@ -36,9 +37,14 @@ class PublisherValueLttng(PublisherValue):
             node_id=node_id,
             callback_ids=callback_ids,
         )
+        self._pid = pid
         self._publisher_handle = publisher_handle
         self._publisher_id = publisher_id
         self._tilde_publisher = tilde_publisher
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def publisher_handle(self) -> int:

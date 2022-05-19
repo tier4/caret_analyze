@@ -95,10 +95,10 @@ class Ros2DataModel(DataModel):
         self.rcl_service_init = RecordsFactory.create_instance(
             None,
             [
-                ColumnValue('service_handle'),
-                ColumnValue('timestamp'),
                 ColumnValue('pid'),
                 ColumnValue('tid'),
+                ColumnValue('service_handle'),
+                ColumnValue('timestamp'),
                 ColumnValue('node_handle'),
                 ColumnValue('rmw_handle'),
                 ColumnValue('service_name', mapper=ColumnMapper()),
@@ -107,10 +107,10 @@ class Ros2DataModel(DataModel):
         self.rcl_client_init = RecordsFactory.create_instance(
             None,
             [
-                ColumnValue('client_handle'),
-                ColumnValue('timestamp'),
                 ColumnValue('pid'),
                 ColumnValue('tid'),
+                ColumnValue('client_handle'),
+                ColumnValue('timestamp'),
                 ColumnValue('node_handle'),
                 ColumnValue('rmw_handle'),
                 ColumnValue('service_name', mapper=ColumnMapper()),
@@ -139,29 +139,29 @@ class Ros2DataModel(DataModel):
         self.rclcpp_subscription_callback_added = RecordsFactory.create_instance(
             None,
             [
-                ColumnValue('subscription'),
-                ColumnValue('timestamp'),
                 ColumnValue('pid'),
                 ColumnValue('tid'),
+                ColumnValue('subscription'),
+                ColumnValue('timestamp'),
                 ColumnValue('callback_object'),
             ]
         )
         self.rclcpp_service_callback_added = RecordsFactory.create_instance(
             None,
             [
-                ColumnValue('service_handle'),
-                ColumnValue('timestamp'),
                 ColumnValue('pid'),
                 ColumnValue('tid'),
+                ColumnValue('service_handle'),
+                ColumnValue('timestamp'),
                 ColumnValue('callback_object'),
             ]
         )
         self.rclcpp_timer_callback_added = RecordsFactory.create_instance(
             None,
             [
-                ColumnValue('timestamp'),
                 ColumnValue('pid'),
                 ColumnValue('tid'),
+                ColumnValue('timestamp'),
                 ColumnValue('timer_handle'),
                 ColumnValue('callback_object'),
             ]
@@ -169,20 +169,20 @@ class Ros2DataModel(DataModel):
         self.rclcpp_callback_register = RecordsFactory.create_instance(
             None,
             [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
                 ColumnValue('callback_object'),
                 ColumnValue('timestamp'),
                 ColumnValue('symbol', mapper=ColumnMapper()),
-                ColumnValue('pid'),
-                ColumnValue('tid'),
             ]
         )
         self.rcl_lifecycle_state_machine_init = RecordsFactory.create_instance(
             None,
             [
-                ColumnValue('state_machine_handle'),
-                ColumnValue('node_handle'),
                 ColumnValue('pid'),
                 ColumnValue('tid'),
+                ColumnValue('state_machine_handle'),
+                ColumnValue('node_handle'),
             ]
         )
         self.construct_executor = RecordsFactory.create_instance(
@@ -289,33 +289,33 @@ class Ros2DataModel(DataModel):
         self.tilde_subscription_init = RecordsFactory.create_instance(
             None,
             [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
                 ColumnValue('subscription'),
                 ColumnValue('node_name', mapper=ColumnMapper()),
                 ColumnValue('topic_name', mapper=ColumnMapper()),
                 ColumnValue('timestamp'),
-                ColumnValue('pid'),
-                ColumnValue('tid'),
             ]
         )
         self.tilde_publisher_init = RecordsFactory.create_instance(
             None,
             [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
                 ColumnValue('publisher'),
                 ColumnValue('node_name', mapper=ColumnMapper()),
                 ColumnValue('topic_name', mapper=ColumnMapper()),
                 ColumnValue('timestamp'),
-                ColumnValue('pid'),
-                ColumnValue('tid'),
             ]
         )
         self.tilde_subscribe_added = RecordsFactory.create_instance(
             None,
             [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
                 ColumnValue('subscription_id'),
                 ColumnValue('node_name', mapper=ColumnMapper()),
                 ColumnValue('topic_name', mapper=ColumnMapper()),
-                ColumnValue('pid'),
-                ColumnValue('tid'),
                 ColumnValue('timestamp'),
             ]
         )
@@ -596,15 +596,22 @@ class Ros2DataModel(DataModel):
         )
         self.message_construct = RecordsFactory.create_instance(
             None, [
+                ColumnValue('pid'),
                 ColumnValue('message_construct_timestamp'),
                 ColumnValue('original_message'),
                 ColumnValue('constructed_message')
             ]
         )
 
-        # not supported
-        # self.lifecycle_transitions = DataFrame([
-        # ])
+        self.lifecycle_transitions = RecordsFactory.create_instance(
+            None, [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('state_machine'),
+                ColumnValue('start_label', mapper=ColumnMapper()),
+                ColumnValue('goal_label', mapper=ColumnMapper()),
+            ]
+        )
 
         # Events (multiple instances, may not have a meaningful index)
         self.intra_callback_duration = RecordsFactory.create_instance(

@@ -164,6 +164,7 @@ class Ros2Handler(EventHandler):
         handler_map['ros2_caret:dds_bind_addr_to_addr'] = self._handle_dds_bind_addr_to_addr
         handler_map['ros2_caret:tf_lookup_transform_start'] = \
             self._handle_tf_lookup_transform_start
+        self.tracepoints = set(handler_map.keys())
 
         super().__init__(
             handler_map=handler_map,

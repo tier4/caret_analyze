@@ -114,7 +114,7 @@ class Lttng(InfraBase):
         self._source: RecordsSource = RecordsSource(data, self._bridge, self._info)
         skip_validation = len(event_filters) == 1 and \
             isinstance(event_filters[0], InitEventPassFilter)
-        self._counter = EventCounter(data, validation=not skip_validation)
+        self._counter = EventCounter(data, self._info, validation=not skip_validation)
         self.events = events if store_events else None
         self.tf_frame_id_mapper = self._init_tf_column_mapper()
 

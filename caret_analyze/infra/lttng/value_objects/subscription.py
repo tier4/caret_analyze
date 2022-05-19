@@ -23,12 +23,18 @@ class IntraProcessBufferValueLttng(IntraProcessBufferValue):
 
     def __init__(
         self,
+        pid: int,
         node_name: str,
         topic_name: str,
         buffer: int,
     ) -> None:
         super().__init__(node_name, topic_name)
+        self._pid = pid
         self._buffer = buffer
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def buffer(self) -> int:
@@ -39,6 +45,7 @@ class SubscriptionValueLttng(SubscriptionValue):
 
     def __init__(
         self,
+        pid: int,
         topic_name: str,
         node_name: str,
         node_id: Optional[str],
@@ -48,9 +55,14 @@ class SubscriptionValueLttng(SubscriptionValue):
         tilde_subscription: str,
     ) -> None:
         super().__init__(topic_name, node_name, node_id, callback_id)
+        self._pid = pid
         self._subscription_handle = subscription_handle
         self._subscription_id = subscription_id
         self._tilde_subscription = tilde_subscription
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def subscription_handle(self) -> int:

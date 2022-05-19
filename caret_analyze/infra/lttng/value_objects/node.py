@@ -20,16 +20,22 @@ from ....value_objects import NodeValue
 class NodeValueLttng(NodeValue):
     def __init__(
         self,
+        pid: int,
         node_name: str,
-        node_handle: str,
+        node_handle: int,
         node_id: str,
     ):
         super().__init__(node_name, node_id)
+        self._pid = pid
         self._node_id = node_id
         self._node_handle = node_handle
 
     @property
-    def node_handle(self) -> str:
+    def pid(self) -> int:
+        return self._pid
+
+    @property
+    def node_handle(self) -> int:
         return self._node_handle
 
     @property

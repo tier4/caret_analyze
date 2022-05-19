@@ -27,45 +27,56 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Union,
     Set,
+    Union,
 )
 
 import numpy as np
 import pandas as pd
-from caret_analyze.record.column import ColumnAttribute, ColumnMapper, ColumnValue
 
-from caret_analyze.record.interface import RecordInterface
-from caret_analyze.record.record_factory import RecordsFactory, RecordFactory
-
+from .column_names import COLUMN_NAME
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (
     CallbackGroupValueLttng,
+    ClientCallbackValueLttng,
+    IntraProcessBufferValueLttng,
     NodeValueLttng,
     PublisherValueLttng,
+    ServiceCallbackValueLttng,
     SubscriptionCallbackValueLttng,
+    SubscriptionValueLttng,
     TimerCallbackValueLttng,
     TimerControl,
     TimerInit,
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
-    ServiceCallbackValueLttng,
-    SubscriptionValueLttng,
-    IntraProcessBufferValueLttng,
-    ClientCallbackValueLttng,
 )
-from .column_names import COLUMN_NAME
 from ...common import Util
-from ...exceptions import InvalidArgumentError, ItemNotFoundError, Error, MultipleItemFoundError
+from ...exceptions import (
+    Error,
+    InvalidArgumentError,
+    ItemNotFoundError,
+    MultipleItemFoundError,
+)
+from ...record import (
+    ColumnAttribute,
+    ColumnMapper,
+    ColumnValue,
+    merge,
+    merge_sequencial,
+    RecordFactory,
+    RecordInterface,
+    RecordsFactory,
+    RecordsInterface,
+)
 from ...value_objects import (
+    BroadcastedTransformValue,
     ExecutorValue,
     NodeValue,
     Qos,
     TimerValue,
     TransformValue,
-    BroadcastedTransformValue,
 )
-from ...record import RecordsInterface, merge, merge_sequencial
 
 logger = getLogger(__name__)
 
@@ -170,6 +181,7 @@ class LttngInfo:
 
         for i in range(len(timer_df)):
             val = TimerCallbackValueLttng(
+                    pid=timer_df.get(i, 'pid'),
                     callback_id=timer_df.get(i, 'callback_id'),
                     node_name=timer_df.get(i, 'node_name'),
                     node_id=timer_df.get(i, 'node_id'),
@@ -197,6 +209,7 @@ class LttngInfo:
 
         for i in range(len(service_df)):
             val = ServiceCallbackValueLttng(
+                    pid=service_df.get(i, 'pid'),
                     callback_id=service_df.get(i, 'callback_id'),
                     node_id=service_df.get(i, 'node_id'),
                     node_name=service_df.get(i, 'node_name'),
@@ -216,6 +229,7 @@ class LttngInfo:
 
         for i in range(len(buffer_df)):
             val = IntraProcessBufferValueLttng(
+                buffer_df.get(i, 'pid'),
                 buffer_df.get(i, 'node_name'),
                 buffer_df.get(i, 'topic_name'),
                 buffer_df.get(i, 'buffer'),
@@ -260,6 +274,7 @@ class LttngInfo:
                 buffers.add(
                     lookup_node.node_id,
                     TransformBufferValueLttng(
+                        pid=listener_node.pid,
                         listener_node_id=listener_node.node_id,
                         listener_node_name=listener_node.node_name,
                         lookup_node_id=lookup_node.node_id,
@@ -290,8 +305,7 @@ class LttngInfo:
         self,
         node: NodeValue
     ) -> Sequence[ClientCallbackValueLttng]:
-        node_lttng = self._get_node_lttng(node)
-        return self._srv_cbs.gets(node_lttng)
+        return []
 
     def get_ipc_buffers(
         self,
@@ -363,7 +377,6 @@ class LttngInfo:
         Sequence[TimerCallbackInfo]
 
         """
-
         node_lttng = self._get_node_lttng(node)
         return self._timer_cbs.gets(node_lttng)
 
@@ -394,7 +407,10 @@ class LttngInfo:
                 duplicate_nodes.add(node_name)
                 continue
             added_nodes.add(node_name)
-            nodes.append(NodeValueLttng(node_name, node_handle, node_id))
+            pid = nodes_df.get(i, 'pid')
+            nodes.append(
+                NodeValueLttng(pid, node_name, node_handle, node_id)
+            )
 
         for duplicate_node in duplicate_nodes:
             logger.warning(
@@ -529,6 +545,7 @@ class LttngInfo:
             tilde_subscription = sub_df.get(i, 'tilde_subscription')
 
             val = SubscriptionValueLttng(
+                    pid=sub_df.get(i, 'pid'),
                     node_id=node_id,
                     node_name=node_name,
                     callback_id=sub_df.get(i, 'callback_id'),
@@ -590,6 +607,7 @@ class LttngInfo:
             tilde_subscription = sub_df.get(i, 'tilde_subscription')
 
             val = SubscriptionCallbackValueLttng(
+                    pid=sub_df.get(i, 'pid'),
                     callback_id=sub_df.get(i, 'callback_id'),
                     node_id=node_id,
                     node_name=node_name,
@@ -673,7 +691,6 @@ class LttngInfo:
         List[PublisherInfo]
 
         """
-
         node_lttng = self._get_node_lttng(node)
         return self._pubs.gets(node_lttng)
 
@@ -723,6 +740,7 @@ class LttngInfo:
             tilde_publisher = pub_df.get(i, 'tilde_publisher')
 
             val = PublisherValueLttng(
+                    pid=pub_df.get(i, 'pid'),
                     node_name=pub_df.get(i, 'node_name'),
                     topic_name=pub_df.get(i, 'topic_name'),
                     node_id=pub_df.get(i, 'node_id'),
@@ -776,6 +794,7 @@ class LttngInfo:
 
             pubs_info.append(
                 PublisherValueLttng(
+                    pid=pub_df.get(i, 'pid'),
                     node_name=pub_df.get(i, 'node_name'),
                     topic_name=pub_df.get(i, 'topic_name'),
                     node_id=pub_df.get(i, 'node_id'),
@@ -801,7 +820,7 @@ class LttngInfo:
         concate_target_dfs.append(formatted.service_callbacks_df)
 
         column_names = [
-            'callback_group_addr', 'callback_id', 'node_handle'
+            'pid', 'callback_group_addr', 'callback_id', 'node_handle'
         ]
         for df in concate_target_dfs:
             df.columns.drop(set(df.column_names) - set(column_names))
@@ -832,6 +851,7 @@ class LttngInfo:
             callback_ids = tuple(Util.filter_items(callbacks.is_user_defined, callback_ids))
 
             val = CallbackGroupValueLttng(
+                    pid=group_df.get(0, 'pid'),
                     callback_group_type_name=group_df.get(0, 'group_type_name'),
                     node_name=node_name,
                     node_id=group_df.get(0, 'node_id'),
@@ -883,7 +903,7 @@ class LttngInfo:
         for i, (_, group) in enumerate(exec_df.groupby(['executor_addr']).items()):
             executor_type_name = group.get(0, 'executor_type_name')
 
-            cbg_ids = group.get_column_series('callback_group_id')
+            cbg_ids = [group.get(i, 'callback_group_id') for i in range(len(group))]
             executor_id = f'executor_{i}'
             execs.append(
                 ExecutorValue(
@@ -1678,6 +1698,7 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = [
+            'pid',
             'publisher_id',
             'publisher_handle',
             'node_handle',
@@ -1701,6 +1722,7 @@ class DataFrameFormatted:
         pub_df: pd.DataFrame
     ) -> pd.DataFrame:
         columns = [
+            'pid',
             'transform_broadcaster',
             'publisher_id',
             'publisher_handle',
@@ -1861,8 +1883,8 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = [
-            'callback_id', 'callback_object', 'node_handle', 'timer_handle', 'callback_group_addr',
-            'period_ns', 'symbol',
+            'pid', 'callback_id', 'callback_object', 'node_handle',
+            'timer_handle', 'callback_group_addr', 'period_ns', 'symbol',
         ]
 
         def callback_id(i: int, row: Dict) -> str:
@@ -1919,7 +1941,7 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = [
-            'callback_id', 'callback_object', 'callback_object_intra', 'node_handle',
+            'pid', 'callback_id', 'callback_object', 'callback_object_intra', 'node_handle',
             'subscription_handle', 'callback_group_addr', 'topic_name', 'symbol', 'depth'
         ]
 
@@ -1966,7 +1988,7 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = [
-            'callback_id', 'callback_object', 'node_handle',
+            'pid', 'callback_id', 'callback_object', 'node_handle',
             'service_handle', 'callback_group_addr', 'service_name', 'symbol'
         ]
 
@@ -2237,7 +2259,7 @@ class DataFrameFormatted:
     def _build_nodes_df(
         data: Ros2DataModel
     ) -> RecordsInterface:
-        columns = ['node_id', 'node_handle', 'node_name']
+        columns = ['pid', 'node_id', 'node_handle', 'node_name']
 
         node_records = data.rcl_node_init.clone()
 

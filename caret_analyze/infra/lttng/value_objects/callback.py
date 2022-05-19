@@ -27,6 +27,7 @@ from ....value_objects import (
 class TimerCallbackValueLttng(TimerCallbackValue):
     def __init__(
         self,
+        pid: int,
         callback_id: str,
         node_id: str,
         node_name: str,
@@ -44,8 +45,13 @@ class TimerCallbackValueLttng(TimerCallbackValue):
             period_ns=period_ns,
             publish_topic_names=publish_topic_names,
         )
+        self._pid = pid
         self._callback_object = callback_object
         self._timer_handle = timer_handle
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def callback_object(self) -> int:
@@ -59,6 +65,7 @@ class TimerCallbackValueLttng(TimerCallbackValue):
 class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
     def __init__(
         self,
+        pid: int,
         callback_id: str,
         node_id: str,
         node_name: str,
@@ -79,10 +86,15 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
             publish_topic_names=publish_topic_names,
         )
 
+        self._pid = pid
         self._callback_object = callback_object
         self._callback_object_intra = callback_object_intra
         self._tilde_sub = tilde_subscription
         self._subscription_handle = subscription_handle
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def callback_object(self) -> int:
@@ -104,11 +116,12 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
 class ServiceCallbackValueLttng(ServiceCallbackValue):
     def __init__(
         self,
+        pid: str,
         callback_id: str,
         node_id: str,
         node_name: str,
         symbol: str,
-        callback_object: Optional[int],
+        callback_object: int,
         service_name: str,
         service_handle: int
     ) -> None:
@@ -119,11 +132,16 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
             symbol=symbol,
             service_name=service_name,
         )
+        self._pid = pid
         self._callback_object = callback_object
         self._service_handle = service_handle
 
     @property
-    def callback_object(self) -> Optional[int]:
+    def pid(self) -> int:
+        return self._pid
+
+    @property
+    def callback_object(self) -> int:
         return self._callback_object
 
     @property
@@ -134,6 +152,7 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
 class ClientCallbackValueLttng(ClientCallbackValue):
     def __init__(
         self,
+        pid: int,
         callback_id: str,
         node_id: str,
         node_name: str,
@@ -149,8 +168,13 @@ class ClientCallbackValueLttng(ClientCallbackValue):
             symbol=symbol,
             service_name=service_name,
         )
+        self._pid = pid
         self._callback_object = callback_object
         self._client_handle = client_handle
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def callback_object(self) -> Optional[int]:

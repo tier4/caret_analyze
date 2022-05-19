@@ -39,6 +39,10 @@ class TransformBroadcasterValueLttng(TransformBroadcasterValue):
         self._broadcaster_handler = broadcaster_handler
 
     @property
+    def pid(self) -> int:
+        return self.publisher.pid
+
+    @property
     def publisher(self) -> PublisherValueLttng:
         return self.__pub
 
@@ -50,6 +54,7 @@ class TransformBroadcasterValueLttng(TransformBroadcasterValue):
 class TransformBufferValueLttng(TransformBufferValue):
     def __init__(
         self,
+        pid: int,
         lookup_node_name: str,
         lookup_node_id: str,
         listener_node_name: Optional[str],
@@ -66,8 +71,13 @@ class TransformBufferValueLttng(TransformBufferValue):
             listener_node_id,
             lookup_transforms,
             listen_transforms)
+        self._pid = pid
         self._buffer_handler = buffer_handler
         self._listener_callback = listener_callback
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def buffer_handler(self) -> int:

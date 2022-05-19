@@ -20,8 +20,10 @@ from ....value_objects import CallbackGroupValue
 
 
 class CallbackGroupValueLttng(CallbackGroupValue):
+
     def __init__(
         self,
+        pid: int,
         callback_group_type_name: str,
         node_name: str,
         node_id: str,
@@ -36,8 +38,13 @@ class CallbackGroupValueLttng(CallbackGroupValue):
             node_id=node_id,
             callback_ids=callback_ids,
             callback_group_id=callback_group_id)
+        self._pid = pid
         self._callback_group_addr = callback_group_addr
         self._executor_addr = executor_addr
+
+    @property
+    def pid(self) -> int:
+        return self._pid
 
     @property
     def callback_group_addr(self) -> int:
