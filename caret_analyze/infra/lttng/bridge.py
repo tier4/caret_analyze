@@ -16,9 +16,7 @@ from functools import lru_cache
 from typing import List, Union
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.value_objects.subscription import (
-    IntraProcessBufferValue,
     SubscriptionStructValue,
-    SubscriptionValue,
 )
 
 from .value_objects import (
@@ -36,15 +34,11 @@ from ...value_objects import (
     PublisherStructValue,
     SubscriptionCallbackStructValue,
     CallbackStructValue,
-    SubscriptionCallbackValue,
     TimerCallbackStructValue,
-    TimerCallbackValue,
     TransformBroadcasterStructValue,
-    TransformBroadcasterValue,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
     TransformBufferStructValue,
-    TransformBufferValue,
     IntraProcessBufferStructValue,
 )
 

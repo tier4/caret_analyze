@@ -17,6 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 
 from collections import UserList
+from copy import deepcopy
 
 from typing import Dict, List, Optional, Set, Tuple, Collection, Sequence
 
@@ -138,9 +139,9 @@ class ColumnValue(ValueObject):
     def prefix(self) -> Tuple[str, ...]:
         return self._prefix
 
-    @property
-    def mapper(self) -> Optional[ColumnMapper]:
-        return self._mapper
+    # @property
+    # def mapper(self) -> Optional[ColumnMapper]:
+    #     return self._mapper
 
 
 class Column():
@@ -179,7 +180,8 @@ class Column():
         self._observer.on_column_renamed(old, new)
 
     def to_value(self) -> ColumnValue:
-        return ColumnValue(self.base_column_name, self.attrs, tuple(self._prefix))
+        mapper = None if self._mapper is None else deepcopy(self._mapper)
+        return ColumnValue(self.base_column_name, self.attrs, tuple(self._prefix), mapper=mapper)
 
     # def add_attr(self, attr: ColumnAttribute):
     #     self._attrs.append(attr)
@@ -194,6 +196,10 @@ class Column():
     @property
     def attrs(self) -> Set[ColumnAttribute]:
         return self._attrs
+
+    @property
+    def mapper(self) -> Optional[ColumnMapper]:
+        return self._mapper
 
     # def clone(self) -> Column:
     #     return Column(
@@ -226,7 +232,7 @@ class Column():
     def from_value(observer: ColumnEventObserver, column: ColumnValue) -> Column:
         return Column(
             observer, column.base_column_name, column.attrs, list(column.prefix),
-            mapper=column.mapper)
+            mapper=column._mapper)
 
     @property
     def prefix(self) -> List[str]:

@@ -13,13 +13,11 @@
 # limitations under the License.
 
 from __future__ import annotations
-from collections import defaultdict
 
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from itertools import product
-from caret_analyze.architecture.struct.struct_interface import SubscriptionsStructInterface
 from caret_analyze.value_objects.transform import TransformTreeValue
 from .graph_search import CallbackPathSearcher
 from .reader_interface import ArchitectureReader
@@ -597,5 +595,5 @@ def create_message_context(
                 node_out=node_output.to_value(),
                 child=None
             )
-        except Error as e:
+        except Error:
             pass

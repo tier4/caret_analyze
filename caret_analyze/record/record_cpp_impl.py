@@ -18,7 +18,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 from record_cpp_impl import RecordBase, RecordsBase
 
-from .column import Column, ColumnValue, Columns, ColumnEventObserver, UniqueList
+from .column import Column, ColumnMapper, ColumnValue, Columns, ColumnEventObserver, UniqueList
 from .record import RecordInterface, Records, RecordsInterface
 from ..common import Progress
 from ..exceptions import InvalidArgumentError
@@ -91,7 +91,29 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'
             raise InvalidArgumentError(msg)
+
+        mapped_values = {}
+        for column in self.columns:
+            if column.mapper is None:
+                continue
+            mapped_value = []
+            for i in range(len(self.data)):
+                mapped_value.append(self.get(i, column.column_name))
+            for i in range(len(other.data)):
+                mapped_value.append(other.get(i, column.column_name))
+            mapped_values[column.column_name] = mapped_value
+
         self._records.concat(other._records)
+        for mapped_column, mapped_value in mapped_values.items():
+            mapper = ColumnMapper()
+            for i, value in enumerate(mapped_value):
+                mapper.add(i, value)
+
+            self.columns.drop([mapped_column])
+            self.append_column(
+                ColumnValue(mapped_column, mapper=mapper),
+                list(range(len(mapped_value))),
+            )
         return None
 
     def sort(
@@ -106,6 +128,17 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
             raise InvalidArgumentError(f'column [{not_exist}] not found.')
         self._records.sort(keys, ascending)
         return None
+
+    def get(self, index: int, column_name: str, default_value=None) -> object:
+        mapper = self.columns.get(column_name).mapper
+        if column_name not in self.data[index].columns:
+            return default_value
+
+        value = self.data[index].get(column_name)
+        if mapper is not None:
+            return mapper.get(value)
+
+        return value
 
     # def get_column(
     #     self,
@@ -210,6 +243,16 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
     @property
     def columns(self) -> Columns:
         return self._columns
+
+    def drop_duplicates(self) -> None:
+        record_dicts: List[Dict] = []
+        for record in self.data:
+            record_dict = record.data
+            if record not in record_dicts:
+                record_dicts.append(record_dict)
+
+        init = [RecordCppImpl(record_dict) for record_dict in record_dicts]
+        self._records = RecordsBase(init or [], self.column_names)
 
     def equals(
         self,

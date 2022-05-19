@@ -17,9 +17,8 @@
 
 from typing import Optional
 
-from caret_analyze.record.column import ColumnAttribute, ColumnValue
+from caret_analyze.record.column import ColumnAttribute, ColumnMapper, ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
-from caret_analyze.infra.lttng.data_frame import TracePointData
 
 from tracetools_analysis.data_model import DataModel
 
@@ -35,265 +34,441 @@ class Ros2DataModel(DataModel):
         """Create a Ros2DataModel."""
         super().__init__()
         # Objects (one-time events, usually when something is created)
-        self.rcl_init = TracePointData([
-            'pid', 'tid', 'timestamp', 'context_handle', 'version'
-        ])
-        self.rcl_node_init = TracePointData([
-            'pid', 'tid', 'timestamp', 'node_handle', 'namespace', 'name', 'rmw_handle'
-        ])
-        self.rcl_publisher_init = TracePointData([
-            'pid', 'tid', 'timestamp', 'publisher_handle',
-            'node_handle', 'rmw_handle', 'topic_name', 'depth'
-        ])
-        self.rcl_subscription_init = TracePointData([
-            'pid', 'tid', 'timestamp', 'subscription_handle',
-            'node_handle', 'rmw_handle', 'topic_name', 'depth'
-        ])
-        self.rclcpp_subscription_init = TracePointData([
-            'pid', 'tid', 'timestamp', 'subscription', 'subscription_handle'
-        ])
-        self.rcl_service_init = TracePointData([
-            'service_handle', 'timestamp', 'pid', 'tid',
-            'node_handle', 'rmw_handle', 'service_name',
-        ])
-        self.rcl_client_init = TracePointData([
-            'client_handle', 'timestamp', 'pid', 'tid', 'node_handle',
-            'rmw_handle', 'service_name',
-        ])
-        self.rcl_timer_init = TracePointData([
-            'pid', 'tid', 'timestamp', 'timer_handle', 'period'
-        ])
-        self.rclcpp_timer_link_node = TracePointData([
-            'pid', 'tid', 'timestamp', 'timer_handle', 'node_handle'
-        ])
-        self.rclcpp_subscription_callback_added = TracePointData([
-            'subscription',
-            'timestamp',
-            'pid',
-            'tid',
-            'callback_object',
-        ])
-        self.rclcpp_service_callback_added = TracePointData([
-            'service_handle', 'timestamp', 'pid', 'tid', 'callback_object',
-        ])
-        self.rclcpp_timer_callback_added = TracePointData([
-            'timestamp',
-            'pid',
-            'tid',
-            'timer_handle',
-            'callback_object',
-        ])
-        self.rclcpp_callback_register = TracePointData([
-            'callback_object',
-            'timestamp',
-            'symbol',
-            'pid',
-            'tid',
-        ])
-        self.rcl_lifecycle_state_machine_init = TracePointData([
-            'state_machine_handle',
-            'node_handle',
-            'pid',
-            'tid',
-        ])
-        self.construct_executor = TracePointData([
-            'pid', 'tid', 'timestamp', 'executor_addr', 'executor_type_name'
-        ])
-        self.construct_static_executor = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'executor_addr',
-            'entities_collector_addr',
-            'executor_type_name',
-        ])
-        self.add_callback_group = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'executor_addr',
-            'callback_group_addr',
-            'group_type_name'
+        self.rcl_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('context_handle'),
+                ColumnValue('version', mapper=ColumnMapper())
+            ]
+        )
+        self.rcl_node_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('node_handle'),
+                ColumnValue('namespace', mapper=ColumnMapper()),
+                ColumnValue('name', mapper=ColumnMapper()),
+                ColumnValue('rmw_handle'),
+            ]
+        )
+        self.rcl_publisher_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('node_handle'),
+                ColumnValue('rmw_handle'),
+                ColumnValue('topic_name', mapper=ColumnMapper()),
+                ColumnValue('depth')
+            ]
+        )
+        self.rcl_subscription_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('subscription_handle'),
+                ColumnValue('node_handle'),
+                ColumnValue('rmw_handle'),
+                ColumnValue('topic_name', mapper=ColumnMapper()),
+                ColumnValue('depth'),
+            ]
+        )
+        self.rclcpp_subscription_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('subscription'),
+                ColumnValue('subscription_handle'),
+            ]
+        )
+        self.rcl_service_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('service_handle'),
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('node_handle'),
+                ColumnValue('rmw_handle'),
+                ColumnValue('service_name', mapper=ColumnMapper()),
+            ]
+        )
+        self.rcl_client_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('client_handle'),
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('node_handle'),
+                ColumnValue('rmw_handle'),
+                ColumnValue('service_name', mapper=ColumnMapper()),
+            ]
+        )
+        self.rcl_timer_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('timer_handle'),
+                ColumnValue('period'),
+            ]
+        )
+        self.rclcpp_timer_link_node = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('timer_handle'),
+                ColumnValue('node_handle'),
+            ]
+        )
+        self.rclcpp_subscription_callback_added = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('subscription'),
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('callback_object'),
+            ]
+        )
+        self.rclcpp_service_callback_added = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('service_handle'),
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('callback_object'),
+            ]
+        )
+        self.rclcpp_timer_callback_added = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timer_handle'),
+                ColumnValue('callback_object'),
+            ]
+        )
+        self.rclcpp_callback_register = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('callback_object'),
+                ColumnValue('timestamp'),
+                ColumnValue('symbol', mapper=ColumnMapper()),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+            ]
+        )
+        self.rcl_lifecycle_state_machine_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('state_machine_handle'),
+                ColumnValue('node_handle'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+            ]
+        )
+        self.construct_executor = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('executor_addr'),
+                ColumnValue('executor_type_name', mapper=ColumnMapper()),
+            ]
+        )
+        self.construct_static_executor = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('executor_addr'),
+                ColumnValue('entities_collector_addr'),
+                ColumnValue('executor_type_name', mapper=ColumnMapper()),
+            ]
+        )
+        self.add_callback_group = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('executor_addr'),
+                ColumnValue('callback_group_addr'),
+                ColumnValue('group_type_name', mapper=ColumnMapper()),
+            ]
+        )
+        self.add_callback_group_static_executor = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('entities_collector_addr'),
+                ColumnValue('callback_group_addr'),
+                ColumnValue('group_type_name', mapper=ColumnMapper()),
+            ]
+        )
+        self.callback_group_add_timer = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('callback_group_addr'),
+                ColumnValue('timer_handle'),
+            ]
+        )
+        self.callback_group_add_subscription = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('callback_group_addr'),
+                ColumnValue('subscription_handle'),
+            ]
+        )
+        self.callback_group_add_service = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('callback_group_addr'),
+                ColumnValue('service_handle'),
+            ]
+        )
+        self.callback_group_add_client = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('callback_group_addr'),
+                ColumnValue('client_handle'),
+            ]
+        )
+        self.rmw_implementation = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('rmw_impl', mapper=ColumnMapper()),
+            ]
+        )
+        self.symbol_rename = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('symbol_from', mapper=ColumnMapper()),
+                ColumnValue('symbol_to', mapper=ColumnMapper()),
+            ]
+        )
+        self.tilde_subscription_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('subscription'),
+                ColumnValue('node_name', mapper=ColumnMapper()),
+                ColumnValue('topic_name', mapper=ColumnMapper()),
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+            ]
+        )
+        self.tilde_publisher_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('publisher'),
+                ColumnValue('node_name', mapper=ColumnMapper()),
+                ColumnValue('topic_name', mapper=ColumnMapper()),
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+            ]
+        )
+        self.tilde_subscribe_added = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('subscription_id'),
+                ColumnValue('node_name', mapper=ColumnMapper()),
+                ColumnValue('topic_name', mapper=ColumnMapper()),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+            ]
+        )
+        self.transform_broadcaster = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('transform_broadcaster'),
+                ColumnValue('publisher_handle'),
+            ]
+        )
+        self.transform_broadcaster_frames = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('transform_broadcaster'),
+                ColumnValue('frame_id', mapper=ColumnMapper()),
+                ColumnValue('child_frame_id', mapper=ColumnMapper()),
+            ]
+        )
+        self.construct_tf_buffer = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('tf_buffer'),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('clock'),
+            ]
+        )
+        self.init_bind_tf_buffer_core = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('callback'),
+            ]
+        )
 
-        ])
-        self.add_callback_group_static_executor = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'entities_collector_addr',
-            'callback_group_addr',
-            'group_type_name',
-        ])
-        self.callback_group_add_timer = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'callback_group_addr',
-            'timer_handle',
-        ])
-        self.callback_group_add_subscription = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'callback_group_addr',
-            'subscription_handle',
-        ])
-        self.callback_group_add_service = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'callback_group_addr',
-            'service_handle',
-        ])
-        self.callback_group_add_client = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'callback_group_addr',
-            'client_handle',
-        ])
-        self.rmw_implementation = TracePointData([
-            'pid', 'tid', 'rmw_impl'
-        ])
-        self.symbol_rename = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'symbol_from',
-            'symbol_to',
-        ])
-        self.tilde_subscription_init = TracePointData([
-            'subscription',
-            'node_name',
-            'topic_name',
-            'timestamp',
-            'pid',
-            'tid',
-        ])
-        self.tilde_publisher_init = TracePointData([
-            'publisher',
-            'node_name',
-            'topic_name',
-            'timestamp',
-            'pid',
-            'tid',
-        ])
-        self.tilde_subscribe_added = TracePointData([
-            'subscription_id',
-            'node_name',
-            'topic_name',
-            'pid',
-            'tid',
-            'timestamp',
-        ])
-        self.transform_broadcaster = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'transform_broadcaster',
-            'publisher_handle',
-        ])
-        self.transform_broadcaster_frames = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'transform_broadcaster',
-            'frame_id',
-            'child_frame_id',
-        ])
-        self.construct_tf_buffer = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'tf_buffer',
-            'tf_buffer_core',
-            'clock',
-        ])
-        self.init_bind_tf_buffer_core = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'tf_buffer_core',
-            'callback',
-        ])
-
-        self.construct_node_hook = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'node_handle',
-            'clock'
-        ])
-        self.init_tf_broadcaster_frame_id_compact = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'tf_broadcaster',
-            'frame_id',
-            'frame_id_compact',
-        ])
-        self.init_tf_buffer_frame_id_compact = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'tf_buffer_core',
-            'frame_id',
-            'frame_id_compact',
-        ])
-        self.tf_buffer_set_transform = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'tf_buffer_core',
-            'frame_id',
-            'child_frame_id',
-        ])
-        self.tf_buffer_lookup_transform = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'tf_buffer_core',
-            'target_frame_id',
-            'source_frame_id',
-        ])
-        self.construct_ipm = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'ipm',
-        ])
-        self.ipm_add_publisher = TracePointData([
-            'pid',
-            'tid',
-            'ipm',
-            'timestamp',
-            'publisher_handle',
-            'pub_id',
-        ])
-        self.ipm_add_subscription = TracePointData([
-            'pid',
-            'tid',
-            'ipm',
-            'timestamp',
-            'subscription_handle',
-            'sub_id',
-        ])
-        self.ipm_insert_sub_id_for_pub = TracePointData([
-            'pid',
-            'tid',
-            'ipm',
-            'timestamp',
-            'sub_id',
-            'pub_id',
-            'use_take_shared_method'
-        ])
-        self.construct_ring_buffer = TracePointData([
-            'pid',
-            'tid',
-            'timestamp',
-            'buffer',
-            'capacity',
-        ])
+        self.construct_node_hook = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('node_handle'),
+                ColumnValue('clock'),
+            ]
+        )
+        self.init_tf_broadcaster_frame_id_compact = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('tf_broadcaster'),
+                ColumnValue('frame_id', mapper=ColumnMapper()),
+                ColumnValue('frame_id_compact'),
+            ]
+        )
+        self.init_tf_buffer_frame_id_compact = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('frame_id', mapper=ColumnMapper()),
+                ColumnValue('frame_id_compact'),
+            ]
+        )
+        self.tf_buffer_set_transform = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('frame_id', mapper=ColumnMapper()),
+                ColumnValue('child_frame_id', mapper=ColumnMapper()),
+            ]
+        )
+        self.tf_buffer_lookup_transform = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('tf_buffer_core'),
+                ColumnValue('target_frame_id', mapper=ColumnMapper()),
+                ColumnValue('source_frame_id', mapper=ColumnMapper()),
+            ]
+        )
+        self.construct_ipm = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('ipm'),
+            ]
+        )
+        self.ipm_add_publisher = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('ipm'),
+                ColumnValue('timestamp'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('pub_id'),
+            ]
+        )
+        self.ipm_add_subscription = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('ipm'),
+                ColumnValue('timestamp'),
+                ColumnValue('subscription_handle'),
+                ColumnValue('sub_id'),
+            ]
+        )
+        self.ipm_insert_sub_id_for_pub = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('ipm'),
+                ColumnValue('timestamp'),
+                ColumnValue('sub_id'),
+                ColumnValue('pub_id'),
+                ColumnValue('use_take_shared_method'),
+            ]
+        )
+        self.construct_ring_buffer = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('timestamp'),
+                ColumnValue('buffer'),
+                ColumnValue('capacity'),
+            ]
+        )
         self._raw_offset: Optional[int] = None
 
         # for v0.2 compatibility
@@ -638,156 +813,217 @@ class Ros2DataModel(DataModel):
         return raw_timestamp + self._raw_offset
 
     def add_rcl_init(self, pid, tid, context_handle, timestamp, version) -> None:
-        record = {
-            'context_handle': context_handle,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'version': version,  # Comment out to align with Dict[str: int64_t]
-        }
-        self.rcl_init.append(record)
+        version_idx = len(self.rcl_init)
+        mapper = self.rcl_init.columns.get('version').mapper
+        assert mapper is not None
+        mapper.add(version_idx, version)
+        self.rcl_init.append(
+            RecordFactory.create_instance(
+                {
+                    'context_handle': context_handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'version': version_idx,
+                }
+            )
+        )
 
     def add_rcl_node_init(
         self, pid, tid, node_handle, timestamp, rmw_handle, name, namespace
     ) -> None:
-        record = {
-            'node_handle': node_handle,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'rmw_handle': rmw_handle,
-            'namespace': namespace,
-            'name': name,
-        }
-        self.rcl_node_init.append(record)
+        record_idx = len(self.rcl_node_init)
+        ns_mapper = self.rcl_node_init.columns.get('namespace').mapper
+        name_mapper = self.rcl_node_init.columns.get('name').mapper
+        assert ns_mapper is not None and name_mapper is not None
+        ns_mapper.add(record_idx, namespace)
+        name_mapper.add(record_idx, name)
+
+        self.rcl_node_init.append(
+            RecordFactory.create_instance(
+                {
+                    'node_handle': node_handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'rmw_handle': rmw_handle,
+                    'namespace': record_idx,
+                    'name': record_idx,
+                }
+            )
+        )
 
     def add_rcl_publisher_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, topic_name, depth
     ) -> None:
-        record = {
-            'publisher_handle': handle,
-            'timestamp': timestamp,
-            'node_handle': node_handle,
-            'rmw_handle': rmw_handle,
-            'pid': pid,
-            'tid': tid,
-            'topic_name': topic_name,
-            'depth': depth,
-        }
-        self.rcl_publisher_init.append(record)
+        topic_name_idx = len(self.rcl_publisher_init)
+        mapper = self.rcl_publisher_init.columns.get('topic_name').mapper
+        assert mapper is not None
+        mapper.add(topic_name_idx, topic_name)
+        self.rcl_publisher_init.append(
+            RecordFactory.create_instance(
+                {
+                    'publisher_handle': handle,
+                    'timestamp': timestamp,
+                    'node_handle': node_handle,
+                    'rmw_handle': rmw_handle,
+                    'pid': pid,
+                    'tid': tid,
+                    'topic_name': topic_name_idx,
+                    'depth': depth,
+                }
+            )
+        )
 
     def add_rcl_subscription_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, topic_name, depth
     ) -> None:
-        record = {
-            'subscription_handle': handle,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'node_handle': node_handle,
-            'rmw_handle': rmw_handle,
-            'topic_name': topic_name,
-            'depth': depth,
-        }
-        self.rcl_subscription_init.append(record)
+        record_idx = len(self.rcl_subscription_init)
+        mapper = self.rcl_subscription_init.columns.get('topic_name').mapper
+        assert mapper is not None
+        mapper.add(record_idx, topic_name)
+
+        self.rcl_subscription_init.append(
+            RecordFactory.create_instance(
+                {
+                    'subscription_handle': handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'node_handle': node_handle,
+                    'rmw_handle': rmw_handle,
+                    'topic_name': record_idx,
+                    'depth': depth,
+                }
+            )
+        )
 
     def add_rclcpp_subscription_init(
         self, pid, tid, subscription_pointer, timestamp, subscription_handle
     ) -> None:
-        record = {
-            'subscription': subscription_pointer,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'subscription_handle': subscription_handle,
-        }
-        self.rclcpp_subscription_init.append(record)
+        self.rclcpp_subscription_init.append(
+            RecordFactory.create_instance(
+                {
+                    'subscription': subscription_pointer,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'subscription_handle': subscription_handle,
+                }
+            )
+        )
 
     def add_rclcpp_subscription_callback_added(
         self, pid, tid, subscription_pointer, timestamp, callback_object
     ) -> None:
-        record = {
-            'subscription': subscription_pointer,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'callback_object': callback_object,
-        }
-        self.rclcpp_subscription_callback_added.append(record)
+        self.rclcpp_subscription_callback_added.append(
+            RecordFactory.create_instance(
+                {
+                    'subscription': subscription_pointer,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'callback_object': callback_object,
+                }
+            )
+        )
 
     def add_rcl_service_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, service_name
     ) -> None:
-        record = {
-            'service_handle': handle,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'node_handle': node_handle,
-            'rmw_handle': rmw_handle,
-            'service_name': service_name,
-        }
-        self.rcl_service_init.append(record)
+        record_idx = len(self.rcl_service_init)
+        mapper = self.rcl_service_init.columns.get('service_name').mapper
+        assert mapper is not None
+        mapper.add(record_idx, service_name)
+
+        self.rcl_service_init.append(
+            RecordFactory.create_instance(
+                {
+                    'service_handle': handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'node_handle': node_handle,
+                    'rmw_handle': rmw_handle,
+                    'service_name': record_idx,
+                }
+            )
+        )
 
     def add_rclcpp_service_callback_added(
         self, pid, tid, service_handle, timestamp, callback_object
     ) -> None:
-        record = {
-            'service_handle': service_handle,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'callback_object': callback_object,
-        }
-        self.rclcpp_service_callback_added.append(record)
+        self.rclcpp_service_callback_added.append(
+            RecordFactory.create_instance(
+                {
+                    'service_handle': service_handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'callback_object': callback_object,
+                }
+            )
+        )
 
     def add_rcl_client_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, service_name
     ) -> None:
-        record = {
-            'client_handle': handle,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'node_handle': node_handle,
-            'rmw_handle': rmw_handle,
-            'service_name': service_name,
-        }
-        self.rcl_client_init.append(record)
+        self.rcl_client_init.append(
+            RecordFactory.create_instance(
+                {
+                    'client_handle': handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'node_handle': node_handle,
+                    'rmw_handle': rmw_handle,
+                    'service_name': service_name,
+                }
+            )
+        )
 
     def add_rcl_timer_init(
         self, pid, tid, handle, timestamp, period
     ) -> None:
-        record = {
-            'timer_handle': handle,
-            'timestamp': timestamp,
-            'period': period,
-            'pid': pid,
-            'tid': tid,
-        }
-        self.rcl_timer_init.append(record)
+        self.rcl_timer_init.append(
+            RecordFactory.create_instance(
+                {
+                    'timer_handle': handle,
+                    'timestamp': timestamp,
+                    'period': period,
+                    'pid': pid,
+                    'tid': tid,
+                }
+            )
+        )
 
     def add_rclcpp_timer_callback_added(
         self, pid, tid, timer_handle, timestamp, callback_object
     ) -> None:
-        record = {
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'timer_handle': timer_handle,
-            'callback_object': callback_object,
-        }
-        self.rclcpp_timer_callback_added.append(record)
+        self.rclcpp_timer_callback_added.append(
+            RecordFactory.create_instance(
+                {
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'timer_handle': timer_handle,
+                    'callback_object': callback_object,
+                }
+            )
+        )
 
     def add_rclcpp_timer_link_node(self, pid, tid, handle, timestamp, node_handle) -> None:
-        record = {
-            'timer_handle': handle,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-            'node_handle': node_handle,
-        }
-        self.rclcpp_timer_link_node.append(record)
+        self.rclcpp_timer_link_node.append(
+            RecordFactory.create_instance(
+                {
+                    'timer_handle': handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'node_handle': node_handle,
+                }
+            )
+        )
 
     # def add_rclcpp_callback_register(
     #     self, pid, tid, callback_group_pointer, timestamp, callback_group_handle
@@ -880,6 +1116,7 @@ class Ros2DataModel(DataModel):
 
         if dds_write_timestamp_raw is not None:
             d['dds_write_timestamp'] = self._to_system_time(dds_write_timestamp_raw)
+
         record = RecordFactory.create_instance(d)
 
         self.inter_publish.append(record)
@@ -1084,11 +1321,20 @@ class Ros2DataModel(DataModel):
         self.dds_bind_addr_to_addr.append(record)
 
     def add_rmw_implementation(self, pid: int, tid: int, rmw_impl: str):
-        self.rmw_implementation.append({
-            'rmw_impl': rmw_impl,
-            'pid': pid,
-            'tid': tid,
-        })
+        rmw_impl_index = len(self.rmw_implementation)
+        mapper = self.rmw_implementation.columns.get('rmw_impl').mapper
+        assert mapper is not None
+        mapper.add(rmw_impl_index, rmw_impl)
+
+        self.rmw_implementation.append(
+            RecordFactory.create_instance(
+                {
+                    'rmw_impl': rmw_impl_index,
+                    'pid': pid,
+                    'tid': tid,
+                }
+            )
+        )
 
     def add_add_callback_group(
         self,
@@ -1099,14 +1345,24 @@ class Ros2DataModel(DataModel):
         callback_group_addr: int,
         group_type_name: str
     ) -> None:
-        self.add_callback_group.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'executor_addr': executor_addr,
-            'callback_group_addr': callback_group_addr,
-            'group_type_name': group_type_name
-        })
+        record_idx = len(self.add_callback_group)
+        mapper = self.add_callback_group.columns.get('group_type_name').mapper
+        assert mapper is not None
+        mapper.add(record_idx, group_type_name)
+
+        self.add_callback_group.append(
+            RecordFactory.create_instance(
+
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'executor_addr': executor_addr,
+                    'callback_group_addr': callback_group_addr,
+                    'group_type_name': record_idx
+                }
+            )
+        )
 
     def add_add_callback_group_static_executor(
         self,
@@ -1117,14 +1373,18 @@ class Ros2DataModel(DataModel):
         callback_group_addr: int,
         group_type_name: str
     ) -> None:
-        self.add_callback_group_static_executor.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'entities_collector_addr': entities_collector_addr,
-            'callback_group_addr': callback_group_addr,
-            'group_type_name': group_type_name
-        })
+        self.add_callback_group_static_executor.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'entities_collector_addr': entities_collector_addr,
+                    'callback_group_addr': callback_group_addr,
+                    'group_type_name': group_type_name
+                }
+            )
+        )
 
     def add_construct_executor(
         self,
@@ -1134,13 +1394,21 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         executor_type_name: str
     ) -> None:
-        self.construct_executor.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'executor_addr': executor_addr,
-            'executor_type_name': executor_type_name,
-        })
+        executor_type_name_idx = len(self.construct_executor)
+        mapper = self.construct_executor.columns.get('executor_type_name').mapper
+        assert mapper is not None
+        mapper.add(executor_type_name_idx, executor_type_name)
+        self.construct_executor.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'executor_addr': executor_addr,
+                    'executor_type_name': executor_type_name_idx,
+                }
+            )
+        )
 
     def add_construct_static_executor(
         self,
@@ -1151,14 +1419,24 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         executor_type_name: str
     ) -> None:
-        self.construct_static_executor.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'executor_addr': executor_addr,
-            'entities_collector_addr': entities_collector_addr,
-            'executor_type_name': executor_type_name,
-        })
+        record_idx = len(self.construct_static_executor)
+        mapper = self.construct_static_executor.columns.get('frame_id').mapper
+        assert mapper is not None
+
+        mapper.add(record_idx, executor_type_name)
+
+        self.construct_static_executor.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'executor_addr': executor_addr,
+                    'entities_collector_addr': entities_collector_addr,
+                    'executor_type_name': record_idx,
+                }
+            )
+        )
 
     def add_callback_group_add_timer(
         self,
@@ -1168,13 +1446,17 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         timer_handle: int
     ) -> None:
-        self.callback_group_add_timer.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'timer_handle': timer_handle,
-        })
+        self.callback_group_add_timer.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'callback_group_addr': callback_group_addr,
+                    'timer_handle': timer_handle,
+                }
+            )
+        )
 
     def add_callback_group_add_subscription(
         self,
@@ -1184,13 +1466,17 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         subscription_handle: int
     ) -> None:
-        self.callback_group_add_subscription.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'subscription_handle': subscription_handle,
-        })
+        self.callback_group_add_subscription.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'callback_group_addr': callback_group_addr,
+                    'subscription_handle': subscription_handle,
+                }
+            )
+        )
 
     def add_callback_group_add_service(
         self,
@@ -1200,13 +1486,17 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         service_handle: int
     ) -> None:
-        self.callback_group_add_service.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'service_handle': service_handle,
-        })
+        self.callback_group_add_service.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'callback_group_addr': callback_group_addr,
+                    'service_handle': service_handle,
+                }
+            )
+        )
 
     def add_callback_group_add_client(
         self,
@@ -1216,37 +1506,49 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         client_handle: int
     ) -> None:
-        self.callback_group_add_client.append({
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp,
-            'callback_group_addr': callback_group_addr,
-            'client_handle': client_handle,
-        })
+        self.callback_group_add_client.append(
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'callback_group_addr': callback_group_addr,
+                    'client_handle': client_handle,
+                }
+            )
+        )
 
     def add_tilde_subscription_init(
         self, pid, tid, subscription, node_name, topic_name, timestamp
     ) -> None:
-        self.tilde_subscription_init.append({
-            'subscription': subscription,
-            'node_name': node_name,
-            'topic_name': topic_name,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-        })
+        self.tilde_subscription_init.append(
+            RecordFactory.create_instance(
+                {
+                    'subscription': subscription,
+                    'node_name': node_name,
+                    'topic_name': topic_name,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                }
+            )
+        )
 
     def add_tilde_publisher_init(
         self, pid, tid, publisher, node_name, topic_name, timestamp
     ) -> None:
-        self.tilde_publisher_init.append({
-            'publisher': publisher,
-            'node_name': node_name,
-            'topic_name': topic_name,
-            'timestamp': timestamp,
-            'pid': pid,
-            'tid': tid,
-        })
+        self.tilde_publisher_init.append(
+            RecordFactory.create_instance(
+                {
+                    'publisher': publisher,
+                    'node_name': node_name,
+                    'topic_name': topic_name,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                }
+            )
+        )
 
     def add_tilde_subscribe(
         self,
@@ -1321,13 +1623,15 @@ class Ros2DataModel(DataModel):
         self, pid: int, tid: int, timestamp: int, symbol_from: str, symbol_to: str
     ):
         self.symbol_rename.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'symbol_from': symbol_from,
-                'symbol_to': symbol_to
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'symbol_from': symbol_from,
+                    'symbol_to': symbol_to,
+                }
+            )
         )
 
     def add_init_bind_transform_broadcaster(
@@ -1339,13 +1643,16 @@ class Ros2DataModel(DataModel):
         publisher_handle: int,
     ) -> None:
         self.transform_broadcaster.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'transform_broadcaster': broadcaster,
-                'publisher_handle': publisher_handle
-            }
+            RecordFactory.create_instance
+            (
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'transform_broadcaster': broadcaster,
+                    'publisher_handle': publisher_handle
+                }
+            )
         )
 
     def add_init_bind_tf_broadcaster_send_transform(
@@ -1357,15 +1664,25 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         child_frame_id: str
     ) -> None:
+        record_idx = len(self.transform_broadcaster_frames)
+        mapper = self.transform_broadcaster_frames.columns.get('frame_id').mapper
+        mapper_child = self.transform_broadcaster_frames.columns.get('child_frame_id').mapper
+        assert mapper is not None and mapper_child is not None
+
+        mapper.add(record_idx, frame_id)
+        mapper_child.add(record_idx, child_frame_id)
+
         self.transform_broadcaster_frames.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'transform_broadcaster': transform_broadcaster,
-                'frame_id': frame_id,
-                'child_frame_id': child_frame_id
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'transform_broadcaster': transform_broadcaster,
+                    'frame_id': record_idx,
+                    'child_frame_id': record_idx,
+                }
+            )
         )
 
     def add_construct_tf_buffer(
@@ -1378,14 +1695,16 @@ class Ros2DataModel(DataModel):
         clock: int
     ) -> None:
         self.construct_tf_buffer.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer': tf_buffer,
-                'tf_buffer_core': tf_buffer_core,
-                'clock': clock
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'tf_buffer': tf_buffer,
+                    'tf_buffer_core': tf_buffer_core,
+                    'clock': clock
+                }
+            )
         )
 
     def add_init_bind_tf_buffer_core(
@@ -1397,13 +1716,15 @@ class Ros2DataModel(DataModel):
         callback: int
     ) -> None:
         self.init_bind_tf_buffer_core.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer_core': tf_buffer_core,
-                'callback': callback
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'tf_buffer_core': tf_buffer_core,
+                    'callback': callback,
+                }
+            )
         )
 
     def add_construct_node_hook(
@@ -1415,13 +1736,15 @@ class Ros2DataModel(DataModel):
         clock: int
     ) -> None:
         self.construct_node_hook.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'node_handle': node_handle,
-                'clock': clock
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'node_handle': node_handle,
+                    'clock': clock
+                }
+            )
         )
 
     def add_send_transform(
@@ -1456,15 +1779,21 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         frame_id_compact: int
     ) -> None:
+        record_idx = len(self.init_tf_broadcaster_frame_id_compact)
+        mapper = self.init_tf_broadcaster_frame_id_compact.columns.get('frame_id').mapper
+        assert mapper is not None
+        mapper.add(record_idx, frame_id)
         self.init_tf_broadcaster_frame_id_compact.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_broadcaster': broadcaster,
-                'frame_id': frame_id,
-                'frame_id_compact': frame_id_compact,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'tf_broadcaster': broadcaster,
+                    'frame_id': record_idx,
+                    'frame_id_compact': frame_id_compact,
+                }
+            )
         )
 
     def add_init_tf_buffer_frame_id_compact(
@@ -1476,15 +1805,21 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         frame_id_compact: int
     ) -> None:
+        record_idx = len(self.init_tf_buffer_frame_id_compact)
+        mapper = self.init_tf_buffer_frame_id_compact.columns.get('frame_id').mapper
+        assert mapper is not None
+        mapper.add(record_idx, frame_id)
         self.init_tf_buffer_frame_id_compact.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer_core': buffer_core,
-                'frame_id': frame_id,
-                'frame_id_compact': frame_id_compact,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'tf_buffer_core': buffer_core,
+                    'frame_id': record_idx,
+                    'frame_id_compact': frame_id_compact,
+                }
+            )
         )
 
     def add_tf_lookup_transform(
@@ -1528,14 +1863,22 @@ class Ros2DataModel(DataModel):
     def add_rclcpp_callback_register(
         self, pid, tid, callback_object, timestamp, symbol
     ) -> None:
-        record = {
-            'callback_object': callback_object,
-            'timestamp': timestamp,
-            'symbol': symbol,
-            'pid': pid,
-            'tid': tid,
-        }
-        self.rclcpp_callback_register.append(record)
+        record_idx = len(self.rclcpp_callback_register)
+        mapper = self.rclcpp_callback_register.columns.get('symbol').mapper
+        assert mapper is not None
+        mapper.add(record_idx, symbol)
+
+        self.rclcpp_callback_register.append(
+            RecordFactory.create_instance(
+                {
+                    'callback_object': callback_object,
+                    'timestamp': timestamp,
+                    'symbol': record_idx,
+                    'pid': pid,
+                    'tid': tid,
+                }
+            )
+        )
 
     def add_tf_buffer_find_closest(
         self,
@@ -1603,19 +1946,28 @@ class Ros2DataModel(DataModel):
         tid: int,
         timestamp: int,
         buffer_core: int,
-        target_frame_id: int,
-        source_frame_id: int,
+        target_frame_id: str,
+        source_frame_id: str,
     ) -> None:
+        record_idx = len(self.tf_buffer_lookup_transform)
+        mapper = self.tf_buffer_lookup_transform.columns.get('target_frame_id').mapper
+        mapper_source = self.tf_buffer_lookup_transform.columns.get('source_frame_id').mapper
+        assert mapper is not None and mapper_source is not None
+
+        mapper.add(record_idx, target_frame_id)
+        mapper_source.add(record_idx, source_frame_id)
 
         self.tf_buffer_lookup_transform.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer_core': buffer_core,
-                'target_frame_id': target_frame_id,
-                'source_frame_id': source_frame_id,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'tf_buffer_core': buffer_core,
+                    'target_frame_id': record_idx,
+                    'source_frame_id': record_idx,
+                }
+            )
         )
 
     def add_init_tf_buffer_set_transform(
@@ -1627,16 +1979,25 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         child_frame_id: str,
     ) -> None:
+        record_idx = len(self.tf_buffer_set_transform)
+        mapper = self.tf_buffer_set_transform.columns.get('frame_id').mapper
+        mapper_child = self.tf_buffer_set_transform.columns.get('child_frame_id').mapper
+        assert mapper is not None and mapper_child is not None
+
+        mapper.add(record_idx, frame_id)
+        mapper_child.add(record_idx, child_frame_id)
 
         self.tf_buffer_set_transform.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'tf_buffer_core': buffer_core,
-                'frame_id': frame_id,
-                'child_frame_id': child_frame_id,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'tf_buffer_core': buffer_core,
+                    'frame_id': record_idx,
+                    'child_frame_id': record_idx,
+                }
+            )
         )
 
     def add_construct_ipm(
@@ -1647,12 +2008,15 @@ class Ros2DataModel(DataModel):
         ipm: int,
     ) -> None:
         self.construct_ipm.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'ipm': ipm,
-            }
+            RecordFactory.create_instance
+            (
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'ipm': ipm,
+                }
+            )
         )
 
     def add_ipm_add_publisher(
@@ -1665,14 +2029,16 @@ class Ros2DataModel(DataModel):
         pub_id: int,
     ) -> None:
         self.ipm_add_publisher.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'ipm': ipm,
-                'publisher_handle': publisher_handle,
-                'pub_id': pub_id,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'ipm': ipm,
+                    'publisher_handle': publisher_handle,
+                    'pub_id': pub_id,
+                }
+            )
         )
 
     def add_ipm_add_subscription(
@@ -1685,14 +2051,16 @@ class Ros2DataModel(DataModel):
         sub_id: int,
     ) -> None:
         self.ipm_add_subscription.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'ipm': ipm,
-                'subscription_handle': subscription_handle,
-                'sub_id': sub_id,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'ipm': ipm,
+                    'subscription_handle': subscription_handle,
+                    'sub_id': sub_id,
+                }
+            )
         )
 
     def add_ipm_insert_sub_id_for_pub(
@@ -1706,15 +2074,17 @@ class Ros2DataModel(DataModel):
         use_take_shared_method: int
     ) -> None:
         self.ipm_insert_sub_id_for_pub.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'ipm': ipm,
-                'sub_id': sub_id,
-                'pub_id': pub_id,
-                'use_take_shared_method': use_take_shared_method,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'ipm': ipm,
+                    'sub_id': sub_id,
+                    'pub_id': pub_id,
+                    'use_take_shared_method': use_take_shared_method,
+                }
+            )
         )
 
     def add_construct_ring_buffer(
@@ -1726,13 +2096,15 @@ class Ros2DataModel(DataModel):
         capacity: int
     ) -> None:
         self.construct_ring_buffer.append(
-            {
-                'pid': pid,
-                'tid': tid,
-                'timestamp': timestamp,
-                'buffer': buffer,
-                'capacity': capacity,
-            }
+            RecordFactory.create_instance(
+                {
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                    'buffer': buffer,
+                    'capacity': capacity,
+                }
+            )
         )
 
     def add_ring_buffer_enqueue(
@@ -1898,55 +2270,17 @@ class Ros2DataModel(DataModel):
         self.tf_lookup_transform_end.append(record)
 
     def _finalize(self) -> None:
-        self.rcl_init.finalize()
-        self.rcl_node_init.finalize()
-        self.rcl_publisher_init.finalize()
-        self.rcl_subscription_init.finalize()
-        self.rclcpp_subscription_init.finalize()
-        self.rclcpp_subscription_callback_added.finalize()
-        self.rcl_service_init.finalize()
-        self.rclcpp_service_callback_added.finalize()
-        self.rcl_client_init.finalize()
-        self.rcl_timer_init.finalize()
-        self.rclcpp_timer_callback_added.finalize()
-        self.rclcpp_timer_link_node.finalize()
-
-        self.construct_tf_buffer.finalize()
-        self.init_bind_tf_buffer_core.finalize()
-        self.tf_buffer_lookup_transform.finalize()
-        self.tf_buffer_set_transform.finalize()
-        self.construct_node_hook.finalize()
-        self.symbol_rename.finalize()
         symbol_map = {
             symbol['symbol_from']: symbol['symbol_to']
             for _, symbol
-            in self.symbol_rename.df.iterrows()
+            in self.symbol_rename.to_dataframe().iterrows()
         }
-        self.rclcpp_callback_register.replace('symbol', symbol_map)
-        self.rclcpp_callback_register.finalize()
-        self.init_tf_broadcaster_frame_id_compact.finalize()
-        self.transform_broadcaster.finalize()
-        self.transform_broadcaster_frames.finalize()
-        self.init_tf_buffer_frame_id_compact.finalize()
-        # self.lifecycle_state_machines.finalize()
-        # self.lifecycle_transitions.finalize()
-        self.construct_executor.finalize()
-        self.construct_static_executor.finalize()
-        self.add_callback_group.finalize()
-        self.add_callback_group_static_executor.finalize()
-        self.callback_group_add_timer.finalize()
-        self.callback_group_add_subscription.finalize()
-        self.callback_group_add_service.finalize()
-        self.callback_group_add_client.finalize()
-        self.tilde_subscription_init.finalize()
-        self.tilde_publisher_init.finalize()
-        self.tilde_subscribe_added.finalize()
-        self.rmw_implementation.finalize()
-        self.construct_ipm.finalize()
-        self.ipm_add_publisher.finalize()
-        self.ipm_add_subscription.finalize()
-        self.ipm_insert_sub_id_for_pub.finalize()
-        self.construct_ring_buffer.finalize()
+        while True:
+            old_column_names = tuple(self.rclcpp_callback_register.column_names)
+            self.rclcpp_callback_register.columns.rename(symbol_map)
+            new_column_names = tuple(self.rclcpp_callback_register.column_names)
+            if old_column_names == new_column_names:
+                break
 
     def print_data(self) -> None:
         raise NotImplementedError('')

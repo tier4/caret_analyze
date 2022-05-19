@@ -294,8 +294,6 @@ class Records(RecordsInterface, ColumnEventObserver):
                 msg += f'{err_column}, '
             raise InvalidArgumentError(msg)
 
-        columns_tmp = self._columns
-
         raise NotImplementedError('')
 
     def on_column_reindexed(self, columns: Sequence[str]):
@@ -745,7 +743,8 @@ class Records(RecordsInterface, ColumnEventObserver):
         copy_records = copy_records.clone()
         sink_records = sink_records.clone()
 
-        source_records.append_column(ColumnValue(column_type), [RecordType.SOURCE]*len(source_records))
+        source_records.append_column(
+            ColumnValue(column_type), [RecordType.SOURCE]*len(source_records))
         copy_records.append_column(ColumnValue(column_type), [RecordType.COPY]*len(copy_records))
         sink_records.append_column(ColumnValue(column_type), [RecordType.SINK]*len(sink_records))
 

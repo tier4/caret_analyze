@@ -13,12 +13,12 @@
 # limitations under the License.
 
 
-from typing import Dict, List, Optional, Tuple, Collection
+from typing import Dict, List, Optional
 
 from multimethod import multimethod as singledispatchmethod
 
 from .record import Record, RecordInterface, Records, RecordsInterface
-from .column import Column, ColumnValue, Columns
+from .column import ColumnValue
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl

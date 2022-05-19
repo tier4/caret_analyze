@@ -330,6 +330,10 @@ class RecordsInterface:
         """
         pass
 
+    @abstractmethod
+    def get(self, index: int, column_name: str) -> object:
+        pass
+
     # @abstractmethod
     # def drop_columns(
     #     self, column_names: List[str]

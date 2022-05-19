@@ -599,7 +599,7 @@ class TestDataFrameFormatted:
         data.add_executor(exec_addr, 0, exec_type)
         data.finalize()
 
-        exec_df = DataFrameFormatted._build_executor_df(data)
+        exec_df = DataFrameFormatted._build_executor_records(data)
 
         expect = [
             {
@@ -621,7 +621,7 @@ class TestDataFrameFormatted:
         data.add_executor_static(exec_addr, collector_addr, 0, exec_type)
         data.finalize()
 
-        exec_df = DataFrameFormatted._build_executor_df(data)
+        exec_df = DataFrameFormatted._build_executor_records(data)
 
         expect = [
             {
