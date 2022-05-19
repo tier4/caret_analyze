@@ -1,12 +1,16 @@
 from functools import lru_cache
 
-from caret_analyze.record.column import ColumnValue
-from caret_analyze.value_objects.publisher import PublisherStructValue
-
-from ..column_names import COLUMN_NAME
 from ..bridge import LttngBridge
+from ..column_names import COLUMN_NAME
 from ..ros2_tracing.data_model import Ros2DataModel
-from ....record import RecordsInterface, merge_sequencial, GroupedRecords, ColumnAttribute
+from ....record import (
+    ColumnAttribute,
+    ColumnValue,
+    GroupedRecords,
+    merge_sequencial,
+    RecordsInterface,
+)
+from ....value_objects import PublisherStructValue
 
 
 class PublishRecordsContainer:

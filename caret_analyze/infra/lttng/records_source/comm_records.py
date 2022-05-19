@@ -1,15 +1,18 @@
 from functools import lru_cache
-from caret_analyze.record.column import ColumnAttribute
-from .subscribe_records import SubscribeRecordsContainer
+
 from .ipc_buffer_records import IpcBufferRecordsContainer
 from .publish_records import PublishRecordsContainer
-
+from .subscribe_records import SubscribeRecordsContainer
+from ..bridge import LttngBridge
 from ..column_names import COLUMN_NAME
 from ..ros2_tracing.data_model import Ros2DataModel
-from ..bridge import LttngBridge
 from ....record import (
+    ColumnAttribute,
+    GroupedRecords,
+    merge,
+    merge_sequencial,
+    merge_sequencial_for_addr_track,
     RecordsInterface,
-    merge, merge_sequencial, merge_sequencial_for_addr_track, GroupedRecords
 )
 from ....value_objects import CommunicationStructValue
 

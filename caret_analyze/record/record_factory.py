@@ -17,8 +17,8 @@ from typing import Dict, List, Optional
 
 from multimethod import multimethod as singledispatchmethod
 
-from .record import Record, RecordInterface, Records, RecordsInterface
 from .column import ColumnValue
+from .record import Record, RecordInterface, Records, RecordsInterface
 
 try:
     import caret_analyze.record.record_cpp_impl as cpp_impl

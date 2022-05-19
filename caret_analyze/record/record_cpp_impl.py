@@ -18,7 +18,14 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 from record_cpp_impl import RecordBase, RecordsBase
 
-from .column import Column, ColumnMapper, ColumnValue, Columns, ColumnEventObserver, UniqueList
+from .column import (
+    Column,
+    ColumnEventObserver,
+    ColumnMapper,
+    Columns,
+    ColumnValue,
+    UniqueList,
+)
 from .record import RecordInterface, Records, RecordsInterface
 from ..common import Progress
 from ..exceptions import InvalidArgumentError

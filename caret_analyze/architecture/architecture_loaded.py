@@ -14,61 +14,61 @@
 
 from __future__ import annotations
 
+from itertools import product
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-from itertools import product
-from caret_analyze.value_objects.transform import TransformTreeValue
 from .graph_search import CallbackPathSearcher
 from .reader_interface import ArchitectureReader
 from .struct import (
-    CommunicationsStruct,
-    ExecutorsStruct,
-    PathsStruct,
-    NodeStruct,
-    PublishersStruct,
-    PublisherStruct,
-    NodesStruct,
-    TimersStruct,
-    SubscriptionsStruct,
-    SubscriptionStruct,
-    TransformBroadcasterStruct,
-    TransformBufferStruct,
+    CallbackGroupsStruct,
+    CallbackGroupStruct,
     CallbacksStruct,
     CallbackStruct,
-    CallbackGroupStruct,
-    CallbackGroupsStruct,
-    NodePathsStruct,
-    NodeOutputType,
-    NodeInputType,
-    VariablePassingStruct,
-    VariablePassingsStruct,
+    CommunicationsStruct,
+    ExecutorsStruct,
     IntraProcessBufferStruct,
+    NodeInputType,
+    NodeOutputType,
+    NodePathsStruct,
+    NodesStruct,
+    NodeStruct,
+    PathsStruct,
+    PublishersStruct,
+    PublisherStruct,
+    SubscriptionsStruct,
+    SubscriptionStruct,
+    TimersStruct,
+    TransformBroadcasterStruct,
+    TransformBufferStruct,
+    VariablePassingsStruct,
+    VariablePassingStruct,
 )
 from ..common import Progress, Util
-from ..exceptions import InvalidReaderError, Error
+from ..exceptions import Error, InvalidReaderError
 from ..value_objects import (
     CallbackGroupValue,
+    CallbackValue,
+    ClientCallbackValue,
     CommunicationStructValue,
     ExecutorStructValue,
     ExecutorValue,
+    MessageContext,
     NodeStructValue,
     NodeValue,
-    ClientCallbackValue,
-    ServiceCallbackValue,
-    CallbackValue,
     PathStructValue,
     PathValue,
     PublisherValue,
+    ServiceCallbackValue,
     SubscriptionCallbackValue,
     SubscriptionValue,
     TimerCallbackValue,
     TimerValue,
     TransformBroadcasterValue,
     TransformBufferValue,
+    TransformTreeValue,
     TransformValue,
     VariablePassingValue,
-    MessageContext
 )
 
 logger = getLogger(__name__)

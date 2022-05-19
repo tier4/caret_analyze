@@ -15,7 +15,7 @@
 # from collections import UserList
 # from typing import List, Optional
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -29,11 +29,16 @@ class TracePointData:
         self._columns = columns
         self._dicts: List[Dict[str, Union[str, int]]] = []
         self._data: Optional[pd.DataFrame] = None
+        self._size: Optional[int] = None
 
     @property
     def df(self) -> pd.DataFrame:
-        assert self._data is not None
+        assert self._data is not None, 'finalize() must be called before accessing df'
         return self._data
+
+    def __len__(self) -> int:
+        assert self._size is not None
+        return self._size
 
     def append(self, row: Dict[str, Union[str, int]]) -> None:
 
@@ -61,7 +66,9 @@ class TracePointData:
                 {c: [None] for c in self.columns},
                 dtype=object
             )
+            self._size = 0
         else:
             data = pd.DataFrame.from_dict(self._dicts, dtype=object)
+            self._size = len(self._dicts)
         self._data = data
         del self._dicts

@@ -1,16 +1,25 @@
 
 from functools import lru_cache
 
-from caret_analyze.value_objects.transform import TransformFrameBufferStructValue
 from .callback_records import CallbackRecordsContainer
 from .publish_records import PublishRecordsContainer
-from .transform import TransformSendRecordsContainer, TransformLookupContainer
-
-from ..column_names import COLUMN_NAME
+from .transform import (
+    TransformLookupContainer,
+    TransformSendRecordsContainer,
+)
 from ..bridge import LttngBridge
-
-from ....record import RecordsInterface, merge_sequencial, ColumnAttribute
-from ....value_objects import NodePathStructValue, MessageContextType, PublisherStructValue
+from ..column_names import COLUMN_NAME
+from ....record import (
+    ColumnAttribute,
+    merge_sequencial,
+    RecordsInterface,
+)
+from ....value_objects import (
+    MessageContextType,
+    NodePathStructValue,
+    PublisherStructValue,
+    TransformFrameBufferStructValue,
+)
 
 
 class NodeRecordsContainer:

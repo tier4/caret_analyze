@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from ....value_objects import SubscriptionValue, IntraProcessBufferValue
+from ....value_objects import IntraProcessBufferValue, SubscriptionValue
 
 
 class IntraProcessBufferValueLttng(IntraProcessBufferValue):

@@ -24,8 +24,8 @@ import pandas as pd
 from .column import Column, ColumnEventObserver, ColumnValue
 from .interface import RecordInterface, RecordsInterface
 from ..common import Util
-from ..record import Columns
 from ..exceptions import InvalidArgumentError
+from ..record import Columns
 
 
 class MergeSide(IntEnum):

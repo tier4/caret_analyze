@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from __future__ import annotations
-from asyncio.log import logger
+
 from functools import lru_cache
-import logging
 
+from logging import getLogger
 from typing import List, Optional, Tuple, Union
-from multimethod import multimethod as singledispatchmethod
 
-from caret_analyze.value_objects.transform import TransformCommunicationStructValue
+from multimethod import multimethod as singledispatchmethod
 
 from .callback import CallbackBase, SubscriptionCallback, TimerCallback
 from .callback_group import CallbackGroup
@@ -40,8 +39,12 @@ from .transform import (
 from .variable_passing import VariablePassing
 from ..architecture import Architecture
 from ..common import Util
-from ..exceptions import (InvalidArgumentError, ItemNotFoundError,
-                          UnsupportedTypeError, Error)
+from ..exceptions import (
+    Error,
+    InvalidArgumentError,
+    ItemNotFoundError,
+    UnsupportedTypeError,
+)
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..value_objects import (
     CallbackGroupStructValue,
@@ -57,8 +60,12 @@ from ..value_objects import (
     TimerCallbackStructValue,
     TransformBroadcasterStructValue,
     TransformBufferStructValue,
+    TransformCommunicationStructValue,
     VariablePassingStructValue,
 )
+
+
+logger = getLogger(__name__)
 
 
 class RuntimeLoaded():
@@ -121,7 +128,7 @@ class ExecutorsLoaded:
             try:
                 cbgs.append(nodes_loaded.find_callback_group(group_name))
             except Error as e:
-                logging.warning('Failed to find callback group: %s', e)
+                logger.warning('Failed to find callback group: %s', e)
 
         return Executor(
             executor_value,
@@ -688,7 +695,7 @@ class PathsLoaded:
                     self._to_runtime(path_info, nodes_loaded, comms_loaded)
                 )
             except Error as e:
-                logging.warning('Failed to load path: %s', e)
+                logger.warning('Failed to load path: %s', e)
 
     @staticmethod
     def _to_runtime(
@@ -912,7 +919,7 @@ class CallbacksLoaded:
                         cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded)
                 )
             except Error as e:
-                logging.warning('Failed to load callback: %s', e)
+                logger.warning('Failed to load callback: %s', e)
 
     @staticmethod
     def _to_runtime(
@@ -972,7 +979,7 @@ class CallbackGroupsLoaded:
                         cbg_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded)
                 )
             except Error as e:
-                logging.warning('Failed to load callback group: %s', e)
+                logger.warning('Failed to load callback group: %s', e)
 
     @staticmethod
     def _to_runtime(

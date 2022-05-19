@@ -14,32 +14,30 @@
 
 from functools import lru_cache
 from typing import List, Union
-from caret_analyze.infra.lttng.lttng_info import LttngInfo
-from caret_analyze.value_objects.subscription import (
-    SubscriptionStructValue,
-)
 
+from .lttng_info import LttngInfo
 from .value_objects import (
+    IntraProcessBufferValueLttng,
     PublisherValueLttng,
     SubscriptionCallbackValueLttng,
+    SubscriptionValueLttng,
     TimerCallbackValueLttng,
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
-    IntraProcessBufferValueLttng,
-    SubscriptionValueLttng,
 )
 from ...common import Util
 from ...exceptions import ItemNotFoundError, MultipleItemFoundError, UnsupportedTypeError
 from ...value_objects import (
+    CallbackStructValue,
+    IntraProcessBufferStructValue,
     PublisherStructValue,
     SubscriptionCallbackStructValue,
-    CallbackStructValue,
+    SubscriptionStructValue,
     TimerCallbackStructValue,
     TransformBroadcasterStructValue,
+    TransformBufferStructValue,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
-    TransformBufferStructValue,
-    IntraProcessBufferStructValue,
 )
 
 

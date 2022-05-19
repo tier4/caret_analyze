@@ -3,18 +3,22 @@ from functools import lru_cache
 
 from caret_analyze.record.column import ColumnAttribute
 
-from .publish_records import PublishRecordsContainer
 from .callback_records import CallbackRecordsContainer
-from ..column_names import COLUMN_NAME
-from ..ros2_tracing.data_model import Ros2DataModel
+from .publish_records import PublishRecordsContainer
 from ..bridge import LttngBridge
+from ..column_names import COLUMN_NAME
 from ..lttng_info import LttngInfo
-from ....value_objects import (
-    TransformFrameBroadcasterStructValue, TransformFrameBufferStructValue,
-    TransformCommunicationStructValue,
-)
+from ..ros2_tracing.data_model import Ros2DataModel
 from ....record import (
-    RecordsInterface, merge_sequencial, GroupedRecords, merge
+    GroupedRecords,
+    merge,
+    merge_sequencial,
+    RecordsInterface,
+)
+from ....value_objects import (
+    TransformCommunicationStructValue,
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
 )
 
 

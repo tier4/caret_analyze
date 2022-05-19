@@ -18,8 +18,15 @@ from abc import ABCMeta, abstractmethod
 
 from collections import UserList
 from copy import deepcopy
-
-from typing import Dict, List, Optional, Set, Tuple, Collection, Sequence
+from typing import (
+    Collection,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+)
 
 from ..value_objects import ValueObject
 

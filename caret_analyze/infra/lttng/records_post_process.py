@@ -1,7 +1,7 @@
 
-from .ros2_tracing.data_model import Ros2DataModel
-from caret_analyze.record import merge_sequencial
 from .column_names import COLUMN_NAME
+from .ros2_tracing.data_model import Ros2DataModel
+from ...record import merge_sequencial
 
 
 def post_process_records(data: Ros2DataModel):
