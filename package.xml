@@ -7,8 +7,8 @@
   <maintainer email="hasegawa@isp.co.jp">hsgwa</maintainer>
   <license>Apache License 2.0</license>
 
-  <depend>python3-babeltrace</depend>
-  <depend>python3-lttng</depend>
+  <!-- <depend>python3-babeltrace</depend> -->
+  <!-- <depend>python3-lttng</depend> -->
   <!-- <depend>python3-bt2</depend> -->
   <depend>liblttng-ust-dev</depend>
 
