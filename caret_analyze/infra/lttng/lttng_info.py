@@ -1837,6 +1837,11 @@ class DataFrameFormatted:
         columns = ['callback_group_id', 'callback_group_addr', 'group_type_name', 'executor_addr']
         df = data.add_callback_group.clone()
 
+        df.columns.drop(['timestamp'])
+        # data.callback_groups returns duplicate results that differ only in timestamp.
+        # Remove duplicates to make it unique.
+        df.drop_duplicates()
+
         df_static = data.add_callback_group_static_executor.clone()
         df_static_exec = data.construct_static_executor.clone()
 
@@ -1857,16 +1862,12 @@ class DataFrameFormatted:
 
         DataFrameFormatted._add_column(df, 'callback_group_id', to_callback_group_id)
 
-        # data.callback_groups returns duplicate results that differ only in timestamp.
-        # Remove duplicates to make it unique.
-        df.drop_duplicates()
-
         executor_duplicated_indexes = []
         for _, group in df.groupby(['callback_group_addr']).items():
             if len(group) >= 2:
                 msg = ('Multiple executors using the same callback group were detected.'
                        'The last executor will be used. ')
-                exec_addr = list(set(group['executor_addr'].values))
+                exec_addr = group.get_column_series('executor_addr')
                 msg += f'executor address: {exec_addr}'
                 logger.warn(msg)
                 executor_duplicated_indexes += list(group.index)[:-1]

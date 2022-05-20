@@ -1352,10 +1352,18 @@ class Ros2DataModel(DataModel):
         callback_group_addr: int,
         group_type_name: str
     ) -> None:
-        record_idx = len(self.add_callback_group)
+        mapper_dict = {
+            'mutually_exclusive': 0,
+            'reentrant': 1,
+        }
+        assert group_type_name in mapper_dict.keys()
+
         mapper = self.add_callback_group.columns.get('group_type_name').mapper
         assert mapper is not None
-        mapper.add(record_idx, group_type_name)
+        group_name_idx = mapper_dict[group_type_name]
+
+        if group_type_name not in mapper.keys:
+            mapper.add(mapper_dict[group_type_name], group_type_name)
 
         self.add_callback_group.append(
             RecordFactory.create_instance(
@@ -1366,7 +1374,7 @@ class Ros2DataModel(DataModel):
                     'timestamp': timestamp,
                     'executor_addr': executor_addr,
                     'callback_group_addr': callback_group_addr,
-                    'group_type_name': record_idx
+                    'group_type_name': group_name_idx
                 }
             )
         )
@@ -1528,12 +1536,20 @@ class Ros2DataModel(DataModel):
     def add_tilde_subscription_init(
         self, pid, tid, subscription, node_name, topic_name, timestamp
     ) -> None:
+        record_idx = len(self.tilde_subscription_init)
+        mapper_topic_name = self.tilde_subscription_init.columns.get('topic_name').mapper
+        mapper_node_name = self.tilde_subscription_init.columns.get('node_name').mapper
+
+        assert mapper_topic_name is not None and mapper_node_name is not None
+        mapper_topic_name.add(record_idx, topic_name)
+        mapper_node_name.add(record_idx, node_name)
+
         self.tilde_subscription_init.append(
             RecordFactory.create_instance(
                 {
                     'subscription': subscription,
-                    'node_name': node_name,
-                    'topic_name': topic_name,
+                    'node_name': record_idx,
+                    'topic_name': record_idx,
                     'timestamp': timestamp,
                     'pid': pid,
                     'tid': tid,
@@ -1544,12 +1560,20 @@ class Ros2DataModel(DataModel):
     def add_tilde_publisher_init(
         self, pid, tid, publisher, node_name, topic_name, timestamp
     ) -> None:
+        record_idx = len(self.tilde_publisher_init)
+        mapper_topic_name = self.tilde_publisher_init.columns.get('topic_name').mapper
+        mapper_node_name = self.tilde_publisher_init.columns.get('node_name').mapper
+
+        assert mapper_topic_name is not None and mapper_node_name is not None
+        mapper_topic_name.add(record_idx, topic_name)
+        mapper_topic_name.add(record_idx, node_name)
+
         self.tilde_publisher_init.append(
             RecordFactory.create_instance(
                 {
                     'publisher': publisher,
-                    'node_name': node_name,
-                    'topic_name': topic_name,
+                    'node_name': record_idx,
+                    'topic_name': record_idx,
                     'timestamp': timestamp,
                     'pid': pid,
                     'tid': tid,
@@ -1600,14 +1624,24 @@ class Ros2DataModel(DataModel):
     def add_tilde_subscribe_added(
         self, pid, tid, subscription_id, node_name, topic_name, timestamp
     ) -> None:
-        self.tilde_subscribe_added.append({
-            'subscription_id': subscription_id,
-            'node_name': node_name,
-            'topic_name': topic_name,
-            'pid': pid,
-            'tid': tid,
-            'timestamp': timestamp
-        })
+        record_idx = len(self.tilde_subscribe_added)
+        mapper_topic_name = self.tilde_subscribe_added.columns.get('topic_name').mapper
+        mapper_node_name = self.tilde_subscribe_added.columns.get('node_name').mapper
+        assert mapper_topic_name is not None and mapper_node_name is not None
+        mapper_topic_name.add(record_idx, topic_name)
+        mapper_node_name.add(record_idx, node_name)
+        self.tilde_subscribe_added.append(
+            RecordFactory.create_instance(
+                {
+                    'subscription_id': subscription_id,
+                    'node_name': record_idx,
+                    'topic_name': record_idx,
+                    'pid': pid,
+                    'tid': tid,
+                    'timestamp': timestamp,
+                }
+            )
+        )
 
     def add_sim_time(
         self,

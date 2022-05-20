@@ -260,7 +260,7 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         record_dicts: List[Dict] = []
         for record in self.data:
             record_dict = record.data
-            if record not in record_dicts:
+            if record_dict not in record_dicts:
                 record_dicts.append(record_dict)
 
         init = [RecordCppImpl(record_dict) for record_dict in record_dicts]
