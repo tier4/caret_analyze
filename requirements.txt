@@ -1,11 +1,6 @@
 setuptools
 colorcet
-pytest-mock
-pybind11
 pandas>=1.4.0
 bokeh
-pandas-bokeh
-jupyterlab
 graphviz
-
 tqdm

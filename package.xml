@@ -10,7 +10,6 @@
   <depend>python3-babeltrace</depend>
   <depend>python3-lttng</depend>
   <!-- <depend>python3-bt2</depend> -->
-  <!-- <depend>lttng-tools</depend> -->
   <depend>liblttng-ust-dev</depend>
 
   <exec_depend>tracetools_analysis</exec_depend>
