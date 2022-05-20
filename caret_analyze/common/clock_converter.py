@@ -52,7 +52,7 @@ class ClockConverter():
 
     def convert(
         self,
-        time: float
+        time: int
     ) -> float:
         converted = self._a * time + self._b
         return converted

@@ -15,7 +15,7 @@
 from typing import List, Optional, Union
 
 from .path_base import PathBase
-from ..common import Summarizable, Summary
+from ..common import ClockConverter, Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
 from ..value_objects import PublisherStructValue, Qos
@@ -35,6 +35,9 @@ class Publisher(PathBase, Summarizable):
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.publish_records(self.__publisher)
         return records
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()
 
     @property
     def node_name(self) -> str:

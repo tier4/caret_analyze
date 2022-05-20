@@ -19,7 +19,7 @@ from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from .transform import TransformFrameBroadcaster, TransformFrameBuffer
-from ..common import Summarizable, Summary
+from ..common import ClockConverter, Summarizable, Summary
 from ..infra import RecordsProvider
 from ..record import RecordsFactory, RecordsInterface
 from ..value_objects import MessageContext, NodePathStructValue
@@ -129,3 +129,6 @@ class NodePath(PathBase, Summarizable):
     @property
     def subscribe_topic_name(self) -> Optional[str]:
         return self._val.subscribe_topic_name
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()

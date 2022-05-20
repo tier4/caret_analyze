@@ -14,21 +14,22 @@
 
 from __future__ import annotations
 
-from typing import List, Union
+from typing import List, Optional, Union
+
 from multimethod import multimethod as singledispatchmethod
 
 from .path_base import PathBase
-from ..common import Summarizable
+from ..common import ClockConverter
+from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (
+    BroadcastedTransformValue,
     TransformBroadcasterStructValue,
     TransformBufferStructValue,
-    TransformFrameBufferStructValue,
     TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
     TransformValue,
-    BroadcastedTransformValue,
 )
 
 
@@ -64,6 +65,9 @@ class TransformFrameBuffer(PathBase):
 
     def _to_records_core(self) -> RecordsInterface:
         return self._provider.tf_set_lookup_records(self._buff)
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()
 
 
 class TransformBuffer():
@@ -146,6 +150,9 @@ class TransformFrameBroadcaster(PathBase):
         records = self._provider.tf_broadcast_records(self._broadcaster)
         return records
 
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()
+
 
 class TransformBroadcaster():
 
@@ -172,4 +179,3 @@ class TransformBroadcaster():
             if br.transform == transform:
                 return br
         raise ItemNotFoundError('TransformFrameBroadcaster')
-

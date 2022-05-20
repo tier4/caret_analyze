@@ -14,13 +14,14 @@
 
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
-from typing import List, Optional, Tuple, Sequence
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
 
+from ..common.clock_converter import ClockConverter
 from ..exceptions import InvalidRecordsError
-from ..record import RecordsInterface, ColumnAttribute
+from ..record import ColumnAttribute, RecordsInterface
 from ..record.data_frame_shaper import DataFrameShaper, Strip
 
 
@@ -61,6 +62,19 @@ class PathBase(metaclass=ABCMeta):
 
         """
 
+    @abstractmethod
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        """
+        Get clock converter.
+
+        Returns
+        -------
+        ClockConverter
+            Clock converter.
+
+        """
+        pass
+
     def clear_cache(self) -> None:
         self.__records_cache = None
 
@@ -90,6 +104,7 @@ class PathBase(metaclass=ABCMeta):
         lstrip_s: float = 0,
         rstrip_s: float = 0,
         *,
+        use_sim_time=False,
         shaper: Optional[DataFrameShaper] = None,
     ) -> pd.DataFrame:
         """
@@ -119,7 +134,11 @@ class PathBase(metaclass=ABCMeta):
         if remove_dropped is False and treat_drop_as_delay:
             records.bind_drop_as_delay()
 
-        df = records.to_dataframe()
+        converter: Optional[ClockConverter] = None
+        if use_sim_time:
+            converter = self._get_clock_converter()
+
+        df = records.to_dataframe(converter)
         for column in column_names:
             if column in df.columns:
                 continue

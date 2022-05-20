@@ -17,7 +17,7 @@ from typing import Optional, Union
 from caret_analyze.value_objects.timer import TimerStructValue
 
 from .path_base import PathBase
-from ..common import Summarizable, Summary
+from ..common import ClockConverter, Summarizable, Summary
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
 
@@ -52,3 +52,6 @@ class Timer(PathBase, Summarizable):
     def _to_records_core(self) -> RecordsInterface:
         records = self._provider.timer_records(self._val)
         return records
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()

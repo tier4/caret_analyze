@@ -20,6 +20,7 @@ from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tupl
 import pandas as pd
 
 from .column import Columns, ColumnValue
+from ..common import ClockConverter
 
 
 class RecordInterface:
@@ -378,7 +379,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def to_dataframe(self) -> pd.DataFrame:
+    def to_dataframe(self, converter: Optional[ClockConverter]) -> pd.DataFrame:
         """
         Convert to pandas dataframe.
 

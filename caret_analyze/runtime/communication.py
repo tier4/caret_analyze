@@ -13,17 +13,16 @@
 # limitations under the License.
 
 from __future__ import annotations
-from functools import cached_property
 
+from functools import cached_property
 from typing import List, Optional, Union
 
-# from .callback import CallbackBase
 from .node import Node
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from .transform import TransformFrameBroadcaster, TransformFrameBuffer
-from ..common import Summarizable, Summary
+from ..common import ClockConverter, Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
 from ..value_objects import CommunicationStructValue
@@ -127,6 +126,11 @@ class Communication(PathBase, Summarizable):
         records = self._records_provider.communication_records(self._val)
 
         return records
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        if self._records_provider is not None:
+            return self._records_provider.get_sim_time_converter()
+        return None
 
 
 # TODO(hsgwa) add summary interface
@@ -232,3 +236,6 @@ class TransformCommunication(PathBase):
         records = self._records_provider.tf_communication_records(self._val)
 
         return records
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()

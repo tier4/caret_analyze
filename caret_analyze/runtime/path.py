@@ -23,7 +23,7 @@ from .callback import CallbackBase
 from .communication import Communication, TransformCommunication
 from .node_path import NodePath
 from .path_base import PathBase
-from ..common import Summarizable, Summary, Util
+from ..common import ClockConverter, Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record.record import merge, merge_sequencial, RecordsInterface
 from ..value_objects import PathStructValue
@@ -156,6 +156,11 @@ class Path(PathBase, Summarizable):
     def _to_records_core(self) -> RecordsInterface:
         self._verify_path(self.node_paths)
         return RecordsMerged(self.child).data
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        if len(self.child) == 0:
+            return None
+        return self.child[0]._get_clock_converter()
 
     @staticmethod
     def _verify_path(

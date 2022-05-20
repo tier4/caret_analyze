@@ -20,9 +20,9 @@ from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import pandas as pd
 
-from .column import Column, ColumnEventObserver, ColumnValue, UniqueList
+from .column import Column, ColumnAttribute, ColumnEventObserver, ColumnValue, UniqueList
 from .interface import RecordInterface, RecordsInterface
-from ..common import Util
+from ..common import ClockConverter, Util
 from ..exceptions import InvalidArgumentError
 from ..record import Columns
 
@@ -314,7 +314,8 @@ class Records(RecordsInterface, ColumnEventObserver):
     @staticmethod
     def _to_dataframe(
         df_list: List[Dict[str, int]],
-        columns: Columns
+        columns: Columns,
+        converter: Optional[ClockConverter] = None
     ) -> pd.DataFrame:
         for column in columns:
             assert isinstance(column, Column)
@@ -332,10 +333,10 @@ class Records(RecordsInterface, ColumnEventObserver):
                 if column_name in df_row:
                     if column.has_mapper():
                         df_dict[column_name][i] = column.get_mapped(df_row[column_name])
+                    elif converter is not None and ColumnAttribute.SYSTEM_TIME in column.attrs:
+                        df_dict[column_name][i] = converter.convert(df_row[column_name])
                     else:
                         df_dict[column_name][i] = df_row[column_name]
-                    # if df_dict[column_name][i] > 1000000000000000:
-                    #     df_dict[column_name][i] %= 1000000000000000
 
         df = pd.DataFrame(df_dict, dtype='object')
 

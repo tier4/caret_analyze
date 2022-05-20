@@ -20,7 +20,7 @@ from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from .timer import Timer
-from ..common import Summarizable, Summary
+from ..common import ClockConverter, Summarizable, Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import (CallbackStructValue,
@@ -98,6 +98,9 @@ class CallbackBase(PathBase, Summarizable):
         records = self._provider.callback_records(self.__val)
 
         return records
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()
 
 
 class TimerCallback(CallbackBase):

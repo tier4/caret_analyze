@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
+import pandas as pd
+
 from record_cpp_impl import RecordBase, RecordsBase
 
 from .column import (
@@ -27,7 +29,7 @@ from .column import (
     UniqueList,
 )
 from .record import RecordInterface, Records, RecordsInterface
-from ..common import Progress
+from ..common import ClockConverter, Progress
 from ..exceptions import InvalidArgumentError
 
 
@@ -159,9 +161,12 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
     def bind_drop_as_delay(self) -> None:
         self._records.bind_drop_as_delay()
 
-    def to_dataframe(self):
+    def to_dataframe(
+        self,
+        converter: Optional[ClockConverter] = None,
+    ) -> pd.DataFrame:
         data_dict = [record.data for record in self.data]
-        return Records._to_dataframe(data_dict, self.columns)
+        return Records._to_dataframe(data_dict, self.columns, converter)
 
     # def rename_columns(
     #     self,

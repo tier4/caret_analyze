@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .column import Column, Columns, ColumnAttribute, ColumnMapper, ColumnValue, UniqueList
+from .column import Column, ColumnAttribute, ColumnMapper, Columns, ColumnValue, UniqueList
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
 from .grouped_records import GroupedRecords
 from .record import (merge,
@@ -27,11 +27,10 @@ from .record_factory import RecordFactory, RecordsFactory
 __all__ = [
     'Clip',
     'Column',
-    'Columns',
     'ColumnAttribute',
-    'UniqueList',
     'ColumnMapper',
     'ColumnValue',
+    'Columns',
     'DataFrameShaper',
     'GroupedRecords',
     'Record',
@@ -41,6 +40,7 @@ __all__ = [
     'RecordsFactory',
     'RecordsInterface',
     'Strip',
+    'UniqueList',
     'merge',
     'merge_sequencial',
     'merge_sequencial_for_addr_track',

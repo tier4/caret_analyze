@@ -46,7 +46,7 @@ from .value_objects import (
 )
 from ..infra_base import InfraBase
 from ...common import ClockConverter
-from ...exceptions import InvalidArgumentError
+from ...exceptions import InvalidRecordsError
 from ...record import ColumnMapper, RecordsInterface
 from ...value_objects import (
     BroadcastedTransformValue,
@@ -387,15 +387,17 @@ class Lttng(InfraBase):
         self
     ) -> ClockConverter:
         records: RecordsInterface = self._source.system_and_sim_times
+
+        if len(records) == 0:
+            raise InvalidRecordsError(
+                'Failed to load sim_time. Please measure again with clock_recorder running.'
+            )
+
         system_times = records.get_column_series('system_time')
         sim_times = records.get_column_series('sim_time')
         system_times_filtered = [_ for _ in system_times if _ is not None]
         sim_times_filtered = [_ for _ in sim_times if _ is not None]
-        try:
-            return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
-        except InvalidArgumentError:
-            raise InvalidArgumentError(
-                'Failed to load sim_time. Please measure again with clock_recorder running.')
+        return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
 
     def get_ipc_buffers(
         self,

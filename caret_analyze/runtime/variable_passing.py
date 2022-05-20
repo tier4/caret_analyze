@@ -14,8 +14,10 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from .path_base import PathBase
-from ..common import Summarizable, Summary
+from ..common import ClockConverter, Summarizable, Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
 from ..value_objects import VariablePassingStructValue
@@ -37,6 +39,9 @@ class VariablePassing(PathBase, Summarizable):
         records.sort(records.column_names[0])
 
         return records
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        return self._provider.get_sim_time_converter()
 
     @property
     def summary(self) -> Summary:
