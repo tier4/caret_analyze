@@ -1369,8 +1369,8 @@ class FilteredRecordsSource:
         merged = merge(
             left_records=pub_records,
             right_records=sub_records,
-            join_left_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
-            join_right_key=COLUMN_NAME.MESSAGE_TIMESTAMP,
+            join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
+            join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
             columns=Columns(pub_records.columns + sub_records.columns).as_list(),
             how='left'
         )
