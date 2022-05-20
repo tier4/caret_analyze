@@ -54,13 +54,13 @@ def to_cpp_record(record: RecordInterface) -> Optional[RecordCppImpl]:
     return RecordCppImpl(record.data)
 
 
-def to_cpp_records(records: RecordsInterface) -> Optional[RecordsCppImpl]:
+def to_cpp_records(records: RecordsInterface) -> RecordsCppImpl:
     assert isinstance(records, Records)
     if not CppImplEnabled:
         return None
 
     return RecordsCppImpl(
-        [to_cpp_record(record) for record in records.data], records.columns
+        [to_cpp_record(record) for record in records.data], records.columns.to_value()
     )
 
 
@@ -210,16 +210,16 @@ class TestRecords:
             RecordsCppImpl(None, [ColumnValue('a'), ColumnValue('a')])
 
     def test_columns(self):
-        columns = [
+        columns = (
             ColumnValue('value'),
             ColumnValue('stamp'),
-        ]
+        )
 
         for records_type in [Records, RecordsCppImpl]:
             if records_type == RecordsCppImpl and not CppImplEnabled:
                 continue
             records = records_type([], columns)
-            assert records.columns == columns
+            assert records.columns.to_value() == columns
             assert records.column_names == ['value', 'stamp']
 
     def test_data(self):
@@ -238,7 +238,7 @@ class TestRecords:
         for expects, records_type in zip([expects_py, expects_cpp], [Records, RecordsCppImpl]):
             if records_type == RecordsCppImpl and not CppImplEnabled:
                 continue
-            records = records_type(expects.data, expects.columns)
+            records = records_type(expects.data, expects.columns.to_value())
             assert records.equals(expects)
 
     def test_len(self):
@@ -279,7 +279,7 @@ class TestRecords:
             records.append(expects.data[0])
             records.append(expects.data[1])
             assert records.equals(expects)
-            assert records.columns == expects.columns
+            assert records.columns.to_value() == expects.columns.to_value()
 
     def test_drop_columns(self):
         key = 'stamp'
@@ -304,12 +304,12 @@ class TestRecords:
                 continue
 
             drop_keys = [key]
-            records.get_column(key)
-            records.drop_columns(drop_keys)
+            records.columns.get(key)
+            records.columns.drop(drop_keys)
             for record in records.data:
                 assert key not in record.columns
             with pytest.raises(ItemNotFoundError):
-                records.get_column(key)
+                records.columns.get(key)
             assert records.column_names == column_names_expect
             for datum in records.data:
                 assert datum.columns == set(column_names_expect)
@@ -319,12 +319,12 @@ class TestRecords:
 
             records_empty = records_type()
             assert records_empty.columns == []
-            records_empty.drop_columns(drop_keys)
+            records_empty._drop_columns(drop_keys)
             assert records_empty.columns == []
             assert len(records_empty.data) == 0
 
             with pytest.raises(InvalidArgumentError):
-                records.drop_columns('')
+                records.columns.drop('')
 
     def test_rename_columns(self):
         records_py: Records = Records(
@@ -363,7 +363,7 @@ class TestRecords:
                 'stamp': 'stamp_',
             }
 
-            records.rename_columns(rename_keys)
+            records.columns.rename(rename_keys)
             assert records.column_names == ['stamp_', 'aaa_']
             for column, column_name in zip(records.columns, ['stamp_', 'aaa_']):
                 assert column.column_name == column_name
@@ -372,9 +372,9 @@ class TestRecords:
             assert 'stamp' not in records.data[1].columns
             assert 'stamp_' not in records.data[1].columns
 
-            records.get_column('stamp_')
+            records.columns.get('stamp_')
             with pytest.raises(ItemNotFoundError):
-                records.get_column('stamp')
+                records.columns.get('stamp')
 
             assert 'aaa' not in records.data[0].columns
             assert 'aaa_' in records.data[0].columns
@@ -384,9 +384,9 @@ class TestRecords:
             assert records.column_names == ['stamp_', 'aaa_']
 
             with pytest.raises(InvalidArgumentError):
-                records.rename_columns({'stamp_': 'aaa_'})
+                records.columns.rename({'stamp_': 'aaa_'})
             with pytest.raises(InvalidArgumentError):
-                records.rename_columns({'not_exist': 'aaa_'})
+                records.columns.rename({'not_exist': 'aaa_'})
 
     def test_rename_colums_validate_argument(self):
         records_py: Records = Records(
@@ -405,25 +405,25 @@ class TestRecords:
                 continue
 
             rename_keys = {'AAA': 'AAA_'}
-            records.rename_columns(rename_keys)
+            records.columns.rename(rename_keys)
 
             with pytest.raises(InvalidArgumentError):
                 rename_keys = {'AAA': 'AAA'}
-                records.rename_columns(rename_keys)
+                records.columns.rename(rename_keys)
 
             # overwrite columns
             with pytest.raises(InvalidArgumentError):
                 rename_keys = {'AAA': 'AAA_', 'BBB': 'AAA'}
-                records.rename_columns(rename_keys)
+                records.columns.rename(rename_keys)
 
             with pytest.raises(InvalidArgumentError):
                 rename_keys = {'AAA': 'BBB', 'BBB': 'BBB_'}
-                records.rename_columns(rename_keys)
+                records.columns.rename(rename_keys)
 
             # Duplicate columns after change
             rename_keys = {'AAA': 'AAA_', 'BBB': 'AAA_'}
             with pytest.raises(InvalidArgumentError):
-                records.rename_columns(rename_keys)
+                records.columns.rename(rename_keys)
 
     def test_clone(self):
         records_py: Records = Records(
@@ -441,9 +441,9 @@ class TestRecords:
 
             records_ = records.clone()
             with pytest.raises(ItemNotFoundError):
-                records_.get_column('aaa')
+                records_.columns.get('aaa')
             records_.append_column(ColumnValue('aaa'), [9])
-            records_.get_column('aaa')
+            records_.columns.get('aaa')
             assert records_.column_names == ['stamp', 'aaa']
             assert records.column_names == ['stamp']
 
@@ -582,8 +582,8 @@ class TestRecords:
             df = records.to_dataframe()
             assert df.equals(expect_df)
 
-            column = records.get_column('a')
-            assert column.has_mapper() is False
+            column = records.columns.get('a')
+            assert column.mapper is None
 
     def test_to_dataframe_with_column_mapper(self):
         mapper = ColumnMapper()
@@ -613,10 +613,10 @@ class TestRecords:
             if records is None and not CppImplEnabled:
                 continue
 
-            column = records.get_column('a')
+            column = records.columns.get('a')
             df = records.to_dataframe()
             assert df.equals(expect_df)
-            assert column.has_mapper() is True
+            assert column.mapper is not None
 
     def test_iter(self):
         records_py: Records = Records(
@@ -726,16 +726,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_groupby_1key_key_missing(self):
         records_py = Records(
@@ -786,16 +787,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_groupby_2key(self):
         records_py = Records(
@@ -852,16 +854,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a', 'c'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a', 'c'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_groupby_3key(self):
         records_py = Records(
@@ -926,16 +929,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a', 'b', 'c'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a', 'b', 'c'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_append_column(self):
         expects_py = Records(
@@ -963,12 +967,15 @@ class TestRecords:
             [ColumnValue('value')]
         )
 
-        records_cpp = to_cpp_records(records_py)
-        for records in [records_py, records_cpp]:
-            column = records.get_column('value')
+        test_records = [records_py]
+        if CppImplEnabled:
+            test_records.append(to_cpp_records(records_py))
+
+        for records in test_records:
+            column = records.columns.get('value')
             assert column.column_name == 'value'
             with pytest.raises(ItemNotFoundError):
-                records.get_column('not exist')
+                records.columns.get('not exist')
 
     def test_sort(self):
         key = 'stamp'
@@ -1234,13 +1241,13 @@ class TestRecords:
                 continue
 
             assert records.column_names == ['b', 'c', 'd', 'a']
-            records.reindex(['a', 'b', 'c', 'd'])
+            records.columns.reindex(['a', 'b', 'c', 'd'])
             assert records.column_names == ['a', 'b', 'c', 'd']
 
             with pytest.raises(InvalidArgumentError):
-                records.reindex(['a', 'b', 'c', 'd', 'e'])
+                records.columns.reindex(['a', 'b', 'c', 'd', 'e'])
             with pytest.raises(InvalidArgumentError):
-                records.reindex(['a', 'b', 'c'])
+                records.columns.reindex(['a', 'b', 'c'])
 
     @pytest.mark.parametrize(
         'how, records_expect_py',
@@ -1403,8 +1410,6 @@ class TestRecords:
             merged = records_left.merge(
                 records_right, 'value_left', 'value_right', how=how)
 
-            merged.get_column('value_left')
-            merged.get_column('value_right')
             assert merged.equals(records_expect)
             assert merged.column_names == column_names_expect
             assert records_left.column_names == ['stamp', 'value_left']
@@ -1424,9 +1429,15 @@ class TestRecords:
                 'inner',
                 Records(
                     [
-                        Record({'k0': 1, 'k1': 10, 'k0_': 1, 'k1_': 10, 'value': 100, 'value_': 110}),
-                        Record({'k0': 3, 'k1': 20, 'k0_': 3, 'k1_': 20, 'value': 200, 'value_': 210}),
-                        Record({'k0': 3, 'k1': 20, 'k0_': 3, 'k1_': 20, 'value': 200, 'value_': 310}),
+                        Record(
+                            {'k0': 1, 'k1': 10, 'k0_': 1, 'k1_': 10, 'value': 100, 'value_': 110}
+                        ),
+                        Record(
+                            {'k0': 3, 'k1': 20, 'k0_': 3, 'k1_': 20, 'value': 200, 'value_': 210}
+                        ),
+                        Record(
+                            {'k0': 3, 'k1': 20, 'k0_': 3, 'k1_': 20, 'value': 200, 'value_': 310}
+                        ),
                     ],
                     [
                         ColumnValue('k0'),
@@ -1495,8 +1506,6 @@ class TestRecords:
 
             merged = records_left.merge(records_right, ['k0', 'k1'], ['k0_', 'k1_'], how=how)
 
-            merged.get_column('value')
-            merged.get_column('value_')
             assert merged.equals(records_expect)
             assert merged.column_names == column_names_expect
             assert records_left.column_names == ['k0', 'k1', 'value']
@@ -1574,10 +1583,12 @@ class TestRecords:
             if records_left is None or records_right is None:
                 continue
 
-            merged = records_left.merge(records_right, ['k0', 'k1'], ['k0', 'k1'], how=how)
+            merged = records_left.merge(
+                records_right,
+                ['k0', 'k1'],
+                ['k0', 'k1'],
+                how=how)
 
-            merged.get_column('value')
-            merged.get_column('value_')
             assert merged.equals(records_expect)
             assert merged.column_names == column_names_expect
             assert records_left.column_names == ['k0', 'k1', 'value']

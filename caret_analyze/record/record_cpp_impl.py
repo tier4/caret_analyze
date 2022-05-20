@@ -42,10 +42,10 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         init: Optional[List[RecordInterface]] = None,
         columns: Optional[List[ColumnValue]] = None,
     ):
-        assert columns is not None
+        columns = columns or []
         self._columns: Columns = Columns(self, columns)
         assert isinstance(self._columns, Columns)
-        Records._validate(init, self._columns)
+        Records._validate(init, columns)
         self._records = RecordsBase(init or [], [str(c) for c in columns])
         # self._name_to_column = {}
         # if columns is not None:
@@ -333,7 +333,8 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
     ) -> RecordsInterface:
         progress_label = progress_label or ''
         assert left_stamp_key in self.column_names
-        assert right_stamp_key in right_records.column_names
+        if right_stamp_key not in right_records.column_names:
+            raise InvalidArgumentError('Failed to find column')
         assert isinstance(right_records, RecordsCppImpl)
         columns = UniqueList(self.columns.to_value() + right_records.columns.to_value()).as_list()
         join_left_key = join_left_key or []
@@ -407,6 +408,7 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         columns = UniqueList(
             self.columns.to_value() + sink_records.columns.to_value()
         ).as_list()
+        columns = [c for c in columns if c.base_column_name not in sink_from_key]
         merged = RecordsCppImpl(None, columns)
         merged._records = merged_cpp_base
         return merged

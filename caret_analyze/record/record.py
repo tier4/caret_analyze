@@ -16,12 +16,11 @@ from __future__ import annotations
 
 from copy import deepcopy
 from enum import IntEnum
-from itertools import groupby
 from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import pandas as pd
 
-from .column import Column, ColumnEventObserver, ColumnValue
+from .column import Column, ColumnEventObserver, ColumnValue, UniqueList
 from .interface import RecordInterface, RecordsInterface
 from ..common import Util
 from ..exceptions import InvalidArgumentError
@@ -98,30 +97,33 @@ class Records(RecordsInterface, ColumnEventObserver):
 
     def __init__(
         self,
-        init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[ColumnValue]] = None
+        init: Optional[Sequence[RecordInterface]] = None,
+        columns: Optional[Sequence[ColumnValue]] = None
     ) -> None:
-        init_: List[RecordInterface] = init or []
-        self._columns: Columns = Columns(self, columns)
+        init_: List[RecordInterface] = [] if init is None else list(init)
+        self._columns: Columns = Columns(self, columns or [])
 
-        self._validate(init_, self._columns)
+        self._validate(init_, columns or [])
         self._data: List[RecordInterface] = init_
 
     def on_column_renamed(self, old_name: str, new_name: str) -> None:
-        raise NotImplementedError('')
+        self._rename_columns({old_name: new_name})
 
     def on_column_dropped(self, column_name: str) -> None:
-        raise NotImplementedError('')
+        self._drop_columns([column_name])
+
+    def get(self, index: int, column_name: str, default_value=None) -> object:
+        return self._data[index].get_with_default(column_name, default_value)
 
     @staticmethod
     def _validate(
         init: Optional[List[RecordInterface]],
-        columns: Columns
+        columns: Sequence[ColumnValue]
     ) -> None:
         init = init or []
 
         for column in columns:
-            assert isinstance(column, Column)
+            assert isinstance(column, ColumnValue)
 
         column_names = [str(c) for c in columns]
 
@@ -149,7 +151,7 @@ class Records(RecordsInterface, ColumnEventObserver):
 
     @property
     def columns(self) -> Columns:
-        return deepcopy(self._columns)
+        return self._columns
 
     @property
     def column_names(self) -> List[str]:
@@ -215,10 +217,9 @@ class Records(RecordsInterface, ColumnEventObserver):
             raise InvalidArgumentError(msg)
         self._data += list(other.data)
 
-    def drop_columns(self, columns: List[str]) -> None:
+    def _drop_columns(self, columns: List[str]) -> None:
         data_: List[RecordInterface]
 
-        self._columns.drop(columns)
         data_ = self._data
 
         for record in data_:
@@ -226,8 +227,8 @@ class Records(RecordsInterface, ColumnEventObserver):
 
         return None
 
-    def rename_columns(self, columns: Dict[str, str]) -> None:
-        validate_rename_rule(columns, self.column_names)
+    def _rename_columns(self, columns: Dict[str, str]) -> None:
+        # validate_rename_rule(columns, self.column_names)
 
         data_: List[RecordInterface]
         data_ = self._data
@@ -238,10 +239,6 @@ class Records(RecordsInterface, ColumnEventObserver):
                     continue
                 record.change_dict_key(key_from, key_to)
 
-        for old_column_name, new_column_name in columns.items():
-            index = self.column_names.index(old_column_name)
-            old_column = self.get_column(old_column_name)
-            self._columns[index] = old_column.create_renamed(new_column_name)
         return None
 
     def append_column(
@@ -249,14 +246,14 @@ class Records(RecordsInterface, ColumnEventObserver):
         column: ColumnValue,
         values: List[int]
     ) -> None:
-        assert isinstance(column, Column)
+        assert isinstance(column, ColumnValue)
         if len(values) != len(self):
             raise InvalidArgumentError('len(values) != len(records)')
 
-        self._columns += [column]
+        self._columns += [Column.from_value(self, column)]
 
         for record, value in zip(self.data, values):
-            record.add(column.column_name, value)
+            record.add(column.base_column_name, value)
 
     def filter_if(
         self,
@@ -278,26 +275,17 @@ class Records(RecordsInterface, ColumnEventObserver):
             if r.equals(r_) is False:
                 return False
 
-        if self.columns != records.columns:
+        if self.columns.to_value() != records.columns.to_value():
             return False
 
         return True
 
-    def _reindex(self, column_names: List[str]) -> None:
+    def _reindex(self, column_names: Sequence[str]) -> None:
         for column_name in column_names:
             assert isinstance(column_name, str)
 
-        err_columns = set(self.column_names) ^ set(column_names)
-        if len(err_columns) > 0:
-            msg = 'Column names do not match. '
-            for err_column in err_columns:
-                msg += f'{err_column}, '
-            raise InvalidArgumentError(msg)
-
-        raise NotImplementedError('')
-
     def on_column_reindexed(self, columns: Sequence[str]):
-        raise NotImplementedError('')
+        self._reindex(columns)
 
     def to_dataframe(self) -> pd.DataFrame:
         pd_dict = [record.data for record in self.data]
@@ -404,7 +392,9 @@ class Records(RecordsInterface, ColumnEventObserver):
         if len(join_left_keys) != len(join_right_keys):
             raise InvalidArgumentError("join keys size doesn\'t match")
 
-        columns = Columns(self.columns + right_records.columns)
+        columns = UniqueList(
+            self.columns.to_value() + right_records.columns.to_value()
+        ).as_list()
         self._validate(None, columns)
 
         left_records = self.clone()
@@ -419,20 +409,22 @@ class Records(RecordsInterface, ColumnEventObserver):
         column_found_right_record = '_tmp_found_right_record'
         column_has_valid_join_key = '_tmp_has_valid_join_key'
 
-        left_records.append_column(Column(column_side), [
-                                   MergeSide.LEFT]*len(left_records))
+        left_records.append_column(
+            ColumnValue(column_side), [MergeSide.LEFT]*len(left_records))
         right_records.append_column(
-            Column(column_side), [MergeSide.RIGHT]*len(right_records))
+            ColumnValue(column_side), [MergeSide.RIGHT]*len(right_records))
 
         tmp_columns = [
-            Column(column_side),
+            ColumnValue(column_side),
         ] + [
-            Column(column_join_key) for column_join_key in column_join_keys
+            ColumnValue(column_join_key) for column_join_key in column_join_keys
         ]
 
-        concat_columns = Columns(
-            left_records.columns + right_records.columns + tmp_columns
-        )
+        concat_columns = UniqueList(
+            left_records.columns.to_value() +
+            right_records.columns.to_value() +
+            tuple(tmp_columns)
+        ).as_list()
 
         concat_records = Records(None, concat_columns)
         concat_records.concat(left_records)
@@ -457,10 +449,12 @@ class Records(RecordsInterface, ColumnEventObserver):
         left_records_: List[RecordInterface] = []
         processed_stamps: Set[Tuple[int, ...]] = set()
 
+        merged_columns = UniqueList(
+            concat_records.columns.to_value() +
+            (ColumnValue(column_found_right_record), ColumnValue(column_has_valid_join_key))
+        ).as_list()
         merged_records = Records(
-            None,
-            concat_records.columns +
-            [Column(column_found_right_record), Column(column_has_valid_join_key)]
+            None, merged_columns
         )
 
         def move_left_to_empty(
@@ -514,11 +508,13 @@ class Records(RecordsInterface, ColumnEventObserver):
         temporay_columns = [column_side, column_found_right_record, column_has_valid_join_key] \
             + column_join_keys
 
-        merged_records.drop_columns(temporay_columns)
-        left_records.drop_columns(temporay_columns)
-        right_records.drop_columns(temporay_columns)
+        merged_records._drop_columns(temporay_columns)
+        left_records.columns.drop(temporay_columns)
+        right_records.columns.drop(temporay_columns)
 
-        merged_records._reindex([str(c) for c in columns])
+        column_names = [column.base_column_name for column in columns]
+        merged_records.columns.drop(set(merged_records.column_names) - set(column_names))
+        merged_records.columns.reindex([str(c) for c in columns])
 
         return merged_records
 
@@ -555,7 +551,9 @@ class Records(RecordsInterface, ColumnEventObserver):
 
         assert len(join_left_keys) == len(join_right_keys)
 
-        columns = Columns(self.columns + right_records.columns)
+        columns = UniqueList(
+            self.columns.to_value() + right_records.columns.to_value()
+        ).as_list()
         self._validate(None, columns)
 
         assert how in ['inner', 'left', 'right', 'outer', 'left_use_latest']
@@ -571,17 +569,18 @@ class Records(RecordsInterface, ColumnEventObserver):
         column_has_merge_stamp = '_tmp_has_merge_stamp'
         column_sub_records = '_tmp_sub_records'
 
-        left_records.append_column(Column(column_side), [MergeSide.LEFT]*len(left_records))
-        right_records.append_column(Column(column_side), [MergeSide.RIGHT]*len(right_records))
+        left_records.append_column(ColumnValue(column_side), [MergeSide.LEFT]*len(left_records))
+        right_records.append_column(ColumnValue(column_side), [MergeSide.RIGHT]*len(right_records))
 
-        concat_columns = Columns(
-            left_records.columns + right_records.columns
-            + [
-                Column(column_has_valid_join_key),
-                Column(column_merge_stamp),
-                Column(column_has_merge_stamp)
-            ]
-        )
+        concat_columns = UniqueList(
+            left_records.columns.to_value() +
+            right_records.columns.to_value() +
+            (
+                ColumnValue(column_has_valid_join_key),
+                ColumnValue(column_merge_stamp),
+                ColumnValue(column_has_merge_stamp)
+            )
+        ).as_list()
         concat_records = Records(None, concat_columns)
         concat_records.concat(left_records)
         concat_records.concat(right_records)
@@ -636,7 +635,13 @@ class Records(RecordsInterface, ColumnEventObserver):
                 left_record_to_be_bind = to_left_records[join_value]
                 left_record_to_be_bind.data[column_sub_records].append(record)  # type: ignore
 
-        merged_records = Records(None, concat_records.columns + [Column(column_sub_records)])
+        merged_records = Records(
+            None,
+            UniqueList(
+                concat_records.columns.to_value() +
+                (ColumnValue(column_sub_records), )
+            ).as_list()
+        )
 
         added: Set[RecordInterface] = set()
         for current_record in concat_records.data:
@@ -693,11 +698,11 @@ class Records(RecordsInterface, ColumnEventObserver):
             column_has_valid_join_key,
             column_sub_records,
         ]
-        merged_records.drop_columns(temporay_columns)
-        left_records.drop_columns(temporay_columns)
-        right_records.drop_columns(temporay_columns)
+        merged_records.columns.drop(temporay_columns)
+        left_records.columns.drop(temporay_columns)
+        right_records.columns.drop(temporay_columns)
 
-        merged_records._reindex([str(c) for c in columns])
+        merged_records.columns.reindex([str(c) for c in columns])
 
         return merged_records
 
@@ -750,13 +755,15 @@ class Records(RecordsInterface, ColumnEventObserver):
 
         source_timestamps = [r.get(source_stamp_key) for r in source_records.data]
         source_records.append_column(ColumnValue(column_timestamp), source_timestamps)
-        copy_records.rename_columns({copy_stamp_key: column_timestamp})
+        copy_records.columns.rename({copy_stamp_key: column_timestamp})
         sink_timestamps = [r.get(sink_stamp_key) for r in sink_records.data]
         sink_records.append_column(ColumnValue(column_timestamp), sink_timestamps)
 
-        merged_records_column = list(source_records.columns.to_value())
-        merged_records_column += copy_records.columns.to_value()
-        merged_records_column += sink_records.columns.to_value()
+        merged_records_column = UniqueList(
+            source_records.columns.to_value() +
+            copy_records.columns.to_value() +
+            sink_records.columns.to_value()
+        ).as_list()
         merged_records: Records = Records(None, merged_records_column)
 
         concat_records = Records(source_records._data + copy_records._data + sink_records._data,
@@ -819,11 +826,11 @@ class Records(RecordsInterface, ColumnEventObserver):
                         processing_records.pop(addr)
 
         # Deleting an added key
-        merged_records.drop_columns(
-            [column_type, column_timestamp, sink_from_key,
+        merged_records.columns.drop(
+            [column_type, column_timestamp, sink_from_key, sink_from_keys,
              copy_from_key, copy_to_key, copy_stamp_key])
-
-        merged_records._reindex(columns)
+        merged_records.columns.drop(set(merged_records.columns) - set(columns))
+        merged_records.columns.reindex(columns)
         for record in merged_records.data:
             record.data.pop(sink_from_keys)
 
@@ -836,7 +843,7 @@ class Records(RecordsInterface, ColumnEventObserver):
         for record in self._data:
             k = tuple(record.get_with_default(column, m) for column in columns)
             if k not in group:
-                group[k] = Records(None, self.columns)
+                group[k] = Records(None, self.columns.to_value())
             group[k].append(record)
 
         return group
@@ -921,35 +928,3 @@ def merge_sequencial_for_addr_track(
         sink_from_key,
         progress_label=progress_label,
     )
-
-
-def validate_rename_rule(
-    rename_rule: Dict[str, str],
-    old_columns: List[str]
-) -> None:
-    already_exist = set(old_columns) & set(rename_rule.values())
-    if len(already_exist) > 0:
-        raise InvalidArgumentError(
-            f'Column already exists. columns: {already_exist}'
-        )
-
-    not_exist = set(rename_rule.keys()) - set(old_columns)
-    if len(not_exist) > 0:
-        raise InvalidArgumentError(
-            f'Target column does not exist. columns: {not_exist}'
-        )
-
-    # overwrite columns
-    if len(set(rename_rule.keys()) & set(rename_rule.values())) > 0:
-        msg = 'Overwrite columns. '
-        msg += str(rename_rule)
-        raise InvalidArgumentError(msg)
-
-    # duplicate columns after change
-    for _, group in groupby(rename_rule.values()):
-        if len(list(group)) > 1:
-            msg = 'duplicate columns'
-            msg += str(rename_rule)
-            raise InvalidArgumentError(msg)
-
-    return None

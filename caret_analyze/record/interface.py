@@ -19,7 +19,7 @@ from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tupl
 
 import pandas as pd
 
-from .column import ColumnValue, Columns
+from .column import Columns, ColumnValue
 
 
 class RecordInterface:
@@ -331,7 +331,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def get(self, index: int, column_name: str) -> object:
+    def get(self, index: int, column_name: str, default_value=None) -> object:
         pass
 
     # @abstractmethod

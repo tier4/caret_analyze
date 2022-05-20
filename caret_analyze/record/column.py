@@ -18,6 +18,7 @@ from abc import ABCMeta, abstractmethod
 
 from collections import UserList
 from copy import deepcopy
+from itertools import groupby
 from typing import (
     Collection,
     Dict,
@@ -28,7 +29,40 @@ from typing import (
     Tuple,
 )
 
+from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import ValueObject
+
+
+def validate_rename_rule(
+    rename_rule: Dict[str, str],
+    old_columns: List[str]
+) -> None:
+    already_exist = set(old_columns) & set(rename_rule.values())
+    if len(already_exist) > 0:
+        raise InvalidArgumentError(
+            f'Column already exists. columns: {already_exist}'
+        )
+
+    not_exist = set(rename_rule.keys()) - set(old_columns)
+    if len(not_exist) > 0:
+        raise InvalidArgumentError(
+            f'Target column does not exist. columns: {not_exist}'
+        )
+
+    # overwrite columns
+    if len(set(rename_rule.keys()) & set(rename_rule.values())) > 0:
+        msg = 'Overwrite columns. '
+        msg += str(rename_rule)
+        raise InvalidArgumentError(msg)
+
+    # duplicate columns after change
+    for _, group in groupby(rename_rule.values()):
+        if len(list(group)) > 1:
+            msg = 'duplicate columns'
+            msg += str(rename_rule)
+            raise InvalidArgumentError(msg)
+
+    return None
 
 
 class ColumnMapper():
@@ -279,7 +313,7 @@ class Columns(UserList):
     def __init__(
         self,
         observer: ColumnEventObserver,
-        init: Optional[List[ColumnValue]] = None,
+        init: Optional[Sequence[ColumnValue]] = None,
     ) -> None:
         columns = [Column.from_value(observer, value) for value in init or []]
         super().__init__(columns)
@@ -289,6 +323,9 @@ class Columns(UserList):
         return list(self)
 
     def drop(self, columns: Collection[str], *, base_name_match=False) -> None:
+        if not isinstance(columns, Collection) or isinstance(columns, str):
+            raise InvalidArgumentError(f'columns must be a collection, not {type(columns)}')
+
         if base_name_match:
             ordered_columns = self.gets(columns, base_name_match=base_name_match)
             columns = [str(_) for _ in ordered_columns]
@@ -310,6 +347,13 @@ class Columns(UserList):
         if base_name_match:
             ordered_columns = self.gets(columns, base_name_match=base_name_match)
             columns = [str(_) for _ in ordered_columns]
+
+        err_columns = set(self.column_names) ^ set(columns)
+        if len(err_columns) > 0:
+            msg = 'Column names do not match. '
+            for err_column in err_columns:
+                msg += f'{err_column}, '
+            raise InvalidArgumentError(msg)
 
         necessary_columns = {
             column.column_name
@@ -349,7 +393,9 @@ class Columns(UserList):
                 in self.data
                 if c.column_name == name]
 
-        assert len(columns) > 0
+        if len(columns) == 0:
+            raise ItemNotFoundError('Item not found')
+
         if take is not None and take == 'tail':
             return columns[-1]
 
@@ -397,6 +443,7 @@ class Columns(UserList):
         return [str(_) for _ in self.data]
 
     def rename(self, rename_rule: Dict[str, str]):
+        validate_rename_rule(rename_rule, self.column_names)
         for column in self.data:
             if column.column_name in rename_rule:
                 old = column.column_name
