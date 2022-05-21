@@ -44,13 +44,55 @@ class TimeSeriesPlot(metaclass=ABCMeta):
     def show(self, xaxis_type: Optional[str] = None, ywheel_zoom: bool = True):
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
-
+        Hover = HoverTool(
+                tooltips="""
+                <div style="width:400px; word-wrap: break-word;">
+                <br>
+                node_name = @node_name <br>
+                callback_type = @callback_type <br>
+                @callback_param <br>
+                symbol = @symbol
+                </div>
+                """,
+                point_policy='follow_mouse'
+                )
+        frame_min, frame_max = get_range(self._callbacks)
         if(xaxis_type == 'system_time'):
-            self._show_with_system_time(ywheel_zoom)
+            source_df = self._to_dataframe_core('system_time')
+            l1_columns = source_df.columns.get_level_values(1).to_list()
+            fig_args = self._get_fig_args('system time [s]', l1_columns[1], ywheel_zoom)
+            p = figure(**fig_args)
+            apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
         elif(xaxis_type == 'sim_time'):
-            self._show_with_sim_time(ywheel_zoom)
+            source_df = self._to_dataframe_core('sim_time')
+            l1_columns = source_df.columns.get_level_values(1).to_list()
+            fig_args = self._get_fig_args('simulation time [s]', l1_columns[1], ywheel_zoom)
+            p = figure(**fig_args)
         elif(xaxis_type == 'index'):
-            self._show_with_index(ywheel_zoom)
+            source_df = self._to_dataframe_core('index')
+            l1_columns = source_df.columns.get_level_values(1).to_list()
+            fig_args = self._get_fig_args('index', l1_columns[1], ywheel_zoom)
+            p = figure(**fig_args)
+        p.add_tools(Hover)
+        coloring_rule = 'callback'
+        color_selector = ColorSelector.create_instance(coloring_rule)
+        for i, callback in enumerate(self._callbacks):
+            color = color_selector.get_color(
+                callback.node_name,
+                None,
+                callback.callback_name)
+            line_source = get_callback_lines(callback,
+                                             source_df,
+                                             l1_columns,
+                                             frame_min,
+                                             xaxis_type)
+            p.line('x',
+                   'y',
+                   source=line_source,
+                   legend_label=f'callback{i}',
+                   color=color)
+        p.add_layout(p.legend[0], 'right')
+        show(p)
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
         xaxis_type = xaxis_type or 'system_time'
@@ -98,120 +140,6 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             fig_args['active_scroll'] = 'xwheel_zoom'
 
         return fig_args
-
-    def _show_with_index(self, ywheel_zoom: bool):
-        Hover = HoverTool(
-                tooltips="""
-                <div style="width:400px; word-wrap: break-word;">
-                <br>
-                node_name = @node_name <br>
-                callback_type = @callback_type <br>
-                @callback_param <br>
-                symbol = @symbol
-                </div>
-                """,
-                point_policy='follow_mouse'
-                )
-        source_df = self._to_dataframe_core('index')
-        l1_columns = source_df.columns.get_level_values(1).to_list()
-        fig_args = self._get_fig_args('index', l1_columns[1], ywheel_zoom)
-        frame_min, frame_max = get_range(self._callbacks)
-        p = figure(**fig_args)
-        p.add_tools(Hover)
-        coloring_rule = 'callback'
-        color_selector = ColorSelector.create_instance(coloring_rule)
-        for i, callback in enumerate(self._callbacks):
-            color = color_selector.get_color(
-                callback.node_name,
-                None,
-                callback.callback_name)
-            line_source = get_callback_lines(callback, source_df, l1_columns, frame_min, 'index')
-            p.line('x',
-                   'y',
-                   source=line_source,
-                   legend_label=f'callback{i}',
-                   color=color)
-        p.add_layout(p.legend[0], 'right')
-        show(p)
-
-    def _show_with_sim_time(self, ywheel_zoom: bool):
-        Hover = HoverTool(
-                tooltips="""
-                <div style="width:400px; word-wrap: break-word;">
-                <br>
-                node_name = @node_name <br>
-                callback_type = @callback_type <br>
-                @callback_param <br>
-                symbol = @symbol
-                </div>
-                """,
-                point_policy='follow_mouse'
-                )
-        source_df = self._to_dataframe_core('sim_time')
-        l1_columns = source_df.columns.get_level_values(1).to_list()
-        frame_min, frame_max = get_range(self._callbacks)
-        fig_args = self._get_fig_args('simulation time [s]', l1_columns[1], ywheel_zoom)
-        p = figure(**fig_args)
-        p.add_tools(Hover)
-        coloring_rule = 'callback'
-        color_selector = ColorSelector.create_instance(coloring_rule)
-        for i, callback in enumerate(self._callbacks):
-            color = color_selector.get_color(
-                callback.node_name,
-                None,
-                callback.callback_name)
-            line_source = get_callback_lines(callback,
-                                             source_df,
-                                             l1_columns,
-                                             frame_min,
-                                             'sim_time')
-            p.line('x',
-                   'y',
-                   source=line_source,
-                   legend_label=f'callback{i}',
-                   color=color)
-        p.add_layout(p.legend[0], 'right')
-        show(p)
-
-    def _show_with_system_time(self, ywheel_zoom: bool):
-        Hover = HoverTool(
-                tooltips="""
-                <div style="width:400px; word-wrap: break-word;">
-                <br>
-                node_name = @node_name <br>
-                callback_type = @callback_type <br>
-                @callback_param <br>
-                symbol = @symbol
-                </div>
-                """,
-                point_policy='follow_mouse'
-                )
-        source_df = self._to_dataframe_core('system_time')
-        l1_columns = source_df.columns.get_level_values(1).to_list()
-        fig_args = self._get_fig_args('system time [s]', l1_columns[1], ywheel_zoom)
-        p = figure(**fig_args)
-        p.add_tools(Hover)
-        frame_min, frame_max = get_range(self._callbacks)
-        apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
-        coloring_rule = 'callback'
-        color_selector = ColorSelector.create_instance(coloring_rule)
-        for i, callback in enumerate(self._callbacks):
-            color = color_selector.get_color(
-                callback.node_name,
-                None,
-                callback.callback_name)
-            line_source = get_callback_lines(callback,
-                                             source_df,
-                                             l1_columns,
-                                             frame_min,
-                                             'system_time')
-            p.line('x',
-                   'y',
-                   source=line_source,
-                   legend_label=f'callback{i}',
-                   color=color)
-        p.add_layout(p.legend[0], 'right')
-        show(p)
 
 
 def get_callback_lines(callback: CallbackBase,

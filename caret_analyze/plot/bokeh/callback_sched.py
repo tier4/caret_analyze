@@ -183,7 +183,7 @@ def sched_plot_cbg(
                      </div>
                      """,
                      toggleable=False,
-                     point_policy='snap_to_data',
+                     point_policy='follow_mouse',
                      attachment='below')
             p.add_tools(Hover1)
             p.add_tools(Hover2)
