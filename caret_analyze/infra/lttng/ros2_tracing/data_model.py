@@ -69,6 +69,16 @@ class Ros2DataModel(DataModel):
                 ColumnValue('depth')
             ]
         )
+        self.rclcpp_publisher_init = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('publisher_handle'),
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('caret_rclcpp_version', mapper=ColumnMapper())
+            ]
+        )
         self.rcl_subscription_init = RecordsFactory.create_instance(
             None,
             [
@@ -871,6 +881,23 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'topic_name': topic_name_idx,
                     'depth': depth,
+                }
+            )
+        )
+
+    def add_rclcpp_publisher_init(self, publisher_handle, caret_rclcpp_version, timestamp, pid, tid) -> None:
+        version_idx = len(self.rclcpp_publisher_init)
+        mapper = self.rclcpp_publisher_init.columns.get('caret_rclcpp_version').mapper
+        assert mapper is not None
+        mapper.add(version_idx, caret_rclcpp_version)
+        self.rclcpp_publisher_init.append(
+            RecordFactory.create_instance(
+                {
+                    'publisher_handle': publisher_handle,
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'caret_rclcpp_version': version_idx,
                 }
             )
         )
