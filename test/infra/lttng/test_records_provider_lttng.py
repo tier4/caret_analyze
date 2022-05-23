@@ -37,7 +37,7 @@ from caret_analyze.value_objects import (CallbackChain, CallbackStructValue,
                                          TimerCallbackStructValue,
                                          VariablePassingStructValue)
 
-import pytest_mock
+
 
 
 class TestRecordsProviderLttng:

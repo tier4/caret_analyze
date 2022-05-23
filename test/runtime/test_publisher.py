@@ -16,7 +16,7 @@ from caret_analyze.infra import RecordsProvider, RuntimeDataProvider
 from caret_analyze.runtime import Publisher
 from caret_analyze.value_objects import PublisherStructValue, Qos
 
-import pytest_mock
+
 
 
 class TestPublisher:

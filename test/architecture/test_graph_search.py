@@ -25,7 +25,7 @@ from caret_analyze.value_objects import (CallbackStructValue,
                                          SubscriptionStructValue,
                                          VariablePassingStructValue)
 
-import pytest_mock
+
 from caret_analyze.exceptions import ItemNotFoundError
 
 import pytest

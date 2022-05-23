@@ -22,7 +22,7 @@ from caret_analyze.value_objects import (CallbackGroupType, CallbackType,
 from caret_analyze.value_objects.node import NodeValue
 
 import pytest
-import pytest_mock
+
 
 
 class TestArchitectureReaderYaml:

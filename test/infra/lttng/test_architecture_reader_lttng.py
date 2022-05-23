@@ -21,7 +21,7 @@ from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
                                          SubscriptionCallbackValue,
                                          TimerCallbackValue)
 
-import pytest_mock
+
 
 
 class TestArchitectureReaderLttng:

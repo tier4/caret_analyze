@@ -18,7 +18,7 @@ from typing import List
 from caret_analyze.record import Records, RecordsInterface
 from caret_analyze.runtime.path_base import PathBase
 
-import pytest_mock
+
 
 
 class PathSample(PathBase):

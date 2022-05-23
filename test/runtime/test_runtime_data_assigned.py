@@ -49,7 +49,7 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          VariablePassingStructValue)
 
 import pytest
-import pytest_mock
+
 
 
 class TestRuntimeLoaded:

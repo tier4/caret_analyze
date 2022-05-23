@@ -21,7 +21,7 @@ from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
 from caret_analyze.value_objects import PathStructValue
 
 import pytest
-import pytest_mock
+
 
 
 class TestPath:

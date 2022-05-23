@@ -52,7 +52,7 @@ from caret_analyze.value_objects.message_context import MessageContextType
 from caret_analyze.value_objects.node import NodeValueWithId
 
 import pytest
-import pytest_mock
+
 
 
 class TestArchitectureLoaded:

@@ -25,7 +25,7 @@ from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue
 from caret_analyze.value_objects.node import NodeValue
 
-import pytest_mock
+
 
 
 class TestLttng:

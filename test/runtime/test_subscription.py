@@ -16,7 +16,7 @@ from caret_analyze.infra import RecordsProvider, RuntimeDataProvider
 from caret_analyze.runtime import Subscription
 from caret_analyze.value_objects import Qos, SubscriptionStructValue
 
-import pytest_mock
+
 
 
 class TestSubscription:

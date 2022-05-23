@@ -25,7 +25,7 @@ from caret_analyze.runtime.path import Path
 from caret_analyze.runtime.runtime_loaded import RuntimeLoaded
 
 import pytest
-import pytest_mock
+
 
 
 class TestApplication:

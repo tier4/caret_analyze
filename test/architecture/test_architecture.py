@@ -25,8 +25,8 @@ from caret_analyze.value_objects import (CommunicationStructValue,
                                          PathStructValue, NodePathStructValue)
 
 import pytest
-# import pytest_mock
-import pytest_mock
+# 
+
 
 
 class TestArchiteture:

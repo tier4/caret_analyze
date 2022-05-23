@@ -21,7 +21,7 @@ from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.ros2_tracing.processor import Ros2Handler
 
 import pytest
-import pytest_mock
+
 
 
 class TestEventCounter:

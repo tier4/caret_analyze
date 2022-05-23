@@ -26,7 +26,7 @@ from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
 from caret_analyze.value_objects.node import NodeValue
 
 import pandas as pd
-import pytest_mock
+
 
 
 class TestLttngInfo:
