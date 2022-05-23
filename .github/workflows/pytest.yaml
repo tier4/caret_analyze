@@ -11,7 +11,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
-          ref: chore/test-arranged-dependent-packages
+          ref: chore/arranged-dependent-packages
 
       - name: Install LTTng
         run: |
