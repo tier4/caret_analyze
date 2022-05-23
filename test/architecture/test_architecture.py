@@ -206,7 +206,7 @@ class TestArchiteture:
         path = arch.search_paths('start_node', 'end_node')
         assert path == [path_mock]
 
-    def test_search_paths_three_nodes(self, mocker: MockerFixture):
+    def test_search_paths_three_nodes(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
