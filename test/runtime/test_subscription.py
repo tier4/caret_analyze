@@ -16,18 +16,16 @@ from caret_analyze.infra import RecordsProvider, RuntimeDataProvider
 from caret_analyze.runtime import Subscription
 from caret_analyze.value_objects import Qos, SubscriptionStructValue
 
-from pytest_mock import MockerFixture
-
 
 class TestSubscription:
 
-    def test_qos_records_provider(self, mocker: MockerFixture):
+    def test_qos_records_provider(self, mocker):
         val_mock = mocker.Mock(spec=SubscriptionStructValue)
         provider_mock = mocker.Mock(spec=RecordsProvider)
         sub = Subscription(val_mock, provider_mock)
         assert sub.qos is None
 
-    def test_qos_runtime_data_provider(self, mocker: MockerFixture):
+    def test_qos_runtime_data_provider(self, mocker):
         val_mock = mocker.Mock(spec=SubscriptionStructValue)
         provider_mock = mocker.Mock(spec=RuntimeDataProvider)
 

@@ -18,8 +18,6 @@ from typing import List
 from caret_analyze.record import Records, RecordsInterface
 from caret_analyze.runtime.path_base import PathBase
 
-from pytest_mock import MockerFixture
-
 
 class PathSample(PathBase):
 
@@ -36,7 +34,7 @@ class PathSample(PathBase):
 
 class TestPathBase:
 
-    def test_cache(self, mocker: MockerFixture):
+    def test_cache(self, mocker):
         path = PathSample()
 
         records_mock = mocker.Mock(spec=Records)
