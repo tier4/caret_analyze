@@ -25,12 +25,13 @@ from caret_analyze.value_objects import (CommunicationStructValue,
                                          PathStructValue)
 
 import pytest
-from pytest_mock import MockerFixture
+# from pytest_mock import MockerFixture
 
 
 class TestArchiteture:
 
-    def test_empty_architecture(self, mocker: MockerFixture):
+    def test_empty_architecture(self, mocker):
+    # def test_empty_architecture(self, mocker: MockerFixture):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
@@ -61,7 +62,7 @@ class TestArchiteture:
         assert len(arch.paths) == 0
         assert len(arch.communications) == 0
 
-    def test_get_node(self, mocker: MockerFixture):
+    def test_get_node(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         mocker.patch.object(ArchitectureReaderFactory,
                             'create_instance', return_value=reader_mock)
