@@ -684,12 +684,12 @@ class TestNodePathsLoaded:
 class TestVariablePassingsLoaded:
 
     def test_empty(self, mocker):
-        provider_mock = mocker.Mock(spec=MockerFixture)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
         loaded = VariablePassingsLoaded((), provider_mock)
         assert loaded.data == []
 
     def test_single_instance(self, mocker):
-        provider_mock = mocker.Mock(spec=MockerFixture)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
         var_pass_info_mock = mocker.Mock(spec=VariablePassingStructValue)
 
         var_pass_mock = mocker.Mock(spec=VariablePassing)
@@ -700,7 +700,7 @@ class TestVariablePassingsLoaded:
         assert loaded.data == [var_pass_mock]
 
     def test_to_runtime(self, mocker):
-        provider_mock = mocker.Mock(spec=MockerFixture)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
         var_pass_info_mock = mocker.Mock(spec=VariablePassingStructValue)
 
         node_name = '/node'
