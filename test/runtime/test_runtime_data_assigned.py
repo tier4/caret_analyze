@@ -49,12 +49,12 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          VariablePassingStructValue)
 
 import pytest
-from pytest_mock import MockerFixture
+import pytest_mock
 
 
 class TestRuntimeLoaded:
 
-    def test_empty_architecture(self, mocker: MockerFixture):
+    def test_empty_architecture(self, mocker):
         arch = mocker.Mock(spec=Architecture)
         mocker.patch.object(arch, 'nodes', ())
         mocker.patch.object(arch, 'communications', ())
@@ -69,7 +69,7 @@ class TestRuntimeLoaded:
         assert loaded.communications == []
         assert loaded.paths == []
 
-    def test_full_architecture(self, mocker: MockerFixture):
+    def test_full_architecture(self, mocker):
         node_info_mock = mocker.Mock(spec=NodePathStructValue)
         comm_info_mock = mocker.Mock(spec=CommunicationStructValue)
         path_info_mock = mocker.Mock(spec=PathStructValue)
@@ -117,7 +117,7 @@ class TestRuntimeLoaded:
 
 class TestNodesLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         node_info_mock = mocker.Mock(spec=NodeStructValue)
 
         provider_mock = mocker.Mock(spec=RecordsProvider)
@@ -129,7 +129,7 @@ class TestNodesLoaded:
         nodes = loaded.data
         assert nodes == [node_mock]
 
-    def test_to_runtime_optional_none(self, mocker: MockerFixture):
+    def test_to_runtime_optional_none(self, mocker):
         node_info_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_info_mock, 'node_name', 'node')
         mocker.patch.object(node_info_mock, 'callback_groups', None)
@@ -156,7 +156,7 @@ class TestNodesLoaded:
         assert node.variable_passings == []
         assert node.paths == []
 
-    def test_to_runtime_full(self, mocker: MockerFixture):
+    def test_to_runtime_full(self, mocker):
         node_info_mock = mocker.Mock(spec=NodeStructValue)
 
         cbg_info_mock = mocker.Mock(spec=CallbackGroupStructValue)
@@ -225,13 +225,13 @@ class TestNodesLoaded:
 
 class TestPublishsersLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         loaded = PublishersLoaded((), provider_mock)
 
         assert loaded.data == []
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_info_mock = mocker.Mock(spec=PublisherStructValue)
 
@@ -242,7 +242,7 @@ class TestPublishsersLoaded:
 
         assert loaded.data == [pub_mock]
 
-    def test_get_publishers(self, mocker: MockerFixture):
+    def test_get_publishers(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_info_mock = mocker.Mock(spec=PublisherStructValue)
 
@@ -266,13 +266,13 @@ class TestPublishsersLoaded:
 
 class TestSubscriptionsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         loaded = SubscriptionsLoaded((), provider_mock)
 
         assert loaded.data == []
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
 
@@ -283,7 +283,7 @@ class TestSubscriptionsLoaded:
 
         assert loaded.data == [sub_mock]
 
-    def test_get_subscriptions(self, mocker: MockerFixture):
+    def test_get_subscriptions(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
 
@@ -307,12 +307,12 @@ class TestSubscriptionsLoaded:
 
 class TestExecutorLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
         loaded = ExecutorsLoaded((), nodes_loaded_mock)
         assert loaded.data == []
 
-    def test_to_runtime_data_empty_callback_group(self, mocker: MockerFixture):
+    def test_to_runtime_data_empty_callback_group(self, mocker):
         exec_info_mock = mocker.Mock(spec=ExecutorStructValue)
 
         mocker.patch.object(exec_info_mock, 'callback_group_names', ())
@@ -328,7 +328,7 @@ class TestExecutorLoaded:
         assert executor.callbacks == []
         assert executor.executor_name == 'exec_name'
 
-    def test_to_runtime_data_callback_group(self, mocker: MockerFixture):
+    def test_to_runtime_data_callback_group(self, mocker):
         exec_info_mock = mocker.Mock(spec=ExecutorStructValue)
 
         cbg_mock = mocker.Mock(spec=CallbackGroup)
@@ -351,14 +351,14 @@ class TestExecutorLoaded:
 
 class TestPathsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
         comms_loaded_mock = mocker.Mock(spec=CommunicationsLoaded)
         loaded = PathsLoaded((), nodes_loaded_mock, comms_loaded_mock)
 
         assert loaded.data == []
 
-    def test_to_runtime_empty(self, mocker: MockerFixture):
+    def test_to_runtime_empty(self, mocker):
         path_info_mock = mocker.Mock(spec=PathStructValue)
         mocker.patch.object(path_info_mock, 'child', [])
 
@@ -370,7 +370,7 @@ class TestPathsLoaded:
         assert path.node_paths == []
         assert path.child == []
 
-    def test_valid_path(self, mocker: MockerFixture):
+    def test_valid_path(self, mocker):
         path_info_mock = mocker.Mock(spec=PathStructValue)
 
         node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
@@ -392,7 +392,7 @@ class TestPathsLoaded:
 
         assert path.child == [node_path_mock, comm_mock]
 
-    def test_unsupported_error(self, mocker: MockerFixture):
+    def test_unsupported_error(self, mocker):
         path_info_mock = mocker.Mock(spec=PathStructValue)
         mocker.patch.object(path_info_mock, 'child', [None])
 
@@ -404,7 +404,7 @@ class TestPathsLoaded:
 
 class TestCommunicationsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
 
@@ -412,7 +412,7 @@ class TestCommunicationsLoaded:
 
         assert loaded.data == []
 
-    def test_single_comm(self, mocker: MockerFixture):
+    def test_single_comm(self, mocker):
         comm_info_mock = mocker.Mock(spec=CommunicationStructValue)
         provider_mock = mocker.Mock(spec=RecordsProvider)
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
@@ -423,7 +423,7 @@ class TestCommunicationsLoaded:
 
         assert loaded.data == [comm_mock]
 
-    def test_to_runtime(self, mocker: MockerFixture):
+    def test_to_runtime(self, mocker):
         comm_info_mock = mocker.Mock(spec=CommunicationStructValue)
         provider_mock = mocker.Mock(spec=RecordsProvider)
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
@@ -468,7 +468,7 @@ class TestCommunicationsLoaded:
         assert comm.publisher == pub_mock
         assert comm.subscription == sub_mock
 
-    def test_to_runtime_with_callback(self, mocker: MockerFixture):
+    def test_to_runtime_with_callback(self, mocker):
         comm_info_mock = mocker.Mock(spec=CommunicationStructValue)
         provider_mock = mocker.Mock(spec=RecordsProvider)
         nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
@@ -519,7 +519,7 @@ class TestCommunicationsLoaded:
 
 class TestCallbacksLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
@@ -530,7 +530,7 @@ class TestCallbacksLoaded:
 
         assert loaded.data == []
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
@@ -545,7 +545,7 @@ class TestCallbacksLoaded:
 
         assert loaded.data == [cb_mock]
 
-    def test_to_runtime_timer_callback(self, mocker: MockerFixture):
+    def test_to_runtime_timer_callback(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
@@ -575,7 +575,7 @@ class TestCallbacksLoaded:
         assert cb.publishers == [pub_mock]
         assert cb.publish_topic_names == [pub_topic_name]
 
-    def test_to_runtime_subscription_callback(self, mocker: MockerFixture):
+    def test_to_runtime_subscription_callback(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
@@ -612,7 +612,7 @@ class TestCallbacksLoaded:
 
 class TestCallbackGroupsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         provider_mock = mocker.Mock(spedc=RecordsProvider)
         publisher_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
@@ -622,7 +622,7 @@ class TestCallbackGroupsLoaded:
             (), provider_mock, publisher_loaded_mock, sub_loaded_mock, timer_loaded_mock).data
         assert cbgs == []
 
-    def test_to_runtime(self, mocker: MockerFixture):
+    def test_to_runtime(self, mocker):
         provider_mock = mocker.Mock(spedc=RecordsProvider)
         cbg_info_mock = mocker.Mock(spec=CallbackGroupStructValue)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
@@ -649,14 +649,14 @@ class TestCallbackGroupsLoaded:
 
 class TestNodePathsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
         loaded = NodePathsLoaded((), pub_loaded_mock, sub_loaded_mock, provider_mock, [])
         assert loaded.data == []
 
-    def test_to_runtime(self, mocker: MockerFixture):
+    def test_to_runtime(self, mocker):
         node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
@@ -683,12 +683,12 @@ class TestNodePathsLoaded:
 
 class TestVariablePassingsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=MockerFixture)
         loaded = VariablePassingsLoaded((), provider_mock)
         assert loaded.data == []
 
-    def test_single_instance(self, mocker: MockerFixture):
+    def test_single_instance(self, mocker):
         provider_mock = mocker.Mock(spec=MockerFixture)
         var_pass_info_mock = mocker.Mock(spec=VariablePassingStructValue)
 
@@ -699,7 +699,7 @@ class TestVariablePassingsLoaded:
 
         assert loaded.data == [var_pass_mock]
 
-    def test_to_runtime(self, mocker: MockerFixture):
+    def test_to_runtime(self, mocker):
         provider_mock = mocker.Mock(spec=MockerFixture)
         var_pass_info_mock = mocker.Mock(spec=VariablePassingStructValue)
 

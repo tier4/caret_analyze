@@ -25,12 +25,12 @@ from caret_analyze.runtime.path import Path
 from caret_analyze.runtime.runtime_loaded import RuntimeLoaded
 
 import pytest
-from pytest_mock import MockerFixture
+import pytest_mock
 
 
 class TestApplication:
 
-    def test_empty_architecture(self, mocker: MockerFixture):
+    def test_empty_architecture(self, mocker):
         arch_mock = mocker.Mock(spec=Architecture)
 
         assigned_mock = mocker.Mock(spec=RuntimeLoaded)
@@ -61,7 +61,7 @@ class TestApplication:
         with pytest.raises(ItemNotFoundError):
             app.get_communication('', '', '')
 
-    def test_full_architecture(self, mocker: MockerFixture):
+    def test_full_architecture(self, mocker):
         # define mocks
         arch_mock = mocker.Mock(spec=Architecture)
         records_provider_mock = mocker.Mock(spec=Lttng)

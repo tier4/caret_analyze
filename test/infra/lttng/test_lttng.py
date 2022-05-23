@@ -25,12 +25,12 @@ from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue
 from caret_analyze.value_objects.node import NodeValue
 
-from pytest_mock import MockerFixture
+import pytest_mock
 
 
 class TestLttng:
 
-    def test_get_nodes(self, mocker: MockerFixture):
+    def test_get_nodes(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -52,7 +52,7 @@ class TestLttng:
         nodes = lttng.get_nodes()
         assert nodes == [node]
 
-    def test_get_rmw_implementation(self, mocker: MockerFixture):
+    def test_get_rmw_implementation(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -72,7 +72,7 @@ class TestLttng:
         mocker.patch.object(lttng_info_mock, 'get_rmw_impl', return_value='rmw')
         assert lttng.get_rmw_impl() == 'rmw'
 
-    def test_get_publishers(self, mocker: MockerFixture):
+    def test_get_publishers(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -92,7 +92,7 @@ class TestLttng:
         mocker.patch.object(lttng_info_mock, 'get_publishers', return_value=[pub_mock])
         assert lttng.get_publishers(NodeValue('node', None)) == [pub_mock]
 
-    def test_get_timer_callbacks(self, mocker: MockerFixture):
+    def test_get_timer_callbacks(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -112,7 +112,7 @@ class TestLttng:
                             return_value=[timer_cb_mock])
         assert lttng.get_timer_callbacks(NodeValue('node', None)) == [timer_cb_mock]
 
-    def test_get_subscription_callbacks(self, mocker: MockerFixture):
+    def test_get_subscription_callbacks(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -133,7 +133,7 @@ class TestLttng:
                             return_value=[sub_cb_mock])
         assert lttng.get_subscription_callbacks(NodeValue('node', None)) == [sub_cb_mock]
 
-    def test_get_executors(self, mocker: MockerFixture):
+    def test_get_executors(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -154,7 +154,7 @@ class TestLttng:
                             return_value=[exec_info_mock])
         assert lttng.get_executors() == [exec_info_mock]
 
-    def test_compose_inter_proc_comm_records(self, mocker: MockerFixture):
+    def test_compose_inter_proc_comm_records(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -177,7 +177,7 @@ class TestLttng:
                             records_mock)
         assert lttng.compose_inter_proc_comm_records() == records_mock
 
-    def test_compose_intra_proc_comm_records(self, mocker: MockerFixture):
+    def test_compose_intra_proc_comm_records(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
@@ -200,7 +200,7 @@ class TestLttng:
                             records_mock)
         assert lttng.compose_intra_proc_comm_records() == records_mock
 
-    def test_compose_callback_records(self, mocker: MockerFixture):
+    def test_compose_callback_records(self, mocker):
         data_mock = mocker.Mock(spec=DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 

@@ -21,12 +21,12 @@ from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
 from caret_analyze.value_objects import PathStructValue
 
 import pytest
-from pytest_mock import MockerFixture
+import pytest_mock
 
 
 class TestPath:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         column_merger_mock = mocker.Mock(spec=ColumnMerger)
         mocker.patch('caret_analyze.runtime.path.ColumnMerger',
                      return_value=column_merger_mock)
@@ -55,7 +55,7 @@ class TestPath:
         assert records == records_mock
         assert path.column_names == []
 
-    def test_str(self, mocker: MockerFixture):
+    def test_str(self, mocker):
 
         node_mock_0 = mocker.Mock(spec=NodePath)
         node_mock_1 = mocker.Mock(spec=NodePath)
@@ -71,7 +71,7 @@ class TestPath:
                     comm_mock_0, node_mock_1, comm_mock_1], None)
         assert str(path) == '\n'.join(['node0', 'node1'])
 
-    def test_validate(self, mocker: MockerFixture):
+    def test_validate(self, mocker):
         node_mock_0 = mocker.Mock(spec=NodePath)
         node_mock_1 = mocker.Mock(spec=NodePath)
 
@@ -86,7 +86,7 @@ class TestColumnMerged:
         merged = ColumnMerger()
         assert merged.column_names == []
 
-    def test_column_names(self, mocker: MockerFixture):
+    def test_column_names(self, mocker):
         path_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(path_mock, 'columns',
                             ['cb_start', 'xxx', 'pub'])
@@ -106,7 +106,7 @@ class TestColumnMerged:
             'cb_start/1', 'xxx/1', 'pub/1'
         ]
 
-    def test_rename_rule(self, mocker: MockerFixture):
+    def test_rename_rule(self, mocker):
         path_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(path_mock, 'columns',
                             ['cb_start', 'xxx', 'pub'])
@@ -145,7 +145,7 @@ class TestRecordsMerged:
         with pytest.raises(InvalidArgumentError):
             RecordsMerged([])
 
-    def test_merge_two_records(self, mocker: MockerFixture):
+    def test_merge_two_records(self, mocker):
         node_path = mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path, 'to_records',
@@ -212,7 +212,7 @@ class TestRecordsMerged:
 
         assert records.equals(expected)
 
-    def test_loop_case(self, mocker: MockerFixture):
+    def test_loop_case(self, mocker):
         cb_records = Records(
             [
                 Record(

@@ -16,18 +16,18 @@ from caret_analyze.infra import RecordsProvider, RuntimeDataProvider
 from caret_analyze.runtime import Publisher
 from caret_analyze.value_objects import PublisherStructValue, Qos
 
-from pytest_mock import MockerFixture
+import pytest_mock
 
 
 class TestPublisher:
 
-    def test_qos_records_provider(self, mocker: MockerFixture):
+    def test_qos_records_provider(self, mocker):
         val_mock = mocker.Mock(spec=PublisherStructValue)
         provider_mock = mocker.Mock(spec=RecordsProvider)
         pub = Publisher(val_mock, provider_mock)
         assert pub.qos is None
 
-    def test_qos_runtime_data_provider(self, mocker: MockerFixture):
+    def test_qos_runtime_data_provider(self, mocker):
         val_mock = mocker.Mock(spec=PublisherStructValue)
         provider_mock = mocker.Mock(spec=RuntimeDataProvider)
 

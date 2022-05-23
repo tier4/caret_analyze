@@ -26,11 +26,11 @@
 
 # import pandas as pd
 # import pytest
-# from pytest_mock import MockerFixture
+# import pytest_mock
 
 
 # class TestLttngRecord:
-#     def test_compose_timer_callback_records(self, mocker: MockerFixture):
+#     def test_compose_timer_callback_records(self, mocker):
 #         lttng = mocker.Mock(spec=Lttng)
 #         records_lttng = RecordsLttng(lttng)
 #         node_name = '/node'
@@ -76,7 +76,7 @@
 #         assert len(records.data) == 0
 #         assert records.columns == columns_expect
 
-#     def test_compose_subscription_callback_records(self, mocker: MockerFixture):
+#     def test_compose_subscription_callback_records(self, mocker):
 #         lttng = mocker.Mock(spec=Lttng)
 #         records_lttng = RecordsLttng(lttng)
 #         node_name = '/node'
@@ -146,7 +146,7 @@
 #         assert records.columns == column_expect
 #         assert len(records.data) == 0
 
-#     def test_compose_inter_process_communication_records(self, mocker: MockerFixture):
+#     def test_compose_inter_process_communication_records(self, mocker):
 #         lttng = mocker.Mock(spec=Lttng)
 #         records_lttng = RecordsLttng(lttng)
 
@@ -219,7 +219,7 @@
 #         assert datum.get(COLUMN_NAME.DDS_WRITE_TIMESTAMP) == 3
 #         assert datum.get(COLUMN_NAME.CALLBACK_START_TIMESTAMP) == 4
 
-#     def test_compose_intra_process_communication_records(self, mocker: MockerFixture):
+#     def test_compose_intra_process_communication_records(self, mocker):
 #         lttng = mocker.Mock(spec=Lttng)
 #         records_lttng = RecordsLttng(lttng)
 
@@ -287,7 +287,7 @@
 #         assert datum.get(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP) == 1
 #         assert datum.get(COLUMN_NAME.CALLBACK_START_TIMESTAMP) == 2
 
-#     def test_compose_variable_passing_records(self, mocker: MockerFixture):
+#     def test_compose_variable_passing_records(self, mocker):
 #         lttng = mocker.Mock(spec=Lttng)
 #         records_lttng = RecordsLttng(lttng)
 

@@ -35,12 +35,12 @@ from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          VariablePassingStructValue)
 
 import pytest
-from pytest_mock import MockerFixture
+import pytest_mock
 
 
 class TestArchitectureExporter:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         exporter = ArchitectureExporter((), (), ())
 
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
@@ -65,7 +65,7 @@ class TestArchitectureExporter:
         }
         assert exporter.to_dict() == expected
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
         exporter = ArchitectureExporter((), (), ())
 
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
@@ -90,7 +90,7 @@ class TestArchitectureExporter:
         }
         assert exporter.to_dict() == expected
 
-    def test_str(self, mocker: MockerFixture):
+    def test_str(self, mocker):
         exporter = ArchitectureExporter((), (), ())
 
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
@@ -115,7 +115,7 @@ nodes: []
 """
         assert str(exporter) == expected
 
-    def test_force_option(self, mocker: MockerFixture, tmpdir):
+    def test_force_option(self, mocker, tmpdir):
         exporter = ArchitectureExporter((), (), ())
         exporter_force = ArchitectureExporter((), (), (), force=True)
 
@@ -150,7 +150,7 @@ class TestNamedPathsDicts:
         expect = []
         assert path_dict.data == expect
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
 
         path_info_mock = mocker.Mock(spec=PathStructValue)
         node_path_mock = mocker.Mock(spec=NodePathStructValue)
@@ -179,7 +179,7 @@ class TestNamedPathsDicts:
         ]
         assert path_dict.data == expect
 
-    def test_undefined(self, mocker: MockerFixture):
+    def test_undefined(self, mocker):
         path_info_mock = mocker.Mock(spec=PathStructValue)
         node_path_mock = mocker.Mock(spec=NodePathStructValue)
 
@@ -214,7 +214,7 @@ class TestExecutorDicts:
         expect = []
         assert exec_dicts.data == expect
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
 
         single_threaded_exec_mock = mocker.Mock(spec=ExecutorStructValue)
         multi_threaded_exec_mock = mocker.Mock(spec=ExecutorStructValue)
@@ -276,7 +276,7 @@ class TestExecutorDicts:
 
         assert exec_dicts.data == expect
 
-    def test_name_sort(self, mocker: MockerFixture):
+    def test_name_sort(self, mocker):
         exec_0 = mocker.Mock(spec=ExecutorStructValue)
         exec_1 = mocker.Mock(spec=ExecutorStructValue)
         exec_2 = mocker.Mock(spec=ExecutorStructValue)
@@ -333,7 +333,7 @@ class TestNodeDicts:
         node_dict = NodesDicts([])
         assert node_dict.data == []
 
-    def test_callbacks(self, mocker: MockerFixture):
+    def test_callbacks(self, mocker):
         node_info = mocker.Mock(spec=NodeStructValue)
 
         callback_dict_mock = mocker.Mock(spec=CallbackDicts)
@@ -359,7 +359,7 @@ class TestNodeDicts:
         ]
         assert node_dict.data == expect
 
-    def test_variable_passings(self, mocker: MockerFixture):
+    def test_variable_passings(self, mocker):
         node_info = mocker.Mock(spec=NodeStructValue)
 
         callback_dict_mock = mocker.Mock(spec=CallbackDicts)
@@ -391,7 +391,7 @@ class TestNodeDicts:
         ]
         assert node_dict.data == expect
 
-    def test_publish(self, mocker: MockerFixture):
+    def test_publish(self, mocker):
         node_info = mocker.Mock(spec=NodeStructValue)
 
         pub_dict_mock = mocker.Mock(spec=PubDicts)
@@ -417,7 +417,7 @@ class TestNodeDicts:
         ]
         assert node_dict.data == expect
 
-    def test_subscription(self, mocker: MockerFixture):
+    def test_subscription(self, mocker):
         node_info = mocker.Mock(spec=NodeStructValue)
 
         sub_dict_mock = mocker.Mock(spec=SubDicts)
@@ -443,7 +443,7 @@ class TestNodeDicts:
         ]
         assert node_dict.data == expect
 
-    def test_name_sort(self, mocker: MockerFixture):
+    def test_name_sort(self, mocker):
         node_0 = mocker.Mock(spec=NodeStructValue)
         node_1 = mocker.Mock(spec=NodeStructValue)
         node_2 = mocker.Mock(spec=NodeStructValue)
@@ -488,7 +488,7 @@ class TestNodeDicts:
 
 class TestSubDicts:
 
-    def test_content(self, mocker: MockerFixture):
+    def test_content(self, mocker):
         sub_info = mocker.Mock(spec=SubscriptionStructValue)
         mocker.patch.object(sub_info, 'topic_name', 'topic')
         mocker.patch.object(sub_info, 'callback_name', 'callback')
@@ -501,7 +501,7 @@ class TestSubDicts:
 
         assert sub_dict.data == expect
 
-    def test_callback_None(self, mocker: MockerFixture):
+    def test_callback_None(self, mocker):
         sub_info = mocker.Mock(spec=SubscriptionStructValue)
         mocker.patch.object(sub_info, 'topic_name', 'topic')
         mocker.patch.object(sub_info, 'callback_name', None)
@@ -514,7 +514,7 @@ class TestSubDicts:
 
         assert sub_dict.data == expect
 
-    def test_name_sort(self, mocker: MockerFixture):
+    def test_name_sort(self, mocker):
         sub_mock_0 = mocker.Mock(spec=SubscriptionStructValue)
         sub_mock_1 = mocker.Mock(spec=SubscriptionStructValue)
         sub_mock_2 = mocker.Mock(spec=SubscriptionStructValue)
@@ -540,7 +540,7 @@ class TestSubDicts:
 
 class TestPubDicts:
 
-    def test_content(self, mocker: MockerFixture):
+    def test_content(self, mocker):
         pub_info = mocker.Mock(spec=PublisherStructValue)
         mocker.patch.object(pub_info, 'topic_name', 'topic')
         mocker.patch.object(pub_info, 'callback_names', ('callback',))
@@ -553,7 +553,7 @@ class TestPubDicts:
 
         assert pub_dict.data == expect
 
-    def test_callback_none(self, mocker: MockerFixture):
+    def test_callback_none(self, mocker):
         pub_info = mocker.Mock(spec=PublisherStructValue)
         mocker.patch.object(pub_info, 'topic_name', 'topic')
         mocker.patch.object(pub_info, 'callback_names', None)
@@ -566,7 +566,7 @@ class TestPubDicts:
 
         assert pub_dict.data == expect
 
-    def test_name_sort(self, mocker: MockerFixture):
+    def test_name_sort(self, mocker):
         pub_mock_0 = mocker.Mock(spec=PublisherStructValue)
         pub_mock_1 = mocker.Mock(spec=PublisherStructValue)
         pub_mock_2 = mocker.Mock(spec=PublisherStructValue)
@@ -592,7 +592,7 @@ class TestPubDicts:
 
 class TestCallbackDicts:
 
-    def test_timer_callback(self, mocker: MockerFixture):
+    def test_timer_callback(self, mocker):
         callback_mock = mocker.Mock(spec=TimerCallbackStructValue)
 
         period_ns = 3
@@ -613,7 +613,7 @@ class TestCallbackDicts:
 
         assert callback_dict.data == expect
 
-    def test_subscription_callback(self, mocker: MockerFixture):
+    def test_subscription_callback(self, mocker):
         callback_mock = mocker.Mock(spec=SubscriptionCallbackStructValue)
 
         topic_name = 'topic'
@@ -634,12 +634,12 @@ class TestCallbackDicts:
 
         assert callback_dict.data == expect
 
-    def test_unsupported_type_error(self, mocker: MockerFixture):
+    def test_unsupported_type_error(self, mocker):
         callback_mock = mocker.Mock(spec=CallbackStructValue)
         with pytest.raises(UnsupportedTypeError):
             CallbackDicts((callback_mock,))
 
-    def test_name_sort(self, mocker: MockerFixture):
+    def test_name_sort(self, mocker):
 
         callback_mock_0 = mocker.Mock(spec=SubscriptionCallbackStructValue)
         callback_mock_1 = mocker.Mock(spec=SubscriptionCallbackStructValue)
@@ -702,7 +702,7 @@ class TestVarPassDicts:
 
         assert var_pass_dicts.data == expect
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
         var_pass_mock = mocker.Mock(spec=VariablePassingStructValue)
         callback_write_name = 'callback0'
         callback_read_name = 'callback1'
