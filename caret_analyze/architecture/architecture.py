@@ -144,21 +144,19 @@ class Architecture(Summarizable):
 
     def search_paths(
         self,
-        start_node_name: str,
-        end_node_name: str,
+        *node_names: str,
         max_node_depth: Optional[int] = None,
         node_filter: Optional[Callable[[str], bool]] = None,
         communication_filter: Optional[Callable[[str], bool]] = None,
     ) -> List[PathStructValue]:
         from .graph_search import NodePathSearcher
-        if start_node_name not in self.node_names:
-            raise InvalidArgumentError(f'Failed to find node. {start_node_name}')
-        if end_node_name not in self.node_names:
-            raise InvalidArgumentError(f'Failed to find node. node_name: {end_node_name}')
+        for node_name in node_names:
+            if node_name not in self.node_names:
+                raise ItemNotFoundError(f'Failed to find node. {node_name}')
 
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
-        return path_searcher.search(start_node_name, end_node_name, max_node_depth)
+        return path_searcher.search(*node_names, max_node_depth=max_node_depth)
 
 
 class NamedPathManager():

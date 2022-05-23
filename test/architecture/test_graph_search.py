@@ -26,6 +26,9 @@ from caret_analyze.value_objects import (CallbackStructValue,
                                          VariablePassingStructValue)
 
 import pytest_mock
+from caret_analyze.exceptions import ItemNotFoundError
+
+import pytest
 
 
 class TestGraphNode:
@@ -359,8 +362,9 @@ class TestCallbackPathSearcher:
 
         sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
         pub_cb_mock = mocker.Mock(spec=CallbackStructValue)
-        paths = searcher.search(sub_cb_mock, pub_cb_mock)
-        assert paths == ()
+
+        with pytest.raises(ItemNotFoundError):
+            searcher.search(sub_cb_mock, pub_cb_mock)
 
     def test_search(self, mocker):
         node_mock = mocker.Mock(spec=NodeStructValue)
@@ -461,7 +465,8 @@ class TestNodePathSearcher:
     def test_empty(self, mocker):
         searcher = NodePathSearcher((), ())
 
-        assert searcher.search('node_name_not_exist', 'node_name_not_exist', 0) == []
+        with pytest.raises(ItemNotFoundError):
+            searcher.search('node_name_not_exist', 'node_name_not_exist', max_node_depth=0)
 
         node_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock, 'paths', [])
@@ -492,7 +497,7 @@ class TestNodePathSearcher:
 
         assert paths == [path_mock]
         assert graph_mock.search_paths.call_args == (
-            (src_node, dst_node, 0), )
+            (src_node, dst_node), {'max_depth': 0})
 
     def test_to_path(self, mocker):
         node_name = '/node'

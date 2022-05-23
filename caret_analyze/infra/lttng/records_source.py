@@ -532,6 +532,7 @@ class RecordsSource():
             sink_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
             sink_from_key=COLUMN_NAME.MESSAGE,
             columns=[
+                'tid',
                 COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.CALLBACK_OBJECT,
