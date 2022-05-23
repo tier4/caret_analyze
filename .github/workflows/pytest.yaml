@@ -32,7 +32,7 @@ jobs:
 
       - name: Run pytest
         run: |
-          dpkg -l | grep mock
-          python3 -c "import pytest_mock; print(pytest_mock.__version__)""
+          # dpkg -l | grep mock
+          # python3 -c "import pytest_mock; print(pytest_mock.__version__)""
           . /opt/ros/galactic/setup.sh
           python3 -m pytest
