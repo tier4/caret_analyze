@@ -735,9 +735,17 @@ class LttngInfo:
             ['node_name', 'topic_name'],
             ['node_name', 'topic_name'],
             how='left')
-
+        
         for i in range(len(pub_df)):
             tilde_publisher = pub_df.get(i, 'tilde_publisher')
+
+            # Check whether publisher use caret-rclcpp
+            caret_rclcpp_version = pub_df.get(i, 'caret_rclcpp_version')
+            if not caret_rclcpp_version:
+                msg = ('caret-rclcpp is not used in following publishers:\n'
+                        f'\tnode name: {pub_df.get(i, "node_name")},\n'
+                        f'\ttopic name: {pub_df.get(i, "topic_name")}')
+                logger.warning(msg)
 
             val = PublisherValueLttng(
                     pid=pub_df.get(i, 'pid'),
@@ -747,6 +755,7 @@ class LttngInfo:
                     callback_ids=None,
                     publisher_handle=pub_df.get(i, 'publisher_handle'),
                     publisher_id=pub_df.get(i, 'publisher_id'),
+                    caret_rclcpp_version=caret_rclcpp_version,
                     tilde_publisher=tilde_publisher
                 )
             pubs.add(pub_df.get(i, 'node_id'), val)
@@ -1704,8 +1713,17 @@ class DataFrameFormatted:
             'node_handle',
             'topic_name',
             'depth',
+            'caret_rclcpp_version',
         ]
         df = data.rcl_publisher_init.clone()
+        rclcpp_pub_inits = data.rclcpp_publisher_init.clone()
+        df = merge(
+            df,
+            rclcpp_pub_inits,
+            'publisher_handle',
+            'publisher_handle',
+            how='outer'
+        )
 
         def to_publisher_id(i: int, row: Dict):
             return f'publisher_{i}'

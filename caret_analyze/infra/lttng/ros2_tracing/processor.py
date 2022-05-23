@@ -43,6 +43,7 @@ class Ros2Handler(EventHandler):
         handler_map['ros2:rcl_init'] = self._handle_rcl_init
         handler_map['ros2:rcl_node_init'] = self._handle_rcl_node_init
         handler_map['ros2:rcl_publisher_init'] = self._handle_rcl_publisher_init
+        handler_map['ros2:rclcpp_publisher_init'] = self._handle_rclcpp_publisher_init
         handler_map['ros2:rcl_subscription_init'] = self._handle_rcl_subscription_init
         handler_map['ros2:rclcpp_subscription_init'] = self._handle_rclcpp_subscription_init
         handler_map[
@@ -178,6 +179,7 @@ class Ros2Handler(EventHandler):
             'ros2:rcl_init',
             'ros2:rcl_node_init',
             'ros2:rcl_publisher_init',
+            'ros2:rclcpp_publisher_init',
             'ros2:rcl_subscription_init',
             'ros2:rclcpp_subscription_init',
             'ros2:rclcpp_subscription_callback_added',
@@ -268,6 +270,18 @@ class Ros2Handler(EventHandler):
         self.data.add_rcl_publisher_init(
             metadata.pid, metadata.tid,
             handle, timestamp, node_handle, rmw_handle, topic_name, depth)
+
+    def _handle_rclcpp_publisher_init(
+        self,
+        event: Dict,
+        metadata: EventMetadata,
+    ) -> None:
+        publisher_handle = get_field(event, 'publisher_handle')
+        caret_rclcpp_version = get_field(event, 'caret_rclcpp_version')
+        timestamp = metadata.timestamp
+        pid = metadata.pid
+        tid = metadata.tid
+        self.data.add_rclcpp_publisher_init(publisher_handle, caret_rclcpp_version, timestamp, pid, tid)
 
     def _handle_rcl_subscription_init(
         self,
