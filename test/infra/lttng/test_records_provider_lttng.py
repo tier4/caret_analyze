@@ -38,7 +38,6 @@ from caret_analyze.value_objects import (CallbackChain, CallbackStructValue,
                                          VariablePassingStructValue)
 
 
-
 class TestRecordsProviderLttng:
 
     def test_callback_records(self, mocker):
