@@ -90,7 +90,7 @@ class TestArchiteture:
         with pytest.raises(ItemNotFoundError):
             arch.get_node('node_not_exist')
 
-    def test_full_architecture(self, mocker: MockerFixture):
+    def test_full_architecture(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
@@ -129,7 +129,7 @@ class TestArchiteture:
         assert len(arch.communications) == 1
         assert arch.communications[0] == comm_mock
 
-    def test_path(self, mocker: MockerFixture):
+    def test_path(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
@@ -172,7 +172,7 @@ class TestArchiteture:
         with pytest.raises(InvalidArgumentError):
             arch.update_path('path2', path_)
 
-    def test_search_paths(self, mocker: MockerFixture):
+    def test_search_paths(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
