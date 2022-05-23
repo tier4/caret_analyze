@@ -513,6 +513,9 @@ class EventCounter:
             CountRule('ros2_caret:tf_set_transform',
                       data.tf_set_transform,
                       'tf_buffer_core'),
+            CountRule('ros2:rclcpp_publisher_init',
+                      data.rclcpp_publisher_init,
+                      'publisher_handle'),
         ]
 
         # validate count_rules
