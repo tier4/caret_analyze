@@ -25,7 +25,7 @@ from caret_analyze.value_objects import (CommunicationStructValue,
                                          PathStructValue)
 
 import pytest
-from pytest_mock import MockerFixture
+from pytest-mock import MockerFixture
 
 
 class TestArchiteture:
