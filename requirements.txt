@@ -4,4 +4,3 @@ pandas>=1.4.0
 bokeh
 graphviz
 tqdm
-pytest-mock
