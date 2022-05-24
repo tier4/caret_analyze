@@ -52,12 +52,11 @@ from caret_analyze.value_objects.message_context import MessageContextType
 from caret_analyze.value_objects.node import NodeValueWithId
 
 import pytest
-from pytest_mock import MockerFixture
 
 
 class TestArchitectureLoaded:
 
-    def test_empty_reader(self, mocker: MockerFixture):
+    def test_empty_reader(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         mocker.patch.object(
             reader_mock, 'get_paths', return_value=[])
@@ -89,7 +88,7 @@ class TestArchitectureLoaded:
         assert len(arch.nodes) == 0
         assert len(arch.communications) == 0
 
-    def test_get_data(self, mocker: MockerFixture):
+    def test_get_data(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         path_mock = mocker.Mock(spec=PathStructValue)
         executor_mock = mocker.Mock(spec=ExecutorValue)
@@ -139,7 +138,7 @@ class TestArchitectureLoaded:
 
 class TestNodesInfoLoaded():
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
@@ -155,7 +154,7 @@ class TestNodesInfoLoaded():
         nodes = loader.data
         assert len(nodes) == 0
 
-    def test_single_node(self, mocker: MockerFixture):
+    def test_single_node(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
@@ -175,7 +174,7 @@ class TestNodesInfoLoaded():
         nodes = loader.data
         assert nodes == (node_mock,)
 
-    def test_name_sort(self, mocker: MockerFixture):
+    def test_name_sort(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
@@ -204,7 +203,7 @@ class TestNodesInfoLoaded():
         assert nodes[1].node_name == 'b'
         assert nodes[2].node_name == 'c'
 
-    def test_create_node_empty(self, mocker: MockerFixture):
+    def test_create_node_empty(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
@@ -249,7 +248,7 @@ class TestNodesInfoLoaded():
         assert node.paths == ()
         assert node.variable_passings == ()
 
-    def test_create_node_full(self, mocker: MockerFixture):
+    def test_create_node_full(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
         cbg = mocker.Mock(spec=CallbackGroupStructValue)
         callback = mocker.Mock(spec=CallbackStructValue)
@@ -339,7 +338,7 @@ class TestNodesInfoLoaded():
         assert node.paths == (path, path_)
         assert node.variable_passings == (var_pass,)
 
-    def test_find_callback(self, mocker: MockerFixture):
+    def test_find_callback(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
@@ -365,7 +364,7 @@ class TestNodesInfoLoaded():
         with pytest.raises(ItemNotFoundError):
             loaded.find_callback('callback_id')
 
-    def test_find_node(self, mocker: MockerFixture):
+    def test_find_node(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node_value = NodeValue('node_name', None)
         mocker.patch.object(reader_mock, 'get_nodes', return_value=(node_value,))
@@ -387,7 +386,7 @@ class TestNodesInfoLoaded():
         with pytest.raises(ItemNotFoundError):
             nodes_loaded.find_node('node')
 
-    def test_find_node_path(self, mocker: MockerFixture):
+    def test_find_node_path(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValue('node', None)
         mocker.patch.object(reader_mock, 'get_nodes', return_value=(node,))
@@ -423,7 +422,7 @@ class TestNodesInfoLoaded():
         with pytest.raises(ItemNotFoundError):
             nodes_loaded.find_node_path(node_path_info_mock)
 
-    def test_find_callbacks(self, mocker: MockerFixture):
+    def test_find_callbacks(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
@@ -449,7 +448,7 @@ class TestNodesInfoLoaded():
         with pytest.raises(ItemNotFoundError):
             loaded.find_callbacks(('callback_id',))
 
-    def test_get_callbacks(self, mocker: MockerFixture):
+    def test_get_callbacks(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
@@ -484,7 +483,7 @@ class TestNodesInfoLoaded():
 
 class TestTopicIgnoreReader:
 
-    def test_get_publishers(self, mocker: MockerFixture):
+    def test_get_publishers(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
         mocker.patch.object(
             TopicIgnoredReader, '_get_ignore_callback_ids', return_value={'ignore'})
@@ -500,7 +499,7 @@ class TestTopicIgnoreReader:
         assert len(pubs) == 1
         assert pubs[0] == pub
 
-    def test_get_subscriptions(self, mocker: MockerFixture):
+    def test_get_subscriptions(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
         mocker.patch.object(
             TopicIgnoredReader, '_get_ignore_callback_ids', return_value={'ignore'})
@@ -517,7 +516,7 @@ class TestTopicIgnoreReader:
         assert len(subs) == 1
         assert subs[0] == sub
 
-    def test_get_executor(self, mocker: MockerFixture):
+    def test_get_executor(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
         exec_info = ExecutorValue(
@@ -541,7 +540,7 @@ class TestTopicIgnoreReader:
         )
         assert execs_info == (expected,)
 
-    def test_get_ignore_callback_ids(self, mocker: MockerFixture):
+    def test_get_ignore_callback_ids(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValueWithId('node', 'node')
         mocker.patch.object(reader_mock, 'get_nodes',
@@ -562,7 +561,7 @@ class TestTopicIgnoreReader:
                                                                  'topic_ignore'])
         assert ignore_ids == {'cb_ignore'}
 
-    def test_get_subscription_callbacks_info(self, mocker: MockerFixture):
+    def test_get_subscription_callbacks_info(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
         mocker.patch.object(
             TopicIgnoredReader, '_get_ignore_callback_ids', return_value={'cb_id_ignore'})
@@ -580,7 +579,7 @@ class TestTopicIgnoreReader:
         assert len(sub_cbs) == 1
         assert sub_cbs[0] == sub_cb
 
-    def test_get_callback_groups_info(self, mocker: MockerFixture):
+    def test_get_callback_groups_info(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
 
         mocker.patch.object(
@@ -614,7 +613,7 @@ class TestTopicIgnoreReader:
 
 class TestNodePathLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         searcher_mock = mocker.Mock(spec=CallbackPathSearcher)
         mocker.patch('caret_analyze.architecture.graph_search.CallbackPathSearcher',
                      return_value=searcher_mock)
@@ -624,7 +623,7 @@ class TestNodePathLoaded:
         searched = CallbackPathSearched(node_mock)
         assert len(searched.data) == 0
 
-    def test_full(self, mocker: MockerFixture):
+    def test_full(self, mocker):
         searcher_mock = mocker.Mock(spec=CallbackPathSearcher)
         mocker.patch('caret_analyze.architecture.graph_search.CallbackPathSearcher',
                      return_value=searcher_mock)
@@ -648,7 +647,7 @@ class TestNodePathLoaded:
 
 class TestPublishersLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         mocker.patch.object(
             reader_mock, 'get_publishers', return_value=[])
@@ -658,7 +657,7 @@ class TestPublishersLoaded:
         loaded = PublishersLoaded(reader_mock, callbacks_loaded_mock, node)
         assert len(loaded.data) == 0
 
-    def test_get_instance(self, mocker: MockerFixture):
+    def test_get_instance(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_id = '5'
         publisher_info = PublisherValue(
@@ -696,7 +695,7 @@ class TestPublishersLoaded:
 
 class TestSubscriptionsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         mocker.patch.object(
             reader_mock, 'get_subscriptions', return_value=[])
@@ -705,7 +704,7 @@ class TestSubscriptionsLoaded:
         loaded = SubscriptionsLoaded(reader_mock, callbacks_loaded_mock, node)
         assert len(loaded.data) == 0
 
-    def test_get_instance(self, mocker: MockerFixture):
+    def test_get_instance(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_id = '5'
 
@@ -737,7 +736,7 @@ class TestSubscriptionsLoaded:
 
 class TestCallbacksLoaded:
 
-    def test_empty_callback(self, mocker: MockerFixture):
+    def test_empty_callback(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValue('node_name', 'node_name')
 
@@ -751,7 +750,7 @@ class TestCallbacksLoaded:
         loaded = CallbacksLoaded(reader_mock, node)
         assert len(loaded.data) == 0
 
-    def test_duplicated_callback_name(self, mocker: MockerFixture):
+    def test_duplicated_callback_name(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValue('node_name', 'ndoe_name')
 
@@ -774,7 +773,7 @@ class TestCallbacksLoaded:
         with pytest.raises(InvalidReaderError):
             CallbacksLoaded(reader_mock, node)
 
-    def test_invalid_node_name(self, mocker: MockerFixture):
+    def test_invalid_node_name(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValue('invalid_node_name', 'invalid_node_name')
 
@@ -797,7 +796,7 @@ class TestCallbacksLoaded:
         with pytest.raises(InvalidReaderError):
             CallbacksLoaded(reader_mock, node)
 
-    def test_find_callback(self, mocker: MockerFixture):
+    def test_find_callback(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_name = ['callback_name0', 'callback_name1']
         period_ns = 4
@@ -840,7 +839,7 @@ class TestCallbacksLoaded:
         assert cb.publish_topic_names is None
         assert cb.subscribe_topic_name == topic_name
 
-    def test_not_implemented_callback_type(self, mocker: MockerFixture):
+    def test_not_implemented_callback_type(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
         callback_mock = mocker.Mock(spec=CallbackValue)
@@ -855,7 +854,7 @@ class TestCallbacksLoaded:
         with pytest.raises(UnsupportedTypeError):
             CallbacksLoaded(reader_mock, node).data
 
-    def test_callback_name(self, mocker: MockerFixture):
+    def test_callback_name(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         node = NodeValueWithId('/node_name', '/node_name')
         period_ns = 4
@@ -894,7 +893,7 @@ class TestCallbacksLoaded:
 
 class TestVariablePassingsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
 
@@ -907,7 +906,7 @@ class TestVariablePassingsLoaded:
             reader_mock, callback_loaded_mock, node)
         assert len(loaded.data) == 0
 
-    def test_get_instances(self, mocker: MockerFixture):
+    def test_get_instances(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
 
@@ -952,7 +951,7 @@ class TestVariablePassingsLoaded:
 
 class TestCallbackGroupsLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
 
@@ -965,7 +964,7 @@ class TestCallbackGroupsLoaded:
 
         assert len(loaded.data) == 0
 
-    def test_get_data(self, mocker: MockerFixture):
+    def test_get_data(self, mocker):
         node = NodeValueWithId('node', 'ndoe')
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1000,7 +999,7 @@ class TestCallbackGroupsLoaded:
 
 class TestExecutorInfoLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
         mocker.patch.object(reader_mock, 'get_executors', return_value=[])
@@ -1011,7 +1010,7 @@ class TestExecutorInfoLoaded:
         executors = loaded.data
         assert executors == ()
 
-    def test_single_executor(self, mocker: MockerFixture):
+    def test_single_executor(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
         executor_info_mock = mocker.Mock(ExecutorValue)
@@ -1029,7 +1028,7 @@ class TestExecutorInfoLoaded:
 
         assert executors == (struct_mock,)
 
-    def test_to_struct_empty(self, mocker: MockerFixture):
+    def test_to_struct_empty(self, mocker):
         executor = ExecutorValue(
             ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, ())
 
@@ -1041,7 +1040,7 @@ class TestExecutorInfoLoaded:
         assert len(struct.callback_groups) == 0
         assert len(struct.callbacks) == 0
 
-    def test_to_struct_full(self, mocker: MockerFixture):
+    def test_to_struct_full(self, mocker):
         node_name = 'node'
 
         node_info_mock = mocker.Mock(spec=NodeStructValue)
@@ -1069,7 +1068,7 @@ class TestExecutorInfoLoaded:
         assert exec_info.executor_type == ExecutorType.SINGLE_THREADED_EXECUTOR
         assert exec_info.executor_name == 'single_threaded_executor_0'
 
-    def test_executor_index(self, mocker: MockerFixture):
+    def test_executor_index(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
         single_executor_info_mock = mocker.Mock(ExecutorValue)
@@ -1102,7 +1101,7 @@ class TestExecutorInfoLoaded:
 
 class TestCommunicationInfoLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
 
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         mocker.patch.object(nodes_loaded_mock, 'data', [])
@@ -1128,7 +1127,7 @@ class TestCommunicationInfoLoaded:
         loaded = CommValuesLoaded(nodes_loaded_mock)
         assert len(loaded.data) == 0
 
-    def test_get_data(self, mocker: MockerFixture):
+    def test_get_data(self, mocker):
         node_info_mock = mocker.Mock(spec=NodeStructValue)
 
         pub_info = PublisherValue('topic_a', 'pub_node', 'pub_node_id', None)
@@ -1148,7 +1147,7 @@ class TestCommunicationInfoLoaded:
         loaded = CommValuesLoaded(nodes_loaded_mock)
         assert loaded.data == (comm_mock,)
 
-    def test_to_struct_with_callback(self, mocker: MockerFixture):
+    def test_to_struct_with_callback(self, mocker):
         topic_name = '/chatter'
         pub_node_name = 'talker'
         sub_node_name = 'listener'
@@ -1193,7 +1192,7 @@ class TestCommunicationInfoLoaded:
         assert comm_info.publisher == pub_mock
         assert comm_info.subscription == sub_mock
 
-    def test_find_communication(self, mocker: MockerFixture):
+    def test_find_communication(self, mocker):
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         mocker.patch.object(nodes_loaded_mock, 'data', ())
         comm_loaded = CommValuesLoaded(nodes_loaded_mock)
@@ -1211,7 +1210,7 @@ class TestCommunicationInfoLoaded:
             comm_loaded.find_communication(
                 'topic_name', 'pub_node_name', 'sub_node_name')
 
-    def test_to_struct(self, mocker: MockerFixture):
+    def test_to_struct(self, mocker):
         topic_name = '/chatter'
         pub_node_name = 'talker'
         sub_node_name = 'listener'
@@ -1248,7 +1247,7 @@ class TestCommunicationInfoLoaded:
 
 class TestPathInfoLoaded:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         comm_loaded_mock = mocker.Mock(spec=CommValuesLoaded)
@@ -1260,7 +1259,7 @@ class TestPathInfoLoaded:
         paths_info = loaded.data
         assert paths_info == ()
 
-    def test_single_path(self, mocker: MockerFixture):
+    def test_single_path(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         comm_loaded_mock = mocker.Mock(spec=CommValuesLoaded)
@@ -1278,7 +1277,7 @@ class TestPathInfoLoaded:
         paths_info = loaded.data
         assert paths_info == (path_mock,)
 
-    def test_to_struct(self, mocker: MockerFixture):
+    def test_to_struct(self, mocker):
         path_name = 'path'
 
         path_info = PathValue(path_name, ())
