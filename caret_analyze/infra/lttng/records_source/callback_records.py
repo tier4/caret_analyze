@@ -1,4 +1,5 @@
 
+from email.mime import base
 from functools import lru_cache
 
 from caret_analyze.value_objects.callback import CallbackStructValue
@@ -64,11 +65,13 @@ class CallbackRecordsContainer:
         if isinstance(callback, SubscriptionCallbackStructValue):
             intra_records = self.get_intra_records(callback)
             inter_records = self.get_inter_records(callback)
+            intra_records.columns.drop([
+                COLUMN_NAME.MESSAGE_TIMESTAMP
+            ], base_name_match=True)
             inter_records.columns.drop([
                 COLUMN_NAME.SOURCE_TIMESTAMP,
-            ],
-                base_name_match=True
-            )
+                COLUMN_NAME.MESSAGE_TIMESTAMP
+            ], base_name_match=True)
 
             intra_records.concat(inter_records)
 
@@ -77,7 +80,12 @@ class CallbackRecordsContainer:
             intra_records.sort(sort_column.column_name)
             return intra_records
 
-        return self.get_inter_records(callback)
+        records = self.get_inter_records(callback)
+        records.columns.drop([
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.MESSAGE_TIMESTAMP
+        ], base_name_match=True)
+        return records
 
     def get_inter_records(
         self,
@@ -93,7 +101,6 @@ class CallbackRecordsContainer:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
-            COLUMN_NAME.CALLBACK_OBJECT,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             COLUMN_NAME.CALLBACK_END_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
@@ -102,6 +109,12 @@ class CallbackRecordsContainer:
 
         callback_lttng = self._bridge.get_callback(callback)
         records = self._inter_callback.get(callback_lttng.callback_object)
+
+        records.columns.drop(
+            [
+                COLUMN_NAME.CALLBACK_OBJECT
+            ], base_name_match=True
+        )
 
         prefix = callback.callback_name
         records.columns.get(
@@ -127,7 +140,6 @@ class CallbackRecordsContainer:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
-            COLUMN_NAME.CALLBACK_OBJECT,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             COLUMN_NAME.CALLBACK_END_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP,
@@ -135,6 +147,9 @@ class CallbackRecordsContainer:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         if callback_lttng.callback_object_intra is None:
             records = RecordsFactory.create_instance(None, self._intra_callback.column_values)
+            records.columns.drop(
+                [COLUMN_NAME.CALLBACK_OBJECT]
+            )
             prefix = callback.callback_name
             records.columns.get(
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP, base_name_match=True).add_prefix(prefix)
@@ -143,6 +158,11 @@ class CallbackRecordsContainer:
             return records
 
         records = self._intra_callback.get(callback_lttng.callback_object_intra)
+        records.columns.drop(
+            [
+                COLUMN_NAME.CALLBACK_OBJECT,
+            ], base_name_match=True
+        )
 
         prefix = callback.callback_name
         records.columns.get(

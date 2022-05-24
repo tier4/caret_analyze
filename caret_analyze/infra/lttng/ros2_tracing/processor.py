@@ -786,15 +786,13 @@ class Ros2Handler(EventHandler):
     ) -> None:
         publisher = get_field(event, 'publisher')
         publish_tilde_timestamp = metadata.timestamp
-        message_info_ids = get_field(event, 'message_info_ids')
         message_ids = get_field(event, 'message_ids')
-        for message_info_id, message_id in zip(message_info_ids, message_ids):
+        for message_id in message_ids:
             self.data.add_tilde_publish(
                 metadata.pid,
                 metadata.tid,
                 publish_tilde_timestamp,
                 publisher,
-                message_info_id,
                 message_id)
 
     def _handle_tilde_subscribe_added(

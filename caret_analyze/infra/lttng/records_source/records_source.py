@@ -28,6 +28,8 @@ from .transform import (
     TransformSendRecordsContainer,
     TransformSetRecordsContainer,
 )
+from .timer_records import TimerRecordsContainer
+from .var_pass_records import VarPassRecordsContainer
 from ..bridge import LttngBridge
 from ..column_names import COLUMN_NAME
 from ..events_factory import EventsFactory
@@ -59,6 +61,8 @@ from ....value_objects import (
     TransformCommunicationStructValue,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
+    TimerStructValue,
+    VariablePassingStructValue,
 )
 
 
@@ -86,8 +90,10 @@ class RecordsSource():
             bridge, data, info, self._tf_send_records,
             self._tf_set_records, self._tf_lookup_records
         )
+        self._timer_records = TimerRecordsContainer(bridge, data, info, self._cb_records)
+        self._var_pass_records = VarPassRecordsContainer(bridge, self._cb_records)
         self._node_records = NodeRecordsContainer(
-            bridge, self._cb_records, self._pub_records,
+            bridge, self._cb_records, self._sub_records, self._pub_records,
             self._tf_lookup_records, self._tf_send_records)
 
     def ipc_buffer_records(
@@ -152,6 +158,12 @@ class RecordsSource():
     ) -> RecordsInterface:
         return self._tf_comm_records.get_inter_records(comm)
 
+    def get_var_pass_records(
+        self,
+        var_pass: VariablePassingStructValue,
+    ) -> RecordsInterface:
+        return self._var_pass_records.get_records(var_pass)
+
     def find_closest_records(
         self,
         frame_mapper: ColumnMapper,
@@ -180,92 +192,92 @@ class RecordsSource():
 
         return records
 
-    def create_timer_events_factory(
-        self,
-        timer_callback: TimerCallbackValueLttng
-    ) -> EventsFactory:
-        """
-        Create tiemr events factory.
+    # def create_timer_events_factory(
+    #     self,
+    #     timer_callback: TimerCallbackValueLttng
+    # ) -> EventsFactory:
+    #     """
+    #     Create tiemr events factory.
 
-        Parameters
-        ----------
-        timer_callback : TimerCallbackValueLttng
-            target callback to create timer events.
+    #     Parameters
+    #     ----------
+    #     timer_callback : TimerCallbackValueLttng
+    #         target callback to create timer events.
 
-        Returns
-        -------
-        EventsFactory
+    #     Returns
+    #     -------
+    #     EventsFactory
 
-        """
-        class TimerEventsFactory(EventsFactory):
+    #     """
+    #     class TimerEventsFactory(EventsFactory):
 
-            def __init__(self, ctrls: Sequence[TimerControl]) -> None:
-                self._ctrls = ctrls
+    #         def __init__(self, ctrls: Sequence[TimerControl]) -> None:
+    #             self._ctrls = ctrls
 
-            def create(self, until_ns: int) -> RecordsInterface:
+    #         def create(self, until_ns: int) -> RecordsInterface:
 
-                columns = [
-                    ColumnValue(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
-                ]
+    #             columns = [
+    #                 ColumnValue(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
+    #             ]
 
-                records = RecordsFactory.create_instance(None, columns)
-                for ctrl in self._ctrls:
+    #             records = RecordsFactory.create_instance(None, columns)
+    #             for ctrl in self._ctrls:
 
-                    if isinstance(ctrl, TimerInit):
-                        ctrl._timestamp
-                        timer_timestamp = ctrl._timestamp
-                        while timer_timestamp < until_ns:
-                            record_dict = {
-                                            COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
-                            }
-                            record = RecordFactory.create_instance(record_dict)
-                            records.append(record)
-                            timer_timestamp = timer_timestamp+ctrl.period_ns
+    #                 if isinstance(ctrl, TimerInit):
+    #                     ctrl._timestamp
+    #                     timer_timestamp = ctrl._timestamp
+    #                     while timer_timestamp < until_ns:
+    #                         record_dict = {
+    #                                         COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
+    #                         }
+    #                         record = RecordFactory.create_instance(record_dict)
+    #                         records.append(record)
+    #                         timer_timestamp = timer_timestamp+ctrl.period_ns
 
-                return records
+    #             return records
 
-        timer_ctrls = self._info.get_timer_controls()
+    #     timer_ctrls = self._info.get_timer_controls()
 
-        filtered_timer_ctrls = Util.filter_items(
-            lambda x: x.timer_handle == timer_callback.timer_handle, timer_ctrls)
+    #     filtered_timer_ctrls = Util.filter_items(
+    #         lambda x: x.timer_handle == timer_callback.timer_handle, timer_ctrls)
 
-        return TimerEventsFactory(filtered_timer_ctrls)
+    #     return TimerEventsFactory(filtered_timer_ctrls)
 
-    def tilde_publish_records(
-        self,
-        tilde_publisher
-    ) -> RecordsInterface:
-        raise NotImplementedError('')
-        """
-        Compose tilde publish records.
+    # def tilde_publish_records(
+    #     self,
+    #     tilde_publisher
+    # ) -> RecordsInterface:
+    #     raise NotImplementedError('')
+    #     """
+    #     Compose tilde publish records.
 
-        Returns
-        -------
-        RecordsInterface
-            columns:
-            - tilde_publish_timestamp
-            - tilde_publisher
-            - tilde_message_id
-            - tilde_subscription
+    #     Returns
+    #     -------
+    #     RecordsInterface
+    #         columns:
+    #         - tilde_publish_timestamp
+    #         - tilde_publisher
+    #         - tilde_message_id
+    #         - tilde_subscription
 
-        """
-        records = self._data.tilde_publish
-        records.rename_columns({'publisher': 'tilde_publisher'})
+    #     """
+    #     records = self._data.tilde_publish
+    #     records.rename_columns({'publisher': 'tilde_publisher'})
 
-        subscription: List[int] = []
-        for record in records:
-            subscription_id = record.get('subscription_id')
-            subscription.append(self._info.tilde_sub_id_map[subscription_id])
+    #     subscription: List[int] = []
+    #     for record in records:
+    #         subscription_id = record.get('subscription_id')
+    #         subscription.append(self._info.tilde_sub_id_map[subscription_id])
 
-        records.append_column(Column('tilde_subscription'), subscription)
-        records.drop_columns(['subscription_id'])
-        return records
+    #     records.append_column(Column('tilde_subscription'), subscription)
+    #     records.drop_columns(['subscription_id'])
+    #     return records
 
     def timer_callback(
         self,
-        callback: TimerCallbackStructValue,
+        timer: TimerStructValue,
     ) -> RecordsInterface:
-        raise NotImplementedError('')
+        return self._timer_records.get_records(timer)
         # timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
         # callback_records = self.callback_records(timer.callback)
         # last_record = callback_records.data[-1]
@@ -308,23 +320,23 @@ class RecordsSource():
     # ) -> RecordsInterface:
     #     return self._node_records.get_tilde(node_path_val)
 
-    def tilde_subscribe_records(self) -> RecordsInterface:
-        """
-        Compose tilde subscribe records.
+    # def tilde_subscribe_records(self) -> RecordsInterface:
+    #     """
+    #     Compose tilde subscribe records.
 
-        Returns
-        -------
-        RecordsInterface
-            columns:
-            - tilde_subscribe_timestamp
-            - tilde_subscription
-            - tilde_message_id
+    #     Returns
+    #     -------
+    #     RecordsInterface
+    #         columns:
+    #         - tilde_subscribe_timestamp
+    #         - tilde_subscription
+    #         - tilde_message_id
 
-        """
-        raise NotImplementedError('')
-        records = self._data.tilde_subscribe
-        records.rename_columns({'subscription': 'tilde_subscription'})
-        return records
+    #     """
+    #     raise NotImplementedError('')
+    #     records = self._data.tilde_subscribe
+    #     records.rename_columns({'subscription': 'tilde_subscription'})
+    #     return records
 
     def intra_proc_comm_records(
         self,

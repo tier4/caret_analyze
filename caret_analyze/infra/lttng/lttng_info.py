@@ -46,8 +46,6 @@ from .value_objects import (
     SubscriptionCallbackValueLttng,
     SubscriptionValueLttng,
     TimerCallbackValueLttng,
-    TimerControl,
-    TimerInit,
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
 )
@@ -645,6 +643,7 @@ class LttngInfo:
 
     @property
     def tilde_sub_id_map(self) -> Dict[int, int]:
+        raise NotImplementedError('')
         return self._formatted.tilde_sub_id_map
 
     # def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
@@ -740,7 +739,7 @@ class LttngInfo:
 
             # Check whether publisher use caret-rclcpp
             caret_rclcpp_version = pub_df.get(i, 'caret_rclcpp_version')
-            if not caret_rclcpp_version and pub_df.get(i, "topic_name") != '/rosout':
+            if not caret_rclcpp_version and pub_df.get(i, 'topic_name') != '/rosout':
                 msg = ('caret-rclcpp is not used in following publishers:\n'
                         f'\tnode name: {pub_df.get(i, "node_name")},\n'
                         f'\ttopic name: {pub_df.get(i, "topic_name")}')
@@ -969,19 +968,21 @@ class LttngInfo:
         except ValueError:
             return []
 
-    def get_timer_controls(self) -> Sequence[TimerControl]:
-        df = self._formatted.timer_controls_df
-        ctrls: List[TimerControl] = []
-        for i in range(len(df)):
-            if df.get(i, 'type') == 'init':
-                params = df.get(i, 'params')
-                ctrl = TimerInit(
-                    df.get(i, 'timer_handle'), df.get(i, 'timestamp'), params['period'])
-                ctrls.append(ctrl)
-            else:
-                raise NotImplementedError('Unsupported timer control type.')
+    # def get_timer_controls(self) -> Sequence[TimerControl]:
+    #     df = self._formatted.timer_controls_df
+    #     ctrls: List[TimerControl] = []
+    #     for i in range(len(df)):
+    #         if df.get(i, 'type') == 'init':
+    #             params = df.get(i, 'params')
+    #             ctrl = TimerInit(
+    #                 df.get(i, 'timer_handle'),
+    #                 df.get(i, 'timestamp'),
+    #                 params['period'])
+    #             ctrls.append(ctrl)
+    #         else:
+    #             raise NotImplementedError('Unsupported timer control type.')
 
-        return ctrls
+    #     return ctrls
 
 
 # class PublisherBinder:
@@ -1287,7 +1288,7 @@ class DataFrameFormatted:
         self._tilde_sub = self._build_tilde_subscription_df(data)
         self._tilde_pub = self._build_tilde_publisher_df(data)
         self._tilde_sub_id_to_sub = self._build_tilde_sub_id_df(data, self._tilde_sub)
-        self._timer_control = self._build_timer_control_df(data)
+        # self._timer_control = self._build_timer_control_df(data)
         self._tf_broadcasters = self._build_tf_broadcasters_df(data, self._pub_df)
         self._tf_frames = self._build_tf_frames_df(data)
         self._tf_buffers = self._build_tf_buffers_df(
@@ -1505,9 +1506,9 @@ class DataFrameFormatted:
         """
         return self._tilde_sub.clone()
 
-    @property
-    def timer_controls_df(self) -> RecordsInterface:
-        return self._timer_control.clone()
+    # @property
+    # def timer_controls_df(self) -> RecordsInterface:
+    #     return self._timer_control.clone()
 
     @property
     def tf_buffers_df(self) -> RecordsInterface:
@@ -1799,13 +1800,15 @@ class DataFrameFormatted:
 
         record_list: List[RecordInterface] = []
         mapper = ColumnMapper()
+        params_mapper = ColumnMapper()
         for i, row in enumerate(df):
             mapper.add(i, 'init')
+            params_mapper.add(i, {'period': row.get('period')})
             record_list.append(
                 RecordFactory.create_instance(
                     {
                         'type': i,
-                        'params': row.get('period'),
+                        'params': i,
                     }
                 )
             )
@@ -1816,7 +1819,7 @@ class DataFrameFormatted:
                 ColumnValue('timestamp', [ColumnAttribute.SYSTEM_TIME]),
                 ColumnValue('timer_handle'),
                 ColumnValue('type', mapper=mapper),
-                ColumnValue('params'),
+                ColumnValue('params', mapper=params_mapper),
             ]
         )
         records.columns.reindex(columns)
@@ -2063,7 +2066,6 @@ class DataFrameFormatted:
         columns = ['tilde_subscription', 'node_name', 'topic_name']
 
         df = data.tilde_subscription_init.clone()
-        df.columns.rename({'subscription': 'tilde_subscription'})
         df.columns.drop(set(df.column_names) - set(columns))
         df.columns.reindex(columns)
 
@@ -2076,7 +2078,6 @@ class DataFrameFormatted:
         columns = ['tilde_publisher', 'node_name', 'topic_name']
 
         df = data.tilde_publisher_init.clone()
-        df.columns.rename({'publisher': 'tilde_publisher'})
 
         df.columns.drop(set(df.column_names) - set(columns))
         df.columns.reindex(columns)
@@ -2087,7 +2088,7 @@ class DataFrameFormatted:
         data: Ros2DataModel,
         sub_df: pd.DataFrame
     ) -> pd.DataFrame:
-        columns = ['subscription_id', 'tilde_subscription', 'node_name', 'topic_name']
+        columns = ['tilde_subscription_id', 'tilde_subscription', 'node_name', 'topic_name']
         df = data.tilde_subscribe_added.clone()
         df = merge(
             df,

@@ -23,13 +23,11 @@ import pandas as pd
 
 from tracetools_analysis.loading import load_file
 
-from .bridge import LttngBridge
 from .event_filter import (
     Event,
     InitEventPassFilter,
     LttngEventFilter,
 )
-from .events_factory import EventsFactory
 from .records_post_process import post_process_records
 from .ros2_tracing.data_model import DataModel
 from .ros2_tracing.processor import Ros2Handler
@@ -61,11 +59,12 @@ from ...value_objects import (
     Qos,
     SubscriptionCallbackStructValue,
     SubscriptionStructValue,
-    TimerCallbackStructValue,
     TimerValue,
     TransformCommunicationStructValue,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
+    TimerStructValue,
+    VariablePassingStructValue,
 )
 
 
@@ -95,6 +94,7 @@ class Lttng(InfraBase):
         store_events: bool = False,
     ) -> None:
         from .lttng_info import LttngInfo
+        from .bridge import LttngBridge
         from .records_source import RecordsSource
         from .event_counter import EventCounter
 
@@ -409,7 +409,7 @@ class Lttng(InfraBase):
         self,
         buffer: IntraProcessBufferStructValue
     ) -> RecordsInterface:
-        return self._source.ipc_buffer_records(buffer).clone()
+        return self._source.ipc_buffer_records(buffer)
 
     def get_count(
         self,
@@ -417,6 +417,12 @@ class Lttng(InfraBase):
     ) -> pd.DataFrame:
         groupby = groupby or ['trace_point']
         return self._counter.get_count(groupby)
+
+    def get_var_pass_records(
+        self,
+        var_pass: VariablePassingStructValue
+    ) -> RecordsInterface:
+        return self._source.get_var_pass_records(var_pass)
 
     def get_tf_buffer(
         self,
@@ -465,7 +471,7 @@ class Lttng(InfraBase):
             - dds_write_timestamp (Optional)
 
         """
-        return self._source.inter_proc_comm_records(comm).clone()
+        return self._source.inter_proc_comm_records(comm)
 
     def get_intra_proc_comm_records(
         self,
@@ -489,13 +495,13 @@ class Lttng(InfraBase):
         # publisher: PublisherStructValue,
         # buffer: IntraProcessBufferStructValue,
         # callback: SubscriptionCallbackStructValue,
-        return self._source.intra_proc_comm_records(comm).clone()
+        return self._source.intra_proc_comm_records(comm)
 
     def get_callback_records(
         self,
         callback: CallbackStructValue,
     ) -> RecordsInterface:
-        return self._source.callback_records(callback).clone()
+        return self._source.callback_records(callback)
 
     def get_node_records(
         self,
@@ -507,19 +513,19 @@ class Lttng(InfraBase):
         self,
         publisher: PublisherStructValue
     ) -> RecordsInterface:
-        return self._source.publish_records(publisher).clone()
+        return self._source.publish_records(publisher)
 
     def get_intra_publish_records(
         self,
         publisher: PublisherStructValue,
     ) -> RecordsInterface:
-        return self._source.intra_publish_records(publisher).clone()
+        return self._source.intra_publish_records(publisher)
 
     def get_timer_callback(
         self,
-        callback: TimerCallbackStructValue,
+        timer: TimerStructValue,
     ) -> RecordsInterface:
-        return self._source.timer_callback(callback)
+        return self._source.timer_callback(timer)
 
     @singledispatchmethod
     def get_subscribe_records(self, args) -> RecordsInterface:
@@ -530,30 +536,30 @@ class Lttng(InfraBase):
         self,
         subscription: SubscriptionStructValue
     ) -> RecordsInterface:
-        return self._source.subscribe_records(subscription.callback).clone()
+        return self._source.subscribe_records(subscription)
 
     @get_subscribe_records.register
     def _get_subscribe_records_callback(
         self,
         callback: SubscriptionCallbackStructValue
     ) -> RecordsInterface:
-        return self._source.subscribe_records(callback).clone()
+        return self._source.subscribe_records(callback)
 
-    def create_timer_events_factory(
-        self,
-        timer_callback: TimerCallbackValueLttng
-    ) -> EventsFactory:
-        return self._source.create_timer_events_factory(timer_callback)
+    # def create_timer_events_factory(
+    #     self,
+    #     timer_callback: TimerCallbackValueLttng
+    # ) -> EventsFactory:
+    #     return self._source.create_timer_events_factory(timer_callback)
 
-    def compose_tilde_publish_records(
-        self,
-    ) -> RecordsInterface:
-        return self._source.tilde_publish_records.clone()
+    # def compose_tilde_publish_records(
+    #     self,
+    # ) -> RecordsInterface:
+    #     return self._source.tilde_publish_records
 
-    def compose_tilde_subscribe_records(
-        self,
-    ) -> RecordsInterface:
-        return self._source.tilde_subscribe_records.clone()
+    # def compose_tilde_subscribe_records(
+    #     self,
+    # ) -> RecordsInterface:
+    #     return self._source.tilde_subscribe_records
 
     def get_send_transform(
         self,

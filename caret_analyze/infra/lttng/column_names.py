@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from re import S
 from typing import NamedTuple
 
 
@@ -51,6 +50,7 @@ class ColumnName(NamedTuple):
     IS_INTRA_PROCESS: str = 'is_intra_process'
     PUBLISHER_HANDLE: str = 'publisher_handle'
     MESSAGE_TIMESTAMP: str = 'message_timestamp'
+    TIMER_HANDLE: str = 'timer_handle'
 
     SUBSCRIPTION_HANDLE: str = 'subscription_handle'
     NODE_HANDLE: str = 'node_handle'

@@ -301,7 +301,7 @@ class Ros2DataModel(DataModel):
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
-                ColumnValue('subscription'),
+                ColumnValue('tilde_subscription'),
                 ColumnValue('node_name', mapper=ColumnMapper()),
                 ColumnValue('topic_name', mapper=ColumnMapper()),
                 ColumnValue('timestamp'),
@@ -312,7 +312,7 @@ class Ros2DataModel(DataModel):
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
-                ColumnValue('publisher'),
+                ColumnValue('tilde_publisher'),
                 ColumnValue('node_name', mapper=ColumnMapper()),
                 ColumnValue('topic_name', mapper=ColumnMapper()),
                 ColumnValue('timestamp'),
@@ -323,7 +323,7 @@ class Ros2DataModel(DataModel):
             [
                 ColumnValue('pid'),
                 ColumnValue('tid'),
-                ColumnValue('subscription_id'),
+                ColumnValue('tilde_subscription_id'),
                 ColumnValue('node_name', mapper=ColumnMapper()),
                 ColumnValue('topic_name', mapper=ColumnMapper()),
                 ColumnValue('timestamp'),
@@ -708,7 +708,7 @@ class Ros2DataModel(DataModel):
                 ColumnValue('pid'),
                 ColumnValue('tid'),
                 ColumnValue('tilde_subscribe_timestamp'),
-                ColumnValue('subscription'),
+                ColumnValue('tilde_subscription'),
                 ColumnValue('tilde_message_id')
             ]
         )
@@ -719,9 +719,9 @@ class Ros2DataModel(DataModel):
                 ColumnValue('pid'),
                 ColumnValue('tid'),
                 ColumnValue('tilde_publish_timestamp', [ColumnAttribute.SYSTEM_TIME]),
-                ColumnValue('publisher'),
-                ColumnValue('message_info_id'),
-                ColumnValue('message_id')
+                ColumnValue('tilde_publisher'),
+                ColumnValue('tilde_subscription_id'),
+                ColumnValue('tilde_message_id')
             ]
         )
         self.sim_time = RecordsFactory.create_instance(
@@ -1574,7 +1574,7 @@ class Ros2DataModel(DataModel):
         self.tilde_subscription_init.append(
             RecordFactory.create_instance(
                 {
-                    'subscription': subscription,
+                    'tilde_subscription': subscription,
                     'node_name': record_idx,
                     'topic_name': record_idx,
                     'timestamp': timestamp,
@@ -1585,7 +1585,7 @@ class Ros2DataModel(DataModel):
         )
 
     def add_tilde_publisher_init(
-        self, pid, tid, publisher, node_name, topic_name, timestamp
+        self, pid, tid, tilde_publisher, node_name, topic_name, timestamp
     ) -> None:
         record_idx = len(self.tilde_publisher_init)
         mapper_topic_name = self.tilde_publisher_init.columns.get('topic_name').mapper
@@ -1598,7 +1598,7 @@ class Ros2DataModel(DataModel):
         self.tilde_publisher_init.append(
             RecordFactory.create_instance(
                 {
-                    'publisher': publisher,
+                    'tilde_publisher': tilde_publisher,
                     'node_name': record_idx,
                     'topic_name': record_idx,
                     'timestamp': timestamp,
@@ -1613,7 +1613,7 @@ class Ros2DataModel(DataModel):
         pid: int,
         tid: int,
         timestamp: int,
-        subscription: int,
+        tilde_subscription: int,
         tilde_message_id: int,
     ) -> None:
         record = RecordFactory.create_instance(
@@ -1621,7 +1621,7 @@ class Ros2DataModel(DataModel):
                 'pid': pid,
                 'tid': tid,
                 'tilde_subscribe_timestamp': timestamp,
-                'subscription': subscription,
+                'tilde_subscription': tilde_subscription,
                 'tilde_message_id': tilde_message_id
             }
         )
@@ -1632,8 +1632,8 @@ class Ros2DataModel(DataModel):
         pid: int,
         tid: int,
         timestamp: int,
-        publisher: int,
-        message_info_id: int,
+        tilde_publisher: int,
+        tilde_subscription_id: int,
         message_id: int,
     ) -> None:
         record = RecordFactory.create_instance(
@@ -1641,9 +1641,9 @@ class Ros2DataModel(DataModel):
                 'pid': pid,
                 'tid': tid,
                 'tilde_publish_timestamp': timestamp,
-                'publisher': publisher,
-                'message_info_id': message_info_id,
-                'message_id': message_id,
+                'tilde_publisher': tilde_publisher,
+                'tilde_subscription_id': tilde_subscription_id,
+                'tilde_message_id': message_id,
             }
         )
         self.tilde_publish.append(record)
@@ -1660,7 +1660,7 @@ class Ros2DataModel(DataModel):
         self.tilde_subscribe_added.append(
             RecordFactory.create_instance(
                 {
-                    'subscription_id': subscription_id,
+                    'tilde_subscription_id': subscription_id,
                     'node_name': record_idx,
                     'topic_name': record_idx,
                     'pid': pid,

@@ -379,7 +379,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def to_dataframe(self, converter: Optional[ClockConverter]) -> pd.DataFrame:
+    def to_dataframe(self, converter: Optional[ClockConverter] = None) -> pd.DataFrame:
         """
         Convert to pandas dataframe.
 

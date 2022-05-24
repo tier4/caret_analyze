@@ -45,9 +45,6 @@ class CommRecordsContainer:
         comm: CommunicationStructValue
     ) -> RecordsInterface:
         columns = [
-            COLUMN_NAME.PID,
-            COLUMN_NAME.TID,
-            COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.BUFFER_ENQUEUE_TIMESTAMP,
@@ -55,7 +52,6 @@ class CommRecordsContainer:
             'is_full',
             COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
             'dequeued_msg_size',
-            COLUMN_NAME.CALLBACK_OBJECT,
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
         ]
 
@@ -67,17 +63,22 @@ class CommRecordsContainer:
                                          cb_lttng.callback_object_intra):
             records = self._intra_comm_records.get(publisher_lttng.publisher_handle,
                                                    cb_lttng.callback_object_intra)
+            records.columns.drop([
+                COLUMN_NAME.PUBLISHER_HANDLE,
+                COLUMN_NAME.CALLBACK_OBJECT,
+                COLUMN_NAME.PID,
+                COLUMN_NAME.TID,
+            ], base_name_match=True)
             columns = [
-                        COLUMN_NAME.PID,
-                        COLUMN_NAME.TID,
-                        COLUMN_NAME.PUBLISHER_HANDLE,
                         COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
                         COLUMN_NAME.MESSAGE_TIMESTAMP,
-                        COLUMN_NAME.CALLBACK_OBJECT,
                         COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                     ]
             records.columns.get(
                         COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, base_name_match=True
+            ).add_prefix(comm.topic_name)
+            records.columns.get(
+                        COLUMN_NAME.MESSAGE_TIMESTAMP, base_name_match=True
             ).add_prefix(comm.topic_name)
             records.columns.get(
                         COLUMN_NAME.CALLBACK_START_TIMESTAMP, base_name_match=True
@@ -164,11 +165,14 @@ class CommRecordsContainer:
             'rcl_publish_timestamp',
             'dds_write_timestamp',
             'message_timestamp',
-            'callback_start_timestamp',
-            'callback_end_timestamp']
+            'callback_start_timestamp']
         publish_records = self._pub_records.get_inter_records(comm.publisher)
-        callback_records = self._sub_records.get_inter_records(
-            comm.subscription_callback)
+        sub_records = self._sub_records.get_inter_records(comm.subscription)
+
+        sub_records.columns.drop(
+            [COLUMN_NAME.CALLBACK_END_TIMESTAMP],
+            base_name_match=True
+        )
 
         publish_column = publish_records.columns.get(
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
@@ -180,14 +184,14 @@ class CommRecordsContainer:
             COLUMN_NAME.SOURCE_TIMESTAMP,
             base_name_match=True
         )
-        right_source_stamp_column = callback_records.columns.get(
+        right_source_stamp_column = sub_records.columns.get(
             COLUMN_NAME.SOURCE_TIMESTAMP,
             base_name_match=True
         )
 
         records = merge_sequencial(
             left_records=publish_records,
-            right_records=callback_records,
+            right_records=sub_records,
             left_stamp_key=left_source_stamp_column.column_name,
             right_stamp_key=right_source_stamp_column.column_name,
             join_left_key=None,
@@ -198,9 +202,7 @@ class CommRecordsContainer:
         records.columns.drop([
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
-            COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.SOURCE_TIMESTAMP,
-            COLUMN_NAME.CALLBACK_OBJECT,
         ], base_name_match=True)
 
         records.columns.reindex(columns, base_name_match=True)

@@ -21,7 +21,6 @@ from ...common import ClockConverter
 from ...exceptions import (UnsupportedNodeRecordsError)
 from ...infra.interface import RuntimeDataProvider
 from ...record import (
-    merge_sequencial,
     RecordsFactory,
     RecordsInterface)
 from ...value_objects import (
@@ -140,18 +139,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         return self._lttng.get_callback_records(callback)
-        # callback_lttng = self._bridge.get_callback(callback)
-        # callback_records = self._lttng.get_callback_records(callback_lttng)
-
-        # # columns = [
-        # #     COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-        # #     COLUMN_NAME.CALLBACK_END_TIMESTAMP
-        # # ]
-        # # self._format(callback_records, columns)
-        # self._rename_column(
-        #     callback_records, callback.callback_name, None, callback.node_name)
-
-        # return callback_records
 
     def subscribe_records(
         self,
@@ -384,7 +371,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [callback_name]/callback_end
 
         """
-        return self._lttng.get_timer_callback(callback)
+        return self._lttng.get_timer_callback(timer)
         # assert timer.callback is not None
         # callback_lttng = self._bridge.get_timer_callback(timer.callback)
 
@@ -477,36 +464,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             - [callback_name]/callback_start_timestamp
 
         """
-        raise NotImplementedError('')
-        read_records: RecordsInterface = self.callback_records(
-            variable_passing_info.callback_read)
-        write_records: RecordsInterface = self.callback_records(
-            variable_passing_info.callback_write)
-
-        read_records.drop_columns(
-            [read_records.column_names[-1]])  # callback end
-        write_records.drop_columns(
-            [write_records.column_names[0]])  # callback_start
-
-        columns = [
-            write_records.column_names[0],
-            read_records.column_names[0],
-        ]
-
-        merged_records = merge_sequencial(
-            left_records=write_records,
-            right_records=read_records,
-            left_stamp_key=columns[0],
-            right_stamp_key=columns[1],
-            join_left_key=None,
-            join_right_key=None,
-            how='left_use_latest',
-            progress_label='binding: callback_end and callback_start'
-        )
-
-        merged_records.sort(columns[0])
-        # self._format(merged_records, columns)
-        return merged_records
+        return self._lttng.get_var_pass_records(variable_passing_info)
 
     def _verify_trace_points(
         self,

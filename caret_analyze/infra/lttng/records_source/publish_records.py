@@ -32,6 +32,12 @@ class PublishRecordsContainer:
                 COLUMN_NAME.PUBLISHER_HANDLE,
             ]
         )
+        self._tilde_publish = GroupedRecords(
+            data.tilde_publish,
+            [
+                COLUMN_NAME.TILDE_PUBLISHER
+            ]
+        )
 
         self._bridge = bridge
 
@@ -53,13 +59,15 @@ class PublishRecordsContainer:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
-            COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
 
         records = self._intra_publish.get(publisher_lttng.publisher_handle).clone()
-        records.columns.drop([COLUMN_NAME.MESSAGE], base_name_match=True)
+        records.columns.drop([
+            COLUMN_NAME.MESSAGE,
+            COLUMN_NAME.PUBLISHER_HANDLE,
+        ], base_name_match=True)
         records.columns.reindex(columns)
         ordered_columns = records.columns.gets([
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
@@ -88,20 +96,22 @@ class PublishRecordsContainer:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
-            COLUMN_NAME.PUBLISHER_HANDLE,
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
             COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.SOURCE_TIMESTAMP,
             COLUMN_NAME.MESSAGE_TIMESTAMP,
+            COLUMN_NAME.SOURCE_TIMESTAMP,
         ]
 
         records = self._inter_publish.get(publisher_lttng.publisher_handle)
 
         if COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP in records.column_names:
             records.columns.drop([
-                COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP
+                COLUMN_NAME.DDS_BIND_ADDR_TO_ADDR_TIMESTAMP,
             ], base_name_match=True)
+        records.columns.drop([
+            COLUMN_NAME.PUBLISHER_HANDLE,
+        ], base_name_match=True)
 
         records.columns.reindex(columns)
         prefix_columns = records.columns.gets(
@@ -109,8 +119,8 @@ class PublishRecordsContainer:
                 COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-                COLUMN_NAME.SOURCE_TIMESTAMP,
                 COLUMN_NAME.MESSAGE_TIMESTAMP,
+                COLUMN_NAME.SOURCE_TIMESTAMP,
             ], base_name_match=True
         )
         for column in prefix_columns:
@@ -121,18 +131,50 @@ class PublishRecordsContainer:
     def get_records(self, publisher: PublisherStructValue) -> RecordsInterface:
         return self._get_records(publisher).clone()
 
+    def get_tilde_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        publishers_lttng = self._bridge.get_publishers(publisher)
+        publishers_tilde = [pub for pub in publishers_lttng if pub.tilde_publisher is not None]
+
+        assert len(publishers_tilde) <= 1
+
+        if len(publishers_tilde) == 0 or publishers_tilde[0].tilde_publisher is None:
+            return self._tilde_publish.get(0)  # return empty records
+
+        publisher_tilde = publishers_tilde[0]
+        tilde_records = self._tilde_publish.get(publisher_tilde.tilde_publisher)
+
+        return tilde_records
+
+    def _has_tilde(self, publisher: PublisherStructValue) -> bool:
+        publishers_lttng = self._bridge.get_publishers(publisher)
+        for pub_lttng in publishers_lttng:
+            if pub_lttng.tilde_publisher:
+                return True
+        return False
+
     @lru_cache
     def _get_records(self, publisher: PublisherStructValue) -> RecordsInterface:
         columns = [
             COLUMN_NAME.PID,
             COLUMN_NAME.TID,
-            COLUMN_NAME.PUBLISHER_HANDLE,
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-            COLUMN_NAME.DDS_WRITE_TIMESTAMP,
-            COLUMN_NAME.SOURCE_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
         ]
+        if self._has_tilde(publisher):
+            columns.extend([
+                COLUMN_NAME.TILDE_SUBSCRIPTION,
+                COLUMN_NAME.TILDE_MESSAGE_ID,
+            ])
+        columns.extend(
+            [
+                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                COLUMN_NAME.MESSAGE_TIMESTAMP,
+                COLUMN_NAME.SOURCE_TIMESTAMP,
+            ]
+        )
         intra_records = self.get_intra_records(publisher)
         inter_records = self.get_inter_records(publisher)
 
@@ -182,57 +224,47 @@ class PublishRecordsContainer:
                 ColumnAttribute.NODE_IO
             ]),
             publish_stamps)
-        publish_column = records.columns.get(
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, base_name_match=True)
-        publish_column.add_prefix(publisher.topic_name)
-
-        # columns = []
-        # columns.append(COLUMN_NAME.PUBLISHER_HANDLE)
-        # columns.append(COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP)
-        # if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in publish_records.column_names:
-        #     columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-        # if COLUMN_NAME.DDS_WRITE_TIMESTAMP in publish_records.column_names:
-        #     columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        # columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
-        # columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
-
-        # drop_columns = list(set(publish_records.column_names) - set(columns))
-        # publish_records.drop_columns(drop_columns)
-        # publish_records.reindex(columns)
-
-        # publisher_handles = self._helper.get_publisher_handles(publisher)
-        # pub_records = self._source.publish_records(publisher_handles)
-
-        # tilde_publishers = self._helper.get_tilde_publishers(publisher)
-        # tilde_records = self._source.tilde_publish_records(tilde_publishers)
-
-        # pub_records = merge_sequencial(
-        #     left_records=tilde_records,
-        #     right_records=pub_records,
-        #     left_stamp_key='tilde_publish_timestamp',
-        #     right_stamp_key='rclcpp_publish_timestamp',
-        #     join_left_key=None,
-        #     join_right_key=None,
-        #     how='right',
-        #     progress_label='binding: tilde_records',
-        # )
-
-        # columns = [
-        #     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-        # ]
-        # if COLUMN_NAME.RCL_PUBLISH_TIMESTAMP in pub_records.columns:
-        #     columns.append(COLUMN_NAME.RCL_PUBLISH_TIMESTAMP)
-        # if COLUMN_NAME.DDS_WRITE_TIMESTAMP in pub_records.columns:
-        #     columns.append(COLUMN_NAME.DDS_WRITE_TIMESTAMP)
-        # columns.append(COLUMN_NAME.MESSAGE_TIMESTAMP)
-        # columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
-        # columns.append(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP)
-        # columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
 
         records.columns.drop([
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP],
             base_name_match=True)
+
+        publish_column = records.columns.get(
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, base_name_match=True)
+        publish_column.add_prefix(publisher.topic_name)
+
+        if self._has_tilde(publisher):
+            tilde_records = self.get_tilde_records(publisher)
+            publish_column = records.columns.get(
+                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, base_name_match=True)
+            tilde_pub_column = tilde_records.columns.get(
+                'tilde_publish_timestamp', base_name_match=True)
+            join_keys = [
+                COLUMN_NAME.TID
+            ]
+            records = merge_sequencial(
+                left_records=tilde_records,
+                right_records=records,
+                left_stamp_key=tilde_pub_column.column_name,
+                right_stamp_key=publish_column.column_name,
+                join_left_key=join_keys,
+                join_right_key=join_keys,
+                how='inner'
+            )
+            records.columns.drop([
+                COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.TILDE_PUBLISHER,
+            ])
+            attr_columns = records.columns.gets(
+                [
+                    COLUMN_NAME.TILDE_SUBSCRIPTION,
+                    COLUMN_NAME.TILDE_MESSAGE_ID,
+                ]
+            )
+            for attr_column in attr_columns:
+                attr_column.add_prefix(publisher.topic_name)
+
         records.columns.reindex(columns, base_name_match=True)
 
         return records

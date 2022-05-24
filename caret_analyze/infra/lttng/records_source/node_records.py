@@ -1,8 +1,10 @@
 
 from functools import lru_cache
+from tkinter.tix import COLUMN
 
 from .callback_records import CallbackRecordsContainer
 from .publish_records import PublishRecordsContainer
+from .subscribe_records import SubscribeRecordsContainer
 from .transform import (
     TransformLookupContainer,
     TransformSendRecordsContainer,
@@ -13,6 +15,7 @@ from ....record import (
     ColumnAttribute,
     merge_sequencial,
     RecordsInterface,
+    merge
 )
 from ....value_objects import (
     MessageContextType,
@@ -28,6 +31,7 @@ class NodeRecordsContainer:
         self,
         bridge: LttngBridge,
         cb_records: CallbackRecordsContainer,
+        sub_records: SubscribeRecordsContainer,
         pub_records: PublishRecordsContainer,
         tf_lookup_records: TransformLookupContainer,
         tf_send_records: TransformSendRecordsContainer
@@ -37,6 +41,7 @@ class NodeRecordsContainer:
         self._pub_records = pub_records
         self._tf_lookup_records = tf_lookup_records
         self._tf_send_records = tf_send_records
+        self._sub_records = sub_records
 
     def get_records(
         self,
@@ -75,6 +80,16 @@ class NodeRecordsContainer:
             node_out_records = self._pub_records.get_records(node_path_val.publisher)
             node_out_column = node_out_records.columns.get(
                 COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, base_name_match=True)
+            node_out_records.columns.drop(
+                [
+                    COLUMN_NAME.PID,
+                    COLUMN_NAME.TID,
+                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                    COLUMN_NAME.MESSAGE_TIMESTAMP,
+                    COLUMN_NAME.SOURCE_TIMESTAMP,
+                ], base_name_match=True
+            )
         elif node_path_val.tf_frame_broadcaster is not None:
             node_out_records = self._tf_send_records.get_records(
                 node_path_val.tf_frame_broadcaster)
@@ -97,6 +112,13 @@ class NodeRecordsContainer:
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 base_name_match=True
             )
+            node_in_records.columns.drop(
+                [
+                    COLUMN_NAME.PID,
+                    COLUMN_NAME.TID,
+                    COLUMN_NAME.CALLBACK_END_TIMESTAMP
+                ], base_name_match=True
+            )
         elif node_path_val.tf_frame_buffer is not None:
             node_in_records = self._tf_lookup_records.get_records(node_path_val.tf_frame_buffer)
             node_in_column = node_in_records.columns.get(
@@ -114,8 +136,8 @@ class NodeRecordsContainer:
             right_records=node_out_records,
             left_stamp_key=node_in_column.column_name,
             right_stamp_key=node_out_column.column_name,
-            join_left_key=['pid'],
-            join_right_key=['pid'],
+            join_left_key=None,
+            join_right_key=None,
             how='left'
         )
 
@@ -219,35 +241,52 @@ class NodeRecordsContainer:
 
     @lru_cache
     def _get_tilde(self, node_path: NodePathStructValue) -> RecordsInterface:
-        raise NotImplementedError('')
+        columns = [
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP
+        ]
+        sub_records = self._sub_records.get_records(node_path.subscription)
+        pub_records = self._pub_records.get_records(node_path.publisher)
+        sub_tilde_message_id_column = sub_records.columns.get(
+            COLUMN_NAME.TILDE_MESSAGE_ID,
+            base_name_match=True
+        )
+        pub_tilde_message_id_column = pub_records.columns.get(
+            COLUMN_NAME.TILDE_MESSAGE_ID,
+            base_name_match=True
+        )
+        records = merge(
+            left_records=sub_records,
+            right_records=pub_records,
+            join_left_key=sub_tilde_message_id_column.column_name,
+            join_right_key=pub_tilde_message_id_column.column_name,
+            how='left'
+        )
+        records.columns.drop([
+            COLUMN_NAME.PID,
+            COLUMN_NAME.TID,
+            COLUMN_NAME.TILDE_MESSAGE_ID,
+            COLUMN_NAME.MESSAGE_TIMESTAMP,
+            COLUMN_NAME.TILDE_SUBSCRIPTION,
+            COLUMN_NAME.SOURCE_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+            COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+            COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+        ], base_name_match=True)
+        records.columns.reindex(columns, base_name_match=True)
+        return records
 
     @lru_cache
     def _get_callback_chain(
         self,
         node_path: NodePathStructValue,
-        # callbacks: Sequence[Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]],
-        # publisher: PublisherValueLttng,
     ) -> RecordsInterface:
-        # assert node_path_val.message_context_type == MessageContextType.CALLBACK_CHAIN
-
-        # assert node_path_val.callbacks is not None
-        # callbacks_lttng = [self._bridge.get_callback(_) for _ in node_path_val.callbacks]
-
-        # if node_path_val.publisher is not None:
-        #     publishers_lttng = self._bridge.get_publishers(node_path_val.publisher)
-        # elif node_path_val.tf_frame_broadcaster is not None:
-        #     publishers_lttng = self._bridge.get_publishers(
-        #         node_path_val.tf_frame_broadcaster.publisher)
-        # else:
-        #     raise NotImplementedError('')
         callbacks = node_path.callbacks
 
         records = self._cb_records.get_records(callbacks[0])
-        records.columns.drop([COLUMN_NAME.CALLBACK_OBJECT], base_name_match=True)
 
         for callback in callbacks[1:]:
             records_ = self._cb_records.get_records(callback)
-            records_.columns.drop([COLUMN_NAME.CALLBACK_OBJECT], base_name_match=True)
 
             end_column = records.columns.get(
                 COLUMN_NAME.CALLBACK_END_TIMESTAMP, take='tail', base_name_match=True
@@ -270,7 +309,13 @@ class NodeRecordsContainer:
             COLUMN_NAME.CALLBACK_START_TIMESTAMP, take='tail', base_name_match=True)
 
         publish_records = self._pub_records.get_records(node_path.publisher)
-        publish_records.columns.drop([COLUMN_NAME.PUBLISHER_HANDLE], base_name_match=True)
+        publish_records.columns.drop(
+            [
+                COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.DDS_WRITE_TIMESTAMP,
+                COLUMN_NAME.MESSAGE_TIMESTAMP,
+                COLUMN_NAME.SOURCE_TIMESTAMP
+            ], base_name_match=True)
         column_publish_time = publish_records.columns.get(
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, take='head', base_name_match=True)
 
@@ -285,6 +330,11 @@ class NodeRecordsContainer:
             progress_label='binding: callback_start and publish',
         )
 
-        records.columns.drop([COLUMN_NAME.PID, COLUMN_NAME.TID])
+        callback_end_column = records.columns.get(
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP, take='tail', base_name_match=True)
+        records.columns.drop([
+            COLUMN_NAME.PID,
+            COLUMN_NAME.TID,
+            callback_end_column.column_name])
 
         return records
