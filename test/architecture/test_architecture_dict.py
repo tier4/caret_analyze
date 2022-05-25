@@ -14,7 +14,7 @@
 
 from typing import Dict, List
 
-from caret_analyze.architecture.architecture_exporter import (ArchitectureExporter,
+from caret_analyze.architecture.architecture_dict import (ArchitectureDict,
                                                               CallbackDicts,
                                                               ExecutorsDicts,
                                                               NamedPathsDicts,
@@ -40,7 +40,7 @@ import pytest
 class TestArchitectureExporter:
 
     def test_empty(self, mocker):
-        exporter = ArchitectureExporter((), (), ())
+        exporter = ArchitectureDict((), (), ())
 
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
         mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
@@ -65,7 +65,7 @@ class TestArchitectureExporter:
         assert exporter.to_dict() == expected
 
     def test_full(self, mocker):
-        exporter = ArchitectureExporter((), (), ())
+        exporter = ArchitectureDict((), (), ())
 
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
         mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
@@ -90,7 +90,7 @@ class TestArchitectureExporter:
         assert exporter.to_dict() == expected
 
     def test_str(self, mocker):
-        exporter = ArchitectureExporter((), (), ())
+        exporter = ArchitectureDict((), (), ())
 
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
         mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
@@ -115,8 +115,8 @@ nodes: []
         assert str(exporter) == expected
 
     def test_force_option(self, mocker, tmpdir):
-        exporter = ArchitectureExporter((), (), ())
-        exporter_force = ArchitectureExporter((), (), (), force=True)
+        exporter = ArchitectureDict((), (), ())
+        exporter_force = ArchitectureDict((), (), (), force=True)
 
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
         mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, Optional, Tuple
 
-from .architecture_exporter import ArchitectureExporter
+from .architecture_dict import ArchitectureDict
 from .reader_interface import IGNORE_TOPICS
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
@@ -146,8 +146,11 @@ class Architecture(Summarizable):
         })
 
     def export(self, file_path: str, force: bool = False):
-        exporter = ArchitectureExporter(self.nodes, self.executors, self.paths, force)
-        exporter.execute(file_path)
+        arch_dict = ArchitectureDict(self.nodes, self.executors, self.paths)
+
+        mode = 'w' if force else 'x'
+        with open(file_path, mode=mode) as f:
+            f.write(str(arch_dict))
 
     def search_paths(
         self,
