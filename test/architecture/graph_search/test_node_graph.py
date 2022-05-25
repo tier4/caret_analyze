@@ -47,7 +47,7 @@ class TestNodePathSearcher:
         searcher = NodePathSearcher((), ())
 
         with pytest.raises(InvalidArgumentError):
-            searcher.search('node_name_not_exist', 'node_name_not_exist', 0)
+            searcher.search(['node_name_not_exist', 'node_name_not_exist'], max_node_depth=0)
 
         node_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock, 'paths', [])

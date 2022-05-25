@@ -33,7 +33,7 @@ from .value_objects import (
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
 )
-from ...exceptions import InvalidArgumentError, InvalidTraceFormatError
+from ...exceptions import InvalidArgumentError, InvalidTraceFormatError, Error
 from ...record import RecordsInterface
 
 logger = getLogger(__name__)
@@ -83,41 +83,44 @@ class CategoryServer:
 
         for node in nodes:
             self._nodes[node.pid, node.node_handle] = node
-            self._cbgs.update({
-                (cbg.pid, cbg.callback_group_addr): cbg
-                for cbg
-                in info.get_callback_groups(node)
-            })
-            self._clients.update({
-                (clt.pid, clt.client_handle): clt
-                for clt
-                in info.get_client_callbacks(node)
-            })
-            self._publishers.update({
-                (pub.pid, pub.publisher_handle): pub for pub in info.get_publishers(node)
-            })
-            self._subscriptions.update({
-                (sub.pid, sub.subscription_handle): sub
-                for sub
-                in info.get_subscription_callbacks(node)
-            })
-            self._services.update({
-                (srv.pid, srv.service_handle): srv
-                for srv
-                in info.get_service_callbacks(node)
-            })
-            self._timers.update({
-                (tmr.pid, tmr.timer_handle): tmr
-                for tmr
-                in info.get_timer_callbacks(node)
-            })
+            try:
+                self._cbgs.update({
+                    (cbg.pid, cbg.callback_group_addr): cbg
+                    for cbg
+                    in info.get_callback_groups(node)
+                })
+                self._clients.update({
+                    (clt.pid, clt.client_handle): clt
+                    for clt
+                    in info.get_client_callbacks(node)
+                })
+                self._publishers.update({
+                    (pub.pid, pub.publisher_handle): pub for pub in info.get_publishers(node)
+                })
+                self._subscriptions.update({
+                    (sub.pid, sub.subscription_handle): sub
+                    for sub
+                    in info.get_subscription_callbacks(node)
+                })
+                self._services.update({
+                    (srv.pid, srv.service_handle): srv
+                    for srv
+                    in info.get_service_callbacks(node)
+                })
+                self._timers.update({
+                    (tmr.pid, tmr.timer_handle): tmr
+                    for tmr
+                    in info.get_timer_callbacks(node)
+                })
 
-            bf = info.get_tf_broadcaster(node)
-            if bf is not None:
-                self._tf_br[bf.pid, bf.broadcaster_handler] = bf
-            buf = info.get_tf_buffer(node)
-            if buf is not None:
-                self._tf_buff[buf.pid, buf.buffer_handler] = buf
+                bf = info.get_tf_broadcaster(node)
+                if bf is not None:
+                    self._tf_br[bf.pid, bf.broadcaster_handler] = bf
+                buf = info.get_tf_buffer(node)
+                if buf is not None:
+                    self._tf_buff[buf.pid, buf.buffer_handler] = buf
+            except Error as e:
+                logger.warning('Failed to get node info: %s', e)
 
         self._timer_callbacks: Dict[ServerKey, TimerCallbackValueLttng] = {
             (timer.pid, timer.callback_object): timer

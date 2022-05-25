@@ -95,6 +95,7 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2_caret:ipm_add_subscription',
             'ros2_caret:ipm_add_publisher',
             'ros2_caret:construct_ipm',
+            'ros2:rclcpp_publisher_init',
         }
 
         return event[self.NAME] in init_events

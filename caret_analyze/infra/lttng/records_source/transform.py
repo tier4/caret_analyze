@@ -116,7 +116,7 @@ class TransformSendRecordsContainer:
         records.columns.drop(
             [
                 'frame_id_compact', 'child_frame_id_compact', 'broadcaster',
-                'send_transform_timestamp', COLUMN_NAME.PUBLISHER_HANDLE
+                'send_transform_timestamp'
             ],
             base_name_match=True
         )

@@ -16,11 +16,10 @@
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 
 
-class TestLttngInfo:
+class TestDataModel:
 
-    def test_add_tracepoints(self):
+    def test_add_data(self):
         data = Ros2DataModel()
-        data.add_rcl_init(0, 0, 0, 0, 'version')
         data.add_rcl_node_init(0, 0, 0, 0, 0, 'name', 'ns')
         data.add_rcl_publisher_init(0, 0, 0, 0, 0, 0, 'topic_name', 0)
         data.add_rcl_subscription_init(0, 0, 0, 0, 0, 0, 'topic_name', 0)
@@ -40,10 +39,10 @@ class TestLttngInfo:
         data.add_message_construct(0, 0, 0, 0, 0)
         data.add_dispatch_subscription_callback(0, 0, 0, 0, 0, 0, 0)
         data.add_dispatch_intra_process_subscription_callback(0, 0, 0, 0, 0, 0)
-        data.add_construct_executor(0, 0, 0, 0, 'executor_type')
-        data.add_construct_static_executor(0, 0, 0, 0, 0, 'executor_type')
-        data.add_add_callback_group(0, 0, 0, 0, 0, 'callback_group_type')
-        data.add_add_callback_group_static_executor(0, 0, 0, 0, 0, 'callback_group_type')
+        data.add_construct_executor(0, 0, 0, 0, 'single_threaded_executor')
+        data.add_construct_static_executor(0, 0, 0, 0, 0, 'single_threaded_executor')
+        data.add_add_callback_group(0, 0, 0, 0, 0, 'mutually_exclusive')
+        data.add_add_callback_group_static_executor(0, 0, 0, 0, 0, 'mutually_exclusive')
         data.add_callback_group_add_timer(0, 0, 0, 0, 0)
         data.add_callback_group_add_subscription(0, 0, 1, 0, 0)
         data.add_callback_group_add_service(0, 0, 0, 0, 0)

@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from multimethod import multimethod as singledispatchmethod
-
 from logging import getLogger
 from typing import (
     Callable,
@@ -185,33 +183,7 @@ class NodePathSearcher:
             comm_wrapped = CommunicationWrapper(comm)
             self._searcher.add_edge(comm_wrapped)
 
-    @singledispatchmethod
-    def search(self, args):
-        raise NotImplementedError('')
-
-    # @search.register
-    # def _search(
-    #     self,
-    #     start_node_name: str,
-    #     end_node_name: str,
-    #     max_node_depth: int = 10
-    # ) -> List[PathStructValue]:
-
-    #     paths = self._searcher.search_paths(
-    #         start_node_name,
-    #         end_node_name,
-    #         max_search_depth=max_node_depth
-    #     )
-
-    #     struct_paths = []
-    #     for path in paths:
-    #         struct_path = PathStructValue(None, path.data)  # type: ignore
-    #         struct_paths.append(struct_path)
-
-    #     return struct_paths
-
-    @search.register
-    def _search_seq(
+    def search(
         self,
         node_names: Collection[str],
         max_node_depth: int = 10

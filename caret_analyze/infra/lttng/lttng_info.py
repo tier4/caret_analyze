@@ -1959,7 +1959,9 @@ class DataFrameFormatted:
             how='inner'
         )
 
-        DataFrameFormatted._add_column(records, 'callback_id', callback_id)
+        DataFrameFormatted._add_column(
+            records, 'callback_id', callback_id,
+            value_offset=10**5)
 
         records.columns.rename({'period': 'period_ns'})
         records.columns.drop(set(records.column_names) - set(columns))
@@ -2008,7 +2010,9 @@ class DataFrameFormatted:
             how='inner'
         )
 
-        DataFrameFormatted._add_column(records, 'callback_id', callback_id)
+        DataFrameFormatted._add_column(
+            records, 'callback_id', callback_id,
+            value_offset=10**5*2)
         records.columns.drop(set(records.column_names) - set(columns))
         records.columns.reindex(columns)
 
@@ -2055,7 +2059,9 @@ class DataFrameFormatted:
             'inner'
         )
 
-        DataFrameFormatted._add_column(records, 'callback_id', callback_id)
+        DataFrameFormatted._add_column(
+            records, 'callback_id', callback_id,
+            value_offset=10**5*3)
 
         records.columns.drop(set(records.column_names) - set(columns))
         records.columns.reindex
@@ -2150,7 +2156,9 @@ class DataFrameFormatted:
             'inner'
         )
 
-        df = DataFrameFormatted._add_column(df, 'callback_id', callback_id)
+        df = DataFrameFormatted._add_column(
+            df, 'callback_id', callback_id,
+            value_offset=10**5*4)
         return df[columns]
 
     @staticmethod
@@ -2263,8 +2271,10 @@ class DataFrameFormatted:
     def _add_column(
         records: RecordsInterface,
         column_name: str,
-        cell_rule: Callable[[int, Dict[str, Union[str, int]]], str]
+        cell_rule: Callable[[int, Dict[str, Union[str, int]]], str],
+        value_offset=0
     ) -> None:
+        # Add offset to column mapper to avoid duplicate values
         values = []
         mapper = ColumnMapper()
         for i, datum in enumerate(records.data):
@@ -2277,9 +2287,9 @@ class DataFrameFormatted:
                     d[column] = column_mapper.get(datum.get(column))
                 else:
                     d[column] = datum.get(column)
-            mapper.add(i, cell_rule(i, d))
+            mapper.add(i+value_offset, cell_rule(i, d))
 
-            values.append(i)
+            values.append(i+value_offset)
         column = ColumnValue(column_name, mapper=mapper)
         records.append_column(column, values)
         return None

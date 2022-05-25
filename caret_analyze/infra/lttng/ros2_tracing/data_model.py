@@ -15,9 +15,9 @@
 
 """Module for ROS 2 data model."""
 
-from typing import Optional
+from typing import Dict, Optional, List
 
-from caret_analyze.record.column import ColumnAttribute, ColumnMapper, ColumnValue
+from caret_analyze.record.column import ColumnAttribute, ColumnMapper, ColumnValue, Column
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 
 from tracetools_analysis.data_model import DataModel
@@ -618,6 +618,7 @@ class Ros2DataModel(DataModel):
         self.message_construct = RecordsFactory.create_instance(
             None, [
                 ColumnValue('pid'),
+                ColumnValue('tid'),
                 ColumnValue('message_construct_timestamp'),
                 ColumnValue('original_message'),
                 ColumnValue('constructed_message')
@@ -832,6 +833,7 @@ class Ros2DataModel(DataModel):
                 ColumnValue('buffer'),
             ]
         )
+        self._frame_idx: Dict[str, int] = {}
 
     def set_offset(self, timestamp: int, timestamp_raw: int) -> None:
         self._raw_offset = timestamp - timestamp_raw
@@ -1029,6 +1031,11 @@ class Ros2DataModel(DataModel):
     def add_rcl_client_init(
         self, pid, tid, handle, timestamp, node_handle, rmw_handle, service_name
     ) -> None:
+        record_idx = len(self.rcl_client_init)
+        mapper = self.rcl_client_init.columns.get('service_name').mapper
+        assert mapper is not None
+        mapper.add(record_idx, service_name)
+
         self.rcl_client_init.append(
             RecordFactory.create_instance(
                 {
@@ -1038,7 +1045,7 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'node_handle': node_handle,
                     'rmw_handle': rmw_handle,
-                    'service_name': service_name,
+                    'service_name': record_idx,
                 }
             )
         )
@@ -1442,6 +1449,19 @@ class Ros2DataModel(DataModel):
         callback_group_addr: int,
         group_type_name: str
     ) -> None:
+        mapper_dict = {
+            'mutually_exclusive': 0,
+            'reentrant': 1,
+        }
+        assert group_type_name in mapper_dict.keys()
+
+        mapper = self.add_callback_group_static_executor.columns.get('group_type_name').mapper
+        assert mapper is not None
+        group_name_idx = mapper_dict[group_type_name]
+
+        if group_type_name not in mapper.keys:
+            mapper.add(mapper_dict[group_type_name], group_type_name)
+
         self.add_callback_group_static_executor.append(
             RecordFactory.create_instance(
                 {
@@ -1450,7 +1470,7 @@ class Ros2DataModel(DataModel):
                     'timestamp': timestamp,
                     'entities_collector_addr': entities_collector_addr,
                     'callback_group_addr': callback_group_addr,
-                    'group_type_name': group_type_name
+                    'group_type_name': group_name_idx
                 }
             )
         )
@@ -1463,10 +1483,19 @@ class Ros2DataModel(DataModel):
         timestamp: int,
         executor_type_name: str
     ) -> None:
-        executor_type_name_idx = len(self.construct_executor)
+        mapper_dict = {
+            'single_threaded_executor': 0,
+            'multi_threaded_executor': 1,
+        }
+        assert executor_type_name in mapper_dict.keys()
+
         mapper = self.construct_executor.columns.get('executor_type_name').mapper
         assert mapper is not None
-        mapper.add(executor_type_name_idx, executor_type_name)
+        executor_type_name_idx = mapper_dict[executor_type_name]
+
+        if executor_type_name not in mapper.keys:
+            mapper.add(mapper_dict[executor_type_name], executor_type_name)
+
         self.construct_executor.append(
             RecordFactory.create_instance(
                 {
@@ -1489,7 +1518,7 @@ class Ros2DataModel(DataModel):
         executor_type_name: str
     ) -> None:
         record_idx = len(self.construct_static_executor)
-        mapper = self.construct_static_executor.columns.get('frame_id').mapper
+        mapper = self.construct_static_executor.columns.get('executor_type_name').mapper
         assert mapper is not None
 
         mapper.add(record_idx, executor_type_name)
@@ -1759,13 +1788,10 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         child_frame_id: str
     ) -> None:
-        record_idx = len(self.transform_broadcaster_frames)
-        mapper = self.transform_broadcaster_frames.columns.get('frame_id').mapper
-        mapper_child = self.transform_broadcaster_frames.columns.get('child_frame_id').mapper
-        assert mapper is not None and mapper_child is not None
-
-        mapper.add(record_idx, frame_id)
-        mapper_child.add(record_idx, child_frame_id)
+        if frame_id not in self._frame_idx:
+            self._frame_idx[frame_id] = len(self._frame_idx)
+        if child_frame_id not in self._frame_idx:
+            self._frame_idx[child_frame_id] = len(self._frame_idx)
 
         self.transform_broadcaster_frames.append(
             RecordFactory.create_instance(
@@ -1774,8 +1800,8 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'timestamp': timestamp,
                     'transform_broadcaster': transform_broadcaster,
-                    'frame_id': record_idx,
-                    'child_frame_id': record_idx,
+                    'frame_id': self._frame_idx[frame_id],
+                    'child_frame_id': self._frame_idx[child_frame_id],
                 }
             )
         )
@@ -1874,10 +1900,11 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         frame_id_compact: int
     ) -> None:
-        record_idx = len(self.init_tf_broadcaster_frame_id_compact)
+        if frame_id not in self._frame_idx:
+            self._frame_idx[frame_id] = len(self._frame_idx)
+
         mapper = self.init_tf_broadcaster_frame_id_compact.columns.get('frame_id').mapper
         assert mapper is not None
-        mapper.add(record_idx, frame_id)
         self.init_tf_broadcaster_frame_id_compact.append(
             RecordFactory.create_instance(
                 {
@@ -1885,7 +1912,7 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'timestamp': timestamp,
                     'tf_broadcaster': broadcaster,
-                    'frame_id': record_idx,
+                    'frame_id': self._frame_idx[frame_id],
                     'frame_id_compact': frame_id_compact,
                 }
             )
@@ -1900,10 +1927,10 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         frame_id_compact: int
     ) -> None:
-        record_idx = len(self.init_tf_buffer_frame_id_compact)
+        if frame_id not in self._frame_idx:
+            self._frame_idx[frame_id] = len(self._frame_idx)
         mapper = self.init_tf_buffer_frame_id_compact.columns.get('frame_id').mapper
         assert mapper is not None
-        mapper.add(record_idx, frame_id)
         self.init_tf_buffer_frame_id_compact.append(
             RecordFactory.create_instance(
                 {
@@ -1911,7 +1938,7 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'timestamp': timestamp,
                     'tf_buffer_core': buffer_core,
-                    'frame_id': record_idx,
+                    'frame_id': self._frame_idx[frame_id],
                     'frame_id_compact': frame_id_compact,
                 }
             )
@@ -2045,12 +2072,12 @@ class Ros2DataModel(DataModel):
         source_frame_id: str,
     ) -> None:
         record_idx = len(self.tf_buffer_lookup_transform)
-        mapper = self.tf_buffer_lookup_transform.columns.get('target_frame_id').mapper
-        mapper_source = self.tf_buffer_lookup_transform.columns.get('source_frame_id').mapper
-        assert mapper is not None and mapper_source is not None
 
-        mapper.add(record_idx, target_frame_id)
-        mapper_source.add(record_idx, source_frame_id)
+        if target_frame_id not in self._frame_idx:
+            self._frame_idx[target_frame_id] = len(self._frame_idx)
+
+        if source_frame_id not in self._frame_idx:
+            self._frame_idx[source_frame_id] = len(self._frame_idx)
 
         self.tf_buffer_lookup_transform.append(
             RecordFactory.create_instance(
@@ -2059,8 +2086,8 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'timestamp': timestamp,
                     'tf_buffer_core': buffer_core,
-                    'target_frame_id': record_idx,
-                    'source_frame_id': record_idx,
+                    'target_frame_id': self._frame_idx[target_frame_id],
+                    'source_frame_id': self._frame_idx[source_frame_id],
                 }
             )
         )
@@ -2074,13 +2101,10 @@ class Ros2DataModel(DataModel):
         frame_id: str,
         child_frame_id: str,
     ) -> None:
-        record_idx = len(self.tf_buffer_set_transform)
-        mapper = self.tf_buffer_set_transform.columns.get('frame_id').mapper
-        mapper_child = self.tf_buffer_set_transform.columns.get('child_frame_id').mapper
-        assert mapper is not None and mapper_child is not None
-
-        mapper.add(record_idx, frame_id)
-        mapper_child.add(record_idx, child_frame_id)
+        if frame_id not in self._frame_idx:
+            self._frame_idx[frame_id] = len(self._frame_idx)
+        if child_frame_id not in self._frame_idx:
+            self._frame_idx[child_frame_id] = len(self._frame_idx)
 
         self.tf_buffer_set_transform.append(
             RecordFactory.create_instance(
@@ -2089,8 +2113,8 @@ class Ros2DataModel(DataModel):
                     'tid': tid,
                     'timestamp': timestamp,
                     'tf_buffer_core': buffer_core,
-                    'frame_id': record_idx,
-                    'child_frame_id': record_idx,
+                    'frame_id': self._frame_idx[frame_id],
+                    'child_frame_id': self._frame_idx[child_frame_id],
                 }
             )
         )
@@ -2376,6 +2400,39 @@ class Ros2DataModel(DataModel):
             new_column_names = tuple(self.rclcpp_callback_register.column_names)
             if old_column_names == new_column_names:
                 break
+
+        frame_columns: List[Column] = []
+        frame_columns.extend(self.transform_broadcaster_frames.columns.gets(
+            [
+                'frame_id',
+                'child_frame_id'
+            ]
+        ))
+        frame_columns.extend(self.init_tf_broadcaster_frame_id_compact.columns.gets(
+            [
+                'frame_id'
+            ]
+        ))
+        frame_columns.extend(self.init_tf_buffer_frame_id_compact.columns.gets(
+            [
+                'frame_id'
+            ]
+        ))
+        frame_columns.extend(self.tf_buffer_set_transform.columns.gets(
+            [
+                'frame_id', 'child_frame_id'
+            ]
+        ))
+        frame_columns.extend(self.tf_buffer_lookup_transform.columns.gets(
+            [
+                'target_frame_id', 'source_frame_id'
+            ]
+        ))
+        for frame_column in frame_columns:
+            mapper = frame_column.mapper
+            assert mapper is not None
+            for k, v in self._frame_idx.items():
+                mapper.add(v, k)
 
     def print_data(self) -> None:
         raise NotImplementedError('')

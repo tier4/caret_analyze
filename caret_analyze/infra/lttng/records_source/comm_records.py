@@ -87,8 +87,7 @@ class CommRecordsContainer:
             return records
 
         publish_records = self._pub_records.get_intra_records(comm.publisher)
-        callback_records = self._sub_records.get_intra_records(
-            comm.subscription_callback)
+        sub_records = self._sub_records.get_intra_records(comm.subscription)
         buffer_records = self._buffer_records.get_records(
             comm.subscription.intra_process_buffer)
 
@@ -115,14 +114,14 @@ class CommRecordsContainer:
             COLUMN_NAME.BUFFER_DEQUEUE_TIMESTAMP,
             base_name_match=True
         )
-        callback_start_column = callback_records.columns.get(
+        callback_start_column = sub_records.columns.get(
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             base_name_match=True
         )
 
         records = merge_sequencial(
             left_records=records,
-            right_records=callback_records,
+            right_records=sub_records,
             left_stamp_key=dequeue_column.column_name,
             right_stamp_key=callback_start_column.column_name,
             join_left_key=['pid', 'dequeue_tid'],
@@ -131,6 +130,8 @@ class CommRecordsContainer:
         )
 
         records.columns.drop([
+            COLUMN_NAME.PID,
+            COLUMN_NAME.TID,
             'dequeue_tid',
             'enqueue_tid',
             'index',
