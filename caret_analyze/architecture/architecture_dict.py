@@ -14,22 +14,24 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
-
-from caret_analyze.value_objects.publisher import PublisherStructValue
-from caret_analyze.value_objects.subscription import SubscriptionStructValue
+from typing import Callable, Collection, Dict, List, Optional
 
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..value_objects import (
+    CallbackGroupStructValue,
     CallbackStructValue,
     ExecutorStructValue,
     NodePathStructValue,
     NodeStructValue,
     PathStructValue,
+    PublisherStructValue,
     SubscriptionCallbackStructValue,
+    SubscriptionStructValue,
     TimerCallbackStructValue,
     TransformBroadcasterStructValue,
     TransformBufferStructValue,
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
     VariablePassingStructValue,
 )
 
@@ -38,9 +40,9 @@ class ArchitectureDict():
 
     def __init__(
         self,
-        node_values: Tuple[NodeStructValue, ...],
-        executor_values: Tuple[ExecutorStructValue, ...],
-        named_path_values: Tuple[PathStructValue, ...],
+        node_values: Collection[NodeStructValue],
+        executor_values: Collection[ExecutorStructValue],
+        named_path_values: Collection[PathStructValue],
     ) -> None:
         self._named_path_values = named_path_values
         self._executor_values = executor_values
@@ -79,31 +81,63 @@ class NamedPathsDicts:
         node_chain = []
         for node_path in path_value.node_paths:
             node_path_dict = {
-                    'node_name': node_path.node_name,
-                    'publish_topic_name': node_path.publish_topic_name,
-                    'subscribe_topic_name': node_path.subscribe_topic_name
-                }
-            tf_br = node_path.tf_frame_broadcaster
-            if tf_br is not None:
-                node_path_dict['broadcast_frame_id'] = tf_br.frame_id
-                node_path_dict['broadcast_child_frame_id'] = tf_br.child_frame_id
+                'node_name': node_path.node_name,
+                'publish_topic_name': node_path.publish_topic_name,
+                'subscribe_topic_name': node_path.subscribe_topic_name
+            }
+            tf_br_dict = TfFrameBroadcasterDict(node_path.tf_frame_broadcaster)
+            node_path_dict.update(tf_br_dict.data)
 
-            tf_buff = node_path.tf_frame_buffer
-            if tf_buff is not None:
-                node_path_dict['buffer_listen_frame_id'] = tf_buff.listen_frame_id
-                node_path_dict['buffer_listen_child_frame_id'] = tf_buff.listen_child_frame_id
-                node_path_dict['buffer_lookup_source_frame_id'] = tf_buff.lookup_source_frame_id
-                node_path_dict['buffer_lookup_target_frame_id'] = tf_buff.lookup_target_frame_id
+            tf_buff_dict = TfFrameBufferDict(node_path.tf_frame_buffer)
+            node_path_dict.update(tf_buff_dict.data)
 
             node_chain.append(node_path_dict)
         obj['node_chain'] = node_chain
         return obj
 
 
+class TfFrameBroadcasterDict:
+
+    def __init__(
+        self,
+        tf_frame_broadcaster: Optional[TransformFrameBroadcasterStructValue]
+    ) -> None:
+        self._data = tf_frame_broadcaster
+
+    @property
+    def data(self) -> Dict:
+        if self._data is None:
+            return {}
+        return {
+            'broadcast_frame_id': self._data.frame_id,
+            'broadcast_child_frame_id': self._data.child_frame_id
+        }
+
+
+class TfFrameBufferDict:
+
+    def __init__(
+        self,
+        tf_frame_buffer: Optional[TransformFrameBufferStructValue]
+    ):
+        self._data = tf_frame_buffer
+
+    @property
+    def data(self) -> Dict:
+        if self._data is None:
+            return {}
+        return {
+            'buffer_listen_frame_id': self._data.listen_frame_id,
+            'buffer_listen_child_frame_id': self._data.listen_child_frame_id,
+            'buffer_lookup_source_frame_id': self._data.lookup_source_frame_id,
+            'buffer_lookup_target_frame_id': self._data.lookup_target_frame_id,
+        }
+
+
 class CallbackDicts:
     def __init__(
         self,
-        callback_values: Tuple[CallbackStructValue, ...]
+        callback_values: Collection[CallbackStructValue]
     ) -> None:
         callbacks_dicts = [self._cb_to_dict(c) for c in callback_values]
         self._data = sorted(callbacks_dicts, key=lambda x: x['callback_name'])
@@ -150,9 +184,10 @@ class CallbackDicts:
 
 
 class VarPassDicts:
+
     def __init__(
         self,
-        var_pass_values: Optional[Tuple[VariablePassingStructValue, ...]]
+        var_pass_values: Optional[Collection[VariablePassingStructValue]]
     ) -> None:
         self._data: List[Dict] = []
 
@@ -188,28 +223,31 @@ class VarPassDicts:
 
 class PubDicts:
 
-    def __init__(self, pubisher_values: Tuple[PublisherStructValue, ...]) -> None:
+    def __init__(
+        self,
+        pubishers: Collection[PublisherStructValue]
+    ) -> None:
         dicts = []
-        for publisher_value in pubisher_values:
-            if publisher_value.topic_name.endswith('/info/pub'):
+        for publisher in pubishers:
+            if publisher.topic_name.endswith('/info/pub'):
                 continue  # skip tilde createdtopic
-            if publisher_value.topic_name in ['/clock', '/rosout', '/parameter_events']:
-                continue  # skip tilde createdtopic
-            dicts.append(self._to_dict(publisher_value))
+            if publisher.topic_name in ['/clock', '/rosout', '/parameter_events']:
+                continue  # skip
+            dicts.append(self._to_dict(publisher))
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
     @staticmethod
-    def _to_dict(publisher_value: PublisherStructValue):
+    def _to_dict(publisher: PublisherStructValue):
 
         callback_ids: List[Optional[str]]
-        if isinstance(publisher_value, PublisherStructValue) \
-                and publisher_value.callback_ids is not None:
-            callback_ids = list(publisher_value.callback_ids)
+        if isinstance(publisher, PublisherStructValue) \
+                and publisher.callback_ids is not None:
+            callback_ids = list(publisher.callback_ids)
         else:
             callback_ids = [None]
 
         return {
-            'topic_name': publisher_value.topic_name,
+            'topic_name': publisher.topic_name,
             'callback_ids': callback_ids,
         }
 
@@ -220,14 +258,20 @@ class PubDicts:
 
 class SubDicts:
 
-    def __init__(self, subscription_values: Tuple[SubscriptionStructValue, ...]) -> None:
-        dicts = [self._to_dict(s) for s in subscription_values]
+    def __init__(
+        self,
+        subscriptions: Collection[SubscriptionStructValue]
+    ) -> None:
+        dicts = [self._to_dict(s) for s in subscriptions]
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
-    def _to_dict(self, subscription_value: SubscriptionStructValue):
+    def _to_dict(
+        self,
+        subscription: SubscriptionStructValue
+    ) -> Dict:
         return {
-            'topic_name': subscription_value.topic_name,
-            'callback_id': subscription_value.callback_id
+            'topic_name': subscription.topic_name,
+            'callback_id': subscription.callback_id
         }
 
     @property
@@ -235,18 +279,40 @@ class SubDicts:
         return self._data
 
 
+class CbgsDicts:
+
+    def __init__(
+        self,
+        cbgs: Collection[CallbackGroupStructValue]
+    ) -> None:
+        self._data = cbgs
+
+    @property
+    def data(self) -> List[Dict]:
+        return [{
+            'callback_group_id': cbg.callback_group_id,
+            'callback_group_type': cbg.callback_group_type_name,
+            'callback_group_name': cbg.callback_group_name,
+            'callback_ids': sorted(cbg.callback_ids)
+        } for cbg in self._data]
+
+
 class NodesDicts:
 
     def __init__(
         self,
-        node_values: List[NodeStructValue],
+        node_values: Collection[NodeStructValue],
     ) -> None:
-        nodes_dicts = [self._to_dict(n)
-                       for n in node_values if self._is_ignored(n)]
+        nodes_dicts = [
+            self._to_dict(n)
+            for n
+            in node_values
+            if self._is_ignored(n)
+        ]
         self._data = sorted(nodes_dicts, key=lambda x: x['node_name'])
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> Collection[Dict]:
         return self._data
 
     @staticmethod
@@ -266,12 +332,7 @@ class NodesDicts:
         obj['node_name'] = f'{node.node_name}'
 
         if node.callback_groups is not None:
-            obj['callback_groups'] = [{
-                'callback_group_id': cbg.callback_group_id,
-                'callback_group_type': cbg.callback_group_type_name,
-                'callback_group_name': cbg.callback_group_name,
-                'callback_ids': sorted(cbg.callback_ids)
-            } for cbg in node.callback_groups]
+            obj['callback_groups'] = CbgsDicts(node.callback_groups).data
 
         if node.callbacks is not None:
             if len(node.callbacks) >= 1:
@@ -302,7 +363,7 @@ class NodesDicts:
 class MessageContextDicts:
     def __init__(
         self,
-        paths: Tuple[NodePathStructValue, ...],
+        paths: Collection[NodePathStructValue],
     ) -> None:
         self._data = []
         for path in paths:
@@ -368,12 +429,15 @@ class TfBufferDicts:
 
 
 class ExecutorsDicts:
+
     def __init__(
         self,
         executor_values: List[ExecutorStructValue],
+        is_ignored: Optional[Callable[[ExecutorStructValue], bool]] = None,
     ) -> None:
+        is_ignored = is_ignored or self._is_ignored
         exec_dicts = [self._to_dict(e)
-                      for e in executor_values if self._is_static(e)]
+                      for e in executor_values if not is_ignored(e)]
         self._data = sorted(exec_dicts, key=lambda x: x['executor_name'])
 
     @property
@@ -401,9 +465,9 @@ class ExecutorsDicts:
         return obj
 
     @staticmethod
-    def _is_static(executor: ExecutorStructValue) -> bool:
+    def _is_ignored(executor: ExecutorStructValue) -> bool:
         if len(executor.callback_groups) == 1:
             cbg = executor.callback_groups[0]
-            if 'transform_listener_impl' in cbg.callback_group_name:
-                return False
-        return True
+            if 'transform_listener_impl' in cbg.node_name:
+                return True
+        return False

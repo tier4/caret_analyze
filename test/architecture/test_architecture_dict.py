@@ -12,134 +12,219 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from typing import Dict, List, Optional, Sequence
 
-from caret_analyze.architecture.architecture_dict import (ArchitectureDict,
-                                                              CallbackDicts,
-                                                              ExecutorsDicts,
-                                                              NamedPathsDicts,
-                                                              NodesDicts,
-                                                              PubDicts,
-                                                              SubDicts,
-                                                              VarPassDicts)
+from caret_analyze.architecture.architecture_dict import (
+    ArchitectureDict,
+    CallbackDicts,
+    CbgsDicts,
+    ExecutorsDicts,
+    NamedPathsDicts,
+    NodesDicts,
+    PubDicts,
+    SubDicts,
+    TfBroadcasterDicts,
+    TfBufferDicts,
+    VarPassDicts,
+)
 from caret_analyze.exceptions import UnsupportedTypeError
-from caret_analyze.value_objects import (CallbackGroupStructValue,
-                                         CallbackStructValue,
-                                         ExecutorStructValue,
-                                         NodePathStructValue,
-                                         NodeStructValue,
-                                         PathStructValue, PublisherStructValue,
-                                         SubscriptionCallbackStructValue,
-                                         SubscriptionStructValue,
-                                         TimerCallbackStructValue,
-                                         VariablePassingStructValue)
+from caret_analyze.value_objects import (
+    CallbackGroupStructValue,
+    CallbackStructValue,
+    ExecutorStructValue,
+    NodePathStructValue,
+    NodeStructValue,
+    PathStructValue, PublisherStructValue,
+    SubscriptionCallbackStructValue,
+    SubscriptionStructValue,
+    TimerCallbackStructValue,
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
+    VariablePassingStructValue,
+)
 
 import pytest
 
 
-class TestArchitectureExporter:
+@pytest.fixture
+def setup_cbgs_mock(mocker):
+    def _setup(data):
+        mock = mocker.Mock(spec=CbgsDicts)
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.CbgsDicts',
+            return_value=mock)
+        mocker.patch.object(mock, 'data', data)
+        return mock
+    return _setup
 
-    def test_empty(self, mocker):
-        exporter = ArchitectureDict((), (), ())
 
+@pytest.fixture
+def setup_cbs_mock(mocker):
+    def _setup(data):
+        mock = mocker.Mock(spec=CallbackDicts)
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.CallbackDicts',
+            return_value=mock)
+        mocker.patch.object(mock, 'data', data)
+        return mock
+    return _setup
+
+
+@pytest.fixture
+def setup_tf_br_mock(mocker):
+    def _setup(data):
+        mock = mocker.Mock(spec=TfBroadcasterDicts)
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.TfBroadcasterDicts',
+            return_value=mock)
+        mocker.patch.object(mock, 'data', data)
+        return mock
+    return _setup
+
+
+@pytest.fixture
+def setup_tf_buff_mock(mocker):
+    def _setup(data):
+        mock = mocker.Mock(spec=TfBufferDicts)
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.TfBufferDicts',
+            return_value=mock)
+        mocker.patch.object(mock, 'data', data)
+        return mock
+    return _setup
+
+
+@pytest.fixture
+def setup_pub_mock(mocker):
+    def _setup(data):
+        mock = mocker.Mock(spec=PubDicts)
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.PubDicts',
+            return_value=mock)
+        mocker.patch.object(mock, 'data', data)
+        return mock
+    return _setup
+
+
+@pytest.fixture
+def setup_sub_mock(mocker):
+    def _setup(data):
+        mock = mocker.Mock(spec=SubDicts)
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.SubDicts',
+            return_value=mock)
+        mocker.patch.object(mock, 'data', data)
+        return mock
+    return _setup
+
+
+@pytest.fixture
+def setup_named_path_mock(mocker):
+    def _setup(data):
         named_path_mock = mocker.Mock(spec=NamedPathsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
-                     return_value=named_path_mock)
-        mocker.patch.object(named_path_mock, 'data', [])
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.NamedPathsDicts',
+            return_value=named_path_mock)
+        mocker.patch.object(named_path_mock, 'data', data)
+        return named_path_mock
+    return _setup
 
+
+@pytest.fixture
+def setup_var_pass_mock(mocker):
+    def _setup(data):
+        mock = mocker.Mock(spec=VarPassDicts)
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.VarPassDicts',
+            return_value=mock)
+        mocker.patch.object(mock, 'data', data)
+        return mock
+    return _setup
+
+
+@pytest.fixture
+def setup_exec_mock(mocker):
+    def _setup(data):
         exec_mock = mocker.Mock(spec=ExecutorsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.ExecutorsDicts',
-                     return_value=exec_mock)
-        mocker.patch.object(exec_mock, 'data', [])
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.ExecutorsDicts',
+            return_value=exec_mock)
+        mocker.patch.object(exec_mock, 'data', data)
+        return exec_mock
+    return _setup
 
+
+@pytest.fixture
+def setup_nodes_mock(mocker):
+    def _setup(data):
         node_mock = mocker.Mock(spec=NodesDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NodesDicts',
-                     return_value=node_mock)
-        mocker.patch.object(node_mock, 'data', [])
+        mocker.patch(
+            'caret_analyze.architecture.architecture_dict.NodesDicts',
+            return_value=node_mock)
+        mocker.patch.object(node_mock, 'data', data)
+        return node_mock
+    return _setup
+
+
+class TestArchitectureDict:
+
+    def test_empty(
+        self,
+        setup_named_path_mock,
+        setup_exec_mock,
+        setup_nodes_mock,
+    ):
+        dicts = ArchitectureDict((), (), ())
+
+        setup_named_path_mock([])
+        setup_exec_mock([])
+        setup_nodes_mock([])
 
         expected: Dict[str, List] = {
             'named_paths': [],
             'executors': [],
             'nodes': []
         }
-        assert exporter.to_dict() == expected
+        assert dicts.to_dict() == expected
 
-    def test_full(self, mocker):
+    def test_full(
+        self,
+        setup_named_path_mock,
+        setup_exec_mock,
+        setup_nodes_mock,
+    ):
         exporter = ArchitectureDict((), (), ())
 
-        named_path_mock = mocker.Mock(spec=NamedPathsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
-                     return_value=named_path_mock)
-        mocker.patch.object(named_path_mock, 'data', ['path_dict'])
-
-        exec_mock = mocker.Mock(spec=ExecutorsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.ExecutorsDicts',
-                     return_value=exec_mock)
-        mocker.patch.object(exec_mock, 'data', ['exec_dict'])
-
-        node_mock = mocker.Mock(spec=NodesDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NodesDicts',
-                     return_value=node_mock)
-        mocker.patch.object(node_mock, 'data', ['node_dict'])
+        setup_named_path_mock(['path_dict'])
+        setup_exec_mock(['exec_dict'])
+        setup_nodes_mock(['node_dict'])
 
         expected = {
             'named_paths': ['path_dict'],
             'executors': ['exec_dict'],
             'nodes': ['node_dict']
         }
+
         assert exporter.to_dict() == expected
 
-    def test_str(self, mocker):
+    def test_str(
+        self,
+        setup_named_path_mock,
+        setup_exec_mock,
+        setup_nodes_mock,
+    ):
         exporter = ArchitectureDict((), (), ())
 
-        named_path_mock = mocker.Mock(spec=NamedPathsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
-                     return_value=named_path_mock)
-        mocker.patch.object(named_path_mock, 'data', [])
+        setup_named_path_mock([])
+        setup_exec_mock([])
+        setup_nodes_mock([])
 
-        exec_mock = mocker.Mock(spec=ExecutorsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.ExecutorsDicts',
-                     return_value=exec_mock)
-        mocker.patch.object(exec_mock, 'data', [])
-
-        node_mock = mocker.Mock(spec=NodesDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NodesDicts',
-                     return_value=node_mock)
-        mocker.patch.object(node_mock, 'data', [])
-
-        expected = \
-            """named_paths: []
+        expected = """\
+named_paths: []
 executors: []
 nodes: []
 """
         assert str(exporter) == expected
-
-    def test_force_option(self, mocker, tmpdir):
-        exporter = ArchitectureDict((), (), ())
-        exporter_force = ArchitectureDict((), (), (), force=True)
-
-        named_path_mock = mocker.Mock(spec=NamedPathsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NamedPathsDicts',
-                     return_value=named_path_mock)
-        mocker.patch.object(named_path_mock, 'data', [])
-
-        exec_mock = mocker.Mock(spec=ExecutorsDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.ExecutorsDicts',
-                     return_value=exec_mock)
-        mocker.patch.object(exec_mock, 'data', [])
-
-        node_mock = mocker.Mock(spec=NodesDicts)
-        mocker.patch('caret_analyze.architecture.architecture_exporter.NodesDicts',
-                     return_value=node_mock)
-        mocker.patch.object(node_mock, 'data', [])
-
-        f = tmpdir.mkdir('sub').join('arch.yaml')
-        exporter.execute(f.strpath)
-
-        with pytest.raises(FileExistsError):
-            exporter.execute(f)
-
-        exporter_force.execute(f)
 
 
 class TestNamedPathsDicts:
@@ -149,56 +234,158 @@ class TestNamedPathsDicts:
         expect = []
         assert path_dict.data == expect
 
-    def test_full(self, mocker):
+    @pytest.fixture
+    def create_path_mock(self, mocker):
+        def _create(path_name: str, node_paths: Sequence[NodePathStructValue]):
+            path_mock = mocker.Mock(spec=PathStructValue)
+            mocker.patch.object(path_mock, 'path_name', path_name)
+            mocker.patch.object(path_mock, 'node_paths', node_paths)
+            return path_mock
+        return _create
 
-        path_info_mock = mocker.Mock(spec=PathStructValue)
-        node_path_mock = mocker.Mock(spec=NodePathStructValue)
+    @pytest.fixture
+    def create_node_path_mock(self, mocker):
+        def _create(
+            node_name: str,
+            publish_topic_name: Optional[str],
+            subscribe_topic_name: Optional[str],
+            tf_frame_broadcaster: Optional[TransformFrameBroadcasterStructValue],
+            tf_frame_buffer: Optional[TransformFrameBufferStructValue],
+        ):
+            path_mock = mocker.Mock(spec=NodePathStructValue)
+            mocker.patch.object(path_mock, 'node_name', node_name)
+            mocker.patch.object(path_mock, 'publish_topic_name', publish_topic_name)
+            mocker.patch.object(path_mock, 'subscribe_topic_name', subscribe_topic_name)
+            mocker.patch.object(path_mock, 'tf_frame_broadcaster', tf_frame_broadcaster)
+            mocker.patch.object(path_mock, 'tf_frame_buffer', tf_frame_buffer)
+            return path_mock
+        return _create
 
-        mocker.patch.object(path_info_mock, 'path_name', 'target_path')
-        mocker.patch.object(
-            path_info_mock, 'node_paths', [node_path_mock])
+    def test_single_node_path(
+        self,
+        create_path_mock,
+        create_node_path_mock,
+    ):
+        node_path_mock = create_node_path_mock('node', None, None, None, None)
+        path_mock = create_path_mock('target_path', [node_path_mock])
 
-        mocker.patch.object(node_path_mock, 'node_name', 'node')
-        mocker.patch.object(node_path_mock, 'publish_topic_name', 'pub_topic')
-        mocker.patch.object(
-            node_path_mock, 'subscribe_topic_name', 'sub_topic')
-
-        path_dict = NamedPathsDicts([path_info_mock])
+        path_dict = NamedPathsDicts([path_mock])
         expect = [
             {
-                'path_name': 'target_path',
+                'path_name': path_mock.path_name,
                 'node_chain': [
                     {
-                        'node_name': 'node',
-                        'publish_topic_name': 'pub_topic',
-                        'subscribe_topic_name': 'sub_topic'
+                        'node_name': node_path_mock.node_name,
+                        'publish_topic_name': node_path_mock.publish_topic_name,
+                        'subscribe_topic_name': node_path_mock.subscribe_topic_name
                     }
                 ]
             }
         ]
         assert path_dict.data == expect
 
-    def test_undefined(self, mocker):
-        path_info_mock = mocker.Mock(spec=PathStructValue)
-        node_path_mock = mocker.Mock(spec=NodePathStructValue)
+    def test_multi_node_path(
+        self,
+        create_path_mock,
+        create_node_path_mock,
+    ):
+        node_path_mock = create_node_path_mock('node0', 'pub', None, None, None)
+        node_path_mock_ = create_node_path_mock('node1', None, 'sub', None, None)
+        path_mock = create_path_mock('target_path', [node_path_mock, node_path_mock_])
 
-        mocker.patch.object(path_info_mock, 'path_name', 'target_path')
-        mocker.patch.object(
-            path_info_mock, 'node_paths', [node_path_mock])
-
-        mocker.patch.object(node_path_mock, 'node_name', 'node')
-        mocker.patch.object(node_path_mock, 'publish_topic_name', None)
-        mocker.patch.object(node_path_mock, 'subscribe_topic_name', None)
-
-        path_dict = NamedPathsDicts([path_info_mock])
+        path_dict = NamedPathsDicts([path_mock])
         expect = [
             {
-                'path_name': 'target_path',
+                'path_name': path_mock.path_name,
                 'node_chain': [
                     {
-                        'node_name': 'node',
-                        'publish_topic_name': None,
-                        'subscribe_topic_name': None
+                        'node_name': node_path_mock.node_name,
+                        'publish_topic_name': node_path_mock.publish_topic_name,
+                        'subscribe_topic_name': node_path_mock.subscribe_topic_name
+                    } for node_path_mock in [node_path_mock, node_path_mock_]
+                ]
+            }
+        ]
+        assert path_dict.data == expect
+
+    @pytest.fixture
+    def create_tf_br_mock(self, mocker):
+        def _create(frame_id: str, child_frame_id: str):
+            tf_br_mock = mocker.Mock(spec=TransformFrameBroadcasterStructValue)
+            mocker.patch.object(tf_br_mock, 'frame_id', frame_id)
+            mocker.patch.object(tf_br_mock, 'child_frame_id', child_frame_id)
+            return tf_br_mock
+        return _create
+
+    @pytest.fixture
+    def create_tf_buff_mock(self, mocker):
+        def _create(
+            listen_frame_id: str,
+            listen_child_frame_id: str,
+            source_frame_id: str,
+            target_frame_id: str
+        ):
+            tf_buff_mock = mocker.Mock(spec=TransformFrameBufferStructValue)
+            mocker.patch.object(tf_buff_mock, 'listen_frame_id', listen_frame_id)
+            mocker.patch.object(tf_buff_mock, 'listen_child_frame_id', listen_child_frame_id)
+            mocker.patch.object(tf_buff_mock, 'lookup_source_frame_id', source_frame_id)
+            mocker.patch.object(tf_buff_mock, 'lookup_target_frame_id', target_frame_id)
+            return tf_buff_mock
+        return _create
+
+    def test_tf_frame_broadcaster(
+        self,
+        create_path_mock,
+        create_node_path_mock,
+        create_tf_br_mock,
+    ):
+        tf_buff_mock = create_tf_br_mock('frame_id', 'child_frame_id')
+        node_path_mock = create_node_path_mock('node0', None, None, tf_buff_mock, None)
+        path_mock = create_path_mock('target_path', [node_path_mock])
+
+        path_dict = NamedPathsDicts([path_mock])
+        tf_br = node_path_mock.tf_frame_broadcaster
+        expect = [
+            {
+                'path_name': path_mock.path_name,
+                'node_chain': [
+                    {
+                        'node_name': node_path_mock.node_name,
+                        'publish_topic_name': node_path_mock.publish_topic_name,
+                        'subscribe_topic_name': node_path_mock.subscribe_topic_name,
+                        'broadcast_frame_id': tf_br.frame_id,
+                        'broadcast_child_frame_id': tf_br.child_frame_id,
+                    }
+                ]
+            }
+        ]
+        assert path_dict.data == expect
+
+    def test_tf_frame_buffer(
+        self,
+        create_path_mock,
+        create_node_path_mock,
+        create_tf_buff_mock,
+    ):
+        tf_buff_mock = create_tf_buff_mock(
+            'listen_frame_id', 'listen_child_frame_id', 'source_frame_id', 'target_frame_id')
+        node_path_mock = create_node_path_mock('node0', None, None, None, tf_buff_mock)
+        path_mock = create_path_mock('target_path', [node_path_mock])
+
+        path_dict = NamedPathsDicts([path_mock])
+        tf_buff = node_path_mock.tf_frame_buffer
+        expect = [
+            {
+                'path_name': path_mock.path_name,
+                'node_chain': [
+                    {
+                        'node_name': node_path_mock.node_name,
+                        'publish_topic_name': node_path_mock.publish_topic_name,
+                        'subscribe_topic_name': node_path_mock.subscribe_topic_name,
+                        'buffer_listen_frame_id': tf_buff.listen_frame_id,
+                        'buffer_listen_child_frame_id': tf_buff.listen_child_frame_id,
+                        'buffer_lookup_source_frame_id': tf_buff.lookup_source_frame_id,
+                        'buffer_lookup_target_frame_id': tf_buff.lookup_target_frame_id,
                     }
                 ]
             }
@@ -208,49 +395,56 @@ class TestNamedPathsDicts:
 
 class TestExecutorDicts:
 
+    @pytest.fixture
+    def create_exec_mock(self, mocker):
+        def _create(
+            id_name: str,
+            type_name: str,
+            name: str,
+            cbgs: Sequence[CallbackGroupStructValue]
+        ):
+            exec_struct = mocker.Mock(spec=ExecutorStructValue)
+            mocker.patch.object(exec_struct, 'executor_id', id_name)
+            mocker.patch.object(exec_struct, 'executor_type_name', type_name)
+            mocker.patch.object(exec_struct, 'executor_name', name)
+            mocker.patch.object(exec_struct, 'callback_groups', cbgs)
+            return exec_struct
+        return _create
+
+    @pytest.fixture
+    def create_cbg_mock(self, mocker):
+        def _create(id_name: str, type_name: str, name: str, node_name: str):
+            cbg_mock = mocker.Mock(spec=CallbackGroupStructValue)
+            mocker.patch.object(cbg_mock, 'callback_group_id', id_name)
+            mocker.patch.object(cbg_mock, 'callback_group_type_name', type_name)
+            mocker.patch.object(cbg_mock, 'callback_group_name', name)
+            mocker.patch.object(cbg_mock, 'node_name', node_name)
+            return cbg_mock
+        return _create
+
     def test_empty(self):
         exec_dicts = ExecutorsDicts([])
         expect = []
         assert exec_dicts.data == expect
 
-    def test_full(self, mocker):
+    def test_full(
+        self,
+        create_cbg_mock,
+        create_exec_mock,
+    ):
+        exclusive_cbg_mock = create_cbg_mock(
+            'cbgid0', 'mutually_exclusive', 'callback_group_1', 'node0'
+        )
+        single_threaded_exec_mock = create_exec_mock(
+            'id0', 'single_threaded_executor', 'aaa_executor', [exclusive_cbg_mock]
+        )
 
-        single_threaded_exec_mock = mocker.Mock(spec=ExecutorStructValue)
-        multi_threaded_exec_mock = mocker.Mock(spec=ExecutorStructValue)
-
-        mocker.patch.object(single_threaded_exec_mock, 'executor_type_name',
-                            'single_threaded_executor')
-
-        exclusive_cbg_mock = mocker.Mock(spec=CallbackGroupStructValue)
-        mocker.patch.object(
-            exclusive_cbg_mock, 'node_name', '/talker')
-        mocker.patch.object(
-            exclusive_cbg_mock, 'callback_group_type_name', 'mutually_exclusive')
-        mocker.patch.object(
-            exclusive_cbg_mock, 'callback_group_name', 'callback_group_1')
-        mocker.patch.object(
-            exclusive_cbg_mock, 'callback_names', ['/talker/timer_callback_0'])
-        mocker.patch.object(
-            single_threaded_exec_mock, 'callback_groups',
-            [exclusive_cbg_mock])
-        mocker.patch.object(
-            single_threaded_exec_mock, 'executor_name', 'single_threaded_executor_0')
-
-        reentrant_cbg_mock = mocker.Mock(spec=CallbackGroupStructValue)
-        mocker.patch.object(
-            reentrant_cbg_mock, 'node_name', '/listener')
-        mocker.patch.object(
-            reentrant_cbg_mock, 'callback_group_type_name', 'reentrant')
-        mocker.patch.object(
-            reentrant_cbg_mock, 'callback_group_name', 'callback_group_0')
-        mocker.patch.object(
-            reentrant_cbg_mock, 'callback_names', ['/listener/subscription_callback_0'])
-        mocker.patch.object(
-            multi_threaded_exec_mock, 'executor_type_name', 'multi_threaded_executor')
-        mocker.patch.object(
-            multi_threaded_exec_mock, 'callback_groups', [reentrant_cbg_mock])
-        mocker.patch.object(
-            multi_threaded_exec_mock, 'executor_name', 'multi_threaded_executor_0')
+        reentrant_cbg_mock = create_cbg_mock(
+            'cbgid1', 'reentrant', 'callback_group_0', 'node1'
+        )
+        multi_threaded_exec_mock = create_exec_mock(
+            'id1', 'multi_threaded_executor', 'bbb_executor', [reentrant_cbg_mock]
+        )
 
         exec_dicts = ExecutorsDicts(
             [single_threaded_exec_mock, multi_threaded_exec_mock]
@@ -258,43 +452,55 @@ class TestExecutorDicts:
 
         expect = [
             {
-                'executor_type': 'multi_threaded_executor',
-                'executor_name': 'multi_threaded_executor_0',
-                'callback_group_names': [
-                    'callback_group_0',
+                'executor_id': single_threaded_exec_mock.executor_id,
+                'executor_type': single_threaded_exec_mock.executor_type_name,
+                'executor_name': single_threaded_exec_mock.executor_name,
+                'callback_group_ids': [
+                    single_threaded_exec_mock.callback_groups[0].callback_group_id,
                 ]
             },
             {
-                'executor_type': 'single_threaded_executor',
-                'executor_name': 'single_threaded_executor_0',
-                'callback_group_names': [
-                    'callback_group_1'
+                'executor_id': multi_threaded_exec_mock.executor_id,
+                'executor_type': multi_threaded_exec_mock.executor_type_name,
+                'executor_name': multi_threaded_exec_mock.executor_name,
+                'callback_group_ids': [
+                    multi_threaded_exec_mock.callback_groups[0].callback_group_id,
                 ]
             },
         ]
 
         assert exec_dicts.data == expect
 
-    def test_name_sort(self, mocker):
-        exec_0 = mocker.Mock(spec=ExecutorStructValue)
-        exec_1 = mocker.Mock(spec=ExecutorStructValue)
-        exec_2 = mocker.Mock(spec=ExecutorStructValue)
-        exec_3 = mocker.Mock(spec=ExecutorStructValue)
+    def test_is_ignored(
+        self,
+        create_exec_mock
+    ):
+        exec_0 = create_exec_mock('id', 'multi_threaded_executor', 'executor', [])
+        exec_1 = create_exec_mock('skip', 'multi_threaded_executor', 'executor', [])
 
-        mocker.patch.object(exec_0, 'executor_name', 'multi_threaded_executor_0')
-        mocker.patch.object(exec_1, 'executor_name', 'multi_threaded_executor_1')
-        mocker.patch.object(exec_2, 'executor_name', 'single_threaded_executor_0')
-        mocker.patch.object(exec_3, 'executor_name', 'single_threaded_executor_1')
+        exec_dicts = ExecutorsDicts(
+            [exec_0, exec_1], lambda x: x.executor_id == 'skip'
+        )
 
-        mocker.patch.object(exec_0, 'executor_type_name', 'multi_threaded_executor')
-        mocker.patch.object(exec_1, 'executor_type_name', 'multi_threaded_executor')
-        mocker.patch.object(exec_2, 'executor_type_name', 'single_threaded_executor')
-        mocker.patch.object(exec_3, 'executor_type_name', 'single_threaded_executor')
+        expect = [
+            {
+                'executor_id': e.executor_id,
+                'executor_name': e.executor_name,
+                'executor_type': e.executor_type_name,
+                'callback_group_ids': []
+            } for e in [exec_0]
+        ]
 
-        mocker.patch.object(exec_0, 'callback_groups', [])
-        mocker.patch.object(exec_1, 'callback_groups', [])
-        mocker.patch.object(exec_2, 'callback_groups', [])
-        mocker.patch.object(exec_3, 'callback_groups', [])
+        assert exec_dicts.data == expect
+
+    def test_name_sort(
+        self,
+        create_exec_mock
+    ):
+        exec_0 = create_exec_mock('id0', 'multi_threaded_executor', 'aaa_executor', [])
+        exec_1 = create_exec_mock('id1', 'multi_threaded_executor', 'bbb_executor', [])
+        exec_2 = create_exec_mock('id2', 'single_threaded_executor', 'ccc_executor', [])
+        exec_3 = create_exec_mock('id3', 'single_threaded_executor', 'ddd_executor', [])
 
         exec_dicts = ExecutorsDicts(
             [exec_3, exec_0, exec_1, exec_2]
@@ -302,25 +508,11 @@ class TestExecutorDicts:
 
         expect = [
             {
-                'executor_name': 'multi_threaded_executor_0',
-                'executor_type': 'multi_threaded_executor',
-                'callback_group_names': []
-            },
-            {
-                'executor_name': 'multi_threaded_executor_1',
-                'executor_type': 'multi_threaded_executor',
-                'callback_group_names': []
-            },
-            {
-                'executor_name': 'single_threaded_executor_0',
-                'executor_type': 'single_threaded_executor',
-                'callback_group_names': []
-            },
-            {
-                'executor_name': 'single_threaded_executor_1',
-                'executor_type': 'single_threaded_executor',
-                'callback_group_names': []
-            },
+                'executor_id': e.executor_id,
+                'executor_name': e.executor_name,
+                'executor_type': e.executor_type_name,
+                'callback_group_ids': []
+            } for e in [exec_0, exec_1, exec_2, exec_3]
         ]
 
         assert exec_dicts.data == expect
@@ -332,83 +524,125 @@ class TestNodeDicts:
         node_dict = NodesDicts([])
         assert node_dict.data == []
 
-    def test_callbacks(self, mocker):
-        node_info = mocker.Mock(spec=NodeStructValue)
+    @pytest.fixture
+    def create_node_mock(self, mocker,):
+        def _create(
+            node_id: str,
+            node_name: str,
+            callbacks: Optional[CallbackStructValue] = None,
+            variable_passings: Optional[VariablePassingStructValue] = None,
+            publishers: Optional[PublisherStructValue] = None,
+            subscriptions: Optional[SubscriptionStructValue] = None,
+            callback_groups: Optional[CallbackGroupStructValue] = None,
+            paths: Optional[NodePathStructValue] = None,
+            tf_broadcaster: Optional[TransformFrameBroadcasterStructValue] = None,
+            tf_buffer: Optional[TransformFrameBufferStructValue] = None
+        ):
+            node_mock = mocker.Mock(spec=NodeStructValue)
+            mocker.patch.object(node_mock, 'node_id', node_id)
+            mocker.patch.object(node_mock, 'node_name', node_name)
+            mocker.patch.object(node_mock, 'callbacks', callbacks or [])
+            mocker.patch.object(node_mock, 'variable_passings', variable_passings or [])
+            mocker.patch.object(node_mock, 'publishers', publishers or [])
+            mocker.patch.object(node_mock, 'subscriptions', subscriptions or [])
+            mocker.patch.object(node_mock, 'callback_groups', callback_groups or [])
+            mocker.patch.object(node_mock, 'paths', paths or [])
+            mocker.patch.object(node_mock, 'tf_broadcaster', tf_broadcaster)
+            mocker.patch.object(node_mock, 'tf_buffer', tf_buffer)
+            return node_mock
+        return _create
 
-        callback_dict_mock = mocker.Mock(spec=CallbackDicts)
-        mocker.patch.object(callback_dict_mock, 'data', ['callback_dict'])
-        mocker.patch('caret_analyze.architecture.architecture_exporter.CallbackDicts',
-                     return_value=callback_dict_mock)
+    def test_callbacks(
+        self,
+        create_node_mock,
+        setup_tf_br_mock,
+        setup_tf_buff_mock,
+        setup_cbs_mock,
+    ):
+        setup_tf_br_mock(None)
+        setup_tf_buff_mock(None)
+        setup_cbs_mock(['callback_dict'])
 
-        mocker.patch.object(node_info, 'callbacks', [callback_dict_mock])
-        mocker.patch.object(node_info, 'variable_passings', [])
-        mocker.patch.object(node_info, 'publishers', [])
-        mocker.patch.object(node_info, 'subscriptions', [])
-        mocker.patch.object(node_info, 'callback_groups', [])
-        mocker.patch.object(node_info, 'node_name', 'node')
+        node_info = create_node_mock(
+            **{
+                'node_id': 'node_id',
+                'node_name': 'node_name',
+                'callbacks': ['cb'],
+            }
+        )
 
         node_dict = NodesDicts([node_info])
 
         expect = [
             {
-                'node_name': 'node',
+                'node_id': 'node_id',
+                'node_name': 'node_name',
                 'callbacks': ['callback_dict'],
                 'callback_groups': []
             }
         ]
         assert node_dict.data == expect
 
-    def test_variable_passings(self, mocker):
-        node_info = mocker.Mock(spec=NodeStructValue)
+    def test_variable_passings(
+        self,
+        mocker,
+        create_node_mock,
+        setup_tf_br_mock,
+        setup_tf_buff_mock,
+        setup_cbs_mock,
+        setup_var_pass_mock,
+    ):
+        setup_tf_br_mock(None)
+        setup_tf_buff_mock(None)
+        setup_cbs_mock(['cb', 'cb'])
+        setup_var_pass_mock(['var_pass_dict'])
 
-        callback_dict_mock = mocker.Mock(spec=CallbackDicts)
-        mocker.patch.object(callback_dict_mock, 'data', ['callback_dict', 'callback_dict'])
-        mocker.patch('caret_analyze.architecture.architecture_exporter.CallbackDicts',
-                     return_value=callback_dict_mock)
+        cb = mocker.Mock(spec=CallbackStructValue)
+        var_pass = mocker.Mock(spec=VariablePassingStructValue)
 
-        var_pass_dicts_mock = mocker.Mock(spec=VarPassDicts)
-        mocker.patch.object(var_pass_dicts_mock, 'data', ['var_pass_dict'])
-        mocker.patch('caret_analyze.architecture.architecture_exporter.VarPassDicts',
-                     return_value=var_pass_dicts_mock)
-
-        mocker.patch.object(node_info, 'callbacks', [callback_dict_mock, callback_dict_mock])
-        mocker.patch.object(node_info, 'callback_groups', [])
-        mocker.patch.object(node_info, 'variable_passings', [var_pass_dicts_mock])
-        mocker.patch.object(node_info, 'publishers', [])
-        mocker.patch.object(node_info, 'subscriptions', [])
-        mocker.patch.object(node_info, 'node_name', 'node')
+        node_info = create_node_mock(
+            **{
+                'node_id': 'node_id',
+                'node_name': 'node_name',
+                'variable_passings': [var_pass],
+                'callbacks': [cb, cb],
+            }
+        )
 
         node_dict = NodesDicts([node_info])
 
         expect = [
             {
-                'node_name': 'node',
-                'callbacks': ['callback_dict', 'callback_dict'],
+                'node_id': 'node_id',
+                'node_name': 'node_name',
+                'callbacks': ['cb', 'cb'],
                 'callback_groups': [],
                 'variable_passings': ['var_pass_dict'],
             }
         ]
         assert node_dict.data == expect
 
-    def test_publish(self, mocker):
-        node_info = mocker.Mock(spec=NodeStructValue)
-
-        pub_dict_mock = mocker.Mock(spec=PubDicts)
-        mocker.patch.object(pub_dict_mock, 'data', ['pub_dict'])
-        mocker.patch('caret_analyze.architecture.architecture_exporter.PubDicts',
-                     return_value=pub_dict_mock)
-
-        mocker.patch.object(node_info, 'callbacks', [])
-        mocker.patch.object(node_info, 'variable_passings', [])
-        mocker.patch.object(node_info, 'publishers', [pub_dict_mock])
-        mocker.patch.object(node_info, 'callback_groups', [])
-        mocker.patch.object(node_info, 'subscriptions', [])
-        mocker.patch.object(node_info, 'node_name', 'node')
+    def test_publish(
+        self,
+        mocker,
+        create_node_mock,
+        setup_pub_mock,
+    ):
+        pub_mock = mocker.Mock(spec=PublisherStructValue)
+        node_info = create_node_mock(
+            **{
+                'node_id': 'node_id',
+                'node_name': 'node',
+                'publishers': [pub_mock]
+            }
+        )
+        setup_pub_mock(['pub_dict'])
 
         node_dict = NodesDicts([node_info])
 
         expect = [
             {
+                'node_id': 'node_id',
                 'node_name': 'node',
                 'publishes': ['pub_dict'],
                 'callback_groups': []
@@ -416,25 +650,27 @@ class TestNodeDicts:
         ]
         assert node_dict.data == expect
 
-    def test_subscription(self, mocker):
-        node_info = mocker.Mock(spec=NodeStructValue)
+    def test_subscription(
+        self,
+        mocker,
+        create_node_mock,
+        setup_sub_mock,
+    ):
+        sub_mock = mocker.Mock(spec=SubscriptionStructValue)
+        node_mock = create_node_mock(
+            **{
+                'node_id': 'node_id',
+                'node_name': 'node',
+                'subscriptions': [sub_mock]
+            }
+        )
+        setup_sub_mock(['sub_dict'])
 
-        sub_dict_mock = mocker.Mock(spec=SubDicts)
-        mocker.patch.object(sub_dict_mock, 'data', ['sub_dict'])
-        mocker.patch('caret_analyze.architecture.architecture_exporter.SubDicts',
-                     return_value=sub_dict_mock)
-
-        mocker.patch.object(node_info, 'callbacks', [])
-        mocker.patch.object(node_info, 'variable_passings', [])
-        mocker.patch.object(node_info, 'publishers', [])
-        mocker.patch.object(node_info, 'subscriptions', [sub_dict_mock])
-        mocker.patch.object(node_info, 'node_name', 'node')
-        mocker.patch.object(node_info, 'callback_groups', [])
-
-        node_dict = NodesDicts([node_info])
+        node_dict = NodesDicts([node_mock])
 
         expect = [
             {
+                'node_id': 'node_id',
                 'node_name': 'node',
                 'subscribes': ['sub_dict'],
                 'callback_groups': []
@@ -442,44 +678,20 @@ class TestNodeDicts:
         ]
         assert node_dict.data == expect
 
-    def test_name_sort(self, mocker):
-        node_0 = mocker.Mock(spec=NodeStructValue)
-        node_1 = mocker.Mock(spec=NodeStructValue)
-        node_2 = mocker.Mock(spec=NodeStructValue)
-        node_3 = mocker.Mock(spec=NodeStructValue)
-
-        mocker.patch.object(node_0, 'node_name', 'node_0')
-        mocker.patch.object(node_1, 'node_name', 'node_1')
-        mocker.patch.object(node_2, 'node_name', 'node_2')
-        mocker.patch.object(node_3, 'node_name', 'node_3')
-
-        mocker.patch.object(node_0, 'callbacks', [])
-        mocker.patch.object(node_1, 'callbacks', [])
-        mocker.patch.object(node_2, 'callbacks', [])
-        mocker.patch.object(node_3, 'callbacks', [])
-
-        mocker.patch.object(node_0, 'callback_groups', [])
-        mocker.patch.object(node_1, 'callback_groups', [])
-        mocker.patch.object(node_2, 'callback_groups', [])
-        mocker.patch.object(node_3, 'callback_groups', [])
-
-        mocker.patch.object(node_0, 'publishers', [])
-        mocker.patch.object(node_1, 'publishers', [])
-        mocker.patch.object(node_2, 'publishers', [])
-        mocker.patch.object(node_3, 'publishers', [])
-
-        mocker.patch.object(node_0, 'subscriptions', [])
-        mocker.patch.object(node_1, 'subscriptions', [])
-        mocker.patch.object(node_2, 'subscriptions', [])
-        mocker.patch.object(node_3, 'subscriptions', [])
+    def test_name_sort(self, mocker, create_node_mock):
+        node_0 = create_node_mock('node_id_0', 'node_name_0')
+        node_1 = create_node_mock('node_id_1', 'node_name_1')
+        node_2 = create_node_mock('node_id_2', 'node_name_2')
+        node_3 = create_node_mock('node_id_3', 'node_name_3')
 
         node_dicts = NodesDicts([node_2, node_3, node_1, node_0])
 
         expect = [
-            {'node_name': 'node_0', 'callback_groups': []},
-            {'node_name': 'node_1', 'callback_groups': []},
-            {'node_name': 'node_2', 'callback_groups': []},
-            {'node_name': 'node_3', 'callback_groups': []},
+            {
+                'node_id': node.node_id,
+                'node_name': node.node_name,
+                'callback_groups': []
+            } for node in [node_0, node_1, node_2, node_3]
         ]
 
         assert node_dicts.data == expect
@@ -487,51 +699,48 @@ class TestNodeDicts:
 
 class TestSubDicts:
 
-    def test_content(self, mocker):
-        sub_info = mocker.Mock(spec=SubscriptionStructValue)
-        mocker.patch.object(sub_info, 'topic_name', 'topic')
-        mocker.patch.object(sub_info, 'callback_name', 'callback')
-        sub_dict = SubDicts((sub_info,))
+    @pytest.fixture
+    def create_sub_mock(self, mocker):
+        def _create(topic_name: str, callback_id: str):
+            sub_mock = mocker.Mock(spec=SubscriptionStructValue)
+            mocker.patch.object(sub_mock, 'topic_name', topic_name)
+            mocker.patch.object(sub_mock, 'callback_id', callback_id)
+            return sub_mock
+        return _create
+
+    def test_single_item(self, create_sub_mock):
+        sub_mock = create_sub_mock('topic_name', 'callback_id')
+        sub_dict = SubDicts([sub_mock])
 
         expect = [{
-            'topic_name': 'topic',
-            'callback_name': 'callback'
+            'topic_name': 'topic_name',
+            'callback_id': 'callback_id'
         }]
 
         assert sub_dict.data == expect
 
-    def test_callback_None(self, mocker):
-        sub_info = mocker.Mock(spec=SubscriptionStructValue)
-        mocker.patch.object(sub_info, 'topic_name', 'topic')
-        mocker.patch.object(sub_info, 'callback_name', None)
+        sub_mock = create_sub_mock('topic_name', None)
+        sub_dict = SubDicts([sub_mock])
 
-        sub_dict = SubDicts((sub_info,))
         expect = [{
-            'topic_name': 'topic',
-            'callback_name': None
+            'topic_name': 'topic_name',
+            'callback_id': None
         }]
 
         assert sub_dict.data == expect
 
-    def test_name_sort(self, mocker):
-        sub_mock_0 = mocker.Mock(spec=SubscriptionStructValue)
-        sub_mock_1 = mocker.Mock(spec=SubscriptionStructValue)
-        sub_mock_2 = mocker.Mock(spec=SubscriptionStructValue)
+    def test_name_sort(self, create_sub_mock):
+        sub_mock_0 = create_sub_mock('A', None)
+        sub_mock_1 = create_sub_mock('B', None)
+        sub_mock_2 = create_sub_mock('C', None)
 
-        mocker.patch.object(sub_mock_0, 'topic_name', 'A')
-        mocker.patch.object(sub_mock_1, 'topic_name', 'B')
-        mocker.patch.object(sub_mock_2, 'topic_name', 'C')
-
-        mocker.patch.object(sub_mock_0, 'callback_name', None)
-        mocker.patch.object(sub_mock_1, 'callback_name', None)
-        mocker.patch.object(sub_mock_2, 'callback_name', None)
-
-        sub_dict = SubDicts((sub_mock_1, sub_mock_2, sub_mock_0,))
+        sub_dict = SubDicts([sub_mock_1, sub_mock_2, sub_mock_0])
 
         expect = [
-            {'topic_name': 'A', 'callback_name': None},
-            {'topic_name': 'B', 'callback_name': None},
-            {'topic_name': 'C', 'callback_name': None},
+            {
+                'topic_name': sub.topic_name,
+                'callback_id': None
+            } for sub in [sub_mock_0, sub_mock_1, sub_mock_2]
         ]
 
         assert sub_dict.data == expect
@@ -539,51 +748,49 @@ class TestSubDicts:
 
 class TestPubDicts:
 
-    def test_content(self, mocker):
-        pub_info = mocker.Mock(spec=PublisherStructValue)
-        mocker.patch.object(pub_info, 'topic_name', 'topic')
-        mocker.patch.object(pub_info, 'callback_names', ('callback',))
-        pub_dict = PubDicts((pub_info,))
+    @pytest.fixture
+    def create_publisher(self, mocker):
+        def _create(topic_name: str, callback_ids: Sequence[str]):
+            publisher_mock = mocker.Mock(spec=PublisherStructValue)
+            mocker.patch.object(publisher_mock, 'topic_name', topic_name)
+            mocker.patch.object(publisher_mock, 'callback_ids', callback_ids)
+
+            return publisher_mock
+        return _create
+
+    def test_single_item(self, create_publisher):
+        pub_mock = create_publisher('topic_name', ['callback_id'])
+        pub_dict = PubDicts([pub_mock])
 
         expect = [{
-            'topic_name': 'topic',
-            'callback_names': ['callback'],
+            'topic_name': pub_mock.topic_name,
+            'callback_ids': pub_mock.callback_ids,
         }]
 
         assert pub_dict.data == expect
 
-    def test_callback_none(self, mocker):
-        pub_info = mocker.Mock(spec=PublisherStructValue)
-        mocker.patch.object(pub_info, 'topic_name', 'topic')
-        mocker.patch.object(pub_info, 'callback_names', None)
-        pub_dict = PubDicts((pub_info,))
+        pub_mock = create_publisher('topic_name', None)
+        pub_dict = PubDicts([pub_mock])
 
         expect = [{
-            'topic_name': 'topic',
-            'callback_names': [None],
+            'topic_name': pub_mock.topic_name,
+            'callback_ids': [None],
         }]
 
         assert pub_dict.data == expect
 
-    def test_name_sort(self, mocker):
-        pub_mock_0 = mocker.Mock(spec=PublisherStructValue)
-        pub_mock_1 = mocker.Mock(spec=PublisherStructValue)
-        pub_mock_2 = mocker.Mock(spec=PublisherStructValue)
+    def test_name_sort(self, create_publisher):
+        pub_mock_0 = create_publisher('A', None)
+        pub_mock_1 = create_publisher('B', None)
+        pub_mock_2 = create_publisher('C', None)
 
-        mocker.patch.object(pub_mock_0, 'topic_name', 'A')
-        mocker.patch.object(pub_mock_1, 'topic_name', 'B')
-        mocker.patch.object(pub_mock_2, 'topic_name', 'C')
-
-        mocker.patch.object(pub_mock_0, 'callback_names', None)
-        mocker.patch.object(pub_mock_1, 'callback_names', None)
-        mocker.patch.object(pub_mock_2, 'callback_names', None)
-
-        pub_dict = PubDicts((pub_mock_1, pub_mock_2, pub_mock_0))
+        pub_dict = PubDicts([pub_mock_1, pub_mock_2, pub_mock_0])
 
         expect = [
-            {'topic_name': 'A', 'callback_names': [None]},
-            {'topic_name': 'B', 'callback_names': [None]},
-            {'topic_name': 'C', 'callback_names': [None]},
+            {
+                'topic_name': pub.topic_name,
+                'callback_ids': [None]
+            } for pub in [pub_mock_0, pub_mock_1, pub_mock_2]
         ]
 
         assert pub_dict.data == expect
@@ -591,44 +798,78 @@ class TestPubDicts:
 
 class TestCallbackDicts:
 
-    def test_timer_callback(self, mocker):
-        callback_mock = mocker.Mock(spec=TimerCallbackStructValue)
+    @pytest.fixture
+    def patch_callback(self, mocker):
+        def patch(
+            callback_mock: CallbackStructValue,
+            id_str: str,
+            callback_name: str,
+            symbol: str
+        ):
+            mocker.patch.object(callback_mock, 'callback_id', id_str)
+            mocker.patch.object(callback_mock, 'callback_name', callback_name)
+            mocker.patch.object(callback_mock, 'symbol', symbol)
+        return patch
 
-        period_ns = 3
-        symbol = 'symbol'
-        callback_name = 'callback'
+    @pytest.fixture
+    def create_timer_cb_mock(self, mocker, patch_callback):
+        def _create(
+            id_str: str,
+            symbol: str,
+            callback_name: str,
+            period_ns: int
+        ):
+            callback_mock = mocker.Mock(spec=TimerCallbackStructValue)
+            patch_callback(callback_mock, id_str, callback_name, symbol)
+            mocker.patch.object(callback_mock, 'period_ns', period_ns)
+            return callback_mock
+        return _create
 
-        mocker.patch.object(callback_mock, 'callback_name', callback_name)
-        mocker.patch.object(callback_mock, 'period_ns', period_ns)
-        mocker.patch.object(callback_mock, 'symbol', symbol)
+    @pytest.fixture
+    def create_sub_cb_mock(self, mocker, patch_callback):
+        def _create(
+            id_str: str,
+            symbol: str,
+            callback_name: str,
+            topic_name: str
+        ):
+            callback_mock = mocker.Mock(spec=SubscriptionCallbackStructValue)
+            patch_callback(callback_mock, id_str, callback_name, symbol)
+            mocker.patch.object(callback_mock, 'subscribe_topic_name', topic_name)
+            return callback_mock
+        return _create
+
+    def test_timer_callback(
+        self,
+        create_timer_cb_mock
+    ):
+        callback_mock = create_timer_cb_mock('id', 'symbol', 'callback', 3)
+
         callback_dict = CallbackDicts((callback_mock,))
 
         expect = [{
-            'callback_name': callback_name,
+            'callback_id': callback_mock.callback_id,
+            'callback_name': callback_mock.callback_name,
             'callback_type': 'timer_callback',
-            'period_ns': period_ns,
-            'symbol': symbol
+            'period_ns': callback_mock.period_ns,
+            'symbol': callback_mock.symbol
         }]
 
         assert callback_dict.data == expect
 
-    def test_subscription_callback(self, mocker):
-        callback_mock = mocker.Mock(spec=SubscriptionCallbackStructValue)
-
-        topic_name = 'topic'
-        symbol = 'symbol'
-        callback_name = 'callback'
-
-        mocker.patch.object(callback_mock, 'callback_name', callback_name)
-        mocker.patch.object(callback_mock, 'subscribe_topic_name', topic_name)
-        mocker.patch.object(callback_mock, 'symbol', symbol)
+    def test_subscription_callback(
+        self,
+        create_sub_cb_mock
+    ):
+        callback_mock = create_sub_cb_mock('id', 'symbol', 'callback', 'topic')
         callback_dict = CallbackDicts((callback_mock,))
 
         expect = [{
-            'callback_name': callback_name,
+            'callback_id': callback_mock.callback_id,
+            'callback_name': callback_mock.callback_name,
             'callback_type': 'subscription_callback',
-            'topic_name': topic_name,
-            'symbol': symbol
+            'topic_name': callback_mock.subscribe_topic_name,
+            'symbol': callback_mock.symbol
         }]
 
         assert callback_dict.data == expect
@@ -638,45 +879,24 @@ class TestCallbackDicts:
         with pytest.raises(UnsupportedTypeError):
             CallbackDicts((callback_mock,))
 
-    def test_name_sort(self, mocker):
-
-        callback_mock_0 = mocker.Mock(spec=SubscriptionCallbackStructValue)
-        callback_mock_1 = mocker.Mock(spec=SubscriptionCallbackStructValue)
-        callback_mock_2 = mocker.Mock(spec=SubscriptionCallbackStructValue)
-
-        mocker.patch.object(callback_mock_0, 'callback_name', 'callback_0')
-        mocker.patch.object(callback_mock_1, 'callback_name', 'callback_1')
-        mocker.patch.object(callback_mock_2, 'callback_name', 'callback_2')
-
-        mocker.patch.object(callback_mock_0, 'subscribe_topic_name', None)
-        mocker.patch.object(callback_mock_1, 'subscribe_topic_name', None)
-        mocker.patch.object(callback_mock_2, 'subscribe_topic_name', None)
-
-        mocker.patch.object(callback_mock_0, 'symbol', '')
-        mocker.patch.object(callback_mock_1, 'symbol', '')
-        mocker.patch.object(callback_mock_2, 'symbol', '')
+    def test_name_sort(
+        self,
+        create_sub_cb_mock,
+    ):
+        callback_mock_0 = create_sub_cb_mock('id0', 'symbol0', 'callback_0', 'A')
+        callback_mock_1 = create_sub_cb_mock('id1', 'symbol1', 'callback_1', 'B')
+        callback_mock_2 = create_sub_cb_mock('id2', 'symbol2', 'callback_2', 'C')
 
         callback_dict = CallbackDicts((callback_mock_2, callback_mock_1, callback_mock_0))
 
         expect = [
             {
-                'callback_name': 'callback_0',
+                'callback_id': cb.callback_id,
+                'callback_name': cb.callback_name,
                 'callback_type': 'subscription_callback',
-                'topic_name': None,
-                'symbol': ''
-            },
-            {
-                'callback_name': 'callback_1',
-                'callback_type': 'subscription_callback',
-                'topic_name': None,
-                'symbol': ''
-            },
-            {
-                'callback_name': 'callback_2',
-                'callback_type': 'subscription_callback',
-                'topic_name': None,
-                'symbol': ''
-            }
+                'topic_name': cb.subscribe_topic_name,
+                'symbol': cb.symbol
+            } for cb in [callback_mock_0, callback_mock_1, callback_mock_2]
         ]
 
         assert callback_dict.data == expect
@@ -684,34 +904,42 @@ class TestCallbackDicts:
 
 class TestVarPassDicts:
 
+    @pytest.fixture
+    def create_var_pass_mock(self, mocker):
+        def _create(
+            callback_id_write: Optional[str],
+            callback_id_read: Optional[str],
+        ):
+            var_pass_mock = mocker.Mock(spec=VariablePassingStructValue)
+            mocker.patch.object(var_pass_mock, 'callback_id_write', callback_id_write)
+            mocker.patch.object(var_pass_mock, 'callback_id_read', callback_id_read)
+            return var_pass_mock
+        return _create
+
     def test_empty(self):
         var_pass_dicts = VarPassDicts([])
         expect = [{
-            'callback_name_write': None,
-            'callback_name_read': None,
+            'callback_id_write': None,
+            'callback_id_read': None,
         }]
 
         assert var_pass_dicts.data == expect
 
         var_pass_dicts = VarPassDicts(None)
         expect = [{
-            'callback_name_write': None,
-            'callback_name_read': None,
+            'callback_id_write': None,
+            'callback_id_read': None,
         }]
 
         assert var_pass_dicts.data == expect
 
-    def test_full(self, mocker):
-        var_pass_mock = mocker.Mock(spec=VariablePassingStructValue)
-        callback_write_name = 'callback0'
-        callback_read_name = 'callback1'
-        mocker.patch.object(var_pass_mock, 'callback_name_write', callback_write_name)
-        mocker.patch.object(var_pass_mock, 'callback_name_read', callback_read_name)
-        var_pass_dicts = VarPassDicts((var_pass_mock,))
+    def test_full_content(self, create_var_pass_mock):
+        var_pass_mock = create_var_pass_mock('id_write', 'id_read')
+        var_pass_dicts = VarPassDicts([var_pass_mock])
 
         expect = [{
-            'callback_name_write': callback_write_name,
-            'callback_name_read': callback_read_name,
+            'callback_id_write': 'id_write',
+            'callback_id_read': 'id_read',
         }]
 
         assert var_pass_dicts.data == expect

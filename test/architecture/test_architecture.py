@@ -26,6 +26,32 @@
 # import pytest
 # from pytest_mock import MockerFixture
 
+# def test_force_option(self, mocker, tmpdir):
+#     exporter = ArchitectureDict((), (), ())
+#     exporter_force = ArchitectureDict((), (), (), force=True)
+
+#     named_path_mock = mocker.Mock(spec=NamedPathsDicts)
+#     mocker.patch('caret_analyze.architecture.architecture_dict.NamedPathsDicts',
+#                  return_value=named_path_mock)
+#     mocker.patch.object(named_path_mock, 'data', [])
+
+#     exec_mock = mocker.Mock(spec=ExecutorsDicts)
+#     mocker.patch('caret_analyze.architecture.architecture_dict.ExecutorsDicts',
+#                  return_value=exec_mock)
+#     mocker.patch.object(exec_mock, 'data', [])
+
+#     node_mock = mocker.Mock(spec=NodesDicts)
+#     mocker.patch('caret_analyze.architecture.architecture_dict.NodesDicts',
+#                  return_value=node_mock)
+#     mocker.patch.object(node_mock, 'data', [])
+
+#     f = tmpdir.mkdir('sub').join('arch.yaml')
+#     exporter.execute(f.strpath)
+
+#     with pytest.raises(FileExistsError):
+#         exporter.execute(f)
+
+#     exporter_force.execute(f)
 
 # class TestArchiteture:
 
