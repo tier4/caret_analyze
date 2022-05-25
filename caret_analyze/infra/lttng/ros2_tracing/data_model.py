@@ -34,6 +34,17 @@ class Ros2DataModel(DataModel):
         """Create a Ros2DataModel."""
         super().__init__()
         # Objects (one-time events, usually when something is created)
+
+        self.rcl_init_caret = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('timestamp'),
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('lib_caret_version', mapper=ColumnMapper())
+            ]
+        )
+
         self.rcl_init = RecordsFactory.create_instance(
             None,
             [
@@ -828,6 +839,22 @@ class Ros2DataModel(DataModel):
     def _to_system_time(self, raw_timestamp: int) -> int:
         assert self._raw_offset is not None
         return raw_timestamp + self._raw_offset
+
+    def add_rcl_init_caret(self, lib_caret_version, timestamp, pid, tid) -> None:
+        version_idx = len(self.rcl_init_caret)
+        mapper = self.rcl_init_caret.columns.get('lib_caret_version').mapper
+        assert mapper is not None
+        mapper.add(version_idx, lib_caret_version)
+        self.rcl_init_caret.append(
+            RecordFactory.create_instance(
+                {
+                    'timestamp': timestamp,
+                    'pid': pid,
+                    'tid': tid,
+                    'lib_caret_version': version_idx,
+                }
+            )
+        )
 
     def add_rcl_init(self, pid, tid, context_handle, timestamp, version) -> None:
         version_idx = len(self.rcl_init)

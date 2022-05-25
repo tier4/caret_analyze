@@ -427,6 +427,9 @@ class EventCounter:
             CountRule('ros2_caret:tilde_subscription_init',
                       data.tilde_subscription_init,
                       'subscription'),
+            CountRule('ros2_caret:rcl_init_caret',
+                      data.rcl_init_caret,
+                      'pid'),
 
             # measurement tracepoints
             CountRule('ros2:callback_end',

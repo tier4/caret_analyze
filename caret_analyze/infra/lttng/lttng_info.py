@@ -397,6 +397,15 @@ class LttngInfo:
 
         for i in range(len(nodes_df)):
             node_name = nodes_df.get(i, 'node_name')
+
+            # Check LD_PRELOAD setting
+            lib_caret_version = nodes_df.get(i, 'lib_caret_version')
+            if not lib_caret_version:
+                msg = ('Failed to found trace point added by LD_PRELOAD. '
+                       'Measurement results will not be correct. '
+                       'The measurement may have been performed without setting LD_PRELOAD.')
+                logger.warning(msg)
+
             if str(node_name).startswith('_ros2_cli'):
                 continue
             node_id = nodes_df.get(i, 'node_id')
@@ -407,7 +416,7 @@ class LttngInfo:
             added_nodes.add(node_name)
             pid = nodes_df.get(i, 'pid')
             nodes.append(
-                NodeValueLttng(pid, node_name, node_handle, node_id)
+                NodeValueLttng(pid, node_name, node_handle, node_id, lib_caret_version)
             )
 
         for duplicate_node in duplicate_nodes:
@@ -2279,7 +2288,7 @@ class DataFrameFormatted:
     def _build_nodes_df(
         data: Ros2DataModel
     ) -> RecordsInterface:
-        columns = ['pid', 'node_id', 'node_handle', 'node_name']
+        columns = ['pid', 'node_id', 'node_handle', 'node_name', 'lib_caret_version']
 
         node_records = data.rcl_node_init.clone()
 
@@ -2300,8 +2309,18 @@ class DataFrameFormatted:
 
         DataFrameFormatted._add_column(node_records, 'node_id', to_node_id)
 
+        rcl_caret_inits = data.rcl_init_caret.clone()
+        node_records = merge(
+            node_records,
+            rcl_caret_inits,
+            'pid',
+            'pid',
+            how='outer'
+        )
+
         node_records.columns.drop(set(node_records.column_names) - set(columns))
         node_records.columns.reindex(columns)
+
         return node_records
 
 

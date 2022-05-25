@@ -24,11 +24,13 @@ class NodeValueLttng(NodeValue):
         node_name: str,
         node_handle: int,
         node_id: str,
+        lib_caret_version: str,
     ):
         super().__init__(node_name, node_id)
         self._pid = pid
         self._node_id = node_id
         self._node_handle = node_handle
+        self._lib_caret_version = lib_caret_version
 
     @property
     def pid(self) -> int:
@@ -41,3 +43,7 @@ class NodeValueLttng(NodeValue):
     @property
     def node_id(self) -> str:
         return self._node_id
+    
+    @property
+    def lib_caret_version(self) -> str:
+        return self._lib_caret_version
