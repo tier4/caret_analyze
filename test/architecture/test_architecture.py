@@ -120,14 +120,9 @@
 #         assert len(arch.executors) == 1
 #         assert arch.executors[0] == executor_mock
 
-#         assert len(arch.paths) == 1
-#         assert arch.paths[0] == path_mock
-
-#         assert len(arch.communications) == 1
 #         assert arch.communications[0] == comm_mock
 
 #     def test_path(self, mocker: MockerFixture):
-#         reader_mock = mocker.Mock(spec=ArchitectureReader)
 #         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
 #         path = PathStructValue('path0', ())

@@ -33,12 +33,10 @@ from caret_analyze.value_objects import (CallbackChain, CallbackStructValue,
                                          TimerCallbackStructValue,
                                          VariablePassingStructValue)
 
-from pytest_mock import MockerFixture
-
 
 class TestRecordsProviderLttng:
 
-    def test_callback_records(self, mocker: MockerFixture):
+    def test_callback_records(self, mocker):
 
         records_mock = mocker.Mock(spec=RecordsInterface)
 
@@ -73,7 +71,7 @@ class TestRecordsProviderLttng:
 
         assert records == records_mock
 
-    def test_node_records_callback_chain(self, mocker: MockerFixture):
+    def test_node_records_callback_chain(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
         records_mock = mocker.Mock(spec=RecordsInterface)
@@ -93,7 +91,7 @@ class TestRecordsProviderLttng:
         records = provider.node_records(node_path_info_mock)
         assert records == records_mock
 
-    def test_inter_proc_comm_records(self, mocker: MockerFixture):
+    def test_inter_proc_comm_records(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
 
         comm_mock = mocker.Mock(spec=CommunicationStructValue)
@@ -141,7 +139,7 @@ class TestRecordsProviderLttng:
         records = provider._compose_inter_proc_comm_records(comm_mock)
         assert records == records_mock
 
-    def test_node_records_inherit_timestamp(self, mocker: MockerFixture):
+    def test_node_records_inherit_timestamp(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         node_path_info_mock = mocker.Mock(spec=NodePathStructValue)
         records_mock = mocker.Mock(spec=RecordsInterface)
@@ -165,7 +163,7 @@ class TestRecordsProviderLttng:
         records = provider.node_records(node_path_info_mock)
         assert records == records_mock
 
-    def test_get_publish_records(self, mocker: MockerFixture):
+    def test_get_publish_records(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
 
         pub_handle = 6
@@ -205,7 +203,7 @@ class TestRecordsProviderLttng:
 
         assert records == records_mock
 
-    def test_get_rmw_impl(self, mocker: MockerFixture):
+    def test_get_rmw_impl(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         mocker.patch.object(
             lttng_mock, 'get_rmw_impl', return_value='rmw')
@@ -213,7 +211,7 @@ class TestRecordsProviderLttng:
 
         assert provider.get_rmw_implementation() == 'rmw'
 
-    def test_intra_proc_comm_records(self, mocker: MockerFixture):
+    def test_intra_proc_comm_records(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
 
         comm_mock = mocker.Mock(spec=CommunicationStructValue)
@@ -260,7 +258,7 @@ class TestRecordsProviderLttng:
         records = provider._compose_intra_proc_comm_records(comm_mock)
         assert records == records_mock
 
-    def test_is_intra_process_communication(self, mocker: MockerFixture):
+    def test_is_intra_process_communication(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         provider = RecordsProviderLttng(lttng_mock)
         comm_info_mock = mocker.Mock(spec=Lttng)
@@ -276,7 +274,7 @@ class TestRecordsProviderLttng:
 
 class TestRecordsProviderLttngHelper:
 
-    def test_get_callback_objects_timer_callback(self, mocker: MockerFixture):
+    def test_get_callback_objects_timer_callback(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         timer_cb_info_mock = mocker.Mock(spec=TimerCallbackStructValue)
         cb_info_mock = mocker.Mock(spec=TimerCallbackValueLttng)
@@ -296,7 +294,7 @@ class TestRecordsProviderLttngHelper:
         assert inter == callback_object
         assert intra is None
 
-    def test_get_subscription_callback_object(self, mocker: MockerFixture):
+    def test_get_subscription_callback_object(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         sub_cb_info_mock = mocker.Mock(spec=SubscriptionCallbackStructValue)
         cb_info_mock = mocker.Mock(spec=SubscriptionCallbackValueLttng)
@@ -315,7 +313,7 @@ class TestRecordsProviderLttngHelper:
         obj = helper.get_subscription_callback_object_inter(sub_cb_info_mock)
         assert obj == callback_object
 
-    def test_get_subscription_callback_object_intra(self, mocker: MockerFixture):
+    def test_get_subscription_callback_object_intra(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         sub_cb_info_mock = mocker.Mock(spec=SubscriptionCallbackStructValue)
         cb_info_mock = mocker.Mock(spec=SubscriptionCallbackValueLttng)
@@ -334,7 +332,7 @@ class TestRecordsProviderLttngHelper:
         obj = helper.get_subscription_callback_object_intra(sub_cb_info_mock)
         assert obj == callback_object
 
-    def test_get_publisher_handles(self, mocker: MockerFixture):
+    def test_get_publisher_handles(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
 
         pub_handle = 3
@@ -357,7 +355,7 @@ class TestRecordsProviderLttngHelper:
 
 class TestNodeRecordsCallbackChain:
 
-    def test_single_callback(self, mocker: MockerFixture):
+    def test_single_callback(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
         path_info_mock = mocker.Mock(spec=NodePathStructValue)
         cb_info_mock = mocker.Mock(spec=CallbackStructValue)
@@ -401,7 +399,7 @@ class TestNodeRecordsCallbackChain:
         records = node_records.to_records()
         assert records.equals(expect)
 
-    def test_single_variable_passing(self, mocker: MockerFixture):
+    def test_single_variable_passing(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
         path_info_mock = mocker.Mock(spec=NodePathStructValue)
         vp_info_mock = mocker.Mock(spec=VariablePassingStructValue)
@@ -450,7 +448,7 @@ class TestNodeRecordsCallbackChain:
         records = node_records.to_records()
         assert records.equals(expect)
 
-    def test_multi_callback(self, mocker: MockerFixture):
+    def test_multi_callback(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProviderLttng)
         path_info_mock = mocker.Mock(spec=NodePathStructValue)
 

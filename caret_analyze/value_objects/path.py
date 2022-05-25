@@ -134,7 +134,7 @@ class PathStructValue(ValueObject, Summarizable):
         for child in self.node_paths[1:-1]:
             if child.message_context is None:
                 is_valid = False
-                msg = 'Detected "message_contest is None". Correct these node_path definitions. \n'
+                msg = 'Detected "message_context is None". Correct these node_path definitions. \n'
                 msg += 'To see node definition and procedure,'
                 msg += f'execute :\n' \
                     f">> check_procedure('yaml', '/path/to/yaml', arch, '{child.node_name}') \n"

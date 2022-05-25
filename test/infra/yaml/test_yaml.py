@@ -22,12 +22,11 @@ from caret_analyze.value_objects import (CallbackGroupType, CallbackType,
 from caret_analyze.value_objects.node import NodeValue
 
 import pytest
-from pytest_mock import MockerFixture
 
 
 class TestArchitectureReaderYaml:
 
-    def test_empty_yaml(self, mocker: MockerFixture):
+    def test_empty_yaml(self, mocker):
         mocker.patch('builtins.open', mocker.mock_open(read_data=''))
         node = NodeValue('node_name')
 
@@ -64,7 +63,7 @@ nodes: []
         with pytest.raises(InvalidYamlFormatError):
             reader.get_callback_groups(node)
 
-    def test_get_named_paths(self, mocker: MockerFixture):
+    def test_get_named_paths(self, mocker):
         architecture_text = """
 named_paths:
 - path_name: target_path
@@ -96,7 +95,7 @@ nodes: []
         assert listener_path.publish_topic_name is None
         assert listener_path.subscribe_topic_name == '/chatter'
 
-    def test_executors(self, mocker: MockerFixture):
+    def test_executors(self, mocker):
         architecture_text = """
 named_paths: []
 executors:
@@ -122,7 +121,7 @@ nodes: []
             '1',
         )
 
-    def test_get_callback_groups(self, mocker: MockerFixture):
+    def test_get_callback_groups(self, mocker):
         architecture_text = """
 named_paths: []
 executors: []
@@ -161,7 +160,7 @@ nodes:
         assert cbg.callback_group_type == CallbackGroupType.MUTUALLY_EXCLUSIVE
         assert cbg.callback_ids == ('/talker/timer_callback_1',)
 
-    def test_node_callback(self, mocker: MockerFixture):
+    def test_node_callback(self, mocker):
         architecture_text = """
 named_paths: []
 executors: []
@@ -212,7 +211,7 @@ nodes:
         assert sub_cb.node_id == '0'
         assert sub_cb.subscribe_topic_name == '/chatter'
 
-    def test_message_contexts(self, mocker: MockerFixture):
+    def test_message_contexts(self, mocker):
         architecture_text = """
 named_paths: []
 executors: []
@@ -236,7 +235,7 @@ nodes:
         assert context['publisher_topic_name'] == '/pong'
         assert context['subscription_topic_name'] == '/ping'
 
-    def test_publishers_info(self, mocker: MockerFixture):
+    def test_publishers_info(self, mocker):
         architecture_text = """
 named_paths: []
 executors: []
@@ -261,7 +260,7 @@ nodes:
         assert timer_pub.topic_name == '/xxx'
         assert timer_pub.callback_ids == ('0', '1')
 
-    def test_subscriptions_info(self, mocker: MockerFixture):
+    def test_subscriptions_info(self, mocker):
         architecture_text = """
 named_paths: []
 executors: []
@@ -283,7 +282,7 @@ nodes:
         assert sub.topic_name == '/xxx'
         assert sub.callback_id == '0'
 
-    def test_nodes(self, mocker: MockerFixture):
+    def test_nodes(self, mocker):
         architecture_text = """
 named_paths: []
 executors: []
@@ -299,7 +298,7 @@ nodes:
         nodes = reader.get_nodes()
         nodes == (NodeValueYaml('/listener', '0'),)
 
-    def test_get_variable_passings_info(self, mocker: MockerFixture):
+    def test_get_variable_passings_info(self, mocker):
         architecture_text = """
 named_paths: []
 executors: []

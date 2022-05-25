@@ -26,12 +26,11 @@ from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
 from caret_analyze.value_objects.node import NodeValue
 
 import pandas as pd
-from pytest_mock import MockerFixture
 
 
 class TestLttngInfo:
 
-    def test_rmw_implementation(self, mocker: MockerFixture):
+    def test_rmw_implementation(self, mocker):
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
@@ -50,7 +49,7 @@ class TestLttngInfo:
         info = LttngInfo(data)
         assert info.get_rmw_impl() == 'xxx_dds'
 
-    def test_get_node_names(self, mocker: MockerFixture):
+    def test_get_node_names(self, mocker):
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
@@ -77,7 +76,7 @@ class TestLttngInfo:
         expect = NodeValueLttng('/node', 'node_id')
         assert nodes == [expect]
 
-    def test_get_publishers_info(self, mocker: MockerFixture):
+    def test_get_publishers_info(self, mocker):
         data = Ros2DataModel()
 
         publisher_handle = 9
@@ -145,7 +144,7 @@ class TestLttngInfo:
         pubs_info = info.get_publishers(NodeValue('/node_', 'node_id_'))
         assert len(pubs_info) == 0
 
-    def test_get_timer_callbacks_info(self, mocker: MockerFixture):
+    def test_get_timer_callbacks_info(self, mocker):
 
         node_handle = 1
         timer_handle = 3
@@ -208,7 +207,7 @@ class TestLttngInfo:
 
         assert info.get_timer_callbacks(NodeValue('/', 'id')) == []
 
-    def test_get_subscription_callbacks_info(self, mocker: MockerFixture):
+    def test_get_subscription_callbacks_info(self, mocker):
         callback_object = [2, 3]
         callback_object_intra = [4]
         node_handle = [7, 8]
@@ -324,7 +323,7 @@ class TestLttngInfo:
         sub_cbs_info = info.get_subscription_callbacks(NodeValue('/', '/'))
         assert sub_cbs_info == []
 
-    def test_get_callback_groups_info(self, mocker: MockerFixture):
+    def test_get_callback_groups_info(self, mocker):
         node_handle = 3
         callback_object = 10
         node_name = '/node1'
@@ -407,7 +406,7 @@ class TestLttngInfo:
         )
         assert cbg_info == [cbg_info_expect]
 
-    def test_get_executors_info(self, mocker: MockerFixture):
+    def test_get_executors_info(self, mocker):
         cbg_addr = 13
         executor = 15
 
@@ -516,7 +515,7 @@ class TestDataFrameFormatted:
         )
         assert timer_df.equals(expect)
 
-    def test_build_subscription_callbacks_df(self, mocker: MockerFixture):
+    def test_build_subscription_callbacks_df(self, mocker):
         data = Ros2DataModel()
 
         node_handle = [0, 1]
@@ -634,7 +633,7 @@ class TestDataFrameFormatted:
 
         assert exec_df.equals(expect_df)
 
-    def test_format_subscription_callback_object(self, mocker: MockerFixture):
+    def test_format_subscription_callback_object(self, mocker):
         data = Ros2DataModel()
 
         subscription_handle = [4, 5]
@@ -768,7 +767,7 @@ class TestDataFrameFormatted:
         )
         assert pub_df.equals(expect)
 
-    def test_init(self, mocker: MockerFixture):
+    def test_init(self, mocker):
         exec_mock = mocker.Mock(spec=pd.DataFrame)
         node_mock = mocker.Mock(spec=pd.DataFrame)
         timer_mock = mocker.Mock(spec=pd.DataFrame)

@@ -1147,16 +1147,9 @@
 #         loaded = CommunicationsStruct(nodes_loaded_mock)
 #         assert loaded.values == (comm_mock,)
 
-#     def test_to_struct_with_callback(self, mocker: MockerFixture):
 #         topic_name = '/chatter'
 #         pub_node_name = 'talker'
 #         sub_node_name = 'listener'
-
-#         nodes_loaded_mock = mocker.Mock(spec=NodesStruct)
-#         pub_mock = mocker.Mock(spec=PublisherStructValue)
-#         sub_mock = mocker.Mock(spec=SubscriptionStructValue)
-#         node_pub_mock = mocker.Mock(spec=Node)
-#         node_sub_mock = mocker.Mock(spec=Node)
 
 #         mocker.patch.object(pub_mock, 'topic_name', topic_name)
 #         mocker.patch.object(sub_mock, 'topic_name', topic_name)
@@ -1199,16 +1192,9 @@
 
 #         comm_mock = mocker.Mock(spec=CommunicationStructValue)
 
-#         mocker.patch.object(Util, 'find_one', return_value=comm_mock)
 #         comm = comm_loaded.find_communication(
 #             'topic_name', 'pub_node_name', 'sub_node_name')
 #         assert comm == comm_mock
-
-#         mocker.patch.object(
-#             Util, 'find_one', side_effect=ItemNotFoundError(''))
-#         with pytest.raises(ItemNotFoundError):
-#             comm_loaded.find_communication(
-#                 'topic_name', 'pub_node_name', 'sub_node_name')
 
 #     def test_to_struct(self, mocker: MockerFixture):
 #         topic_name = '/chatter'

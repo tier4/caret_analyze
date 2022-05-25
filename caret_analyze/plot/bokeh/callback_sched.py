@@ -21,7 +21,7 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.colors import Color, RGB
 from bokeh.io import show
-from bokeh.models import Arrow, NormalHead
+from bokeh.models import Arrow, HoverTool, NormalHead
 from bokeh.plotting import ColumnDataSource, figure
 
 from caret_analyze.runtime.callback import TimerCallback
@@ -98,26 +98,14 @@ def sched_plot_cbg(
     clipper: Clip,
     use_sim_time: bool
 ):
-    TOOLTIPS = """
-    <div style="width:400px; word-wrap: break-word;">
-    callback_start = @x_min [ns] <br>
-    callback_end = @x_max [ns] <br>
-    latency = @latency [ms] <br>
-    <br>
-    node_name = @node_name <br>
-    callback_type = @callback_type <br>
-    @callback_param <br>
-    symbol = @symbol
-    </div>
-    """
-    p = figure(x_axis_label='Time [s]',
+    p = figure(
+               x_axis_label='Time [s]',
                y_axis_label='',
                title=f'Time-line of callbacks in {target_name}',
                width=1200,
                tools=['xwheel_zoom', 'xpan', 'save', 'reset'],
                active_scroll='xwheel_zoom',
-               tooltips=TOOLTIPS)
-
+                )
     x_range_name = 'x_plot_axis'
     converter: Optional[ClockConverter] = None
     if use_sim_time:
@@ -134,25 +122,72 @@ def sched_plot_cbg(
     rect_y = 0.0
     rect_height = 0.3
     rect_y_step = -1.5
+    callbcak_num = 0
 
     for callback_group in cbgs:
         for callback in callback_group.callbacks:
+            callbcak_num += 1
             rect_source = get_callback_rects(callback, clipper, rect_y, rect_height, converter)
+            bar_source = get_callback_bar(callback, rect_y, frame_max, frame_min)
             color = color_selector.get_color(
                 callback.node_name,
                 callback_group.callback_group_name,
                 callback.callback_name)
-            p.rect('x',
+            plot1 = p.rect(
+                   'x',
                    'y',
                    'width',
                    'height',
                    source=rect_source,
                    color=color,
-                   alpha=0.6,
-                   legend_label=f'{callback.callback_name}',
+                   alpha=1.0,
                    hover_fill_color=color,
                    hover_alpha=1.0,
                    x_range_name=x_range_name)
+
+            plot2 = p.rect(
+                   'x',
+                   'y',
+                   'width',
+                   'height',
+                   source=bar_source,
+                   fill_color=color,
+                   legend_label=f'callback{callbcak_num}',
+                   hover_fill_color=color,
+                   hover_alpha=0.1,
+                   fill_alpha=0.1,
+                   level='underlay',
+                   x_range_name=x_range_name)
+
+            Hover1 = HoverTool(
+                     renderers=[plot1],
+                     tooltips="""
+                     <div style="width:400px; word-wrap: break-word;">
+                     <br>
+                     callback_start = @x_min [ns] <br>
+                     callback_end = @x_max [ns] <br>
+                     latency = @latency [ms] <br>
+                     """,
+                     toggleable=False,
+                     attachment='above')
+
+            Hover2 = HoverTool(
+                     renderers=[plot2],
+                     tooltips="""
+                     <div style="width:400px; word-wrap: break-word;">
+                     <br>
+                     node_name = @node_name <br>
+                     callback_type = @callback_type <br>
+                     @callback_param <br>
+                     symbol = @symbol
+                     </div>
+                     """,
+                     toggleable=False,
+                     point_policy='follow_mouse',
+                     attachment='below')
+            p.add_tools(Hover1)
+            p.add_tools(Hover2)
+
             if isinstance(callback, TimerCallback):
                 y_start = rect_source.data['y'][1]+0.9
                 y_end = rect_source.data['y'][1]+rect_height
@@ -228,7 +263,6 @@ def get_callback_rects(
             callback_end = converter.convert(callback_end)
 
         rect = RectValues(callback_start, callback_end, y_min, y_max)
-
         new_data = {
             'x': [rect.x],
             'y': [rect.y],
@@ -243,6 +277,45 @@ def get_callback_rects(
             'callback_type': [f'{callback.callback_type}']
         }
         rect_source.stream(new_data)
+    return rect_source
+
+
+def get_callback_bar(
+    callback: CallbackBase,
+    y,
+    frame_max,
+    frame_min
+) -> ColumnDataSource:
+    y_min = y - 0.6
+    y_max = y + 0.5
+
+    rect_source = ColumnDataSource(data={
+        'x': [],
+        'y': [],
+        'width': [],
+        'height': [],
+        'node_name': [],
+        'callback_type': [],
+        'callback_param': [],
+        'symbol': []
+
+    })
+
+    callback_param = get_callback_param_desc(callback)
+    bar_start = frame_min - 10000000000
+    bar_end = frame_max + 10000000000
+    rect = RectValues(bar_start, bar_end, y_min, y_max)
+    rect_source = ColumnDataSource(data={
+            'x': [rect.x],
+            'y': [rect.y],
+            'width': [rect.width],
+            'height': [rect.height],
+            'node_name': [callback.node_name],
+            'symbol': [callback.symbol],
+            'callback_param': [callback_param],
+            'callback_type': [f'{callback.callback_type}']
+        })
+
     return rect_source
 
 
