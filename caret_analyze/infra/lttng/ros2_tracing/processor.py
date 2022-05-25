@@ -147,6 +147,8 @@ class Ros2Handler(EventHandler):
             self._handle_inter_publish
         handler_map['ros2_caret:tf_lookup_transform'] = \
             self._handle_tf_lookup_transform
+        handler_map['ros2_caret:rcl_init_caret'] = \
+            self._handle_rcl_init_caret
 
         # for v0.2 compatibility
         handler_map['ros2:callback_start'] = self._handle_callback_start
@@ -219,6 +221,7 @@ class Ros2Handler(EventHandler):
             'ros2_caret:tilde_publish',
             'ros2_caret:tilde_subscribe_added',
             'ros2_caret:sim_time',
+            'ros2_caret:rcl_init_caret',
         ]
 
     @staticmethod
@@ -230,6 +233,17 @@ class Ros2Handler(EventHandler):
     @property
     def data(self) -> Ros2DataModel:
         return super().data  # type: ignore
+
+    def _handle_rcl_init_caret(
+        self,
+        event: Dict,
+        metadata: EventMetadata,
+    ) -> None:
+        lib_caret_version = get_field(event, 'lib_caret_version')
+        timestamp = metadata.timestamp
+        pid = metadata.pid
+        tid = metadata.tid
+        self.data.add_rcl_init_caret(lib_caret_version, timestamp, pid, tid)
 
     def _handle_rcl_init(
         self,
