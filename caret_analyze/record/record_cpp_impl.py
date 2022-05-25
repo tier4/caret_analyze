@@ -95,34 +95,15 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         self, other: RecordsInterface
     ) -> None:
         assert isinstance(other, RecordsCppImpl)
-        unknown_columns = set(other.column_names) ^ set(self.column_names)
+        unknown_columns = set(other.column_names) - set(self.column_names)
         if len(unknown_columns) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'
             raise InvalidArgumentError(msg)
 
-        mapped_values = {}
-        for column in self.columns:
-            if column.mapper is None:
-                continue
-            mapped_value = []
-            for i in range(len(self.data)):
-                mapped_value.append(self.get(i, column.column_name))
-            for i in range(len(other.data)):
-                mapped_value.append(other.get(i, column.column_name))
-            mapped_values[column.column_name] = mapped_value
-
         self._records.concat(other._records)
-        for mapped_column, mapped_value in mapped_values.items():
-            mapper = ColumnMapper()
-            for i, value in enumerate(mapped_value):
-                mapper.add(i, value)
+        Records._concat_columns(self._columns, other._columns)
 
-            self.columns.drop([mapped_column])
-            self.append_column(
-                ColumnValue(mapped_column, mapper=mapper),
-                list(range(len(mapped_value))),
-            )
         return None
 
     def sort(

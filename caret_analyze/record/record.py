@@ -24,7 +24,7 @@ from .column import Column, ColumnAttribute, ColumnEventObserver, ColumnValue, U
 from .interface import RecordInterface, RecordsInterface
 from ..common import ClockConverter, Util
 from ..exceptions import InvalidArgumentError
-from ..record import Columns
+from ..record import Columns, ColumnMapper
 
 
 class MergeSide(IntEnum):
@@ -43,7 +43,8 @@ class Record(RecordInterface):
         self._columns = set(init.keys())
 
     def get(self, key: str) -> int:
-        return self._data[key]
+        value = self._data[key]
+        return value
 
     def get_with_default(self, key: str, v: int) -> int:
         return self._data.get(key, v)
@@ -112,8 +113,17 @@ class Records(RecordsInterface, ColumnEventObserver):
     def on_column_dropped(self, column_name: str) -> None:
         self._drop_columns([column_name])
 
-    def get(self, index: int, column_name: str, default_value=None) -> object:
-        return self._data[index].get_with_default(column_name, default_value)
+    def get(
+        self,
+        index: int,
+        column_name: str,
+        default_value=None
+    ) -> object:
+        value = self._data[index].get_with_default(column_name, default_value)
+        mapper = self.columns.get(column_name).mapper
+        if mapper is not None and value is not None:
+            return mapper.get(value)
+        return value
 
     @staticmethod
     def _validate(
@@ -215,7 +225,37 @@ class Records(RecordsInterface, ColumnEventObserver):
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'
             raise InvalidArgumentError(msg)
+
+        self._concat_columns(self.columns, other.columns)
         self._data += list(other.data)
+
+        return None
+
+    def drop_duplicates(self) -> None:
+        record_dicts: List[Dict] = []
+        for record in self.data:
+            record_dict = record.data
+            if record_dict not in record_dicts:
+                record_dicts.append(record_dict)
+
+        self._data = [Record(record_dict) for record_dict in record_dicts]
+
+    @staticmethod
+    def _concat_columns(self_columns: Columns, other_columns: Columns):
+        mappers = {
+            c.column_name: c.mapper
+            for c
+            in self_columns
+            if c.mapper is not None}
+        mappers_ = {
+            c.column_name: c.mapper
+            for c
+            in other_columns
+            if c.mapper is not None}
+
+        duplicdated_columns = set(mappers.keys()) & set(mappers_.keys())
+        for duplicdated_column in duplicdated_columns:
+            mappers[duplicdated_column].merge(mappers_[duplicdated_column])
 
     def _drop_columns(self, columns: List[str]) -> None:
         data_: List[RecordInterface]
@@ -287,9 +327,12 @@ class Records(RecordsInterface, ColumnEventObserver):
     def on_column_reindexed(self, columns: Sequence[str]):
         self._reindex(columns)
 
-    def to_dataframe(self) -> pd.DataFrame:
+    def to_dataframe(
+        self,
+        converter: Optional[ClockConverter] = None
+    ) -> pd.DataFrame:
         pd_dict = [record.data for record in self.data]
-        return self._to_dataframe(pd_dict, self.columns)
+        return self._to_dataframe(pd_dict, self.columns, converter)
 
     def get_column_series(self, column_name: str) -> Sequence[Optional[int]]:
         return self._get_column_series_core(self, column_name)
@@ -513,7 +556,7 @@ class Records(RecordsInterface, ColumnEventObserver):
         left_records.columns.drop(temporay_columns)
         right_records.columns.drop(temporay_columns)
 
-        column_names = [column.base_column_name for column in columns]
+        column_names = [column.column_name for column in columns]
         merged_records.columns.drop(set(merged_records.column_names) - set(column_names))
         merged_records.columns.reindex([str(c) for c in columns])
 

@@ -612,3 +612,7 @@ class RecordsInterface:
     ) -> Dict[Tuple[int, ...], RecordsInterface]:
         """Split based on the value of the given column name."""
         pass
+
+    @abstractmethod
+    def drop_duplicates(self) -> None:
+        pass

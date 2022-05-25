@@ -13,13 +13,16 @@
 # limitations under the License.
 
 
+from caret_analyze.exceptions import InvalidColumnMapperError
 from caret_analyze.record import (
     Column,
 )
 
-from caret_analyze.record.column import ColumnAttribute, ColumnEventObserver
+from caret_analyze.record.column import ColumnAttribute, ColumnEventObserver, ColumnMapper
 
 from pytest_mock import MockerFixture
+
+import pytest
 
 
 class TestColumn:
@@ -49,3 +52,28 @@ class TestColumn:
         assert column.column_name == 'old'
         column.rename('new')
         assert column.column_name == 'new'
+
+
+class TestColumnMapper:
+
+    def test_merge(self, mocker):
+        mapper = ColumnMapper()
+        mapper.add(1, 1)
+
+        mapper_ = ColumnMapper()
+        mapper_.add(2, 2)
+
+        mapper.merge(mapper_)
+
+        assert mapper.get(1) == 1
+        assert mapper.get(2) == 2
+
+    def test_merge_missmatch(self):
+        mapper = ColumnMapper()
+        mapper.add(1, 1)
+
+        mapper_ = ColumnMapper()
+        mapper_.add(1, 2)
+
+        with pytest.raises(InvalidColumnMapperError):
+            mapper.merge(mapper_)

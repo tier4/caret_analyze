@@ -15,6 +15,7 @@
 from copy import deepcopy
 from typing import Any, Optional
 
+from caret_analyze.common import ClockConverter
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.record import (
     ColumnValue,
@@ -25,7 +26,7 @@ from caret_analyze.record import (
     RecordsInterface,
 )
 
-from caret_analyze.record.column import ColumnMapper
+from caret_analyze.record.column import ColumnAttribute, ColumnMapper
 
 import pandas as pd
 import pytest
@@ -519,6 +520,47 @@ class TestRecords:
             with pytest.raises(InvalidArgumentError):
                 records_concat.concat(records_right)
 
+            records_concat = Records(None, [ColumnValue('a'), ColumnValue('b'), ColumnValue('c')])
+            records_concat.concat(records_right)
+
+    def test_concat_with_mapper(self):
+        mapper = ColumnMapper()
+        mapper.add(0, 'a')
+        mapper_ = ColumnMapper()
+        mapper_.add(3, 'b')
+
+        for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
+            if records_type == RecordsCppImpl and not CppImplEnabled:
+                continue
+
+            records_left = records_type(
+                [
+                    record_type({'a': 0}),
+                ],
+                [
+                    ColumnValue('a', mapper=mapper)
+                ]
+            )
+            records_right = records_type(
+                [
+                    record_type({'a': 3}),
+                ],
+                [
+                    ColumnValue('a', mapper=mapper_)
+                ]
+            )
+
+            records_expect = pd.DataFrame(
+                {
+                    'a': ['a', 'b']
+                }, dtype='O'
+            )
+
+            records_left.concat(records_right)
+            df = records_left.to_dataframe()
+
+            assert df.equals(records_expect)
+
     def test_bind_drop_as_delay(self):
         for record_type, records_type in zip([Record, RecordCppImpl], [Records, RecordsCppImpl]):
             if records_type == RecordsCppImpl and not CppImplEnabled:
@@ -584,6 +626,35 @@ class TestRecords:
 
             column = records.columns.get('a')
             assert column.mapper is None
+
+    def test_to_dataframe_with_clock_converter(self, mocker):
+        records_py: Records = Records(
+            [
+                Record({'a': 0, 'system_time': 0}),
+                Record({'a': 1, 'system_time': 1}),
+            ],
+            [
+                ColumnValue('a'),
+                ColumnValue('system_time', [ColumnAttribute.SYSTEM_TIME]),
+            ]
+        )
+        records_cpp = to_cpp_records(records_py)
+        expect_df = pd.DataFrame.from_dict(
+            {
+                'a': [0, 1],
+                'system_time': [10, 11],
+            }, dtype='O'
+        ).reindex(columns=['a', 'system_time'])
+        converter = mocker.Mock(spec=ClockConverter)
+
+        mocker.patch.object(converter, 'convert', lambda x: x+10)
+
+        for records in [records_py, records_cpp]:
+            if records is None and not CppImplEnabled:
+                continue
+
+            df = records.to_dataframe(converter)
+            assert df.equals(expect_df)
 
     def test_to_dataframe_with_column_mapper(self):
         mapper = ColumnMapper()
@@ -1421,6 +1492,62 @@ class TestRecords:
                     'value_left',
                     'not_exist',
                     how=how)
+
+    def test_merge_with_mapper(self):
+        mapper = ColumnMapper()
+        mapper.add(10, 'a')
+        mapper.add(20, 'b')
+        records_left_py: Records = Records(
+            [
+                Record({'stamp': 2, 'value_left': 10}),
+                Record({'stamp': 4, 'value_left': 20}),
+            ],
+            [
+                ColumnValue('stamp'),
+                ColumnValue('value_left', mapper=mapper),
+            ]
+        )
+
+        mapper_ = ColumnMapper()
+        mapper_.add(10, 'a_')
+        mapper_.add(20, 'b_')
+        records_right_py: Records = Records(
+            [
+                Record({'stamp_': 2, 'value_right': 10}),
+                Record({'stamp_': 4, 'value_right': 20}),
+            ],
+            [
+                ColumnValue('stamp_'),
+                ColumnValue('value_right', mapper=mapper_),
+            ]
+        )
+        records_expect = pd.DataFrame(
+            {
+                'stamp': [2, 4],
+                'stamp_': [2, 4],
+                'value_left': ['a', 'b'],
+                'value_right': ['a_', 'b_'],
+            },
+            columns=[
+                'stamp', 'value_left', 'stamp_', 'value_right'
+            ], dtype='O'
+        )
+
+        records_left_cpp = to_cpp_records(records_left_py)
+        records_right_cpp = to_cpp_records(records_right_py)
+
+        for records_left, records_right in zip(
+            [records_left_py, records_left_cpp],
+            [records_right_py, records_right_cpp],
+        ):
+            if records_left is None or records_right is None:
+                continue
+
+            merged = records_left.merge(
+                records_right, 'stamp', 'stamp_', how='inner')
+
+            df = merged.to_dataframe()
+            assert df.equals(records_expect)
 
     @pytest.mark.parametrize(
         'how, records_expect_py',
@@ -2355,6 +2482,65 @@ class TestRecords:
                 )
 
             assert merged.equals(expect_records)
+
+    def test_merge_sequencial_with_mapper(self):
+        mapper = ColumnMapper()
+        left_records_py: Records = Records(
+            [
+                Record({'stamp': 0, 'value': 1}),
+                Record({'stamp': 4, 'value': 3}),
+            ],
+            [
+                ColumnValue('stamp'),
+                ColumnValue('value', mapper=mapper),
+            ]
+        )
+        mapper.add(1, 'a')
+        mapper.add(3, 'b')
+
+        mapper_ = ColumnMapper()
+        right_records_py: Records = Records(
+            [
+                Record({'sub_stamp': 1, 'value_': 1}),
+                Record({'sub_stamp': 6, 'value_': 3}),
+            ],
+            [
+                ColumnValue('sub_stamp'),
+                ColumnValue('value_', mapper=mapper_),
+            ]
+        )
+        mapper_.add(1, 'a_')
+        mapper_.add(3, 'b_')
+
+        expect_df = pd.DataFrame(
+            {
+                'stamp': [0, 4],
+                'sub_stamp': [1, 6],
+                'value': ['a', 'b'],
+                'value_': ['a_', 'b_'],
+            }, columns=[
+                'stamp', 'value', 'sub_stamp', 'value_'
+            ], dtype='O'
+        )
+
+        for left_records, right_records in zip(
+            [left_records_py, to_cpp_records(left_records_py)],
+            [right_records_py, to_cpp_records(right_records_py)],
+        ):
+            if left_records is None and not CppImplEnabled:
+                continue
+
+            merged = left_records.merge_sequencial(
+                right_records=right_records,
+                left_stamp_key='stamp',
+                right_stamp_key='sub_stamp',
+                join_left_key=None,
+                join_right_key=None,
+                how='inner',
+            )
+
+            df = merged.to_dataframe()
+            assert df.equals(expect_df)
 
     @pytest.mark.parametrize(
         'how, expect_records_py',

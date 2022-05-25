@@ -29,7 +29,7 @@ from typing import (
     Tuple,
 )
 
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
+from ..exceptions import InvalidArgumentError, ItemNotFoundError, InvalidColumnMapperError
 from ..value_objects import ValueObject
 
 
@@ -90,6 +90,13 @@ class ColumnMapper():
     @property
     def enabled(self) -> bool:
         return len(self._map) > 0
+
+    def merge(self, other: ColumnMapper) -> None:
+        for key, value in other._map.items():
+            if key in self._map:
+                if self._map[key] != other._map[key]:
+                    raise InvalidColumnMapperError('mapper value missmatch.')
+            self.add(key, value)
 
 
 # class ColumnMapperContainer():
@@ -171,6 +178,10 @@ class ColumnValue(ValueObject):
     @property
     def base_column_name(self) -> str:
         return self._base_column_name
+
+    @property
+    def column_name(self) -> str:
+        return str(self)
 
     @property
     def attrs(self) -> Set[ColumnAttribute]:

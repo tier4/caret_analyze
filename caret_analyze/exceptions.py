@@ -93,3 +93,10 @@ class InvalidColumnAttributeError(Error):
 
     def __init__(self, message: str) -> None:
         self.message = message
+
+
+class InvalidColumnMapperError(Error):
+    """Given column mapper miss match."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
