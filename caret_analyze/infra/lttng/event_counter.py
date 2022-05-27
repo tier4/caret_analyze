@@ -232,8 +232,6 @@ class EventCounter:
         self,
         data: Ros2DataModel,
         info: LttngInfo,
-        *,
-        validation=True
     ) -> None:
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
 
@@ -243,9 +241,6 @@ class EventCounter:
         count_dicts = [record.as_dict() for record in counts]
         self._count_df = pd.DataFrame.from_dict(count_dicts)
 
-        if validation:
-            self._validate()
-
     def get_count(self, groupby: List[str]) -> pd.DataFrame:
         if len(set(groupby) - self._allowed_keys) > 0:
             raise InvalidArgumentError(
@@ -254,51 +249,6 @@ class EventCounter:
         grouped_df = self._count_df.groupby(groupby).sum([['size']])
         count_df = grouped_df.sort_values('size', ascending=False)
         return count_df
-
-    def _validate(self):
-        count_df = self.get_count(['trace_point'])
-        count_df_recorded = count_df[count_df['size'] > 0]
-        recorded_trace_points = list(count_df_recorded.index)
-
-        trace_points_added_byld_preload = {
-            'ros2_caret:add_callback_group',
-            'ros2_caret:add_callback_group_static_executor',
-            'ros2_caret:construct_executor',
-            'ros2_caret:construct_static_executor',
-            'ros2_caret:callback_group_add_timer',
-            'ros2_caret:callback_group_add_subscription',
-            'ros2_caret:callback_group_add_service',
-            'ros2_caret:callback_group_add_client',
-            'ros2_caret:tilde_subscription_init',
-            'ros2_caret:tilde_publisher_init',
-            'ros2_caret:tilde_subscribe_added',
-            'ros2_caret:dds_write',
-            'ros2_caret:dds_bind_addr_to_stamp',
-            'ros2_caret:dds_bind_addr_to_addr',
-            'ros2_caret:tilde_publish',
-            'ros2_caret:sim_time',
-            'ros2_caret:on_data_available_data',
-            'ros2_caret:rmw_implementation'
-        }
-
-        trace_points_added_by_fork_rclcpp = {
-            'ros2:message_construct',
-            'ros2:rclcpp_intra_publish',
-            'ros2:dispatch_subscription_callback',
-            'ros2:dispatch_intra_process_subscription_callback',
-        }
-
-        if len(set(recorded_trace_points) & trace_points_added_byld_preload) == 0 and False:
-            raise InvalidTraceFormatError(
-                'Failed to found trace point added by LD_PRELOAD. '
-                'Measurement results will not be correct. '
-                'The measurement may have been performed without setting LD_PRELOAD.')
-
-        if len(set(recorded_trace_points) & trace_points_added_by_fork_rclcpp) == 0 and False:
-            raise InvalidTraceFormatError(
-                'Failed to found trace point added by forked rclcpp. '
-                'Measurement results will not be correct. '
-                'The binary may have been compiled without using fork-rclcpp.')
 
     @staticmethod
     def get_count_rules(data: Ros2DataModel) -> List[CountRule]:
