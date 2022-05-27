@@ -177,6 +177,7 @@ def sched_plot_cbg(
                      <div style="width:400px; word-wrap: break-word;">
                      <br>
                      node_name = @node_name <br>
+                     callback_name = @callback_name <br>
                      callback_type = @callback_type <br>
                      @callback_param <br>
                      symbol = @symbol
@@ -244,15 +245,8 @@ def get_callback_rects(
         'x_max': [],
         'width': [],
         'latency': [],
-        'height': [],
-        'node_name': [],
-        'callback_type': [],
-        'callback_param': [],
-        'symbol': []
-
+        'height': []
     })
-
-    callback_param = get_callback_param_desc(callback)
 
     df = callback.to_dataframe(shaper=clip)
     for item in df.itertuples():
@@ -270,11 +264,7 @@ def get_callback_rects(
             'x_max': [callback_end],
             'width': [rect.width],
             'latency': [(callback_end-callback_start)*1.0e-6],
-            'height': [rect.height],
-            'node_name': [callback.node_name],
-            'symbol': [callback.symbol],
-            'callback_param': [callback_param],
-            'callback_type': [f'{callback.callback_type}']
+            'height': [rect.height]
         }
         rect_source.stream(new_data)
     return rect_source
@@ -295,6 +285,7 @@ def get_callback_bar(
         'width': [],
         'height': [],
         'node_name': [],
+        'callback_name': [],
         'callback_type': [],
         'callback_param': [],
         'symbol': []
@@ -311,6 +302,7 @@ def get_callback_bar(
             'width': [rect.width],
             'height': [rect.height],
             'node_name': [callback.node_name],
+            'callback_name': [callback.callback_name],
             'symbol': [callback.symbol],
             'callback_param': [callback_param],
             'callback_type': [f'{callback.callback_type}']
