@@ -28,7 +28,7 @@ from .node import Node
 from .path import Path
 from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, UnsupportedTypeError
+from ..exceptions import InvalidArgumentError, UnsupportedTypeError, Error
 from ..infra.infra_base import InfraBase
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..infra.lttng.lttng import Lttng
@@ -582,10 +582,10 @@ class Application(Summarizable):
                     callbacks += Util.filter_items(is_match_regex, self.callbacks)
                 else:
                     callbacks.append(self.get_callback(callback_name))
-            except InvalidArgumentError as e:
-                print('error')
-                logger = logging.getLogger('LoggingTest')
-                logger.warning(e)
+            except Error:   
+                msg = 'Failed to identify callback. Skip loading.'
+                msg += f'callback_name: {callback_name}'
+                logger.warning(msg)
 
         return callbacks
 
