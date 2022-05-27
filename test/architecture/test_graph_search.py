@@ -26,7 +26,6 @@ from caret_analyze.value_objects import (CallbackStructValue,
                                          VariablePassingStructValue)
 
 from caret_analyze.exceptions import ItemNotFoundError
-from pytest_mock import MockerFixture
 
 import pytest
 
@@ -354,7 +353,7 @@ class TestGraph:
 
 class TestCallbackPathSearcher:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         node_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock, 'callbacks', ())
         mocker.patch.object(node_mock, 'variable_passings', ())
@@ -366,7 +365,7 @@ class TestCallbackPathSearcher:
         with pytest.raises(ItemNotFoundError):
             searcher.search(sub_cb_mock, pub_cb_mock)
 
-    def test_search(self, mocker: MockerFixture):
+    def test_search(self, mocker):
         node_mock = mocker.Mock(spec=NodeStructValue)
 
         sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
@@ -393,7 +392,7 @@ class TestCallbackPathSearcher:
         paths = searcher.search(sub_cb_mock, pub_cb_mock)
         assert paths == (path_mock,)
 
-    def test_to_path(self, mocker: MockerFixture):
+    def test_to_path(self, mocker):
         node_mock = mocker.Mock(spec=NodeStructValue)
 
         sub_cb_mock = mocker.Mock(spec=CallbackStructValue)
@@ -462,7 +461,7 @@ class TestCallbackPathSearcher:
 
 class TestNodePathSearcher:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         searcher = NodePathSearcher((), ())
 
         with pytest.raises(ItemNotFoundError):
@@ -477,7 +476,7 @@ class TestNodePathSearcher:
         paths = searcher.search('node', 'node')
         assert paths == []
 
-    def test_search(self, mocker: MockerFixture):
+    def test_search(self, mocker):
         graph_mock = mocker.Mock(spec=Graph)
         mocker.patch(
             'caret_analyze.architecture.graph_search.Graph',
@@ -499,7 +498,7 @@ class TestNodePathSearcher:
         assert graph_mock.search_paths.call_args == (
             (src_node, dst_node), {'max_depth': 0})
 
-    def test_to_path(self, mocker: MockerFixture):
+    def test_to_path(self, mocker):
         node_name = '/node'
         topic_name = '/topic'
 
@@ -547,7 +546,7 @@ class TestNodePathSearcher:
         )
         assert path == expected
 
-    def test_single_node_cyclic_case(self, mocker: MockerFixture):
+    def test_single_node_cyclic_case(self, mocker):
         node_name = '/node'
         topic_name = '/chatter'
 

@@ -21,12 +21,11 @@ from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.ros2_tracing.processor import Ros2Handler
 
 import pytest
-from pytest_mock import MockerFixture
 
 
 class TestEventCounter:
 
-    def test_build_count_df_empty_records(self, mocker: MockerFixture):
+    def test_build_count_df_empty_records(self, mocker):
         data = Ros2DataModel()
         data.finalize()
 
@@ -35,7 +34,7 @@ class TestEventCounter:
         assert set(df['trace_point'].values) == set(Ros2Handler.get_trace_points())
         assert list(df['size']) == [0] * len(df)
 
-    def test_build_count_df_increment_count(self, mocker: MockerFixture):
+    def test_build_count_df_increment_count(self, mocker):
         data = Ros2DataModel()
         data.add_context(0, 0, 0, 0)
         data.add_node(0, 0, 0, 0, 'name', '/')
@@ -85,7 +84,7 @@ class TestEventCounter:
 
     def test_validation_without_ld_preload(
         self,
-        mocker: MockerFixture,
+        mocker,
     ):
         data = Ros2DataModel()
         data.add_dds_write_instance(0, 0, 0)
@@ -99,7 +98,7 @@ class TestEventCounter:
 
     def test_validation_without_forked_rclcpp(
         self,
-        mocker: MockerFixture,
+        mocker,
     ):
         data = Ros2DataModel()
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
@@ -113,7 +112,7 @@ class TestEventCounter:
 
     def test_validation_valid_case(
         self,
-        mocker: MockerFixture,
+        mocker,
     ):
         data = Ros2DataModel()
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)

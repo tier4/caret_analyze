@@ -22,15 +22,14 @@ from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
                                          ExecutorStructValue, NodeStructValue,
-                                         PathStructValue, NodePathStructValue)
+                                         NodePathStructValue, PathStructValue)
 
 import pytest
-from pytest_mock import MockerFixture
 
 
 class TestArchiteture:
 
-    def test_empty_architecture(self, mocker: MockerFixture):
+    def test_empty_architecture(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
@@ -61,7 +60,7 @@ class TestArchiteture:
         assert len(arch.paths) == 0
         assert len(arch.communications) == 0
 
-    def test_get_node(self, mocker: MockerFixture):
+    def test_get_node(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         mocker.patch.object(ArchitectureReaderFactory,
                             'create_instance', return_value=reader_mock)
@@ -88,7 +87,7 @@ class TestArchiteture:
         with pytest.raises(ItemNotFoundError):
             arch.get_node('node_not_exist')
 
-    def test_full_architecture(self, mocker: MockerFixture):
+    def test_full_architecture(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
@@ -127,7 +126,7 @@ class TestArchiteture:
         assert len(arch.communications) == 1
         assert arch.communications[0] == comm_mock
 
-    def test_path(self, mocker: MockerFixture):
+    def test_path(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
@@ -170,7 +169,7 @@ class TestArchiteture:
         with pytest.raises(InvalidArgumentError):
             arch.update_path('path2', path_)
 
-    def test_search_paths(self, mocker: MockerFixture):
+    def test_search_paths(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
@@ -204,7 +203,7 @@ class TestArchiteture:
         path = arch.search_paths('start_node', 'end_node')
         assert path == [path_mock]
 
-    def test_search_paths_three_nodes(self, mocker: MockerFixture):
+    def test_search_paths_three_nodes(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
