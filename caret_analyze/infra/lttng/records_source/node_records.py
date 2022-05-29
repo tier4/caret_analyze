@@ -70,21 +70,12 @@ class NodeRecordsContainer:
             return self._get_tilde(node_path_val).clone()
 
         raise NotImplementedError('')
-        # raise UnsupportedNodeRecordsError(
-        #     'Unknown message context. '
-        #     f'message_context = {node_path_val.message_context.context_type.type_name}'
-        # )
 
     @lru_cache
     def _get_use_latest_message(
         self,
         node_path_val: NodePathStructValue,
-        # callback: SubscriptionCallbackValueLttng,
-        # publisher: PublisherValueLttng,
     ) -> RecordsInterface:
-        # node_output_lttng = None
-        # node_input_lttng = None
-
         node_out_records: RecordsInterface
         node_in_records: RecordsInterface
 
@@ -110,14 +101,6 @@ class NodeRecordsContainer:
         else:
             raise NotImplementedError('')
 
-        # if node_path_val.subscription is not None:
-        #     assert node_path_val.subscription.callback is not None
-        #     node_input_lttng = self._bridge.get_subscription_callback(
-        #         node_path_val.subscription.callback)
-        # elif node_path_val.tf_frame_buffer is not None:
-        #     node_input_lttng = self._bridge.get_tf_buffer(node_path_val.tf_frame_buffer)
-        # else:
-        #     raise NotImplementedError('')
         if node_path_val.subscription_callback is not None:
             node_in_records = self._cb_records.get_records(node_path_val.subscription_callback)
             node_in_column = node_in_records.columns.get(
@@ -152,40 +135,6 @@ class NodeRecordsContainer:
             join_right_key=None,
             how='left'
         )
-
-        # if self._node_path.subscription is not None:
-        #     node_in_records = self._provider.subscribe_records(self._node_path.subscription)
-        # elif self._node_path.tf_frame_buffer is not None:
-        #     node_in_records = self._provider.tf_lookup_records(self._node_path.tf_frame_buffer)
-
-        # if self._node_path.publisher is not None:
-        #     node_out_records = self._provider.publish_records(self._node_path.publisher)
-        # elif self._node_path.tf_frame_broadcaster is not None and \
-        #         self._node_path.tf_frame_broadcaster.publisher is not None:
-        #     node_out_records = self._provider.publish_records(
-        #         self._node_path.tf_frame_broadcaster.publisher)
-        # else:
-        #     raise UnsupportedNodeRecordsError('node_path.publisher is None')
-
-        # column_names = [
-        #     node_in_records.columns[0].column_name,
-        #     f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
-        # ]
-        # node_io_records = merge_sequencial(
-        #     left_records=node_in_records,
-        #     right_records=node_out_records,
-        #     left_stamp_key=node_in_records.columns[0].column_name,
-        #     right_stamp_key=node_out_records.columns[0].column_name,
-        #     join_left_key=None,
-        #     join_right_key=None,
-        #     how='left_use_latest',
-        #     progress_label='binding use_latest_message.'
-        # )
-
-        # drop_columns = list(set(node_io_records.column_names) - set(column_names))
-        # node_io_records.drop_columns(drop_columns)
-        # node_io_records.reindex(column_names)
-        # return node_io_records
 
         return records
 

@@ -69,20 +69,6 @@ class PathSearcher():
         key = self._get_node_key(node.node_name, node.src_edge_name, node.dst_edge_name)
         self._node_dict[key].append(node)
 
-    # @singledispatchmethod
-    # def search_paths(self, args) -> List[PathBase]:
-    #     raise NotImplementedError('')
-
-    # @search_paths.register
-    # def _search_paths(
-    #     self,
-    #     start_node_name: str,
-    #     end_node_name: str,
-    #     max_search_depth: Optional[int]
-    # ) -> List[PathBase]:
-    #     return self._search_paths_seq(
-    #         start_node_name, end_node_name, max_search_depth=max_search_depth)
-
     def search_paths(
         self,
         node_names: Collection[str],
@@ -102,11 +88,8 @@ class PathSearcher():
         graph_path: GraphPath
     ) -> List[PathBase]:
 
-        # add head node path
         if len(graph_path.edges) == 0:
             raise InvalidArgumentError("path doesn't have any edges")
-        # head_node_path = self._create_head_dummy_node_path(self._nodes, graph_path.edges[0])
-        # node_edge = node_edges[0]
 
         nodes: List[List[NodeBase]] = []
 

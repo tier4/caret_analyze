@@ -16,8 +16,6 @@ from logging import getLogger, INFO, StreamHandler
 from typing import Tuple
 
 from .architecture import Architecture
-# from .architecture_loaded import NodesStruct
-# from .architecture_reader_factory import ArchitectureReaderFactory
 from ..value_objects import NodePathStructValue
 
 

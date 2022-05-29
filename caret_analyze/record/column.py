@@ -103,30 +103,6 @@ class ColumnMapper():
             self.add(key, value)
 
 
-# class ColumnMapperContainer():
-
-#     def __init__(self) -> None:
-#         self._mappers = {}
-
-#     def __eq__(self, __o: object) -> bool:
-#         return True
-
-#     def __hash__(self) -> int:
-#         return 0
-
-#     def get(self, column_name: str) -> ColumnMapper:
-#         if column_name not in self._mappers:
-#             self._mappers[column_name] = ColumnMapper()
-
-#         return self._mappers[column_name]
-
-#     def rename(self, old: str, new: str,) -> None:
-#         self._mappers[new] = self._mappers.pop(old)
-
-#     def shallow_copy(self, old: str, new: str) -> None:
-#         self._mappers[new] = self._mappers[old]
-
-
 class ColumnAttribute(ValueObject):
     SYSTEM_TIME: ColumnAttribute
     MSG_PIPELINE: ColumnAttribute
@@ -203,10 +179,6 @@ class ColumnValue(ValueObject):
     def suffix(self) -> Tuple[str, ...]:
         return self._suffix
 
-    # @property
-    # def mapper(self) -> Optional[ColumnMapper]:
-    #     return self._mapper
-
 
 class Column():
 
@@ -254,9 +226,6 @@ class Column():
             tuple(self._suffix),
             mapper=mapper)
 
-    # def add_attr(self, attr: ColumnAttribute):
-    #     self._attrs.append(attr)
-
     def add_prefix(self, prefix: str) -> None:
         old = str(self)
         self._prefix.append(prefix)
@@ -276,23 +245,6 @@ class Column():
     @property
     def mapper(self) -> Optional[ColumnMapper]:
         return self._mapper
-
-    # def clone(self) -> Column:
-    #     return Column(
-    #         self._base_column_name,
-    #         self.attrs,
-    #         # mapper=deepcopy(self._mapper),
-    #         prefix=self._prefix)
-
-    # def create_renamed(
-    #     self,
-    #     column_name: str,
-    # ) -> Column:
-    #     return Column(
-    #         column_name,
-    #         list(self._attrs),
-    #         mapper=deepcopy(self._mapper)
-    #     )
 
     def get_mapped(self, value: int) -> object:
         assert self._mapper is not None
@@ -378,9 +330,6 @@ class Columns(UserList):
         if self._observer is not None:
             for column in columns:
                 self._observer.on_column_dropped(column)
-
-    # def clone(self) -> Columns:
-    #     return Columns([c.clone() for c in self.data])
 
     def reindex(self, columns: Sequence[str], *, base_name_match=False) -> None:
         if base_name_match:
@@ -488,23 +437,6 @@ class Columns(UserList):
                 old = column.column_name
                 new = rename_rule[old]
                 column.rename(new)
-
-    # @singledispatchmethod
-    # def unique_concat(self, args):
-    #     raise NotImplementedError('')
-
-    # @staticmethod
-    # @unique_concat.register
-    # def _unique_concat_list(
-    #     left: Tuple[ColumnValue, ...],
-    #     right: Tuple[ColumnValue, ...]
-    # ) -> Columns:
-    #     uniqued_column_values = UniqueList(left + right).as_list()
-    #     columns = [
-    #         Column(column.base_column_name, column.attrs)
-    #         for column
-    #         in uniqued_column_values]
-    #     return Columns(columns)
 
     def to_value(self) -> Tuple[ColumnValue, ...]:
         return tuple(c.to_value() for c in self.data)

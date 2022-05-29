@@ -84,16 +84,6 @@ class RecordsMerged:
                 if j == 0:
                     continue
                 right_records.columns[j].add_suffix(f'{i+1}')
-            # rename_rule = column_merger.append_columns_and_return_rename_rule(
-            #     right_records)
-            # right_records.columns.rename(rename_rule)
-
-            # right_column = right_records.column_names[0]
-            # match_column_index = [i for (i, column)
-            #                       in enumerate(left_records.column_names)
-            #                       if column == right_column][0]
-            # drop_left_columns = left_records.column_names[match_column_index+1:]
-            # left_records.columns.drop(drop_left_columns)
 
             if left_records.column_names[-1] != right_records.column_names[0]:
                 raise InvalidRecordsError('left columns[-1] != right columns[0]')
@@ -109,8 +99,6 @@ class RecordsMerged:
                 f'- right_column: {right_stamp_key} \n'
             )
 
-            # is_sequencial = isinstance(target_, NodePath) and \
-            #     isinstance(target, Communication)
             is_sequencial = False
 
             if is_sequencial:

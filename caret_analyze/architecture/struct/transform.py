@@ -148,11 +148,6 @@ class TransformFrameBufferStruct(TransformFrameBufferStructInterface):
     def listener_subscription(self) -> Optional[SubscriptionStructInterface]:
         return self._listener_subscription
 
-    # @property
-    # def publisher(self) -> PublisherStruct:
-    #     assert self._publisher is not None
-    #     return self._publisher
-
     @property
     def lookup_transform(self) -> TransformValue:
         assert self._lookup_transform is not None

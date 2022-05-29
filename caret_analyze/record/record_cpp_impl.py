@@ -140,15 +140,6 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         assert isinstance(value, str) or value is None
         return value
 
-    # def get_column(
-    #     self,
-    #     column_name: str
-    # ) -> Column:
-    #     if column in self.columns:
-
-    #         return self._name_to_column[column_name]
-    #     raise ItemNotFoundError(f'Failed to find column: {column_name}')
-
     def bind_drop_as_delay(self) -> None:
         self._records.bind_drop_as_delay()
 
@@ -158,20 +149,6 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
     ) -> pd.DataFrame:
         data_dict = [record.data for record in self.data]
         return Records._to_dataframe(data_dict, self.columns, converter)
-
-    # def rename_columns(
-    #     self,
-    #     column_names: Dict[str, str]
-    # ) -> None:
-    #     validate_rename_rule(column_names, self.column_names)
-    #     self._records.rename_columns(column_names)
-
-    #     for k, v in column_names.items():
-    #         if k in self._name_to_column:
-    #             old_column = self._name_to_column.pop(k)
-    #             new_column = old_column.create_renamed(v)
-    #             self._name_to_column[v] = new_column
-    #     return None
 
     def merge(
         self,

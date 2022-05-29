@@ -162,23 +162,6 @@ class TransformCommunication(PathBase):
     def topic_name(self) -> str:
         return self._tf_broadcaster.topic_name
 
-    # @property
-    # def summary(self) -> Summary:
-    #     return self._val.summary
-
-    # @property
-    # def is_intra_proc_comm(self) -> Optional[bool]:
-    #     return self._is_intra_process
-
-    # # TODO(hsgwa): このコールバックは不要では？？
-    # @property
-    # def callback_publish(self) -> Optional[List[CallbackBase]]:
-    #     return self._callbacks_publish
-
-    # @property
-    # def callback_subscription(self) -> Optional[CallbackBase]:
-    #     return self._callback_subscription
-
     @property
     def tf_broadcaster(self) -> TransformFrameBroadcaster:
         return self._tf_broadcaster
@@ -186,14 +169,6 @@ class TransformCommunication(PathBase):
     @property
     def tf_buffer(self) -> TransformFrameBuffer:
         return self._tf_buffer
-
-    # @property
-    # def subscribe_node_name(self) -> str:
-    #     return self._val.subscribe_node_name
-
-    # @property
-    # def publish_node_name(self) -> str:
-    #     return self._val.publish_node_name
 
     @property
     def lookup_node(self) -> Node:

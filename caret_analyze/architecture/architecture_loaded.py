@@ -541,16 +541,7 @@ def create_message_context(
     node: NodeStruct,
 ) -> None:
 
-    # nodenode__path = node_paths.get(
-    #     message_context.subscription_topic_name,
-    #     message_context.publisher_topic_name
-    # )
-    # node_path.message_context = message_context
-    # self._data: Tuple[MessageContext, ...]
-    # data: List[MessageContext] = []
-
     context_dicts = reader.get_message_contexts(node.node_name)
-    # pub_sub_pairs: List[Tuple[Optional[str], Optional[str]]] = []
     for context_dict in context_dicts:
         try:
             context_type = context_dict.get('context_type')

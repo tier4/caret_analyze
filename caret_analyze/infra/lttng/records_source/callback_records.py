@@ -48,20 +48,6 @@ class CallbackRecordsContainer:
         )
         self._bridge = bridge
 
-    # @property
-    # def columns(self) -> Columns:
-    #     columns = Columns()
-    #     for column_name in self.column_names:
-    #         for column in self._callback_start.columns + self._callback_end.columns:
-    #             if column.column_name == column_name:
-    #                 columns.append(column)
-    #                 break
-    #     return columns
-
-    # @property
-    # def column_names(self) -> List[str]:
-    #     return self._columns
-
     def get_records(
         self,
         callback: CallbackStructValue

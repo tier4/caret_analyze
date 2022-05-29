@@ -113,56 +113,6 @@ class CallbackPathSearcher:
 
         callback_path = CallbackPathStruct(self._node.node_name, child)
 
-        # node_in: Union[None, SubscriptionStructInterface, TransformFrameBufferStructInterface]
-        # node_in = None
-        # node_out: Union[None, PublisherStructInterface, TransformFrameBroadcasterStructInterface]
-        # node_out = None
-
-        # if node_in_value is not None:
-        #     try:
-        #         node_in = self._node.get_node_input(node_in_value)
-        #     except ItemNotFoundError:
-        #         msg = 'Failed to find subscription. '
-        #         msg += f'node_name: {self._node.node_name}, '
-        #         msg += f'topic_name: {node_in_value}'
-        #         logger.warning(msg)
-        #     except MultipleItemFoundError:
-        #         msg = 'Failed to identify subscription. Several candidates were found. '
-        #         msg += f'node_name: {self._node.node_name}, '
-        #         msg += f'topic_name: {node_in_value}'
-        #         logger.warning(msg)
-
-        # if node_out_value is not None:
-        #     try:
-        #         node_out = self._node.get_node_output(node_out_value)
-        #     except ItemNotFoundError:
-        #         msg = 'Failed to find publisher. '
-        #         msg += f'node_name: {self._node.node_name}'
-        #         msg += f'topic_name: {node_out_value}'
-        #         logger.warning(msg)
-        #     except MultipleItemFoundError:
-        #         msg = 'Failed to identify publisher. Several candidates were found. '
-        #         msg += f'node_name: {self._node.node_name}, '
-        #         msg += f'topic_name: {node_out_value}'
-        #         logger.warning(msg)
-
-        # tf_buffer: Optional[TransformFrameBufferStructInterface] = None
-        # tf_broadcaster: Optional[TransformFrameBroadcasterStructInterface] = None
-
-        # node_path = self._paths.get(node_in_value, node_out_value)
-
-        # if isinstance(node_in_value, SubscriptionStruct):
-        #     node_path.subscription = node_in_value
-        # elif isinstance(node_in_value, TransformFrameBufferStruct):
-        #     node_path.tf_buffer = node_in_value
-
-        # if isinstance(node_out_value, PublisherStruct):
-        #     node_path.publisher = node_out_value
-        # elif isinstance(node_out_value, TransformFrameBroadcasterStruct):
-        #     node_path.tf_broadcaster = tf_broadcaster
-
-        # node_path.child = child
-
         return callback_path
 
     def _find_cb_or_varpass(

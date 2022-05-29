@@ -487,9 +487,6 @@ class Lttng(InfraBase):
             - dds_write_timestamp (Optional)
 
         """
-        # publisher: PublisherStructValue,
-        # buffer: IntraProcessBufferStructValue,
-        # callback: SubscriptionCallbackStructValue,
         return self._source.intra_proc_comm_records(comm)
 
     def get_callback_records(
@@ -528,22 +525,6 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.subscribe_records(subscription)
 
-    # def create_timer_events_factory(
-    #     self,
-    #     timer_callback: TimerCallbackValueLttng
-    # ) -> EventsFactory:
-    #     return self._source.create_timer_events_factory(timer_callback)
-
-    # def compose_tilde_publish_records(
-    #     self,
-    # ) -> RecordsInterface:
-    #     return self._source.tilde_publish_records
-
-    # def compose_tilde_subscribe_records(
-    #     self,
-    # ) -> RecordsInterface:
-    #     return self._source.tilde_subscribe_records
-
     def get_send_transform(
         self,
         broadcaster: TransformFrameBroadcasterStructValue,
@@ -555,56 +536,3 @@ class Lttng(InfraBase):
         buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
         return self._source.lookup_transform_records(buffer)
-
-    def get_node_tilde(
-        self,
-        node: NodePathStructValue,
-    ) -> RecordsInterface:
-
-        raise NotImplementedError('')
-        # tilde_records = self._provider.tilde_records(
-        #     self._node_path.subscription, self._node_path.publisher)
-        # sub_records = self._provider.subscribe_records(self._node_path.subscription)
-        # pub_records = self._provider.publish_records(self._node_path.publisher)
-
-        # left_stamp_key = Util.find_one(
-        #     lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, sub_records.columns)
-        # right_stamp_key = Util.find_one(
-        #     lambda x: COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP in x, sub_records.columns)
-
-        # records = merge(
-        #     left_records=sub_records,
-        #     right_records=tilde_records,
-        #     join_left_key=right_stamp_key,
-        #     join_right_key=right_stamp_key,
-        #     how='left',
-        #     progress_label='binding tilde subscribe records.'
-        # )
-
-        # left_stamp_key = Util.find_one(
-        #     lambda x: COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP in x, records.columns)
-
-        # records = merge(
-        #     left_records=records,
-        #     right_records=pub_records,
-        #     join_left_key=left_stamp_key,
-        #     join_right_key=left_stamp_key,
-        #     # columns=Columns(records.columns + pub_records.columns).as_list(),
-        #     how='left',
-        #     progress_label='binding tilde publish records.'
-        # )
-
-        # columns = [
-        #     Util.find_one(lambda x: COLUMN_NAME.CALLBACK_START_TIMESTAMP in x, records.columns),
-        #     Util.find_one(lambda x: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP in x, records.columns),
-        # ]
-
-        # drop_columns = list(set(records.columns) - set(columns))
-        # records.drop_columns(drop_columns)
-        # records.reindex(columns)
-
-    def get_find_closest(
-        self,
-        buffer: TransformBufferValueLttng,
-    ) -> RecordsInterface:
-        return self._source.find_closest_records(self.tf_frame_id_mapper, buffer).clone()

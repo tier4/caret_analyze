@@ -258,32 +258,6 @@ class NodeStruct(NodeStructInterface):
             node_inputs += self.tf_buffer.frame_buffers.as_list()
         return node_inputs
 
-    # @property
-    # def callback_names(self) -> Optional[List[str]]:
-    #     if self.callbacks is None:
-    #         return None
-    #     return [_.callback_name for _ in self.callbacks]
-
-    # @property
-    # def callback_group_names(self) -> Optional[List[str]]:
-    #     if self.callback_groups is None:
-    #         return None
-    #     return [_.callback_group_name for _ in self.callback_groups]
-
-    # def get_subscription(
-    #     self,
-    #     subscribe_topic_name: str
-    # ) -> SubscriptionStructValue:
-
-    #     try:
-    #         return Util.find_one(
-    #             lambda x: x.topic_name == subscribe_topic_name,
-    #             self.subscriptions)
-    #     except ItemNotFoundError:
-    #         msg = 'Failed to find subscription info. '
-    #         msg += f'topic_name: {subscribe_topic_name}'
-    #         raise ItemNotFoundError(msg)
-
     def get_publisher(
         self,
         publish_topic_name: str

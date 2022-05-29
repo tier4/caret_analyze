@@ -810,19 +810,6 @@ class CommunicationsLoaded:
         node_sub = nodes_loaded.find_node(
             communication_value.subscribe_node_name)
 
-        # cb_pubs: Optional[List[CallbackBase]] = None
-        # if communication_value.publish_callback_names is not None:
-        #     cb_pubs = [
-        #         nodes_loaded.find_callback(cb_name)
-        #         for cb_name
-        #         in communication_value.publish_callback_names
-        #     ]
-
-        # cb_sub: Optional[CallbackBase] = None
-        # if communication_value.subscribe_callback_name is not None:
-        #     cb_name q= communication_value.subscribe_callback_name
-        #     cb_sub = nodes_loaded.find_callback(cb_name)
-
         topic_name = communication_value.topic_name
         subscription = node_sub.get_subscription(topic_name)
         publisher = node_pub.get_publisher(topic_name)

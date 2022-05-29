@@ -61,23 +61,11 @@ class RecordsFactory:
     def create_instance(self):
         raise NotImplementedError('')
 
-    # @staticmethod
-    # @create_instance.register
-    # def _create_instance(
-    #     init: Optional[List[RecordInterface]] = None,
-    #     columns: Optional[Columns] = None
-    # ) -> RecordsInterface:
-    #     if use_cpp_impl:
-    #         return RecordsFactory._create_cpp_instance(init, columns)
-    #     else:
-    #         return Records(init, columns)
-
     @staticmethod
     @create_instance.register
     def _create_instance_tuple(
         init: Optional[List[RecordInterface]] = None,
         columns: Optional[List[ColumnValue]] = None,
-        # columns: Optional[List[Column]] = None
     ) -> RecordsInterface:
         if use_cpp_impl:
             return RecordsFactory._create_cpp_instance(init, columns)

@@ -319,38 +319,6 @@ class CallbacksStruct(CallbacksStructInterface, Iterable):
                      in self._cb_dict.values()
                      if not isinstance(_, ServiceCallbackStruct))
 
-    # def _validate(self, callbacks: List[CallbackValue]) -> None:
-    #     # check node name
-    #     for callback in callbacks:
-    #         if callback.node_id != self._node.node_id:
-    #             msg = 'reader returns invalid callback value. '
-    #             msg += f'get [{self._node.node_id}] value returns [{callback.node_id}]'
-    #             raise InvalidReaderError(msg)
-
-    #     # check callback name
-    #     cb_names: List[str] = [
-    #         cb.callback_name for cb in callbacks if cb.callback_name is not None]
-    #     if len(cb_names) != len(set(cb_names)):
-    #         msg = f'Duplicated callback names. node_name: {self._node.node_name}\n'
-    #         for name in set(cb_names):
-    #             if cb_names.count(name) >= 2:
-    #                 msg += f'callback name: {name} \n'
-    #         raise InvalidReaderError(msg)
-
-    #     # check callback id
-    #     cb_ids: List[str] = [
-    #         cb.callback_id
-    #         for cb
-    #         in callbacks
-    #         if cb.callback_id is not None
-    #     ]
-    #     if len(cb_names) != len(set(cb_names)):
-    #         msg = f'Duplicated callback id. node_name: {self._node.node_name}\n'
-    #         for cb_id in set(cb_ids):
-    #             if cb_ids.count(cb_id) >= 2:
-    #                 msg += f'callback id: {cb_id} \n'
-    #         raise InvalidReaderError(msg)
-
     def get_callback_by_cbg(
         self,
         callback_group: CallbackGroupValue

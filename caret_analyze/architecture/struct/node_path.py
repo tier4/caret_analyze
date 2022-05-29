@@ -129,22 +129,6 @@ class NodePathStruct(NodePathStructInterface):
         assert self._node_name is not None
         return self._node_name
 
-    # @node_name.setter
-    # def node_name(self, node_name: str) -> None:
-    #     self._node_name = node_name
-
-    # @property
-    # def publish_topic_name(self) -> Optional[str]:
-    #     if self.publisher is not None:
-    #         return self.publisher.topic_name
-    #     return None
-
-    # @property
-    # def subscribe_topic_name(self) -> Optional[str]:
-    #     if self.subscription is not None:
-    #         return self.subscription.topic_name
-    #     return None
-
     @property
     def message_context(self) -> Optional[MessageContext]:
         return self._message_context
@@ -164,56 +148,6 @@ class NodePathStruct(NodePathStructInterface):
     @callback_path.setter
     def callback_path(self, callback_path: CallbackPathStruct) -> None:
         self._callback_path = callback_path
-
-    # def __eq__(self, __o: object) -> bool:
-    #     if isinstance(__o, NodePathStruct):
-    #         return self.key == __o.key
-    #     return False
-
-    # def __hash__(self) -> int:
-    #     h = 17
-    #     for k in self.key:
-    #         h += h * 31 + hash(k)
-    #     return h
-
-    # def _create_callack_chain(
-    #     self
-    # ) -> List[MessageContext]:
-    #     chains: List[MessageContext] = []
-    #     for path in node_paths:
-    #         if path.callbacks is not None:
-    #             chains.append(
-    #                 CallbackChain(
-    #                     path.node_name,
-    #                     {},
-    #                     path.subscription,
-    #                     path.publisher,
-    #                     path.callbacks)
-    #             )
-    #     return chains
-
-    # @property
-    # def key(self) -> Tuple[str, ...]:
-    #     keys: List[str] = []
-    #     sub_topic_name = ''
-    #     if self.subscription is not None:
-    #         sub_topic_name = self.subscription.topic_name
-    #     keys.append(sub_topic_name)
-
-    #     if self.tf_broadcaster is not None:
-    #         keys.append(self.tf_broadcaster.transform.frame_id)
-    #         keys.append(self.tf_broadcaster.transform.child_frame_id)
-
-    #     pub_topic_name = ''
-    #     if self.publisher is not None:
-    #         pub_topic_name = self.publisher.topic_name
-    #     keys.append(pub_topic_name)
-
-    #     if self.tf_buffer is not None:
-    #         keys.append(self.tf_buffer.transform.frame_id)
-    #         keys.append(self.tf_buffer.transform.child_frame_id)
-
-    #     return tuple(keys)
 
 
 class NodePathsStruct(NodePathsStructInterface, Iterable):
@@ -355,15 +289,3 @@ class NodePathsStruct(NodePathsStructInterface, Iterable):
         reader: ArchitectureReader
     ) -> List[NodePathStruct]:
         raise NotImplementedError('')
-
-    # def get_node_in(
-    #     self,
-    #     node_in: NodeIOValue
-    # ) -> Union[SubscriptionStruct, TransformFrameBufferStruct]:
-    #     raise NotImplementedError('')
-
-    # def get_node_out(
-    #     self,
-    #     node_in: NodeIOValue
-    # ) -> Union[PublisherStruct, TransformFrameBroadcasterStruct]:
-    #     raise NotImplementedError('')
