@@ -13,113 +13,89 @@
 # limitations under the License.
 
 
-from logging import getLogger
-
-from caret_analyze.exceptions import InvalidTraceFormatError
-from caret_analyze.infra.lttng.event_counter import EventCounter
+from caret_analyze.exceptions import InvalidArgumentError
+from caret_analyze.infra.lttng import Lttng
+from caret_analyze.infra.lttng.event_counter import CategoryServer, EventCounter, UNKNOWN
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
-from caret_analyze.infra.lttng.ros2_tracing.processor import Ros2Handler
+from caret_analyze.infra.lttng.value_objects import NodeValueLttng
 
+import pandas as pd
 import pytest
+
+
+@pytest.fixture
+def lttng_mock(mocker):
+    lttng = mocker.Mock(spec=Lttng)
+    mocker.patch.object(lttng, 'get_nodes', return_value=[])
+    mocker.patch.object(lttng, 'get_callback_groups', return_value=[])
+    mocker.patch.object(lttng, 'get_client_callbacks', return_value=[])
+    mocker.patch.object(lttng, 'get_publishers', return_value=[])
+    mocker.patch.object(lttng, 'get_subscription_callbacks', return_value=[])
+    mocker.patch.object(lttng, 'get_service_callbacks', return_value=[])
+    mocker.patch.object(lttng, 'get_timer_callbacks', return_value=[])
+    mocker.patch.object(lttng, 'get_tf_broadcaster', return_value=None)
+    mocker.patch.object(lttng, 'get_tf_buffer', return_value=None)
+    return lttng
 
 
 class TestEventCounter:
 
-    def test_build_count_df_empty_records(self, mocker):
+    def test_empty(self, lttng_mock):
         data = Ros2DataModel()
         data.finalize()
+        counter = EventCounter(data, lttng_mock)
+        count = counter.get_count()
+        assert len(count) == 0
 
-        df = EventCounter._build_count_df(data)
-        assert set(df.columns) == {'size', 'node_name', 'trace_point', 'topic_name'}
-        assert set(df['trace_point'].values) == set(Ros2Handler.get_trace_points())
-        assert list(df['size']) == [0] * len(df)
-
-    def test_build_count_df_increment_count(self, mocker):
+    def test_invalid_argument(self, lttng_mock):
         data = Ros2DataModel()
-        data.add_rcl_init(0, 0, 0, 0)
-        data.add_rcl_node_init(0, 0, 0, 0, 'name', '/')
-        data.add_rcl_publisher_init(0, 0, 0, 0, 0, 0)
-        data.add_rcl_subscription_init(0, 0, 0, 0, 0, 0)
-        data.add_rclcpp_subscription_init(0, 0, 0)
-        data.add_rcl_service_init(0, 0, 0, 0, 0)
-        data.add_rcl_client_init(0, 0, 0, 0, 0)
-        data.add_rcl_timer_init(0, 0, 0, 0)
-        data.add_tilde_subscribe_added(0, 0, 0, 0)
-        data.add_rclcpp_timer_link_node(0, 0, 0)
-        data.add_callback_object(0, 0, 0)
-        data.add_callback_symbol(0, 0, 0)
-        data.add_lifecycle_state_machine(0, 0)
-        data.add_rcl_lifecycle_state_transition(0, 0, 0, 0)
-        data.add_tilde_subscription(0, 0, 0, 0)
-        data.add_tilde_publisher(0, 0, 0, 0)
-        data.add_callback_start_instance(0, 0, 0, False)
-        data.add_callback_end_instance(0, 0, 0)
-        data.add_rclcpp_intra_publish_instance(0, 0, 0, 0)
-        data.add_rclcpp_publish_instance(0, 0, 0, 0)
-        data.add_rcl_publish_instance(0, 0, 0)
-        data.add_dds_write_instance(0, 0)
-        data.add_dds_bind_addr_to_addr(0, 0, 0)
-        data.add_dds_bind_addr_to_stamp(0, 0, 0, 0)
-        data.add_on_data_available_instance(0, 0)
-        data.add_message_construct_instance(0, 0, 0)
-        data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
-        data.add_sim_time(0, 0)
-        data.add_rmw_implementation('')
-        data.add_dispatch_intra_process_subscription_callback_instance(0, 0, 0, 0)
-        data.add_tilde_subscribe(0, 0, 0)
-        data.add_tilde_publish(0, 0, 0, 0)
-        data.add_executor(0, 0, '')
-        data.add_executor_static(0, 0, 0, '')
-        data.add_callback_group(0, 0, 0, '')
-        data.add_callback_group_static_executor(0, 0, 0, '')
-        data.callback_group_add_timer(0, 0, 0)
-        data.callback_group_add_subscription(0, 0, 0)
-        data.callback_group_add_service(0, 0, 0)
-        data.callback_group_add_client(0, 0, 0)
-
         data.finalize()
+        counter = EventCounter(data, lttng_mock)
+        with pytest.raises(InvalidArgumentError):
+            counter.get_count(['invalid'])
 
-        df = EventCounter._build_count_df(data)
-        assert list(df['size']) == [1] * len(df)
-
-    def test_validation_without_ld_preload(
-        self,
-        mocker,
-    ):
+    def test_count(self, lttng_mock):
         data = Ros2DataModel()
-        data.add_dds_write_instance(0, 0, 0)
+        data.add_callback_start(0, 0, 0, 0, False)
+        data.add_sim_time(0, 0, 0, 0)
         data.finalize()
+        counter = EventCounter(data, lttng_mock)
+        df = counter.get_count()
+        df_expect = pd.DataFrame(
+            {
+                'trace_point': ['ros2:callback_start', 'ros2_caret:sim_time'],
+                'node_name': [UNKNOWN, UNKNOWN],
+                'topic_name': [UNKNOWN, UNKNOWN],
+                'size': [1, 1],
+            }, columns=['trace_point', 'node_name', 'topic_name', 'size']
+        )
+        assert df.equals(df_expect)
 
-        logger = getLogger('caret_analyze.infra.lttng.event_counter')
-        logger.propagate = True
 
-        with pytest.raises(InvalidTraceFormatError):
-            EventCounter(data)
+class TestCategoryServer:
 
-    def test_validation_without_forked_rclcpp(
-        self,
-        mocker,
-    ):
-        data = Ros2DataModel()
-        data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
-        data.finalize()
+    def test_empty(self, lttng_mock):
+        server = CategoryServer(lttng_mock)
+        category = server.get(0, 0)
+        assert category.node_name == UNKNOWN
+        assert category.topic_name == UNKNOWN
+        assert category.trace_point == UNKNOWN
 
-        logger = getLogger('caret_analyze.infra.lttng.event_counter')
-        logger.propagate = True
+    @pytest.fixture
+    def create_node_mock(self, mocker):
+        def _create(pid, node_handle, node_name):
+            node_mock = mocker.Mock(spec=NodeValueLttng)
+            mocker.patch.object(node_mock, 'node_name', node_name)
+            mocker.patch.object(node_mock, 'node_handle', node_handle)
+            mocker.patch.object(node_mock, 'pid', pid)
+            return node_mock
+        return _create
 
-        with pytest.raises(InvalidTraceFormatError):
-            EventCounter(data)
-
-    def test_validation_valid_case(
-        self,
-        mocker,
-    ):
-        data = Ros2DataModel()
-        data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
-        data.add_dds_write_instance(0, 0, 0)
-        data.finalize()
-
-        logger = getLogger('caret_analyze.infra.lttng.event_counter')
-        logger.propagate = True
-
-        EventCounter(data)
+    def test_node(self, mocker, lttng_mock, create_node_mock):
+        node_mock = create_node_mock(1, 2, 'node_name')
+        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[node_mock])
+        server = CategoryServer(lttng_mock)
+        category = server.get(1, 2)
+        assert category.node_name == 'node_name'
+        assert category.topic_name == UNKNOWN
+        assert category.trace_point == UNKNOWN

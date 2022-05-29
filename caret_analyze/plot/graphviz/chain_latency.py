@@ -80,7 +80,7 @@ class GraphAttr:
         self.edges = edges
 
 
-def to_label(latency: np.array) -> str:
+def to_label(latency: np.ndarray) -> str:
     label = (
         'min: {:.2f} ms\n'.format(np.min(latency * 1.0e-6))
         + 'avg: {:.2f} ms\n'.format(np.average(latency * 1.0e-6))

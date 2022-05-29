@@ -14,7 +14,14 @@
 
 import inspect
 
-from typing import Any, Dict, Union, Tuple
+from typing import (
+    Any,
+    Dict,
+    Tuple,
+    Union,
+)
+
+from yaml import dump  # type: ignore
 
 IdValueType = Tuple[Union[None, str, int], ...]
 
@@ -44,7 +51,6 @@ class ValueObject():
         return hash_value
 
     def __str__(self) -> str:
-        from yaml import dump
         d = self._to_dict()
         return dump(d)
 

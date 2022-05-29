@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import Callable, Collection, Dict, List, Optional
 
+import yaml  # type: ignore
+
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..value_objects import (
     CallbackGroupStructValue,
@@ -49,7 +51,6 @@ class ArchitectureDict():
         self._node_values = node_values
 
     def __str__(self) -> str:
-        import yaml
         obj = self.to_dict()
         return yaml.dump(obj, indent=2, default_flow_style=False, sort_keys=False)
 

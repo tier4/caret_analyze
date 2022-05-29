@@ -13,8 +13,9 @@
 # limitations under the License.
 
 
-from typing import List
+from typing import List, Optional
 
+from caret_analyze.common import ClockConverter
 from caret_analyze.record import Records, RecordsInterface
 from caret_analyze.runtime.path_base import PathBase
 
@@ -30,6 +31,9 @@ class PathSample(PathBase):
     @property
     def column_names(self) -> List[str]:
         return []
+
+    def _get_clock_converter(self) -> Optional[ClockConverter]:
+        raise NotImplementedError('')
 
 
 class TestPathBase:

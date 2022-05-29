@@ -52,7 +52,7 @@ class SubscriptionValueLttng(SubscriptionValue):
         callback_id: Optional[str],
         subscription_handle: int,
         subscription_id: str,
-        tilde_subscription: str,
+        tilde_subscription: Optional[int],
     ) -> None:
         super().__init__(topic_name, node_name, node_id, callback_id)
         self._pid = pid
@@ -73,5 +73,5 @@ class SubscriptionValueLttng(SubscriptionValue):
         return self._subscription_id
 
     @property
-    def tilde_subscription(self) -> str:
+    def tilde_subscription(self) -> Optional[int]:
         return self._tilde_subscription

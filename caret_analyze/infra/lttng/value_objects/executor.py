@@ -12,8 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .records_source import RecordsSource
+from __future__ import annotations
 
-__all__ = [
-    'RecordsSource'
-]
+from typing import Tuple
+
+from ....value_objects import ExecutorValue
+
+
+class ExecutorValueLttng(ExecutorValue):
+    def __init__(
+
+        self,
+        pid: int,
+        executor_id: str,
+        executor_type_name: str,
+        callback_group_ids: Tuple[str, ...],
+    ) -> None:
+        super().__init__(
+            executor_id,
+            executor_type_name,
+            callback_group_ids,
+            executor_name=None)
+        self._pid = pid
+
+    @property
+    def pid(self) -> int:
+        return self._pid

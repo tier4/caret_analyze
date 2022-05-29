@@ -1,28 +1,42 @@
+# Copyright 2021 Research Institute of Systems Planning, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from typing import Sequence, List
 from functools import lru_cache
+from typing import List, Sequence
 
-from caret_analyze.infra.lttng.lttng_info import LttngInfo
-
-from caret_analyze.value_objects.callback import CallbackStructValue
-from caret_analyze.value_objects.timer import TimerStructValue
 
 from .callback_records import CallbackRecordsContainer
-from ..column_names import COLUMN_NAME
 from ..bridge import LttngBridge
-from ..ros2_tracing.data_model import Ros2DataModel
+from ..column_names import COLUMN_NAME
 from ..events_factory import EventsFactory
+from ..lttng_info import LttngInfo
+from ..ros2_tracing.data_model import Ros2DataModel
 from ..value_objects import (
+    TimerCallbackValueLttng,
     TimerControl,
     TimerInit,
-    TimerCallbackValueLttng,
 )
 from ....common import Util
 from ....record import (
-    RecordsInterface, merge_sequencial, GroupedRecords, RecordsFactory, UniqueList,
-    ColumnValue, RecordFactory
+    ColumnValue,
+    GroupedRecords,
+    merge_sequencial,
+    RecordFactory,
+    RecordsFactory,
+    RecordsInterface,
 )
-from ....value_objects import TimerCallbackStructValue
+from ....value_objects import TimerStructValue
 
 
 class TimerRecordsContainer:
@@ -96,10 +110,13 @@ class TimerRecordsContainer:
 
         init_records = self._timer_init.get(timer_callback.timer_handle)
         for i in range(len(init_records)):
-            ctrl = TimerInit(
-                init_records.get(i, 'timer_handle'),
-                init_records.get(i, 'timestamp'),
-                init_records.get(i, 'period'))
+            timer_handle = init_records.iget(i, 'timer_handle')
+            timestamp = init_records.iget(i, 'timestamp')
+            period = init_records.iget(i, 'period')
+            assert timer_handle is not None
+            assert timestamp is not None
+            assert period is not None
+            ctrl = TimerInit(timer_handle, timestamp, period)
             ctrls.append(ctrl)
 
         return ctrls
@@ -117,6 +134,7 @@ class TimerRecordsContainer:
             COLUMN_NAME.CALLBACK_END_TIMESTAMP,
         ]
 
+        assert timer.callback is not None
         callback_records = self._cb_records.get_records(timer.callback)
         cb = self._bridge.get_timer_callback(timer.callback)
         factory = self._create_timer_events_factory(cb)

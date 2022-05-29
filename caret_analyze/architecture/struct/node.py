@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from __future__ import annotations
-from multimethod import multimethod as singledispatchmethod
 
 from logging import getLogger
 from typing import (
@@ -26,6 +25,7 @@ from typing import (
     Tuple,
 )
 
+from multimethod import multimethod as singledispatchmethod
 
 from .callback import CallbacksStruct
 from .callback_group import CallbackGroupsStruct
@@ -52,9 +52,9 @@ from .variable_passing import VariablePassingsStruct
 from ...common import Util
 from ...exceptions import ItemNotFoundError
 from ...value_objects import (
-    NodeStructValue,
-    NodePathValue,
     NodePathStructValue,
+    NodePathValue,
+    NodeStructValue,
 )
 
 

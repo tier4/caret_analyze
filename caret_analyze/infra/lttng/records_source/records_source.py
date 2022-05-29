@@ -14,7 +14,9 @@
 
 from functools import cached_property
 
-from typing import List, Sequence
+from typing import List
+
+from caret_analyze.value_objects.subscription import SubscriptionStructValue
 
 from .callback_records import CallbackRecordsContainer
 from .comm_records import CommRecordsContainer
@@ -22,32 +24,23 @@ from .ipc_buffer_records import IpcBufferRecordsContainer
 from .node_records import NodeRecordsContainer
 from .publish_records import PublishRecordsContainer
 from .subscribe_records import SubscribeRecordsContainer
+from .timer_records import TimerRecordsContainer
 from .transform import (
     TransformCommRecordsContainer,
     TransformLookupContainer,
     TransformSendRecordsContainer,
     TransformSetRecordsContainer,
 )
-from .timer_records import TimerRecordsContainer
 from .var_pass_records import VarPassRecordsContainer
 from ..bridge import LttngBridge
-from ..column_names import COLUMN_NAME
-from ..events_factory import EventsFactory
 from ..lttng_info import LttngInfo
 from ..ros2_tracing.data_model import Ros2DataModel
 from ..value_objects import (
-    TimerCallbackValueLttng,
-    TimerControl,
-    TimerInit,
     TransformBufferValueLttng,
 )
-from ....common import Util
 from ....record import (
     Column,
     ColumnMapper,
-    ColumnValue,
-    RecordFactory,
-    RecordsFactory,
     RecordsInterface,
 )
 from ....value_objects import (
@@ -56,12 +49,10 @@ from ....value_objects import (
     IntraProcessBufferStructValue,
     NodePathStructValue,
     PublisherStructValue,
-    SubscriptionCallbackStructValue,
-    TimerCallbackStructValue,
+    TimerStructValue,
     TransformCommunicationStructValue,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
-    TimerStructValue,
     VariablePassingStructValue,
 )
 
@@ -114,12 +105,6 @@ class RecordsSource():
     ) -> RecordsInterface:
         return self._comm_records.get_inter_records(comm)
 
-    # def inter_publish_records(
-    #     self,
-    #     publisher: PublisherStructValue
-    # ) -> RecordsInterface:
-    #     return self._pub_records.get_inter_records(publisher)
-
     def publish_records(
         self,
         publisher: PublisherStructValue
@@ -128,15 +113,9 @@ class RecordsSource():
 
     def subscribe_records(
         self,
-        subscription: SubscriptionCallbackStructValue
+        subscription: SubscriptionStructValue
     ) -> RecordsInterface:
         return self._sub_records.get_records(subscription)
-
-    # def intra_subscribe_records(
-    #     self,
-    #     subscription: SubscriptionCallbackValueLttng
-    # ) -> RecordsInterface:
-    #     return self._sub_records.get_intra_records(subscription)
 
     def send_transform_records(
         self,
@@ -273,7 +252,7 @@ class RecordsSource():
     #     records.drop_columns(['subscription_id'])
     #     return records
 
-    def timer_callback(
+    def get_timer_records(
         self,
         timer: TimerStructValue,
     ) -> RecordsInterface:
@@ -391,4 +370,4 @@ class RecordsSource():
 
     @cached_property
     def system_and_sim_times(self) -> RecordsInterface:
-        return self._data.sim_time
+        return self._data.sim_time.clone()

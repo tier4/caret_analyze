@@ -14,28 +14,25 @@
 
 from logging import getLogger
 from typing import Optional, Union
-from caret_analyze.value_objects.subscription import IntraProcessBufferStructValue
 
 from .lttng import Lttng
 from ...common import ClockConverter
-from ...exceptions import (UnsupportedNodeRecordsError)
 from ...infra.interface import RuntimeDataProvider
 from ...record import (
     RecordsFactory,
     RecordsInterface)
 from ...value_objects import (
     CallbackStructValue,
-    MessageContext,
-    TransformFrameBroadcasterStructValue,
-    TransformFrameBufferStructValue,
     CommunicationStructValue,
+    IntraProcessBufferStructValue,
     NodePathStructValue,
     PublisherStructValue,
     Qos,
     SubscriptionStructValue,
-    Tilde,
     TimerStructValue,
     TransformCommunicationStructValue,
+    TransformFrameBroadcasterStructValue,
+    TransformFrameBufferStructValue,
     VariablePassingStructValue,
 )
 
@@ -166,12 +163,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         """
         return self._lttng.get_subscribe_records(subscription)
-        callback = subscription.callback
-        assert callback is not None
+        # callback = subscription.callback
+        # assert callback is not None
 
-        subscription_callback = self._bridge.get_subscription_callback(
-            callback)
-        tilde_subscription = subscription_callback.tilde_subscription
+        # subscription_callback = self._bridge.get_subscription_callback(
+        #     callback)
+        # tilde_subscription = subscription_callback.tilde_subscription
 
         # if tilde_subscription is None:
         #     # records = self._subscribe_records(subscription)
@@ -183,10 +180,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         #             f'callback_name: {subscription.callback_name}'
         #             f'topic_name: {subscription.topic_name}'
         #         )
-
-
         #     return sub_records
-
         # callback = subscription.callback
         # assert callback is not None
 
@@ -207,7 +201,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self,
         ipc_buffer: IntraProcessBufferStructValue
     ) -> RecordsInterface:
-        return self._lttng.ipc_buffer_records(ipc_buffer)
+        return self._lttng.get_ipc_buffer_records(ipc_buffer)
 
     def tf_broadcast_records(
         self,
@@ -412,7 +406,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     #     return records
 
-    def get_rmw_implementation(self) -> str:
+    def get_rmw_implementation(self) -> Optional[str]:
         return self._lttng.get_rmw_impl()
 
     def get_qos(
@@ -427,6 +421,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             # sub_cb_lttng = self._bridge.get_subscription_callback(sub_cb)
             return self._lttng.get_subscription_qos(pub_sub)
         elif isinstance(pub_sub, PublisherStructValue):
+            return self._lttng.get_publisher_qos(pub_sub)
 
         # pubs_lttng = self._bridge.get_publishers(pub_sub)
         # if len(pubs_lttng) == 0:
@@ -438,7 +433,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
         #         'The value of the first publisher qos will be returned.')
 
         # return self._lttng.get_publisher_qos(pubs_lttng[0])
-            return self._lttng.get_publisher_qos(pub_sub)
         raise NotImplementedError('')
 
     def get_sim_time_converter(self) -> ClockConverter:
@@ -611,46 +605,46 @@ class RecordsProviderLttng(RuntimeDataProvider):
     #     records.rename_columns(rename_dict)
 
 
-class NodeRecordsTilde:
-    def __init__(
-        self,
-        lttng: Lttng,
-        node_path: NodePathStructValue,
-    ) -> None:
-        if node_path.message_context is None:
-            raise UnsupportedNodeRecordsError(
-                'node_path.message context is None')
-        if not isinstance(node_path.message_context, Tilde):
-            raise UnsupportedNodeRecordsError(
-                'node_path.message context is not UseLatestMessage')
+# class NodeRecordsTilde:
+#     def __init__(
+#         self,
+#         lttng: Lttng,
+#         node_path: NodePathStructValue,
+#     ) -> None:
+#         if node_path.message_context is None:
+#             raise UnsupportedNodeRecordsError(
+#                 'node_path.message context is None')
+#         if not isinstance(node_path.message_context, Tilde):
+#             raise UnsupportedNodeRecordsError(
+#                 'node_path.message context is not UseLatestMessage')
 
-        self._lttng = lttng
-        self._context: MessageContext = node_path.message_context
-        self._validate(node_path, self._context)
-        self._node_path = node_path
+#         self._lttng = lttng
+#         self._context: MessageContext = node_path.message_context
+#         self._validate(node_path, self._context)
+#         self._node_path = node_path
 
-    def to_records(self):
-        records = self._lttng.get_node_tilde_records(
-            self._node_path.subscription, self._node_path.publisher)
-        return records
+#     def to_records(self):
+#         records = self._lttng.get_node_tilde_records(
+#             self._node_path.subscription, self._node_path.publisher)
+#         return records
 
-    @staticmethod
-    def _validate(
-        node_path: NodePathStructValue,
-        context: MessageContext,
-    ) -> None:
-        def is_valid() -> bool:
-            if not isinstance(context, Tilde):
-                return False
-            if context.publisher_topic_name != node_path.publish_topic_name:
-                return False
-            if context.subscription_topic_name != node_path.subscribe_topic_name:
-                return False
+#     @staticmethod
+#     def _validate(
+#         node_path: NodePathStructValue,
+#         context: MessageContext,
+#     ) -> None:
+#         def is_valid() -> bool:
+#             if not isinstance(context, Tilde):
+#                 return False
+#             if context.publisher_topic_name != node_path.publish_topic_name:
+#                 return False
+#             if context.subscription_topic_name != node_path.subscribe_topic_name:
+#                 return False
 
-            return True
+#             return True
 
-        if is_valid():
-            return None
+#         if is_valid():
+#             return None
 
-        msg = f'UseLatest cannot build records. \n{node_path} \n{context}'
-        raise UnsupportedNodeRecordsError(msg)
+#         msg = f'UseLatest cannot build records. \n{node_path} \n{context}'
+#         raise UnsupportedNodeRecordsError(msg)

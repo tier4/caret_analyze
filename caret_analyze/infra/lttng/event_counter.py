@@ -33,18 +33,21 @@ from .value_objects import (
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
 )
-from ...exceptions import InvalidArgumentError, InvalidTraceFormatError, Error
+from ...exceptions import Error, InvalidArgumentError
 from ...record import RecordsInterface
 
 logger = getLogger(__name__)
+
+UNKNOWN = 'unkown'
 
 
 class Category:
 
     def __init__(self):
-        self.node_name = None
-        self.topic_name = None
-        self.tracepoint = None
+        # PANDAS treats the None value differently, so enter a string by default.
+        self.node_name = UNKNOWN
+        self.topic_name = UNKNOWN
+        self.trace_point = UNKNOWN
 
 
 ServerKey = Tuple[int, int]
@@ -95,7 +98,9 @@ class CategoryServer:
                     in info.get_client_callbacks(node)
                 })
                 self._publishers.update({
-                    (pub.pid, pub.publisher_handle): pub for pub in info.get_publishers(node)
+                    (pub.pid, pub.publisher_handle): pub
+                    for pub
+                    in info.get_publishers(node)
                 })
                 self._subscriptions.update({
                     (sub.pid, sub.subscription_handle): sub
@@ -141,11 +146,11 @@ class CategoryServer:
     def get(
         self,
         pid: int,
-        key_value: int
+        addr: int
     ) -> Category:
         info = Category()
 
-        key = (pid, key_value)
+        key = (pid, addr)
 
         if key in self._nodes:
             node = self._nodes[key]
@@ -237,17 +242,22 @@ class EventCounter:
 
         counter = CategoryServer(info)
         count_rules = self.get_count_rules(data)
-        counts = EventCounter.count_tracepoints(count_rules, counter)
+        counts = self.count_tracepoints(count_rules, counter)
         count_dicts = [record.as_dict() for record in counts]
         self._count_df = pd.DataFrame.from_dict(count_dicts)
 
-    def get_count(self, groupby: List[str]) -> pd.DataFrame:
-        if len(set(groupby) - self._allowed_keys) > 0:
+    def get_count(self, groupby: Optional[Sequence[str]] = None) -> pd.DataFrame:
+        groupby_ = groupby or list(self._allowed_keys)
+        if len(set(groupby_) - self._allowed_keys) > 0:
             raise InvalidArgumentError(
-                f'invalid groupby: {groupby}. {self._allowed_keys} are allowed.')
+                f'invalid groupby: {groupby_}. {self._allowed_keys} are allowed.')
 
-        grouped_df = self._count_df.groupby(groupby).sum([['size']])
+        if len(self._count_df) == 0:
+            return pd.DataFrame()
+        grouped_df = self._count_df.groupby(groupby_).sum([['size']])
         count_df = grouped_df.sort_values('size', ascending=False)
+        count_df.reset_index(inplace=True)
+        count_df = count_df.reindex(columns=['trace_point', 'node_name', 'topic_name', 'size'])
         return count_df
 
     @staticmethod
@@ -262,13 +272,13 @@ class EventCounter:
                       'client_handle'),
             CountRule('ros2:rcl_init',
                       data.rcl_init,
-                      None),
+                      'unkwnown'),
             CountRule('ros2:rcl_lifecycle_state_machine_init',
                       data.rcl_lifecycle_state_machine_init,
                       'node_handle'),
             CountRule('ros2:rcl_lifecycle_transition',
                       data.lifecycle_transitions,
-                      None),
+                      'unkwnown'),
             CountRule('ros2:rcl_node_init',
                       data.rcl_node_init,
                       'node_handle'),
@@ -474,13 +484,13 @@ class EventCounter:
                       'publisher_handle'),
         ]
 
+        handler_tracepoints = set(Ros2Handler.get_tracepoints())
         # validate count_rules
-        handler = Ros2Handler()
         count_rule_tracepoints = {rule.trace_point for rule in count_rules}
-        missing = handler.tracepoints - count_rule_tracepoints
+        missing = handler_tracepoints - count_rule_tracepoints
         if len(missing) > 0:
             assert False, 'Missing trace points: {}'.format(missing)
-        over_set = count_rule_tracepoints - handler.tracepoints
+        over_set = count_rule_tracepoints - handler_tracepoints
         if len(over_set) > 0:
             assert False, 'Over-set trace points: {}'.format(over_set)
 
@@ -499,6 +509,8 @@ class EventCounter:
             record_key = rule.record_key
 
             if record_key is None:
+                if len(records) == 0:
+                    continue
                 record = CountRecord(trace_point, Category(), len(records))
                 l.append(record)
                 continue

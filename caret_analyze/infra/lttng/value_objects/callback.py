@@ -116,7 +116,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
 class ServiceCallbackValueLttng(ServiceCallbackValue):
     def __init__(
         self,
-        pid: str,
+        pid: int,
         callback_id: str,
         node_id: str,
         node_name: str,

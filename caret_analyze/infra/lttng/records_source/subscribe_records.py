@@ -1,22 +1,31 @@
-from tkinter.tix import COLUMN
-from typing import Union
+# Copyright 2021 Research Institute of Systems Planning, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from functools import lru_cache
 
-from caret_analyze.record.record import Records
-
 from .callback_records import CallbackRecordsContainer
-from ..column_names import COLUMN_NAME
 from ..bridge import LttngBridge
+from ..column_names import COLUMN_NAME
 from ..ros2_tracing.data_model import Ros2DataModel
-from ..value_objects import (
-    PublisherValueLttng,
-    SubscriptionCallbackValueLttng
-)
 from ....record import (
-    RecordsInterface, merge_sequencial, GroupedRecords, RecordsFactory, UniqueList
+    GroupedRecords,
+    merge_sequencial,
+    RecordsInterface,
 )
-from ....value_objects import SubscriptionCallbackStructValue, SubscriptionStructValue
+from ....value_objects import (
+    SubscriptionStructValue,
+)
 
 
 class SubscribeRecordsContainer:
@@ -57,7 +66,7 @@ class SubscribeRecordsContainer:
 
     def get_records(
         self,
-        subscription: SubscriptionStructValue
+        subscription: SubscriptionStructValue,
     ) -> RecordsInterface:
         columns = [
             COLUMN_NAME.PID,
@@ -134,6 +143,7 @@ class SubscribeRecordsContainer:
             'message_timestamp',
             'callback_start_timestamp',
             'callback_end_timestamp']
+        assert subscription.callback is not None
         records = self._cb_records.get_inter_records(subscription.callback)
         records.columns.drop(
             [COLUMN_NAME.CALLBACK_OBJECT]
@@ -168,6 +178,7 @@ class SubscribeRecordsContainer:
             'message_timestamp',
         ]
 
+        assert subscription.callback is not None
         records = self._cb_records.get_intra_records(subscription.callback)
         records.columns.drop(
             [COLUMN_NAME.CALLBACK_OBJECT]

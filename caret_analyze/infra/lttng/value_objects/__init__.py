@@ -19,15 +19,24 @@ from .callback import (
     TimerCallbackValueLttng,
 )
 from .callback_group import CallbackGroupValueLttng
+from .executor import ExecutorValueLttng
 from .node import NodeValueLttng
 from .publisher import PublisherValueLttng
-from .subscription import SubscriptionValueLttng, IntraProcessBufferValueLttng
+from .subscription import (
+    IntraProcessBufferValueLttng,
+    SubscriptionValueLttng,
+)
 from .timer_control import TimerControl, TimerInit
-from .transform import TransformBroadcasterValueLttng, TransformBufferValueLttng
+from .transform import (
+    TransformBroadcasterValueLttng,
+    TransformBufferValueLttng,
+)
 
 __all__ = [
     'CallbackGroupValueLttng',
     'ClientCallbackValueLttng',
+    'ExecutorValueLttng',
+    'IntraProcessBufferValueLttng',
     'NodeValueLttng',
     'PublisherValueLttng',
     'ServiceCallbackValueLttng',
@@ -38,5 +47,4 @@ __all__ = [
     'TimerInit',
     'TransformBroadcasterValueLttng',
     'TransformBufferValueLttng',
-    'IntraProcessBufferValueLttng',
 ]

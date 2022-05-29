@@ -13,8 +13,7 @@
 # limitations under the License.
 
 from caret_analyze.exceptions import InvalidArgumentError
-from caret_analyze.record import Column, Record, Records
-from caret_analyze.record.interface import RecordsInterface
+from caret_analyze.record import ColumnValue, Record, Records, RecordsFactory
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import Path, RecordsMerged
@@ -25,34 +24,35 @@ import pytest
 
 class TestPath:
 
-    def test_empty(self, mocker):
-        # column_merger_mock = mocker.Mock(spec=ColumnMerger)
-        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
-                     return_value=column_merger_mock)
+    @pytest.fixture
+    def create_path(self, mocker):
+        def _create(path_info, child, callbacks, merged_records):
+            records_merged = mocker.Mock(spec=RecordsMerged)
+            mocker.patch.object(records_merged, 'data', merged_records)
+            mocker.patch('caret_analyze.runtime.path.RecordsMerged',
+                         return_value=records_merged)
+            path = Path(path_info, child, callbacks)
+            return path
+        return _create
 
-        records_merged_mock = mocker.Mock(spec=RecordsMerged)
-        mocker.patch('caret_analyze.runtime.path.RecordsMerged',
-                     return_value=records_merged_mock)
-
-        records_mock = mocker.Mock(spec=RecordsInterface)
-        mocker.patch.object(records_mock, 'clone', return_value=records_mock)
-        mocker.patch.object(records_mock, 'columns', [])
-
-        mocker.patch.object(column_merger_mock, 'column_names', [])
-        mocker.patch.object(records_merged_mock, 'data', records_mock)
+    def test_empty(self, mocker, create_path):
+        merged_records = RecordsFactory.create_instance(
+            None, [
+                ColumnValue('column')
+            ])
 
         path_info_mock = mocker.Mock(spec=PathStructValue)
         mocker.patch.object(path_info_mock, 'path_name', 'name')
-        path = Path(path_info_mock, [], None)
+        path = create_path(path_info_mock, [], [], merged_records)
 
         assert path.path_name == 'name'
-        assert path.column_names == []
+        assert path.column_names == ['column']
         assert path.communications == []
         assert path.node_paths == []
 
         records = path.to_records()
-        assert records == records_mock
-        assert path.column_names == []
+        assert records.equals(merged_records)
+        assert path.column_names == ['column']
 
     def test_str(self, mocker):
 
@@ -79,65 +79,6 @@ class TestPath:
             Path(path_info_mock, [node_mock_0, node_mock_1], None)
 
 
-class TestColumnMerged:
-
-    def test_empty(self):
-        merged = ColumnMerger()
-        assert merged.column_names == []
-
-    def test_column_names(self, mocker):
-        path_mock = mocker.Mock(spec=RecordsInterface)
-        mocker.patch.object(path_mock, 'columns',
-                            ['cb_start', 'xxx', 'pub'])
-
-        comm_mock = mocker.Mock(spec=RecordsInterface)
-        mocker.patch.object(comm_mock, 'columns', [
-                            'pub', 'write', 'read', 'cb_start'])
-
-        merger = ColumnMerger()
-        merger.append_columns(path_mock)
-        merger.append_columns(comm_mock)
-        merger.append_columns(path_mock)
-
-        assert merger.column_names == [
-            'cb_start/0', 'xxx/0', 'pub/0',
-            'write/0', 'read/0',
-            'cb_start/1', 'xxx/1', 'pub/1'
-        ]
-
-    def test_rename_rule(self, mocker):
-        path_mock = mocker.Mock(spec=RecordsInterface)
-        mocker.patch.object(path_mock, 'columns',
-                            ['cb_start', 'xxx', 'pub'])
-
-        comm_mock = mocker.Mock(spec=RecordsInterface)
-        mocker.patch.object(comm_mock, 'columns', [
-                            'pub', 'write', 'read', 'cb_start'])
-
-        merger = ColumnMerger()
-        rule = merger.append_columns_and_return_rename_rule(path_mock)
-        assert rule == {
-            'cb_start': 'cb_start/0',
-            'xxx': 'xxx/0',
-            'pub': 'pub/0',
-        }
-
-        rule = merger.append_columns_and_return_rename_rule(comm_mock)
-        assert rule == {
-            'pub': 'pub/0',
-            'write': 'write/0',
-            'read': 'read/0',
-            'cb_start': 'cb_start/1',
-        }
-
-        rule = merger.append_columns_and_return_rename_rule(path_mock)
-        assert rule == {
-            'cb_start': 'cb_start/1',
-            'xxx': 'xxx/1',
-            'pub': 'pub/1',
-        }
-
-
 class TestRecordsMerged:
 
     def test_empty(self):
@@ -155,9 +96,9 @@ class TestRecordsMerged:
                     }),
                 ],
                 [
-                    Column('callback_start'),
-                    Column('xxx'),
-                    Column('pub')
+                    ColumnValue('callback_start'),
+                    ColumnValue('xxx'),
+                    ColumnValue('pub')
                 ]
             )
         )
@@ -167,43 +108,16 @@ class TestRecordsMerged:
             comm_path, 'to_records',
             return_value=Records(
                 [
-                    Record({'pub': 2, 'write': 4,
-                            'read': 5, 'callback_start': 6}),
+                    Record({'pub': 2, 'write': 4, 'read': 5, 'callback_start': 6}),
                 ],
                 [
-                    Column('pub'),
-                    Column('write'),
-                    Column('read'),
-                    Column('callback_start')
+                    ColumnValue('pub'),
+                    ColumnValue('write'),
+                    ColumnValue('read'),
+                    ColumnValue('callback_start')
                 ]
             )
         )
-
-        # cb_mock = mocker.Mock(spec=Records)
-        # comm_mock = mocker.Mock(spec=PathElement)
-
-        # mocker.patch.object(cb_mock, 'to_records', side_effect=lambda: cb_records.clone())
-        # mocker.patch.object(comm_mock, 'to_records', side_effect=lambda: comm_records.clone())
-
-        merger_mock = mocker.Mock(spec=ColumnMerger)
-        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
-                     return_value=merger_mock)
-
-        def append_columns_and_return_rename_rule(records):
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
-                return {
-                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0', 'pub': 'pub/0'
-                }
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
-                return {
-                    'pub': 'pub/0',
-                    'write': 'write/0',
-                    'read': 'read/0',
-                    'callback_start': 'callback_start/1'
-                }
-        mocker.patch.object(
-            merger_mock, 'append_columns_and_return_rename_rule',
-            side_effect=append_columns_and_return_rename_rule)
 
         merged = RecordsMerged([node_path, comm_path])
         records = merged.data
@@ -211,16 +125,16 @@ class TestRecordsMerged:
             [
                 Record({
                     'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
-                    'write/0': 4, 'read/0': 5, 'callback_start/1': 6
+                    'write/1': 4, 'read/1': 5, 'callback_start/1': 6
                 }),
             ],
             [
-                Column('callback_start/0'),
-                Column('xxx/0'),
-                Column('pub/0'),
-                Column('write/0'),
-                Column('read/0'),
-                Column('callback_start/1')
+                ColumnValue('callback_start', suffix=['0']),
+                ColumnValue('xxx', suffix=['0']),
+                ColumnValue('pub', suffix=['0']),
+                ColumnValue('write', suffix=['1']),
+                ColumnValue('read', suffix=['1']),
+                ColumnValue('callback_start', suffix=['1'])
             ]
         )
 
@@ -237,9 +151,9 @@ class TestRecordsMerged:
                         'xxx': 13, 'pub': 14}),
             ],
             [
-                Column('callback_start'),
-                Column('xxx'),
-                Column('pub')
+                ColumnValue('callback_start'),
+                ColumnValue('xxx'),
+                ColumnValue('pub')
             ]
         )
         node_path_0 = mocker.Mock(spec=NodePath)
@@ -264,39 +178,13 @@ class TestRecordsMerged:
                             'read': 11, 'callback_start': 12}),
                 ],
                 [
-                    Column('pub'),
-                    Column('write'),
-                    Column('read'),
-                    Column('callback_start')
+                    ColumnValue('pub'),
+                    ColumnValue('write'),
+                    ColumnValue('read'),
+                    ColumnValue('callback_start')
                 ]
             )
         )
-
-        def append_columns_and_return_rename_rule(records):
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
-                return {
-                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0', 'pub': 'pub/0'
-                }
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
-                return {
-                    'pub': 'pub/0',
-                    'write': 'write/0',
-                    'read': 'read/0',
-                    'callback_start': 'callback_start/1'
-                }
-            if merger_mock.append_columns_and_return_rename_rule.call_count == 3:
-                return {
-                    'callback_start': 'callback_start/1',
-                    'xxx': 'xxx/1',
-                    'pub': 'pub/1'
-                }
-
-        merger_mock = mocker.Mock(spec=ColumnMerger)
-        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
-                     return_value=merger_mock)
-        mocker.patch.object(
-            merger_mock, 'append_columns_and_return_rename_rule',
-            side_effect=append_columns_and_return_rename_rule)
 
         merged = RecordsMerged([node_path_0, comm_path, node_path_1])
         records = merged.data
@@ -304,27 +192,27 @@ class TestRecordsMerged:
             [
                 Record({
                     'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
-                    'write/0': 4, 'read/0': 5,
-                    'callback_start/1': 6, 'xxx/1': 7, 'pub/1': 8
+                    'write/1': 4, 'read/1': 5,
+                    'callback_start/1': 6, 'xxx/2': 7, 'pub/2': 8
                 }),
                 Record({
                     'callback_start/0': 6, 'xxx/0': 7, 'pub/0': 8,
-                    'write/0': 10, 'read/0': 11,
-                    'callback_start/1': 12, 'xxx/1': 13, 'pub/1': 14
+                    'write/1': 10, 'read/1': 11,
+                    'callback_start/1': 12, 'xxx/2': 13, 'pub/2': 14
                 }),
                 Record({
                     'callback_start/0': 12, 'xxx/0': 13, 'pub/0': 14
                 }),
             ],
             [
-                Column('callback_start/0'),
-                Column('xxx/0'),
-                Column('pub/0'),
-                Column('write/0'),
-                Column('read/0'),
-                Column('callback_start/1'),
-                Column('xxx/1'),
-                Column('pub/1')
+                ColumnValue('callback_start', suffix=['0']),
+                ColumnValue('xxx', suffix=['0']),
+                ColumnValue('pub', suffix=['0']),
+                ColumnValue('write', suffix=['1']),
+                ColumnValue('read', suffix=['1']),
+                ColumnValue('callback_start', suffix=['1']),
+                ColumnValue('xxx', suffix=['2']),
+                ColumnValue('pub', suffix=['2'])
             ]
         )
         assert records.equals(expected)

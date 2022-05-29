@@ -14,36 +14,23 @@
 
 from caret_analyze.architecture.graph_search.graph_search import (
     Graph,
-    GraphEdge,
-    GraphNode,
-    GraphPath,
-    GraphPathCore
 )
-
 from caret_analyze.architecture.graph_search.node_graph import (
-    NodePathSearcher
+    NodePathSearcher,
+    PathBase,
 )
-from caret_analyze.architecture.graph_search.path_searcher import PathBase
-
-
+from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.value_objects import (
-    CommunicationStructValue,
-    NodePathStructValue,
     NodeStructValue,
     PathStructValue,
-    PublisherStructValue,
-    SubscriptionStructValue,
 )
 
-from caret_analyze.exceptions import InvalidArgumentError
-
-from pytest_mock import MockerFixture
 import pytest
 
 
 class TestNodePathSearcher:
 
-    def test_empty(self, mocker: MockerFixture):
+    def test_empty(self, mocker):
         searcher = NodePathSearcher((), ())
 
         with pytest.raises(InvalidArgumentError):
@@ -63,7 +50,7 @@ class TestNodePathSearcher:
         with pytest.raises(InvalidArgumentError):
             searcher.search('node', 'node')
 
-    def test_search(self, mocker: MockerFixture):
+    def test_search(self, mocker):
         graph_mock = mocker.Mock(spec=Graph)
         mocker.patch(
             'caret_analyze.architecture.graph_search.node_graph.PathSearcher',

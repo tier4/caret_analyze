@@ -16,6 +16,8 @@ from abc import ABCMeta, abstractproperty
 from collections import UserDict
 from typing import Any, Dict, List, Union
 
+from yaml import dump  # type: ignore
+
 
 class Summary(UserDict):
     """Temporary dictionary to use when outputting summaries."""
@@ -32,7 +34,6 @@ class Summary(UserDict):
         return True
 
     def __str__(self) -> str:
-        from yaml import dump
         return dump(self._convert_safe(self.data))
 
     @staticmethod

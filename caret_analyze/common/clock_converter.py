@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Sequence, Union
 
 from ..exceptions import InvalidArgumentError
 
@@ -52,7 +52,7 @@ class ClockConverter():
 
     def convert(
         self,
-        time: int
+        time: Union[int, float]
     ) -> float:
         converted = self._a * time + self._b
         return converted

@@ -18,7 +18,7 @@ from collections import UserDict
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Sequence, Set
 
-import yaml
+import yaml  # type: ignore
 
 from ...architecture.reader_interface import ArchitectureReader
 from ...common import Util
@@ -27,11 +27,13 @@ from ...value_objects import (
     BroadcastedTransformValue,
     CallbackGroupValue,
     CallbackType,
+    ClientCallbackValue,
     ExecutorValue,
     NodePathValue,
     NodeValue,
     PathValue,
     PublisherValue,
+    ServiceCallbackValue,
     SubscriptionCallbackValue,
     SubscriptionValue,
     TimerCallbackValue,
@@ -40,8 +42,6 @@ from ...value_objects import (
     TransformBufferValue,
     TransformValue,
     VariablePassingValue,
-    ClientCallbackValue,
-    ServiceCallbackValue,
 )
 
 
@@ -74,8 +74,9 @@ class YamlDict(UserDict):
     ) -> Optional[str]:
         if key in self.data:
             v = self.__getitem__(key)
-            assert v is None or isinstance(v, str)
-            return v
+            if v is None:
+                return None
+            return str(v)
         return default
 
     def get_values(self, key: str) -> List[str]:

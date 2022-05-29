@@ -111,8 +111,6 @@ class Ros2Handler(EventHandler):
             self._handle_init_tf_broadcaster_frame_id_compact
         handler_map['ros2_caret:init_tf_buffer_frame_id_compact'] = \
             self._handle_init_tf_buffer_frame_id_compact
-        # handler_map['ros2_caret:tf_lookup_transform_start'] = \
-        #     self._handle_tf_lookup_transform_start
         handler_map['ros2_caret:tf_lookup_transform_end'] = \
             self._handle_tf_lookup_transform_end
         handler_map['ros2_caret:tf_buffer_find_closest'] = \
@@ -176,52 +174,80 @@ class Ros2Handler(EventHandler):
         )
 
     @staticmethod
-    def get_trace_points() -> List[str]:
+    def get_tracepoints() -> List[str]:
         return [
-            'ros2:rcl_init',
-            'ros2:rcl_node_init',
-            'ros2:rcl_publisher_init',
-            'ros2:rclcpp_publisher_init',
-            'ros2:rcl_subscription_init',
-            'ros2:rclcpp_subscription_init',
-            'ros2:rclcpp_subscription_callback_added',
-            'ros2:rcl_service_init',
-            'ros2:rclcpp_service_callback_added',
-            'ros2:rcl_client_init',
-            'ros2:rcl_timer_init',
-            'ros2:rclcpp_timer_callback_added',
-            'ros2:rclcpp_timer_link_node',
-            'ros2:rclcpp_callback_register',
-            'ros2:callback_start',
             'ros2:callback_end',
+            'ros2:callback_start',
+            'ros2:construct_ring_buffer',
+            'ros2:dispatch_intra_process_subscription_callback',
+            'ros2:dispatch_subscription_callback',
+            'ros2:message_construct',
+            'ros2:rcl_client_init',
+            'ros2:rcl_init',
             'ros2:rcl_lifecycle_state_machine_init',
             'ros2:rcl_lifecycle_transition',
-            'ros2:rclcpp_publish',
-            'ros2:message_construct',
-            'ros2:rclcpp_intra_publish',
-            'ros2:dispatch_subscription_callback',
-            'ros2:dispatch_intra_process_subscription_callback',
-            'ros2_caret:on_data_available',
+            'ros2:rcl_node_init',
             'ros2:rcl_publish',
-            'ros2_caret:dds_write',
-            'ros2_caret:dds_bind_addr_to_stamp',
-            'ros2_caret:dds_bind_addr_to_addr',
-            'ros2_caret:rmw_implementation',
+            'ros2:rcl_publisher_init',
+            'ros2:rcl_service_init',
+            'ros2:rcl_subscription_init',
+            'ros2:rcl_timer_init',
+            'ros2:rclcpp_callback_register',
+            'ros2:rclcpp_intra_publish',
+            'ros2:rclcpp_publish',
+            'ros2:rclcpp_publisher_init',
+            'ros2:rclcpp_service_callback_added',
+            'ros2:rclcpp_subscription_callback_added',
+            'ros2:rclcpp_subscription_init',
+            'ros2:rclcpp_timer_callback_added',
+            'ros2:rclcpp_timer_link_node',
+            'ros2:ring_buffer_clear',
+            'ros2:ring_buffer_dequeue',
+            'ros2:ring_buffer_enqueue',
             'ros2_caret:add_callback_group',
             'ros2_caret:add_callback_group_static_executor',
-            'ros2_caret:construct_executor',
-            'ros2_caret:construct_static_executor',
-            'ros2_caret:callback_group_add_timer',
-            'ros2_caret:callback_group_add_subscription',
-            'ros2_caret:callback_group_add_service',
             'ros2_caret:callback_group_add_client',
-            'ros2_caret:tilde_subscription_init',
+            'ros2_caret:callback_group_add_service',
+            'ros2_caret:callback_group_add_subscription',
+            'ros2_caret:callback_group_add_timer',
+            'ros2_caret:construct_executor',
+            'ros2_caret:construct_ipm',
+            'ros2_caret:construct_node_hook',
+            'ros2_caret:construct_static_executor',
+            'ros2_caret:construct_tf_buffer',
+            'ros2_caret:dds_bind_addr_to_addr',
+            'ros2_caret:dds_bind_addr_to_stamp',
+            'ros2_caret:dds_write',
+            'ros2_caret:init_bind_tf_broadcaster_send_transform',
+            'ros2_caret:init_bind_tf_buffer_core',
+            'ros2_caret:init_bind_transform_broadcaster',
+            'ros2_caret:init_tf_broadcaster_frame_id_compact',
+            'ros2_caret:init_tf_buffer_frame_id_compact',
+            'ros2_caret:init_tf_buffer_lookup_transform',
+            'ros2_caret:init_tf_buffer_set_transform',
+            'ros2_caret:inter_callback_duration',
+            'ros2_caret:inter_publish',
+            'ros2_caret:intra_callback_duration',
+            'ros2_caret:ipm_add_publisher',
+            'ros2_caret:ipm_add_subscription',
+            'ros2_caret:ipm_insert_sub_id_for_pub',
+            'ros2_caret:on_data_available',
+            'ros2_caret:rcl_init_caret',
+            'ros2_caret:rmw_implementation',
+            'ros2_caret:send_transform',
+            'ros2_caret:sim_time',
+            'ros2_caret:symbol_rename',
+            'ros2_caret:tf_buffer_find_closest',
+            'ros2_caret:tf_lookup_transform',
+            'ros2_caret:tf_lookup_transform',
+            'ros2_caret:tf_lookup_transform_end',
+            'ros2_caret:tf_lookup_transform_start',
+            'ros2_caret:tf_set_transform',
+            'ros2_caret:tilde_publish',
             'ros2_caret:tilde_publisher_init',
             'ros2_caret:tilde_subscribe',
-            'ros2_caret:tilde_publish',
             'ros2_caret:tilde_subscribe_added',
-            'ros2_caret:sim_time',
-            'ros2_caret:rcl_init_caret',
+            'ros2_caret:tilde_subscription_init',
         ]
 
     @staticmethod
@@ -295,7 +321,12 @@ class Ros2Handler(EventHandler):
         timestamp = metadata.timestamp
         pid = metadata.pid
         tid = metadata.tid
-        self.data.add_rclcpp_publisher_init(publisher_handle, caret_rclcpp_version, timestamp, pid, tid)
+        self.data.add_rclcpp_publisher_init(
+            publisher_handle,
+            caret_rclcpp_version,
+            timestamp,
+            pid,
+            tid)
 
     def _handle_rcl_subscription_init(
         self,
@@ -799,6 +830,7 @@ class Ros2Handler(EventHandler):
         metadata: EventMetadata
     ) -> None:
         publisher = get_field(event, 'publisher')
+        subscription_id = get_field(event, 'subscription_id')
         publish_tilde_timestamp = metadata.timestamp
         message_ids = get_field(event, 'message_ids')
         for message_id in message_ids:
@@ -807,6 +839,7 @@ class Ros2Handler(EventHandler):
                 metadata.tid,
                 publish_tilde_timestamp,
                 publisher,
+                subscription_id,
                 message_id)
 
     def _handle_tilde_subscribe_added(

@@ -39,6 +39,7 @@ from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import (
     CallbackGroupValueLttng,
     ClientCallbackValueLttng,
+    ExecutorValueLttng,
     IntraProcessBufferValueLttng,
     NodeValueLttng,
     PublisherValueLttng,
@@ -69,7 +70,6 @@ from ...record import (
 )
 from ...value_objects import (
     BroadcastedTransformValue,
-    ExecutorValue,
     NodeValue,
     Qos,
     TimerValue,
@@ -84,7 +84,7 @@ class Collection(Iterable):
     def __init__(self) -> None:
         self._data: DefaultDict = defaultdict(list)
 
-    def add(self, node_id: int, val: Any) -> None:
+    def add(self, node_id: str, val: Any) -> None:
         self._data[node_id].append(val)
 
     def gets(self, node: NodeValueLttng) -> List[Any]:
@@ -124,7 +124,7 @@ class LttngInfo:
         # TODO(hsgwa): check rmw_impl for each process.
         mapper = data.rmw_implementation.columns.get('rmw_impl').mapper
         self._rmw_implementation = mapper.get(data.rmw_implementation.data[0].get('rmw_impl')) \
-            if len(data.rmw_implementation) > 0 else ''
+            if len(data.rmw_implementation) > 0 else None
         self._timer_cbs = LttngInfo._load_timer_cbs(self._formatted)
         self._sub_cbs = LttngInfo._load_sub_cbs(self._formatted)
         self._srv_cbs = LttngInfo._load_srv_cbs(self._formatted)
@@ -152,7 +152,7 @@ class LttngInfo:
             record.get('subscription_handle') for record in sub_df.data
         }
 
-    def get_rmw_impl(self) -> str:
+    def get_rmw_impl(self) -> Optional[str]:
         """
         Get rmw implementation.
 
@@ -226,13 +226,21 @@ class LttngInfo:
         buffer_df = formatted.ipc_buffers_df
 
         for i in range(len(buffer_df)):
+            pid = buffer_df.iget(i, 'pid')
+            node_name = buffer_df.sget(i, 'node_name')
+            topic_name = buffer_df.sget(i, 'topic_name')
+            buffer = buffer_df.iget(i, 'buffer')
+            node_id = buffer_df.sget(i, 'node_id')
+            assert pid is not None
+            assert node_name is not None
+            assert topic_name is not None
+            assert buffer is not None
+            assert node_id is not None
+
             val = IntraProcessBufferValueLttng(
-                buffer_df.get(i, 'pid'),
-                buffer_df.get(i, 'node_name'),
-                buffer_df.get(i, 'topic_name'),
-                buffer_df.get(i, 'buffer'),
+                pid, node_name, topic_name, buffer
             )
-            buffers.add(buffer_df.get(i, 'node_id'), val)
+            buffers.add(node_id, val)
 
         return buffers
 
@@ -247,18 +255,20 @@ class LttngInfo:
             try:
                 transforms = []
                 for i in range(len(group)):
-                    source_frame_id = group.get(i, 'source_frame_id')
-                    target_frame_id = group.get(i, 'target_frame_id')
+                    source_frame_id = group.sget(i, 'source_frame_id')
+                    target_frame_id = group.sget(i, 'target_frame_id')
+                    assert source_frame_id is not None
+                    assert target_frame_id is not None
                     transforms.append(TransformValue(source_frame_id, target_frame_id))
 
-                if group.get(i, 'listener_node_id') is None \
-                        or group.get(i, 'lookup_node_id') is None:
+                if group.sget(i, 'listener_node_id') is None \
+                        or group.sget(i, 'lookup_node_id') is None:
                     continue
 
                 listener_node = Util.find_one(
-                    lambda x: x.node_id == group.get(i, 'listener_node_id'), nodes)
+                    lambda x: x.node_id == group.sget(i, 'listener_node_id'), nodes)
                 lookup_node = Util.find_one(
-                    lambda x: x.node_id == group.get(i, 'lookup_node_id'), nodes)
+                    lambda x: x.node_id == group.sget(i, 'lookup_node_id'), nodes)
 
                 listener_callbacks = self.get_subscription_callbacks(listener_node)
                 listener_callback = [
@@ -317,8 +327,11 @@ class LttngInfo:
         tfs: Set[BroadcastedTransformValue] = set()
         records = self._formatted.tf_frames_df
         for i in range(len(records)):
-            tfs.add(BroadcastedTransformValue(
-                records.get(i, 'frame_id'), records.get(i, 'child_frame_id')))
+            frame_id = records.sget(i, 'frame_id')
+            child_frame_id = records.sget(i, 'child_frame_id')
+            assert frame_id is not None
+            assert child_frame_id is not None
+            tfs.add(BroadcastedTransformValue(frame_id, child_frame_id))
         return list(tfs)
         # self._formatted.
         # for node in nodes:
@@ -396,10 +409,12 @@ class LttngInfo:
         duplicate_nodes = set()
 
         for i in range(len(nodes_df)):
-            node_name = nodes_df.get(i, 'node_name')
+            node_name = nodes_df.sget(i, 'node_name')
+            if node_name is None:
+                continue
 
             # Check LD_PRELOAD setting
-            lib_caret_version = nodes_df.get(i, 'lib_caret_version')
+            lib_caret_version = nodes_df.sget(i, 'lib_caret_version')
             if not lib_caret_version:
                 msg = ('Failed to found trace point added by LD_PRELOAD. '
                        'Measurement results will not be correct. '
@@ -408,13 +423,19 @@ class LttngInfo:
 
             if str(node_name).startswith('_ros2_cli'):
                 continue
-            node_id = nodes_df.get(i, 'node_id')
-            node_handle = nodes_df.get(i, 'node_handle')
+
             if node_name in added_nodes:
                 duplicate_nodes.add(node_name)
                 continue
             added_nodes.add(node_name)
-            pid = nodes_df.get(i, 'pid')
+
+            pid = nodes_df.iget(i, 'pid')
+            node_id = nodes_df.sget(i, 'node_id')
+            node_handle = nodes_df.iget(i, 'node_handle')
+            assert pid is not None
+            assert node_id is not None
+            assert node_handle is not None
+
             nodes.append(
                 NodeValueLttng(pid, node_name, node_handle, node_id, lib_caret_version)
             )
@@ -451,7 +472,7 @@ class LttngInfo:
     @lru_cache
     def _get_node_lttng(self, node: NodeValue) -> NodeValueLttng:
         nodes = self.get_nodes()
-        return Util.find_one(lambda x: x.node_name == node.node_name, nodes)
+        return Util.find_one(lambda x: x.id_value == node.id_value, nodes)
 
     @lru_cache
     def get_tf_broadcaster(
@@ -484,23 +505,24 @@ class LttngInfo:
 
     def is_intra_process_communication(
         self,
-        publisher: PublisherValueLttng,
+        publishers: Sequence[PublisherValueLttng],
         subscription: SubscriptionValueLttng,
     ) -> bool:
         df = self._formatted.ipm_df
+        for publisher in publishers:
+            df.filter_if(
+                lambda record:
+                    record.get('publisher_handle') == publisher.publisher_handle and
+                    record.get(
+                        'subscription_handle') == subscription.subscription_handle
+            )
 
-        df.filter_if(
-            lambda record:
-                record.get('publisher_handle') == publisher.publisher_handle and
-                record.get('subscription_handle') == subscription.subscription_handle
-        )
+            if len(df) > 0:
+                return True
 
-        if len(df) > 0:
-            return True
-
-        if publisher.publisher_handle in self._intra_pub_handles and \
-                subscription.subscription_handle in self._intra_sub_handles:
-            return True
+            if publisher.publisher_handle in self._intra_pub_handles and \
+                    subscription.subscription_handle in self._intra_sub_handles:
+                return True
         return False
 
     def _get_pub_lttng(self, node_name: str, topic_name: str) -> PublisherValueLttng:
@@ -547,20 +569,31 @@ class LttngInfo:
         subs_info = Collection()
 
         for i in range(len(sub_df)):
-            node_name = sub_df.get(i, 'node_name')
-            node_id = sub_df.get(i, 'node_id')
-            tilde_subscription = sub_df.get(i, 'tilde_subscription')
+            node_name = sub_df.sget(i, 'node_name')
+            node_id = sub_df.sget(i, 'node_id')
+            tilde_subscription = sub_df.iget(i, 'tilde_subscription')
+            pid = sub_df.iget(i, 'pid')
+            callback_id = sub_df.sget(i, 'callback_id')
+            topic_name = sub_df.sget(i, 'topic_name')
+            subscription_handle = sub_df.iget(i, 'subscription_handle')
+
+            assert node_name is not None
+            assert node_id is not None
+            assert pid is not None
+            assert callback_id is not None
+            assert topic_name is not None
+            assert subscription_handle is not None
 
             val = SubscriptionValueLttng(
-                    pid=sub_df.get(i, 'pid'),
-                    node_id=node_id,
-                    node_name=node_name,
-                    callback_id=sub_df.get(i, 'callback_id'),
-                    topic_name=sub_df.get(i, 'topic_name'),
-                    subscription_id='TODO',
-                    subscription_handle=sub_df.get(i, 'subscription_handle'),
-                    tilde_subscription=tilde_subscription
-                )
+                pid=pid,
+                node_id=node_id,
+                node_name=node_name,
+                callback_id=callback_id,
+                topic_name=topic_name,
+                subscription_id='TODO',
+                subscription_handle=subscription_handle,
+                tilde_subscription=tilde_subscription
+            )
             subs_info.add(node_id, val)
 
         return subs_info
@@ -570,8 +603,14 @@ class LttngInfo:
         m: DefaultDict = defaultdict(dict)
         records = self._formatted.tf_broadcaster_frame_id_df
         for i in range(len(self._formatted.tf_broadcaster_frame_id_df)):
-            broadcater_map = m[records.get(i, 'tf_broadcaster')]
-            broadcater_map[records.get(i, 'frame_id_compact')] = records.get(i, 'frame_id')
+            tf_br = records.iget(i, 'tf_broadcaster')
+            frame_id_compact = records.iget(i, 'frame_id_compact')
+            frame_id = records.sget(i, 'frame_id')
+            assert frame_id is not None
+            assert tf_br is not None
+            assert frame_id_compact is not None
+            broadcater_map = m[tf_br]
+            broadcater_map[frame_id_compact] = frame_id
         return m
 
     def get_tf_buffer_frame_compact_map(self, buffer_core: int) -> Dict[int, str]:
@@ -583,8 +622,16 @@ class LttngInfo:
         m: DefaultDict = defaultdict(dict)
         records = self._formatted.tf_buffer_frame_id_df
         for i in range(len(records)):
-            buffer_map = m[records.get(i, 'tf_buffer_core')]
-            buffer_map[records.get(i, 'frame_id_compact')] = records.get(i, 'frame_id')
+            tf_buff = records.iget(i, 'tf_buffer_core')
+            compact = records.iget(i, 'frame_id_compact')
+            frame_id = records.sget(i, 'frame_id')
+
+            assert tf_buff is not None
+            assert compact is not None
+            assert frame_id is not None
+
+            buffer_map = m[tf_buff]
+            buffer_map[compact] = frame_id
         return m
 
     def _load_sub_cbs(
@@ -750,8 +797,8 @@ class LttngInfo:
             caret_rclcpp_version = pub_df.get(i, 'caret_rclcpp_version')
             if not caret_rclcpp_version and pub_df.get(i, 'topic_name') != '/rosout':
                 msg = ('caret-rclcpp is not used in following publishers:\n'
-                        f'\tnode name: {pub_df.get(i, "node_name")},\n'
-                        f'\ttopic name: {pub_df.get(i, "topic_name")}')
+                       f'\tnode name: {pub_df.get(i, "node_name")},\n'
+                       f'\ttopic name: {pub_df.get(i, "topic_name")}')
                 logger.warning(msg)
 
             val = PublisherValueLttng(
@@ -802,23 +849,35 @@ class LttngInfo:
         pubs_info = []
 
         for i in range(len(pub_df)):
-            if pub_df.get(i, 'node_id') != node_id:
+            node_id_ = pub_df.sget(i, 'node_id')
+            topic_name = pub_df.sget(i, 'topic_name')
+            if node_id_ != node_id:
                 continue
-            if pub_df.get(i, 'topic_name') not in ['/tf', '/tf_static']:
+            if topic_name not in ['/tf', '/tf_static']:
                 continue
-            tilde_publisher = pub_df.get(i, 'tilde_publisher')
+            tilde_publisher = pub_df.iget(i, 'tilde_publisher')
+            pid = pub_df.iget(i, 'pid')
+            node_name = pub_df.sget(i, 'node_name')
+            publisher_handle = pub_df.iget(i, 'publisher_handle')
+            publisher_id = pub_df.sget(i, 'publisher_id')
+            lib_caret_version = pub_df.sget(i, 'caret_rclcpp_version')
+
+            assert pid is not None
+            assert node_name is not None
+            assert publisher_handle is not None
+            assert publisher_id is not None
 
             pubs_info.append(
                 PublisherValueLttng(
-                    pid=pub_df.get(i, 'pid'),
-                    node_name=pub_df.get(i, 'node_name'),
-                    topic_name=pub_df.get(i, 'topic_name'),
-                    node_id=pub_df.get(i, 'node_id'),
+                    pid=pid,
+                    node_name=node_name,
+                    topic_name=topic_name,
+                    node_id=node_id_,
                     callback_ids=None,
-                    publisher_handle=pub_df.get(i, 'publisher_handle'),
-                    publisher_id=pub_df.get(i, 'publisher_id'),
+                    publisher_handle=publisher_handle,
+                    publisher_id=publisher_id,
                     tilde_publisher=tilde_publisher,
-                    caret_rclcpp_version=pub_df.get(i, 'caret_rclcpp_version')
+                    caret_rclcpp_version=lib_caret_version
                 )
             )
 
@@ -897,7 +956,8 @@ class LttngInfo:
         node_lttng = self._get_node_lttng(node)
         return self._cbgs.gets(node_lttng)
 
-    def get_executors(self) -> List[ExecutorValue]:
+    @lru_cache
+    def get_executors(self) -> List[ExecutorValueLttng]:
         """
         Get executors information.
 
@@ -915,15 +975,24 @@ class LttngInfo:
             'executor_addr',
             'inner'
         )
-        execs = []
+        execs: List[ExecutorValueLttng] = []
 
         for i, (_, group) in enumerate(exec_df.groupby(['executor_addr']).items()):
-            executor_type_name = group.get(0, 'executor_type_name')
+            executor_type_name = group.sget(0, 'executor_type_name')
+            pid = group.iget(0, 'pid')
+            assert pid is not None
+            assert executor_type_name is not None
 
-            cbg_ids = [group.get(i, 'callback_group_id') for i in range(len(group))]
+            cbg_ids = []
+            for i in range(len(group)):
+                cbg_id = group.sget(i, 'callback_group_id')
+                assert cbg_id is not None
+                cbg_ids.append(cbg_id)
+
             executor_id = f'executor_{i}'
             execs.append(
-                ExecutorValue(
+                ExecutorValueLttng(
+                    pid,
                     executor_id,
                     executor_type_name,
                     tuple(cbg_ids))
@@ -932,8 +1001,9 @@ class LttngInfo:
         return execs
 
     def get_publisher_qos(self, publisher: PublisherValueLttng) -> Qos:
-        df = self._formatted.publishers_df
-        pub_df = df[df['publisher_handle'] == publisher.publisher_handle]
+        pub_df = self._formatted.publishers_df
+        pub_df.filter_if(lambda r: r.get('publisher_handle')
+                         == publisher.publisher_handle)
 
         if len(pub_df) == 0:
             raise InvalidArgumentError('No publisher matching the criteria was found.')
@@ -942,12 +1012,13 @@ class LttngInfo:
                 'Multiple publishers matching your criteria were found.'
                 'The value of the first publisher qos will be returned.')
 
-        depth = int(pub_df['depth'].values[0])
+        depth = pub_df.iget(0, 'depth')
+        assert depth is not None
         return Qos(depth)
 
     def get_subscription_qos(self, callback: SubscriptionCallbackValueLttng) -> Qos:
-        df = self._formatted.subscription_callbacks_df
-        sub_df = df[df['callback_object'] == callback.callback_object]
+        sub_df = self._formatted.subscription_callbacks_df
+        sub_df.filter_if(lambda r: r.get('callback_object') == callback.callback_object)
 
         if len(sub_df) == 0:
             raise InvalidArgumentError('No subscription matching the criteria was found.')
@@ -956,7 +1027,8 @@ class LttngInfo:
                 'Multiple publishers matching your criteria were found.'
                 'The value of the first publisher qos will be returned.')
 
-        depth = int(sub_df['depth'].values[0])
+        depth = sub_df.iget(0, 'depth')
+        assert depth is not None
         return Qos(depth)
 
     def get_timers(self, node: NodeValue) -> Sequence[TimerValue]:
@@ -1577,8 +1649,8 @@ class DataFrameFormatted:
     @staticmethod
     def _build_ipc_buffer_df(
         data: Ros2DataModel,
-        sub_df: pd.DataFrame,
-        node_df: pd.DataFarme
+        sub_df: RecordsInterface,
+        node_df: RecordsInterface,
     ):
         columns = [
             'pid', 'buffer', 'capacity', 'topic_name', 'node_name', 'node_id'
@@ -1597,16 +1669,16 @@ class DataFrameFormatted:
             join_left_key=['pid', 'tid'],
             join_right_key=['pid', 'tid'],
         )
-        records_ = data.rcl_subscription_init.clone()
+        records_ = sub_df.clone()
         records = merge(
-            records,
-            records_,
+            left_records=records,
+            right_records=records_,
+            # join_left_key=['subscription_handle', 'pid'],
+            # join_right_key=['subscription_handle', 'pid'],
             # TODO: fix this bug
-            # ['subscription_handle', 'pid'],
-            # ['subscription_handle', 'pid'],
-            ['subscription_handle'],
-            ['subscription_handle'],
-            'inner'
+            join_left_key=['subscription_handle'],
+            join_right_key=['subscription_handle'],
+            how='inner'
         )
         records = merge(
             records,
@@ -1619,7 +1691,6 @@ class DataFrameFormatted:
         records.columns.drop(set(records.column_names) - set(columns))
         records.columns.reindex(columns)
         records.drop_duplicates()
-        records_ = records.to_dataframe()
         return records
 
     @staticmethod
@@ -1838,7 +1909,7 @@ class DataFrameFormatted:
     def _build_executor_records(
         data: Ros2DataModel,
     ) -> pd.DataFrame:
-        columns = ['executor_id', 'executor_addr', 'executor_type_name']
+        columns = ['pid', 'executor_id', 'executor_addr', 'executor_type_name']
 
         records = data.construct_executor.clone()
 
@@ -2290,8 +2361,8 @@ class DataFrameFormatted:
             mapper.add(i+value_offset, cell_rule(i, d))
 
             values.append(i+value_offset)
-        column = ColumnValue(column_name, mapper=mapper)
-        records.append_column(column, values)
+        column_value = ColumnValue(column_name, mapper=mapper)
+        records.append_column(column_value, values)
         return None
 
     @staticmethod
@@ -2314,8 +2385,7 @@ class DataFrameFormatted:
         DataFrameFormatted._add_column(node_records, 'node_name', ns_and_node_name)
 
         def to_node_id(i: int, row: Dict) -> str:
-            node_name = row['node_name']
-            return f'{node_name}_{i}'
+            return f'node_{i}'
 
         DataFrameFormatted._add_column(node_records, 'node_id', to_node_id)
 

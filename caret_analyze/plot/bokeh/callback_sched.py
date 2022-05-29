@@ -192,6 +192,7 @@ def sched_plot_cbg(
                 y_start = rect_source.data['y'][1]+0.9
                 y_end = rect_source.data['y'][1]+rect_height
                 timer = callback.timer
+                assert timer is not None
                 df = timer.to_dataframe()
                 for item in df.itertuples():
                     timerstamp = item._1

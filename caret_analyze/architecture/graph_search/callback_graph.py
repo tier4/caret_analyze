@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Union
 from logging import getLogger
+from typing import List, Optional, Union
 
 from .graph_search import Graph, GraphNode, GraphPath
+from ..struct.callback_path import CallbackPathStruct
 from ..struct.struct_interface import (
     CallbackStructInterface,
     NodeInputType,
@@ -24,7 +25,6 @@ from ..struct.struct_interface import (
     NodeStructInterface,
     VariablePassingStructInterface,
 )
-from ..struct.callback_path import CallbackPathStruct
 from ...common import Util
 from ...exceptions import InvalidArgumentError, ItemNotFoundError
 

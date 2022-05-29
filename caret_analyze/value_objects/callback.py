@@ -556,5 +556,3 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
             'type': self.callback_type_name,
             'topic': self.subscribe_topic_name
         })
-
-

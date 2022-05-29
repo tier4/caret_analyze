@@ -60,7 +60,7 @@ class RecordsMerged:
         left_records = first_element
 
         for column in left_records.columns:
-            column.add_prefix('0')
+            column.add_suffix('0')
 
         first_column = first_element.columns[0]
 
@@ -79,8 +79,11 @@ class RecordsMerged:
                 ColumnAttribute.NODE_IO
             ])
 
-            right_records.columns[0].add_prefix(f'{i}')
-            right_records.columns[1].add_prefix(f'{i+1}')
+            right_records.columns[0].add_suffix(f'{i}')
+            for j in range(len(right_records.columns)):
+                if j == 0:
+                    continue
+                right_records.columns[j].add_suffix(f'{i+1}')
             # rename_rule = column_merger.append_columns_and_return_rename_rule(
             #     right_records)
             # right_records.columns.rename(rename_rule)

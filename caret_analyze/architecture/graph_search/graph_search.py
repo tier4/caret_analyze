@@ -18,11 +18,20 @@ from collections import defaultdict, UserList
 from copy import deepcopy
 from itertools import product
 from logging import getLogger
-from typing import DefaultDict, Dict, List, Optional, Set, Tuple, Sequence
+from typing import (
+    DefaultDict,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+)
+
 from multimethod import multimethod as singledispatchmethod
 
-from ...value_objects.value_object import ValueObject
 from ...exceptions import InvalidArgumentError
+from ...value_objects.value_object import ValueObject
 
 logger = getLogger(__name__)
 

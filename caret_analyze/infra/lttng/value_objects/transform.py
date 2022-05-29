@@ -16,13 +16,15 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ..value_objects import PublisherValueLttng, SubscriptionCallbackValueLttng
-
+from ..value_objects import (
+    PublisherValueLttng,
+    SubscriptionCallbackValueLttng,
+)
 from ....value_objects import (
+    BroadcastedTransformValue,
     TransformBroadcasterValue,
     TransformBufferValue,
     TransformValue,
-    BroadcastedTransformValue,
 )
 
 
@@ -60,7 +62,7 @@ class TransformBufferValueLttng(TransformBufferValue):
         listener_node_name: Optional[str],
         listener_node_id: Optional[str],
         lookup_transforms: Optional[Tuple[TransformValue, ...]],
-        listen_transforms: Optional[Tuple[TransformValue, ...]],
+        listen_transforms: Optional[Tuple[BroadcastedTransformValue, ...]],
         buffer_handler: int,
         listener_callback: SubscriptionCallbackValueLttng,
     ) -> None:

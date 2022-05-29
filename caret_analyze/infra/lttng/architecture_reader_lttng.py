@@ -19,14 +19,17 @@ from typing import Dict, List, Optional, Sequence, Union
 
 from . import Lttng
 from .value_objects import (
+    IntraProcessBufferValueLttng,
     PublisherValueLttng,
     TimerCallbackValueLttng,
     TransformBroadcasterValueLttng,
     TransformBufferValueLttng,
-    IntraProcessBufferValueLttng,
 )
-from ...architecture.reader_interface import IGNORE_TOPICS, ArchitectureReader
+from ...architecture.reader_interface import ArchitectureReader, IGNORE_TOPICS
+from ...exceptions import Error
 from ...value_objects import (
+    BroadcastedTransformValue,
+    CallbackGroupValue,
     ClientCallbackValue,
     ExecutorValue,
     NodeValue,
@@ -42,10 +45,7 @@ from ...value_objects import (
     TransformValue,
     UseLatestMessage,
     VariablePassingValue,
-    CallbackGroupValue,
-    BroadcastedTransformValue
 )
-from ...exceptions import Error
 
 
 class ArchitectureReaderLttng(ArchitectureReader):
@@ -83,7 +83,6 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[Dict]:
-
         class TfFrameBroadcasterLocal:
 
             def __init__(self, transform: BroadcastedTransformValue) -> None:

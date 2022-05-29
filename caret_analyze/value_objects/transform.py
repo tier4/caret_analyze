@@ -13,23 +13,29 @@
 # limitations under the License.
 
 from __future__ import annotations
-from collections import defaultdict
 
-from copy import deepcopy
-from email.policy import default
-from functools import lru_cache
+from itertools import product
+from typing import (
+    Collection,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
+
 from multimethod import multimethod as singledispatchmethod
-from itertools import groupby, product
-
-from typing import DefaultDict, Optional, Sequence, Set, Tuple, Collection, List, Dict
-
 
 from .publisher import PublisherStructValue, PublisherValue
-from ..common.util import Util
-from ..value_objects.value_object import ValueObject
-from ..value_objects.subscription import SubscriptionStructValue
-from ..value_objects.callback import SubscriptionCallbackStructValue
-from ..exceptions import ItemNotFoundError, InvalidArgumentError
+from .subscription import (
+    SubscriptionCallbackStructValue,
+    SubscriptionStructValue,
+)
+from .value_object import ValueObject
+from ..exceptions import (
+    InvalidArgumentError,
+    ItemNotFoundError,
+)
 
 
 class TransformValue(ValueObject):
@@ -438,7 +444,7 @@ class TransformCommunicationStructValue():
         return self._broadcaster.node_name
 
     @property
-    def subscribe_node_name(self) -> str:
+    def subscribe_node_name(self) -> Optional[str]:
         return self._buffer.listener_node_name
 
     @property

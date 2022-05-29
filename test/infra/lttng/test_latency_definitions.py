@@ -43,12 +43,11 @@ from caret_analyze.value_objects import (
 import pandas as pd
 
 import pytest
-from pytest_mock import MockerFixture
 
 
 @pytest.fixture
 def bridge_mock(
-    mocker: MockerFixture,
+    mocker,
 ):
     bridge_mock = mocker.Mock(spec=LttngBridge)
     mocker.patch(
@@ -60,8 +59,8 @@ def bridge_mock(
 
 @pytest.fixture
 def create_lttng(
-    mocker: MockerFixture,
-    bridge_mock: MockerFixture,
+    mocker,
+    bridge_mock,
 ):
     def _lttng(data: Ros2DataModel):
         mocker.patch.object(Lttng, '_parse_lttng_data',
@@ -74,7 +73,7 @@ def create_lttng(
 
 @pytest.fixture
 def create_publisher_lttng(
-    mocker: MockerFixture,
+    mocker,
 ):
     def _create_publisher_lttng(
         pub_handle: int,
@@ -90,7 +89,7 @@ def create_publisher_lttng(
 
 @pytest.fixture
 def create_subscription_lttng(
-    mocker: MockerFixture,
+    mocker,
 ):
     def _create(
         callback_object: int,
@@ -113,7 +112,7 @@ def create_subscription_lttng(
 
 @pytest.fixture
 def create_subscription_callback_struct(
-    mocker: MockerFixture,
+    mocker,
 ):
     def _create(
         node_name: str = 'node_name',
@@ -130,7 +129,7 @@ def create_subscription_callback_struct(
 
 @pytest.fixture
 def create_subscription_struct(
-    mocker: MockerFixture,
+    mocker,
 ):
     def _create(
         node_name: str = 'node_name',
@@ -152,7 +151,7 @@ def create_subscription_struct(
 
 @pytest.fixture
 def create_publisher_struct(
-    mocker: MockerFixture,
+    mocker,
 ):
     def _create_publisher_lttng(topic_name: str = 'topic_name'):
         publisher = mocker.Mock(spec=PublisherStructValue)
@@ -219,7 +218,7 @@ def create_timer_cb_lttng(mocker):
 
 @pytest.fixture
 def setup_bridge_get_publisher(
-    mocker: MockerFixture,
+    mocker,
     bridge_mock,
 ):
     pub_map: Dict[PublisherStructValue, Sequence[PublisherValueLttng]] = {}
@@ -242,7 +241,7 @@ def setup_bridge_get_publisher(
 
 @pytest.fixture
 def bridge_setup_get_callback(
-    mocker: MockerFixture,
+    mocker,
     bridge_mock,
 ):
 
@@ -776,7 +775,7 @@ class TestNodeRecords:
 
     def test_callback_chain(
         self,
-        mocker: MockerFixture,
+        mocker,
         create_lttng,
         create_publisher_lttng,
         setup_bridge_get_publisher,
@@ -925,7 +924,7 @@ class TestNodeRecords:
 
     def test_use_latest_message(
         self,
-        mocker: MockerFixture,
+        mocker,
         create_lttng,
         create_publisher_lttng,
         setup_bridge_get_publisher,
@@ -998,7 +997,7 @@ class TestNodeRecords:
 
     def test_tilde(
         self,
-        mocker: MockerFixture,
+        mocker,
         create_lttng,
         create_publisher_lttng,
         setup_bridge_get_publisher,
@@ -1090,7 +1089,7 @@ class TestCommunicationRecords:
 
     def test_inter_proc(
         self,
-        mocker: MockerFixture,
+        mocker,
         create_lttng,
         create_publisher_lttng,
         setup_bridge_get_publisher,
@@ -1165,7 +1164,7 @@ class TestCommunicationRecords:
 
     def test_intra_proc(
         self,
-        mocker: MockerFixture,
+        mocker,
         create_lttng,
         create_publisher_lttng,
         setup_bridge_get_publisher,
@@ -1231,7 +1230,7 @@ class TestTimerRecords:
 
     def test_timer(
         self,
-        mocker: MockerFixture,
+        mocker,
         create_lttng,
         create_timer_struct,
         create_timer_cb_lttng,
@@ -1310,7 +1309,7 @@ class TestVarPassRecords:
 
     def test_var_pass(
         self,
-        mocker: MockerFixture,
+        mocker,
         create_lttng,
         create_callback_lttng,
         create_callback_struct,

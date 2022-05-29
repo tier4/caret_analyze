@@ -64,7 +64,7 @@ class TransformFrameBuffer(PathBase):
     #     return self._buff.summary
 
     def _to_records_core(self) -> RecordsInterface:
-        return self._provider.tf_set_lookup_records(self._buff)
+        return self._provider.tf_lookup_records(self._buff)
 
     def _get_clock_converter(self) -> Optional[ClockConverter]:
         return self._provider.get_sim_time_converter()

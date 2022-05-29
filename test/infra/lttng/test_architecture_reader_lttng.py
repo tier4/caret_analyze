@@ -14,151 +14,248 @@
 
 
 from caret_analyze.infra.lttng import Lttng
-from caret_analyze.infra.lttng.architecture_reader_lttng import \
-    ArchitectureReaderLttng
-from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
-                                         NodeValue, PublisherValue,
-                                         SubscriptionCallbackValue,
-                                         TimerCallbackValue)
+from caret_analyze.infra.lttng.architecture_reader_lttng import ArchitectureReaderLttng
+from caret_analyze.infra.lttng.lttng_info import LttngInfo
+from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
+from caret_analyze.infra.lttng.value_objects import (
+    IntraProcessBufferValueLttng,
+    NodeValueLttng,
+    PublisherValueLttng,
+    ServiceCallbackValueLttng,
+    SubscriptionValueLttng,
+    TransformBroadcasterValueLttng,
+    TransformBufferValueLttng,
+)
+from caret_analyze.value_objects import (
+    BroadcastedTransformValue,
+    CallbackGroupValue,
+    ClientCallbackValue,
+    ExecutorValue,
+    PublisherValue,
+    SubscriptionCallbackValue,
+    TimerCallbackValue,
+    TimerValue,
+)
 
+import pytest
 
 
 class TestArchitectureReaderLttng:
 
-    def test_get_nodes(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
+    @pytest.fixture
+    def lttng_info_mock(self, mocker):
 
-        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[])
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
+        lttng_info_mock = mocker.Mock(spec=LttngInfo)
+        mocker.patch.object(lttng_info_mock, 'get_callback_groups', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_client_callbacks', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_executors', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_ipc_buffers', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_nodes', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_publisher_qos', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_publishers', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_rmw_impl', return_value=None)
+        mocker.patch.object(lttng_info_mock, 'get_service_callbacks', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_subscription_callbacks', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_subscription_qos', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_subscriptions', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_tf_broadcaster', return_value=None)
+        mocker.patch.object(lttng_info_mock, 'get_tf_buffer', return_value=None)
+        mocker.patch.object(lttng_info_mock, 'get_tf_frames', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_timer_callbacks', return_value=[])
+        mocker.patch.object(lttng_info_mock, 'get_timers', return_value=[])
+        return lttng_info_mock
+
+    @pytest.fixture
+    def create_lttng(self, mocker):
+        def _create(lttng_info):
+            data = Ros2DataModel()
+            data.finalize()
+            mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data, {}))
+            mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+                         return_value=lttng_info)
+            lttng = Lttng('')
+            return lttng
+        return _create
+
+    def test_get_nodes(self, mocker, create_lttng, lttng_info_mock):
+        node_mock = mocker.Mock(spec=NodeValueLttng)
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
         assert reader.get_nodes() == []
 
-        node = NodeValue('node_name')
-        mocker.patch.object(lttng_mock, 'get_nodes', return_value=[node])
-        reader = ArchitectureReaderLttng(lttng_mock)
-        assert reader.get_nodes() == [node]
+        mocker.patch.object(lttng_info_mock, 'get_nodes', return_value=[node_mock])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_nodes() == [node_mock]
 
-    def test_get_publishers(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
-
-        mocker.patch.object(lttng_mock, 'get_publishers', return_value=[])
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
-        node = NodeValue('node_name')
-        assert reader.get_publishers(node) == []
+    def test_get_publishers(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_publishers('/node') == []
 
         pub_mock = mocker.Mock(spec=PublisherValue)
-        mocker.patch.object(lttng_mock, 'get_publishers', return_value=[pub_mock])
-        reader = ArchitectureReaderLttng(lttng_mock)
-        assert reader.get_publishers(node) == [pub_mock]
+        mocker.patch.object(lttng, 'get_publishers', return_value=[pub_mock])
 
-    def test_get_timer_callbacks(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
+        expect = mocker.Mock(PublisherValueLttng)
+        mocker.patch.object(lttng_info_mock, 'get_publishers', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_publishers('/node') == [pub_mock]
 
-        mocker.patch.object(lttng_mock, 'get_timer_callbacks', return_value=[])
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
-
-        node = NodeValue('node_name')
-        assert reader.get_timer_callbacks(node) == []
+    def test_get_timer_callbacks(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_timer_callbacks('/node') == []
 
         timer_cb_mock = mocker.Mock(spec=TimerCallbackValue)
-        mocker.patch.object(lttng_mock, 'get_timer_callbacks', return_value=[timer_cb_mock])
-        reader = ArchitectureReaderLttng(lttng_mock)
-        assert reader.get_timer_callbacks(node) == [timer_cb_mock]
+        mocker.patch.object(lttng_info_mock, 'get_timer_callbacks', return_value=[timer_cb_mock])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_timer_callbacks('/node') == [timer_cb_mock]
 
-    def test_get_subscription_callbacks(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
+    def test_get_subscription_callbacks(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_subscription_callbacks('') == []
 
-        mocker.patch.object(lttng_mock, 'get_subscription_callbacks', return_value=[])
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
-        node = NodeValue('node_name')
-        assert reader.get_subscription_callbacks(node) == []
+        expect = mocker.Mock(spec=SubscriptionCallbackValue)
+        mocker.patch.object(lttng_info_mock, 'get_subscription_callbacks', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_subscription_callbacks('') == [expect]
 
-        subscription_cb_mock = mocker.Mock(spec=SubscriptionCallbackValue)
-        mocker.patch.object(
-            lttng_mock, 'get_subscription_callbacks', return_value=[subscription_cb_mock])
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
-        assert reader.get_subscription_callbacks(node) == [subscription_cb_mock]
-
-    def test_get_executors(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
-
-        mocker.patch.object(lttng_mock, 'get_executors', return_value=[])
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
+    def test_get_executors(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
         assert reader.get_executors() == []
 
-        exec_mock = mocker.Mock(spec=ExecutorValue)
-        mocker.patch.object(lttng_mock, 'get_executors', return_value=[exec_mock])
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
-        assert reader.get_executors() == [exec_mock]
+        expect = mocker.Mock(spec=ExecutorValue)
+        mocker.patch.object(lttng_info_mock, 'get_executors', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_executors() == [expect]
 
-    def test_get_variable_passings(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
-        node = NodeValue('node_name')
-        assert reader.get_variable_passings(node) == []
+    def test_get_variable_passings(self, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_variable_passings('') == []
 
-    def test_get_named_paths(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
+    def test_get_named_paths(self, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
         assert reader.get_paths() == []
 
-    def test_get_subscriptions(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
+    def test_get_subscriptions(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_subscription_callbacks('') == []
 
-        mocker.patch.object(
-            lttng_mock,
-            'get_subscription_callbacks',
-            return_value=[])
-        node_ = NodeValue('node_name')
-        assert reader.get_subscriptions(node_) == []
+        expect = mocker.Mock(SubscriptionValueLttng)
+        mocker.patch.object(lttng_info_mock, 'get_subscriptions', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        subs = reader.get_subscriptions('')
+        assert subs == [expect]
 
-        node = ['node0', 'node1']
-        node_id = ['node0_id', 'node1_id']
-        topic = ['topic0', 'topic1']
-        symbol = ['symbol0', 'symbol1']
-        callback_id = ['callback0', 'callback1']
+    def test_get_callback_groups(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_callback_groups('') == []
 
-        sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None)
-        sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None)
+        expect = mocker.Mock(spec=CallbackGroupValue)
+        mocker.patch.object(lttng_info_mock, 'get_callback_groups', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        cbgs = reader.get_callback_groups('')
+        assert cbgs == [expect]
 
-        mocker.patch.object(
-            lttng_mock,
-            'get_subscription_callbacks',
-            return_value=[sub_cb_0, sub_cb_1])
+    def test_get_timers(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_timers('') == []
 
-        subs = reader.get_subscriptions(node_)
-        for i, sub in enumerate(subs):
-            assert sub.node_name == node[i]
-            assert sub.node_id == node_id[i]
-            assert sub.topic_name == topic[i]
-            assert sub.callback_id == callback_id[i]
+        expect = mocker.Mock(TimerValue)
+        mocker.patch.object(lttng_info_mock, 'get_timers', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        values = reader.get_timers('')
+        assert values == [expect]
 
-    def test_get_callback_groups(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
-        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
-        reader = ArchitectureReaderLttng('trace_dir')
-        mocker.patch.object(lttng_mock, 'get_callback_groups', return_value=[])
-        node_ = NodeValue('node_name')
-        assert reader.get_callback_groups(node_) == []
+    def test_get_tf_frames(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_tf_frames() == []
 
-        cbg = mocker.Mock(spec=CallbackGroupValue)
+        expect = BroadcastedTransformValue(
+            'frame_id', 'child_frame_id'
+        )
+        mocker.patch.object(lttng_info_mock, 'get_tf_frames', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        values = reader.get_tf_frames()
+        assert values == [expect]
 
-        mocker.patch.object(
-            lttng_mock,
-            'get_callback_groups',
-            return_value=[cbg])
+    def test_get_ipc_buffers(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_ipc_buffers('') == []
 
-        cbgs = reader.get_callback_groups(node_)
-        assert cbgs == [cbg]
+        expect = mocker.Mock(IntraProcessBufferValueLttng)
+        mocker.patch.object(lttng_info_mock, 'get_ipc_buffers', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        values = reader.get_ipc_buffers('')
+        assert values == [expect]
+
+    def test_tf_broadcaster(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_tf_broadcaster('') is None
+
+        expect = mocker.Mock(TransformBroadcasterValueLttng)
+        mocker.patch.object(lttng_info_mock, 'get_tf_broadcaster', return_value=expect)
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        values = reader.get_tf_broadcaster('')
+        assert values == expect
+
+    def test_tf_buffer(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_tf_buffer('') is None
+
+        expect = mocker.Mock(TransformBufferValueLttng)
+        mocker.patch.object(lttng_info_mock, 'get_tf_buffer', return_value=expect)
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        values = reader.get_tf_buffer('')
+        assert values == expect
+
+    def test_client_callbacks(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_tf_buffer('') is None
+
+        expect = mocker.Mock(ClientCallbackValue)
+        mocker.patch.object(lttng_info_mock, 'get_client_callbacks', return_value=expect)
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        values = reader.get_client_callbacks('')
+        assert values == expect
+
+    def test_service_callbacks(self, mocker, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_tf_buffer('') is None
+
+        expect = mocker.Mock(ServiceCallbackValueLttng)
+        mocker.patch.object(lttng_info_mock, 'get_service_callbacks', return_value=[expect])
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        values = reader.get_service_callbacks('')
+        assert values == [expect]
+
+    def test_message_contexts(self, create_lttng, lttng_info_mock):
+        lttng = create_lttng(lttng_info_mock)
+        reader = ArchitectureReaderLttng(lttng)
+        assert reader.get_message_contexts('') == []

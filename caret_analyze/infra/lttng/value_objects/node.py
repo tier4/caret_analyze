@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from ....value_objects import NodeValue
 
 
@@ -24,7 +26,7 @@ class NodeValueLttng(NodeValue):
         node_name: str,
         node_handle: int,
         node_id: str,
-        lib_caret_version: str,
+        lib_caret_version: Optional[str],
     ):
         super().__init__(node_name, node_id)
         self._pid = pid
@@ -43,7 +45,7 @@ class NodeValueLttng(NodeValue):
     @property
     def node_id(self) -> str:
         return self._node_id
-    
+
     @property
-    def lib_caret_version(self) -> str:
+    def lib_caret_version(self) -> Optional[str]:
         return self._lib_caret_version

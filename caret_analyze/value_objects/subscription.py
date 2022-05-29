@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple, Union
+from typing import Optional
 
 from .callback import SubscriptionCallbackStructValue
-from .value_object import ValueObject, IdValue
+from .value_object import IdValue, ValueObject
 from ..common import Summarizable, Summary
 
 

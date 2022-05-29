@@ -107,8 +107,8 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         initial_timestamp,
         callback_name
     ) -> Tuple[list, list]:
-        timestamp_list = []
-        frequency_list = []
+        timestamp_list: List[int] = []
+        frequency_list: List[int] = []
         diff_base = -1
 
         for timestamp in timestamp_df[callback_name].dropna():
@@ -128,11 +128,12 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         if len(initial_timestamp) != len(timestamp_df.columns):
             if len(initial_timestamp) == 1:
                 initial_timestamp = [
-                    initial_timestamp[0] for i in range(len(timestamp_df.columns))]
+                    initial_timestamp[0] for i in range(len(timestamp_df.columns))]  # type: ignore
             else:
                 # TODO: Emit an exception when latency_table size is 0.
                 initial_timestamp = [
-                    timestamp_df.iloc(0).mean for i in range(len(timestamp_df.columns))]
+                    timestamp_df.iloc(0).mean for i in range(len(timestamp_df.columns))
+                ]  # type: ignore
 
         for initial, callback_name in zip(initial_timestamp, timestamp_df.columns):
             timestamp, frequency = self._get_cb_freq_with_timestamp(

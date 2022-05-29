@@ -20,14 +20,12 @@ from caret_analyze.record import (
 
 from caret_analyze.record.column import ColumnAttribute, ColumnEventObserver, ColumnMapper
 
-from pytest_mock import MockerFixture
-
 import pytest
 
 
 class TestColumn:
 
-    def test_eq(self, mocker: MockerFixture):
+    def test_eq(self, mocker):
         observer_mock = mocker.Mock(spec=ColumnEventObserver)
         column = Column(observer_mock, 'name')
         column_ = Column(observer_mock, 'name')
@@ -39,13 +37,13 @@ class TestColumn:
         assert column != column_
         assert column.to_value() != column_.to_value()
 
-    def test_column_name(self, mocker: MockerFixture):
+    def test_column_name(self, mocker):
         observer_mock = mocker.Mock(spec=ColumnEventObserver)
         column = Column(observer_mock, 'name')
 
         assert column.column_name == 'name'
 
-    def test_create_renamed(self, mocker: MockerFixture):
+    def test_create_renamed(self, mocker):
         observer_mock = mocker.Mock(spec=ColumnEventObserver)
         column = Column(observer_mock, 'old')
 

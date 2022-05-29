@@ -15,7 +15,14 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Any, Iterable, Iterator, Optional, Dict, Set
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    Optional,
+    Set,
+)
 
 from caret_analyze.value_objects.callback import SubscriptionCallbackStructValue
 from caret_analyze.value_objects.subscription import (
@@ -27,8 +34,8 @@ from .struct_interface import (
     CallbacksStructInterface,
     CallbackStructInterface,
     PublisherStructInterface,
-    SubscriptionStructInterface,
     SubscriptionsStructInterface,
+    SubscriptionStructInterface,
 )
 from ...exceptions import ItemNotFoundError
 from ...value_objects import (

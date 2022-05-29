@@ -313,6 +313,7 @@ class NodesLoaded:
 
 
 class PublishersLoaded:
+
     def __init__(
         self,
         publishers_info: Tuple[PublisherStructValue, ...],

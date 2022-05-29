@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-from functools import singledispatchmethod
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
@@ -25,7 +24,6 @@ from tracetools_analysis.loading import load_file
 
 from .event_filter import (
     Event,
-    InitEventPassFilter,
     LttngEventFilter,
 )
 from .records_post_process import post_process_records
@@ -57,13 +55,12 @@ from ...value_objects import (
     NodeValue,
     PublisherStructValue,
     Qos,
-    SubscriptionCallbackStructValue,
     SubscriptionStructValue,
+    TimerStructValue,
     TimerValue,
     TransformCommunicationStructValue,
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
-    TimerStructValue,
     VariablePassingStructValue,
 )
 
@@ -113,9 +110,7 @@ class Lttng(InfraBase):
         self._info = LttngInfo(data)
         self._bridge = LttngBridge(self._info)
         self._source: RecordsSource = RecordsSource(data, self._bridge, self._info)
-        skip_validation = len(event_filters) == 1 and \
-            isinstance(event_filters[0], InitEventPassFilter)
-        self._counter = EventCounter(data, self._info, validation=not skip_validation)
+        self._counter = EventCounter(data, self._info)
         self.events = events if store_events else None
         self.tf_frame_id_mapper = self._init_tf_column_mapper()
 
@@ -210,7 +205,7 @@ class Lttng(InfraBase):
 
     def get_rmw_impl(
         self
-    ) -> str:
+    ) -> Optional[str]:
         """
         Get rmw implementation.
 
@@ -347,7 +342,7 @@ class Lttng(InfraBase):
 
     def get_publisher_qos(
         self,
-        pub: PublisherValueLttng
+        pub: PublisherStructValue
     ) -> Qos:
         """
         Get publisher qos.
@@ -362,18 +357,19 @@ class Lttng(InfraBase):
         Qos
 
         """
-        return self._info.get_publisher_qos(pub)
+        pubs = self._bridge.get_publishers(pub)
+        return self._info.get_publisher_qos(pubs[0])
 
     def get_subscription_qos(
         self,
-        sub: SubscriptionCallbackValueLttng
+        sub: SubscriptionStructValue
     ) -> Qos:
         """
         Get subscription qos.
 
         Parameters
         ----------
-        sub : SubscriptionCallbackValueLttng
+        sub : SubscriptionValueLttng
             target subscription
 
         Returns
@@ -381,7 +377,8 @@ class Lttng(InfraBase):
         Qos
 
         """
-        return self._info.get_subscription_qos(sub)
+        sub_lttng = self._bridge.get_subscription_callback(sub.callback)
+        return self._info.get_subscription_qos(sub_lttng)
 
     def get_sim_time_converter(
         self
@@ -441,10 +438,8 @@ class Lttng(InfraBase):
         subscription: SubscriptionStructValue,
     ) -> bool:
         publishers_lttng = self._bridge.get_publishers(publisher)
-        assert len(publishers_lttng) == 1
-        publisher_lttng = publishers_lttng[0]
         subscription_lttng = self._bridge.get_subscription(subscription)
-        return self._info.is_intra_process_communication(publisher_lttng, subscription_lttng)
+        return self._info.is_intra_process_communication(publishers_lttng, subscription_lttng)
 
     def get_inter_proc_tf_comm_records(
         self,
@@ -525,25 +520,13 @@ class Lttng(InfraBase):
         self,
         timer: TimerStructValue,
     ) -> RecordsInterface:
-        return self._source.timer_callback(timer)
+        return self._source.get_timer_records(timer)
 
-    @singledispatchmethod
-    def get_subscribe_records(self, args) -> RecordsInterface:
-        raise NotImplementedError('')
-
-    @get_subscribe_records.register
-    def _get_subscribe_records(
+    def get_subscribe_records(
         self,
         subscription: SubscriptionStructValue
     ) -> RecordsInterface:
         return self._source.subscribe_records(subscription)
-
-    @get_subscribe_records.register
-    def _get_subscribe_records_callback(
-        self,
-        callback: SubscriptionCallbackStructValue
-    ) -> RecordsInterface:
-        return self._source.subscribe_records(callback)
 
     # def create_timer_events_factory(
     #     self,
@@ -565,13 +548,13 @@ class Lttng(InfraBase):
         self,
         broadcaster: TransformFrameBroadcasterStructValue,
     ) -> RecordsInterface:
-        return self._source.send_transform_records(broadcaster).clone()
+        return self._source.send_transform_records(broadcaster)
 
     def get_lookup_transform(
         self,
         buffer: TransformFrameBufferStructValue,
     ) -> RecordsInterface:
-        return self._source.lookup_transform_records(buffer).clone()
+        return self._source.lookup_transform_records(buffer)
 
     def get_node_tilde(
         self,

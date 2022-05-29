@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod, ABCMeta
+from abc import ABCMeta, abstractmethod
 
 from typing import Dict, Optional
 

@@ -13,10 +13,12 @@
 # limitations under the License.
 
 
-from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.records_post_process import (
-    unify_callback_records, unify_publish_records, unify_tf_lookup_records
+    unify_callback_records,
+    unify_publish_records,
+    unify_tf_lookup_records,
 )
+from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 
 
 class TestCallbackRecordsPostProcess:

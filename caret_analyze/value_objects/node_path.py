@@ -18,6 +18,7 @@ from logging import getLogger
 from typing import Optional, Tuple, Union
 
 from .callback import CallbackStructValue, SubscriptionCallbackStructValue
+from .callback_path import CallbackPathStructValue
 from .message_context import MessageContext, MessageContextType
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
@@ -25,7 +26,6 @@ from .transform import (
     TransformFrameBroadcasterStructValue,
     TransformFrameBufferStructValue,
 )
-from .callback_path import CallbackPathStructValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue
 from ..common import Summarizable, Summary, Util
@@ -59,7 +59,8 @@ class NodePathValue(ValueObject):
         self._buffer_lookup_source_frame_id = buffer_lookup_source_frame_id
         self._buffer_lookup_target_frame_id = buffer_lookup_target_frame_id
         if buffer_lookup_source_frame_id is not None or buffer_lookup_target_frame_id is not None:
-            assert buffer_lookup_source_frame_id is not None and buffer_lookup_target_frame_id is not None
+            assert buffer_lookup_source_frame_id is not None
+            assert buffer_lookup_target_frame_id is not None
         # TODO(hsgwa) insert assertion here.
 
     @property

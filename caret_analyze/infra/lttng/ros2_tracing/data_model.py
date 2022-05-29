@@ -15,11 +15,22 @@
 
 """Module for ROS 2 data model."""
 
-from typing import Dict, Optional, List
+from typing import (
+    Dict,
+    List,
+    Optional,
+)
 
-from caret_analyze.record.column import ColumnAttribute, ColumnMapper, ColumnValue, Column
-from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
-
+from caret_analyze.record.column import (
+    Column,
+    ColumnAttribute,
+    ColumnMapper,
+    ColumnValue,
+)
+from caret_analyze.record.record_factory import (
+    RecordFactory,
+    RecordsFactory,
+)
 from tracetools_analysis.data_model import DataModel
 
 
@@ -206,6 +217,19 @@ class Ros2DataModel(DataModel):
                 ColumnValue('node_handle'),
             ]
         )
+
+        self.rcl_lifecycle_transition = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('pid'),
+                ColumnValue('tid'),
+                ColumnValue('state_machine_handle'),
+                ColumnValue('timestamp'),
+                ColumnValue('start_label', mapper=ColumnMapper()),
+                ColumnValue('goal_label', mapper=ColumnMapper()),
+            ]
+        )
+
         self.construct_executor = RecordsFactory.create_instance(
             None,
             [
@@ -834,6 +858,8 @@ class Ros2DataModel(DataModel):
             ]
         )
         self._frame_idx: Dict[str, int] = {}
+        self._lifecycle_state: Dict[str, int] = {}
+        self._symbol_renames: Dict[str, str] = {}
 
     def set_offset(self, timestamp: int, timestamp_raw: int) -> None:
         self._raw_offset = timestamp - timestamp_raw
@@ -900,7 +926,7 @@ class Ros2DataModel(DataModel):
         )
 
     def add_rcl_publisher_init(
-        self, pid, tid, handle, timestamp, node_handle, rmw_handle, topic_name, depth
+        self, pid, tid, publisher_handle, timestamp, node_handle, rmw_handle, topic_name, depth
     ) -> None:
         topic_name_idx = len(self.rcl_publisher_init)
         mapper = self.rcl_publisher_init.columns.get('topic_name').mapper
@@ -909,7 +935,7 @@ class Ros2DataModel(DataModel):
         self.rcl_publisher_init.append(
             RecordFactory.create_instance(
                 {
-                    'publisher_handle': handle,
+                    'publisher_handle': publisher_handle,
                     'timestamp': timestamp,
                     'node_handle': node_handle,
                     'rmw_handle': rmw_handle,
@@ -921,7 +947,9 @@ class Ros2DataModel(DataModel):
             )
         )
 
-    def add_rclcpp_publisher_init(self, publisher_handle, caret_rclcpp_version, timestamp, pid, tid) -> None:
+    def add_rclcpp_publisher_init(
+        self, publisher_handle, caret_rclcpp_version, timestamp, pid, tid
+    ) -> None:
         version_idx = len(self.rclcpp_publisher_init)
         mapper = self.rclcpp_publisher_init.columns.get('caret_rclcpp_version').mapper
         assert mapper is not None
@@ -939,7 +967,7 @@ class Ros2DataModel(DataModel):
         )
 
     def add_rcl_subscription_init(
-        self, pid, tid, handle, timestamp, node_handle, rmw_handle, topic_name, depth
+        self, pid, tid, subscription_handle, timestamp, node_handle, rmw_handle, topic_name, depth
     ) -> None:
         record_idx = len(self.rcl_subscription_init)
         mapper = self.rcl_subscription_init.columns.get('topic_name').mapper
@@ -949,7 +977,7 @@ class Ros2DataModel(DataModel):
         self.rcl_subscription_init.append(
             RecordFactory.create_instance(
                 {
-                    'subscription_handle': handle,
+                    'subscription_handle': subscription_handle,
                     'timestamp': timestamp,
                     'pid': pid,
                     'tid': tid,
@@ -962,12 +990,12 @@ class Ros2DataModel(DataModel):
         )
 
     def add_rclcpp_subscription_init(
-        self, pid, tid, subscription_pointer, timestamp, subscription_handle
+        self, pid, tid, subscription, timestamp, subscription_handle
     ) -> None:
         self.rclcpp_subscription_init.append(
             RecordFactory.create_instance(
                 {
-                    'subscription': subscription_pointer,
+                    'subscription': subscription,
                     'timestamp': timestamp,
                     'pid': pid,
                     'tid': tid,
@@ -977,12 +1005,12 @@ class Ros2DataModel(DataModel):
         )
 
     def add_rclcpp_subscription_callback_added(
-        self, pid, tid, subscription_pointer, timestamp, callback_object
+        self, pid, tid, subscription, timestamp, callback_object
     ) -> None:
         self.rclcpp_subscription_callback_added.append(
             RecordFactory.create_instance(
                 {
-                    'subscription': subscription_pointer,
+                    'subscription': subscription,
                     'timestamp': timestamp,
                     'pid': pid,
                     'tid': tid,
@@ -1093,18 +1121,6 @@ class Ros2DataModel(DataModel):
             )
         )
 
-    # def add_rclcpp_callback_register(
-    #     self, pid, tid, callback_group_pointer, timestamp, callback_group_handle
-    # ) -> None:
-    #     record = {
-    #         'callback_group': callback_group_pointer,
-    #         'timestamp': timestamp,
-    #         'pid': pid,
-    #         'tid': tid,
-    #         'callback_group_handle': callback_group_handle,
-    #     }
-    #     self.rclcpp_callback_register.append(record)
-
     def add_intra_callback_duration(
         self,
         pid: int,
@@ -1190,28 +1206,35 @@ class Ros2DataModel(DataModel):
         self.inter_publish.append(record)
 
     def add_rcl_lifecycle_state_machine_init(self, pid, tid, handle, node_handle) -> None:
-        record = {
-            'state_machine_handle': handle,
-            'node_handle': node_handle,
-            'pid': pid,
-            'tid': tid,
-        }
-        self.rcl_lifecycle_state_machine_init.append(record)
+        self.rcl_lifecycle_state_machine_init.append(
+            RecordFactory.create_instance(
+                {
+                    'state_machine_handle': handle,
+                    'node_handle': node_handle,
+                    'pid': pid,
+                    'tid': tid,
+                }
+            )
+        )
 
     def add_rcl_lifecycle_transition(
         self, pid, tid, state_machine_handle, start_label, goal_label, timestamp
     ) -> None:
-        pass
-        # TODO(hsgwa): implement this
-        # record = {
-        #     'state_machine_handle': state_machine_handle,
-        #     'start_label': start_label,
-        #     'goal_label': goal_label,
-        #     'timestamp': timestamp,
-        #     'pid': pid,
-        #     'tid': tid,
-        # }
-        # self.rcl_lifecycle_transition.append(record)
+        if start_label not in self._lifecycle_state:
+            self._lifecycle_state[start_label] = len(self._lifecycle_state)
+        if goal_label not in self._lifecycle_state:
+            self._lifecycle_state[goal_label] = len(self._lifecycle_state)
+
+        self.rcl_lifecycle_transition.append(RecordFactory.create_instance(
+            {
+                'state_machine_handle': state_machine_handle,
+                'start_label': self._lifecycle_state[start_label],
+                'goal_label': self._lifecycle_state[goal_label],
+                'timestamp': timestamp,
+                'pid': pid,
+                'tid': tid,
+            }
+        ))
 
     def add_rclcpp_publish(
         self,
@@ -1746,17 +1769,7 @@ class Ros2DataModel(DataModel):
     def add_symbol_rename(
         self, pid: int, tid: int, timestamp: int, symbol_from: str, symbol_to: str
     ):
-        self.symbol_rename.append(
-            RecordFactory.create_instance(
-                {
-                    'pid': pid,
-                    'tid': tid,
-                    'timestamp': timestamp,
-                    'symbol_from': symbol_from,
-                    'symbol_to': symbol_to,
-                }
-            )
-        )
+        self._symbol_renames[symbol_from] = symbol_to
 
     def add_init_bind_transform_broadcaster(
         self,
@@ -2030,6 +2043,8 @@ class Ros2DataModel(DataModel):
         if frame_id_compact_ != 0 and frame_id_compact_ != 0:
             record = RecordFactory.create_instance(
                 {
+                    'pid': pid,
+                    'tid': tid,
                     'find_closest_timestamp': timestamp,
                     'tf_buffer_core': buffer_core,
                     'frame_id_compact': frame_id_compact_,
@@ -2071,8 +2086,6 @@ class Ros2DataModel(DataModel):
         target_frame_id: str,
         source_frame_id: str,
     ) -> None:
-        record_idx = len(self.tf_buffer_lookup_transform)
-
         if target_frame_id not in self._frame_idx:
             self._frame_idx[target_frame_id] = len(self._frame_idx)
 
@@ -2389,14 +2402,15 @@ class Ros2DataModel(DataModel):
         self.tf_lookup_transform_end.append(record)
 
     def _finalize(self) -> None:
-        symbol_map = {
-            symbol['symbol_from']: symbol['symbol_to']
-            for _, symbol
-            in self.symbol_rename.to_dataframe().iterrows()
-        }
         while True:
             old_column_names = tuple(self.rclcpp_callback_register.column_names)
-            self.rclcpp_callback_register.columns.rename(symbol_map)
+            rename_rules = {
+                k: v
+                for (k, v)
+                in self._symbol_renames.items()
+                if k in self.rclcpp_callback_register.column_names
+            }
+            self.rclcpp_callback_register.columns.rename(rename_rules)
             new_column_names = tuple(self.rclcpp_callback_register.column_names)
             if old_column_names == new_column_names:
                 break
@@ -2435,47 +2449,4 @@ class Ros2DataModel(DataModel):
                 mapper.add(v, k)
 
     def print_data(self) -> None:
-        raise NotImplementedError('')
-        print('====================ROS 2 DATA MODEL===================')
-        print('Contexts:')
-        print(self.contexts.to_string())
-        print()
-        print('Nodes:')
-        print(self.nodes.to_string())
-        print()
-        print('Publishers:')
-        print(self.publishers.to_string())
-        print()
-        print('Subscriptions:')
-        print(self.subscriptions.to_string())
-        print()
-        print('Subscription objects:')
-        print(self.subscription_objects.to_string())
-        print()
-        print('Services:')
-        print(self.services.to_string())
-        print()
-        print('Clients:')
-        print(self.clients.to_string())
-        print()
-        print('Timers:')
-        print(self.timers.to_string())
-        print()
-        print('Timer-node links:')
-        print(self.timer_node_links.to_string())
-        print()
-        print('Callback objects:')
-        print(self.callback_objects.to_string())
-        print()
-        print('Callback symbols:')
-        print(self.rclcpp_callback_register.to_string())
-        print()
-        print('Callback instances:')
-        print(self.callback_instances.to_string())
-        print()
-        print('Lifecycle state machines:')
-        print(self.lifecycle_state_machines.to_string())
-        print()
-        print('Lifecycle transitions:')
-        print(self.lifecycle_transitions.to_string())
-        print('==================================================')
+        print('not implemented')

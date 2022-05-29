@@ -16,8 +16,8 @@ from multimethod import multimethod as singledispatchmethod
 
 from .unified_architecture_reader import UnifiedArchitectureReader
 from ..infra.lttng import Lttng
-from ..infra.lttng.lttng import LttngEventFilter
 from ..infra.lttng.architecture_reader_lttng import ArchitectureReaderLttng
+from ..infra.lttng.lttng import LttngEventFilter
 from ..infra.yaml.architecture_reader_yaml import ArchitectureReaderYaml
 
 

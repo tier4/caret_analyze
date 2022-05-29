@@ -39,16 +39,12 @@ class Communication(PathBase, Summarizable):
         subscription: Subscription,
         communication_value: CommunicationStructValue,
         records_provider: Union[RecordsProvider, RuntimeDataProvider, None],
-        # callbacks_publish: Optional[List[CallbackBase]],
-        # callback_subscription: Optional[CallbackBase],
     ) -> None:
         super().__init__()
         self._node_pub = node_publish
         self._node_sub = node_subscription
         self._val = communication_value
         self._records_provider = records_provider
-        # self._callbacks_publish = callbacks_publish
-        # self._callback_subscription = callback_subscription
         self._is_intra_process: Optional[bool] = None
         self._rmw_implementation: Optional[str] = None
         self._publisher = publisher
@@ -144,8 +140,6 @@ class TransformCommunication(PathBase):
         tf_buffer: TransformFrameBuffer,
         communication_value: TransformCommunicationStructValue,
         records_provider: Union[RecordsProvider, RuntimeDataProvider, None],
-        # callbacks_publish: Optional[List[CallbackBase]],
-        # callback_subscription: Optional[CallbackBase],
     ) -> None:
         super().__init__()
         self._node_br = node_br
@@ -154,17 +148,15 @@ class TransformCommunication(PathBase):
         self._records_provider = records_provider
         self._is_intra_process: Optional[bool] = None
         self._rmw_implementation: Optional[str] = None
-        if isinstance(records_provider, RuntimeDataProvider):
-            # self._is_intra_process = \
-            #     records_provider.is_intra_process_communication(communication_value)
-            self._rmw_implementation = \
-                records_provider.get_rmw_implementation()
+        self._provider = records_provider
         self._tf_broadcaster = tf_broadcaster
         self._tf_buffer = tf_buffer
 
     @property
     def rmw_implementation(self) -> Optional[str]:
-        return self._rmw_implementation
+        if isinstance(self._provider, RuntimeDataProvider):
+            return self._provider.get_rmw_implementation()
+        return None
 
     @property
     def topic_name(self) -> str:
@@ -238,4 +230,6 @@ class TransformCommunication(PathBase):
         return records
 
     def _get_clock_converter(self) -> Optional[ClockConverter]:
-        return self._provider.get_sim_time_converter()
+        if self._provider is not None:
+            return self._provider.get_sim_time_converter()
+        return None

@@ -15,7 +15,7 @@
 from typing import Optional, Tuple
 
 from .callback import CallbackStructValue
-from .value_object import ValueObject, IdValue
+from .value_object import IdValue, ValueObject
 from ..common import Summarizable, Summary
 
 

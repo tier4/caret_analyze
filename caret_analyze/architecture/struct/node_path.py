@@ -15,29 +15,38 @@
 from __future__ import annotations
 
 from logging import getLogger
+from typing import (
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+)
 
-from typing import Optional, List, Tuple, Iterable, Iterator
 from multimethod import multimethod as singledispatchmethod
 
-from caret_analyze.value_objects.node_path import NodePathValue
-
+from .callback_path import CallbackPathStruct
 from .publisher import PublisherStruct
 from .struct_interface import (
     NodeInputType,
     NodeOutputType,
-    NodePathStructInterface,
     NodePathsStructInterface,
+    NodePathStructInterface,
     NodeStructInterface,
     TransformFrameBroadcasterStructInterface,
     TransformFrameBufferStructInterface,
 )
 from .subscription import SubscriptionStruct
-from .callback_path import CallbackPathStruct
-from .transform import TransformFrameBroadcasterStruct, TransformFrameBufferStruct
+from .transform import (
+    TransformFrameBroadcasterStruct,
+    TransformFrameBufferStruct,
+)
 from ..reader_interface import ArchitectureReader
-from ...value_objects import MessageContext, NodePathStructValue
-from ...exceptions import (
-    ItemNotFoundError,
+from ...exceptions import ItemNotFoundError
+from ...value_objects import (
+    MessageContext,
+    NodePathStructValue,
+    NodePathValue,
 )
 
 logger = getLogger(__name__)

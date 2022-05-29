@@ -29,7 +29,11 @@ from typing import (
     Tuple,
 )
 
-from ..exceptions import InvalidArgumentError, ItemNotFoundError, InvalidColumnMapperError
+from ..exceptions import (
+    InvalidArgumentError,
+    InvalidColumnMapperError,
+    ItemNotFoundError,
+)
 from ..value_objects import ValueObject
 
 
@@ -164,16 +168,20 @@ class ColumnValue(ValueObject):
         base_column_name: str,
         attrs: Optional[Collection[ColumnAttribute]] = None,
         prefix: Optional[Collection[str]] = None,
+        suffix: Optional[Collection[str]] = None,
         *,
         mapper: Optional[ColumnMapper] = None,
     ) -> None:
         self._base_column_name = base_column_name
         self._attrs = set() if attrs is None else set(attrs)
         self._prefix = () if prefix is None else tuple(prefix)
+        self._suffix = () if suffix is None else tuple(suffix)
         self._mapper = mapper
 
     def __str__(self) -> str:
-        return '/'.join(list(self.prefix) + [self._base_column_name])
+        prefix = list(self.prefix)
+        suffix = list(self.suffix)
+        return '/'.join(prefix + [self._base_column_name] + suffix)
 
     @property
     def base_column_name(self) -> str:
@@ -191,6 +199,10 @@ class ColumnValue(ValueObject):
     def prefix(self) -> Tuple[str, ...]:
         return self._prefix
 
+    @property
+    def suffix(self) -> Tuple[str, ...]:
+        return self._suffix
+
     # @property
     # def mapper(self) -> Optional[ColumnMapper]:
     #     return self._mapper
@@ -204,6 +216,7 @@ class Column():
         base_column_name: str,
         attrs: Optional[Collection[ColumnAttribute]] = None,
         prefix: Optional[List[str]] = None,
+        suffix: Optional[List[str]] = None,
         *,
         mapper: Optional[ColumnMapper] = None,
     ) -> None:
@@ -212,10 +225,11 @@ class Column():
         self._mapper = mapper
         self._attrs = set() if attrs is None else set(attrs)
         self._prefix: List[str] = prefix or []
+        self._suffix: List[str] = suffix or []
         self._observer = observer
 
     def __str__(self) -> str:
-        return '/'.join(self._prefix + [self._base_column_name])
+        return '/'.join(self.prefix + [self._base_column_name] + self.suffix)
 
     @property
     def column_name(self) -> str:
@@ -233,7 +247,12 @@ class Column():
 
     def to_value(self) -> ColumnValue:
         mapper = None if self._mapper is None else deepcopy(self._mapper)
-        return ColumnValue(self.base_column_name, self.attrs, tuple(self._prefix), mapper=mapper)
+        return ColumnValue(
+            self.base_column_name,
+            self.attrs,
+            tuple(self._prefix),
+            tuple(self._suffix),
+            mapper=mapper)
 
     # def add_attr(self, attr: ColumnAttribute):
     #     self._attrs.append(attr)
@@ -241,7 +260,12 @@ class Column():
     def add_prefix(self, prefix: str) -> None:
         old = str(self)
         self._prefix.append(prefix)
-        # assert len(self._prefix) <= 1
+        new = str(self)
+        self._observer.on_column_renamed(old, new)
+
+    def add_suffix(self, suffix: str) -> None:
+        old = str(self)
+        self._suffix.append(suffix)
         new = str(self)
         self._observer.on_column_renamed(old, new)
 
@@ -284,11 +308,15 @@ class Column():
     def from_value(observer: ColumnEventObserver, column: ColumnValue) -> Column:
         return Column(
             observer, column.base_column_name, column.attrs, list(column.prefix),
-            mapper=column._mapper)
+            list(column.suffix), mapper=column._mapper)
 
     @property
     def prefix(self) -> List[str]:
         return self._prefix
+
+    @property
+    def suffix(self) -> List[str]:
+        return self._suffix
 
 
 class UniqueList(UserList):

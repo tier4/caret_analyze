@@ -17,15 +17,14 @@ from __future__ import annotations
 from logging import getLogger
 from typing import (
     Callable,
+    Collection,
     List,
     Optional,
     Tuple,
     Union,
-    Collection,
 )
 
 from .path_searcher import EdgeBase, NodeBase, PathBase, PathSearcher
-from ...common import Util
 from ...value_objects import (
     CommunicationStructValue,
     NodePathStructValue,
@@ -71,14 +70,6 @@ class CommunicationWrapper(EdgeBase):
                 br.frame_id,
                 br.child_frame_id,
             )
-            # buf = self._data.buffer
-            # return '{}[frame_id={},child_frame_id={},source_frame_id={},target_frame_id={}]'.format(
-            #     br.topic_name,
-            #     br.frame_id,
-            #     br.child_frame_id,
-            #     buf.lookup_source_frame_id,
-            #     buf.lookup_target_frame_id
-            # )
         else:
             return self._data.topic_name
 
@@ -115,13 +106,6 @@ class NodePathWrapper(NodeBase):
                 buff.listen_frame_id,
                 buff.listen_child_frame_id,
             )
-            # return '{}[frame_id={},child_frame_id={},source_frame_id={},target_frame_id={}]'.format(
-            #     buff.topic_name,
-            #     buff.listen_frame_id,
-            #     buff.listen_child_frame_id,
-            #     buff.lookup_source_frame_id,
-            #     buff.lookup_target_frame_id,
-            # )
         else:
             return self._data.subscribe_topic_name
 

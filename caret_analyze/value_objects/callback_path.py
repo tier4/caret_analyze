@@ -15,7 +15,12 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Tuple, Union, Iterable, Iterator
+from typing import (
+    Iterable,
+    Iterator,
+    Tuple,
+    Union,
+)
 
 from .callback import CallbackStructValue
 from .value_object import ValueObject
@@ -56,11 +61,15 @@ class CallbackPathStructValue(ValueObject, Summarizable, Iterable):
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
-        return tuple(Util.filter_items(lambda x: isinstance(x, CallbackStructValue), self.child))
+        return tuple(Util.filter_items(
+            lambda x: isinstance(x, CallbackStructValue),
+            self.child))
 
     @property
     def var_passes(self) -> Tuple[VariablePassingStructValue, ...]:
-        return tuple(Util.filter_items(lambda x: isinstance(x, VariablePassingStructValue), self.child))
+        return tuple(Util.filter_items(
+            lambda x: isinstance(x, VariablePassingStructValue),
+            self.child))
 
     def __iter__(self) -> Iterator[Union[CallbackStructValue, VariablePassingStructValue]]:
         return iter(self.child)

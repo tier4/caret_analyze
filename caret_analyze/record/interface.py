@@ -15,7 +15,17 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple, Union
+from typing import (
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 
 import pandas as pd
 
@@ -332,7 +342,21 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def get(self, index: int, column_name: str, default_value=None) -> object:
+    def iget(
+        self,
+        index: int,
+        column_name: str,
+        default_value=None
+    ) -> Optional[int]:
+        pass
+
+    @abstractmethod
+    def sget(
+        self,
+        index: int,
+        column_name: str,
+        default_value=None
+    ) -> Optional[str]:
         pass
 
     # @abstractmethod

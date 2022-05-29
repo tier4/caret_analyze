@@ -13,11 +13,9 @@
 # limitations under the License.
 
 from __future__ import annotations
+
 from functools import lru_cache
-
-from typing import Dict, Optional, Sequence, List
-
-from caret_analyze.value_objects.node_path import NodePathValue
+from typing import Dict, Optional, Sequence
 
 from .reader_interface import ArchitectureReader
 from ..value_objects import (

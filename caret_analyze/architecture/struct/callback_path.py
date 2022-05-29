@@ -13,13 +13,22 @@
 # limitations under the License.
 
 from __future__ import annotations
-from abc import abstractmethod
 
+from abc import abstractmethod
 from logging import getLogger
-from typing import Iterable, List, Union, Iterator, Tuple
+from typing import (
+    Iterable,
+    Iterator,
+    List,
+    Tuple,
+    Union,
+)
 
 from .callback import CallbackStruct
-from .struct_interface import CallbackStructInterface, VariablePassingStructInterface
+from .struct_interface import (
+    CallbackStructInterface,
+    VariablePassingStructInterface,
+)
 from ...value_objects import CallbackPathStructValue
 
 

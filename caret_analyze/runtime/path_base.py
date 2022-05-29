@@ -167,7 +167,7 @@ class PathBase(metaclass=ABCMeta):
         rstrip_s: float = 0,
         *,
         shaper: Optional[DataFrameShaper] = None,
-    ) -> Tuple[np.array, np.array]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Convert to timeseries data.
 
@@ -219,7 +219,7 @@ class PathBase(metaclass=ABCMeta):
         rstrip_s: float = 0,
         *,
         shaper: Optional[DataFrameShaper] = None,
-    ) -> Tuple[np.array, np.array]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Convert to histogram data.
 

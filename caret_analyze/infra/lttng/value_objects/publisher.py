@@ -29,7 +29,7 @@ class PublisherValueLttng(PublisherValue):
         callback_ids: Optional[Tuple[str, ...]],
         publisher_handle: int,
         publisher_id: str,
-        caret_rclcpp_version: str,
+        caret_rclcpp_version: Optional[str],
         tilde_publisher: Optional[int],
     ) -> None:
         super().__init__(
@@ -55,9 +55,9 @@ class PublisherValueLttng(PublisherValue):
     @property
     def publisher_id(self) -> str:
         return self._publisher_id
-    
+
     @property
-    def caret_rclcpp_version(self) -> str:
+    def caret_rclcpp_version(self) -> Optional[str]:
         return self._caret_rclcpp_version
 
     @property

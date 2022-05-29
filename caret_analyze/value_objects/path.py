@@ -20,8 +20,8 @@ from typing import Optional, Tuple, Union
 
 from .communication import CommunicationStructValue
 from .node_path import NodePathStructValue, NodePathValue
-from .value_object import ValueObject
 from .transform import TransformCommunicationStructValue
+from .value_object import ValueObject
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError
 

@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from logging import getLogger
 from typing import (
     Dict,
     Iterable,
@@ -25,18 +26,15 @@ from typing import (
 from .callback import (
     CallbacksStruct,
 )
-
+from ...exceptions import Error, ItemNotFoundError
 from ...value_objects import (
     CallbackGroupStructValue,
     CallbackGroupType,
     NodeValue,
 )
 
-from ...exceptions import ItemNotFoundError, Error
-
-from logging import getLogger
-
 logger = getLogger(__name__)
+
 
 class CallbackGroupStruct():
 

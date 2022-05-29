@@ -1,6 +1,18 @@
+# Copyright 2021 Research Institute of Systems Planning, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from functools import lru_cache
-from tkinter.tix import COLUMN
 
 from .callback_records import CallbackRecordsContainer
 from .publish_records import PublishRecordsContainer
@@ -13,9 +25,9 @@ from ..bridge import LttngBridge
 from ..column_names import COLUMN_NAME
 from ....record import (
     ColumnAttribute,
+    merge,
     merge_sequencial,
     RecordsInterface,
-    merge
 )
 from ....value_objects import (
     MessageContextType,
@@ -182,6 +194,7 @@ class NodeRecordsContainer:
         tf_buffer: TransformFrameBufferStructValue,
         publisher: PublisherStructValue,
     ) -> RecordsInterface:
+        raise NotImplementedError('')
 
         publish_records = self._pub_records.get_records(publisher)
         publish_column = publish_records.columns.get_by_attrs([
@@ -245,6 +258,8 @@ class NodeRecordsContainer:
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP
         ]
+        assert node_path.subscription is not None
+        assert node_path.publisher is not None
         sub_records = self._sub_records.get_records(node_path.subscription)
         pub_records = self._pub_records.get_records(node_path.publisher)
         sub_tilde_message_id_column = sub_records.columns.get(
@@ -283,6 +298,7 @@ class NodeRecordsContainer:
     ) -> RecordsInterface:
         callbacks = node_path.callbacks
 
+        assert callbacks is not None
         records = self._cb_records.get_records(callbacks[0])
 
         for callback in callbacks[1:]:
@@ -308,6 +324,7 @@ class NodeRecordsContainer:
         column_callback_start_time = records.columns.get(
             COLUMN_NAME.CALLBACK_START_TIMESTAMP, take='tail', base_name_match=True)
 
+        assert node_path.publisher is not None
         publish_records = self._pub_records.get_records(node_path.publisher)
         publish_records.columns.drop(
             [

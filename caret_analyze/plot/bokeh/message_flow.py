@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from bokeh.io import save, show
 from bokeh.models import CrosshairTool
@@ -82,8 +82,8 @@ def message_flow(
     clip = strip.to_clip(df)
     df = clip.execute(df)
 
-    frame_min: float = clip.min_ns
-    frame_max: float = clip.max_ns
+    frame_min: Union[float, int] = clip.min_ns
+    frame_max: Union[float, int] = clip.max_ns
 
     if converter:
         frame_min = converter.convert(frame_min)
@@ -308,7 +308,7 @@ class YAxisValues:
     def __init__(self, column_names) -> None:
         self._column_names = column_names
 
-    def _search_values(self, search_name) -> np.array:
+    def _search_values(self, search_name) -> np.ndarray:
         indexes = np.array([], dtype=int)
         for i, column_name in enumerate(self._column_names):
             if 'callback_end' in column_name:

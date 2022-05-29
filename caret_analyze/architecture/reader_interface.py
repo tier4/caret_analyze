@@ -15,13 +15,8 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Optional, Sequence
-
 from functools import lru_cache
-
-from caret_analyze.value_objects.transform import TransformValue
-
-from ..common import Util
+from typing import Dict, Optional, Sequence
 
 from ..value_objects import (
     CallbackGroupValue,
@@ -37,6 +32,7 @@ from ..value_objects import (
     TimerValue,
     TransformBroadcasterValue,
     TransformBufferValue,
+    TransformValue,
     VariablePassingValue,
 )
 

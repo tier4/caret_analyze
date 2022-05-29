@@ -23,7 +23,6 @@ from record_cpp_impl import RecordBase, RecordsBase
 from .column import (
     Column,
     ColumnEventObserver,
-    ColumnMapper,
     Columns,
     ColumnValue,
     UniqueList,
@@ -119,7 +118,7 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         self._records.sort(keys, ascending)
         return None
 
-    def get(self, index: int, column_name: str, default_value=None) -> object:
+    def get(self, index: int, column_name: str, default_value=None) -> Optional[object]:
         mapper = self.columns.get(column_name).mapper
         if column_name not in self.data[index].columns:
             return default_value
@@ -128,6 +127,17 @@ class RecordsCppImpl(RecordsInterface, ColumnEventObserver):
         if mapper is not None:
             return mapper.get(value)
 
+        return value
+
+    def iget(self, index: int, column_name: str, default_value=None) -> Optional[int]:
+        if column_name not in self.data[index].columns:
+            return default_value
+        value = self.data[index].get(column_name)
+        return value
+
+    def sget(self, index: int, column_name: str, default_value=None) -> Optional[str]:
+        value = self.get(index, column_name, default_value)
+        assert isinstance(value, str) or value is None
         return value
 
     # def get_column(

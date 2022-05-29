@@ -45,6 +45,10 @@ class NodeValue(ValueObject):
     def node_id(self) -> str:
         return self.__node_id
 
+    @property
+    def id_value(self) -> Tuple[str, str]:
+        return self.node_id, self.node_name
+
 
 class NodeStructValue(ValueObject, Summarizable):
     """Executor info for architecture."""
