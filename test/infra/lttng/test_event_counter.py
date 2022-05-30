@@ -60,6 +60,7 @@ class TestEventCounter:
         data.add_sim_time(0, 0, 0, 0)
         data.finalize()
         counter = EventCounter(data, lttng_mock)
+
         df = counter.get_count()
         df_expect = pd.DataFrame(
             {
@@ -68,6 +69,15 @@ class TestEventCounter:
                 'topic_name': [UNKNOWN, UNKNOWN],
                 'size': [1, 1],
             }, columns=['trace_point', 'node_name', 'topic_name', 'size']
+        )
+        assert df.equals(df_expect)
+
+        df = counter.get_count(['trace_point'])
+        df_expect = pd.DataFrame(
+            {
+                'trace_point': ['ros2:callback_start', 'ros2_caret:sim_time'],
+                'size': [1, 1],
+            }, columns=['trace_point', 'size']
         )
         assert df.equals(df_expect)
 
