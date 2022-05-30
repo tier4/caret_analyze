@@ -1293,11 +1293,8 @@ class DataFrameFormatted:
         records = merge(
             left_records=records,
             right_records=records_,
-            # join_left_key=['subscription_handle', 'pid'],
-            # join_right_key=['subscription_handle', 'pid'],
-            # TODO: fix this bug
-            join_left_key=['subscription_handle'],
-            join_right_key=['subscription_handle'],
+            join_left_key=['subscription_handle', 'pid'],
+            join_right_key=['subscription_handle', 'pid'],
             how='inner'
         )
         records = merge(

@@ -239,7 +239,7 @@ class EventCounter:
         data: Ros2DataModel,
         info: LttngInfo,
     ) -> None:
-        self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
+        self._allowed_keys = ['trace_point', 'node_name', 'topic_name']
 
         counter = CategoryServer(info)
         count_rules = self.get_count_rules(data)
@@ -248,8 +248,8 @@ class EventCounter:
         self._count_df = pd.DataFrame.from_dict(count_dicts)
 
     def get_count(self, groupby: Optional[Sequence[str]] = None) -> pd.DataFrame:
-        groupby_ = groupby or list(self._allowed_keys)
-        if len(set(groupby_) - self._allowed_keys) > 0:
+        groupby_ = self._allowed_keys if groupby is None else list(groupby)
+        if len(set(groupby_) - set(self._allowed_keys)) > 0:
             raise InvalidArgumentError(
                 f'invalid groupby: {groupby_}. {self._allowed_keys} are allowed.')
 
@@ -258,7 +258,7 @@ class EventCounter:
         grouped_df = self._count_df.groupby(groupby_).sum([['size']])
         count_df = grouped_df.sort_values('size', ascending=False)
         count_df.reset_index(inplace=True)
-        count_df = count_df.reindex(columns=['trace_point', 'node_name', 'topic_name', 'size'])
+        count_df = count_df.reindex(columns=groupby_ + ['size'])
         return count_df
 
     @staticmethod

@@ -1638,6 +1638,13 @@ class TestRecords:
             assert records_left.column_names == ['k0', 'k1', 'value']
             assert records_right.column_names == ['k0_', 'k1_', 'value_']
 
+            merged = records_left.merge(records_right, ['k1', 'k0'], ['k1_', 'k0_'], how=how)
+
+            assert merged.equals(records_expect)
+            assert merged.column_names == column_names_expect
+            assert records_left.column_names == ['k0', 'k1', 'value']
+            assert records_right.column_names == ['k0_', 'k1_', 'value_']
+
     @pytest.mark.parametrize(
         'how, records_expect_py',
         [
@@ -2332,6 +2339,17 @@ class TestRecords:
                 right_stamp_key='sub_stamp',
                 join_left_key=['k0', 'k1'],
                 join_right_key=['k0', 'k1'],
+                how=how,
+            )
+
+            assert merged.equals(expect_records)
+
+            merged = left_records.merge_sequencial(
+                right_records=right_records,
+                left_stamp_key='stamp',
+                right_stamp_key='sub_stamp',
+                join_left_key=['k1', 'k0'],
+                join_right_key=['k1', 'k0'],
                 how=how,
             )
 
