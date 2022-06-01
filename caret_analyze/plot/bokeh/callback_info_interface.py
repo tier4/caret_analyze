@@ -49,6 +49,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
                 <div style="width:400px; word-wrap: break-word;">
                 <br>
                 node_name = @node_name <br>
+                callback_name = @callback_name <br>
                 callback_type = @callback_type <br>
                 @callback_param <br>
                 symbol = @symbol
@@ -161,6 +162,7 @@ def get_callback_lines(callback: CallbackBase,
                                        'x': [],
                                        'y': [],
                                        'node_name': [],
+                                       'callback_name': [],
                                        'callback_type': [],
                                        'callback_param': [],
                                        'symbol': []
@@ -171,6 +173,7 @@ def get_callback_lines(callback: CallbackBase,
                         'x': [x],
                         'y': [y],
                         'node_name': [callback.node_name],
+                        'callback_name': [callback.callback_name],
                         'symbol': [callback.symbol],
                         'callback_param': [callback_param],
                         'callback_type': [f'{callback.callback_type}']
