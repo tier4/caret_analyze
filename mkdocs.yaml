@@ -1,6 +1,6 @@
 site_name: CARET analyze API document
-site_url: https://atsushi421.github.io/CARET_analyze/
-repo_url: https://github.com/atsushi421/CARET_analyze.git
+site_url: https://tier4.github.io/CARET_analyze
+repo_url: https://github.com/tier4/CARET_analyze
 edit_uri: edit/main/
 docs_dir: docs
 copyright: Copyright &copy; 2022 TIER IV, Inc.
