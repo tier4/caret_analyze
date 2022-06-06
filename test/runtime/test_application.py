@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-from defer import return_value
 from caret_analyze.architecture.architecture import Architecture
 from caret_analyze.exceptions import ItemNotFoundError
 from caret_analyze.infra.lttng import Lttng
@@ -60,9 +59,6 @@ class TestApplication:
             app.get_callback('')
 
         with pytest.raises(ItemNotFoundError):
-            app.get_callbacks('')
-
-        with pytest.raises(ItemNotFoundError):
             app.get_communication('', '', '')
 
     def test_full_architecture(self, mocker: MockerFixture):
@@ -74,17 +70,14 @@ class TestApplication:
         executor_mock = mocker.Mock(spec=Executor)
         path_mock = mocker.Mock(spec=Path)
         comm_mock = mocker.Mock(spec=Communication)
-        callback_mock0 = mocker.Mock(spec=CallbackBase)
-        callback_mock1 = mocker.Mock(spec=CallbackBase)
+        callback_mock = mocker.Mock(spec=CallbackBase)
         records_assigned_mock = mocker.Mock(spec=RuntimeLoaded)
 
         # patch mocks
-        mocker.patch.object(callback_mock0, 'callback_name', 'cb_a')
-        mocker.patch.object(callback_mock1, 'callback_name', 'cb_b')
-
+        mocker.patch.object(
+            callback_mock, 'callback_name', 'callback_name_')
         mocker.patch.object(node_mock, 'node_name', 'node_name_')
-        mocker.patch.object(node_mock, 'callbacks', [callback_mock0, callback_mock1])
-
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock])
         mocker.patch.object(path_mock, 'path_name', 'path_name_')
         mocker.patch.object(comm_mock, 'publish_node_name',
                             'publish_node_name_')
@@ -110,14 +103,59 @@ class TestApplication:
         assert len(app.nodes) == 1
         assert len(app.executors) == 1
         assert len(app.communications) == 1
-        assert len(app.callbacks) == 2
+        assert len(app.callbacks) == 1
 
         assert app.get_path(path_mock.path_name) == path_mock
         assert app.get_node(node_mock.node_name) == node_mock
         assert app.get_callback(
-            callback_mock0.callback_name) == callback_mock0
-        assert app.get_callbacks('cb*') == [callback_mock0, callback_mock1]
+            callback_mock.callback_name) == callback_mock
+        
         assert app.get_communication(
             comm_mock.publish_node_name,
             comm_mock.subscribe_node_name,
             comm_mock.topic_name) == comm_mock
+
+
+    def test_get_callbacks(self, mocker: MockerFixture):
+        #define mocks
+        arch_mock = mocker.Mock(spec=Architecture)
+        records_provider_mock = mocker.Mock(spec=Lttng)
+
+
+        # node_mock = mocker.Mock(spec=Node)
+        node_mock = mocker.Mock(spec=Node)
+        executor_mock = mocker.Mock(spec=Executor)
+        path_mock = mocker.Mock(spec=Path)
+        comm_mock = mocker.Mock(spec=Communication)
+        callback_mock0 = mocker.Mock(spec=CallbackBase)
+        callback_mock1 = mocker.Mock(spec=CallbackBase)
+        records_assigned_mock = mocker.Mock(spec=RuntimeLoaded)
+
+        #patch mocks
+        mocker.patch.object(callback_mock0, 'callback_name', 'cb_a')
+        mocker.patch.object(callback_mock1, 'callback_name', 'cb_b')
+        mocker.patch.object(node_mock, 'node_name', 'node_name_')
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock0, callback_mock1])
+        mocker.patch.object(path_mock, 'path_name', 'path_name_')
+        mocker.patch.object(comm_mock, 'publish_node_name',
+                            'publish_node_name_')
+        mocker.patch.object(
+            comm_mock, 'subscribe_node_name', 'subscribe_node_name_')
+        mocker.patch.object(
+            comm_mock, 'topic_name', 'topic_name')
+        
+        mocker.patch('caret_analyze.runtime.runtime_loaded.RuntimeLoaded',
+                     return_value=records_assigned_mock)
+
+        mocker.patch.object(records_assigned_mock, 'nodes', [node_mock])
+        mocker.patch.object(records_assigned_mock,
+                            'executors', [executor_mock])
+        mocker.patch.object(records_assigned_mock, 'paths', [path_mock])
+        mocker.patch.object(records_assigned_mock,
+                            'communications', [comm_mock])
+
+
+        app = Application(arch_mock, records_provider_mock)
+
+
+        assert app.get_callbacks('cb*') == [callback_mock0, callback_mock1]

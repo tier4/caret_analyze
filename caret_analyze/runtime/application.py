@@ -14,7 +14,7 @@
 
 from __future__ import annotations, unicode_literals
 
-import logging
+from logging import getLogger
 import re
 
 from typing import List, Optional, Tuple, Union
@@ -35,6 +35,7 @@ from ..infra.lttng.lttng import Lttng
 from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
 from ..value_objects import NodePathStructValue
 
+logger = getLogger(__name__)
 
 class Application(Summarizable):
     def __init__(
@@ -582,7 +583,7 @@ class Application(Summarizable):
                     callbacks += Util.filter_items(is_match_regex, self.callbacks)
                 else:
                     callbacks.append(self.get_callback(callback_name))
-            except Error:   
+            except Error:
                 msg = 'Failed to identify callback. Skip loading.'
                 msg += f'callback_name: {callback_name}'
                 logger.warning(msg)
