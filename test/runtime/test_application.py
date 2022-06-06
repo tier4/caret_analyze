@@ -156,5 +156,4 @@ class TestApplication:
 
         app = Application(arch_mock, records_provider_mock)
 
-
         assert app.get_callbacks('cb*') == [callback_mock0, callback_mock1]
