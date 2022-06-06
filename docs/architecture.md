@@ -1,1 +1,0 @@
-::: caret_analyze.architecture
