@@ -109,7 +109,6 @@ class TestApplication:
         assert app.get_node(node_mock.node_name) == node_mock
         assert app.get_callback(
             callback_mock.callback_name) == callback_mock
-        
         assert app.get_communication(
             comm_mock.publish_node_name,
             comm_mock.subscribe_node_name,
