@@ -70,13 +70,8 @@ plugins:
 nav:
   - HOME: index.md
   - API:
-    - Architecture: architecture.md
-    - Common: common.md
-    - Infra: infra.md
     - Plot: plot.md
-    - Record: record.md
     - Runtime: runtime.md
-    - Value_objects: value_objects.md
     - Exceptions: exceptions.md
 
 markdown_extensions:
