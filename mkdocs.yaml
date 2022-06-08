@@ -70,9 +70,9 @@ plugins:
 nav:
   - HOME: index.md
   - API:
-    - Plot: plot.md
-    - Runtime: runtime.md
-    - Exceptions: exceptions.md
+      - Plot: plot.md
+      - Runtime: runtime.md
+      - Exceptions: exceptions.md
 
 markdown_extensions:
   - admonition
