@@ -1,1 +1,17 @@
-[{"version": "main", "title": "main", "aliases": []}, {"version": "latest", "title": "latest", "aliases": []}]
+[
+  {
+    "version": "pr-57",
+    "title": "pr-57",
+    "aliases": []
+  },
+  {
+    "version": "main",
+    "title": "main",
+    "aliases": []
+  },
+  {
+    "version": "latest",
+    "title": "latest",
+    "aliases": []
+  }
+]
