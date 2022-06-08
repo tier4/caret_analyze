@@ -1,7 +1,9 @@
 # CARET analyze
+
 TODO
 
-# API
+## API
+
 - [Plot](plot.md)
 - [Runtime](runtime.md)
 - [Exceptions](exceptions.md)
