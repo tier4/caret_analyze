@@ -62,7 +62,7 @@ plugins:
       default_handler: python
       handlers:
         python:
-          paths: [src/caret_analyze]
+          paths: [src]
           options:
             docstring_style: numpy
             show_source: false
