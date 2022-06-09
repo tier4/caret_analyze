@@ -28,7 +28,7 @@ jobs:
           rosdep install -i --from-paths . -y --rosdistro galactic
 
       - name: Install dependent packages
-        run: python3 -m pip install -r requirements.txt
+        run: python3 -m pip install -r src/requirements.txt
 
       - name: Run pytest
         run: |

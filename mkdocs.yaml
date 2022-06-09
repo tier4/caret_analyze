@@ -62,6 +62,7 @@ plugins:
       default_handler: python
       handlers:
         python:
+          paths: [src]
           options:
             docstring_style: numpy
             show_source: false
