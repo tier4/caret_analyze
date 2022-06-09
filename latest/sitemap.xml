@@ -2,22 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://tier4.github.io/CARET_analyze/latest/</loc>
-         <lastmod>2022-06-08</lastmod>
+         <lastmod>2022-06-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://tier4.github.io/CARET_analyze/latest/exceptions/</loc>
-         <lastmod>2022-06-08</lastmod>
+         <lastmod>2022-06-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://tier4.github.io/CARET_analyze/latest/plot/</loc>
-         <lastmod>2022-06-08</lastmod>
+         <lastmod>2022-06-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://tier4.github.io/CARET_analyze/latest/runtime/</loc>
-         <lastmod>2022-06-08</lastmod>
+         <lastmod>2022-06-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
