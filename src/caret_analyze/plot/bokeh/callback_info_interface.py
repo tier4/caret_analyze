@@ -93,6 +93,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
                    legend_label=f'callback{i}',
                    color=color)
         p.add_layout(p.legend[0], 'right')
+        p.legend.click_policy = 'hide'
         show(p)
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
