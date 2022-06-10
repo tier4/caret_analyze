@@ -308,6 +308,75 @@ class TestLttngInfo:
         )
         assert cbgs == [cbg_expect]
 
+    def test_get_callback_groups_duplicated_add_cbg(self):
+        node_handle = 3
+        callback_object = 10
+        cbg_addr = 8
+        exec_addr = 9
+        rmw_handle = 10
+        pid, tid = 11, 12
+        timer_handle = 13
+        symbol = ''
+        period = 2
+
+        data = Ros2DataModel()
+        data.add_rcl_node_init(pid, tid, node_handle, 0, rmw_handle, 'node', '/')
+
+        data.add_rcl_timer_init(pid, tid, timer_handle, 1, period)
+        data.add_rclcpp_timer_link_node(pid, tid, timer_handle, 2, node_handle)
+        data.add_rclcpp_timer_callback_added(pid, tid, timer_handle, 4, callback_object)
+        data.add_rclcpp_callback_register(pid, tid, callback_object, 5, symbol)
+        data.add_callback_group_add_timer(pid, tid, cbg_addr, 7, timer_handle)
+        data.add_add_callback_group(pid, tid, exec_addr + 1, 1,  cbg_addr, 'mutually_exclusive')
+        data.add_add_callback_group(pid, tid, exec_addr, 2,  cbg_addr, 'mutually_exclusive')
+        data.finalize()
+
+        info = LttngInfo(data)
+
+        node = info.get_node('/node')
+        cbgs = info.get_callback_groups(node)
+        cbg_expect = CallbackGroupValueLttng(
+            pid, 'mutually_exclusive', '/node', 'node_0', (),
+            'callback_group_1', cbg_addr, exec_addr
+        )
+        assert cbgs == [cbg_expect]
+
+    def test_get_callback_groups_static(self):
+        node_handle = 3
+        callback_object = 10
+        cbg_addr = 8
+        exec_addr = 9
+        rmw_handle = 10
+        pid, tid = 11, 12
+        timer_handle = 13
+        symbol = ''
+        period = 2
+        entity_collector_addr = 88
+
+        data = Ros2DataModel()
+        data.add_rcl_node_init(pid, tid, node_handle, 0, rmw_handle, 'node', '/')
+
+        data.add_rcl_timer_init(pid, tid, timer_handle, 1, period)
+        data.add_rclcpp_timer_link_node(pid, tid, timer_handle, 2, node_handle)
+        data.add_rclcpp_timer_callback_added(pid, tid, timer_handle, 4, callback_object)
+        data.add_rclcpp_callback_register(pid, tid, callback_object, 5, symbol)
+        data.add_callback_group_add_timer(pid, tid, cbg_addr, 7, timer_handle)
+        data.add_add_callback_group_static_executor(
+            pid, tid, entity_collector_addr, 8, cbg_addr, 'mutually_exclusive')
+        data.add_construct_static_executor(
+            pid, tid, exec_addr, entity_collector_addr, 9, 'single_threaded_executor')
+        data.finalize()
+
+        info = LttngInfo(data)
+
+        node = info.get_node('/node')
+        cbgs = info.get_callback_groups(node)
+        cbg_expect = CallbackGroupValueLttng(
+            pid, 'mutually_exclusive', '/node', 'node_0', (),
+            'callback_group_0', cbg_addr, exec_addr
+        )
+        assert cbgs == [cbg_expect]
+
     def test_get_executors_info(self):
         pid, tid = 1, 2
         node_handle = 3
@@ -333,6 +402,45 @@ class TestLttngInfo:
         data.add_callback_group_add_timer(pid, tid, cbg_addr, 7, timer_handle)
         data.add_add_callback_group(pid, tid, exec_addr, 1,  cbg_addr, 'mutually_exclusive')
         data.add_construct_executor(pid, tid, exec_addr, 1, 'single_threaded_executor')
+        data.finalize()
+
+        info = LttngInfo(data)
+        execs = info.get_executors()
+
+        exec_expect = ExecutorValueLttng(
+            pid, 'executor_0', 'single_threaded_executor', ('callback_group_0',)
+        )
+
+        assert execs == [exec_expect]
+
+    def test_get_executors_info_static(self):
+        pid, tid = 1, 2
+        node_handle = 3
+        exec_addr = 5
+        timer_handle = 6
+        period = 7
+        callback_object = 8
+        symbol = ''
+        cbg_addr = 9
+        entity_addr = 10
+
+        data = Ros2DataModel()
+        data.finalize()
+        info = LttngInfo(data)
+
+        execs = info.get_executors()
+        assert execs == []
+
+        data = Ros2DataModel()
+        data.add_rcl_timer_init(pid, tid, timer_handle, 1, period)
+        data.add_rclcpp_timer_link_node(pid, tid, timer_handle, 2, node_handle)
+        data.add_rclcpp_timer_callback_added(pid, tid, timer_handle, 4, callback_object)
+        data.add_rclcpp_callback_register(pid, tid, callback_object, 5, symbol)
+        data.add_callback_group_add_timer(pid, tid, cbg_addr, 7, timer_handle)
+        data.add_add_callback_group_static_executor(
+            pid, tid, entity_addr, 1, cbg_addr, 'mutually_exclusive')
+        data.add_construct_static_executor(
+            pid, tid, exec_addr, entity_addr, 2, 'single_threaded_executor')
         data.finalize()
 
         info = LttngInfo(data)

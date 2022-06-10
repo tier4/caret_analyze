@@ -119,7 +119,7 @@ class Records(RecordsInterface, ColumnEventObserver):
         column_name: str,
         default_value=None
     ) -> object:
-        value = self.iget(index, column_name, default_value)
+        value = self._data[index].get_with_default(column_name, default_value)
         mapper = self.columns.get(column_name).mapper
         if mapper is not None and value is not None:
             return mapper.get(value)
@@ -131,8 +131,8 @@ class Records(RecordsInterface, ColumnEventObserver):
         column_name: str,
         default_value=None
     ) -> Optional[int]:
-        value = self._data[index].get_with_default(column_name, default_value)
-        assert isinstance(value, int)
+        value = self.get(index, column_name, default_value)
+        assert value is None or isinstance(value, int)
         return value
 
     def sget(

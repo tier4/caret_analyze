@@ -1571,16 +1571,15 @@ class DataFrameFormatted:
                 'entities_collector_addr',
                 'inner'
             )
-            raise NotImplementedError('TODO support static executor')
-            # columns_ = columns[1:]  # ignore callback_group_id
-            # df = concat(columns_, [df, df_static])
+            df_static.columns.drop(set(df_static.column_names) - set(df.column_names))
+            df.concat(df_static)
 
         def to_callback_group_id(i: int, row: Dict) -> str:
             return f'callback_group_{i}'
 
         DataFrameFormatted._add_column(df, 'callback_group_id', to_callback_group_id)
 
-        executor_duplicated_indexes = []
+        executor_duplicated_addrs: Set[int] = set()
         for _, group in df.groupby(['callback_group_addr']).items():
             if len(group) >= 2:
                 msg = ('Multiple executors using the same callback group were detected.'
@@ -1588,10 +1587,12 @@ class DataFrameFormatted:
                 exec_addr = group.get_column_series('executor_addr')
                 msg += f'executor address: {exec_addr}'
                 logger.warn(msg)
-                executor_duplicated_indexes += list(group.index)[:-1]
+                executor_duplicated_addrs.update(exec_addr[:-1])
 
-        if len(executor_duplicated_indexes) >= 1:
-            df.drop(index=executor_duplicated_indexes, inplace=True)
+        if len(executor_duplicated_addrs) >= 1:
+            df.filter_if(
+                lambda row: row.get('executor_addr') not in executor_duplicated_addrs
+            )
 
         df.columns.drop(set(df.column_names) - set(columns))
         df.columns.reindex(columns)
