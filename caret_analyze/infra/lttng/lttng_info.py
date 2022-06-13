@@ -721,7 +721,7 @@ class LttngInfo:
             # Check whether publisher use caret-rclcpp
             caret_rclcpp_version = pub_df.get(i, 'caret_rclcpp_version')
             if not caret_rclcpp_version and pub_df.get(i, 'topic_name') != '/rosout':
-                msg = ('caret-rclcpp is not used in following publishers:\n'
+                msg = ('caret-rclcpp is not used in the following publisher:\n'
                        f'\tnode name: {pub_df.get(i, "node_name")},\n'
                        f'\ttopic name: {pub_df.get(i, "topic_name")}')
                 logger.warning(msg)
