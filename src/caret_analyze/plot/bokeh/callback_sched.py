@@ -20,7 +20,7 @@ from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.colors import Color, RGB
-from bokeh.io import show, save
+from bokeh.io import save, show
 from bokeh.models import Arrow, HoverTool, NormalHead
 from bokeh.plotting import ColumnDataSource, figure
 from bokeh.resources import CDN

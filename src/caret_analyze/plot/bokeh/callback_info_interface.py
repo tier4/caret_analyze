@@ -16,7 +16,7 @@ from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Union
 
 from bokeh.models import HoverTool
-from bokeh.plotting import ColumnDataSource, figure, show, save
+from bokeh.plotting import ColumnDataSource, figure, save, show
 from bokeh.resources import CDN
 
 
