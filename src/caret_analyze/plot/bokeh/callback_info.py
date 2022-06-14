@@ -25,10 +25,7 @@ CallbacksType = Union[Application, Executor,
 
 
 class CallbackLatencyPlot(TimeSeriesPlot):
-    """
-    This class provides the API to visualize the latency per unit of time for each callback and to obtain it in the pandas DataFrame format.
-
-    """
+    """This class provides the API to visualize the latency per unit of time for each callback and to obtain it in the pandas DataFrame format."""
 
     def __init__(
         self,
@@ -57,10 +54,7 @@ class CallbackLatencyPlot(TimeSeriesPlot):
 
 
 class CallbackJitterPlot(TimeSeriesPlot):
-    """
-    This class provides the API to visualize the jitter per unit of time for each callback and to obtain it in the pandas DataFrame format.
-
-    """
+    """This class provides the API to visualize the jitter per unit of time for each callback and to obtain it in the pandas DataFrame format."""
 
     def __init__(
         self,
@@ -90,10 +84,7 @@ class CallbackJitterPlot(TimeSeriesPlot):
 
 
 class CallbackFrequencyPlot(TimeSeriesPlot):
-    """
-    This class provides the API to visualize the execution frequency per unit of time for each callback and to obtain it in the pandas DataFrame format.
-
-    """
+    """This class provides the API to visualize the execution frequency per unit of time for each callback and to obtain it in the pandas DataFrame format."""
 
     def __init__(
         self,

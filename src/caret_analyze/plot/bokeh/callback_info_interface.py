@@ -60,7 +60,6 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             Argument xaxis_type is not "system_time", "index", or "simtime".
 
         """
-
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
         Hover = HoverTool(
@@ -132,7 +131,6 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             Argument xaxis_type is not "system_time", "index", or "simtime".
 
         """
-
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
 
