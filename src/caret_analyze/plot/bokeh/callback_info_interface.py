@@ -42,6 +42,25 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             self._callbacks = target
 
     def show(self, xaxis_type: Optional[str] = None, ywheel_zoom: bool = True):
+        """
+        Draw a line graph for each callback using the bokeh library.
+
+        Parameters
+        ----------
+        xaxis_type : Optional[str]
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "simtime" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool
+            If True, the drawn graph can be expanded in the y-axis direction by the mouse wheel.
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument xaxis_type is not "system_time", "index", or "simtime".
+
+        """
+
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
         Hover = HoverTool(
@@ -97,6 +116,23 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         show(p)
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
+        """
+        Get time series information for each callback in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : Optional[str]
+            Type of time for timestamp.
+            "system_time", "index", or "simtime" can be specified.
+            The default is "system_time".
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument xaxis_type is not "system_time", "index", or "simtime".
+
+        """
+
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
 

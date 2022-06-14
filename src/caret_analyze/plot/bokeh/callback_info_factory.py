@@ -27,12 +27,51 @@ class Plot:
 
     @staticmethod
     def create_callback_frequency_plot(callbacks: CallbacksType) -> TimeSeriesPlot:
+        """
+        Get CallbackFrequencyPlot instance.
+
+        Parameters
+        ----------
+        callbacks : Union[Application, Executor, Node, CallbackGroup, List[CallbackBase]]
+            Instances that have callbacks or a list of callbacks.
+
+        Returns
+        -------
+        CallbackFrequencyPlot
+
+        """
         return CallbackFrequencyPlot(callbacks)
 
     @staticmethod
     def create_callback_jitter_plot(callbacks: CallbacksType) -> TimeSeriesPlot:
+        """
+        Get CallbackJitterPlot instance.
+
+        Parameters
+        ----------
+        callbacks : Union[Application, Executor, Node, CallbackGroup, List[CallbackBase]]
+            Instances that have callbacks or a list of callbacks.
+
+        Returns
+        -------
+        CallbackJitterPlot
+
+        """
         return CallbackJitterPlot(callbacks)
 
     @staticmethod
     def create_callback_latency_plot(callbacks: CallbacksType) -> TimeSeriesPlot:
+        """
+        Get CallbackLatencyPlot instance.
+
+        Parameters
+        ----------
+        callbacks : Union[Application, Executor, Node, CallbackGroup, List[CallbackBase]]
+            Instances that have callbacks or a list of callbacks.
+
+        Returns
+        -------
+        CallbackLatencyPlot
+
+        """
         return CallbackLatencyPlot(callbacks)
