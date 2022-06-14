@@ -99,6 +99,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
                    legend_label=f'callback{i}',
                    color=color)
         p.add_layout(p.legend[0], 'right')
+        p.legend.click_policy = 'hide'
         if export_path is None:
             show(p)
         else:

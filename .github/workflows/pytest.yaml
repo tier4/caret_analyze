@@ -19,16 +19,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3-babeltrace python3-lttng python3-bt2
         shell: bash
-        
+
       - name: ROSDEP install
         run: |
           sudo apt-get install python3-rosdep
           # sudo rosdep init
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro galactic
-  
+
       - name: Install dependent packages
-        run: python3 -m pip install -r requirements.txt
+        run: python3 -m pip install -r src/requirements.txt
 
       - name: Run pytest
         run: |
