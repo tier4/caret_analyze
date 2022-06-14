@@ -20,9 +20,10 @@ from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.colors import Color, RGB
-from bokeh.io import show
+from bokeh.io import show, save
 from bokeh.models import Arrow, HoverTool, NormalHead
 from bokeh.plotting import ColumnDataSource, figure
+from bokeh.resources import CDN
 
 from caret_analyze.runtime.callback import TimerCallback
 
@@ -45,7 +46,8 @@ def callback_sched(
     lstrip_s: float = 0,
     rstrip_s: float = 0,
     coloring_rule='callback',
-    use_sim_time: bool = False
+    use_sim_time: bool = False,
+    export_path: Optional[str] = None
 ):
     assert coloring_rule in ['callback', 'callback_group', 'node']
 
@@ -57,7 +59,7 @@ def callback_sched(
     clip = Clip(clip_min, clip_max)
 
     color_selector = ColorSelector.create_instance(coloring_rule)
-    sched_plot_cbg(target_name, cbgs, color_selector, clip, use_sim_time)
+    sched_plot_cbg(target_name, cbgs, color_selector, clip, use_sim_time, export_path)
 
 
 def get_cbg_and_name(
@@ -96,8 +98,10 @@ def sched_plot_cbg(
     cbgs: Sequence[CallbackGroup],
     color_selector: ColorSelector,
     clipper: Clip,
-    use_sim_time: bool
+    use_sim_time: bool,
+    export_path: Optional[str] = None
 ):
+
     p = figure(
                x_axis_label='Time [s]',
                y_axis_label='',
@@ -225,7 +229,10 @@ def sched_plot_cbg(
     p.legend.click_policy = 'hide'
     p.add_layout(p.legend[0], 'right')
 
-    show(p)
+    if export_path is None:
+        show(p)
+    else:
+        save(p, export_path, title='callback execution timing-chart', resources=CDN)
 
 
 def get_callback_rects(
