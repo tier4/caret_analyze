@@ -410,6 +410,46 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#caret_analyze.plot.TimeSeriesPlot" class="md-nav__link">
+    TimeSeriesPlot
+  </a>
+  
+    <nav class="md-nav" aria-label="TimeSeriesPlot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.show" class="md-nav__link">
+    show()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe" class="md-nav__link">
+    to_dataframe()
+  </a>
+  
+    <nav class="md-nav" aria-label="to_dataframe()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe--notes" class="md-nav__link">
+    Notes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#caret_analyze.plot.bokeh" class="md-nav__link">
     bokeh
   </a>
@@ -656,6 +696,46 @@
   <a href="#caret_analyze.plot.bokeh.callback_info_factory.Plot.create_callback_latency_plot" class="md-nav__link">
     create_callback_latency_plot()
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.plot.TimeSeriesPlot" class="md-nav__link">
+    TimeSeriesPlot
+  </a>
+  
+    <nav class="md-nav" aria-label="TimeSeriesPlot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.show" class="md-nav__link">
+    show()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe" class="md-nav__link">
+    to_dataframe()
+  </a>
+  
+    <nav class="md-nav" aria-label="to_dataframe()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe--notes" class="md-nav__link">
+    Notes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1076,6 +1156,179 @@
 
 </div>
 
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.plot.TimeSeriesPlot" class="doc doc-heading">
+        <code>TimeSeriesPlot</code>
+
+
+<a href="#caret_analyze.plot.TimeSeriesPlot" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.show" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">show</span><span class="p">(</span><span class="n">xaxis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ywheel_zoom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.show" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Draw a line graph for each callback using the bokeh library.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>xaxis_type</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Type of x-axis of the line graph to be plotted.
+"system_time", "index", or "simtime" can be specified.
+The default is "system_time".</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ywheel_zoom</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>If True, the drawn graph can be expanded in the y-axis direction
+by the mouse wheel.</p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.exceptions.UnsupportedTypeError" href="../exceptions/#caret_analyze.exceptions.UnsupportedTypeError">UnsupportedTypeError</a></code>
+          </td>
+          <td><p>Argument xaxis_type is not "system_time", "index", or "simtime".</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_dataframe</span><span class="p">(</span><span class="n">xaxis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get time series data for each callback in pandas DataFrame format.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>xaxis_type</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Type of time for timestamp.
+"system_time", "index", or "simtime" can be specified.
+The default is "system_time".</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.exceptions.UnsupportedTypeError" href="../exceptions/#caret_analyze.exceptions.UnsupportedTypeError">UnsupportedTypeError</a></code>
+          </td>
+          <td><p>Argument xaxis_type is not "system_time", "index", or "simtime".</p></td>
+        </tr>
+    </tbody>
+  </table>
+      <h5 id="caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe--notes">Notes<a class="headerlink" href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot.to_dataframe--notes" title="Permanent link">#</a></h5>
+<p>xaxis_type "system_time" and "index" return the same DataFrame.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
 
 
 <div class="doc doc-object doc-module">
@@ -1142,7 +1395,10 @@
         Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot" href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot">TimeSeriesPlot</a></code></p>
 
   
-      <p>This class provides the API to visualize the execution frequency per unit of time for each callback and to obtain it in the pandas DataFrame format.</p>
+      <p>Class that provides API for callback jitter.</p>
+<p>This class provides the API to visualize the execution frequency
+per unit of time for each callback and to obtain it
+in the pandas DataFrame format.</p>
 
 
 
@@ -1182,7 +1438,9 @@
         Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot" href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot">TimeSeriesPlot</a></code></p>
 
   
-      <p>This class provides the API to visualize the jitter per unit of time for each callback and to obtain it in the pandas DataFrame format.</p>
+      <p>Class that provides API for callback jitter.</p>
+<p>This class provides the API to visualize the jitter per unit of time
+for each callback and to obtain it in the pandas DataFrame format.</p>
 
 
 
@@ -1222,7 +1480,9 @@
         Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot" href="#caret_analyze.plot.bokeh.callback_info_interface.TimeSeriesPlot">TimeSeriesPlot</a></code></p>
 
   
-      <p>This class provides the API to visualize the latency per unit of time for each callback and to obtain it in the pandas DataFrame format.</p>
+      <p>Class that provides API for callback latency.</p>
+<p>This class provides the API to visualize the latency per unit of time
+for each callback and to obtain it in the pandas DataFrame format.</p>
 
 
 
@@ -1608,7 +1868,8 @@ The default is "system_time".</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>If True, the drawn graph can be expanded in the y-axis direction by the mouse wheel.</p></td>
+          <td><p>If True, the drawn graph can be expanded in the y-axis direction
+by the mouse wheel.</p></td>
           <td>
                 <code>True</code>
           </td>
@@ -1650,7 +1911,7 @@ The default is "system_time".</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Get time series information for each callback in pandas DataFrame format.</p>
+      <p>Get time series data for each callback in pandas DataFrame format.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
