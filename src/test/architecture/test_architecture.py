@@ -21,8 +21,8 @@ from caret_analyze.architecture.graph_search import NodePathSearcher
 from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
-                                         ExecutorStructValue, NodeStructValue,
-                                         NodePathStructValue, PathStructValue)
+                                         ExecutorStructValue, NodePathStructValue,
+                                         NodeStructValue, PathStructValue)
 
 import pytest
 
