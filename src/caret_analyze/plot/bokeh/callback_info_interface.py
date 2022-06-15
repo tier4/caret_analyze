@@ -136,7 +136,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ------
         UnsupportedTypeError
             Argument xaxis_type is not "system_time", "index", or "simtime".
-        
+
         Notes
         -----
         xaxis_type "system_time" and "index" return the same DataFrame.

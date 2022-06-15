@@ -36,11 +36,12 @@ class Plot:
 
         Parameters
         ----------
-        callbacks : Union[Application, \
-                          Executor, \
-                          Node, \
-                          CallbackGroup, \
-                          List[CallbackBase]]
+        callbacks : CallbacksType
+            CallbacksType = Union[Application,
+                                  Executor,
+                                  Node,
+                                  CallbackGroup,
+                                  List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 
         Returns
@@ -59,11 +60,12 @@ class Plot:
 
         Parameters
         ----------
-        callbacks : Union[Application, \
-                          Executor, \
-                          Node, \
-                          CallbackGroup, \
-                          List[CallbackBase]]
+        callbacks : CallbacksType
+            CallbacksType = Union[Application,
+                                  Executor,
+                                  Node,
+                                  CallbackGroup,
+                                  List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 
         Returns
@@ -82,11 +84,12 @@ class Plot:
 
         Parameters
         ----------
-        callbacks : Union[Application, \
-                          Executor, \
-                          Node, \
-                          CallbackGroup, \
-                          List[CallbackBase]]
+        callbacks : CallbacksType
+            CallbacksType = Union[Application,
+                                  Executor,
+                                  Node,
+                                  CallbackGroup,
+                                  List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 
         Returns
