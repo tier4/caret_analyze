@@ -25,7 +25,12 @@ CallbacksType = Union[Application, Executor,
 
 
 class CallbackLatencyPlot(TimeSeriesPlot):
-    """This class provides the API to visualize the latency per unit of time for each callback and to obtain it in the pandas DataFrame format."""
+    """
+    Class that provides API for callback latency.
+
+    This class provides the API to visualize the latency per unit of time
+    for each callback and to obtain it in the pandas DataFrame format.
+    """
 
     def __init__(
         self,
@@ -43,8 +48,8 @@ class CallbackLatencyPlot(TimeSeriesPlot):
                 cb_names,
                 ['callback_start_timestamp [ns]', 'latency [ms]']]))
         for cb_name in cb_names:
-            latency_df[(cb_name, 'callback_start_timestamp [ns]')] = latency_table[
-                    cb_name + '/callback_start_timestamp']
+            latency_df[(cb_name, 'callback_start_timestamp [ns]')] = \
+                    latency_table[cb_name + '/callback_start_timestamp']
             latency_df[(cb_name, 'latency [ms]')] = (
                     latency_table[cb_name + '/callback_end_timestamp'] -
                     latency_table[cb_name + '/callback_start_timestamp']
@@ -54,7 +59,12 @@ class CallbackLatencyPlot(TimeSeriesPlot):
 
 
 class CallbackJitterPlot(TimeSeriesPlot):
-    """This class provides the API to visualize the jitter per unit of time for each callback and to obtain it in the pandas DataFrame format."""
+    """
+    Class that provides API for callback jitter.
+
+    This class provides the API to visualize the jitter per unit of time
+    for each callback and to obtain it in the pandas DataFrame format.
+    """
 
     def __init__(
         self,
@@ -64,10 +74,10 @@ class CallbackJitterPlot(TimeSeriesPlot):
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         latency_table = self._concate_cb_latency_table()
-        latency_table = latency_table.loc[:, latency_table.columns.str.contains(
-                '/callback_start_timestamp')]
-        latency_table.columns = [
-                c.replace('/callback_start_timestamp', '') for c in latency_table.columns]
+        latency_table = latency_table.loc[
+            :, latency_table.columns.str.contains('/callback_start_timestamp')]
+        latency_table.columns = [c.replace('/callback_start_timestamp', '')
+                                 for c in latency_table.columns]
         if(xaxis_type == 'sim_time'):
             self._df_convert_to_sim_time(latency_table)
 
@@ -75,8 +85,10 @@ class CallbackJitterPlot(TimeSeriesPlot):
                 latency_table.columns,
                 ['callback_start_timestamp [ns]', 'period [ms]']]))
         for cb_name in latency_table.columns:
-            jitter_df[(cb_name, 'callback_start_timestamp [ns]')] = latency_table[cb_name]
-            jitter_df[(cb_name, 'period [ms]')] = latency_table[cb_name].diff() * 10**(-6)
+            jitter_df[(cb_name, 'callback_start_timestamp [ns]')] = \
+                    latency_table[cb_name]
+            jitter_df[(cb_name,
+                       'period [ms]')] = latency_table[cb_name].diff()*10**(-6)
         jitter_df = jitter_df.drop(jitter_df.index[0])
         jitter_df = jitter_df.reset_index(drop=True)
 
@@ -84,7 +96,13 @@ class CallbackJitterPlot(TimeSeriesPlot):
 
 
 class CallbackFrequencyPlot(TimeSeriesPlot):
-    """This class provides the API to visualize the execution frequency per unit of time for each callback and to obtain it in the pandas DataFrame format."""
+    """
+    Class that provides API for callback jitter.
+
+    This class provides the API to visualize the execution frequency
+    per unit of time for each callback and to obtain it
+    in the pandas DataFrame format.
+    """
 
     def __init__(
         self,
@@ -94,16 +112,17 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         latency_table = self._concate_cb_latency_table()
-        latency_table = latency_table.loc[:, latency_table.columns.str.contains(
-                '/callback_start_timestamp')]
-        latency_table.columns = [
-                c.replace('/callback_start_timestamp', '') for c in latency_table.columns]
+        latency_table = latency_table.loc[
+            :, latency_table.columns.str.contains('/callback_start_timestamp')]
+        latency_table.columns = [c.replace('/callback_start_timestamp', '')
+                                 for c in latency_table.columns]
         if(xaxis_type == 'sim_time'):
             self._df_convert_to_sim_time(latency_table)
 
         # TODO: Emit an exception when latency_table size is 0.
         earliest_timestamp = latency_table.iloc[0].min()
-        frequency_df = self._get_preprocessing_frequency(latency_table, earliest_timestamp)
+        frequency_df = self._get_preprocessing_frequency(latency_table,
+                                                         earliest_timestamp)
 
         return frequency_df
 
@@ -112,9 +131,9 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         timestamp_df,
         initial_timestamp,
         callback_name
-    ) -> Tuple[list, list]:
-        timestamp_list = []
-        frequency_list = []
+    ) -> Tuple[List[float], List[int]]:
+        timestamp_list: List[float] = []
+        frequency_list: List[int] = []
         diff_base = -1
 
         for timestamp in timestamp_df[callback_name].dropna():
@@ -122,25 +141,31 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
             if int(diff*10**(-9)) == diff_base:
                 frequency_list[-1] += 1
             else:
-                timestamp_list.append(initial_timestamp + len(timestamp_list)*10**(9))
+                timestamp_list.append(initial_timestamp
+                                      + len(timestamp_list)*10**(9))
                 frequency_list.append(1)
                 diff_base = int(diff*10**(-9))
 
         return timestamp_list, frequency_list
 
-    def _get_preprocessing_frequency(self, timestamp_df, *initial_timestamp) -> pd.DataFrame:
+    def _get_preprocessing_frequency(
+        self,
+        timestamp_df,
+        *initial_timestamp
+    ) -> pd.DataFrame:
         frequency_df = pd.DataFrame()
 
         if len(initial_timestamp) != len(timestamp_df.columns):
             if len(initial_timestamp) == 1:
-                initial_timestamp = [
-                    initial_timestamp[0] for i in range(len(timestamp_df.columns))]
+                initial_timestamp = [initial_timestamp[0]
+                                     for i in range(len(timestamp_df.columns))]
             else:
                 # TODO: Emit an exception when latency_table size is 0.
-                initial_timestamp = [
-                    timestamp_df.iloc(0).mean for i in range(len(timestamp_df.columns))]
+                initial_timestamp = [timestamp_df.iloc(0).mean
+                                     for i in range(len(timestamp_df.columns))]
 
-        for initial, callback_name in zip(initial_timestamp, timestamp_df.columns):
+        for initial, callback_name in zip(initial_timestamp,
+                                          timestamp_df.columns):
             timestamp, frequency = self._get_cb_freq_with_timestamp(
                     timestamp_df, initial, callback_name)
             ts_df = pd.DataFrame(columns=pd.MultiIndex.from_product(

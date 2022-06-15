@@ -52,7 +52,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             "system_time", "index", or "simtime" can be specified.
             The default is "system_time".
         ywheel_zoom : bool
-            If True, the drawn graph can be expanded in the y-axis direction by the mouse wheel.
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
 
         Raises
         ------
@@ -79,18 +80,24 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         if(xaxis_type == 'system_time'):
             source_df = self._to_dataframe_core('system_time')
             l1_columns = source_df.columns.get_level_values(1).to_list()
-            fig_args = self._get_fig_args('system time [s]', l1_columns[1], ywheel_zoom)
+            fig_args = self._get_fig_args('system time [s]',
+                                          l1_columns[1],
+                                          ywheel_zoom)
             p = figure(**fig_args)
             apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
         elif(xaxis_type == 'sim_time'):
             source_df = self._to_dataframe_core('sim_time')
             l1_columns = source_df.columns.get_level_values(1).to_list()
-            fig_args = self._get_fig_args('simulation time [s]', l1_columns[1], ywheel_zoom)
+            fig_args = self._get_fig_args('simulation time [s]',
+                                          l1_columns[1],
+                                          ywheel_zoom)
             p = figure(**fig_args)
         elif(xaxis_type == 'index'):
             source_df = self._to_dataframe_core('index')
             l1_columns = source_df.columns.get_level_values(1).to_list()
-            fig_args = self._get_fig_args('index', l1_columns[1], ywheel_zoom)
+            fig_args = self._get_fig_args('index',
+                                          l1_columns[1],
+                                          ywheel_zoom)
             p = figure(**fig_args)
         p.add_tools(Hover)
         coloring_rule = 'callback'
@@ -116,7 +123,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
         """
-        Get time series information for each callback in pandas DataFrame format.
+        Get time series data for each callback in pandas DataFrame format.
 
         Parameters
         ----------
@@ -165,9 +172,15 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         converter = self._callbacks[0]._provider.get_sim_time_converter()
         for c in range(len(latency_table.columns)):
             for i in range(len(latency_table)):
-                latency_table.iat[i, c] = converter.convert(latency_table.iat[i, c])
+                latency_table.iat[i, c] = converter.convert(
+                        latency_table.iat[i, c])
 
-    def _get_fig_args(self, x_axis_label: str, y_axis_label: str, ywheel_zoom: bool) -> dict:
+    def _get_fig_args(
+        self,
+        x_axis_label: str,
+        y_axis_label: str,
+        ywheel_zoom: bool
+    ) -> dict:
         fig_args = {'height': 300,
                     'width': 1000,
                     'x_axis_label': x_axis_label,
@@ -189,7 +202,8 @@ def get_callback_lines(callback: CallbackBase,
                        type_name) -> ColumnDataSource:
     single_cb_df = source_df.loc[:, (callback.callback_name,)].dropna()
     if type_name == 'system_time':
-        x_item = ((single_cb_df.loc[:, l1_columns[0]]-frame_min)*10**(-9)).to_list()
+        x_item = ((single_cb_df.loc[:, l1_columns[0]]-frame_min
+                   )*10**(-9)).to_list()
         y_item = single_cb_df.loc[:, l1_columns[1]].to_list()
     elif type_name == 'index':
         x_item = single_cb_df.index
