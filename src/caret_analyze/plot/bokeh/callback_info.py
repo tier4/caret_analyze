@@ -97,7 +97,7 @@ class CallbackJitterPlot(TimeSeriesPlot):
 
 class CallbackFrequencyPlot(TimeSeriesPlot):
     """
-    Class that provides API for callback jitter.
+    Class that provides API for callback execution frequency.
 
     This class provides the API to visualize the execution frequency
     per unit of time for each callback and to obtain it
