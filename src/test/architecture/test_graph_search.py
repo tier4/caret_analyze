@@ -18,6 +18,7 @@ from caret_analyze.architecture.graph_search import (CallbackPathSearcher,
                                                      GraphNode, GraphPath,
                                                      GraphPathCore,
                                                      NodePathSearcher)
+from caret_analyze.exceptions import ItemNotFoundError
 from caret_analyze.value_objects import (CallbackStructValue,
                                          CommunicationStructValue,
                                          NodePathStructValue, NodeStructValue,
@@ -25,7 +26,6 @@ from caret_analyze.value_objects import (CallbackStructValue,
                                          SubscriptionStructValue,
                                          VariablePassingStructValue)
 
-from caret_analyze.exceptions import ItemNotFoundError
 
 import pytest
 
