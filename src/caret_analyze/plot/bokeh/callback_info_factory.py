@@ -14,7 +14,9 @@
 
 from typing import List, Union
 
-from .callback_info import CallbackFrequencyPlot, CallbackJitterPlot, CallbackLatencyPlot
+from .callback_info import (CallbackFrequencyPlot,
+                            CallbackJitterPlot,
+                            CallbackLatencyPlot)
 from .callback_info_interface import TimeSeriesPlot
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
 
@@ -26,13 +28,73 @@ CallbacksType = Union[Application, Executor,
 class Plot:
 
     @staticmethod
-    def create_callback_frequency_plot(callbacks: CallbacksType) -> TimeSeriesPlot:
+    def create_callback_frequency_plot(
+        callbacks: CallbacksType
+    ) -> TimeSeriesPlot:
+        """
+        Get CallbackFrequencyPlot instance.
+
+        Parameters
+        ----------
+        callbacks : CallbacksType
+            CallbacksType = Union[Application,
+                                  Executor,
+                                  Node,
+                                  CallbackGroup,
+                                  List[CallbackBase]].
+            Instances that have callbacks or a list of callbacks.
+
+        Returns
+        -------
+        CallbackFrequencyPlot
+
+        """
         return CallbackFrequencyPlot(callbacks)
 
     @staticmethod
-    def create_callback_jitter_plot(callbacks: CallbacksType) -> TimeSeriesPlot:
+    def create_callback_jitter_plot(
+        callbacks: CallbacksType
+    ) -> TimeSeriesPlot:
+        """
+        Get CallbackJitterPlot instance.
+
+        Parameters
+        ----------
+        callbacks : CallbacksType
+            CallbacksType = Union[Application,
+                                  Executor,
+                                  Node,
+                                  CallbackGroup,
+                                  List[CallbackBase]].
+            Instances that have callbacks or a list of callbacks.
+
+        Returns
+        -------
+        CallbackJitterPlot
+
+        """
         return CallbackJitterPlot(callbacks)
 
     @staticmethod
-    def create_callback_latency_plot(callbacks: CallbacksType) -> TimeSeriesPlot:
+    def create_callback_latency_plot(
+        callbacks: CallbacksType
+    ) -> TimeSeriesPlot:
+        """
+        Get CallbackLatencyPlot instance.
+
+        Parameters
+        ----------
+        callbacks : CallbacksType
+            CallbacksType = Union[Application,
+                                  Executor,
+                                  Node,
+                                  CallbackGroup,
+                                  List[CallbackBase]].
+            Instances that have callbacks or a list of callbacks.
+
+        Returns
+        -------
+        CallbackLatencyPlot
+
+        """
         return CallbackLatencyPlot(callbacks)
