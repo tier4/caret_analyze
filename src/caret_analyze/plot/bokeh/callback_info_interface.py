@@ -16,7 +16,9 @@ from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Union
 
 from bokeh.models import HoverTool
-from bokeh.plotting import ColumnDataSource, figure, show
+from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.resources import CDN
+
 
 import pandas as pd
 
@@ -41,7 +43,10 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         else:
             self._callbacks = target
 
-    def show(self, xaxis_type: Optional[str] = None, ywheel_zoom: bool = True):
+    def show(self,
+             xaxis_type: Optional[str] = None,
+             ywheel_zoom: bool = True,
+             export_path: Optional[str] = None):
         """
         Draw a line graph for each callback using the bokeh library.
 
@@ -54,6 +59,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
             by the mouse wheel.
+        export_path : Optional[str]
+            If you give path, the drawn graph will be saved as a file.
 
         Raises
         ------
@@ -119,7 +126,10 @@ class TimeSeriesPlot(metaclass=ABCMeta):
                    color=color)
         p.add_layout(p.legend[0], 'right')
         p.legend.click_policy = 'hide'
-        show(p)
+        if export_path is None:
+            show(p)
+        else:
+            save(p, export_path, title='callback time-line', resources=CDN)
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
         """
