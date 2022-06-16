@@ -49,7 +49,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ----------
         xaxis_type : Optional[str]
             Type of x-axis of the line graph to be plotted.
-            "system_time", "index", or "simtime" can be specified.
+            "system_time", "index", or "sim_time" can be specified.
             The default is "system_time".
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
@@ -58,7 +58,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         Raises
         ------
         UnsupportedTypeError
-            Argument xaxis_type is not "system_time", "index", or "simtime".
+            Argument xaxis_type is not "system_time", "index", or "sim_time".
 
         """
         xaxis_type = xaxis_type or 'system_time'
@@ -129,13 +129,13 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ----------
         xaxis_type : Optional[str]
             Type of time for timestamp.
-            "system_time", "index", or "simtime" can be specified.
+            "system_time", "index", or "sim_time" can be specified.
             The default is "system_time".
 
         Raises
         ------
         UnsupportedTypeError
-            Argument xaxis_type is not "system_time", "index", or "simtime".
+            Argument xaxis_type is not "system_time", "index", or "sim_time".
 
         Notes
         -----
