@@ -193,12 +193,13 @@ class TestRecords:
         with pytest.raises(InvalidArgumentError):
             Records(None, ['a', 'a'])
 
-        RecordsCppImpl()
-        with pytest.raises(InvalidArgumentError):
-            RecordsCppImpl([RecordCppImpl({'a': 1})], None)
+        if CppImplEnabled:
+            RecordsCppImpl()
+            with pytest.raises(InvalidArgumentError):
+                RecordsCppImpl([RecordCppImpl({'a': 1})], None)
 
-        with pytest.raises(InvalidArgumentError):
-            RecordsCppImpl(None, ['a', 'a'])
+            with pytest.raises(InvalidArgumentError):
+                RecordsCppImpl(None, ['a', 'a'])
 
     def test_columns(self):
         columns = ['value', 'stamp']
@@ -592,16 +593,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_groupby_1key_key_missing(self):
         records_py = Records(
@@ -640,16 +642,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_groupby_2key(self):
         records_py = Records(
@@ -690,16 +693,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a', 'c'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a', 'c'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_groupby_3key(self):
         records_py = Records(
@@ -745,16 +749,17 @@ class TestRecords:
         for k, v in group.items():
             assert v.equals(expect[k])
 
-        records_cpp = to_cpp_records(records_py)
-        expect_cpp = {}
-        for k, v in expect.items():
-            expect_cpp[k] = to_cpp_records(v)
-        group_cpp = records_cpp.groupby(['a', 'b', 'c'])
+        if CppImplEnabled:
+            records_cpp = to_cpp_records(records_py)
+            expect_cpp = {}
+            for k, v in expect.items():
+                expect_cpp[k] = to_cpp_records(v)
+            group_cpp = records_cpp.groupby(['a', 'b', 'c'])
 
-        assert group_cpp.keys() == expect_cpp.keys()
+            assert group_cpp.keys() == expect_cpp.keys()
 
-        for k, v in group_cpp.items():
-            assert v.equals(expect_cpp[k])
+            for k, v in group_cpp.items():
+                assert v.equals(expect_cpp[k])
 
     def test_append_column(self):
         expects_py = Records(

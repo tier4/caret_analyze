@@ -22,7 +22,6 @@ from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
                                          TimerCallbackValue)
 
 
-
 class TestArchitectureReaderLttng:
 
     def test_get_nodes(self, mocker):
