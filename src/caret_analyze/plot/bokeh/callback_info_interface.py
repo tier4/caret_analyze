@@ -47,7 +47,6 @@ class TimeSeriesPlot(metaclass=ABCMeta):
              xaxis_type: Optional[str] = None,
              ywheel_zoom: bool = True,
              export_path: Optional[str] = None):
-
         """
         Draw a line graph for each callback using the bokeh library.
 
