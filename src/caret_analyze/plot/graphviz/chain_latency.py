@@ -16,6 +16,7 @@ from typing import List, Optional
 
 from graphviz import Digraph, Source
 import numpy as np
+import pandas as pd
 
 from ...exceptions import InvalidArgumentError
 from ...runtime.path import Path
@@ -25,7 +26,7 @@ def chain_latency(
     path: Path,
     export_path: Optional[str] = None,
     granularity: str = 'node',
-    treat_drop_as_delay=True,
+    treat_drop_as_delay=False,
     lstrip_s=0,
     rstrip_s=0,
 ) -> Optional[Source]:
@@ -80,7 +81,8 @@ class GraphAttr:
         self.edges = edges
 
 
-def to_label(latency: np.array) -> str:
+def to_label(latency: np.ndarray) -> str:
+    latency = latency[[not pd.isnull(_) for _ in latency]]
     label = (
         'min: {:.2f} ms\n'.format(np.min(latency * 1.0e-6))
         + 'avg: {:.2f} ms\n'.format(np.average(latency * 1.0e-6))
@@ -133,6 +135,7 @@ def get_attr_end_to_end(
     rstrip_s: float
 ) -> GraphAttr:
     node_paths = path.node_paths
+    remove_dropped = False
 
     graph_nodes: List[GraphNode] = []
 
@@ -141,7 +144,7 @@ def get_attr_end_to_end(
         label = node_name
         if len(node_path.column_names) != 0:
             _, latency = node_path.to_timeseries(
-                remove_dropped=True,
+                remove_dropped=remove_dropped,
                 treat_drop_as_delay=treat_drop_as_delay,
                 lstrip_s=lstrip_s,
                 rstrip_s=rstrip_s,
@@ -150,7 +153,8 @@ def get_attr_end_to_end(
         graph_nodes.append(GraphNode(node_name, label))
 
     _, latency = path.to_timeseries(
-        remove_dropped=True,
+        remove_dropped=remove_dropped,
+        treat_drop_as_delay=treat_drop_as_delay,
         lstrip_s=lstrip_s,
         rstrip_s=rstrip_s,
     )
