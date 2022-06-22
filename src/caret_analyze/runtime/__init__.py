@@ -20,6 +20,7 @@ from .executor import Executor
 from .node import Node
 from .node_path import NodePath
 from .path import Path
+from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from .timer import Timer
@@ -36,6 +37,7 @@ __all__ = [
     'NodePath',
     'Node',
     'Path',
+    'PathBase',
     'Publisher',
     'Timer',
     'Subscription',
