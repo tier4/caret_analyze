@@ -98,13 +98,15 @@ def get_attr_node(
     rstrip_s: float
 ) -> GraphAttr:
     graph_nodes: List[GraphNode] = []
+    remove_dropped = False
+
     for node_path in path.node_paths:
         node_name = node_path.node_name
         label = node_name
 
         if node_path.column_names != []:
             _, latency = node_path.to_timeseries(
-                remove_dropped=True,
+                remove_dropped=remove_dropped,
                 treat_drop_as_delay=treat_drop_as_delay,
                 lstrip_s=lstrip_s,
                 rstrip_s=rstrip_s,
@@ -115,7 +117,8 @@ def get_attr_node(
     graph_edges: List[GraphEdge] = []
     for comm_path in path.communications:
         _, pubsub_latency = comm_path.to_timeseries(
-            remove_dropped=True,
+            remove_dropped=remove_dropped,
+            treat_drop_as_delay=treat_drop_as_delay,
             lstrip_s=lstrip_s,
             rstrip_s=rstrip_s,
         )
