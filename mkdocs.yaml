@@ -66,14 +66,7 @@ plugins:
           options:
             docstring_style: numpy
             show_source: false
-            show_submodules: true
-
-nav:
-  - HOME: index.md
-  - API:
-      - Plot: plot.md
-      - Runtime: runtime.md
-      - Exceptions: exceptions.md
+            show_submodules: false
 
 markdown_extensions:
   - admonition
