@@ -168,18 +168,14 @@ class Lttng(InfraBase):
         self,
         trace_dir_or_events: Union[str, Dict],
         force_conversion: bool = False,
-        use_singleton_cache: bool = True,
         *,
         event_filters: Optional[List[LttngEventFilter]] = None,
         store_events: bool = False,
+        validate: bool = True  # TODO(hsgwa): change validate function to public "verify".
     ) -> None:
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
         from .event_counter import EventCounter
-
-        if self._last_load_dir == trace_dir_or_events and use_singleton_cache is True and \
-                event_filters == self._last_filters:
-            return
 
         data, events = self._parse_lttng_data(
             trace_dir_or_events,
@@ -188,11 +184,8 @@ class Lttng(InfraBase):
         )
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
-        self._counter = EventCounter(data)
+        self._counter = EventCounter(data, validate=validate)
         self.events = events if store_events else None
-
-    def clear_singleton_cache(self) -> None:
-        self._last_load_dir = None
 
     @staticmethod
     def _parse_lttng_data(
