@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from logging import WARNING
+
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
 from caret_analyze.architecture.architecture_reader_factory import \
@@ -22,7 +24,8 @@ from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
                                          ExecutorStructValue, NodePathStructValue,
-                                         NodeStructValue, PathStructValue)
+                                         NodeStructValue, PathStructValue,
+                                         TimerCallbackStructValue)
 
 import pytest
 
@@ -261,3 +264,27 @@ class TestArchiteture:
 
         paths = arch.search_paths('0', '1', '2')
         assert len(paths) == 1
+
+    def test_verify_callback_uniqueness(self, mocker, caplog):
+        node_mock = mocker.Mock(spec=NodeStructValue)
+        callback_mock = mocker.Mock(spec=TimerCallbackStructValue)
+        mocker.patch.object(callback_mock, 'period_ns', 100)
+        mocker.patch.object(
+            callback_mock, 'callback_type_name', 'type')
+
+        caplog.set_level(WARNING)
+
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock])
+        caplog.clear()
+        Architecture._verify([node_mock])
+        assert len(caplog.record_tuples) == 0
+
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock, callback_mock])
+        caplog.clear()
+        Architecture._verify([node_mock])
+        assert len(caplog.record_tuples) == 1
+
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock, callback_mock, callback_mock])
+        caplog.clear()
+        Architecture._verify([node_mock])
+        assert len(caplog.record_tuples) == 1

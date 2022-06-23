@@ -14,12 +14,16 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Tuple
+import logging
+from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
+
+from caret_analyze.value_objects.callback import (SubscriptionCallbackStructValue,
+                                                  TimerCallbackStructValue)
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
+from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
@@ -44,6 +48,7 @@ class Architecture(Summarizable):
         self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
         self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
         self._path_manager = NamedPathManager(loaded.paths)
+        self._verify(self._nodes)
 
     def get_node(self, node_name: str) -> NodeStructValue:
         try:
@@ -157,6 +162,32 @@ class Architecture(Summarizable):
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
         return path_searcher.search(*node_names, max_node_depth=max_node_depth)
+
+    @staticmethod
+    def _verify(nodes: Collection[NodeStructValue]) -> None:
+        from collections import Counter
+
+        # verify callback parameter uniqueness
+        for node in nodes:
+            callbacks = node.callbacks
+            if callbacks is None:
+                continue
+
+            callback_params: List[Tuple[str, Union[str, int]]] = []
+            for callback in callbacks:
+                cb_type = callback.callback_type_name
+                cb_param: Union[str, int]
+                if isinstance(callback, TimerCallbackStructValue):
+                    cb_param = callback.period_ns
+                else:
+                    continue
+                callback_params.append((cb_type, cb_param))
+
+            counter = Counter(callback_params)
+
+            for uniqueness_violated in [param for param, count in counter.items() if count >= 2]:
+                logging.warning(
+                    f'Duplicate parameter callback found. {node.node_name} {uniqueness_violated}')
 
 
 class NamedPathManager():
