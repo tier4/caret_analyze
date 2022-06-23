@@ -1,12 +1,12 @@
 nav:
   - HOME: index.md
   - API for user:
-      - Plot: plot.md
-      - Runtime: runtime.md
-      - Exceptions: exceptions.md
+      - plot: plot.md
+      - runtime: runtime.md
+      - exceptions: exceptions.md
   - API for developer:
-      - Architecture: architecture.md
-      - Common: common.md
-      - Infra: infra.md
-      - Record: record.md
-      - Value_objects: value_objects.md
+      - architecture: architecture.md
+      - common: common.md
+      - infra: infra.md
+      - record: record.md
+      - value_objects: value_objects.md
