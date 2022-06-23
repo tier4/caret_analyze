@@ -6,12 +6,31 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    container: ghcr.io/autowarefoundation/autoware-universe:latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      - name: Install LTTng
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo apt-add-repository ppa:lttng/stable-2.12
+          sudo apt-get update
+          sudo apt-get install -y python3-babeltrace python3-lttng python3-bt2
+        shell: bash
+
+      - name: ROSDEP install
+        run: |
+          sudo apt-get install python3-rosdep
+          # sudo rosdep init
+          rosdep update
+          rosdep install -i --from-paths . -y --rosdistro galactic
+
       - name: Install dependent packages
-        run: python3 -m pip install -r requirements.txt
+        run: python3 -m pip install -r src/requirements.txt
 
       - name: Run pytest
-        run: python3 -m pytest
+        run: |
+          . /opt/ros/galactic/setup.sh
+          python3 -m pytest

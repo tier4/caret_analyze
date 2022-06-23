@@ -1,0 +1,5 @@
+setuptools
+colorcet
+pandas>=1.4.0
+bokeh
+graphviz
