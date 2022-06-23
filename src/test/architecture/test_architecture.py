@@ -74,6 +74,7 @@ class TestArchiteture:
 
         node_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock, 'node_name', 'node_name')
+        mocker.patch.object(node_mock, 'callbacks', [])
 
         mocker.patch.object(loaded_mock, 'paths', ())
         mocker.patch.object(loaded_mock, 'nodes', (node_mock,))
@@ -99,6 +100,7 @@ class TestArchiteture:
         path_mock = mocker.Mock(spec=PathStructValue)
         comm_mock = mocker.Mock(spec=CommunicationStructValue)
 
+        mocker.patch.object(node_mock, 'callbacks', [])
         mocker.patch.object(loaded_mock, 'nodes', [node_mock])
         mocker.patch.object(loaded_mock, 'paths', [path_mock])
         mocker.patch.object(loaded_mock, 'communications', [comm_mock])
@@ -182,6 +184,8 @@ class TestArchiteture:
         mocker.patch.object(start_node_mock, 'node_name', 'start_node')
         mocker.patch.object(end_node_mock, 'node_name', 'end_node')
 
+        mocker.patch.object(start_node_mock, 'callbacks', [])
+        mocker.patch.object(end_node_mock, 'callbacks', [])
         mocker.patch.object(loaded_mock, 'nodes', [start_node_mock, end_node_mock])
         mocker.patch.object(loaded_mock, 'paths', [])
         mocker.patch.object(loaded_mock, 'communications', [])
@@ -217,6 +221,10 @@ class TestArchiteture:
         mocker.patch.object(node_mock_0, 'node_name', '0')
         mocker.patch.object(node_mock_1, 'node_name', '1')
         mocker.patch.object(node_mock_2, 'node_name', '2')
+
+        mocker.patch.object(node_mock_0, 'callbacks', [])
+        mocker.patch.object(node_mock_1, 'callbacks', [])
+        mocker.patch.object(node_mock_2, 'callbacks', [])
 
         node_path_mock_0 = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(node_path_mock_0, 'subscribe_topic_name', None)

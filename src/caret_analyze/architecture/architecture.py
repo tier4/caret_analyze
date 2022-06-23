@@ -17,13 +17,12 @@ from __future__ import annotations
 import logging
 from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 
-from caret_analyze.value_objects.callback import (SubscriptionCallbackStructValue,
-                                                  TimerCallbackStructValue)
+from caret_analyze.value_objects.callback import TimerCallbackStructValue
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
+from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
@@ -41,7 +40,8 @@ class Architecture(Summarizable):
         # /parameter events and /rosout measurements are not yet supported.
         ignore_topics: List[str] = IGNORE_TOPICS
 
-        reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
+        reader = ArchitectureReaderFactory.create_instance(
+            file_type, file_path)
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
         self._nodes: Tuple[NodeStructValue, ...] = loaded.nodes
@@ -144,7 +144,8 @@ class Architecture(Summarizable):
         })
 
     def export(self, file_path: str, force: bool = False):
-        exporter = ArchitectureExporter(self.nodes, self.executors, self.paths, force)
+        exporter = ArchitectureExporter(
+            self.nodes, self.executors, self.paths, force)
         exporter.execute(file_path)
 
     def search_paths(
