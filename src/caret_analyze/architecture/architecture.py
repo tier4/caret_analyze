@@ -187,7 +187,10 @@ class Architecture(Summarizable):
 
             for uniqueness_violated in [param for param, count in counter.items() if count >= 2]:
                 logging.warning(
-                    f'Duplicate parameter callback found. {node.node_name} {uniqueness_violated}')
+                    ('Duplicate parameter callback found. '
+                     f'node_name: {node.node_name}, '
+                     f'callback_type: {uniqueness_violated[0]}'
+                     f'period_ns: {uniqueness_violated[1]}'))
 
 
 class NamedPathManager():
