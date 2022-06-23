@@ -1,7 +1,5 @@
 # CARET analyze
 
-TODO
-
 ## API for user
 
 - [Plot](plot.md)
