@@ -508,9 +508,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#caret_analyze.common.Summarizable" class="md-nav__link">
+    Summarizable
+  </a>
+  
+    <nav class="md-nav" aria-label="Summarizable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summarizable.summary" class="md-nav__link">
+    summary()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#caret_analyze.common.Summary" class="md-nav__link">
     Summary
   </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summary.__eq__" class="md-nav__link">
+    __eq__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summary.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summary.__str__" class="md-nav__link">
+    __str__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -609,9 +656,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#caret_analyze.common.Summarizable" class="md-nav__link">
+    Summarizable
+  </a>
+  
+    <nav class="md-nav" aria-label="Summarizable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summarizable.summary" class="md-nav__link">
+    summary()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#caret_analyze.common.Summary" class="md-nav__link">
     Summary
   </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summary.__eq__" class="md-nav__link">
+    __eq__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summary.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.common.summary.Summary.__str__" class="md-nav__link">
+    __str__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -676,19 +770,17 @@
 
 
 
-<h2 id="caret_analyze.common.Summary" class="doc doc-heading">
-        <code>Summary</code>
+<h2 id="caret_analyze.common.Summarizable" class="doc doc-heading">
+        <code>Summarizable</code>
 
 
-<a href="#caret_analyze.common.Summary" class="headerlink" title="Permanent link">#</a></h2>
+<a href="#caret_analyze.common.Summarizable" class="headerlink" title="Permanent link">#</a></h2>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="collections.UserDict">UserDict</span></code></p>
 
   
-      <p>Temporary dictionary to use when outputting summaries.</p>
+      <p>Abstract base class that have summary property.</p>
 
 
 
@@ -703,6 +795,136 @@
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.common.summary.Summarizable.summary" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">summary</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.common.summary.Summarizable.summary" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get summary.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.common.summary.Summary" href="#caret_analyze.common.Summary">Summary</a></code>
+          </td>
+          <td><p>summary info.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.common.Summary" class="doc doc-heading">
+        <code>Summary</code>
+
+
+<a href="#caret_analyze.common.Summary" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="collections.UserDict">UserDict</span></code></p>
+
+  
+      <p>Summary info about for value objects and runtime data objects.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.common.summary.Summary.__eq__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.summary.Summary.__eq__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return True to ignore [override].</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.common.summary.Summary.__hash__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__hash__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.common.summary.Summary.__hash__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return zero to ignore [override].</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.common.summary.Summary.__str__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__str__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.common.summary.Summary.__str__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return yaml-format string.</p>
+
+  </div>
+
+</div>
 
 
 
