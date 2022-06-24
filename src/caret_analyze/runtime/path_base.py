@@ -141,7 +141,7 @@ class PathBase(metaclass=ABCMeta):
         rstrip_s: float = 0,
         *,
         shaper: Optional[DataFrameShaper] = None,
-    ) -> Tuple[np.array, np.array]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Convert to timeseries data.
 
@@ -193,7 +193,7 @@ class PathBase(metaclass=ABCMeta):
         rstrip_s: float = 0,
         *,
         shaper: Optional[DataFrameShaper] = None,
-    ) -> Tuple[np.array, np.array]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Convert to histogram data.
 
@@ -216,8 +216,10 @@ class PathBase(metaclass=ABCMeta):
         """
         import math
 
+        remove_dropped = not treat_drop_as_delay
         _, latency_ns = self.to_timeseries(
-            True, treat_drop_as_delay, lstrip_s, rstrip_s, shaper=shaper)
+            remove_dropped, treat_drop_as_delay, lstrip_s, rstrip_s, shaper=shaper)
+        latency_ns = latency_ns[[not pd.isnull(_) for _ in latency_ns]]
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
         bin_num = math.ceil((range_max - range_min) / binsize_ns)
