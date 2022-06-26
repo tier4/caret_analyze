@@ -14,10 +14,17 @@
 
 from __future__ import annotations
 
+from logging import getLogger
+
 import os
+
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
+import Levenshtein
+
 from ..exceptions import ItemNotFoundError, MultipleItemFoundError
+
+logger = getLogger(__name__)
 
 
 class Util:
@@ -93,3 +100,10 @@ class Util:
         ns = '/'.join(strs[:-1]) + '/'
         name = strs[-1]
         return ns, name
+
+    @staticmethod
+    def how_similar_str(name1: str, name2: str) -> bool:
+        return Levenshtein.ratio(name1, name2)
+
+    def warning_with_str(name1: str):
+        raise ItemNotFoundError(f'did you mean {name1}?')

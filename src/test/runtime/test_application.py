@@ -113,12 +113,10 @@ class TestApplication:
             comm_mock.subscribe_node_name,
             comm_mock.topic_name) == comm_mock
 
-
-    def test_get_callbacks(self, mocker: MockerFixture):
-        #define mocks
+    def test_get_callbacks(self, mocker):
+        # define mocks
         arch_mock = mocker.Mock(spec=Architecture)
         records_provider_mock = mocker.Mock(spec=Lttng)
-
 
         # node_mock = mocker.Mock(spec=Node)
         node_mock = mocker.Mock(spec=Node)
@@ -129,8 +127,8 @@ class TestApplication:
         callback_mock1 = mocker.Mock(spec=CallbackBase)
         records_assigned_mock = mocker.Mock(spec=RuntimeLoaded)
 
-        #patch mocks
-        mocker.patch.object(callback_mock0, 'callback_name', 'cb_a')
+        # patch mocks
+        mocker.patch.object(callback_mock0, 'callback_name', 'cb_abcdefg')
         mocker.patch.object(callback_mock1, 'callback_name', 'cb_b')
         mocker.patch.object(node_mock, 'node_name', 'node_name_')
         mocker.patch.object(node_mock, 'callbacks', [callback_mock0, callback_mock1])
@@ -141,7 +139,7 @@ class TestApplication:
             comm_mock, 'subscribe_node_name', 'subscribe_node_name_')
         mocker.patch.object(
             comm_mock, 'topic_name', 'topic_name')
-        
+
         mocker.patch('caret_analyze.runtime.runtime_loaded.RuntimeLoaded',
                      return_value=records_assigned_mock)
 
@@ -152,7 +150,9 @@ class TestApplication:
         mocker.patch.object(records_assigned_mock,
                             'communications', [comm_mock])
 
-
         app = Application(arch_mock, records_provider_mock)
 
         assert app.get_callbacks('cb*') == [callback_mock0, callback_mock1]
+        assert app.get_callbacks('*') == [callback_mock0, callback_mock1]
+        assert app.get_callbacks('cbb*') == []
+        assert app.get_callbacks('cb_?') == [callback_mock1]

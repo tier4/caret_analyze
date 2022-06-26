@@ -14,10 +14,10 @@
 
 from __future__ import annotations, unicode_literals
 
-from logging import getLogger
-import re
+import fnmatch
 
-from typing import List, Optional, Tuple, Union
+from logging import getLogger
+
 from typing import List, Optional, Union
 
 from .callback import CallbackBase
@@ -28,7 +28,7 @@ from .node import Node
 from .path import Path
 from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, UnsupportedTypeError, Error
+from ..exceptions import Error, InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..infra.infra_base import InfraBase
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..infra.lttng.lttng import Lttng
@@ -36,6 +36,7 @@ from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
 from ..value_objects import NodePathStructValue
 
 logger = getLogger(__name__)
+
 
 class Application(Summarizable):
     def __init__(
@@ -158,7 +159,18 @@ class Application(Summarizable):
         def is_target_path(path: Path):
             return path.path_name == path_name
 
-        return Util.find_one(is_target_path, self.paths)
+        try:
+            return Util.find_one(is_target_path, self.paths)
+        except ItemNotFoundError:
+            similarity = 0.0
+            for path in self.paths:
+                if (Util.how_similar_str(path.path_name, path_name) > similarity):
+                    similarity = Util.how_similar_str(path.path_name, path_name)
+                    msg = path.path_name
+            if(similarity > 0.8):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
     def get_executor(
         self,
@@ -190,7 +202,18 @@ class Application(Summarizable):
         if not isinstance(executor_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
+        try:
+            return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
+        except ItemNotFoundError:
+            similarity = 0.0
+            for x in self.executors:
+                if (Util.how_similar_str(x.executor_name, executor_name) > similarity):
+                    similarity = Util.how_similar_str(x.executor_name, executor_name)
+                    msg = similarity = x.executor_name
+            if(similarity > 0.8):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
     @property
     def callback_groups(
@@ -244,7 +267,19 @@ class Application(Summarizable):
 
         def is_target(x: CallbackGroup):
             return x.callback_group_name == callback_group_name
-        return Util.find_one(is_target, self.callback_groups)
+
+        try:
+            return Util.find_one(is_target, self.callback_groups)
+        except ItemNotFoundError:
+            similarity = 0.0
+            for x in self.callback_groups:
+                if (Util.how_similar_str(x.callback_group_name, callback_group_name) > similarity):
+                    similarity = Util.how_similar_str(x.callback_group_name, callback_group_name)
+                    msg = x.callback_group_name
+            if(similarity > 0.8):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
     def get_communication(
         self,
@@ -289,7 +324,20 @@ class Application(Summarizable):
                 comm.subscribe_node_name == subscription_node_name and \
                 comm.topic_name == topic_name
 
-        return Util.find_one(is_target_comm, self.communications)
+        try:
+            return Util.find_one(is_target_comm, self.communications)
+        except ItemNotFoundError:
+            similarity = 0.0
+            for comm in self.communications:
+                if(Util.how_similar_str(comm.publish_node_name, publisher_node_name) > similarity):
+                    similarity = Util.how_similar_str(comm.publish_node_name, publisher_node_name)
+                    msg = 'publish_node' + comm.publish_node_name + \
+                        'subscribe_node' + comm.subscribe_node_name + \
+                        'topic_name' + comm.topic_name
+            if(similarity > 0.8):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
     @property
     def topic_names(self) -> List[str]:
@@ -394,11 +442,22 @@ class Application(Summarizable):
                 not isinstance(publish_topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(
-            lambda x: x.node_name == node_name and
-            x.publish_topic_name == publish_topic_name and
-            x.subscribe_topic_name == subscribe_topic_name, self.node_paths
-        )
+        try:
+            return Util.find_one(
+                lambda x: x.node_name == node_name and
+                x.publish_topic_name == publish_topic_name and
+                x.subscribe_topic_name == subscribe_topic_name, self.node_paths
+            )
+        except ItemNotFoundError:
+            similarity = 0.0
+            for x in self.node_paths:
+                if (Util.how_similar_str(x.node_name, node_name) > similarity):
+                    similarity = Util.how_similar_str(x.node_name, node_name)
+                    msg = x.node_name
+            if(similarity > 0.8):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
     def get_communications(
         self,
@@ -430,10 +489,21 @@ class Application(Summarizable):
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        comms = Util.filter_items(
-            lambda x: x.topic_name == topic_name,
-            self.communications
-        )
+        try:
+            comms = Util.filter_items(
+                lambda x: x.topic_name == topic_name,
+                self.communications
+            )
+        except ItemNotFoundError:
+            similarity = 0.0
+            for x in self.communications:
+                if (Util.how_similar_str(x.topic_name, topic_name) > similarity):
+                    similarity = Util.how_similar_str(x.topic_name, topic_name)
+                    msg = x.topic_name
+            if(similarity > 0.8):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
         return sorted(comms, key=lambda x: x.topic_name)
 
@@ -467,10 +537,21 @@ class Application(Summarizable):
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.filter_items(
-            lambda x: x.node_name == node_name,
-            self.node_paths
-        )
+        try:
+            return Util.filter_items(
+                lambda x: x.node_name == node_name,
+                self.node_paths
+            )
+        except ItemNotFoundError:
+            similarity = 0.0
+            for x in self.node_paths:
+                if (Util.how_similar_str(x.node_name, node_name) > similarity):
+                    similarity = Util.how_similar_str(x.node_name, node_name)
+                    msg = x.node_name
+            if(similarity > 0.8):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
     @property
     def node_paths(self) -> List[NodePathStructValue]:
@@ -515,7 +596,18 @@ class Application(Summarizable):
         def is_target_node(node: Node):
             return node.node_name == node_name
 
-        return Util.find_one(is_target_node, self.nodes)
+        try:
+            return Util.find_one(is_target_node, self.nodes)
+        except ItemNotFoundError:
+            similarity = 0.0
+            for node in self.nodes:
+                if (Util.how_similar_str(node.node_name) > similarity):
+                    similarity = Util.how_similar_str(node.node_name)
+                    msg = node.node_name
+        if(similarity > 0.8):
+            Util.warning_with_str(msg)
+        else:
+            raise ItemNotFoundError('Failed find item.')
 
     def get_callback(self, callback_name: str) -> CallbackBase:
         """
@@ -547,7 +639,18 @@ class Application(Summarizable):
         def is_target_callback(callback: CallbackBase):
             return callback.callback_name == callback_name
 
-        return Util.find_one(is_target_callback, self.callbacks)
+        try:
+            return Util.find_one(is_target_callback, self.callbacks)
+        except ItemNotFoundError:
+            similarity = 0.0
+            for callback in self.callbacks:
+                if (Util.how_similar_str(callback.callback_name, callback_name) > similarity):
+                    similarity = Util.how_similar_str(callback.callback_name, callback_name)
+                    msg = callback.callback_name
+            if(similarity):
+                Util.warning_with_str(msg)
+            else:
+                raise ItemNotFoundError('Failed find item.')
 
     def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
         """
@@ -574,12 +677,12 @@ class Application(Summarizable):
 
         """
         def is_match_regex(callback: CallbackBase):
-            return re.match(callback_name, callback.callback_name)
+            return fnmatch.fnmatch(callback.callback_name, callback_name)
 
         callbacks = []
         for callback_name in callback_names:
             try:
-                if '*' in callback_name:
+                if '*' in callback_name or '?' in callback_name:
                     callbacks += Util.filter_items(is_match_regex, self.callbacks)
                 else:
                     callbacks.append(self.get_callback(callback_name))
