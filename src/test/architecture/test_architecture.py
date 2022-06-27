@@ -30,7 +30,7 @@ from caret_analyze.value_objects import (CommunicationStructValue,
 import pytest
 
 
-class TestArchiteture:
+class TestArchitecture:
 
     def test_empty_architecture(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
