@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from logging import WARNING
+
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
 from caret_analyze.architecture.architecture_reader_factory import \
@@ -22,12 +24,13 @@ from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue,
                                          ExecutorStructValue, NodePathStructValue,
-                                         NodeStructValue, PathStructValue)
+                                         NodeStructValue, PathStructValue,
+                                         TimerCallbackStructValue)
 
 import pytest
 
 
-class TestArchiteture:
+class TestArchitecture:
 
     def test_empty_architecture(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -71,6 +74,7 @@ class TestArchiteture:
 
         node_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock, 'node_name', 'node_name')
+        mocker.patch.object(node_mock, 'callbacks', [])
 
         mocker.patch.object(loaded_mock, 'paths', ())
         mocker.patch.object(loaded_mock, 'nodes', (node_mock,))
@@ -96,6 +100,7 @@ class TestArchiteture:
         path_mock = mocker.Mock(spec=PathStructValue)
         comm_mock = mocker.Mock(spec=CommunicationStructValue)
 
+        mocker.patch.object(node_mock, 'callbacks', [])
         mocker.patch.object(loaded_mock, 'nodes', [node_mock])
         mocker.patch.object(loaded_mock, 'paths', [path_mock])
         mocker.patch.object(loaded_mock, 'communications', [comm_mock])
@@ -179,6 +184,8 @@ class TestArchiteture:
         mocker.patch.object(start_node_mock, 'node_name', 'start_node')
         mocker.patch.object(end_node_mock, 'node_name', 'end_node')
 
+        mocker.patch.object(start_node_mock, 'callbacks', [])
+        mocker.patch.object(end_node_mock, 'callbacks', [])
         mocker.patch.object(loaded_mock, 'nodes', [start_node_mock, end_node_mock])
         mocker.patch.object(loaded_mock, 'paths', [])
         mocker.patch.object(loaded_mock, 'communications', [])
@@ -214,6 +221,10 @@ class TestArchiteture:
         mocker.patch.object(node_mock_0, 'node_name', '0')
         mocker.patch.object(node_mock_1, 'node_name', '1')
         mocker.patch.object(node_mock_2, 'node_name', '2')
+
+        mocker.patch.object(node_mock_0, 'callbacks', [])
+        mocker.patch.object(node_mock_1, 'callbacks', [])
+        mocker.patch.object(node_mock_2, 'callbacks', [])
 
         node_path_mock_0 = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(node_path_mock_0, 'subscribe_topic_name', None)
@@ -261,3 +272,27 @@ class TestArchiteture:
 
         paths = arch.search_paths('0', '1', '2')
         assert len(paths) == 1
+
+    def test_verify_callback_uniqueness(self, mocker, caplog):
+        node_mock = mocker.Mock(spec=NodeStructValue)
+        callback_mock = mocker.Mock(spec=TimerCallbackStructValue)
+        mocker.patch.object(callback_mock, 'period_ns', 100)
+        mocker.patch.object(
+            callback_mock, 'callback_type_name', 'type')
+
+        caplog.set_level(WARNING)
+
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock])
+        caplog.clear()
+        Architecture._verify([node_mock])
+        assert len(caplog.record_tuples) == 0
+
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock, callback_mock])
+        caplog.clear()
+        Architecture._verify([node_mock])
+        assert len(caplog.record_tuples) == 1
+
+        mocker.patch.object(node_mock, 'callbacks', [callback_mock, callback_mock, callback_mock])
+        caplog.clear()
+        Architecture._verify([node_mock])
+        assert len(caplog.record_tuples) == 1
