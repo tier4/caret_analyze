@@ -22,7 +22,7 @@ jobs:
 
       - name: ROSDEP install
         run: |
-          sudo apt-get install python3-rosdep
+          sudo apt-get install -y python3-rosdep
           # sudo rosdep init
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro galactic
