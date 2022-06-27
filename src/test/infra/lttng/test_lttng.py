@@ -231,8 +231,10 @@ class TestLttng:
                      return_value=lttng_info_mock)
         lttng = Lttng('', validate=False, store_events=True)
 
+        data_ = Ros2DataModel()
+        data_.finalize()
         events_ = {'a': None}
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data, events_))
+        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_, events_))
         lttng_ = Lttng('', validate=False, store_events=True)
         assert lttng.events == events
         assert lttng_.events == events_
