@@ -27,10 +27,11 @@ logger = getLogger(__name__)
 
 class EventCounter:
 
-    def __init__(self, data: Ros2DataModel):
+    def __init__(self, data: Ros2DataModel, *, validate=True):
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
         self._count_df = self._build_count_df(data)
-        self._validate()
+        if validate:
+            self._validate()
 
     def get_count(self, groupby: List[str]) -> pd.DataFrame:
         if len(set(groupby) - self._allowed_keys) > 0:

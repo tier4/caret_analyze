@@ -12,18 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import abstractmethod
 
-from ..common import Singleton
-
-
-class InfraBase(Singleton):
-    """
-    infrastracture base class.
-
-    This class is a singleton in order to retain information.
-    """
-
-    @abstractmethod
-    def clear_singleton_cache(self) -> None:
-        pass
+class InfraBase():
+    """infrastracture base class."""

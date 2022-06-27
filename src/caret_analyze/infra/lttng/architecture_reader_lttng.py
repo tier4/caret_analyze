@@ -14,13 +14,21 @@
 
 from typing import Dict, List, Sequence
 
-from caret_analyze.value_objects.node import NodeValueWithId
-
+from .lttng import LttngEventFilter
 from ...architecture.reader_interface import ArchitectureReader
-from ...value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
-                              PathValue, PublisherValue,
-                              SubscriptionCallbackValue, SubscriptionValue,
-                              TimerCallbackValue, TimerValue, VariablePassingValue)
+from ...value_objects import (
+    CallbackGroupValue,
+    ExecutorValue,
+    NodeValue,
+    NodeValueWithId,
+    PathValue,
+    PublisherValue,
+    SubscriptionCallbackValue,
+    SubscriptionValue,
+    TimerCallbackValue,
+    TimerValue,
+    VariablePassingValue,
+)
 
 
 class ArchitectureReaderLttng(ArchitectureReader):
@@ -29,7 +37,9 @@ class ArchitectureReaderLttng(ArchitectureReader):
         trace_dir: str
     ) -> None:
         from .lttng import Lttng
-        self._lttng = Lttng(trace_dir)
+        self._lttng = Lttng(
+            trace_dir, event_filters=[LttngEventFilter.init_pass_filter()],
+            validate=False)
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._lttng.get_nodes()
