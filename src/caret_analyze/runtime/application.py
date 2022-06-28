@@ -164,8 +164,8 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for path in self.paths:
-                if (Util.how_similar_str(path.path_name, path_name) > similarity):
-                    similarity = Util.how_similar_str(path.path_name, path_name)
+                if (Util.calc_similarity(path.path_name, path_name) > similarity):
+                    similarity = Util.calc_similarity(path.path_name, path_name)
                     msg = path.path_name
             if(similarity > 0.8):
                 Util.warning_with_str(msg)
@@ -207,9 +207,9 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for x in self.executors:
-                if (Util.how_similar_str(x.executor_name, executor_name) > similarity):
-                    similarity = Util.how_similar_str(x.executor_name, executor_name)
-                    msg = similarity = x.executor_name
+                if (Util.calc_similarity(x.executor_name, executor_name) > similarity):
+                    similarity = Util.calc_similarity(x.executor_name, executor_name)
+                    msg = x.executor_name
             if(similarity > 0.8):
                 Util.warning_with_str(msg)
             else:
@@ -273,8 +273,8 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for x in self.callback_groups:
-                if (Util.how_similar_str(x.callback_group_name, callback_group_name) > similarity):
-                    similarity = Util.how_similar_str(x.callback_group_name, callback_group_name)
+                if (Util.calc_similarity(x.callback_group_name, callback_group_name) > similarity):
+                    similarity = Util.calc_similarity(x.callback_group_name, callback_group_name)
                     msg = x.callback_group_name
             if(similarity > 0.8):
                 Util.warning_with_str(msg)
@@ -329,11 +329,11 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for comm in self.communications:
-                if(Util.how_similar_str(comm.publish_node_name, publisher_node_name) > similarity):
-                    similarity = Util.how_similar_str(comm.publish_node_name, publisher_node_name)
-                    msg = 'publish_node' + comm.publish_node_name + \
-                        'subscribe_node' + comm.subscribe_node_name + \
-                        'topic_name' + comm.topic_name
+                if(Util.calc_similarity(comm.publish_node_name, publisher_node_name) > similarity):
+                    similarity = Util.calc_similarity(comm.publish_node_name, publisher_node_name)
+                    msg = 'publish_node: ' + comm.publish_node_name + "\n" + \
+                        'subscribe_node: ' + comm.subscribe_node_name + "\n" + \
+                        'topic_name: ' + comm.topic_name
             if(similarity > 0.8):
                 Util.warning_with_str(msg)
             else:
@@ -451,8 +451,8 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for x in self.node_paths:
-                if (Util.how_similar_str(x.node_name, node_name) > similarity):
-                    similarity = Util.how_similar_str(x.node_name, node_name)
+                if (Util.calc_similarity(x.node_name, node_name) > similarity):
+                    similarity = Util.calc_similarity(x.node_name, node_name)
                     msg = x.node_name
             if(similarity > 0.8):
                 Util.warning_with_str(msg)
@@ -497,8 +497,8 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for x in self.communications:
-                if (Util.how_similar_str(x.topic_name, topic_name) > similarity):
-                    similarity = Util.how_similar_str(x.topic_name, topic_name)
+                if (Util.calc_similarity(x.topic_name, topic_name) > similarity):
+                    similarity = Util.calc_similarity(x.topic_name, topic_name)
                     msg = x.topic_name
             if(similarity > 0.8):
                 Util.warning_with_str(msg)
@@ -545,8 +545,8 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for x in self.node_paths:
-                if (Util.how_similar_str(x.node_name, node_name) > similarity):
-                    similarity = Util.how_similar_str(x.node_name, node_name)
+                if (Util.calc_similarity(x.node_name, node_name) > similarity):
+                    similarity = Util.calc_similarity(x.node_name, node_name)
                     msg = x.node_name
             if(similarity > 0.8):
                 Util.warning_with_str(msg)
@@ -601,8 +601,8 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for node in self.nodes:
-                if (Util.how_similar_str(node.node_name) > similarity):
-                    similarity = Util.how_similar_str(node.node_name)
+                if (Util.calc_similarity(node.node_name) > similarity):
+                    similarity = Util.calc_similarity(node.node_name)
                     msg = node.node_name
         if(similarity > 0.8):
             Util.warning_with_str(msg)
@@ -644,8 +644,8 @@ class Application(Summarizable):
         except ItemNotFoundError:
             similarity = 0.0
             for callback in self.callbacks:
-                if (Util.how_similar_str(callback.callback_name, callback_name) > similarity):
-                    similarity = Util.how_similar_str(callback.callback_name, callback_name)
+                if (Util.calc_similarity(callback.callback_name, callback_name) > similarity):
+                    similarity = Util.calc_similarity(callback.callback_name, callback_name)
                     msg = callback.callback_name
             if(similarity):
                 Util.warning_with_str(msg)

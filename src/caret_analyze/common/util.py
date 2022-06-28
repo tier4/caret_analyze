@@ -102,7 +102,7 @@ class Util:
         return ns, name
 
     @staticmethod
-    def how_similar_str(name1: str, name2: str) -> bool:
+    def calc_similarity(name1: str, name2: str) -> float:
         return Levenshtein.ratio(name1, name2)
 
     def warning_with_str(name1: str):
