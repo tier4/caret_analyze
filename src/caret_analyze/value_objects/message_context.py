@@ -257,9 +257,18 @@ class CallbackChain(MessageContext):
         is_valid = True
         if self.callbacks is None or len(self.callbacks) == 0:
             is_valid = False
-            logger.warning(
-                'callback-chain is empty. variable_passings may be not set.'
-                f'{self.node_name}')
+
+            # Check binding between callback and publisher
+            if not self._pub.summary['callbacks']:
+                logger.warning(
+                    'callback-chain is empty. '
+                    'The callback is not associated with the publisher. '
+                    f'publisher topic name: {self.publisher_topic_name}'
+                )
+            else:
+                logger.warning(
+                    'callback-chain is empty. variable_passings are not set.'
+                    f'node name: {self.node_name}')
 
         return is_valid
 
