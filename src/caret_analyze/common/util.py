@@ -87,6 +87,22 @@ class Util:
         return filtered[0]
 
     @staticmethod
+    def find_similar_one(
+        target: str,
+        items: Collection[Any],
+        key: Callable[[Any], str] = lambda x: x,
+        th: float = 0.8
+    ) -> Any:
+        print("find_similar_one")
+        try:
+            return Util.find_one()...
+        except ItemNotFoundError:
+            similarity = 0.0...
+
+
+
+
+    @staticmethod
     def ns_to_ms(x: float) -> float:
         return x * 1.0e-6
 
