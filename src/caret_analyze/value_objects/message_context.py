@@ -267,7 +267,7 @@ class CallbackChain(MessageContext):
                 )
             else:
                 logger.warning(
-                    'callback-chain is empty. variable_passings are not set.'
+                    'callback-chain is empty. variable_passings are not set. '
                     f'node name: {self.node_name}')
 
         return is_valid
