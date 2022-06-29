@@ -70,5 +70,5 @@ class TestCallbackChain:
         )
         caplog.clear()
         assert callback_chain.verify() is False
-        assert ('callback-chain is empty. variable_passings are not set.'
+        assert ('callback-chain is empty. variable_passings are not set. '
                 'node name:') in caplog.text
