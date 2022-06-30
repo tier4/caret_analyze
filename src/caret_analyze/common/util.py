@@ -20,7 +20,7 @@ import os
 
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
-import Levenshtein
+import difflib
 
 from ..exceptions import ItemNotFoundError, MultipleItemFoundError
 
@@ -125,7 +125,7 @@ class Util:
 
     @staticmethod
     def calc_similarity(name1: str, name2: str) -> float:
-        return Levenshtein.ratio(name1, name2)
+        return difflib.SequenceMatcher(None, name1, name2).ratio()
 
     # def warning_with_str(name1: str):
     #     raise ItemNotFoundError(f'did you mean {name1}?')
