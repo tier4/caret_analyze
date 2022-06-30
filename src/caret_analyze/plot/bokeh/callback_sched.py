@@ -110,6 +110,7 @@ def sched_plot_cbg(
                tools=['xwheel_zoom', 'xpan', 'save', 'reset'],
                active_scroll='xwheel_zoom',
                 )
+    p.sizing_mode = 'stretch_width'
     x_range_name = 'x_plot_axis'
     converter: Optional[ClockConverter] = None
     if use_sim_time:
@@ -126,11 +127,11 @@ def sched_plot_cbg(
     rect_y = 0.0
     rect_height = 0.3
     rect_y_step = -1.5
-    callbcak_num = 0
+    callback_name = 0
 
     for callback_group in cbgs:
         for callback in callback_group.callbacks:
-            callbcak_num += 1
+            callback_name += 1
             rect_source = get_callback_rects(callback, clipper, rect_y, rect_height, converter)
             bar_source = get_callback_bar(callback, rect_y, frame_max, frame_min)
             color = color_selector.get_color(
@@ -145,7 +146,7 @@ def sched_plot_cbg(
                    source=rect_source,
                    color=color,
                    alpha=1.0,
-                   legend_label=f'callback{callbcak_num}',
+                   legend_label=f'callback{callback_name}',
                    hover_fill_color=color,
                    hover_alpha=1.0,
                    x_range_name=x_range_name)
@@ -157,7 +158,7 @@ def sched_plot_cbg(
                    'height',
                    source=bar_source,
                    fill_color=color,
-                   legend_label=f'callback{callbcak_num}',
+                   legend_label=f'callback{callback_name}',
                    hover_fill_color=color,
                    hover_alpha=0.1,
                    fill_alpha=0.1,
