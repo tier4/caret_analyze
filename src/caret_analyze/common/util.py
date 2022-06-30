@@ -21,6 +21,7 @@ import os
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 import difflib
+from statistics import mean
 
 from ..exceptions import ItemNotFoundError, MultipleItemFoundError
 
@@ -107,6 +108,39 @@ class Util:
             raise ItemNotFoundError(f"Arguments may be wrong. Isn't it {key(most_similar_item)}?")
         else:
             raise ItemNotFoundError('Failed find item.')
+
+    @staticmethod
+    def find_similar_one_multi_keys(
+        target_names: Dict[str, str],
+        items: Collection[Any],
+        keys: Dict[str, Callable[[Any], str]],
+        th: float = 0.8
+    ) -> Any:
+        print("peke")
+        each_similarity = []
+        max_similarity = 0.0
+        
+        for item in items:
+            for target_name in target_names:
+                each_similarity.append(Util.calc_similarity(keys[target_name](item), target_names[target_name]))
+            if (mean(each_similarity) > max_similarity):
+                max_similarity = mean(each_similarity)
+                most_similar_item = item
+        
+        assert 0.0 <= max_similarity <= 1.0
+        if (max_similarity == 1.0):
+            return most_similar_item
+        elif (max_similarity > th):
+            msg = "Arguments may be wrong."
+            msg += "Aren't they bellow\n?"
+            for target_name in target_names:
+                msg += target_name + "=" + keys[target_name](most_similar_item) + "\n"
+            raise ItemNotFoundError(msg)
+        else:
+            raise ItemNotFoundError('Failed find item.')
+
+
+
 
     @staticmethod
     def ns_to_ms(x: float) -> float:

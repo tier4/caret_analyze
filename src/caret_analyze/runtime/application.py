@@ -280,10 +280,20 @@ class Application(Summarizable):
                 not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_comm(comm: Communication):
-            return comm.publish_node_name == publisher_node_name and \
-                comm.subscribe_node_name == subscription_node_name and \
-                comm.topic_name == topic_name
+        # def is_target_comm(comm: Communication):
+        #     return comm.publish_node_name == publisher_node_name and \
+        #         comm.subscribe_node_name == subscription_node_name and \
+        #         comm.topic_name == topic_name
+
+        target_names = {"publisher_node_name" : publisher_node_name,
+                        "subscription_node_name" : subscription_node_name,
+                        "topic_name", topic_name}
+
+        keys = {"publisher_node_name" : lambda x: x.publisher_node_name,
+                "subscription_node_name" : lambda x: x.subscription_node_name,
+                "topic_name", lambda x: x.topic_name}
+        
+        Util.find_similar_one_multi_keys(target_names, )
 
         try:
             return Util.find_one(is_target_comm, self.communications)
