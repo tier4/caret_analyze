@@ -88,19 +88,25 @@ class Util:
 
     @staticmethod
     def find_similar_one(
-        target: str,
+        target_name: str,
         items: Collection[Any],
         key: Callable[[Any], str] = lambda x: x,
         th: float = 0.8
     ) -> Any:
-        print("find_similar_one")
-        try:
-            return Util.find_one()...
-        except ItemNotFoundError:
-            similarity = 0.0...
 
-
-
+        similarity = 0.0
+        for item in items:
+            if (calc_similarity(key(item), target_name) > similarity):
+                similarity = calc_similarity(key(item), target_name)
+                most_similar_item = item
+        
+        assert 0.0 <= similarity <= 1.0
+        if (similarity = 1.0):
+            return most_similar_item
+        elif (similarity > 0.8):
+            raise ItemNotFoundError(f"Arguments may be wrong. Isn't it {key(most_similar_item)}?")
+        else:
+            raise ItemNotFoundError('Failed find item.')
 
     @staticmethod
     def ns_to_ms(x: float) -> float:
@@ -121,5 +127,5 @@ class Util:
     def calc_similarity(name1: str, name2: str) -> float:
         return Levenshtein.ratio(name1, name2)
 
-    def warning_with_str(name1: str):
-        raise ItemNotFoundError(f'did you mean {name1}?')
+    # def warning_with_str(name1: str):
+    #     raise ItemNotFoundError(f'did you mean {name1}?')

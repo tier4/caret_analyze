@@ -156,21 +156,7 @@ class Application(Summarizable):
         if not isinstance(path_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_path(path: Path):
-            return path.path_name == path_name
-
-        try:
-            return Util.find_one(is_target_path, self.paths)
-        except ItemNotFoundError:
-            similarity = 0.0
-            for path in self.paths:
-                if (Util.calc_similarity(path.path_name, path_name) > similarity):
-                    similarity = Util.calc_similarity(path.path_name, path_name)
-                    msg = path.path_name
-            if(similarity > 0.8):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
+        return Util.find_similar_one(path_name, self.path, lambda x: x.path_name)
 
     def get_executor(
         self,
@@ -202,19 +188,8 @@ class Application(Summarizable):
         if not isinstance(executor_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        try:
-            return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
-        except ItemNotFoundError:
-            similarity = 0.0
-            for x in self.executors:
-                if (Util.calc_similarity(x.executor_name, executor_name) > similarity):
-                    similarity = Util.calc_similarity(x.executor_name, executor_name)
-                    msg = x.executor_name
-            if(similarity > 0.8):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
-
+        return Util.find_similar_one(executor_name, self.executors, lambda x: x.executor_name)
+        
     @property
     def callback_groups(
         self,
@@ -265,21 +240,7 @@ class Application(Summarizable):
         if not isinstance(callback_group_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target(x: CallbackGroup):
-            return x.callback_group_name == callback_group_name
-
-        try:
-            return Util.find_one(is_target, self.callback_groups)
-        except ItemNotFoundError:
-            similarity = 0.0
-            for x in self.callback_groups:
-                if (Util.calc_similarity(x.callback_group_name, callback_group_name) > similarity):
-                    similarity = Util.calc_similarity(x.callback_group_name, callback_group_name)
-                    msg = x.callback_group_name
-            if(similarity > 0.8):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
+        return Util.find_similar_one(callback_group_name, self.callback_groups, lambda x: x.callback_group_name)
 
     def get_communication(
         self,
@@ -593,21 +554,7 @@ class Application(Summarizable):
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_node(node: Node):
-            return node.node_name == node_name
-
-        try:
-            return Util.find_one(is_target_node, self.nodes)
-        except ItemNotFoundError:
-            similarity = 0.0
-            for node in self.nodes:
-                if (Util.calc_similarity(node.node_name) > similarity):
-                    similarity = Util.calc_similarity(node.node_name)
-                    msg = node.node_name
-        if(similarity > 0.8):
-            Util.warning_with_str(msg)
-        else:
-            raise ItemNotFoundError('Failed find item.')
+        return Util.find_similar_one(node_name, self.nodes, lambda x: x.node_name)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
         """
@@ -636,22 +583,8 @@ class Application(Summarizable):
         if not isinstance(callback_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_callback(callback: CallbackBase):
-            return callback.callback_name == callback_name
-
-        try:
-            return Util.find_one(is_target_callback, self.callbacks)
-        except ItemNotFoundError:
-            similarity = 0.0
-            for callback in self.callbacks:
-                if (Util.calc_similarity(callback.callback_name, callback_name) > similarity):
-                    similarity = Util.calc_similarity(callback.callback_name, callback_name)
-                    msg = callback.callback_name
-            if(similarity):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
-
+        return Util.find_similar_one(callback_name, self.callbacks, lambda x: x.callback_name)
+        
     def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
         """
         Get callbacks that match the condition.
