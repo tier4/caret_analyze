@@ -52,8 +52,10 @@ class MessageContextType(ValueObject):
         return self.type_name
 
 
-MessageContextType.USE_LATEST_MESSAGE = MessageContextType('use_latest_message')
-MessageContextType.INHERIT_UNIQUE_STAMP = MessageContextType('inherit_unique_stamp')
+MessageContextType.USE_LATEST_MESSAGE = \
+        MessageContextType('use_latest_message')
+MessageContextType.INHERIT_UNIQUE_STAMP = \
+        MessageContextType('inherit_unique_stamp')
 MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
 MessageContextType.TILDE = MessageContextType('tilde')
 
@@ -144,16 +146,31 @@ class MessageContext(ValueObject, Summarizable):
         child: Optional[Tuple[CallbackStructValue, ...]]
     ) -> MessageContext:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
-            return CallbackChain(node_name, context_dict, subscription, publisher, child)
+            return CallbackChain(node_name,
+                                 context_dict,
+                                 subscription,
+                                 publisher, child)
         if context_type_name == str(MessageContextType.INHERIT_UNIQUE_STAMP):
-            return InheritUniqueStamp(node_name, context_dict, subscription, publisher, child)
+            return InheritUniqueStamp(node_name,
+                                      context_dict,
+                                      subscription,
+                                      publisher,
+                                      child)
         if context_type_name == str(MessageContextType.USE_LATEST_MESSAGE):
-            return UseLatestMessage(node_name, context_dict, subscription, publisher, child)
+            return UseLatestMessage(node_name,
+                                    context_dict,
+                                    subscription,
+                                    publisher,
+                                    child)
         if context_type_name == str(MessageContextType.TILDE):
-            return Tilde(node_name, context_dict, subscription, publisher, child)
+            return Tilde(node_name,
+                         context_dict,
+                         subscription,
+                         publisher,
+                         child)
 
-        raise UnsupportedTypeError(
-            f'Failed to load message context. message_context={context_type_name}')
+        raise UnsupportedTypeError(f'Failed to load message context. \
+                                   message_context={context_type_name}')
 
 
 class UseLatestMessage(MessageContext):
@@ -195,9 +212,10 @@ class CallbackChain(MessageContext):
 
     Latency is calculated from callback durations in the node path.
     When a path within a node passes through multiple callbacks,
-    it is assumed that messages are passed between callbacks by a buffer of queue size 1
-    (ex. a member variable that stores a single message).
-    If the queue size is larger than 1, the node latency may be calculated to be small.
+    it is assumed that messages are passed between callbacks by a buffer of
+    queue size 1 (ex. a member variable that stores a single message).
+    If the queue size is larger than 1,
+    the node latency may be calculated to be small.
 
     """
 
@@ -209,7 +227,11 @@ class CallbackChain(MessageContext):
         publisher: Optional[PublisherStructValue],
         callbacks: Optional[Tuple[CallbackStructValue, ...]]
     ) -> None:
-        super().__init__(node_name, message_context_dict, subscription, publisher, callbacks)
+        super().__init__(node_name,
+                         message_context_dict,
+                         subscription,
+                         publisher,
+                         callbacks)
 
     @property
     def context_type(self) -> MessageContextType:
@@ -235,9 +257,18 @@ class CallbackChain(MessageContext):
         is_valid = True
         if self.callbacks is None or len(self.callbacks) == 0:
             is_valid = False
-            logger.warning(
-                'callback-chain is empty. variable_passings may be not set.'
-                f'{self.node_name}')
+
+            # Check binding between callback and publisher
+            if not self._pub.summary['callbacks']:
+                logger.warning(
+                    'callback-chain is empty. '
+                    'The callback is not associated with the publisher. '
+                    f'publisher topic name: {self.publisher_topic_name}'
+                )
+            else:
+                logger.warning(
+                    'callback-chain is empty. variable_passings are not set. '
+                    f'node name: {self.node_name}')
 
         return is_valid
 
@@ -260,7 +291,11 @@ class Tilde(MessageContext):
         publisher: Optional[PublisherStructValue],
         callbacks: Optional[Tuple[CallbackStructValue, ...]]
     ) -> None:
-        super().__init__(node_name, message_context_dict, subscription, publisher, callbacks)
+        super().__init__(node_name,
+                         message_context_dict,
+                         subscription,
+                         publisher,
+                         callbacks)
 
     @property
     def context_type(self) -> MessageContextType:
