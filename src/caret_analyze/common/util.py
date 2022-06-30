@@ -96,12 +96,12 @@ class Util:
 
         similarity = 0.0
         for item in items:
-            if (calc_similarity(key(item), target_name) > similarity):
-                similarity = calc_similarity(key(item), target_name)
+            if (Util.calc_similarity(key(item), target_name) > similarity):
+                similarity = Util.calc_similarity(key(item), target_name)
                 most_similar_item = item
         
         assert 0.0 <= similarity <= 1.0
-        if (similarity = 1.0):
+        if (similarity == 1.0):
             return most_similar_item
         elif (similarity > 0.8):
             raise ItemNotFoundError(f"Arguments may be wrong. Isn't it {key(most_similar_item)}?")
