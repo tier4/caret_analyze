@@ -287,28 +287,28 @@ class Application(Summarizable):
 
         target_names = {"publisher_node_name" : publisher_node_name,
                         "subscription_node_name" : subscription_node_name,
-                        "topic_name", topic_name}
+                        "topic_name": topic_name}
 
         keys = {"publisher_node_name" : lambda x: x.publisher_node_name,
                 "subscription_node_name" : lambda x: x.subscription_node_name,
-                "topic_name", lambda x: x.topic_name}
+                "topic_name": lambda x: x.topic_name}
         
-        Util.find_similar_one_multi_keys(target_names, )
+        return Util.find_similar_one_multi_keys(target_names, self.communications, keys)
 
-        try:
-            return Util.find_one(is_target_comm, self.communications)
-        except ItemNotFoundError:
-            similarity = 0.0
-            for comm in self.communications:
-                if(Util.calc_similarity(comm.publish_node_name, publisher_node_name) > similarity):
-                    similarity = Util.calc_similarity(comm.publish_node_name, publisher_node_name)
-                    msg = 'publish_node: ' + comm.publish_node_name + "\n" + \
-                        'subscribe_node: ' + comm.subscribe_node_name + "\n" + \
-                        'topic_name: ' + comm.topic_name
-            if(similarity > 0.8):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
+        # try:
+        #     return Util.find_one(is_target_comm, self.communications)
+        # except ItemNotFoundError:
+        #     similarity = 0.0
+        #     for comm in self.communications:
+        #         if(Util.calc_similarity(comm.publish_node_name, publisher_node_name) > similarity):
+        #             similarity = Util.calc_similarity(comm.publish_node_name, publisher_node_name)
+        #             msg = 'publish_node: ' + comm.publish_node_name + "\n" + \
+        #                 'subscribe_node: ' + comm.subscribe_node_name + "\n" + \
+        #                 'topic_name: ' + comm.topic_name
+        #     if(similarity > 0.8):
+        #         Util.warning_with_str(msg)
+        #     else:
+        #         raise ItemNotFoundError('Failed find item.')
 
     @property
     def topic_names(self) -> List[str]:
