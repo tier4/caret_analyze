@@ -103,7 +103,7 @@ class Util:
         assert 0.0 <= similarity <= 1.0
         if (similarity == 1.0):
             return most_similar_item
-        elif (similarity > 0.8):
+        elif (similarity > th):
             raise ItemNotFoundError(f"Arguments may be wrong. Isn't it {key(most_similar_item)}?")
         else:
             raise ItemNotFoundError('Failed find item.')
