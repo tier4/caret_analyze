@@ -156,7 +156,7 @@ class Application(Summarizable):
         if not isinstance(path_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_similar_one(path_name, self.path, lambda x: x.path_name)
+        return Util.find_similar_one(path_name, self.paths, lambda x: x.path_name)
 
     def get_executor(
         self,
@@ -280,35 +280,15 @@ class Application(Summarizable):
                 not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        # def is_target_comm(comm: Communication):
-        #     return comm.publish_node_name == publisher_node_name and \
-        #         comm.subscribe_node_name == subscription_node_name and \
-        #         comm.topic_name == topic_name
-
         target_names = {"publisher_node_name" : publisher_node_name,
                         "subscription_node_name" : subscription_node_name,
                         "topic_name": topic_name}
 
-        keys = {"publisher_node_name" : lambda x: x.publisher_node_name,
-                "subscription_node_name" : lambda x: x.subscription_node_name,
+        keys = {"publisher_node_name" : lambda x: x.publish_node_name,
+                "subscription_node_name" : lambda x: x.subscribe_node_name,
                 "topic_name": lambda x: x.topic_name}
         
         return Util.find_similar_one_multi_keys(target_names, self.communications, keys)
-
-        # try:
-        #     return Util.find_one(is_target_comm, self.communications)
-        # except ItemNotFoundError:
-        #     similarity = 0.0
-        #     for comm in self.communications:
-        #         if(Util.calc_similarity(comm.publish_node_name, publisher_node_name) > similarity):
-        #             similarity = Util.calc_similarity(comm.publish_node_name, publisher_node_name)
-        #             msg = 'publish_node: ' + comm.publish_node_name + "\n" + \
-        #                 'subscribe_node: ' + comm.subscribe_node_name + "\n" + \
-        #                 'topic_name: ' + comm.topic_name
-        #     if(similarity > 0.8):
-        #         Util.warning_with_str(msg)
-        #     else:
-        #         raise ItemNotFoundError('Failed find item.')
 
     @property
     def topic_names(self) -> List[str]:
@@ -413,22 +393,14 @@ class Application(Summarizable):
                 not isinstance(publish_topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        try:
-            return Util.find_one(
-                lambda x: x.node_name == node_name and
-                x.publish_topic_name == publish_topic_name and
-                x.subscribe_topic_name == subscribe_topic_name, self.node_paths
-            )
-        except ItemNotFoundError:
-            similarity = 0.0
-            for x in self.node_paths:
-                if (Util.calc_similarity(x.node_name, node_name) > similarity):
-                    similarity = Util.calc_similarity(x.node_name, node_name)
-                    msg = x.node_name
-            if(similarity > 0.8):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
+        target_name = {"node_name" : node_name,
+                       "subscribe_topic_name" : subscribe_topic_name,
+                       "publish_topic_name" : publish_topic_name}
+        keys = {"node_name" : lambda x: x.node_name,
+                "subscribe_topic_name" : lambda x: x.subscribe_topic_name,
+                "publish_topic_name" : lambda x: x.publish_topic_name}
+
+        return Util.find_similar_one_multi_keys(target_name, self.node_paths, keys)
 
     def get_communications(
         self,
@@ -460,21 +432,12 @@ class Application(Summarizable):
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        try:
-            comms = Util.filter_items(
-                lambda x: x.topic_name == topic_name,
-                self.communications
-            )
-        except ItemNotFoundError:
-            similarity = 0.0
-            for x in self.communications:
-                if (Util.calc_similarity(x.topic_name, topic_name) > similarity):
-                    similarity = Util.calc_similarity(x.topic_name, topic_name)
-                    msg = x.topic_name
-            if(similarity > 0.8):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
+        comms = Util.filter_items(
+            lambda x: x.topic_name == topic_name,
+            self.communications
+        )
+        if (len(comms) == 0):
+            Util.find_similar_one(topic_name, self.communications, lambda x: x.topic_name) 
 
         return sorted(comms, key=lambda x: x.topic_name)
 
@@ -508,21 +471,13 @@ class Application(Summarizable):
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        try:
-            return Util.filter_items(
-                lambda x: x.node_name == node_name,
-                self.node_paths
-            )
-        except ItemNotFoundError:
-            similarity = 0.0
-            for x in self.node_paths:
-                if (Util.calc_similarity(x.node_name, node_name) > similarity):
-                    similarity = Util.calc_similarity(x.node_name, node_name)
-                    msg = x.node_name
-            if(similarity > 0.8):
-                Util.warning_with_str(msg)
-            else:
-                raise ItemNotFoundError('Failed find item.')
+        
+        node_paths = Util.filter_items(
+            lambda x: x.node_name == node_name,
+            self.node_paths
+        )
+        if (len(node_paths) == 0):
+            Util.find_similar_one(node_name, self.node_paths, lambda x: x.node_name)
 
     @property
     def node_paths(self) -> List[NodePathStructValue]:

@@ -116,23 +116,25 @@ class Util:
         keys: Dict[str, Callable[[Any], str]],
         th: float = 0.8
     ) -> Any:
-        print("peke")
-        each_similarity = []
-        max_similarity = 0.0
-        
+        max_similarity = 0.0        
         for item in items:
+            each_similarity = []
             for target_name in target_names:
-                each_similarity.append(Util.calc_similarity(keys[target_name](item), target_names[target_name]))
+                if (keys[target_name](item) is None): # ex) first node has no sub topic
+                    each_similarity.append(0.0)
+                    continue 
+                each_similarity.append(Util.calc_similarity(keys[target_name](item),
+                                                            target_names[target_name]))
             if (mean(each_similarity) > max_similarity):
                 max_similarity = mean(each_similarity)
-                most_similar_item = item
+                most_similar_item = item                
         
         assert 0.0 <= max_similarity <= 1.0
         if (max_similarity == 1.0):
             return most_similar_item
         elif (max_similarity > th):
-            msg = "Arguments may be wrong."
-            msg += "Aren't they bellow\n?"
+            msg = "Arguments may be wrong. "
+            msg += "Aren't they bellow?\n"
             for target_name in target_names:
                 msg += target_name + "=" + keys[target_name](most_similar_item) + "\n"
             raise ItemNotFoundError(msg)
