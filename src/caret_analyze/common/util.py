@@ -162,6 +162,3 @@ class Util:
     @staticmethod
     def calc_similarity(name1: str, name2: str) -> float:
         return difflib.SequenceMatcher(None, name1, name2).ratio()
-
-    # def warning_with_str(name1: str):
-    #     raise ItemNotFoundError(f'did you mean {name1}?')
