@@ -362,6 +362,7 @@ class Node(Summarizable):
         Get callbacks.
 
         Parameters
+        ----------
         callback_names: *str
             callback names to get.
 

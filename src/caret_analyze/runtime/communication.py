@@ -265,7 +265,6 @@ class Communication(PathBase, Summarizable):
             communication latency (publish-subscribe).
 
         """
-
         assert self._records_provider is not None
         records = self._records_provider.communication_records(self._val)
 
