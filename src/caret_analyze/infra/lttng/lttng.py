@@ -456,6 +456,7 @@ class Lttng(InfraBase):
         Returns
         -------
         trace creation datetime: str
+            Date and time the trace data was created.
 
         """
         metadata_path = os.path.dirname(
