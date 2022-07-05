@@ -155,7 +155,7 @@ class Application(Summarizable):
         """
         if not isinstance(path_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
-        
+
         def get_name(x):
             return x.path_name
 
