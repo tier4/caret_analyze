@@ -129,7 +129,7 @@ class CallbackGroupValue(ValueObject):
         Returns
         -------
         Tuple[str, ...]
-            callback ids
+            callback ids added to the callback group.
 
         """
         return self._callback_ids

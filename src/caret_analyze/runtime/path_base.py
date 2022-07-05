@@ -32,7 +32,7 @@ class PathBase(metaclass=ABCMeta):
 
     def to_records(self) -> RecordsInterface:
         """
-        Convert to records.
+        Calculate records.
 
         Returns
         -------
@@ -45,7 +45,7 @@ class PathBase(metaclass=ABCMeta):
     @abstractmethod
     def _to_records_core(self) -> RecordsInterface:
         """
-        Convert to records.
+        Calculate records.
 
         Returns
         -------
@@ -86,7 +86,7 @@ class PathBase(metaclass=ABCMeta):
         shaper: Optional[DataFrameShaper] = None,
     ) -> pd.DataFrame:
         """
-        Convert to dataframe.
+        Calculate dataframe.
 
         Parameters
         ----------
@@ -143,7 +143,7 @@ class PathBase(metaclass=ABCMeta):
         shaper: Optional[DataFrameShaper] = None,
     ) -> Tuple[np.array, np.array]:
         """
-        Convert to timeseries data.
+        Calculate timeseries data.
 
         Parameters
         ----------
@@ -195,7 +195,7 @@ class PathBase(metaclass=ABCMeta):
         shaper: Optional[DataFrameShaper] = None,
     ) -> Tuple[np.array, np.array]:
         """
-        Convert to histogram data.
+        Calculate histogram data.
 
         Parameters
         ----------

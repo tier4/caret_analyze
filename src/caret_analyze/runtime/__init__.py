@@ -12,6 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+CARET runtime package.
+
+This package provides a set of classes with static (e.g., node names)
+and dynamic information (e.g., execution times).
+It has a ROS-friendly class structure that allows application developers
+to obtain the information they need for evaluation.
+
+"""
+
 from .application import Application
 from .callback import CallbackBase, SubscriptionCallback, TimerCallback
 from .callback_group import CallbackGroup

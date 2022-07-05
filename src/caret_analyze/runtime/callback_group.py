@@ -25,12 +25,24 @@ from ..exceptions import InvalidArgumentError
 
 
 class CallbackGroup(Summarizable):
+    """A class that represents the callback group."""
 
     def __init__(
         self,
         callback_group_info: CallbackGroupStructValue,
         callbacks: List[CallbackBase],
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        callback_group_info : CallbackGroupStructValue
+            static information.
+        callbacks : List[CallbackBase]
+            callbacks to be added to the callback group.
+
+        """
         self._val = callback_group_info
         self._callbacks: List[CallbackBase] = callbacks
 
@@ -41,7 +53,8 @@ class CallbackGroup(Summarizable):
 
         Returns
         -------
-        CallbackGroupType
+        CallbackGroupType : CallbackGroupType
+            REENTRANT / MUTUALLY_EXCLUSIVE
 
         """
         return self._val.callback_group_type
@@ -53,13 +66,24 @@ class CallbackGroup(Summarizable):
 
         Returns
         -------
-        CallbackGroupType name
+        CallbackGroupType name: str
+            'reentrant' / 'mutually_exclusive'
+
 
         """
         return self._val.callback_group_type_name
 
     @property
     def callback_group_name(self) -> str:
+        """
+        Get callback group name.
+
+        Returns
+        -------
+        str
+            callback group name defined in the architecture.
+
+        """
         return self._val.callback_group_name
 
     @property
@@ -70,20 +94,61 @@ class CallbackGroup(Summarizable):
         Returns
         -------
         str
-            node name
+            node name which is contained this callback group.
 
         """
         return self._val.node_name
 
     @property
     def callbacks(self) -> List[CallbackBase]:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        List[CallbackBase]
+            callbacks which are contained in this callback group.
+
+        """
         return sorted(self._callbacks, key=lambda x: x.callback_name)
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary [override].
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return self._val.summary
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        """
+        Get a callback that matches the condition.
+
+        Parameters
+        ----------
+        callback_name : str
+            callback name to get.
+
+        Returns
+        -------
+        CallbackBase
+            callback that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         if not isinstance(callback_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -93,6 +158,15 @@ class CallbackGroup(Summarizable):
         )
 
     def get_callbacks(self, *callback_names: Tuple[str, ...]) -> List[CallbackBase]:
+        """
+        Get callbacks that match the condition.
+
+        Returns
+        -------
+        List[CallbackBase]
+            callbacks that match the condition.
+
+        """
         callbacks = []
         for callback_name in callback_names:
             callbacks.append(self.get_callback(callback_name))

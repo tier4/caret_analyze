@@ -63,9 +63,9 @@ class Util:
         Raises
         ------
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Failed to find an item that matches the condition.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Failed to identify an item that matches the condition.
 
         """
         if items is None:

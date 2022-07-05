@@ -47,14 +47,14 @@ class InvalidReaderError(Error):
 
 
 class ItemNotFoundError(Error):
-    """Failed to identify item that match the condition."""
+    """Failed to identify an item that matches the condition."""
 
     def __init__(self, message: str) -> None:
         self.message = message
 
 
 class MultipleItemFoundError(Error):
-    """Failed to identify item that match the condition."""
+    """Failed to identify an item that matches the condition."""
 
     def __init__(self, message: str) -> None:
         self.message = message

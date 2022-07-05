@@ -18,20 +18,21 @@ from typing import Any, Dict, List, Union
 
 
 class Summary(UserDict):
-    """Temporary dictionary to use when outputting summaries."""
+    """Summary info about for value objects and runtime data objects."""
 
     def pprint(self):
         print((self))
 
     def __hash__(self):
-        # ignore hash value
+        """Return zero to ignore [override]."""
         return 0
 
     def __eq__(self, other: Any):
-        # ignore equal
+        """Return True to ignore [override]."""
         return True
 
     def __str__(self) -> str:
+        """Return yaml-format string."""
         from yaml import dump
         return dump(self._convert_safe(self.data))
 
@@ -52,7 +53,17 @@ class Summary(UserDict):
 
 
 class Summarizable(metaclass=ABCMeta):
+    """Abstract base class that have summary property."""
 
     @abstractproperty
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         pass
