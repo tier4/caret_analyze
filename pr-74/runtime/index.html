@@ -438,6 +438,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#caret_analyze.runtime--caret-runtime-package" class="md-nav__link">
+    CARET runtime package
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#caret_analyze.runtime.Application" class="md-nav__link">
     Application
   </a>
@@ -1764,6 +1771,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#caret_analyze.runtime--caret-runtime-package" class="md-nav__link">
+    CARET runtime package
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#caret_analyze.runtime.Application" class="md-nav__link">
     Application
   </a>
@@ -2970,6 +2984,10 @@
 
 <a id="caret_analyze.runtime"></a>
   <div class="doc doc-contents first">
+  
+      <h2 id="caret_analyze.runtime--caret-runtime-package">CARET runtime package<a class="headerlink" href="#caret_analyze.runtime--caret-runtime-package" title="Permanent link">#</a></h2>
+<p>Provides
+  1. ROS friendly class structure to provide target application information</p>
 
   
 
@@ -3117,7 +3135,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>callback group name list.</p></td>
+          <td><p>callback group names.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3157,7 +3175,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback_group.CallbackGroup" href="#caret_analyze.runtime.CallbackGroup">CallbackGroup</a>]</code>
           </td>
-          <td><p>callback group list.</p></td>
+          <td><p>callback groups.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3197,7 +3215,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>callback name list.</p></td>
+          <td><p>All callback names defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3237,7 +3255,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]</code>
           </td>
-          <td><p>callbacks defined in the architecture.</p></td>
+          <td><p>All callbacks defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3277,7 +3295,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.communication.Communication" href="#caret_analyze.runtime.Communication">Communication</a>]</code>
           </td>
-          <td><p>communications defined in the architecture.</p></td>
+          <td><p>All communications defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3317,7 +3335,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>executor name list.</p></td>
+          <td><p>executor names.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3357,7 +3375,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.executor.Executor" href="#caret_analyze.runtime.Executor">Executor</a>]</code>
           </td>
-          <td><p>executors defined in the architecture.</p></td>
+          <td><p>All executors defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4178,7 +4196,7 @@ The name is defined in the architecture file (ex: executor_0).</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="caret_analyze.value_objects.NodePathStructValue">NodePathStructValue</span>]</code>
           </td>
-          <td><p>node path list.</p></td>
+          <td><p>node paths.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4339,7 +4357,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>node name list.</p></td>
+          <td><p>All node names defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4379,7 +4397,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="caret_analyze.value_objects.NodePathStructValue">NodePathStructValue</span>]</code>
           </td>
-          <td><p>path list.</p></td>
+          <td><p>paths.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4419,7 +4437,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.node.Node" href="#caret_analyze.runtime.Node">Node</a>]</code>
           </td>
-          <td><p>nodes defined in the architecture.</p></td>
+          <td><p>All nodes defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4459,7 +4477,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>path name list.</p></td>
+          <td><p>App path names defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4499,7 +4517,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.path.Path" href="#caret_analyze.runtime.Path">Path</a>]</code>
           </td>
-          <td><p>paths defined in the architecture.</p></td>
+          <td><p>All paths defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4539,7 +4557,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summary" href="../common/#caret_analyze.common.Summary">Summary</a></code>
           </td>
-          <td><p>summary info.</p></td>
+          <td><p>Summary info.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4579,7 +4597,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>topic name list.</p></td>
+          <td><p>All topic names defined in architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4846,7 +4864,7 @@ paths and their names are defined in the architecture.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Get publisher topic name list.</p>
+      <p>Get publisher topic names.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5355,7 +5373,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]</code>
           </td>
-          <td><p>callbacks list.</p></td>
+          <td><p>callbacks.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7002,7 +7020,7 @@ callback names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback_group.CallbackGroup" href="#caret_analyze.runtime.CallbackGroup">CallbackGroup</a>]]</code>
           </td>
-          <td><p>callback group list.</p></td>
+          <td><p>callback groups.</p></td>
         </tr>
     </tbody>
   </table>
