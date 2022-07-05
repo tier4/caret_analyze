@@ -455,7 +455,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        trace creation datetime: str
+        trace_creation_datetime: str
             Date and time the trace data was created.
 
         """
