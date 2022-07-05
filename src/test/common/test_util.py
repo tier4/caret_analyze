@@ -12,37 +12,78 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.architecture.architecture import Architecture
-from caret_analyze.exceptions import ItemNotFoundError
-from caret_analyze.infra.lttng import Lttng
-from caret_analyze.runtime.application import Application
-from caret_analyze.runtime.callback import CallbackBase
-from caret_analyze.runtime.communication import Communication
-from caret_analyze.runtime.executor import Executor
-from caret_analyze.runtime.node import Node
-from caret_analyze.runtime.path import Path
-from caret_analyze.runtime.runtime_loaded import RuntimeLoaded
+
 from caret_analyze.common.util import Util
+from caret_analyze.exceptions import ItemNotFoundError
+from caret_analyze.runtime.application import Application
+from caret_analyze.runtime.communication import Communication
+from caret_analyze.runtime.node import Node
 import pytest
 
+
 class TestUtil:
+
     def test_find_similar_one(self, mocker):
         app_mock = mocker.Mock(spec=Application)
-        path_mock1 = mocker.Mock(spec=Path)
-        path_mock2 = mocker.Mock(spec=Path)
-        mocker.patch.object(path_mock1, 'path_name', "/AAA/BBB/CCC")
-        mocker.patch.object(path_mock2, 'path_name', "/XXX/YYY/ZZZ")
-        target_name = "/AAA/BBB/CCC"
-        mocker.patch.object(app_mock, 'paths', [])
-        app_mock.paths.append(path_mock1)
-        app_mock.paths.append(path_mock2)
+        node = mocker.Mock(spec=Node)
+        mocker.patch.object(node, 'node_name', '/AAA/BBB/CCC')
+        mocker.patch.object(app_mock, 'nodes', [])
+        app_mock.nodes.append(node)
 
-        assert Util.find_similar_one(target_name, app_mock.paths, lambda x: x.path_name) == path_mock1
+        def key(x):
+            return x.node_name
 
-        target_name = "/AAA/BBB/CC"
-        # assert Util.find_similar_one(target_name, app_mock.paths, lambda x: x.path_name) == 
+        target_name = '/AAA/BBB/CCC'
+        with pytest.raises(ItemNotFoundError):
+            Util.find_similar_one(target_name, [])
+        assert Util.find_similar_one(target_name, [target_name]) == target_name
 
-        # assert Util.find_similar_one(target_name, path_mock, lambda x: x.path_name) == path_mock
-        
+        with pytest.raises(ItemNotFoundError):
+            Util.find_similar_one(target_name, ['/AAA/b'])
 
+        assert Util.find_similar_one(target_name,
+                                     app_mock.nodes,
+                                     key) == node
 
+        target_name = '/AAA/BBB/DDD'
+        with pytest.raises(ItemNotFoundError) as e:
+            Util.find_similar_one(target_name,
+                                  app_mock.nodes,
+                                  key,
+                                  0.4)
+        assert '/AAA/BBB/CCC' in str(e.value)
+
+    def test_find_similar_one_multi_keys(self, mocker):
+        app_mock = mocker.Mock(spec=Application)
+        comm_mock = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_mock, 'publish_node_name', 'pub_node')
+        mocker.patch.object(comm_mock, 'subscribe_node_name', 'sub_node')
+        mocker.patch.object(comm_mock, 'topic_name', 'topic')
+        mocker.patch.object(app_mock, 'communications', [])
+        app_mock.communications.append(comm_mock)
+
+        target_names = {'publisher_node_name': 'pub_node',
+                        'subscription_node_name': 'sub_node',
+                        'topic_name': 'topic'}
+
+        def keys(x):
+            return {'publisher_node_name': x.publish_node_name,
+                    'subscription_node_name': x.subscribe_node_name,
+                    'topic_name': x.topic_name}
+
+        with pytest.raises(ItemNotFoundError):
+            Util.find_similar_one_multi_keys(target_names, [])
+
+        assert Util.find_similar_one_multi_keys(target_names, [target_names]) == target_names
+
+        assert Util.find_similar_one_multi_keys(target_names,
+                                                app_mock.communications,
+                                                keys) == comm_mock
+
+        target_names = {'publisher_node_name': 'miss_pub_node',
+                        'subscription_node_name': 'sub_node',
+                        'topic_name': 'topic'}
+        with pytest.raises(ItemNotFoundError):
+            Util.find_similar_one_multi_keys(target_names,
+                                             app_mock.communications,
+                                             keys)
