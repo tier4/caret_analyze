@@ -110,6 +110,7 @@ def sched_plot_cbg(
                tools=['xwheel_zoom', 'xpan', 'save', 'reset'],
                active_scroll='xwheel_zoom',
                 )
+    p.sizing_mode = 'stretch_width'  # automatically adjust plot width to the screen size
     x_range_name = 'x_plot_axis'
     converter: Optional[ClockConverter] = None
     if use_sim_time:
