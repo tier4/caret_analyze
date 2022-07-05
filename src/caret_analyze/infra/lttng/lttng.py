@@ -15,7 +15,10 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+import glob
 from logging import getLogger
+import os
+import re
 
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
@@ -418,6 +421,56 @@ class Lttng(InfraBase):
     ) -> pd.DataFrame:
         groupby = groupby or ['trace_point']
         return self._counter.get_count(groupby)
+
+    def get_measure_duration(
+        self
+    ) -> Tuple[int, int]:
+        """
+        Get measure duration [ns].
+
+        Returns
+        -------
+        measure_duration: Tuple[int, int]
+            Measurement start time and measurement finish time.
+
+        """
+        msgs = bt2.TraceCollectionMessageIterator(
+            Lttng._last_load_dir,
+            stream_intersection_mode=True
+        )
+
+        stream_st_list: List[int] = []
+        stream_ft_list: List[int] = []
+        for stream_st, stream_ft in msgs._stream_inter_port_to_range.values():
+            stream_st_list.append(stream_st)
+            stream_ft_list.append(stream_ft)
+
+        return min(stream_st_list), max(stream_ft_list)
+
+    def get_trace_creation_datetime(
+        self
+    ) -> str:
+        """
+        Get trace creation datetime.
+
+        Returns
+        -------
+        trace creation datetime: str
+
+        """
+        metadata_path = os.path.dirname(
+            glob.glob(f'{Lttng._last_load_dir}/**/metadata',
+                      recursive=True)[0]
+        )
+        result = bt2.QueryExecutor(
+            bt2.find_plugin('ctf').source_component_classes['fs'],
+            'metadata-info',
+            {'path': metadata_path}
+        ).query()
+        datetime = re.search(r'trace_creation_datetime = "\S+"',
+                             str(result['text'])).group()
+
+        return datetime
 
     def compose_inter_proc_comm_records(
         self,
