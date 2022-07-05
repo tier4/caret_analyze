@@ -30,7 +30,7 @@ from ..value_objects import (CallbackStructValue,
 
 
 class CallbackBase(PathBase, Summarizable):
-    """A base calss that represents callback."""
+    """A base class that represents callback."""
 
     def __init__(
         self,
@@ -259,7 +259,7 @@ class TimerCallback(CallbackBase):
 
 
 class SubscriptionCallback(CallbackBase):
-    """A calass that represents subscription callback."""
+    """A class that represents subscription callback."""
 
     def __init__(
         self,
