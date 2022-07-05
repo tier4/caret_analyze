@@ -3005,8 +3005,6 @@ to obtain the information they need for evaluation.</p>
 
   
       <p>A class that represents the entire application to be measured.</p>
-<p>This class provides both static (e.g. node configuration) and
-dynamic (e.g. measurements) information.</p>
 
 
 
@@ -3123,7 +3121,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>callback group names.</p></td>
+          <td><p>All callback group names defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3163,7 +3161,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback_group.CallbackGroup" href="#caret_analyze.runtime.CallbackGroup">CallbackGroup</a>]</code>
           </td>
-          <td><p>callback groups.</p></td>
+          <td><p>All callback groups defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -3323,7 +3321,7 @@ dynamic (e.g. measurements) information.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>executor names.</p></td>
+          <td><p>All executor names defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4184,7 +4182,7 @@ The name is defined in the architecture file (ex: executor_0).</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="caret_analyze.value_objects.NodePathStructValue">NodePathStructValue</span>]</code>
           </td>
-          <td><p>node paths.</p></td>
+          <td><p>node paths that match the condition.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4385,7 +4383,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="caret_analyze.value_objects.NodePathStructValue">NodePathStructValue</span>]</code>
           </td>
-          <td><p>paths.</p></td>
+          <td><p>app node paths defined in the entire application.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4747,7 +4745,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>callback name.</p></td>
+          <td><p>callback name defined in architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4827,7 +4825,7 @@ paths and their names are defined in the architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>node name.</p></td>
+          <td><p>node name containing this callback.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5068,7 +5066,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>callback symbol name.</p></td>
+          <td><p>callback function symbol name.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5142,7 +5140,6 @@ None except for subscription callback.</p></td>
 
   
       <p>A class that represents the callback group.</p>
-<p>This class provides both static and dynamic information.</p>
 
 
 
@@ -5198,7 +5195,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]</code>
           </td>
-          <td><p>callbacks list to be added to the callback group.</p></td>
+          <td><p>callbacks to be added to the callback group.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -5241,7 +5238,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>callback group name</p></td>
+          <td><p>callback group name defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5272,16 +5269,16 @@ None except for subscription callback.</p></td>
   <table>
     <thead>
       <tr>
-        <th>Type</th>
+<th>Name</th>        <th>Type</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
-          <td>
+<td><code>CallbackGroupType</code></td>          <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.CallbackGroupType" href="../value_objects/#caret_analyze.value_objects.CallbackGroupType">CallbackGroupType</a></code>
           </td>
-          <td></td>
+          <td><p>REENTRANT / MUTUALLY_EXCLUSIVE</p></td>
         </tr>
     </tbody>
   </table>
@@ -5321,7 +5318,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>CallbackGroupType name</code>
           </td>
-          <td></td>
+          <td><p>'reentrant' / 'mutually_exclusive'</p></td>
         </tr>
     </tbody>
   </table>
@@ -5361,7 +5358,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]</code>
           </td>
-          <td><p>callbacks.</p></td>
+          <td><p>callbacks containing this callback group.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5515,7 +5512,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>node name</p></td>
+          <td><p>node name containing this callback group.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5747,7 +5744,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]]</code>
           </td>
-          <td><p>publisher callback defined by architecture.</p></td>
+          <td><p>callback which publishes this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5787,7 +5784,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]</code>
           </td>
-          <td><p>subscription callback defined by architecture.</p></td>
+          <td><p>callback to which subscribe this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5867,7 +5864,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.node.Node" href="#caret_analyze.runtime.Node">Node</a></code>
           </td>
-          <td><p>publish node.</p></td>
+          <td><p>A node that publishes this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5907,7 +5904,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>publish node name.</p></td>
+          <td><p>node name which publishes this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -5947,7 +5944,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.publisher.Publisher" href="#caret_analyze.runtime.Publisher">Publisher</a></code>
           </td>
-          <td></td>
+          <td><p>publisher to publish this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6027,7 +6024,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.node.Node" href="#caret_analyze.runtime.Node">Node</a></code>
           </td>
-          <td><p>subscribe node.</p></td>
+          <td><p>node to which subscribes this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6067,7 +6064,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>subscirbe node name.</p></td>
+          <td><p>node name which subscribes to this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6107,7 +6104,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.subscription.Subscription" href="#caret_analyze.runtime.Subscription">Subscription</a></code>
           </td>
-          <td></td>
+          <td><p>subscription to subscribe to this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6187,7 +6184,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>topic name.</p></td>
+          <td><p>topic name of this communication.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6208,7 +6205,7 @@ None except for subscription callback.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Verify whether measurement results are valid.</p>
+      <p>Verify whether latency can be generated.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6312,7 +6309,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback_group.CallbackGroup" href="#caret_analyze.runtime.CallbackGroup">CallbackGroup</a>]</code>
           </td>
-          <td><p>Callback groups added to Executor.</p></td>
+          <td><p>Callback groups added to the executor.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -6435,7 +6432,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>callback name list added to the executor.</p></td>
+          <td><p>callback names added to the executor.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6475,7 +6472,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]</code>
           </td>
-          <td><p>Callbacks added in callback groups.</p></td>
+          <td><p>Callbacks added to the executor.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6500,7 +6497,7 @@ None except for subscription callback.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Get executor name defined in architecture.</p>
+      <p>Get executor name.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6515,7 +6512,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>executor name.</p></td>
+          <td><p>executor name defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -6819,6 +6816,8 @@ None except for subscription callback.</p></td>
       <p class="doc doc-class-bases">
         Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
 
+  
+      <p>A class that represents a node.</p>
 
 
 
@@ -6967,8 +6966,7 @@ None except for subscription callback.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>Names of all callback groups with nodes.
-callback names are defined in the architecture.</p></td>
+          <td><p>callback group names that the node contains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7008,7 +7006,7 @@ callback names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback_group.CallbackGroup" href="#caret_analyze.runtime.CallbackGroup">CallbackGroup</a>]]</code>
           </td>
-          <td><p>callback groups.</p></td>
+          <td><p>callback groups that the node contains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7048,7 +7046,7 @@ callback names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>callback names.</p></td>
+          <td><p>callback names that the node contains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7088,7 +7086,7 @@ callback names are defined in the architecture.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]]</code>
           </td>
-          <td><p>callbacks.</p></td>
+          <td><p>callbacks that the node contains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7389,7 +7387,7 @@ callback_names: *str
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.node_path.NodePath" href="#caret_analyze.runtime.NodePath">NodePath</a></code>
           </td>
-          <td><p>node path.</p></td>
+          <td><p>node path that matches the condition.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7473,7 +7471,7 @@ callback_names: *str
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.publisher.Publisher" href="#caret_analyze.runtime.Publisher">Publisher</a></code>
           </td>
-          <td><p>Publisher instance that matches the condition.</p></td>
+          <td><p>A publisher that matches the condition.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7662,7 +7660,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.node_path.NodePath" href="#caret_analyze.runtime.NodePath">NodePath</a>]</code>
           </td>
-          <td><p>paths.</p></td>
+          <td><p>node paths that the node contains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7702,7 +7700,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>topic names.</p></td>
+          <td><p>topic names that the node publishes to.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7742,7 +7740,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.publisher.Publisher" href="#caret_analyze.runtime.Publisher">Publisher</a>]</code>
           </td>
-          <td><p>publishers</p></td>
+          <td><p>publishers used by the node.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7782,7 +7780,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>All topic names to which the node subscribes.</p></td>
+          <td><p>topic names to which the node subscribes.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7822,7 +7820,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.subscription.Subscription" href="#caret_analyze.runtime.Subscription">Subscription</a>]</code>
           </td>
-          <td><p>subscriptions.</p></td>
+          <td><p>subscriptions that the node subscribes to.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7902,7 +7900,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.timer.Timer" href="#caret_analyze.runtime.Timer">Timer</a>]</code>
           </td>
-          <td><p>timers.</p></td>
+          <td><p>timers that the node contains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7942,7 +7940,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.variable_passing.VariablePassing" href="#caret_analyze.runtime.VariablePassing">VariablePassing</a>]]</code>
           </td>
-          <td><p>Variable passings.</p></td>
+          <td><p>Variable passings that the node contains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -7976,7 +7974,8 @@ callback_names: *str
 
   
       <p>A class that represents a path inside a node.</p>
-<p>Node path is defined as subscription-publisher pair.</p>
+<p>Node path is defined as subscription-publisher pair.
+subscribe-publish policies are defined as "message context"</p>
 
 
 
@@ -8105,7 +8104,8 @@ callback_names: *str
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]]</code>
           </td>
-          <td><p>Callbacks in node path.</p></td>
+          <td><p>Callbacks in node path.
+None except for message context is callback chain.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8145,7 +8145,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.MessageContext" href="../value_objects/#caret_analyze.value_objects.MessageContext">MessageContext</a>]</code>
           </td>
-          <td><p>message context.</p></td>
+          <td><p>message context for this node path.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8185,7 +8185,7 @@ callback_names: *str
           <td>
                 <code>str</code>
           </td>
-          <td><p>Node name.</p></td>
+          <td><p>Node name which contains this node path.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8345,7 +8345,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.subscription.Subscription" href="#caret_analyze.runtime.Subscription">Subscription</a>]</code>
           </td>
-          <td><p>subscription.</p></td>
+          <td><p>subscription to subscribe to.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8475,7 +8475,7 @@ callback_names: *str
           <td>
                 <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.node_path.NodePath" href="#caret_analyze.runtime.NodePath">NodePath</a>, <a class="autorefs autorefs-internal" title="caret_analyze.runtime.communication.Communication" href="#caret_analyze.runtime.Communication">Communication</a>]]</code>
           </td>
-          <td><p>node-pathes and communications which compose path.</p></td>
+          <td><p>node paths and communications which compose path.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -8486,7 +8486,7 @@ callback_names: *str
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]]</code>
           </td>
           <td><p>callbacks that compose the path.
-If all of node-paths are not callback-chain, return None.</p></td>
+return None except for all of node paths are not callback-chain.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -8530,7 +8530,7 @@ If all of node-paths are not callback-chain, return None.</p></td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]]</code>
           </td>
           <td><p>callbacks that compose the path.
-If all of the node paths are not callback chains, return None.</p></td>
+return None except for all of the node paths are callback chains.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8570,7 +8570,8 @@ If all of the node paths are not callback chains, return None.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.node_path.NodePath" href="#caret_analyze.runtime.NodePath">NodePath</a>, <a class="autorefs autorefs-internal" title="caret_analyze.runtime.communication.Communication" href="#caret_analyze.runtime.Communication">Communication</a>]]</code>
           </td>
-          <td><p>node-pathes and communications in target path.</p></td>
+          <td><p>node paths and communications in the target path.
+node paths and communications are alternately contained.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8708,7 +8709,7 @@ If all of the node paths are not callback chains, return None.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>node names in target path.</p></td>
+          <td><p>node names in the target path.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8748,7 +8749,7 @@ If all of the node paths are not callback chains, return None.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.node_path.NodePath" href="#caret_analyze.runtime.NodePath">NodePath</a>]</code>
           </td>
-          <td><p>Node-paths in target path.</p></td>
+          <td><p>node paths in target path.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8788,7 +8789,7 @@ If all of the node paths are not callback chains, return None.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Path name defined in architecture.</p></td>
+          <td><p>Path name defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -9414,8 +9415,7 @@ Valid only when remove_dropped=false.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>Callback names which publish.
-Defined in architecture.</p></td>
+          <td><p>Callback names which uses the publisher to publish.</p></td>
         </tr>
     </tbody>
   </table>
@@ -9455,7 +9455,7 @@ Defined in architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>node name.</p></td>
+          <td><p>node name which contains the publisher.</p></td>
         </tr>
     </tbody>
   </table>
@@ -9575,7 +9575,7 @@ Defined in architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Publisher topic name.</p></td>
+          <td><p>A topic name that the publisher publishes.</p></td>
         </tr>
     </tbody>
   </table>
@@ -9608,7 +9608,7 @@ Defined in architecture.</p></td>
         Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.path_base.PathBase" href="#caret_analyze.runtime.PathBase">PathBase</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
 
   
-      <p>Class that represents subscription.</p>
+      <p>A class that represents subscription.</p>
 
 
 
@@ -9692,7 +9692,7 @@ Defined in architecture.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Get subscription callback name.</p>
+      <p>Get a subscription callback name.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -9707,7 +9707,7 @@ Defined in architecture.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>callback name.</p></td>
+          <td><p>callback name to which the subscription is attached.</p></td>
         </tr>
     </tbody>
   </table>
@@ -9747,7 +9747,7 @@ Defined in architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>node name.</p></td>
+          <td><p>node name to which the subscription subscribes.</p></td>
         </tr>
     </tbody>
   </table>
@@ -9852,7 +9852,7 @@ Defined in architecture.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Get topic name.</p>
+      <p>Get a topic name.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -9867,7 +9867,7 @@ Defined in architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>topic name.</p></td>
+          <td><p>A topic name to which the subscription subscribes.</p></td>
         </tr>
     </tbody>
   </table>
@@ -9900,7 +9900,7 @@ Defined in architecture.</p></td>
         Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a></code></p>
 
   
-      <p>A alass that represents subscription callback.</p>
+      <p>A calass that represents subscription callback.</p>
 
 
 
@@ -10012,7 +10012,7 @@ Defined in architecture.</p></td>
         Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.path_base.PathBase" href="#caret_analyze.runtime.PathBase">PathBase</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
 
   
-      <p>Class that represents timer.</p>
+      <p>A class that represents timer.</p>
 
 
 
@@ -10111,7 +10111,7 @@ Defined in architecture.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>callback name defined in architecture.</p></td>
+          <td><p>callback name defined in the architecture.</p></td>
         </tr>
     </tbody>
   </table>
@@ -10151,7 +10151,7 @@ Defined in architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>node name.</p></td>
+          <td><p>node name which defines the timer.</p></td>
         </tr>
     </tbody>
   </table>
@@ -10593,7 +10593,7 @@ Defined in architecture.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>node name</p></td>
+          <td><p>node name which has the variable passing.</p></td>
         </tr>
     </tbody>
   </table>
