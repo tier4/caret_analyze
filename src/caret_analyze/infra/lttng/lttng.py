@@ -15,11 +15,8 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-import glob
+from datetime import datetime
 from logging import getLogger
-import os
-import re
-
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import bt2
@@ -166,6 +163,9 @@ class Lttng(InfraBase):
 
     _last_load_dir: Optional[str] = None
     _last_filters: Optional[List[LttngEventFilter]] = None
+    _last_trace_begin_time: Optional[int] = None
+    _last_trace_end_time: Optional[int] = None
+    _last_trace_datetime: Optional[datetime] = None
 
     def __init__(
         self,
@@ -197,9 +197,20 @@ class Lttng(InfraBase):
         event_filters: List[LttngEventFilter]
     ) -> Tuple[DataModel, Dict]:
         if isinstance(trace_dir_or_events, str):
-            # Check for traces lost
+            trace_datetime: datetime = None
+            packet_begin_times: List[int] = []
+            packet_end_times: List[int] = []
+
             for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
-                if(type(msg) is bt2._DiscardedEventsMessageConst):
+                if type(msg) is bt2._PacketBeginningMessageConst:
+                    packet_begin_times.append(msg.default_clock_snapshot.ns_from_origin)
+                    if not trace_datetime:
+                        trace_datetime = datetime.fromtimestamp(
+                                msg.default_clock_snapshot.ns_from_origin * 1.0e-9)
+                elif type(msg) is bt2._PacketEndMessageConst:
+                    packet_end_times.append(msg.default_clock_snapshot.ns_from_origin)
+                # Check for traces lost
+                elif(type(msg) is bt2._DiscardedEventsMessageConst):
                     msg = ('Tracer discarded '
                            f'{msg.count} events between '
                            f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
@@ -208,6 +219,9 @@ class Lttng(InfraBase):
 
             Lttng._last_load_dir = trace_dir_or_events
             Lttng._last_filters = event_filters
+            Lttng._last_trace_datetime = trace_datetime
+            Lttng._last_trace_begin_time = min(packet_begin_times)
+            Lttng._last_trace_end_time = max(packet_end_times)
             events = load_file(trace_dir_or_events, force_conversion=force_conversion)
             print('{} events found.'.format(len(events)))
         else:
@@ -422,56 +436,33 @@ class Lttng(InfraBase):
         groupby = groupby or ['trace_point']
         return self._counter.get_count(groupby)
 
-    def get_measure_duration(
+    def get_trace_range(
         self
     ) -> Tuple[int, int]:
         """
-        Get measure duration [ns].
+        Get trace range.
 
         Returns
         -------
-        measure_duration: Tuple[int, int]
-            Measurement start time and measurement finish time.
+        trace_range: Tuple[int, int]
+            Trace begin time and trace end time [ns].
 
         """
-        msgs = bt2.TraceCollectionMessageIterator(
-            Lttng._last_load_dir,
-            stream_intersection_mode=True
-        )
-
-        stream_st_list: List[int] = []
-        stream_ft_list: List[int] = []
-        for stream_st, stream_ft in msgs._stream_inter_port_to_range.values():
-            stream_st_list.append(stream_st)
-            stream_ft_list.append(stream_ft)
-
-        return min(stream_st_list), max(stream_ft_list)
+        return Lttng._last_trace_begin_time, Lttng._last_trace_end_time
 
     def get_trace_creation_datetime(
         self
-    ) -> str:
+    ) -> datetime:
         """
         Get trace creation datetime.
 
         Returns
         -------
-        trace_creation_datetime: str
+        trace_creation_datetime: datetime
             Date and time the trace data was created.
 
         """
-        metadata_path = os.path.dirname(
-            glob.glob(f'{Lttng._last_load_dir}/**/metadata',
-                      recursive=True)[0]
-        )
-        result = bt2.QueryExecutor(
-            bt2.find_plugin('ctf').source_component_classes['fs'],
-            'metadata-info',
-            {'path': metadata_path}
-        ).query()
-        datetime = re.search(r'trace_creation_datetime = "\S+"',
-                             str(result['text'])).group()
-
-        return datetime
+        return Lttng._last_trace_datetime
 
     def compose_inter_proc_comm_records(
         self,
