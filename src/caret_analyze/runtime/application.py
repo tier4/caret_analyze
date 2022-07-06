@@ -14,6 +14,10 @@
 
 from __future__ import annotations, unicode_literals
 
+import fnmatch
+
+from logging import getLogger
+
 from typing import List, Optional, Union
 
 from .callback import CallbackBase
@@ -24,12 +28,14 @@ from .node import Node
 from .path import Path
 from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, UnsupportedTypeError
+from ..exceptions import Error, InvalidArgumentError, UnsupportedTypeError
 from ..infra.infra_base import InfraBase
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..infra.lttng.lttng import Lttng
 from ..infra.lttng.records_provider_lttng import RecordsProviderLttng
 from ..value_objects import NodePathStructValue
+
+logger = getLogger(__name__)
 
 
 class Application(Summarizable):
@@ -150,10 +156,12 @@ class Application(Summarizable):
         if not isinstance(path_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_path(path: Path):
-            return path.path_name == path_name
+        def get_name(x):
+            return x.path_name
 
-        return Util.find_one(is_target_path, self.paths)
+        return Util.find_similar_one(path_name,
+                                     self.paths,
+                                     get_name)
 
     def get_executor(
         self,
@@ -185,7 +193,12 @@ class Application(Summarizable):
         if not isinstance(executor_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
+        def get_name(x):
+            return x.executor_name
+
+        return Util.find_similar_one(executor_name,
+                                     self.executors,
+                                     get_name)
 
     @property
     def callback_groups(
@@ -237,9 +250,12 @@ class Application(Summarizable):
         if not isinstance(callback_group_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target(x: CallbackGroup):
-            return x.callback_group_name == callback_group_name
-        return Util.find_one(is_target, self.callback_groups)
+        def get_name(x):
+            return x.callback_group_name
+
+        return Util.find_similar_one(callback_group_name,
+                                     self.callback_groups,
+                                     get_name)
 
     def get_communication(
         self,
@@ -279,12 +295,18 @@ class Application(Summarizable):
                 not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_comm(comm: Communication):
-            return comm.publish_node_name == publisher_node_name and \
-                comm.subscribe_node_name == subscription_node_name and \
-                comm.topic_name == topic_name
+        target_names = {'publisher_node_name': publisher_node_name,
+                        'subscription_node_name': subscription_node_name,
+                        'topic_name': topic_name}
 
-        return Util.find_one(is_target_comm, self.communications)
+        def get_names(x):
+            return {'publisher_node_name': x.publish_node_name,
+                    'subscription_node_name': x.subscribe_node_name,
+                    'topic_name': x.topic_name}
+
+        return Util.find_similar_one_multi_keys(target_names,
+                                                self.communications,
+                                                get_names)
 
     @property
     def topic_names(self) -> List[str]:
@@ -389,11 +411,18 @@ class Application(Summarizable):
                 not isinstance(publish_topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(
-            lambda x: x.node_name == node_name and
-            x.publish_topic_name == publish_topic_name and
-            x.subscribe_topic_name == subscribe_topic_name, self.node_paths
-        )
+        target_name = {'node_name': node_name,
+                       'subscribe_topic_name': subscribe_topic_name,
+                       'publish_topic_name': publish_topic_name}
+
+        def get_names(x):
+            return {'node_name': x.node_name,
+                    'subscribe_topic_name': x.subscribe_topic_name,
+                    'publish_topic_name': x.publish_topic_name}
+
+        return Util.find_similar_one_multi_keys(target_name,
+                                                self.node_paths,
+                                                get_names)
 
     def get_communications(
         self,
@@ -429,6 +458,10 @@ class Application(Summarizable):
             lambda x: x.topic_name == topic_name,
             self.communications
         )
+        if (len(comms) == 0):
+            Util.find_similar_one(topic_name,
+                                  self.communications,
+                                  lambda x: x.topic_name)
 
         return sorted(comms, key=lambda x: x.topic_name)
 
@@ -462,10 +495,16 @@ class Application(Summarizable):
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.filter_items(
+        node_paths = Util.filter_items(
             lambda x: x.node_name == node_name,
             self.node_paths
         )
+        if (len(node_paths) == 0):
+            Util.find_similar_one(node_name,
+                                  self.node_paths,
+                                  lambda x: x.node_name)
+
+        return sorted(node_paths, key=lambda x: x.node_name)
 
     @property
     def node_paths(self) -> List[NodePathStructValue]:
@@ -507,10 +546,12 @@ class Application(Summarizable):
         if not isinstance(node_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_node(node: Node):
-            return node.node_name == node_name
+        def get_name(x):
+            return x.node_name
 
-        return Util.find_one(is_target_node, self.nodes)
+        return Util.find_similar_one(node_name,
+                                     self.nodes,
+                                     get_name)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
         """
@@ -539,10 +580,12 @@ class Application(Summarizable):
         if not isinstance(callback_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target_callback(callback: CallbackBase):
-            return callback.callback_name == callback_name
+        def get_name(x):
+            return x.callback_name
 
-        return Util.find_one(is_target_callback, self.callbacks)
+        return Util.find_similar_one(callback_name,
+                                     self.callbacks,
+                                     get_name)
 
     def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
         """
@@ -568,9 +611,20 @@ class Application(Summarizable):
             Failed to identify item that match the condition.
 
         """
+        def is_match_regex(callback: CallbackBase):
+            return fnmatch.fnmatch(callback.callback_name, callback_name)
+
         callbacks = []
         for callback_name in callback_names:
-            callbacks.append(self.get_callback(callback_name))
+            try:
+                if '*' in callback_name or '?' in callback_name:
+                    callbacks += Util.filter_items(is_match_regex, self.callbacks)
+                else:
+                    callbacks.append(self.get_callback(callback_name))
+            except Error:
+                msg = 'Failed to identify callback. Skip loading.'
+                msg += f'callback_name: {callback_name}'
+                logger.warning(msg)
 
         return callbacks
 

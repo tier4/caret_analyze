@@ -14,10 +14,18 @@
 
 from __future__ import annotations
 
+import difflib
+
+from logging import getLogger
+
 import os
-from typing import Any, Callable, Iterable, List, Optional, Tuple
+
+from statistics import mean
+from typing import Any, Callable, Collection, Dict, Iterable, List, Optional, Tuple
 
 from ..exceptions import ItemNotFoundError, MultipleItemFoundError
+
+logger = getLogger(__name__)
 
 
 class Util:
@@ -78,6 +86,67 @@ class Util:
             raise MultipleItemFoundError('Failed to identify item.')
 
         return filtered[0]
+
+    @staticmethod
+    def find_similar_one(
+        target_name: str,
+        items: Collection[Any],
+        key: Callable[[Any], str] = lambda x: x,
+        th: float = 0.6
+    ) -> Any:
+
+        similarity = 0.0
+        for item in items:
+            distance = difflib.SequenceMatcher(None, key(item), target_name).ratio()
+            if (distance > similarity):
+                similarity = distance
+                most_similar_item = item
+
+        assert 0.0 <= similarity <= 1.0
+        if (similarity == 1.0):
+            return most_similar_item
+        elif (similarity > th):
+            msg = 'Arguments may be wrong.'
+            msg += f" Isn't it '{key(most_similar_item)}'?"
+            raise ItemNotFoundError(msg)
+        else:
+            raise ItemNotFoundError('Failed find item.')
+
+    @staticmethod
+    def find_similar_one_multi_keys(
+        target_names: Dict[str, str],
+        items: Collection[Any],
+        keys: Callable[[Any], Dict[str, str]] = lambda x: x,
+        th: float = 0.6
+    ) -> Any:
+        max_similarity = 0.0
+        for item in items:
+            each_similarity = []
+            keys_dict = keys(item)
+            for target_name in target_names:
+                if(keys_dict[target_name] is None):
+                    each_similarity.append(0.0)
+                    continue
+                distance = difflib.SequenceMatcher(None,
+                                                   keys_dict[target_name],
+                                                   target_names[target_name]).ratio()
+                each_similarity.append(distance)
+            if (mean(each_similarity) > max_similarity):
+                max_similarity = mean(each_similarity)
+                most_similar_item = item
+
+        assert 0.0 <= max_similarity <= 1.0
+        if (max_similarity == 1.0):
+            return most_similar_item
+        elif (max_similarity > th):
+            msg = 'Arguments may be wrong. '
+            msg += "Aren't they bellow?\n"
+            keys_dict = keys(most_similar_item)
+            for k, v in keys_dict.items():
+                msg += k + "='" + v + "'\n"
+            raise ItemNotFoundError(msg)
+        else:
+            raise ItemNotFoundError('Failed find item.')
 
     @staticmethod
     def ns_to_ms(x: float) -> float:
