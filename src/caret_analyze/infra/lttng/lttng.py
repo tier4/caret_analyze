@@ -165,7 +165,6 @@ class Lttng(InfraBase):
     _last_filters: Optional[List[LttngEventFilter]] = None
     _last_trace_begin_time: Optional[int] = None
     _last_trace_end_time: Optional[int] = None
-    _last_trace_datetime: Optional[datetime] = None
 
     def __init__(
         self,
@@ -197,18 +196,13 @@ class Lttng(InfraBase):
         event_filters: List[LttngEventFilter]
     ) -> Tuple[DataModel, Dict]:
         if isinstance(trace_dir_or_events, str):
-            trace_datetime: datetime = None
-            packet_begin_times: List[int] = []
-            packet_end_times: List[int] = []
-
+            Lttng._last_trace_begin_time = None
             for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
-                if type(msg) is bt2._PacketBeginningMessageConst:
-                    packet_begin_times.append(msg.default_clock_snapshot.ns_from_origin)
-                    if not trace_datetime:
-                        trace_datetime = datetime.fromtimestamp(
-                                msg.default_clock_snapshot.ns_from_origin * 1.0e-9)
+                if (not Lttng._last_trace_begin_time
+                    and type(msg) is bt2._PacketBeginningMessageConst):
+                    Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
                 elif type(msg) is bt2._PacketEndMessageConst:
-                    packet_end_times.append(msg.default_clock_snapshot.ns_from_origin)
+                    Lttng._last_trace_end_time = msg.default_clock_snapshot.ns_from_origin
                 # Check for traces lost
                 elif(type(msg) is bt2._DiscardedEventsMessageConst):
                     msg = ('Tracer discarded '
@@ -219,9 +213,6 @@ class Lttng(InfraBase):
 
             Lttng._last_load_dir = trace_dir_or_events
             Lttng._last_filters = event_filters
-            Lttng._last_trace_datetime = trace_datetime
-            Lttng._last_trace_begin_time = min(packet_begin_times)
-            Lttng._last_trace_end_time = max(packet_end_times)
             events = load_file(trace_dir_or_events, force_conversion=force_conversion)
             print('{} events found.'.format(len(events)))
         else:
@@ -462,7 +453,7 @@ class Lttng(InfraBase):
             Date and time the trace data was created.
 
         """
-        return Lttng._last_trace_datetime
+        return datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9)
 
     def compose_inter_proc_comm_records(
         self,
