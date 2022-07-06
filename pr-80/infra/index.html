@@ -460,13 +460,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_measure_duration" class="md-nav__link">
-    get_measure_duration()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_nodes" class="md-nav__link">
     get_nodes()
   </a>
@@ -525,6 +518,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_creation_datetime" class="md-nav__link">
     get_trace_creation_datetime()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="md-nav__link">
+    get_trace_range()
   </a>
   
 </li>
@@ -839,13 +839,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_measure_duration" class="md-nav__link">
-    get_measure_duration()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_nodes" class="md-nav__link">
     get_nodes()
   </a>
@@ -904,6 +897,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_creation_datetime" class="md-nav__link">
     get_trace_creation_datetime()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="md-nav__link">
+    get_trace_range()
   </a>
   
 </li>
@@ -1275,42 +1275,6 @@ The main processing is done by LttngInfo and RecordsSource.</p>
                 <code><span title="typing.Sequence">Sequence</span>[ExecutorInfo]</code>
           </td>
           <td></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="caret_analyze.infra.lttng.lttng.Lttng.get_measure_duration" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_measure_duration</span><span class="p">()</span></code>
-
-<a href="#caret_analyze.infra.lttng.lttng.Lttng.get_measure_duration" class="headerlink" title="Permanent link">#</a></h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get measure duration [ns].</p>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>measure_duration</code></td>          <td>
-                <code><span title="typing.Tuple">Tuple</span>[int, int]</code>
-          </td>
-          <td><p>Measurement start time and measurement finish time.</p></td>
         </tr>
     </tbody>
   </table>
@@ -1752,9 +1716,45 @@ The main processing is done by LttngInfo and RecordsSource.</p>
     <tbody>
         <tr>
 <td><code>trace_creation_datetime</code></td>          <td>
-                <code>str</code>
+                <code><span title="datetime.datetime">datetime</span></code>
           </td>
           <td><p>Date and time the trace data was created.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_trace_range</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get trace range.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>trace_range</code></td>          <td>
+                <code><span title="typing.Tuple">Tuple</span>[int, int]</code>
+          </td>
+          <td><p>Trace begin time and trace end time [ns].</p></td>
         </tr>
     </tbody>
   </table>
