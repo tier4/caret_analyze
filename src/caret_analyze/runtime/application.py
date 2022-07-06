@@ -20,6 +20,8 @@ from logging import getLogger
 
 from typing import List, Optional, Union
 
+from caret_analyze.value_objects import node_path
+
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
 from .communication import Communication
@@ -503,6 +505,8 @@ class Application(Summarizable):
             Util.find_similar_one(node_name,
                                   self.node_paths,
                                   lambda x: x.node_name)
+
+        return sorted(node_paths, key=lambda x: x.node_name)
 
     @property
     def node_paths(self) -> List[NodePathStructValue]:
