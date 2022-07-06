@@ -20,8 +20,6 @@ from logging import getLogger
 
 from typing import List, Optional, Union
 
-from caret_analyze.value_objects import node_path
-
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
 from .communication import Communication
