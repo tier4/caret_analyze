@@ -97,15 +97,18 @@ class Util:
 
         similarity = 0.0
         for item in items:
-            if (Util.calc_similarity(key(item), target_name) > similarity):
-                similarity = Util.calc_similarity(key(item), target_name)
+            distance = difflib.SequenceMatcher(None, key(item), target_name).ratio()
+            if (distance > similarity):
+                similarity = distance
                 most_similar_item = item
 
         assert 0.0 <= similarity <= 1.0
         if (similarity == 1.0):
             return most_similar_item
         elif (similarity > th):
-            raise ItemNotFoundError(f"Arguments may be wrong. Isn't it '{key(most_similar_item)}'?")
+            msg = 'Arguments may be wrong.'
+            msg += f" Isn't it '{key(most_similar_item)}'?"
+            raise ItemNotFoundError(msg)
         else:
             raise ItemNotFoundError('Failed find item.')
 
@@ -124,8 +127,10 @@ class Util:
                 if(keys_dict[target_name] is None):
                     each_similarity.append(0.0)
                     continue
-                each_similarity.append(Util.calc_similarity(keys_dict[target_name],
-                                                            target_names[target_name]))
+                distance = difflib.SequenceMatcher(None,
+                                                   keys_dict[target_name],
+                                                   target_names[target_name]).ratio()
+                each_similarity.append(distance)
             if (mean(each_similarity) > max_similarity):
                 max_similarity = mean(each_similarity)
                 most_similar_item = item
@@ -157,7 +162,3 @@ class Util:
         ns = '/'.join(strs[:-1]) + '/'
         name = strs[-1]
         return ns, name
-
-    @staticmethod
-    def calc_similarity(name1: str, name2: str) -> float:
-        return difflib.SequenceMatcher(None, name1, name2).ratio()
