@@ -199,7 +199,7 @@ class Lttng(InfraBase):
             Lttng._last_trace_begin_time = None
             for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
                 if (not Lttng._last_trace_begin_time
-                    and type(msg) is bt2._PacketBeginningMessageConst):
+                        and type(msg) is bt2._PacketBeginningMessageConst):
                     Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
                 elif type(msg) is bt2._PacketEndMessageConst:
                     Lttng._last_trace_end_time = msg.default_clock_snapshot.ns_from_origin
