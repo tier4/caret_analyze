@@ -105,7 +105,7 @@ class Util:
         if (similarity == 1.0):
             return most_similar_item
         elif (similarity > th):
-            raise ItemNotFoundError(f"Arguments may be wrong. Isn't it {key(most_similar_item)}?")
+            raise ItemNotFoundError(f"Arguments may be wrong. Isn't it '{key(most_similar_item)}'?")
         else:
             raise ItemNotFoundError('Failed find item.')
 
@@ -138,7 +138,7 @@ class Util:
             msg += "Aren't they bellow?\n"
             keys_dict = keys(most_similar_item)
             for k, v in keys_dict.items():
-                msg += k + '=' + v + '\n'
+                msg += k + "='" + v + "'\n"
             raise ItemNotFoundError(msg)
         else:
             raise ItemNotFoundError('Failed find item.')
