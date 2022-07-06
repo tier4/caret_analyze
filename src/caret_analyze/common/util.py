@@ -92,7 +92,7 @@ class Util:
         target_name: str,
         items: Collection[Any],
         key: Callable[[Any], str] = lambda x: x,
-        th: float = 0.8
+        th: float = 0.6
     ) -> Any:
 
         similarity = 0.0
@@ -117,7 +117,7 @@ class Util:
         target_names: Dict[str, str],
         items: Collection[Any],
         keys: Callable[[Any], Dict[str, str]] = lambda x: x,
-        th: float = 0.8
+        th: float = 0.6
     ) -> Any:
         max_similarity = 0.0
         for item in items:
