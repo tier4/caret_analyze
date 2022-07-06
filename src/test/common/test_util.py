@@ -83,7 +83,8 @@ class TestUtil:
         target_names = {'publisher_node_name': 'miss_pub_node',
                         'subscription_node_name': 'sub_node',
                         'topic_name': 'topic'}
-        with pytest.raises(ItemNotFoundError):
+        with pytest.raises(ItemNotFoundError) as e:
             Util.find_similar_one_multi_keys(target_names,
                                              app_mock.communications,
                                              keys)
+        assert 'publisher_node_name' in str(e.value)
