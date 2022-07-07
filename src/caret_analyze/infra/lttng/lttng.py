@@ -15,8 +15,8 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 from logging import getLogger
-
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import bt2
@@ -163,6 +163,8 @@ class Lttng(InfraBase):
 
     _last_load_dir: Optional[str] = None
     _last_filters: Optional[List[LttngEventFilter]] = None
+    _last_trace_begin_time: Optional[int] = None
+    _last_trace_end_time: Optional[int] = None
 
     def __init__(
         self,
@@ -194,9 +196,15 @@ class Lttng(InfraBase):
         event_filters: List[LttngEventFilter]
     ) -> Tuple[DataModel, Dict]:
         if isinstance(trace_dir_or_events, str):
-            # Check for traces lost
+            Lttng._last_trace_begin_time = None
             for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
-                if(type(msg) is bt2._DiscardedEventsMessageConst):
+                if (not Lttng._last_trace_begin_time
+                        and type(msg) is bt2._PacketBeginningMessageConst):
+                    Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
+                elif type(msg) is bt2._PacketEndMessageConst:
+                    Lttng._last_trace_end_time = msg.default_clock_snapshot.ns_from_origin
+                # Check for traces lost
+                elif(type(msg) is bt2._DiscardedEventsMessageConst):
                     msg = ('Tracer discarded '
                            f'{msg.count} events between '
                            f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
@@ -418,6 +426,34 @@ class Lttng(InfraBase):
     ) -> pd.DataFrame:
         groupby = groupby or ['trace_point']
         return self._counter.get_count(groupby)
+
+    def get_trace_range(
+        self
+    ) -> Tuple[int, int]:
+        """
+        Get trace range.
+
+        Returns
+        -------
+        trace_range: Tuple[int, int]
+            Trace begin time and trace end time [ns].
+
+        """
+        return Lttng._last_trace_begin_time, Lttng._last_trace_end_time
+
+    def get_trace_creation_datetime(
+        self
+    ) -> datetime:
+        """
+        Get trace creation datetime.
+
+        Returns
+        -------
+        trace_creation_datetime: datetime
+            Date and time the trace data was created.
+
+        """
+        return datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9)
 
     def compose_inter_proc_comm_records(
         self,
