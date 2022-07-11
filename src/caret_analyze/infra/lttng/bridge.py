@@ -142,7 +142,7 @@ class LttngBridge:
         Returns
         -------
         List[PublisherValueLttng]
-            publisher values that matches the condition
+            publisher values that match the condition
 
         """
         try:

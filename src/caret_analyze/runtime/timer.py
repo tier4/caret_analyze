@@ -23,32 +23,89 @@ from ..record import RecordsInterface
 
 
 class Timer(PathBase, Summarizable):
+    """A class that represents timer."""
 
     def __init__(
         self,
         val: TimerStructValue,
         data_provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        val : TimerStructValue
+            static info.
+        data_provider : Union[RecordsProvider, RuntimeDataProvider]
+            provider to be evaluated.
+
+        """
         super().__init__()
         self._val = val
         self._provider = data_provider
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            node name which defines the timer.
+
+        """
         return self._val.node_name
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary [override].
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return self._val.summary
 
     @property
     def period_ns(self) -> int:
+        """
+        Get timer period.
+
+        Returns
+        -------
+        int
+            timer period [ns].
+
+        """
         return self._val.period_ns
 
     @property
     def callback_name(self) -> Optional[str]:
+        """
+        Get callback name.
+
+        Returns
+        -------
+        Optional[str]
+            callback name defined in the architecture.
+
+        """
         return self._val.callback_name
 
     def _to_records_core(self) -> RecordsInterface:
+        """
+        Calculate records.
+
+        Returns
+        -------
+        RecordsInterface
+            Timer records.
+
+        """
         records = self._provider.timer_records(self._val)
         return records

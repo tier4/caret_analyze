@@ -195,12 +195,32 @@ class RecordsMerged:
 
 
 class Path(PathBase, Summarizable):
+    """
+    A class that represents a path.
+
+    A single path is composed of node paths and communications.
+    """
+
     def __init__(
         self,
         path: PathStructValue,
         child: List[Union[NodePath, Communication]],
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        path : PathStructValue
+            static info
+        child : List[Union[NodePath, Communication]]
+            path childrens which compose path (node paths and communications).
+        callbacks : Optional[List[CallbackBase]]
+            callbacks that compose the path.
+            return None except for all of node paths are not callback-chain.
+
+        """
         super().__init__()
 
         self._value = path
@@ -224,6 +244,15 @@ class Path(PathBase, Summarizable):
                 logger.warning(msg)
 
     def verify(self) -> bool:
+        """
+        Verify whether the path can generate latenies.
+
+        Returns
+        -------
+        bool
+            True if both architecture and measurement results are valid, otherwise false.
+
+        """
         is_valid = True
         for child in self.node_paths[1:-1]:
             if child.message_context is not None:
@@ -240,6 +269,8 @@ class Path(PathBase, Summarizable):
         return is_valid
 
     def get_child(self, name: str):
+        # TODO(hsgwa): This function is not needed. Remove.
+
         if not isinstance(name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -253,10 +284,29 @@ class Path(PathBase, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary [override].
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return self._value.summary
 
     @property
     def callbacks(self) -> Optional[List[CallbackBase]]:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        Optional[List[CallbackBase]]
+            callbacks that compose the path.
+            return None except for all of the node paths are callback chains.
+
+        """
         return self._callbacks
 
     @staticmethod
@@ -277,9 +327,19 @@ class Path(PathBase, Summarizable):
 
     @property
     def path_name(self) -> Optional[str]:
+        """
+        Get path name.
+
+        Returns
+        -------
+        Optional[str]
+            Path name defined in the architecture.
+
+        """
         return self._value.path_name
 
     def clear_cache(self) -> None:
+        """Clear to_records/to_dataframe cache."""
         self._columns_cache = None
         return super().clear_cache()
 
@@ -289,24 +349,79 @@ class Path(PathBase, Summarizable):
 
     @property
     def communications(self) -> List[Communication]:
+        """
+        Get communications.
+
+        Returns
+        -------
+        List[Communication]
+            Communications in target path.
+
+        """
         return Util.filter_items(lambda x: isinstance(x, Communication), self._child)
 
     @property
     def node_paths(self) -> List[NodePath]:
+        """
+        Get node-paths.
+
+        Returns
+        -------
+        List[NodePath]
+            node paths in target path.
+
+        """
         return Util.filter_items(lambda x: isinstance(x, NodePath), self._child)
 
     @property
     def topic_names(self) -> List[str]:
+        """
+        Get topic names.
+
+        Returns
+        -------
+        List[str]
+            topic names in the target path.
+
+        """
         return sorted(self._value.topic_names)
 
     @property
     def child(self) -> List[Union[NodePath, Communication]]:
+        """
+        Get path children.
+
+        Returns
+        -------
+        List[Union[NodePath, Communication]]
+            node paths and communications in the target path.
+            node paths and communications are alternately contained.
+
+        """
         return self._child
 
     @property
     def child_names(self) -> List[str]:
+        """
+        Get path children's names.
+
+        Returns
+        -------
+        List[str]
+            node names and topic names in the target path.
+
+        """
         return sorted(self._value.child_names)
 
     @property
     def node_names(self) -> List[str]:
+        """
+        Get node names.
+
+        Returns
+        -------
+        List[str]
+            node names in the target path.
+
+        """
         return sorted(self._value.node_names)

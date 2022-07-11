@@ -25,6 +25,13 @@ from ..value_objects import MessageContext, NodePathStructValue
 
 
 class NodePath(PathBase, Summarizable):
+    """
+    A class that represents a path inside a node.
+
+    Node path is defined as subscription-publisher pair.
+    subscribe-publish policies are defined as "message context"
+    """
+
     def __init__(
         self,
         node_path_value: NodePathStructValue,
@@ -33,6 +40,23 @@ class NodePath(PathBase, Summarizable):
         publisher: Optional[Publisher],
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        node_path_value : NodePathStructValue
+            static info.
+        records_provider : RecordsProvider
+            provider to be evaluated.
+        subscription : Optional[Subscription]
+            node path subscription
+        publisher : Optional[Publisher]
+            node path publisher
+        callbacks : Optional[List[CallbackBase]]
+            Callbacks in node path. Needed only if message context is CallbackChain.
+
+        """
         super().__init__()
         self._val = node_path_value
         self._provider = records_provider
@@ -42,23 +66,69 @@ class NodePath(PathBase, Summarizable):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name which contains this node path.
+
+        """
         return self._val.node_name
 
     @property
     def callbacks(self) -> Optional[List[CallbackBase]]:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        Optional[List[CallbackBase]]
+            Callbacks in node path.
+            None except for message context is callback chain.
+
+        """
         if self._callbacks is None:
             return None
         return sorted(self._callbacks, key=lambda x: x.callback_name)
 
     @property
     def message_context(self) -> Optional[MessageContext]:
+        """
+        Get message context.
+
+        Returns
+        -------
+        Optional[MessageContext]
+            message context for this node path.
+
+        """
         return self._val.message_context
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary [override].
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return self._val.summary
 
     def _to_records_core(self) -> RecordsInterface:
+        """
+        Calculate records [override].
+
+        Returns
+        -------
+        RecordsInterface
+            node latency latency (subscribe-publish).
+
+        """
         if self.message_context is None:
             return RecordsFactory.create_instance()
 
@@ -67,16 +137,52 @@ class NodePath(PathBase, Summarizable):
 
     @property
     def publisher(self) -> Optional[Publisher]:
+        """
+        Get publisher.
+
+        Returns
+        -------
+        Optional[Publisher]
+            node path publisher.
+
+        """
         return self._pub
 
     @property
     def publish_topic_name(self) -> Optional[str]:
+        """
+        Get a topic name to publish.
+
+        Returns
+        -------
+        Optional[str]
+            topic name to publish.
+
+        """
         return self._val.publish_topic_name
 
     @property
     def subscription(self) -> Optional[Subscription]:
+        """
+        Get a subscription.
+
+        Returns
+        -------
+        Optional[Subscription]
+            subscription to subscribe to.
+
+        """
         return self._sub
 
     @property
     def subscribe_topic_name(self) -> Optional[str]:
+        """
+        Get a topic name to subscribe to.
+
+        Returns
+        -------
+        Optional[str]
+            topic name to subscribe to.
+
+        """
         return self._val.subscribe_topic_name

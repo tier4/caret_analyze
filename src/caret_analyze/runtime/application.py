@@ -39,11 +39,29 @@ logger = getLogger(__name__)
 
 
 class Application(Summarizable):
+    """A class that represents the entire application to be measured."""
+
     def __init__(
         self,
         architecture: Architecture,
         infra: InfraBase,
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        architecture : Architecture
+            Application architecture to be evaluated.
+        infra : InfraBase
+            Measurement results.
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Occurs when the invalid infra is given.
+
+        """
         from .runtime_loaded import RuntimeLoaded
 
         provider: Union[RecordsProvider, RuntimeDataProvider]
@@ -68,7 +86,7 @@ class Application(Summarizable):
         Returns
         -------
         List[Executor]
-            executor list.
+            All executors defined in the architecture.
 
         """
         return sorted(self._executors, key=lambda x: x.executor_name)
@@ -81,7 +99,7 @@ class Application(Summarizable):
         Returns
         -------
         List[Node]
-            node list.
+            All nodes defined in the architecture.
 
         """
         return sorted(self._nodes, key=lambda x: x.node_name)
@@ -94,7 +112,7 @@ class Application(Summarizable):
         Returns
         -------
         List[Communication]
-            communication list.
+            All communications defined in the architecture.
 
         """
         return sorted(self._communications, key=lambda x: x.topic_name)
@@ -107,7 +125,7 @@ class Application(Summarizable):
         Returns
         -------
         List[Path]
-            path list.
+            All paths defined in the architecture.
 
         """
         return sorted(self._paths, key=lambda x: x.path_name or '')
@@ -120,7 +138,7 @@ class Application(Summarizable):
         Returns
         -------
         List[CallbackBase]
-            callback list.
+            All callbacks defined in the architecture.
 
         """
         cbs: List[CallbackBase] = []
@@ -131,26 +149,27 @@ class Application(Summarizable):
 
     def get_path(self, path_name: str) -> Path:
         """
-        Get path that matches the condition.
+        Get a path that matches the condition.
 
         Parameters
         ----------
         path_name : str
             path name to get.
+            paths and their names are defined in the architecture.
 
         Returns
         -------
         Path
-            path that matches the condition.
+            A path that matches the condition.
 
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Occurs when the given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Occurs when no items were found.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Occurs when several items were found.
 
         """
         if not isinstance(path_name, str):
@@ -168,12 +187,13 @@ class Application(Summarizable):
         executor_name: str
     ) -> Executor:
         """
-        Get executor that matches the condition.
+        Get an executor that matches the condition.
 
         Parameters
         ----------
         executor_name : str
-            executor name to get. The name is defined in the architecture file (ex: executor_0).
+            executor name to get.
+            The name is defined in the architecture file (ex: executor_0).
 
         Returns
         -------
@@ -183,11 +203,11 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Failed to find an item that matches the condition.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Failed to identify an item that matches the condition.
 
         """
         if not isinstance(executor_name, str):
@@ -210,7 +230,7 @@ class Application(Summarizable):
         Returns
         -------
         List[CallbackGroup]
-            callback group list.
+            All callback groups defined in the architecture.
 
         """
         cbgs: List[CallbackGroup] = []
@@ -225,7 +245,7 @@ class Application(Summarizable):
         callback_group_name: str
     ) -> CallbackGroup:
         """
-        Get callback group that matches the condition.
+        Get a callback group that matches the condition.
 
         Parameters
         ----------
@@ -240,11 +260,11 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Failed to find an item that matches the condition.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Failed to identify an item that matches the condition.
 
         """
         if not isinstance(callback_group_name, str):
@@ -269,9 +289,9 @@ class Application(Summarizable):
         Parameters
         ----------
         publisher_node_name : str
-            node name that publishes the message.
+            node name that publishes the topic.
         subscription_node_name : str
-            node name that subscribe the message.
+            node name that subscribes to the topic.
         topic_name : str
             topic name.
 
@@ -283,11 +303,11 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Failed to find an item that matches the condition.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Failed to identify an item that matches the condition.
 
         """
         if not isinstance(publisher_node_name, str) or \
@@ -316,7 +336,7 @@ class Application(Summarizable):
         Returns
         -------
         List[str]
-            topic name list.
+            All topic names defined in architecture.
 
         """
         return sorted({_.topic_name for _ in self.communications})
@@ -329,7 +349,7 @@ class Application(Summarizable):
         Returns
         -------
         List[str]
-            executor name list.
+            All executor names defined in the architecture.
 
         """
         return sorted(_.executor_name for _ in self.executors)
@@ -342,7 +362,7 @@ class Application(Summarizable):
         Returns
         -------
         List[str]
-            callback group name list.
+            All callback group names defined in the architecture.
 
         """
         return sorted(_.callback_group_name for _ in self.callback_groups)
@@ -355,7 +375,7 @@ class Application(Summarizable):
         Returns
         -------
         List[str]
-            path name list.
+            App path names defined in the architecture.
 
         """
         return sorted(_.path_name for _ in self.paths)
@@ -368,7 +388,7 @@ class Application(Summarizable):
         Returns
         -------
         List[str]
-            callback name list.
+            All callback names defined in the architecture.
 
         """
         return sorted(_.callback_name for _ in self.callbacks)
@@ -380,7 +400,7 @@ class Application(Summarizable):
         publish_topic_name: Optional[str]
     ) -> NodePathStructValue:
         """
-        Get node path that matches the condition.
+        Get a node path that matches the condition.
 
         Parameters
         ----------
@@ -399,11 +419,11 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Occurs when the given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Occurs when no items were found.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Occurs when several items were found.
 
         """
         if not isinstance(node_name, str) or \
@@ -439,16 +459,14 @@ class Application(Summarizable):
         Returns
         -------
         List[Communication]
-            communications that matches the condition.
+            communications that match the condition.
 
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Occurs when the given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
-        MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Failed to find an item that matches the condition.
 
         """
         if not isinstance(topic_name, str):
@@ -480,16 +498,12 @@ class Application(Summarizable):
         Returns
         -------
         List[NodePathStructValue]
-            node path list.
+            node paths that match the condition.
 
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
-        ItemNotFoundError
-            Failed to find item that match the condition.
-        MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Occurs when the given argument type is invalid.
 
         """
         if not isinstance(node_name, str):
@@ -514,14 +528,14 @@ class Application(Summarizable):
         Returns
         -------
         List[NodePathStructValue]
-            path list.
+            app node paths defined in the entire application.
 
         """
         return Util.flatten([_.paths for _ in self.nodes])
 
     def get_node(self, node_name: str) -> Node:
         """
-        Get node that matches the condition.
+        Get a node that matches the condition.
 
         Parameters
         ----------
@@ -531,16 +545,16 @@ class Application(Summarizable):
         Returns
         -------
         Node
-            node that matches the condition.
+            A node that matches the condition.
 
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Occurs when the given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Occurs when no items were found.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Occurs when several items were found.
 
         """
         if not isinstance(node_name, str):
@@ -555,7 +569,7 @@ class Application(Summarizable):
 
     def get_callback(self, callback_name: str) -> CallbackBase:
         """
-        Get callback that mathces the condition.
+        Get a callback that matches the condition.
 
         Parameters
         ----------
@@ -570,11 +584,11 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Occurs when the given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Occurs when no items were found.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Occurs when several items were found.
 
         """
         if not isinstance(callback_name, str):
@@ -604,11 +618,11 @@ class Application(Summarizable):
         Raises
         ------
         InvalidArgumentError
-            Argument type is invalid.
+            Occurs when the given argument type is invalid.
         ItemNotFoundError
-            Failed to find item that match the condition.
+            Occurs when no items were found.
         MultipleItemFoundError
-            Failed to identify item that match the condition.
+            Occurs when several items were found.
 
         """
         def is_match_regex(callback: CallbackBase):
@@ -636,7 +650,7 @@ class Application(Summarizable):
         Returns
         -------
         List[str]
-            node name list.
+            All node names defined in the architecture.
 
         """
         return sorted(c.node_name for c in self.nodes)
@@ -644,12 +658,12 @@ class Application(Summarizable):
     @property
     def summary(self) -> Summary:
         """
-        Get application summary.
+        Get summary [override].
 
         Returns
         -------
         Summary
-            summary info.
+            Summary info.
 
         """
         return Summary({
