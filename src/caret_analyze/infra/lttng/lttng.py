@@ -220,7 +220,7 @@ class Lttng(InfraBase):
 
         if len(event_filters) > 0:
             events = Lttng._filter_events(events, event_filters)
-            print('filted to {} events.'.format(len(events)))
+            print('filtered to {} events.'.format(len(events)))
 
         handler = Ros2Handler.process(events)
         return handler.data, events
