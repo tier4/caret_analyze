@@ -429,17 +429,18 @@ class Lttng(InfraBase):
 
     def get_trace_range(
         self
-    ) -> Tuple[int, int]:
+    ) -> Tuple[datetime, datetime]:
         """
         Get trace range.
 
         Returns
         -------
-        trace_range: Tuple[int, int]
-            Trace begin time and trace end time [ns].
+        trace_range: Tuple[datetime, datetime]
+            Trace begin time and trace end time.
 
         """
-        return Lttng._last_trace_begin_time, Lttng._last_trace_end_time
+        return (datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9),
+                datetime.fromtimestamp(Lttng._last_trace_end_time * 1.0e-9))
 
     def get_trace_creation_datetime(
         self
