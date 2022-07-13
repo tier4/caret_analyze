@@ -193,6 +193,17 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
+    def rename_callback(src: str, dest: str):
+
+    def rename_node(src: str, dest: str):
+
+    def rename_path(src: str, dest: str):
+
+    def rename_executor(src: str, dest: str):
+
+    def rename_topic(src: str, dest: str):
+        
+
 
 class NamedPathManager():
 
