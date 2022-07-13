@@ -202,7 +202,7 @@ class Architecture(Summarizable):
     def rename_executor(src: str, dest: str):
 
     def rename_topic(src: str, dest: str):
-        
+
 
 
 class NamedPathManager():
