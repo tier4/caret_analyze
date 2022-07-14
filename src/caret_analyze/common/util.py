@@ -94,7 +94,29 @@ class Util:
         key: Callable[[Any], str] = lambda x: x,
         th: float = 0.6
     ) -> Any:
+        """
+        Get a single item that matches the condition.
+        If no item matching the condition,
+        return the most similar item.
 
+        Parameters
+        ----------
+        condition : Callable[[Any], str]
+        items : Collection[Any]
+
+        Returns
+        -------
+        Any
+            condition matched single item.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+        MultipleItemFoundError
+            Failed to identify an item that matches the condition.
+
+        """
         similarity = 0.0
         for item in items:
             distance = difflib.SequenceMatcher(None, key(item), target_name).ratio()
@@ -119,6 +141,29 @@ class Util:
         keys: Callable[[Any], Dict[str, str]] = lambda x: x,
         th: float = 0.6
     ) -> Any:
+        """
+        Get a single item that matches the multi conditions.
+        If no item matching the conditions,
+        return the most similar item.
+
+        Parameters
+        ----------
+        conditions : Callable[[Any], Dict[str, str]]
+        items : Collection[Any]
+
+        Returns
+        -------
+        Any
+            conditions matched single item.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the conditions.
+        MultipleItemFoundError
+            Failed to identify an item that matches the conditions.
+
+        """
         max_similarity = 0.0
         for item in items:
             each_similarity = []
