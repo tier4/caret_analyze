@@ -206,7 +206,7 @@ class Ros2DataModel(DataModel):
         }
         self._clients.append(record)
 
-    def add_timer(self, handle, timestamp, period, tid) -> None:
+    def add_timer(self, tid, handle, timestamp, period) -> None:
         record = {
             'timer_handle': handle,
             'timestamp': timestamp,

@@ -1262,7 +1262,7 @@ class TestTimerRecords:
         tid = 16
 
         data = Ros2DataModel()
-        data.add_timer(handle, timer_init_stamp, period, tid)
+        data.add_timer(tid, handle, timer_init_stamp, period)
         data.add_callback_start_instance(7, callback_obj, False)
         data.add_callback_end_instance(8, callback_obj)
         data.finalize()
