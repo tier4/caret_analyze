@@ -88,16 +88,13 @@ class Util:
         return filtered[0]
 
     @staticmethod
-    def find_similar_one(
-        target_name: str,
-        items: Collection[Any],
-        key: Callable[[Any], str] = lambda x: x,
-        th: float = 0.6
-    ) -> Any:
+    def find_similar_one(target_name: str,
+                         items: Collection[Any],
+                         key: Callable[[Any], str] = lambda x: x,
+                         th: float = 0.6
+                         ) -> Any:
         """
         Get a single item that matches the condition.
-        If no item matching the condition,
-        return the most similar item.
 
         Parameters
         ----------
@@ -143,8 +140,6 @@ class Util:
     ) -> Any:
         """
         Get a single item that matches the multi conditions.
-        If no item matching the conditions,
-        return the most similar item.
 
         Parameters
         ----------
