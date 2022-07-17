@@ -31,6 +31,8 @@ class ColumnName(NamedTuple):
         'dispatch_intra_process_subscription_callback_timestamp'
     DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP: str = \
         'dispatch_subscription_callback_timestamp'
+    TID: str = 'tid'
+    PID: str = 'pid'
     SOURCE_TIMESTAMP: str = 'source_timestamp'
     CALLBACK_OBJECT: str = 'callback_object'
     MESSAGE_CONSTRUCT_TIMESTAMP: str = 'message_construct_timestamp'
