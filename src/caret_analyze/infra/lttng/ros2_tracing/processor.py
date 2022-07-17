@@ -180,7 +180,7 @@ class Ros2Handler(EventHandler):
         timestamp = metadata.timestamp
         pid = metadata.pid
         version = get_field(event, 'version')
-        self.data.add_context(context_handle, timestamp, pid, version)
+        self.data.add_context(pid, context_handle, timestamp, version)
 
     def _handle_rcl_node_init(
         self,

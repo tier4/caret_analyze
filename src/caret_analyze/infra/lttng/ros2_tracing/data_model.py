@@ -132,7 +132,7 @@ class Ros2DataModel(DataModel):
                 'time_event_stamp']
         )
 
-    def add_context(self, context_handle, timestamp, pid, version) -> None:
+    def add_context(self, pid, context_handle, timestamp, version) -> None:
         record = {
             'context_handle': context_handle,
             'timestamp': timestamp,
