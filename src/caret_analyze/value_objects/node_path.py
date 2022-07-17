@@ -17,7 +17,7 @@ from __future__ import annotations
 from logging import getLogger
 from typing import Optional, Tuple, Union
 
-from .callback import CallbackStructValue
+from .callback import CallbackStructValue, SubscriptionCallbackStructValue
 from .message_context import MessageContext, MessageContextType
 from .publisher import PublisherStructValue
 from .subscription import SubscriptionStructValue
@@ -139,6 +139,12 @@ class NodePathStructValue(ValueObject, Summarizable):
     @property
     def subscription(self) -> Optional[SubscriptionStructValue]:
         return self._subscription
+
+    @property
+    def subscription_callback(self) -> Optional[SubscriptionCallbackStructValue]:
+        if self._subscription is not None:
+            return self._subscription.callback
+        return None
 
     @property
     def publish_topic_name(self) -> Optional[str]:
