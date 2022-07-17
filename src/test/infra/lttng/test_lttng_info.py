@@ -460,7 +460,7 @@ class TestDataFrameFormatted:
         callback_group_addr = 13
         symbol = 'symbol1'
 
-        data.add_node(node_handle, 0, 0, rmw_handle, 'node1', '/')
+        data.add_node(0, node_handle, 0, rmw_handle, 'node1', '/')
 
         data.add_timer(0, timer_handle, 0, period_ns)
         data.add_callback_object(timer_handle, 0, callback_object)
@@ -529,7 +529,7 @@ class TestDataFrameFormatted:
         topic_name = ['topic1', 'topic2']
         callback_group_addr = [15, 16]
 
-        data.add_node(node_handle, 0, 0, rmw_handle, 'node1', '/')
+        data.add_node(0, node_handle, 0, rmw_handle, 'node1', '/')
 
         # When intra-process communication is set, add_rclcpp_subscription is called twice.
         # The first one will be the record of intra-process communication.

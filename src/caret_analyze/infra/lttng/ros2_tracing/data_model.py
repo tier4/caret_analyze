@@ -141,7 +141,7 @@ class Ros2DataModel(DataModel):
         }
         self._contexts.append(record)
 
-    def add_node(self, node_handle, timestamp, tid, rmw_handle, name, namespace) -> None:
+    def add_node(self, tid, node_handle, timestamp, rmw_handle, name, namespace) -> None:
         record = {
             'node_handle': node_handle,
             'timestamp': timestamp,

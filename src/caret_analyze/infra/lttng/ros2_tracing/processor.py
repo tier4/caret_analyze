@@ -193,7 +193,7 @@ class Ros2Handler(EventHandler):
         rmw_handle = get_field(event, 'rmw_handle')
         name = get_field(event, 'node_name')
         namespace = get_field(event, 'namespace')
-        self.data.add_node(handle, timestamp, tid, rmw_handle, name, namespace)
+        self.data.add_node(tid, handle, timestamp, rmw_handle, name, namespace)
 
     def _handle_rcl_publisher_init(
         self,
