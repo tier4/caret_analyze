@@ -334,8 +334,8 @@ class TestCallbackRecords:
         dispatch_timestamp = 3
         callback_start = 4
         callback_end = 7
-        # pid = 1
-        # tid = 2
+        pid = 1
+        tid = 2
         message = 8
         source_timestamp = 11
         message_timestamp = 15
@@ -343,11 +343,12 @@ class TestCallbackRecords:
         data = Ros2DataModel()
         if has_dispatch:
             data.add_dispatch_subscription_callback_instance(
+                pid, tid,
                 dispatch_timestamp, callback_object,
                 message, source_timestamp, message_timestamp)
         data.add_callback_start_instance(
-            callback_start, callback_object, False)
-        data.add_callback_end_instance(callback_end, callback_object)
+            pid, tid, callback_start, callback_object, False)
+        data.add_callback_end_instance(pid, tid, callback_end, callback_object)
         data.finalize()
 
         callback_lttng = create_subscription_lttng(
@@ -407,8 +408,8 @@ class TestCallbackRecords:
         dispatch_timestamp = 3
         callback_start = 4
         callback_end = 7
-        # pid = 1
-        # tid = 2
+        pid = 1
+        tid = 2
         message = 8
         message_timestamp = 15
         callback_object = callback_lttng.callback_object_intra
@@ -416,10 +417,10 @@ class TestCallbackRecords:
         data = Ros2DataModel()
         if has_dispatch:
             data.add_dispatch_intra_process_subscription_callback_instance(
-                dispatch_timestamp, callback_object, message, message_timestamp)
+                pid, tid, dispatch_timestamp, callback_object, message, message_timestamp)
         data.add_callback_start_instance(
-            callback_start, callback_object, True)
-        data.add_callback_end_instance(callback_end, callback_object)
+            pid, tid, callback_start, callback_object, True)
+        data.add_callback_end_instance(pid, tid, callback_end, callback_object)
         data.finalize()
 
         bridge_setup_get_callback(callback, callback_lttng)
@@ -502,14 +503,14 @@ class TestPublisherRecords:
         message_timestamp = 4
         source_timestamp = 5
         message_addr = 6
-        # pid = 2
+        pid = 2
         tid = 11
-        data.add_rclcpp_publish_instance(tid, 1, pub_handle,
+        data.add_rclcpp_publish_instance(pid, tid, 1, pub_handle,
                                          message_addr, message_timestamp)
-        data.add_rcl_publish_instance(tid, 2, pub_handle, message_addr)
-        data.add_dds_write_instance(tid, 3, message_addr)
+        data.add_rcl_publish_instance(pid, tid, 2, pub_handle, message_addr)
+        data.add_dds_write_instance(pid, tid, 3, message_addr)
         data.add_dds_bind_addr_to_stamp(
-            tid, 4, message_addr, source_timestamp)
+            pid, tid, 4, message_addr, source_timestamp)
         data.finalize()
 
         publisher_lttng_mock = create_publisher_lttng(pub_handle)
@@ -563,23 +564,23 @@ class TestPublisherRecords:
         source_timestamp = 6
         message_addr = 8
         tilde_message_id = 9
-        # pid = 2
+        pid = 2
         tid = 3
         tilde_sub_id = 10
         tilde_sub = 30
 
         data.add_tilde_subscription(
-            tilde_sub, 'node', 'topic', 0)
+            pid, tid, tilde_sub, 'node', 'topic', 0)
         data.add_tilde_subscribe_added(
-            tilde_sub_id, 'node', 'topic', 0)
-        data.add_tilde_publish(1, tilde_pub,
+            pid, tid, tilde_sub_id, 'node', 'topic', 0)
+        data.add_tilde_publish(pid, tid, 1, tilde_pub,
                                tilde_sub_id, tilde_message_id)
-        data.add_rclcpp_publish_instance(tid, 2, pub_handle,
+        data.add_rclcpp_publish_instance(pid, tid, 2, pub_handle,
                                          message_addr, message_timestamp)
-        data.add_rcl_publish_instance(tid, 3, pub_handle, message_addr)
-        data.add_dds_write_instance(tid, 4, message_addr)
+        data.add_rcl_publish_instance(pid, tid, 3, pub_handle, message_addr)
+        data.add_dds_write_instance(pid, tid, 4, message_addr)
         data.add_dds_bind_addr_to_stamp(
-            tid, 5, message_addr, source_timestamp)
+            pid, tid, 5, message_addr, source_timestamp)
         data.finalize()
 
         publisher_struct_mock = create_publisher_struct('topic_name')
@@ -677,14 +678,14 @@ class TestSubscriptionRecords:
         source_timestamp = 3
         message_timestamp = 2
         message = 4
-        # pid = 15
-        # tid = 16
+        pid = 15
+        tid = 16
 
         data = Ros2DataModel()
         data.add_dispatch_subscription_callback_instance(
-            0, callback_object, message, source_timestamp, message_timestamp)
-        data.add_callback_start_instance(1, callback_object, False)
-        data.add_callback_end_instance(3, callback_object)
+            pid, tid, 0, callback_object, message, source_timestamp, message_timestamp)
+        data.add_callback_start_instance(pid, tid, 1, callback_object, False)
+        data.add_callback_end_instance(pid, tid, 3, callback_object)
         data.finalize()
 
         lttng = create_lttng(data)
@@ -733,18 +734,18 @@ class TestSubscriptionRecords:
         tilde_sub = 8
         message = 4
         tilde_message_id = 5
-        # pid = 15
-        # tid = 16
+        pid = 15
+        tid = 16
         callback_object = sub_lttng.callback_object
 
         data = Ros2DataModel()
         data.add_dispatch_subscription_callback_instance(
-            0, callback_object, message, source_timestamp, message_timestamp)
-        data.add_callback_start_instance(6, callback_object, False)
+            pid, tid, 0, callback_object, message, source_timestamp, message_timestamp)
+        data.add_callback_start_instance(pid, tid, 6, callback_object, False)
 
         # subscription_id, node_name, topic_name, timestamp
-        data.add_tilde_subscribe(7, tilde_sub, tilde_message_id)
-        data.add_callback_end_instance(8, callback_object)
+        data.add_tilde_subscribe(pid, tid, 7, tilde_sub, tilde_message_id)
+        data.add_callback_end_instance(pid, tid, 8, callback_object)
         data.finalize()
 
         lttng = create_lttng(data)
@@ -804,16 +805,15 @@ class TestNodeRecords:
         source_timestamp = 3
         message_timestamp = 2
         message = 4
-        # pid, tid = 43, 44
-        tid = 44
+        pid, tid = 43, 44
         pub_handle = 9
         data.add_dispatch_subscription_callback_instance(
-            0, callback_object, message, source_timestamp, message_timestamp)
-        data.add_callback_start_instance(1, callback_object, False)
-        data.add_callback_end_instance(2, callback_object)
-        data.add_callback_start_instance(3, callback_object_, False)
-        data.add_rclcpp_publish_instance(tid, 4, pub_handle, 5, 6)
-        data.add_callback_end_instance(5, callback_object_)
+            pid, tid, 0, callback_object, message, source_timestamp, message_timestamp)
+        data.add_callback_start_instance(pid, tid, 1, callback_object, False)
+        data.add_callback_end_instance(pid, tid, 2, callback_object)
+        data.add_callback_start_instance(pid, tid, 3, callback_object_, False)
+        data.add_rclcpp_publish_instance(pid, tid, 4, pub_handle, 5, 6)
+        data.add_callback_end_instance(pid, tid, 5, callback_object_)
         data.finalize()
 
         publisher = create_publisher_struct('pub_topic_name')
@@ -952,13 +952,12 @@ class TestNodeRecords:
         source_timestamp = 3
         message_timestamp = 2
         message = 4
-        # pid, tid = 6, 7
-        tid = 7
+        pid, tid = 6, 7
         data.add_dispatch_subscription_callback_instance(
-            0, callback_object, message, source_timestamp, message_timestamp)
-        data.add_callback_start_instance(1, callback_object, False)
+            pid, tid, 0, callback_object, message, source_timestamp, message_timestamp)
+        data.add_callback_start_instance(pid, tid, 1, callback_object, False)
         pub_handle = 9
-        data.add_rclcpp_publish_instance(tid, 2, pub_handle, 5, 6)
+        data.add_rclcpp_publish_instance(pid, tid, 2, pub_handle, 5, 6)
         data.finalize()
 
         subscription = create_subscription_struct('node_name', 'sub_topic_name', 'callback_name')
@@ -1038,21 +1037,20 @@ class TestNodeRecords:
         tilde_sub_id = 0
         tilde_sub = 12
 
-        # pid, tid = 5, 7
-        tid = 7
-        data.add_tilde_subscription(tilde_sub, 'node', 'topic', 0)
-        data.add_tilde_subscribe_added(tilde_sub_id, 'node', 'topic', 0)
+        pid, tid = 5, 7
+        data.add_tilde_subscription(pid, tid, tilde_sub, 'node', 'topic', 0)
+        data.add_tilde_subscribe_added(pid, tid, tilde_sub_id, 'node', 'topic', 0)
 
         data.add_dispatch_subscription_callback_instance(
-            0, callback_object, message, source_timestamp, message_timestamp)
-        data.add_callback_start_instance(1, callback_object, False)
-        data.add_tilde_subscribe(2, tilde_sub, tilde_message_id)
-        data.add_tilde_publish(3, tilde_pub, tilde_sub_id, tilde_message_id)
+            pid, tid, 0, callback_object, message, source_timestamp, message_timestamp)
+        data.add_callback_start_instance(pid, tid, 1, callback_object, False)
+        data.add_tilde_subscribe(pid, tid, 2, tilde_sub, tilde_message_id)
+        data.add_tilde_publish(pid, tid, 3, tilde_pub, tilde_sub_id, tilde_message_id)
         data.add_rclcpp_publish_instance(
-            tid, 4, pub_handle, message_addr, message_timestamp)
-        data.add_rcl_publish_instance(tid, 5, pub_handle, message_addr)
-        data.add_dds_write_instance(tid, 6, message_addr)
-        data.add_dds_bind_addr_to_stamp(tid, 7, message_addr, source_timestamp)
+            pid, tid, 4, pub_handle, message_addr, message_timestamp)
+        data.add_rcl_publish_instance(pid, tid, 5, pub_handle, message_addr)
+        data.add_dds_write_instance(pid, tid, 6, message_addr)
+        data.add_dds_bind_addr_to_stamp(pid, tid, 7, message_addr, source_timestamp)
         data.finalize()
 
         subscription = create_subscription_struct()
@@ -1122,20 +1120,19 @@ class TestCommunicationRecords:
         source_stamp = 9
         callback_obj = 12
         sub_handle = 28
-        # pid, tid = 15, 16
-        tid = 16
+        pid, tid = 15, 16
 
         data = Ros2DataModel()
         data.add_rclcpp_publish_instance(
-            tid, 1, pub_handle, send_message, message_stamp)
-        data.add_rcl_publish_instance(tid, 2, pub_handle, send_message)
-        data.add_dds_write_instance(tid, 3, send_message)
+            pid, tid, 1, pub_handle, send_message, message_stamp)
+        data.add_rcl_publish_instance(pid, tid, 2, pub_handle, send_message)
+        data.add_dds_write_instance(pid, tid, 3, send_message)
         data.add_dds_bind_addr_to_stamp(
-            tid, 4, send_message, source_stamp)
+            pid, tid, 4, send_message, source_stamp)
         data.add_dispatch_subscription_callback_instance(
-            5, callback_obj, recv_message, source_stamp, message_stamp)
-        data.add_callback_start_instance(16, callback_obj, False)
-        data.add_callback_end_instance(17, callback_obj)
+            pid, tid, 5, callback_obj, recv_message, source_stamp, message_stamp)
+        data.add_callback_start_instance(pid, tid, 16, callback_obj, False)
+        data.add_callback_end_instance(pid, tid, 17, callback_obj)
         data.finalize()
 
         pub_lttng = create_publisher_lttng(pub_handle)
@@ -1195,16 +1192,15 @@ class TestCommunicationRecords:
         message = 8
         message_stamp = 6
         callback_obj = 12
-        # pid, tid = 58, 14
-        tid = 14
+        pid, tid = 58, 14
 
         data = Ros2DataModel()
         data.add_rclcpp_intra_publish_instance(
-            tid, 1, pub_handle, message, message_stamp)
+            pid, tid, 1, pub_handle, message, message_stamp)
         data.add_dispatch_intra_process_subscription_callback_instance(
-            5, callback_obj, message, message_stamp)
-        data.add_callback_start_instance(6, callback_obj, True)
-        data.add_callback_end_instance(7, callback_obj)
+            pid, tid, 5, callback_obj, message, message_stamp)
+        data.add_callback_start_instance(pid, tid, 6, callback_obj, True)
+        data.add_callback_end_instance(pid, tid, 7, callback_obj)
         data.finalize()
 
         publisher = create_publisher_struct()
@@ -1258,13 +1254,12 @@ class TestTimerRecords:
         timer_init_stamp = 3
         period = 2
         callback_obj = 12
-        # pid, tid = 15, 16
-        tid = 16
+        pid, tid = 15, 16
 
         data = Ros2DataModel()
-        data.add_timer(tid, handle, timer_init_stamp, period)
-        data.add_callback_start_instance(7, callback_obj, False)
-        data.add_callback_end_instance(8, callback_obj)
+        data.add_timer(pid, tid, handle, timer_init_stamp, period)
+        data.add_callback_start_instance(pid, tid, 7, callback_obj, False)
+        data.add_callback_end_instance(pid, tid, 8, callback_obj)
         data.finalize()
 
         lttng = create_lttng(data)
@@ -1337,12 +1332,12 @@ class TestVarPassRecords:
     ):
         callback_obj = 5
         callback_obj_ = 7
-        # pid, tid = 15, 16
+        pid, tid = 15, 16
         data = Ros2DataModel()
-        data.add_callback_start_instance(7, callback_obj, False)
-        data.add_callback_end_instance(8, callback_obj)
-        data.add_callback_start_instance(9, callback_obj_, False)
-        data.add_callback_end_instance(10, callback_obj_)
+        data.add_callback_start_instance(pid, tid, 7, callback_obj, False)
+        data.add_callback_end_instance(pid, tid, 8, callback_obj)
+        data.add_callback_start_instance(pid, tid, 9, callback_obj_, False)
+        data.add_callback_end_instance(pid, tid, 10, callback_obj_)
         data.finalize()
 
         var_pass = mocker.Mock(spec=VariablePassingStructValue)
@@ -1391,9 +1386,9 @@ class TestSimTimeConverter:
         create_lttng,
     ):
         data = Ros2DataModel()
-        # pid, tid = 4, 5
-        data.add_sim_time(0, 1)
-        data.add_sim_time(1, 2)
+        pid, tid = 4, 5
+        data.add_sim_time(pid, tid, 0, 1)
+        data.add_sim_time(pid, tid, 1, 2)
         data.finalize()
 
         lttng = create_lttng(data)

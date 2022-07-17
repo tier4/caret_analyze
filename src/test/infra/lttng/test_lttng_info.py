@@ -42,9 +42,10 @@ class TestLttngInfo:
         mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
         info = LttngInfo(data)
         assert info.get_rmw_impl() == ''
+        pid, tid = 10, 11
 
         data = Ros2DataModel()
-        data.add_rmw_implementation('xxx_dds')
+        data.add_rmw_implementation(pid, tid, 'xxx_dds')
         data.finalize()
         info = LttngInfo(data)
         assert info.get_rmw_impl() == 'xxx_dds'
@@ -458,17 +459,18 @@ class TestDataFrameFormatted:
         period_ns = 8
         callback_object = 11
         callback_group_addr = 13
+        pid, tid = 14, 15
         symbol = 'symbol1'
 
-        data.add_node(0, node_handle, 0, rmw_handle, 'node1', '/')
+        data.add_node(pid, tid, node_handle, 0, rmw_handle, 'node1', '/')
 
-        data.add_timer(0, timer_handle, 0, period_ns)
-        data.add_callback_object(timer_handle, 0, callback_object)
-        data.add_timer_node_link(timer_handle, 0, node_handle)
-        data.add_callback_symbol(callback_object, 0, symbol)
+        data.add_timer(pid, tid, timer_handle, 0, period_ns)
+        data.add_callback_object(pid, tid, timer_handle, 0, callback_object)
+        data.add_timer_node_link(pid, tid, timer_handle, 0, node_handle)
+        data.add_callback_symbol(pid, tid, callback_object, 0, symbol)
 
         data.callback_group_add_timer(
-            callback_group_addr, 0, timer_handle
+            pid, tid, callback_group_addr, 0, timer_handle
         )
         data.finalize()
 
@@ -496,8 +498,9 @@ class TestDataFrameFormatted:
         timestamp = 15
         params = {'period': period}
         type_name = 'init'
+        pid, tid = 9, 10
 
-        data.add_timer(0, timer_handle, timestamp, period)
+        data.add_timer(pid, tid, timer_handle, timestamp, period)
 
         data.finalize()
 
@@ -528,33 +531,36 @@ class TestDataFrameFormatted:
         symbol = ['symbol_', 'symbol__']
         topic_name = ['topic1', 'topic2']
         callback_group_addr = [15, 16]
+        pid, tid = 20, 21
 
-        data.add_node(0, node_handle, 0, rmw_handle, 'node1', '/')
+        data.add_node(pid, tid, node_handle, 0, rmw_handle, 'node1', '/')
 
         # When intra-process communication is set, add_rclcpp_subscription is called twice.
         # The first one will be the record of intra-process communication.
-        data.add_rclcpp_subscription(sub_ptr[0], 0, subscription_handle[0])
-        data.add_rclcpp_subscription(sub_ptr[1], 0, subscription_handle[0])
-        data.add_rclcpp_subscription(sub_ptr[2], 0, subscription_handle[1])
+        data.add_rclcpp_subscription(pid, tid, sub_ptr[0], 0, subscription_handle[0])
+        data.add_rclcpp_subscription(pid, tid, sub_ptr[1], 0, subscription_handle[0])
+        data.add_rclcpp_subscription(pid, tid, sub_ptr[2], 0, subscription_handle[1])
 
         data.add_rcl_subscription(
+            pid, tid,
             subscription_handle[0], 0, node_handle[0], rmw_handle[0], topic_name[0], depth[0])
         data.add_rcl_subscription(
+            pid, tid,
             subscription_handle[1], 0, node_handle[1], rmw_handle[1], topic_name[1], depth[1])
 
-        data.add_callback_object(sub_ptr[0], 0, callback_object_intra[0])
-        data.add_callback_object(sub_ptr[1], 0, callback_object_inter[0])
-        data.add_callback_object(sub_ptr[2], 0, callback_object_inter[1])
+        data.add_callback_object(pid, tid, sub_ptr[0], 0, callback_object_intra[0])
+        data.add_callback_object(pid, tid, sub_ptr[1], 0, callback_object_inter[0])
+        data.add_callback_object(pid, tid, sub_ptr[2], 0, callback_object_inter[1])
 
-        data.add_callback_symbol(callback_object_intra[0], 0, symbol[0])
-        data.add_callback_symbol(callback_object_inter[0], 0, symbol[0])
-        data.add_callback_symbol(callback_object_inter[1], 0, symbol[1])
+        data.add_callback_symbol(pid, tid, callback_object_intra[0], 0, symbol[0])
+        data.add_callback_symbol(pid, tid, callback_object_inter[0], 0, symbol[0])
+        data.add_callback_symbol(pid, tid, callback_object_inter[1], 0, symbol[1])
 
         data.callback_group_add_subscription(
-            callback_group_addr[0], 0, subscription_handle[0]
+            pid, tid, callback_group_addr[0], 0, subscription_handle[0]
         )
         data.callback_group_add_subscription(
-            callback_group_addr[1], 0, subscription_handle[1]
+            pid, tid, callback_group_addr[1], 0, subscription_handle[1]
         )
 
         data.finalize()
@@ -594,8 +600,9 @@ class TestDataFrameFormatted:
         data = Ros2DataModel()
         exec_addr = 3
         exec_type = 'single_threaded_executor'
+        pid, tid = 10, 11
 
-        data.add_executor(exec_addr, 0, exec_type)
+        data.add_executor(pid, tid, exec_addr, 0, exec_type)
         data.finalize()
 
         exec_df = DataFrameFormatted._build_executor_df(data)
@@ -616,8 +623,9 @@ class TestDataFrameFormatted:
         exec_addr = 3
         exec_type = 'static_single_threaded_executor'
         collector_addr = 4
+        pid, tid = 10, 11
 
-        data.add_executor_static(exec_addr, collector_addr, 0, exec_type)
+        data.add_executor_static(pid, tid, exec_addr, collector_addr, 0, exec_type)
         data.finalize()
 
         exec_df = DataFrameFormatted._build_executor_df(data)
@@ -641,17 +649,18 @@ class TestDataFrameFormatted:
 
         callback_object_inter = [8, 9]
         sub_ptr = [11, 12, 13]
+        pid, tid = 20, 21
 
         # When intra-process communication is set, add_rclcpp_subscription is called twice.
         # The first one will be the record of intra-process communication.
-        data.add_rclcpp_subscription(sub_ptr[0], 0, subscription_handle[0])
-        data.add_callback_object(sub_ptr[0], 0, callback_object_intra[0])
+        data.add_rclcpp_subscription(pid, tid, sub_ptr[0], 0, subscription_handle[0])
+        data.add_callback_object(pid, tid, sub_ptr[0], 0, callback_object_intra[0])
 
-        data.add_rclcpp_subscription(sub_ptr[1], 0, subscription_handle[0])
-        data.add_callback_object(sub_ptr[1], 0, callback_object_inter[0])
+        data.add_rclcpp_subscription(pid, tid, sub_ptr[1], 0, subscription_handle[0])
+        data.add_callback_object(pid, tid, sub_ptr[1], 0, callback_object_inter[0])
 
-        data.add_rclcpp_subscription(sub_ptr[2], 0, subscription_handle[1])
-        data.add_callback_object(sub_ptr[2], 0, callback_object_inter[1])
+        data.add_rclcpp_subscription(pid, tid, sub_ptr[2], 0, subscription_handle[1])
+        data.add_callback_object(pid, tid, sub_ptr[2], 0, callback_object_inter[1])
 
         data.finalize()
 
@@ -679,10 +688,12 @@ class TestDataFrameFormatted:
 
         node_handle = 0
         rmw_handle = 2
+        pid, tid = 10, 11
         data.add_node(
+            pid,
+            tid,
             node_handle=node_handle,
             timestamp=0,
-            tid=0,
             rmw_handle=rmw_handle,
             name='node1',
             namespace='/')
@@ -702,9 +713,11 @@ class TestDataFrameFormatted:
         exec_addr = 2
         callback_group_addr = 3
         group_type = 'reentrant'
+        pid, tid = 10, 11
 
         data = Ros2DataModel()
-        data.add_callback_group(exec_addr, 0, callback_group_addr, group_type)
+        data.add_callback_group(
+            pid, tid, exec_addr, 0, callback_group_addr, group_type)
         data.finalize()
 
         cbg_df = DataFrameFormatted._build_cbg_df(data)
@@ -724,10 +737,11 @@ class TestDataFrameFormatted:
         collector_addr = 2
         cbg_addr = 3
         exec_addr = 4
+        pid, tid = 10, 11
 
         data = Ros2DataModel()
-        data.add_callback_group_static_executor(collector_addr, 0, cbg_addr, group_type)
-        data.add_executor_static(exec_addr, collector_addr, 0, 'exec_type')
+        data.add_callback_group_static_executor(pid, tid, collector_addr, 0, cbg_addr, group_type)
+        data.add_executor_static(pid, tid, exec_addr, collector_addr, 0, 'exec_type')
         data.finalize()
 
         cbg_df = DataFrameFormatted._build_cbg_df(data)
@@ -748,9 +762,10 @@ class TestDataFrameFormatted:
         rmw_handle = 3
         topic_name = 'topic'
         depth = 5
+        pid, tid = 10, 11
 
         data = Ros2DataModel()
-        data.add_publisher(pub_handle, 0, node_handle,
+        data.add_publisher(pid, tid, pub_handle, 0, node_handle,
                            rmw_handle, topic_name, depth)
         data.finalize()
 

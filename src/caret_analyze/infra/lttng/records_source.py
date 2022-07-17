@@ -445,7 +445,7 @@ class RecordsSource():
     def intra_callback_records(self) -> RecordsInterface:
         intra_proc_subscribe = RecordsFactory.create_instance(
             None,
-            ['callback_start_timestamp', 'callback_object', 'is_intra_process']
+            ['pid', 'tid', 'callback_start_timestamp', 'callback_object', 'is_intra_process']
         )
         if 1 in self._grouped_callback_start:
             intra_callback_start = self._grouped_callback_start[1].clone()
@@ -456,7 +456,7 @@ class RecordsSource():
     def inter_callback_records(self) -> RecordsInterface:
         intra_proc_subscribe = RecordsFactory.create_instance(
             None,
-            ['callback_start_timestamp', 'callback_object', 'is_intra_process']
+            ['pid', 'tid', 'callback_start_timestamp', 'callback_object', 'is_intra_process']
         )
         if 0 in self._grouped_callback_start:
             intra_callback_start = self._grouped_callback_start[0].clone()
