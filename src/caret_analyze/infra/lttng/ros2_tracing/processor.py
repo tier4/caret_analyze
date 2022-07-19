@@ -180,7 +180,7 @@ class Ros2Handler(EventHandler):
         timestamp = metadata.timestamp
         pid = metadata.pid
         version = get_field(event, 'version')
-        self.data.add_context(context_handle, timestamp, pid, version)
+        self.data.add_context(pid, context_handle, timestamp, version)
 
     def _handle_rcl_node_init(
         self,
@@ -193,7 +193,7 @@ class Ros2Handler(EventHandler):
         rmw_handle = get_field(event, 'rmw_handle')
         name = get_field(event, 'node_name')
         namespace = get_field(event, 'namespace')
-        self.data.add_node(handle, timestamp, tid, rmw_handle, name, namespace)
+        self.data.add_node(tid, handle, timestamp, rmw_handle, name, namespace)
 
     def _handle_rcl_publisher_init(
         self,
@@ -296,7 +296,7 @@ class Ros2Handler(EventHandler):
         timestamp = metadata.timestamp
         period = get_field(event, 'period')
         tid = metadata.tid
-        self.data.add_timer(handle, timestamp, period, tid)
+        self.data.add_timer(tid, handle, timestamp, period)
 
     def _handle_rclcpp_timer_callback_added(
         self,

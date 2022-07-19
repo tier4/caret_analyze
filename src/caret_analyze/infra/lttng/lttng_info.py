@@ -1452,32 +1452,35 @@ class DataFrameFormatted:
     def _build_nodes_df(
         data: Ros2DataModel
     ) -> pd.DataFrame:
-        columns = ['node_id', 'node_handle', 'node_name']
+        try:
+            columns = ['node_id', 'node_handle', 'node_name']
 
-        node_df = data.nodes.reset_index()
+            node_df = data.nodes.reset_index()
 
-        def ns_and_node_name(row: pd.Series) -> str:
-            ns: str = row['namespace']
-            name: str = row['name']
+            def ns_and_node_name(row: pd.Series) -> str:
+                ns: str = row['namespace']
+                name: str = row['name']
 
-            if ns[-1] == '/':
-                return ns + name
-            else:
-                return ns + '/' + name
+                if ns[-1] == '/':
+                    return ns + name
+                else:
+                    return ns + '/' + name
 
-        node_df = DataFrameFormatted._add_column(node_df, 'node_name', ns_and_node_name)
+            node_df = DataFrameFormatted._add_column(node_df, 'node_name', ns_and_node_name)
 
-        def to_node_id(row: pd.Series) -> str:
-            node_name = row['node_name']
-            node_handle = row['node_handle']
-            return f'{node_name}_{node_handle}'
+            def to_node_id(row: pd.Series) -> str:
+                node_name = row['node_name']
+                node_handle = row['node_handle']
+                return f'{node_name}_{node_handle}'
 
-        node_df = DataFrameFormatted._add_column(node_df, 'node_id', to_node_id)
+            node_df = DataFrameFormatted._add_column(node_df, 'node_id', to_node_id)
 
-        node_df.drop(['namespace', 'name'], inplace=True, axis=1)
+            node_df.drop(['namespace', 'name'], inplace=True, axis=1)
 
-        node_df.reset_index(drop=True, inplace=True)
-        return node_df[columns]
+            node_df.reset_index(drop=True, inplace=True)
+            return node_df[columns]
+        except KeyError:
+            return pd.DataFrame(columns=columns)
 
 
 def merge(
