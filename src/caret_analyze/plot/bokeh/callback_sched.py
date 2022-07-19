@@ -69,6 +69,7 @@ def callback_sched(
         If you want to use the simulation time, you can set this Parameter to True.
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
+
     """
     assert coloring_rule in ['callback', 'callback_group', 'node']
 
@@ -93,10 +94,12 @@ def get_cbg_and_name(
     ----------
     target: Union[Node, CallbackGroup, Executor]
         The target which you want to visualize, it can be a Node, a CallbackGroup or a Executor.
+
     Returns
     -------
     Tuple[Sequence[CallbackGroup], str]
         callback gourp instance and the name of target
+
     """
     if isinstance(target, Node):
         if target.callback_groups is None:
@@ -118,10 +121,12 @@ def get_range(callbacks: Sequence[CallbackBase]) -> Tuple[int, int]:
     Parameters
     ----------
     callbacks: Sequence[CallbackBase]
+
     Returns
     -------
     Tuple[int, int]
         The timestamp of callback start and callback end
+
     """
     callbacks_valid = [cb for cb in callbacks if len(cb.to_records()) > 0]
 
@@ -159,6 +164,7 @@ def sched_plot_cbg(
     If you want to use the simulation time, you can set this Parameter to True.
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
+
     """
     p = figure(
                x_axis_label='Time [s]',
@@ -316,10 +322,12 @@ def get_callback_rects(
     height : int
         The height of short rectangles
     converter : Optional[ClockConverter]
+
     Returns
     -------
     ColumnDataSource
         the dataframe of callback which in the target
+
     """
     y_min = y - height
     y_max = y + height
@@ -372,10 +380,12 @@ def get_callback_bar(
     The end point of callback in x axis
     frame_min : int
     The start point of callback in x axis
+
     Returns
     -------
     ColumnDataSource
         the dataframe of long rectangular
+
     """
     y_min = y - 0.6
     y_max = y + 0.5
