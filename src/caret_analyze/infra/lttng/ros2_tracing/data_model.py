@@ -132,7 +132,7 @@ class Ros2DataModel(DataModel):
                 'time_event_stamp']
         )
 
-    def add_context(self, context_handle, timestamp, pid, version) -> None:
+    def add_context(self, pid, context_handle, timestamp, version) -> None:
         record = {
             'context_handle': context_handle,
             'timestamp': timestamp,
@@ -141,7 +141,7 @@ class Ros2DataModel(DataModel):
         }
         self._contexts.append(record)
 
-    def add_node(self, node_handle, timestamp, tid, rmw_handle, name, namespace) -> None:
+    def add_node(self, tid, node_handle, timestamp, rmw_handle, name, namespace) -> None:
         record = {
             'node_handle': node_handle,
             'timestamp': timestamp,
@@ -206,7 +206,7 @@ class Ros2DataModel(DataModel):
         }
         self._clients.append(record)
 
-    def add_timer(self, handle, timestamp, period, tid) -> None:
+    def add_timer(self, tid, handle, timestamp, period) -> None:
         record = {
             'timer_handle': handle,
             'timestamp': timestamp,
