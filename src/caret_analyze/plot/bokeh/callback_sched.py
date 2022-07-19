@@ -49,6 +49,28 @@ def callback_sched(
     use_sim_time: bool = False,
     export_path: Optional[str] = None
 ):
+    """
+    Get the callback instances from target and determine the range of visualization.
+
+    Parameters
+    ----------
+    target : Union[Node, CallbackGroup, Executor].
+        The target which you want to visualize,
+        it can be a Node, a CallbackGroup or a Executor.
+    lstrip_s : float
+        Left strip. The default value is 0.
+    rstrip_s : float
+        Right strip. The default value is 0.
+    coloring_rule : str
+        The unit of color change.
+        There are three rules which are callback, callback_group and node.
+        The default value is "callback".
+    use_sim_time: bool
+        If you want to use the simulation time, you can set this Parameter to True.
+    export_path : Optional[str]
+        If you give path, the drawn graph will be saved as a file.
+
+    """
     assert coloring_rule in ['callback', 'callback_group', 'node']
 
     cbgs, target_name = get_cbg_and_name(target)
@@ -65,6 +87,20 @@ def callback_sched(
 def get_cbg_and_name(
     target: Union[Node, CallbackGroup, Executor]
 ) -> Tuple[Sequence[CallbackGroup], str]:
+    """
+    Get callback group of target and its name.
+
+    Parameters
+    ----------
+    target: Union[Node, CallbackGroup, Executor]
+        The target which you want to visualize, it can be a Node, a CallbackGroup or a Executor.
+
+    Returns
+    -------
+    Tuple[Sequence[CallbackGroup], str]
+        callback gourp instance and the name of target
+
+    """
     if isinstance(target, Node):
         if target.callback_groups is None:
             raise InvalidArgumentError('target.callback_groups is None')
@@ -79,6 +115,19 @@ def get_cbg_and_name(
 
 
 def get_range(callbacks: Sequence[CallbackBase]) -> Tuple[int, int]:
+    """
+    Get duration range of callback.
+
+    Parameters
+    ----------
+    callbacks: Sequence[CallbackBase]
+
+    Returns
+    -------
+    Tuple[int, int]
+        The timestamp of callback start and callback end
+
+    """
     callbacks_valid = [cb for cb in callbacks if len(cb.to_records()) > 0]
 
     if len(callbacks_valid) == 0:
@@ -101,7 +150,22 @@ def sched_plot_cbg(
     use_sim_time: bool,
     export_path: Optional[str] = None
 ):
+    """
+    Show the graph of callback scheduling visualization.
 
+    Parameters
+    ----------
+    target_name : str
+    cbgs : Sequence[CallbackGroup]
+    color_selector : ColorSelector
+    clipper : Clip
+        Values outside the range are replaced by the minimum or maximum value
+    use_sim_time : bool
+    If you want to use the simulation time, you can set this Parameter to True.
+    export_path : Optional[str]
+        If you give path, the drawn graph will be saved as a file.
+
+    """
     p = figure(
                x_axis_label='Time [s]',
                y_axis_label='',
@@ -246,6 +310,25 @@ def get_callback_rects(
     height,
     converter: Optional[ClockConverter]
 ) -> ColumnDataSource:
+    """
+    Get the dataframe of callback which in the target.
+
+    Parameters
+    ----------
+    callback: CallbackBase
+    clip: Clip
+    y : int
+        The start point of graph in y axis
+    height : int
+        The height of short rectangles
+    converter : Optional[ClockConverter]
+
+    Returns
+    -------
+    ColumnDataSource
+        the dataframe of callback which in the target
+
+    """
     y_min = y - height
     y_max = y + height
 
@@ -287,6 +370,23 @@ def get_callback_bar(
     frame_max,
     frame_min
 ) -> ColumnDataSource:
+    """
+    Get the dataframe of long rectangular.
+
+    Parameters
+    ----------
+    callback : CallbackBase
+    frame_max : int
+    The end point of callback in x axis
+    frame_min : int
+    The start point of callback in x axis
+
+    Returns
+    -------
+    ColumnDataSource
+        the dataframe of long rectangular
+
+    """
     y_min = y - 0.6
     y_max = y + 0.5
 
@@ -323,6 +423,11 @@ def get_callback_bar(
 
 
 class ColorSelector:
+    """
+    Class that provides API for color selection.
+
+    This class provides the API to get the color for each callback in the different rules.
+    """
 
     @staticmethod
     def create_instance(coloring_rule: str):
