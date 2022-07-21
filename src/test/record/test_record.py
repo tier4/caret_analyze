@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from copy import deepcopy
+import os
 from typing import Any, Optional
 
 from caret_analyze.exceptions import InvalidArgumentError
@@ -31,10 +32,14 @@ try:
     RecordCppImpl = cpp_impl.RecordCppImpl
     RecordsCppImpl = cpp_impl.RecordsCppImpl
     CppImplEnabled = True
-except ModuleNotFoundError:
-    RecordCppImpl = None
-    RecordsCppImpl = None
-    CppImplEnabled = False
+except ModuleNotFoundError as e:
+    if 'GITHUB_ACTION' in os.environ:
+        # skip cpp_impl tests
+        RecordCppImpl = None
+        RecordsCppImpl = None
+        CppImplEnabled = False
+    else:
+        raise(e)
 
 
 def to_cpp_record(record: RecordInterface) -> Optional[RecordCppImpl]:
