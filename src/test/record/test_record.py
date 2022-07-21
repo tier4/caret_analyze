@@ -246,6 +246,7 @@ class TestRecords:
             [
                 Record({'value': 0, 'stamp': 1}),
                 Record({'value': 2, 'stamp': 4}),
+                Record({'value': 3}),
             ],
             ['value', 'stamp']
         )
@@ -257,6 +258,7 @@ class TestRecords:
             records = records_type(None, ['value', 'stamp'])
             records.append(expects.data[0])
             records.append(expects.data[1])
+            records.append(expects.data[2])
             assert records.equals(expects)
             assert records.columns == expects.columns
 

@@ -51,7 +51,7 @@ class RecordsCppImpl(RecordsInterface):
         self,
         other: RecordInterface
     ) -> None:
-        unknown_columns = set(other.columns) ^ set(self.columns)
+        unknown_columns = set(other.columns) - set(self.columns)
         if len(unknown_columns) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'
