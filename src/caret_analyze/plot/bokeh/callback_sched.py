@@ -50,7 +50,7 @@ def callback_sched(
     export_path: Optional[str] = None
 ):
     """
-    Get the callback instances from target and determine the range of visualization.
+    Visualize callback scheduling behavior.
 
     Parameters
     ----------
@@ -98,7 +98,7 @@ def get_cbg_and_name(
     Returns
     -------
     Tuple[Sequence[CallbackGroup], str]
-        callback gourp instance and the name of target
+        callback group instance and the name of target
 
     """
     if isinstance(target, Node):
@@ -116,7 +116,7 @@ def get_cbg_and_name(
 
 def get_range(callbacks: Sequence[CallbackBase]) -> Tuple[int, int]:
     """
-    Get duration range of callback.
+    Get measurement duration.
 
     Parameters
     ----------
@@ -161,7 +161,7 @@ def sched_plot_cbg(
     clipper : Clip
         Values outside the range are replaced by the minimum or maximum value
     use_sim_time : bool
-    If you want to use the simulation time, you can set this Parameter to True.
+        If you want to use the simulation time, you can set this Parameter to True.
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
 
@@ -311,7 +311,7 @@ def get_callback_rects(
     converter: Optional[ClockConverter]
 ) -> ColumnDataSource:
     """
-    Get the dataframe of callback which in the target.
+    Get the DataSource of callback which in the target.
 
     Parameters
     ----------
@@ -326,7 +326,7 @@ def get_callback_rects(
     Returns
     -------
     ColumnDataSource
-        the dataframe of callback which in the target
+        The DataSource of callback which in the target
 
     """
     y_min = y - height
@@ -371,20 +371,20 @@ def get_callback_bar(
     frame_min
 ) -> ColumnDataSource:
     """
-    Get the dataframe of long rectangular.
+    Get the DataSource of long rectangular.
 
     Parameters
     ----------
     callback : CallbackBase
     frame_max : int
-    The end point of callback in x axis
+        The end point of callback in x axis
     frame_min : int
-    The start point of callback in x axis
+        The start point of callback in x axis
 
     Returns
     -------
     ColumnDataSource
-        the dataframe of long rectangular
+        The DataSource of long rectangular
 
     """
     y_min = y - 0.6
