@@ -106,7 +106,6 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         # Draw lines
         color_selector = \
             ColorSelector.create_instance(coloring_rule='callback')
-        legend_dict = {}
         legend_items = []
         for i, callback in enumerate(self._callbacks):
             color = color_selector.get_color(
@@ -120,11 +119,11 @@ class TimeSeriesPlot(metaclass=ABCMeta):
                                              frame_min,
                                              xaxis_type)
             legend_label = f'callback{i}'
-            legend_dict[legend_label] = p.line('x',
-                                               'y',
-                                               source=line_source,
-                                               color=color)
-            legend_items.append((legend_label, [legend_dict[legend_label]]))
+            renderer = p.line('x',
+                              'y',
+                              source=line_source,
+                              color=color)
+            legend_items.append((legend_label, [renderer]))
 
         # Add legends
         num_legend_threshold = 20
