@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
+from logging import getLogger
 from typing import List, Optional, Union
 
 from bokeh.models import HoverTool, Legend
@@ -26,6 +27,8 @@ from .callback_sched import ColorSelector, get_range
 from .util import apply_x_axis_offset, get_callback_param_desc
 from ...exceptions import UnsupportedTypeError
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
+
+logger = getLogger(__name__)
 
 CallbacksType = Union[Application, Executor,
                       Node, CallbackGroup, List[CallbackBase]]
@@ -127,6 +130,12 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         num_legend_threshold = 20
         for i in range(0, len(legend_items)+10, 10):
             if not full_legends and i >= num_legend_threshold:
+                logger.warning(
+                    'The maximum number of legends drawn '
+                    f'by default is {num_legend_threshold}. '
+                    'If you want all legends to be displayed, '
+                    'please specify the `full_legends` option to True.'
+                )
                 break
             p.add_layout(Legend(items=legend_items[i:i+10]), 'right')
         p.legend.click_policy = 'hide'
