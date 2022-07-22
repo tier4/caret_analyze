@@ -35,11 +35,14 @@ try:
 except ModuleNotFoundError as e:
     if 'GITHUB_ACTION' in os.environ:
         # skip cpp_impl tests
+        # Because CARET_analyze does not use CARET_analyze_cpp_Impl on GithubAction.
         RecordCppImpl = None
         RecordsCppImpl = None
         CppImplEnabled = False
     else:
-        raise(e)
+        raise ModuleNotFoundError(
+            'Failed to load RecordsCppImpl, ',
+            'possibly due to missing information in the PYTHONPATH environment variable.') from e
 
 
 def to_cpp_record(record: RecordInterface) -> Optional[RecordCppImpl]:
