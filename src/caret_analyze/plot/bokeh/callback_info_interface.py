@@ -15,7 +15,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Union
 
-from bokeh.models import HoverTool
+from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, figure, save, show
 from bokeh.resources import CDN
 
@@ -43,10 +43,13 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         else:
             self._callbacks = target
 
-    def show(self,
-             xaxis_type: Optional[str] = None,
-             ywheel_zoom: bool = True,
-             export_path: Optional[str] = None):
+    def show(
+        self,
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: bool = True,
+        full_legends: bool = False,
+        export_path: Optional[str] = None
+    ) -> None:
         """
         Draw a line graph for each callback using the bokeh library.
 
@@ -59,6 +62,9 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
             by the mouse wheel.
+        full_legend: bool
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
         export_path : Optional[str]
             If you give path, the drawn graph will be saved as a file.
 
@@ -71,17 +77,17 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         xaxis_type = xaxis_type or 'system_time'
         self._validate_xaxis_type(xaxis_type)
         Hover = HoverTool(
-                tooltips="""
-                <div style="width:400px; word-wrap: break-word;">
-                <br>
-                node_name = @node_name <br>
-                callback_name = @callback_name <br>
-                callback_type = @callback_type <br>
-                @callback_param <br>
-                symbol = @symbol
-                </div>
-                """,
-                point_policy='follow_mouse'
+                    tooltips="""
+                    <div style="width:400px; word-wrap: break-word;">
+                    <br>
+                    node_name = @node_name <br>
+                    callback_name = @callback_name <br>
+                    callback_type = @callback_type <br>
+                    @callback_param <br>
+                    symbol = @symbol
+                    </div>
+                    """,
+                    point_policy='follow_mouse'
                 )
         frame_min, frame_max = get_range(self._callbacks)
         if(xaxis_type == 'system_time'):
@@ -109,6 +115,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         p.add_tools(Hover)
         coloring_rule = 'callback'
         color_selector = ColorSelector.create_instance(coloring_rule)
+        legend_dict = {}
+        legend_items = []
         for i, callback in enumerate(self._callbacks):
             color = color_selector.get_color(
                 callback.node_name,
@@ -119,13 +127,22 @@ class TimeSeriesPlot(metaclass=ABCMeta):
                                              l1_columns,
                                              frame_min,
                                              xaxis_type)
-            p.line('x',
-                   'y',
-                   source=line_source,
-                   legend_label=f'callback{i}',
-                   color=color)
-        p.add_layout(p.legend[0], 'right')
+            legend_label = f'callback{i}'
+            legend_dict[legend_label] = p.line('x',
+                                               'y',
+                                               source=line_source,
+                                               color=color)
+            legend_items.append((legend_label, [legend_dict[legend_label]]))
+
+        # Add legends
+        num_legend_threshold = 20
+        for i in range(0, len(legend_items)+10, 10):
+            if not full_legends and i >= num_legend_threshold:
+                break
+            p.add_layout(Legend(items=legend_items[i:i+10]), 'right')
+
         p.legend.click_policy = 'hide'
+
         if export_path is None:
             show(p)
         else:
@@ -191,8 +208,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         y_axis_label: str,
         ywheel_zoom: bool
     ) -> dict:
-        fig_args = {'height': 300,
-                    'width': 1000,
+        fig_args = {'frame_height': 270,
+                    'frame_width': 800,
                     'x_axis_label': x_axis_label,
                     'y_axis_label': y_axis_label,
                     'title': f'Time-line of callbacks {y_axis_label}'}
