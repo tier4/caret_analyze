@@ -65,7 +65,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
             by the mouse wheel.
-        full_legend: bool
+        full_legends : bool
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
         export_path : Optional[str]
