@@ -17,7 +17,11 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
+from multimethod import multimethod as singledispatchmethod
 import pandas as pd
+from record_cpp_impl import RecordBase
+
+from ..exceptions import InvalidArgumentError
 
 
 class RecordInterface:
@@ -201,8 +205,37 @@ class RecordsInterface:
         """
         pass
 
+    @singledispatchmethod
+    def append(self, arg):
+        raise InvalidArgumentError(f'Unknown argument type: {arg}')
+
+    @append.register
+    def __append_record(self, other: RecordInterface) -> None:
+        self._append_record(other)
+
+    @append.register
+    def __append_record_base(self, other: RecordBase) -> None:
+        self._append_record(other)  # type: ignore
+
     @abstractmethod
-    def append(self, other: RecordInterface) -> None:
+    def _append_record(self, other: RecordInterface) -> None:
+        """
+        Append new record.
+
+        Parameters
+        ----------
+        other : RecordInterface
+            record to be added.
+
+        """
+        pass
+
+    @append.register
+    def __append_dict(self, other: Dict[str, int]) -> None:
+        self._append_dict(other)
+
+    @abstractmethod
+    def _append_dict(self, other: Dict[str, int]) -> None:
         """
         Append new record.
 
