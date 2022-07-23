@@ -14,11 +14,11 @@
 
 import math
 
-from typing import Iterable, Iterator, List, Optional, Tuple
+from typing import Iterator, List, Optional, Tuple
 
 import numpy as np
 
-from .interface import RecordsInterface
+from .interface import RecordInterface, RecordsInterface
 from .record_factory import RecordFactory, RecordsFactory
 from ..exceptions import InvalidRecordsError
 
@@ -71,11 +71,9 @@ class TimeRange:
         """
         return self._min
 
-    def add(self, value: int) -> None:
+    def update(self, value: int) -> None:
         """
         Update range.
-
-        TODO(hsgwa): modify function name from add to update.
 
         Parameters
         ----------
@@ -87,7 +85,7 @@ class TimeRange:
         self._max = max(self._max, value)
 
 
-class ResponseMap(Iterable):
+class ResponseMap():
     """Class that manages the dictionary type that is the source of response time calculation."""
 
     def __init__(
@@ -111,29 +109,29 @@ class ResponseMap(Iterable):
         """
         d = {}
 
-        def add(input_time: int, output_time: int):
+        def update(input_time: int, output_time: int):
             if output_time not in d:
                 d[output_time] = TimeRange(input_time, input_time)
 
-            d[output_time].add(input_time)
+            d[output_time].update(input_time)
 
         for i in range(len(records)):
-            data = records.data[i]
+            data: RecordInterface = records.data[i]
 
-            if input_column not in data.data or output_column not in data.data:
+            if input_column not in data.columns or output_column not in data.columns:
                 continue
 
-            input_time, output_time = data.data[input_column], data.data[output_column]
-            add(input_time, output_time)
+            input_time, output_time = data.get(input_column), data.get(output_column)
+            update(input_time, output_time)
 
             for j in range(i+1, len(records)):
-                data_ = records.data[j]
-                if input_column not in data_.data or output_column not in data_.data:
+                data_: RecordInterface = records.data[j]
+                if input_column not in data_.columns or output_column not in data_.columns:
                     continue
 
-                input_time_, output_time_ = data_.data[input_column], data_.data[output_column]
+                input_time_, output_time_ = data_.get(input_column), data_.get(output_column)
 
-                add(input_time, output_time_)
+                update(input_time, output_time_)
 
                 if output_time < input_time_:
                     break
@@ -237,7 +235,7 @@ class ResponseTime:
 
     def to_records(self, *, all_pattern=False) -> RecordsInterface:
         """
-        Get response time Records.
+        Calculate records.
 
         Parameters
         ----------
@@ -248,9 +246,29 @@ class ResponseTime:
         -------
         RecordsInterface
             response time records.
+            The best and worst cases alternate line by line.
+            Columns
+            - {input_column}
+            - {output_column}
 
         """
         return self._records.to_records(all_pattern)
+
+    def to_response_records(self) -> RecordsInterface:
+        """
+        Calculate records.
+
+        Returns
+        -------
+        RecordsInterface
+            The best and worst cases are separated into separate columns.
+            Columns
+            - {input_column}_min
+            - {input_column}_max
+            - {output_column}
+
+        """
+        return self._records.to_range_records()
 
     def to_histogram(
         self,
@@ -325,8 +343,6 @@ class ResponseRecords:
         """
         Calculate records.
 
-        TODO(hsgwa): change columns order.
-
         Returns
         -------
         RecordsInterface
@@ -338,9 +354,9 @@ class ResponseRecords:
 
         """
         columns = [
-            self._response_map.output_column,
             f'{self._input_column}_min',
             f'{self._input_column}_max',
+            self._response_map.output_column,
         ]
 
         records = self._create_empty_records(columns)
@@ -349,9 +365,9 @@ class ResponseRecords:
             records.append(
                 RecordFactory.create_instance(
                     {
+                        self._response_map.output_column: output_time,
                         f'{self._input_column}_min': input_time_min,
                         f'{self._input_column}_max': input_time_max,
-                        self._response_map.output_column: output_time
                     }
                 )
             )
@@ -496,15 +512,17 @@ class ResponseHistogram:
         """
         records = self._response_records.to_range_records()
 
-        output_column = records.columns[0]
-        input_min_column = records.columns[1]
-        input_max_column = records.columns[2]
+        input_min_column = records.columns[0]
+        input_max_column = records.columns[1]
+        output_column = records.columns[2]
 
         latency_ns = []
+        # Note: need to speed up.
+
         for record in records:
-            output_time = record.data[output_column]
-            input_time_min = record.data[input_min_column]
-            input_time_max = record.data[input_max_column]
+            output_time = record.get(output_column)
+            input_time_min = record.get(input_min_column)
+            input_time_max = record.get(input_max_column)
             for input_time in range(input_time_min, input_time_max + 1):
                 latency = output_time - input_time
                 latency_ns.append(latency)
