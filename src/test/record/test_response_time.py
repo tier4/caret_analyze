@@ -14,6 +14,9 @@
 
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.record.response_time import ResponseTime
+from caret_analyze.exceptions import InvalidRecordsError
+
+import pytest
 
 
 def create_records(records_raw, columns):
@@ -184,3 +187,88 @@ class TestResponseRecords:
 
         result = to_dict(response.to_records(all_pattern=True))
         assert result == expect_raw
+
+
+class TestResponseHistogram:
+
+    def test_empty(self):
+        records_raw = [
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+
+        with pytest.raises(InvalidRecordsError):
+            response.to_histogram()
+
+    def test_single_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 1},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+
+        with pytest.raises(InvalidRecordsError):
+            response.to_histogram()
+
+    def test_double_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 1},
+            {'start': 2, 'end': 3},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+
+        hist, latency = response.to_histogram(1)
+        assert list(hist) == [1, 2]
+        assert list(latency) == [1, 2, 3]
+
+    def test_cross_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 10},
+            {'start': 3, 'end': 4},
+            {'start': 4, 'end': 8},
+            {'start': 6, 'end': 6},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+
+        hist, latency = response.to_histogram(1)
+        assert list(hist) == [1, 2, 2, 3]
+        assert list(latency) == [0, 1, 2, 3, 4]
+
+    def test_triple_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 1},
+            {'start': 2, 'end': 3},
+            {'start': 10, 'end': 11},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+
+        hist, latency = response.to_histogram(1)
+        assert list(hist) == [2, 2, 2, 1, 1, 1, 1, 2]
+        assert list(latency) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    def test_double_flow_cross_case(self):
+        records_raw = [
+            {'start': 0, 'end': 5},
+            {'start': 2, 'end': 3},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+
+        hist, latency = response.to_histogram(1)
+        assert list(hist) == [1, 2]
+        assert list(latency) == [1, 2, 3]

@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Sequence, Tuple, Optional, List
+
+import numpy as np
+import math
+
 from .interface import RecordsInterface
 from .record_factory import RecordFactory, RecordsFactory
+from ..exceptions import InvalidRecordsError
 
 
 class TimeRange:
@@ -108,9 +114,16 @@ class ResponseTime:
     ) -> None:
         response_map = ResponseMap(records, input_column, output_column)
         self._records = ResponseRecords(response_map)
+        self._histogram = ResponseHistogram(self._records)
 
     def to_records(self, *, all_pattern=False) -> RecordsInterface:
         return self._records.to_records(all_pattern)
+
+    def to_histogram(
+        self,
+        binsize_ns: int = 1000000,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        return self._histogram.to_histogram(binsize_ns)
 
 
 class ResponseRecords:
@@ -133,6 +146,32 @@ class ResponseRecords:
 
         return self._create_response_records()
 
+    def to_range_records(self) -> RecordsInterface:
+        columns = [
+            self._response_map.output_column,
+            f'{self._input_column}_min',
+            f'{self._input_column}_max',
+        ]
+
+        records = self._create_empty_records(columns)
+
+        def add_records(output_time, input_time_min, input_time_max):
+            records.append(
+                RecordFactory.create_instance(
+                    {
+                        f'{self._input_column}_min': input_time_min,
+                        f'{self._input_column}_max': input_time_max,
+                        self._response_map.output_column: output_time
+                    }
+                )
+            )
+
+        self._create_response_records_core(add_records)
+
+        records.sort_column_order()
+
+        return records
+
     @property
     def _input_column(self):
         return self._response_map.input_column
@@ -141,10 +180,11 @@ class ResponseRecords:
     def _output_column(self):
         return self._response_map.output_column
 
-    def _create_empty_records(self) -> RecordsInterface:
+    def _create_empty_records(self, columns: Optional[List[str]] = None) -> RecordsInterface:
+        columns_ = columns or [self._input_column, self._output_column]
         return RecordsFactory.create_instance(
             None,
-            [self._input_column, self._output_column]
+            columns_
         )
 
     def _create_all_pattern_records(self) -> RecordsInterface:
@@ -220,3 +260,42 @@ class ResponseRecords:
         records.sort_column_order()
 
         return records
+
+
+class ResponseHistogram:
+
+    def __init__(
+        self,
+        response_records: ResponseRecords,
+    ) -> None:
+        self._response_records = response_records
+
+    def to_histogram(
+        self,
+        binsize_ns: int = 1000000
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        records = self._response_records.to_range_records()
+
+        output_column = records.columns[0]
+        input_min_column = records.columns[1]
+        input_max_column = records.columns[2]
+
+        latency_ns = []
+        for record in records:
+            output_time = record.data[output_column]
+            input_time_min = record.data[input_min_column]
+            input_time_max = record.data[input_max_column]
+            for input_time in range(input_time_min, input_time_max + 1):
+                latency = output_time - input_time
+                latency_ns.append(latency)
+
+        if len(latency_ns) == 0:
+            raise InvalidRecordsError(
+                'Failed to calculate histogram.'
+                'There is no amount of data required to calculate histograms.'
+            )
+
+        range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
+        range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
+        bin_num = math.ceil((range_max - range_min) / binsize_ns)
+        return np.histogram(latency_ns, bins=bin_num, range=(range_min, range_max))
