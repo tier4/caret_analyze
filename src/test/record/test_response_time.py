@@ -52,7 +52,12 @@ class TestResponseRecords:
         response = ResponseTime(records, columns[0], columns[1])
 
         expect_raw = []
-        assert to_dict(response.to_records()) == expect_raw
+        result = to_dict(response.to_records())
+        assert result == expect_raw
+
+        expect_raw = []
+        result = to_dict(response.to_response_records())
+        assert result == expect_raw
 
         expect_raw = []
         assert to_dict(response.to_records(all_pattern=True)) == expect_raw
@@ -68,7 +73,13 @@ class TestResponseRecords:
 
         expect_raw = [
         ]
-        assert to_dict(response.to_records()) == expect_raw
+        result = to_dict(response.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+        ]
+        result = to_dict(response.to_response_records())
+        assert result == expect_raw
 
         expect_raw = [
             {'start': 0, 'end': 1}
@@ -89,7 +100,14 @@ class TestResponseRecords:
             {'start': 0, 'end': 3},
             {'start': 2, 'end': 3},
         ]
-        assert to_dict(response.to_records()) == expect_raw
+        result = to_dict(response.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'start_min': 0, 'start_max': 2, 'end': 3},
+        ]
+        result = to_dict(response.to_response_records())
+        assert result == expect_raw
 
         expect_raw = [
             {'start': 0, 'end': 1},
@@ -117,6 +135,13 @@ class TestResponseRecords:
             {'start': 6, 'end': 6},
         ]
         result = to_dict(response.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'start_min': 0, 'start_max': 3, 'end': 4},
+            {'start_min': 3, 'start_max': 6, 'end': 6},
+        ]
+        result = to_dict(response.to_response_records())
         assert result == expect_raw
 
         expect_raw = [
@@ -152,6 +177,13 @@ class TestResponseRecords:
         assert result == expect_raw
 
         expect_raw = [
+            {'start_min': 0, 'start_max': 2, 'end': 3},
+            {'start_min': 2, 'start_max': 10, 'end': 11},
+        ]
+        result = to_dict(response.to_response_records())
+        assert result == expect_raw
+
+        expect_raw = [
             {'start': 0, 'end': 1},
             {'start': 0, 'end': 3},
             {'start': 2, 'end': 3},
@@ -177,6 +209,12 @@ class TestResponseRecords:
             {'start': 2, 'end': 3}
         ]
         result = to_dict(response.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'start_min': 0, 'start_max': 2, 'end': 3},
+        ]
+        result = to_dict(response.to_response_records())
         assert result == expect_raw
 
         expect_raw = [
