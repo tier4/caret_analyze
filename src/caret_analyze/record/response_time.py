@@ -104,7 +104,7 @@ class ResponseMap():
         input_column : str
             column name which is input.
         output_column : str
-            column name wich is output.
+            column name which is output.
 
         """
         d = {}
@@ -209,6 +209,39 @@ class ResponseMap():
 
 
 class ResponseTime:
+    """
+    Class which calculates response time.
+
+    Parameters
+    ----------
+    records : RecordsInterface
+        records to calculate response time.
+    input_column : str
+        column name for input time.
+    output_column : str
+        column name for output time.
+
+    Examples
+    --------
+    >>> from caret_analyze import Application, Architecture, Lttng
+    >>> from caret_analyze.experiment import ResponseTime
+
+    >>> # Load results
+    >>> arch = Architecture('lttng', '/path/to/ctf')
+    >>> lttng = Lttng('humble')
+    >>> app = Application(arch, lttng)
+
+    >>> # Select target instance
+    >>> node = app.get_node('node_name')
+    >>> callback = node.callbacks[0]
+    >>> callback.summary.pprint()
+
+    >>> # Calculate response time
+    >>> response = ResponseTime(records, records.columns[0], records.columns[1])
+    >>> response_records = response.to_response_records()
+    >>> response_df = response_records.to_dataframe()
+
+    """
 
     def __init__(
         self,
@@ -217,16 +250,16 @@ class ResponseTime:
         output_column: str
     ) -> None:
         """
-        Class which calculates response time.
+        Constructor.
 
         Parameters
         ----------
         records : RecordsInterface
             records to calculate response time.
         input_column : str
-            column name for input time.
+            column name which is input.
         output_column : str
-            column name for output time.
+            column name which is output.
 
         """
         response_map = ResponseMap(records, input_column, output_column)
