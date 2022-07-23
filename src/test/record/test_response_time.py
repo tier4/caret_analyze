@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from caret_analyze.exceptions import InvalidRecordsError
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.record.response_time import ResponseTime
-from caret_analyze.exceptions import InvalidRecordsError
 
 import pytest
 
