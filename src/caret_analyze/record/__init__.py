@@ -22,6 +22,7 @@ from .record import (merge,
                      RecordsInterface)
 
 from .record_factory import RecordFactory, RecordsFactory
+from .response_time import ResponseTime
 
 __all__ = [
     'Clip',
@@ -32,6 +33,7 @@ __all__ = [
     'Records',
     'RecordsFactory',
     'RecordsInterface',
+    'ResponseTime',
     'Strip',
     'merge',
     'merge_sequencial',
