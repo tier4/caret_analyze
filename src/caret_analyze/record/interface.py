@@ -53,7 +53,7 @@ class RecordInterface:
     @abstractmethod
     def merge(self, other: RecordInterface) -> None:
         """
-        Mege record.
+        Merge record.
 
         Parameters
         ----------
@@ -169,7 +169,7 @@ class RecordInterface:
     @abstractmethod
     def columns(self) -> Set[str]:
         """
-        Get columnnames.
+        Get column names.
 
         Returns
         -------
@@ -307,7 +307,7 @@ class RecordsInterface:
         self, f: Callable[[RecordInterface], bool]
     ) -> None:
         """
-        Get filterd records.
+        Get filtered records.
 
         Parameters
         ----------
@@ -327,7 +327,7 @@ class RecordsInterface:
 
         Returns
         -------
-        Seque[RecordInterface]
+        Sequence[RecordInterface]
             Records list.
 
         """
@@ -392,7 +392,7 @@ class RecordsInterface:
     @abstractmethod
     def columns(self) -> List[str]:
         """
-        Get columnnames.
+        Get column names.
 
         Returns
         -------
