@@ -18,10 +18,11 @@ from .callback_info import (CallbackFrequencyPlot,
                             CallbackJitterPlot,
                             CallbackLatencyPlot)
 from .callback_info_interface import TimeSeriesPlot
-from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
+from ...runtime import (Application, CallbackBase, CallbackGroup,
+                        Executor, Node, PathBase)
 
 
-CallbacksType = Union[Application, Executor,
+CallbacksType = Union[Application, PathBase, Executor,
                       Node, CallbackGroup, List[CallbackBase]]
 
 
@@ -38,6 +39,7 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
+                                  PathBase,
                                   Executor,
                                   Node,
                                   CallbackGroup,
@@ -62,6 +64,7 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
+                                  PathBase,
                                   Executor,
                                   Node,
                                   CallbackGroup,
@@ -86,6 +89,7 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
+                                  PathBase,
                                   Executor,
                                   Node,
                                   CallbackGroup,

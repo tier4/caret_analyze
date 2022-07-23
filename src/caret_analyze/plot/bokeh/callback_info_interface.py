@@ -25,9 +25,11 @@ import pandas as pd
 from .callback_sched import ColorSelector, get_range
 from .util import apply_x_axis_offset, get_callback_param_desc
 from ...exceptions import UnsupportedTypeError
-from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
+from ...runtime import (Application, CallbackBase, CallbackGroup,
+                        Executor, Node, PathBase)
 
-CallbacksType = Union[Application, Executor,
+
+CallbacksType = Union[Application, PathBase, Executor,
                       Node, CallbackGroup, List[CallbackBase]]
 
 
@@ -40,6 +42,11 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         self._callbacks: List[CallbackBase] = []
         if(isinstance(target, (Application, Executor, Node, CallbackGroup))):
             self._callbacks = target.callbacks
+        elif(isinstance(target, PathBase)):
+            for comm in target.communications:
+                self._callbacks += comm.publish_node.callbacks
+            self._callbacks += \
+                target.communications[-1].subscribe_node.callbacks
         else:
             self._callbacks = target
 

@@ -17,10 +17,11 @@ from typing import List, Tuple, Union
 import pandas as pd
 
 from .callback_info_interface import TimeSeriesPlot
-from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
+from ...runtime import (Application, CallbackBase, CallbackGroup,
+                        Executor, Node, PathBase)
 
 
-CallbacksType = Union[Application, Executor,
+CallbacksType = Union[Application, PathBase, Executor,
                       Node, CallbackGroup, List[CallbackBase]]
 
 
