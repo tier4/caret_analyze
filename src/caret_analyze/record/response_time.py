@@ -142,7 +142,7 @@ class ResponseMap():
 
     def sorted_iter(self) -> Iterator[int]:
         """
-        Get iterater which returns output time in ascending order.
+        Get iterator which returns output time in ascending order.
 
         Yields
         ------
