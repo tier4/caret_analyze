@@ -18,11 +18,8 @@
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 import pandas as pd
 
-from tracetools_analysis.data_model import (DataModel,
-                                            DataModelIntermediateStorage)
 
-
-class Ros2DataModel(DataModel):
+class Ros2DataModel():
     """
     Container to model pre-processed ROS 2 data for analysis.
 
@@ -31,37 +28,36 @@ class Ros2DataModel(DataModel):
 
     def __init__(self) -> None:
         """Create a Ros2DataModel."""
-        super().__init__()
         # Objects (one-time events, usually when something is created)
-        self._contexts: DataModelIntermediateStorage = []
-        self._nodes: DataModelIntermediateStorage = []
-        self._publishers: DataModelIntermediateStorage = []
-        self._subscriptions: DataModelIntermediateStorage = []
-        self._subscription_objects: DataModelIntermediateStorage = []
-        self._services: DataModelIntermediateStorage = []
-        self._clients: DataModelIntermediateStorage = []
-        self._timers: DataModelIntermediateStorage = []
-        self._timer_node_links: DataModelIntermediateStorage = []
-        self._callback_objects: DataModelIntermediateStorage = []
-        self._callback_symbols: DataModelIntermediateStorage = []
-        self._lifecycle_state_machines: DataModelIntermediateStorage = []
-        self._executors: DataModelIntermediateStorage = []
-        self._executors_static: DataModelIntermediateStorage = []
-        self._callback_groups: DataModelIntermediateStorage = []
-        self._callback_groups_static: DataModelIntermediateStorage = []
-        self._callback_group_timer: DataModelIntermediateStorage = []
-        self._callback_group_subscription: DataModelIntermediateStorage = []
-        self._callback_group_service: DataModelIntermediateStorage = []
-        self._callback_group_client: DataModelIntermediateStorage = []
-        self._rmw_impl: DataModelIntermediateStorage = []
+        self._contexts = []
+        self._nodes = []
+        self._publishers = []
+        self._subscriptions = []
+        self._subscription_objects = []
+        self._services = []
+        self._clients = []
+        self._timers = []
+        self._timer_node_links = []
+        self._callback_objects = []
+        self._callback_symbols = []
+        self._lifecycle_state_machines = []
+        self._executors = []
+        self._executors_static = []
+        self._callback_groups = []
+        self._callback_groups_static = []
+        self._callback_group_timer = []
+        self._callback_group_subscription = []
+        self._callback_group_service = []
+        self._callback_group_client = []
+        self._rmw_impl = []
 
-        self._tilde_subscriptions: DataModelIntermediateStorage = []
-        self._tilde_publishers: DataModelIntermediateStorage = []
-        self._tilde_subscribe_added: DataModelIntermediateStorage = []
+        self._tilde_subscriptions = []
+        self._tilde_publishers = []
+        self._tilde_subscribe_added = []
 
         # Events (multiple instances, may not have a meaningful index)
         # string argument
-        self._lifecycle_transitions: DataModelIntermediateStorage = []
+        self._lifecycle_transitions = []
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
@@ -630,7 +626,7 @@ class Ros2DataModel(DataModel):
         }
         self._callback_group_client.append(record)
 
-    def _finalize(self) -> None:
+    def finalize(self) -> None:
         self.contexts = pd.DataFrame.from_dict(self._contexts)
         if self._contexts:
             self.contexts.set_index('context_handle', inplace=True, drop=True)

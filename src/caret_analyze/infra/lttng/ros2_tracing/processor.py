@@ -15,16 +15,23 @@
 
 """Module for trace events processor and ROS 2 model creation."""
 
-from typing import Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
-from tracetools_analysis.processor import (EventHandler, EventMetadata,
-                                           HandlerMap)
-from tracetools_read import get_field
+import bt2
 
 from .data_model import Ros2DataModel
 
 
-class Ros2Handler(EventHandler):
+def get_field(event, key):
+    e = event[key]
+    if type(e) is bt2._StringFieldConst:
+        return str(e)
+    if type(e) is bt2._UnsignedIntegerFieldConst:
+        return int(e)
+    return e
+
+
+class Ros2Handler():
     """
     ROS 2-aware event handling class implementation.
 
@@ -33,12 +40,12 @@ class Ros2Handler(EventHandler):
 
     def __init__(
         self,
-        **kwargs,
+        data: Ros2DataModel
     ) -> None:
         """Create a Ros2Handler."""
         # Link a ROS trace event to its corresponding handling method
 
-        handler_map: HandlerMap = {}
+        handler_map = {}
 
         handler_map['ros2:rcl_init'] = self._handle_rcl_init
         handler_map['ros2:rcl_node_init'] = self._handle_rcl_node_init
@@ -105,14 +112,11 @@ class Ros2Handler(EventHandler):
         handler_map['ros2_caret:sim_time'] = \
             self._handle_sim_time
 
-        super().__init__(
-            handler_map=handler_map,
-            data_model=Ros2DataModel(),
-            **kwargs,
-        )
+        self.handler_map = handler_map
 
         # Temporary buffers
-        self._callback_instances: Dict[int, Tuple[Dict, EventMetadata]] = {}
+        self._callback_instances: Dict[int, Tuple[Dict, Any]] = {}
+        self._data = data
 
     @staticmethod
     def get_trace_points() -> List[str]:
@@ -169,27 +173,25 @@ class Ros2Handler(EventHandler):
 
     @property
     def data(self) -> Ros2DataModel:
-        return super().data  # type: ignore
+        return self._data  # type: ignore
 
     def _handle_rcl_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         context_handle = get_field(event, 'context_handle')
-        timestamp = metadata.timestamp
-        pid = metadata.pid
+        timestamp = get_field(event, 'timestamp')
+        pid = get_field(event, 'vpid')
         version = get_field(event, 'version')
         self.data.add_context(pid, context_handle, timestamp, version)
 
     def _handle_rcl_node_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'node_handle')
-        timestamp = metadata.timestamp
-        tid = metadata.tid
+        timestamp = get_field(event, 'timestamp')
+        tid = get_field(event, 'vtid')
         rmw_handle = get_field(event, 'rmw_handle')
         name = get_field(event, 'node_name')
         namespace = get_field(event, 'namespace')
@@ -198,10 +200,9 @@ class Ros2Handler(EventHandler):
     def _handle_rcl_publisher_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'publisher_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         node_handle = get_field(event, 'node_handle')
         rmw_handle = get_field(event, 'rmw_publisher_handle')
         topic_name = get_field(event, 'topic_name')
@@ -212,10 +213,9 @@ class Ros2Handler(EventHandler):
     def _handle_rcl_subscription_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'subscription_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         node_handle = get_field(event, 'node_handle')
         rmw_handle = get_field(event, 'rmw_subscription_handle')
         topic_name = get_field(event, 'topic_name')
@@ -232,10 +232,9 @@ class Ros2Handler(EventHandler):
     def _handle_rclcpp_subscription_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         subscription_pointer = get_field(event, 'subscription')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         handle = get_field(event, 'subscription_handle')
         self.data.add_rclcpp_subscription(
             subscription_pointer, timestamp, handle)
@@ -243,10 +242,9 @@ class Ros2Handler(EventHandler):
     def _handle_rclcpp_subscription_callback_added(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         subscription_pointer = get_field(event, 'subscription')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         callback_object = get_field(event, 'callback')
         self.data.add_callback_object(
             subscription_pointer, timestamp, callback_object)
@@ -254,10 +252,9 @@ class Ros2Handler(EventHandler):
     def _handle_rcl_service_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'service_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         node_handle = get_field(event, 'node_handle')
         rmw_handle = get_field(event, 'rmw_service_handle')
         service_name = get_field(event, 'service_name')
@@ -267,20 +264,18 @@ class Ros2Handler(EventHandler):
     def _handle_rclcpp_service_callback_added(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'service_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         callback_object = get_field(event, 'callback')
         self.data.add_callback_object(handle, timestamp, callback_object)
 
     def _handle_rcl_client_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'client_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         node_handle = get_field(event, 'node_handle')
         rmw_handle = get_field(event, 'rmw_client_handle')
         service_name = get_field(event, 'service_name')
@@ -290,71 +285,63 @@ class Ros2Handler(EventHandler):
     def _handle_rcl_timer_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'timer_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         period = get_field(event, 'period')
-        tid = metadata.tid
+        tid = get_field(event, 'vtid')
         self.data.add_timer(tid, handle, timestamp, period)
 
     def _handle_rclcpp_timer_callback_added(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'timer_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         callback_object = get_field(event, 'callback')
         self.data.add_callback_object(handle, timestamp, callback_object)
 
     def _handle_rclcpp_timer_link_node(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         handle = get_field(event, 'timer_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         node_handle = get_field(event, 'node_handle')
         self.data.add_timer_node_link(handle, timestamp, node_handle)
 
     def _handle_rclcpp_callback_register(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         callback_object = get_field(event, 'callback')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         symbol = get_field(event, 'symbol')
         self.data.add_callback_symbol(callback_object, timestamp, symbol)
 
     def _handle_callback_start(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         # Add to dict
         callback = get_field(event, 'callback')
-        timestamp = metadata.timestamp
-        is_intra_process = get_field(
-            event, 'is_intra_process', raise_if_not_found=False)
+        timestamp = get_field(event, 'timestamp')
+        is_intra_process = get_field(event, 'is_intra_process')
         self.data.add_callback_start_instance(
             timestamp, callback, is_intra_process)
 
     def _handle_callback_end(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         # Fetch from dict
         callback = get_field(event, 'callback')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         self.data.add_callback_end_instance(timestamp, callback)
 
     def _handle_rcl_lifecycle_state_machine_init(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         node_handle = get_field(event, 'node_handle')
         state_machine = get_field(event, 'state_machine')
@@ -363,9 +350,8 @@ class Ros2Handler(EventHandler):
     def _handle_rcl_lifecycle_transition(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         state_machine = get_field(event, 'state_machine')
         start_label = get_field(event, 'start_label')
         goal_label = get_field(event, 'goal_label')
@@ -375,12 +361,11 @@ class Ros2Handler(EventHandler):
     def _handle_rclcpp_publish(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         publisher_handle = get_field(event, 'publisher_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         message = get_field(event, 'message')
-        tid = metadata.tid
+        tid = get_field(event, 'vtid')
         message_timestamp = get_field(event, 'message_timestamp')
         self.data.add_rclcpp_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
@@ -388,11 +373,10 @@ class Ros2Handler(EventHandler):
     def _handle_rcl_publish(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         publisher_handle = get_field(event, 'publisher_handle')
-        timestamp = metadata.timestamp
-        tid = metadata.tid
+        timestamp = get_field(event, 'timestamp')
+        tid = get_field(event, 'vtid')
         message = get_field(event, 'message')
         self.data.add_rcl_publish_instance(
             tid, timestamp, publisher_handle, message)
@@ -400,35 +384,32 @@ class Ros2Handler(EventHandler):
     def _handle_message_construct(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         original_message = get_field(event, 'original_message')
         constructed_message = get_field(event, 'constructed_message')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         self.data.add_message_construct_instance(
             timestamp, original_message, constructed_message)
 
     def _handle_rclcpp_intra_publish(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         message = get_field(event, 'message')
         publisher_handle = get_field(event, 'publisher_handle')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         message_timestamp = get_field(event, 'message_timestamp')
-        tid = metadata.tid
+        tid = get_field(event, 'vtid')
         self.data.add_rclcpp_intra_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
 
     def _handle_dispatch_subscription_callback(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         callback_object = get_field(event, 'callback')
         message = get_field(event, 'message')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         source_stamp = get_field(event, 'source_stamp')
         message_timestamp = get_field(event, 'message_timestamp')
         self.data.add_dispatch_subscription_callback_instance(
@@ -438,11 +419,10 @@ class Ros2Handler(EventHandler):
     def _handle_dispatch_intra_process_subscription_callback(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
         callback_object = get_field(event, 'callback')
         message = get_field(event, 'message')
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         message_timestamp = get_field(event, 'message_timestamp')
         self.data.add_dispatch_intra_process_subscription_callback_instance(
             timestamp, callback_object, message, message_timestamp
@@ -451,39 +431,35 @@ class Ros2Handler(EventHandler):
     def _handle_on_data_available(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         source_stamp = get_field(event, 'source_stamp')
         self.data.add_on_data_available_instance(timestamp, source_stamp)
 
     def _handle_dds_write(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         message = get_field(event, 'message')
-        tid = metadata.tid
+        tid = get_field(event, 'vtid')
         self.data.add_dds_write_instance(tid, timestamp, message)
 
     def _handle_dds_bind_addr_to_stamp(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         addr = get_field(event, 'addr')
-        tid = metadata.tid
+        tid = get_field(event, 'vtid')
         source_stamp = get_field(event, 'source_stamp')
         self.data.add_dds_bind_addr_to_stamp(tid, timestamp, addr, source_stamp)
 
     def _handle_dds_bind_addr_to_addr(
         self,
         event: Dict,
-        metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         addr_from = get_field(event, 'addr_from')
         addr_to = get_field(event, 'addr_to')
         self.data.add_dds_bind_addr_to_addr(timestamp, addr_from, addr_to)
@@ -491,102 +467,93 @@ class Ros2Handler(EventHandler):
     def _handle_rmw_implementation(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        metadata
         rmw_impl = get_field(event, 'rmw_impl')
         self.data.add_rmw_implementation(rmw_impl)
 
     def _handle_construct_executor(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         executor_addr = get_field(event, 'executor_addr')
         executor_type_name = get_field(event, 'executor_type_name')
-        self.data.add_executor(executor_addr, stamp, executor_type_name)
+        self.data.add_executor(executor_addr, timestamp, executor_type_name)
 
     def _handle_construct_static_executor(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         executor_addr = get_field(event, 'executor_addr')
         collector_addr = get_field(event, 'entities_collector_addr')
         executor_type_name = get_field(event, 'executor_type_name')
-        self.data.add_executor_static(executor_addr, collector_addr, stamp, executor_type_name)
+        self.data.add_executor_static(executor_addr, collector_addr, timestamp, executor_type_name)
 
     def _handle_add_callback_group(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         executor_addr = get_field(event, 'executor_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
-        self.data.add_callback_group(executor_addr, stamp, callback_group_addr, group_type_name)
+        self.data.add_callback_group(
+            executor_addr, timestamp, callback_group_addr, group_type_name)
 
     def _handle_add_callback_group_static_executor(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         collector_addr = get_field(event, 'entities_collector_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
         self.data.add_callback_group_static_executor(
-            collector_addr, stamp, callback_group_addr, group_type_name)
+            collector_addr, timestamp, callback_group_addr, group_type_name)
 
     def _handle_callback_group_add_timer(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         timer_handle = get_field(event, 'timer_handle')
-        self.data.callback_group_add_timer(callback_group_addr, stamp, timer_handle)
+        self.data.callback_group_add_timer(callback_group_addr, timestamp, timer_handle)
 
     def _handle_callback_group_add_subscription(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         subscription_handle = get_field(event, 'subscription_handle')
-        self.data.callback_group_add_subscription(callback_group_addr, stamp, subscription_handle)
+        self.data.callback_group_add_subscription(
+            callback_group_addr, timestamp, subscription_handle)
 
     def _handle_callback_group_add_service(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         service_handle = get_field(event, 'service_handle')
-        self.data.callback_group_add_service(callback_group_addr, stamp, service_handle)
+        self.data.callback_group_add_service(callback_group_addr, timestamp, service_handle)
 
     def _handle_callback_group_add_client(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        stamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         client_handle = get_field(event, 'client_handle')
-        self.data.callback_group_add_client(callback_group_addr, stamp, client_handle)
+        self.data.callback_group_add_client(callback_group_addr, timestamp, client_handle)
 
     def _handle_tilde_subscription_init(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         subscription = get_field(event, 'subscription')
         node_name = get_field(event, 'node_name')
         topic_name = get_field(event, 'topic_name')
@@ -595,9 +562,8 @@ class Ros2Handler(EventHandler):
     def _handle_tilde_publisher_init(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         publisher = get_field(event, 'publisher')
         node_name = get_field(event, 'node_name')
         topic_name = get_field(event, 'topic_name')
@@ -606,9 +572,8 @@ class Ros2Handler(EventHandler):
     def _handle_tilde_subscribe(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         subscription = get_field(event, 'subscription')
         tilde_message_id = get_field(event, 'tilde_message_id')
         self.data.add_tilde_subscribe(timestamp, subscription, tilde_message_id)
@@ -616,9 +581,7 @@ class Ros2Handler(EventHandler):
     def _handle_tilde_publish(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        # timestamp = metadata.timestamp
         publisher = get_field(event, 'publisher')
         publish_tilde_timestamp = get_field(event, 'tilde_publish_timestamp')
         tilde_message_id = get_field(event, 'tilde_message_id')
@@ -632,9 +595,8 @@ class Ros2Handler(EventHandler):
     def _handle_tilde_subscribe_added(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         subscription_id = get_field(event, 'subscription_id')
         node_name = get_field(event, 'node_name')
         topic_name = get_field(event, 'topic_name')
@@ -643,8 +605,7 @@ class Ros2Handler(EventHandler):
     def _handle_sim_time(
         self,
         event: Dict,
-        metadata: EventMetadata
     ) -> None:
-        timestamp = metadata.timestamp
+        timestamp = get_field(event, 'timestamp')
         sim_time = get_field(event, 'stamp')
         self.data.add_sim_time(timestamp, sim_time)

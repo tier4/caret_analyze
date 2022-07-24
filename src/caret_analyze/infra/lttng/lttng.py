@@ -17,19 +17,15 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import bt2
-
-from caret_analyze.value_objects.timer import TimerValue
-
 import pandas as pd
-
-from tracetools_analysis.loading import load_file
+from tqdm import tqdm
 
 from .events_factory import EventsFactory
-from .ros2_tracing.data_model import DataModel
-from .ros2_tracing.processor import Ros2Handler
+from .ros2_tracing.data_model import Ros2DataModel
+from .ros2_tracing.processor import get_field, Ros2Handler
 from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
@@ -37,7 +33,8 @@ from ..infra_base import InfraBase
 from ...common import ClockConverter
 from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
-from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos
+from ...value_objects import  \
+    CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos, TimerValue
 
 Event = Dict[str, int]
 
@@ -169,7 +166,6 @@ class Lttng(InfraBase):
     def __init__(
         self,
         trace_dir_or_events: Union[str, Dict],
-        force_conversion: bool = False,
         *,
         event_filters: Optional[List[LttngEventFilter]] = None,
         store_events: bool = False,
@@ -181,23 +177,42 @@ class Lttng(InfraBase):
 
         data, events = self._parse_lttng_data(
             trace_dir_or_events,
-            force_conversion,
-            event_filters or []
+            event_filters or [],
+            store_events
         )
+        self.data = data
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
         self._counter = EventCounter(data, validate=validate)
-        self.events = events if store_events else None
+        self.events = events
 
     @staticmethod
     def _parse_lttng_data(
         trace_dir_or_events: Union[str, Dict],
-        force_conversion: bool,
-        event_filters: List[LttngEventFilter]
-    ) -> Tuple[DataModel, Dict]:
+        event_filters: List[LttngEventFilter],
+        store_events: bool
+    ) -> Tuple[Any, Dict]:
+
+        def to_event(msg: Any) -> Dict[str, Any]:
+            event: Dict[str, Any] = {}
+            event[LttngEventFilter.NAME] = msg.event.name
+            event['timestamp'] = msg.default_clock_snapshot.ns_from_origin
+            event.update(msg.event.payload_field)
+            event.update(msg.event.common_context_field)
+            return event
+
+        data = Ros2DataModel()
+        handler = Ros2Handler(data)
+        events = []
+
         if isinstance(trace_dir_or_events, str):
             Lttng._last_trace_begin_time = None
+
+            event_count = 0
             for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
+                if type(msg) is bt2._EventMessageConst:
+                    event_count += 1
+
                 if (not Lttng._last_trace_begin_time
                         and type(msg) is bt2._PacketBeginningMessageConst):
                     Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
@@ -211,36 +226,51 @@ class Lttng(InfraBase):
                            f'{msg.end_default_clock_snapshot.ns_from_origin}.')
                     logger.warning(msg)
 
+            print('{} events found.'.format(event_count))
+
+            common = LttngEventFilter.Common()
+            common.start_time = Lttng._last_trace_begin_time
+            common.end_time = Lttng._last_trace_end_time
+
+            filtered_event_count = 0
+            msg_it = bt2.TraceCollectionMessageIterator(trace_dir_or_events)
+            for msg in tqdm(msg_it, total=event_count):
+                if type(msg) is bt2._EventMessageConst:
+                    if msg.event.name not in handler.handler_map:
+                        continue
+
+                    event = to_event(msg)
+                    if len(event_filters) > 0 and \
+                            any(not f.accept(event, common) for f in event_filters):
+                        continue
+                    if store_events:
+                        event_dict = {
+                            k: get_field(event, k) for k in event
+                        }
+                        events.append(event_dict)
+                    filtered_event_count += 1
+                    handler_ = handler.handler_map[msg.event.name]
+                    handler_(event)
+
+            data.finalize()
             Lttng._last_load_dir = trace_dir_or_events
             Lttng._last_filters = event_filters
-            events = load_file(trace_dir_or_events, force_conversion=force_conversion)
-            print('{} events found.'.format(len(events)))
+            if len(event_filters) > 0:
+                print('filtered to {} events.'.format(filtered_event_count))
         else:
             events = trace_dir_or_events
+            for event in events:
+                if len(event_filters) > 0 and \
+                        any(not f.accept(event, common) for f in event_filters):
+                    continue
+                if store_events:
+                    events.append(event)
+                filtered_event_count += 1
+                handler_ = handler.handler_map[msg.event.name]
+                handler_(event)
 
-        if len(event_filters) > 0:
-            events = Lttng._filter_events(events, event_filters)
-            print('filtered to {} events.'.format(len(events)))
-
-        handler = Ros2Handler.process(events)
-        return handler.data, events
-
-    @staticmethod
-    def _filter_events(events: List[Event], filters: List[LttngEventFilter]):
-        if len(events) == 0:
-            return []
-
-        common = LttngEventFilter.Common()
-        common.start_time = events[0][LttngEventFilter.TIMESTAMP]
-        common.end_time = events[-1][LttngEventFilter.TIMESTAMP]
-
-        filtered = []
-        from tqdm import tqdm
-        for event in tqdm(events):
-            if all(event_filter.accept(event, common) for event_filter in filters):
-                filtered.append(event)
-
-        return filtered
+        events_ = None if len(events) == 0 else events
+        return data, events_
 
     def get_nodes(
         self
