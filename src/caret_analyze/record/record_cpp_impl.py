@@ -18,6 +18,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from record_cpp_impl import RecordBase, RecordsBase
 
+from .column import Column, Columns, ColumnValue
 from .record import RecordInterface, Records, RecordsInterface, validate_rename_rule
 from ..common import Progress
 from ..exceptions import InvalidArgumentError
@@ -31,11 +32,15 @@ class RecordsCppImpl(RecordsInterface):
 
     def __init__(
         self,
-        init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[str]] = None,
+        init: Optional[Sequence[RecordInterface]] = None,
+        columns: Optional[Sequence[ColumnValue]] = None,
     ):
-        Records._validate(init, columns)
-        self._records = RecordsBase(init or [], columns or [])
+        columns = columns or []
+        column_names = [str(c) for c in columns]
+        init_ = [] if init is None else list(init)
+        Records._validate(init_, column_names)
+        self._columns = Columns(columns)
+        self._records = RecordsBase(init_, column_names)
 
     def export_yaml(self, path: str) -> None:
         import yaml
@@ -98,6 +103,7 @@ class RecordsCppImpl(RecordsInterface):
     ) -> None:
         validate_rename_rule(columns)
         self._records.rename_columns(columns)
+        self._columns.rename(columns)
         return None
 
     def merge(
@@ -119,7 +125,8 @@ class RecordsCppImpl(RecordsInterface):
             columns, how,
             Progress.records_label(progress_label))
 
-        merged = RecordsCppImpl()
+        column_values = [ColumnValue(c) for c in columns]
+        merged = RecordsCppImpl(None, column_values)
         merged._insert_records(merged_cpp_base)
         return merged
 
@@ -132,7 +139,8 @@ class RecordsCppImpl(RecordsInterface):
         group_cpp_base = self._records.groupby(*columns)
         group: Dict[Tuple[int, ...], RecordsInterface] = {}
         for k, v in group_cpp_base.items():
-            records = RecordsCppImpl()
+            column_values = [ColumnValue(c) for c in self.columns]
+            records = RecordsCppImpl(None, column_values)
             records._insert_records(v)
             group[k] = records
         return group
@@ -147,12 +155,14 @@ class RecordsCppImpl(RecordsInterface):
 
     @property
     def columns(self) -> List[str]:
-        return self._records.columns
+        return self._columns.column_names
 
     def equals(self, other: RecordsInterface) -> bool:
         if not isinstance(other, RecordsCppImpl):
             return False
-        return self._records.equals(other._records)
+        match_records = self._records.equals(other._records)
+        match_columns = self._columns.to_value() == other._columns.to_value()
+        return match_records and match_columns
 
     def reindex(self, columns: List[str]) -> None:
         miss_match_columns = set(columns) ^ set(self.columns)
@@ -161,26 +171,33 @@ class RecordsCppImpl(RecordsInterface):
             msg += f'{miss_match_columns}'
             raise InvalidArgumentError(msg)
         self._records.reindex(columns)
+        self._columns.reindex(columns)
 
     def clone(self) -> RecordsCppImpl:
         records_clone = self._records.clone()
-        records = RecordsCppImpl()
+        records = RecordsCppImpl(None, self._columns.to_value())
         records._insert_records(records_clone)
         return records
 
     def _insert_records(self, records: RecordsBase) -> None:
         self._records = records
 
-    def append_column(self, column: str, values: List[int]) -> None:
+    def append_column(
+        self,
+        column: ColumnValue,
+        values: List[int]
+    ) -> None:
         if len(values) != len(self):
             raise InvalidArgumentError('len(values) != len(records)')
 
-        self._records.append_column(column, values)
+        self._columns.append(Column(column))
+        self._records.append_column(column.column_name, values)
 
-    def drop_columns(self, columns: List[str]) -> None:
-        if not isinstance(columns, list):
+    def drop_columns(self, column_names: List[str]) -> None:
+        if not isinstance(column_names, list):
             raise InvalidArgumentError('columns must be list.')
-        self._records.drop_columns(columns)
+        self._columns.drop(column_names)
+        self._records.drop_columns(column_names)
 
     def filter_if(self, f: Callable[[RecordInterface], bool]) -> None:
         self._records.filter_if(f)
@@ -214,7 +231,8 @@ class RecordsCppImpl(RecordsInterface):
             Progress.records_label(progress_label)
         )
 
-        merged = RecordsCppImpl()
+        column_values = [ColumnValue(c) for c in columns]
+        merged = RecordsCppImpl(None, column_values)
         merged._insert_records(merged_cpp_base)
         return merged
 
@@ -250,6 +268,7 @@ class RecordsCppImpl(RecordsInterface):
             Progress.records_label(progress_label)
         )
 
-        merged = RecordsCppImpl()
+        column_values = [ColumnValue(c) for c in columns]
+        merged = RecordsCppImpl(None, column_values)
         merged._insert_records(merged_cpp_base)
         return merged

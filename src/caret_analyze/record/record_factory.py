@@ -13,8 +13,9 @@
 # limitations under the License.
 
 
-from typing import Dict, List, Optional
+from typing import Dict, Optional, Sequence
 
+from .column import ColumnValue
 from .record import Record, RecordInterface, Records, RecordsInterface
 
 try:
@@ -56,8 +57,8 @@ class RecordsFactory:
 
     @staticmethod
     def create_instance(
-        init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[str]] = None
+        init: Optional[Sequence[RecordInterface]] = None,
+        columns: Optional[Sequence[ColumnValue]] = None
     ) -> RecordsInterface:
         if use_cpp_impl:
             return RecordsFactory._create_cpp_instance(init, columns)
@@ -66,7 +67,7 @@ class RecordsFactory:
 
     @staticmethod
     def _create_cpp_instance(
-        init: Optional[List[RecordInterface]] = None,
-        columns: Optional[List[str]] = None,
+        init: Optional[Sequence[RecordInterface]] = None,
+        columns: Optional[Sequence[ColumnValue]] = None,
     ) -> RecordsInterface:
         return cpp_impl.RecordsCppImpl(init or [], columns or [])
