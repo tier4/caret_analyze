@@ -306,6 +306,7 @@ class ResponseTime:
     def to_histogram(
         self,
         binsize_ns: int = 1000000,
+        density: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Get response time histogram.
@@ -314,6 +315,12 @@ class ResponseTime:
         ----------
         binsize_ns : int, optional
             binsize [ns], by default 1000000
+        density : bool, optional
+            If False, the result will contain the number of samples in each bin.
+            If True, the result is the value of the probability density function at the bin,
+            normalized such that the integral over the range is 1.
+            Note that the sum of the histogram values will not be equal to 1
+            unless bins of unity width are chosen; it is not a probability mass function.
 
         Returns
         -------
@@ -322,7 +329,7 @@ class ResponseTime:
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         """
-        return self._histogram.to_histogram(binsize_ns)
+        return self._histogram.to_histogram(binsize_ns, density)
 
 
 class ResponseRecords:
@@ -521,7 +528,8 @@ class ResponseHistogram:
 
     def to_histogram(
         self,
-        binsize_ns: int = 1000000
+        binsize_ns: int = 1000000,
+        density: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate histogram.
@@ -530,6 +538,12 @@ class ResponseHistogram:
         ----------
         binsize_ns : int, optional
             binsize [ns], by default 1000000
+        density : bool, optional
+            If False, the result will contain the number of samples in each bin.
+            If True, the result is the value of the probability density function at the bin,
+            normalized such that the integral over the range is 1.
+            Note that the sum of the histogram values will not be equal to 1
+            unless bins of unity width are chosen; it is not a probability mass function.
 
         Returns
         -------
@@ -569,4 +583,5 @@ class ResponseHistogram:
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
         bin_num = math.ceil((range_max - range_min) / binsize_ns)
-        return np.histogram(latency_ns, bins=bin_num, range=(range_min, range_max))
+        return np.histogram(
+            latency_ns, bins=bin_num, range=(range_min, range_max), density=density)
