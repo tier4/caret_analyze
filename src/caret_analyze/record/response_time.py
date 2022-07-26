@@ -557,6 +557,8 @@ class ResponseHistogram:
             Occurs when the number of response latencies is insufficient.
 
         """
+        assert binsize_ns > 0
+
         records = self._response_records.to_range_records()
 
         input_min_column = records.columns[0]
@@ -570,8 +572,8 @@ class ResponseHistogram:
             output_time = record.get(output_column)
             input_time_min = record.get(input_min_column)
             input_time_max = record.get(input_max_column)
-            for input_time in range(input_time_min, input_time_max + 1):
-                latency = output_time - input_time
+            for input_time in range(input_time_min, input_time_max, binsize_ns):
+                latency = max(output_time - input_time - binsize_ns, 0)
                 latency_ns.append(latency)
 
         if len(latency_ns) == 0:
@@ -581,7 +583,7 @@ class ResponseHistogram:
             )
 
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
-        range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns
+        range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns + binsize_ns
         bin_num = math.ceil((range_max - range_min) / binsize_ns)
         return np.histogram(
             latency_ns, bins=bin_num, range=(range_min, range_max), density=density)

@@ -255,7 +255,7 @@ class TestResponseHistogram:
     def test_double_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 1},
-            {'start': 2, 'end': 3},
+            {'start': 2, 'end': 3},  # latency: 1~3
         ]
         columns = ['start', 'end']
 
@@ -263,7 +263,7 @@ class TestResponseHistogram:
         response = ResponseTime(records, columns[0], columns[1])
 
         hist, latency = response.to_histogram(1)
-        assert list(hist) == [1, 2]
+        assert list(hist) == [1, 1]
         assert list(latency) == [1, 2, 3]
 
     def test_cross_flow_case(self):
@@ -279,14 +279,14 @@ class TestResponseHistogram:
         response = ResponseTime(records, columns[0], columns[1])
 
         hist, latency = response.to_histogram(1)
-        assert list(hist) == [1, 2, 2, 3]
+        assert list(hist) == [1, 2, 2, 1]
         assert list(latency) == [0, 1, 2, 3, 4]
 
     def test_triple_flow_case(self):
         records_raw = [
-            {'start': 0, 'end': 1},
-            {'start': 2, 'end': 3},
-            {'start': 10, 'end': 11},
+            {'start': 0, 'end': 1},  # latency:
+            {'start': 2, 'end': 3},  # 1~3
+            {'start': 10, 'end': 11},  # 1~9
         ]
         columns = ['start', 'end']
 
@@ -294,7 +294,16 @@ class TestResponseHistogram:
         response = ResponseTime(records, columns[0], columns[1])
 
         hist, latency = response.to_histogram(1)
-        assert list(hist) == [2, 2, 2, 1, 1, 1, 1, 2]
+        assert list(hist) == [
+            2,  # (1, 2)
+            2,  # (2, 3)
+            1,  # (3, 4)
+            1,  # (4, 5)
+            1,  # (5, 6)
+            1,  # (6, 7)
+            1,  # (7, 8)
+            1   # (8, 9]
+        ]
         assert list(latency) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     def test_double_flow_cross_case(self):
@@ -308,5 +317,76 @@ class TestResponseHistogram:
         response = ResponseTime(records, columns[0], columns[1])
 
         hist, latency = response.to_histogram(1)
-        assert list(hist) == [1, 2]
+        assert list(hist) == [1, 1]
         assert list(latency) == [1, 2, 3]
+
+    def test_hist_bin_size(self):
+        records_raw = [
+            {'start': 0, 'end': 0},
+            {'start': 20, 'end': 30},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+
+        latency_min, latency_max = 30-20, 30-0
+
+        hist, latency = response.to_histogram(1, False)
+        hist_expected = [1] * (latency_max - latency_min)
+        latency_expected = list(range(latency_min, latency_max + 1))
+        assert list(hist) == hist_expected
+        assert list(latency) == latency_expected
+
+        hist, latency = response.to_histogram(2, False)
+        hist_expected = [1] * ((latency_max - latency_min)//2)
+        latency_expected = list(range(latency_min, latency_max+2, 2))
+        assert list(hist) == hist_expected
+        assert list(latency) == latency_expected
+
+        hist, latency = response.to_histogram(3)
+        hist_expected = [
+            1,  # [9, 12)
+            1,  # [12, 15)
+            1,  # [15, 18)
+            1,  # [18, 21)
+            1,  # [21, 24)
+            1,  # [24, 27)
+            1,  # [27, 30]
+        ]
+        latency_expected = [9, 12, 15, 18, 21, 24, 27, 30]
+        assert list(hist) == hist_expected
+        assert list(latency) == latency_expected
+
+        hist, latency = response.to_histogram(100)
+        hist_expected = [
+            1,  # [0, 100]
+        ]
+        latency_expected = [0, 100]
+        assert list(hist) == hist_expected
+        assert list(latency) == latency_expected
+
+    def test_hist_count(self):
+        records_raw = [
+            {'start': 1, 'end': 2},  # latency:
+            {'start': 2, 'end': 3},  # 1~2
+            {'start': 3, 'end': 4},  # 1~2
+            {'start': 4, 'end': 5},  # 1~2
+            {'start': 5, 'end': 6},  # 1~2
+            {'start': 6, 'end': 8},  # 2~3
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records, columns[0], columns[1])
+        hist, latency = response.to_histogram(1, False)
+
+        hist, latency = response.to_histogram(1, False)
+        hist_expected = [
+            4, 1
+        ]
+        latency_expected = [
+            1, 2, 3
+        ]
+        assert list(hist) == hist_expected
+        assert list(latency) == latency_expected
