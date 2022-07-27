@@ -227,8 +227,8 @@ class ResponseTime:
     >>> from caret_analyze.experiment import ResponseTime
 
     >>> # Load results
-    >>> arch = Architecture('lttng', '/path/to/ctf')
-    >>> lttng = Lttng('humble')
+    >>> arch = Architecture('yaml', '/path/to/yaml')
+    >>> lttng = Lttng('/path/to/ctf')
     >>> app = Application(arch, lttng)
 
     >>> # Select target instance
@@ -237,6 +237,13 @@ class ResponseTime:
     >>> callback.summary.pprint()
 
     >>> # Calculate response time
+    >>> records = callback.to_records()
+    >>> response = ResponseTime(records, records.columns[0], records.columns[1])
+    >>> response_records = response.to_response_records()
+    >>> response_df = response_records.to_dataframe()
+
+    >>> path = app.get_path('path_name')
+    >>> records = path.to_records()
     >>> response = ResponseTime(records, records.columns[0], records.columns[1])
     >>> response_records = response.to_response_records()
     >>> response_df = response_records.to_dataframe()
