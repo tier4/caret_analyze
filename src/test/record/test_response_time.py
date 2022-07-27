@@ -36,7 +36,7 @@ def to_dict(records):
 
 def check(records_raw, expect_raw, columns):
     records = create_records(records_raw, columns)
-    response = ResponseTime(records, columns[0], columns[-1]).to_records()
+    response = ResponseTime(records).to_records()
     d = to_dict(response)
     assert d == expect_raw
 
@@ -49,7 +49,7 @@ class TestResponseRecords:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         expect_raw = []
         result = to_dict(response.to_records())
@@ -69,7 +69,7 @@ class TestResponseRecords:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         expect_raw = [
         ]
@@ -94,7 +94,7 @@ class TestResponseRecords:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         expect_raw = [
             {'start': 0, 'end': 3},
@@ -126,7 +126,7 @@ class TestResponseRecords:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         expect_raw = [
             {'start': 0, 'end': 4},
@@ -165,7 +165,7 @@ class TestResponseRecords:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         expect_raw = [
             {'start': 0, 'end': 3},
@@ -202,7 +202,7 @@ class TestResponseRecords:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         expect_raw = [
             {'start': 0, 'end': 3},
@@ -235,7 +235,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         with pytest.raises(InvalidRecordsError):
             response.to_histogram()
@@ -247,7 +247,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         with pytest.raises(InvalidRecordsError):
             response.to_histogram()
@@ -260,7 +260,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         hist, latency = response.to_histogram(1)
         assert list(hist) == [1, 1]
@@ -276,7 +276,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         hist, latency = response.to_histogram(1)
         assert list(hist) == [1, 2, 2, 1]
@@ -291,7 +291,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         hist, latency = response.to_histogram(1)
         assert list(hist) == [
@@ -314,7 +314,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         hist, latency = response.to_histogram(1)
         assert list(hist) == [1, 1]
@@ -328,7 +328,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
 
         latency_min, latency_max = 30-20, 30-0
 
@@ -378,7 +378,7 @@ class TestResponseHistogram:
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
-        response = ResponseTime(records, columns[0], columns[1])
+        response = ResponseTime(records)
         hist, latency = response.to_histogram(1, False)
 
         hist, latency = response.to_histogram(1, False)

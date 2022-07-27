@@ -253,8 +253,9 @@ class ResponseTime:
     def __init__(
         self,
         records: RecordsInterface,
-        input_column: str,
-        output_column: str
+        *,
+        input_column: Optional[str] = None,
+        output_column: Optional[str] = None
     ) -> None:
         """
         Constructor.
@@ -263,12 +264,16 @@ class ResponseTime:
         ----------
         records : RecordsInterface
             records to calculate response time.
-        input_column : str
-            column name which is input.
-        output_column : str
-            column name which is output.
+        input_column : Optional[str], optional
+            column name which is input, by default None
+            If None, the first column of records is selected.
+        output_column : Optional[str], optional
+            column name which is output, by default None
+            If None, the last column of records is selected.
 
         """
+        input_column = input_column or records.columns[0]
+        output_column = output_column or records.columns[-1]
         response_map = ResponseMap(records, input_column, output_column)
         self._records = ResponseRecords(response_map)
         self._histogram = ResponseHistogram(self._records)
