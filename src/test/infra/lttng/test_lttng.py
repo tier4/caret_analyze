@@ -43,7 +43,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         node = NodeValue('/node', None)
         mocker.patch.object(lttng_info_mock, 'get_nodes', return_value=[node])
@@ -65,7 +65,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         mocker.patch.object(lttng_info_mock, 'get_rmw_impl', return_value='rmw')
         assert lttng.get_rmw_impl() == 'rmw'
@@ -84,7 +84,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         pub_mock = mocker.Mock(spec=PublisherValueLttng)
         mocker.patch.object(lttng_info_mock, 'get_publishers', return_value=[pub_mock])
@@ -103,7 +103,7 @@ class TestLttng:
         counter_mock = mocker.Mock(spec=EventCounter)
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         timer_cb_mock = mocker.Mock(spec=TimerCallbackValueLttng)
         mocker.patch.object(lttng_info_mock, 'get_timer_callbacks',
@@ -124,7 +124,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         sub_cb_mock = mocker.Mock(spec=SubscriptionCallbackValueLttng)
         mocker.patch.object(lttng_info_mock, 'get_subscription_callbacks',
@@ -145,7 +145,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         exec_info_mock = mocker.Mock(spec=ExecutorValue)
         mocker.patch.object(lttng_info_mock, 'get_executors',
@@ -167,7 +167,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
                      return_value=records_source_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         records_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(records_mock, 'clone', return_value=records_mock)
@@ -190,7 +190,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         records_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(records_mock, 'clone', return_value=records_mock)
@@ -213,7 +213,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         records_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(records_mock, 'clone', return_value=records_mock)
