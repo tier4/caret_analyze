@@ -476,16 +476,16 @@ class TestResponseTimeseries:
         response = ResponseTime(records)
 
         t, latency = response.to_best_case_timeseries()
-        t_expect = np.array([], dtype=np.int64)
-        assert np.array_equal(t, t_expect)
-        latency_expect = np.array([], dtype=np.int64)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = []
+        latency_expect = []
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
 
         t, latency = response.to_worst_case_timeseries()
-        t_expect = np.array([], dtype=np.int64)
-        assert np.array_equal(t, t_expect)
-        latency_expect = np.array([], dtype=np.int64)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = []
+        latency_expect = []
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
 
     def test_single_flow_case(self):
         records_raw = [
@@ -497,16 +497,16 @@ class TestResponseTimeseries:
         response = ResponseTime(records)
 
         t, latency = response.to_best_case_timeseries()
-        t_expect = np.array([], dtype=np.int)
-        latency_expect = np.array([], dtype=np.int)
-        assert np.array_equal(t, t_expect)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = []
+        latency_expect = []
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
 
-        t_expect = np.array([], dtype=np.int)
-        latency_expect = np.array([], dtype=np.int)
         t, latency = response.to_worst_case_timeseries()
-        assert np.array_equal(t, t_expect)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = []
+        latency_expect = []
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
 
     def test_double_flow_case(self):
         records_raw = [
@@ -519,16 +519,16 @@ class TestResponseTimeseries:
         response = ResponseTime(records)
 
         t, latency = response.to_best_case_timeseries()
-        t_expect = np.array([2], dtype=np.int)
-        latency_expect = np.array([1], dtype=np.int)
-        assert np.array_equal(t, t_expect)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = [2]
+        latency_expect = [1]
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
 
-        t_expect = np.array([0], dtype=np.int)
-        latency_expect = np.array([3], dtype=np.int)
         t, latency = response.to_worst_case_timeseries()
-        assert np.array_equal(t, t_expect)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = [0]
+        latency_expect = [3]
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
 
     def test_cross_flow_case(self):
         records_raw = [
@@ -543,13 +543,13 @@ class TestResponseTimeseries:
         response = ResponseTime(records)
 
         t, latency = response.to_best_case_timeseries()
-        t_expect = np.array([3, 6], dtype=np.int)
-        latency_expect = np.array([1, 0], dtype=np.int)
-        assert np.array_equal(t, t_expect)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = [3, 6]
+        latency_expect = [1, 0]
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
 
-        t_expect = np.array([0, 3], dtype=np.int)
-        latency_expect = np.array([4, 3], dtype=np.int)
         t, latency = response.to_worst_case_timeseries()
-        assert np.array_equal(t, t_expect)
-        assert np.array_equal(latency, latency_expect)
+        t_expect = [0, 3]
+        latency_expect = [4, 3]
+        assert list(t) == t_expect
+        assert list(latency) == latency_expect
