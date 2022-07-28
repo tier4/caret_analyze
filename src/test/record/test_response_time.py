@@ -16,6 +16,7 @@ from caret_analyze.exceptions import InvalidRecordsError
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.record.response_time import ResponseTime
 
+import numpy as np
 import pytest
 
 
@@ -114,7 +115,8 @@ class TestResponseRecords:
             {'start': 0, 'end': 3},
             {'start': 2, 'end': 3},
         ]
-        assert to_dict(response.to_records(all_pattern=True)) == expect_raw
+        result = to_dict(response.to_records(all_pattern=True))
+        assert result == expect_raw
 
     def test_cross_flow_case(self):
         records_raw = [
@@ -156,6 +158,11 @@ class TestResponseRecords:
         result = to_dict(response.to_records(all_pattern=True))
         assert result == expect_raw
 
+        expect_raw = [
+            {'start': 3, 'end': 4},
+            {'start': 6, 'end': 6},
+        ]
+
     def test_triple_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 1},
@@ -193,6 +200,11 @@ class TestResponseRecords:
 
         result = to_dict(response.to_records(all_pattern=True))
         assert result == expect_raw
+
+        expect_raw = [
+            {'start': 2, 'end': 3},
+            {'start': 10, 'end': 11},
+        ]
 
     def test_double_flow_cross_case(self):
         records_raw = [
@@ -389,3 +401,93 @@ class TestResponseHistogram:
         ]
         assert list(hist) == hist_expected
         assert list(latency) == latency_expected
+
+
+class TestResponseTimeseries:
+
+    def test_empty_flow_case(self):
+        records_raw = [
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        t, latency = response.to_best_case_timeseries()
+        t_expect = np.array([], dtype=np.int64)
+        assert np.array_equal(t, t_expect)
+        latency_expect = np.array([], dtype=np.int64)
+        assert np.array_equal(latency, latency_expect)
+
+        t, latency = response.to_worst_case_timeseries()
+        t_expect = np.array([], dtype=np.int64)
+        assert np.array_equal(t, t_expect)
+        latency_expect = np.array([], dtype=np.int64)
+        assert np.array_equal(latency, latency_expect)
+
+    def test_single_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 1},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        t, latency = response.to_best_case_timeseries()
+        t_expect = np.array([], dtype=np.int)
+        latency_expect = np.array([], dtype=np.int)
+        assert np.array_equal(t, t_expect)
+        assert np.array_equal(latency, latency_expect)
+
+        t_expect = np.array([], dtype=np.int)
+        latency_expect = np.array([], dtype=np.int)
+        t, latency = response.to_worst_case_timeseries()
+        assert np.array_equal(t, t_expect)
+        assert np.array_equal(latency, latency_expect)
+
+    def test_double_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 1},
+            {'start': 2, 'end': 3},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        t, latency = response.to_best_case_timeseries()
+        t_expect = np.array([2], dtype=np.int)
+        latency_expect = np.array([1], dtype=np.int)
+        assert np.array_equal(t, t_expect)
+        assert np.array_equal(latency, latency_expect)
+
+        t_expect = np.array([0], dtype=np.int)
+        latency_expect = np.array([3], dtype=np.int)
+        t, latency = response.to_worst_case_timeseries()
+        assert np.array_equal(t, t_expect)
+        assert np.array_equal(latency, latency_expect)
+
+    def test_cross_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 10},
+            {'start': 3, 'end': 4},
+            {'start': 4, 'end': 8},
+            {'start': 6, 'end': 6},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        t, latency = response.to_best_case_timeseries()
+        t_expect = np.array([3, 6], dtype=np.int)
+        latency_expect = np.array([1, 0], dtype=np.int)
+        assert np.array_equal(t, t_expect)
+        assert np.array_equal(latency, latency_expect)
+
+        t_expect = np.array([0, 3], dtype=np.int)
+        latency_expect = np.array([4, 3], dtype=np.int)
+        t, latency = response.to_worst_case_timeseries()
+        assert np.array_equal(t, t_expect)
+        assert np.array_equal(latency, latency_expect)

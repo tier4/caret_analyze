@@ -279,6 +279,7 @@ class ResponseTime:
         output_column = output_column or records.columns[-1]
         response_map = ResponseMap(records, input_column, output_column)
         self._records = ResponseRecords(response_map)
+        self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records)
 
     def to_records(self, *, all_pattern=False) -> RecordsInterface:
@@ -317,6 +318,36 @@ class ResponseTime:
 
         """
         return self._records.to_range_records()
+
+    def to_best_case_timeseries(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Calculate the best-case time series data for response time.
+
+        The best case for response time also includes values
+        corresponding to the message flow latency.
+
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarray]
+            input timeseries[ns], latency[ns]
+
+        """
+        return self._timeseries.to_best_case_timeseries()
+
+    def to_worst_case_timeseries(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Calculate the worst-case time series data for response time.
+
+        The worst case in response time includes message flow latenciesa
+        as well as delays caused by various factors such as lost messages.
+
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarray]
+            input timeseries[ns], latency[ns]
+
+        """
+        return self._timeseries.to_worst_case_timeseries()
 
     def to_histogram(
         self,
@@ -423,6 +454,76 @@ class ResponseRecords:
                         self._response_map.output_column: output_time,
                         f'{self._input_column}_min': input_time_min,
                         f'{self._input_column}_max': input_time_max,
+                    }
+                )
+            )
+
+        self._create_response_records_core(add_records)
+
+        records.sort_column_order()
+
+        return records
+
+    def to_best_case_records(self) -> RecordsInterface:
+        """
+        Calculate records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - {input_column}
+            - {output_column}
+
+        """
+        columns = [
+            f'{self._input_column}',
+            self._response_map.output_column,
+        ]
+
+        records = self._create_empty_records(columns)
+
+        def add_records(output_time, input_time_min, input_time_max):
+            records.append(
+                RecordFactory.create_instance(
+                    {
+                        self._response_map.output_column: output_time,
+                        f'{self._input_column}': input_time_max,
+                    }
+                )
+            )
+
+        self._create_response_records_core(add_records)
+
+        records.sort_column_order()
+
+        return records
+
+    def to_worst_case_records(self) -> RecordsInterface:
+        """
+        Calculate records.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - {input_column}
+            - {output_column}
+
+        """
+        columns = [
+            f'{self._input_column}',
+            self._response_map.output_column,
+        ]
+
+        records = self._create_empty_records(columns)
+
+        def add_records(output_time, input_time_min, input_time_max):
+            records.append(
+                RecordFactory.create_instance(
+                    {
+                        self._response_map.output_column: output_time,
+                        f'{self._input_column}': input_time_min,
                     }
                 )
             )
@@ -602,3 +703,35 @@ class ResponseHistogram:
         bin_num = math.ceil((range_max - range_min) / binsize_ns)
         return np.histogram(
             latency_ns, bins=bin_num, range=(range_min, range_max), density=density)
+
+
+class ResponseTimeseries:
+
+    def __init__(
+        self,
+        response_records: ResponseRecords
+    ) -> None:
+        self._records = response_records
+
+    def to_best_case_timeseries(self):
+        records = self._records.to_range_records()
+        input_column = records.columns[1]
+        output_column = records.columns[2]
+        return self._to_timeseries(input_column, output_column)
+
+    def to_worst_case_timeseries(self):
+        records = self._records.to_range_records()
+        input_column = records.columns[0]
+        output_column = records.columns[2]
+        return self._to_timeseries(input_column, output_column)
+
+    def _to_timeseries(self, input_column, output_column):
+        records = self._records.to_range_records()
+
+        t_ = records.get_column_series(input_column)
+        t = np.array(t_, dtype=np.int64)
+
+        latency_ = records.get_column_series(output_column)
+        latency = np.array(latency_, dtype=np.int64)
+
+        return t, latency
