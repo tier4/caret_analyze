@@ -504,7 +504,7 @@ class ResponseRecords:
 
     def to_best_case_records(self) -> RecordsInterface:
         """
-        Calculate best case reponse time records.
+        Calculate best case response time records.
 
         Returns
         -------
