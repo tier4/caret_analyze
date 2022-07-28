@@ -381,7 +381,6 @@ class TestResponseHistogram:
         response = ResponseTime(records)
         hist, latency = response.to_histogram(1, False)
 
-        hist, latency = response.to_histogram(1, False)
         hist_expected = [
             4, 1
         ]
