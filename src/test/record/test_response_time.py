@@ -252,6 +252,12 @@ class TestResponseHistogram:
         with pytest.raises(InvalidRecordsError):
             response.to_histogram()
 
+        with pytest.raises(InvalidRecordsError):
+            response.to_best_case_histogram()
+
+        with pytest.raises(InvalidRecordsError):
+            response.to_worst_case_histogram()
+
     def test_single_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 1},
@@ -263,6 +269,12 @@ class TestResponseHistogram:
 
         with pytest.raises(InvalidRecordsError):
             response.to_histogram()
+
+        with pytest.raises(InvalidRecordsError):
+            response.to_best_case_histogram()
+
+        with pytest.raises(InvalidRecordsError):
+            response.to_worst_case_histogram()
 
     def test_double_flow_case(self):
         records_raw = [
@@ -277,6 +289,14 @@ class TestResponseHistogram:
         hist, latency = response.to_histogram(1)
         assert list(hist) == [1, 1]
         assert list(latency) == [1, 2, 3]
+
+        hist, latency = response.to_best_case_histogram(1)
+        assert list(hist) == [1]
+        assert list(latency) == [1, 2]
+
+        hist, latency = response.to_worst_case_histogram(1)
+        assert list(hist) == [1]
+        assert list(latency) == [3, 4]
 
     def test_cross_flow_case(self):
         records_raw = [
@@ -293,6 +313,14 @@ class TestResponseHistogram:
         hist, latency = response.to_histogram(1)
         assert list(hist) == [1, 2, 2, 1]
         assert list(latency) == [0, 1, 2, 3, 4]
+
+        hist, latency = response.to_best_case_histogram(1)
+        assert list(hist) == [1, 1]
+        assert list(latency) == [0, 1, 2]
+
+        hist, latency = response.to_worst_case_histogram(1)
+        assert list(hist) == [1, 1]
+        assert list(latency) == [3, 4, 5]
 
     def test_triple_flow_case(self):
         records_raw = [
@@ -318,6 +346,24 @@ class TestResponseHistogram:
         ]
         assert list(latency) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+        hist, latency = response.to_best_case_histogram(1)
+        assert list(hist) == [
+            2,  # [1, 2]
+        ]
+        assert list(latency) == [1, 2]
+
+        hist, latency = response.to_worst_case_histogram(1)
+        assert list(hist) == [
+            1,  # [3, 4)
+            0,  # [4, 5)
+            0,  # [5, 6)
+            0,  # [6, 7)
+            0,  # [7, 8)
+            0,  # [8, 9)
+            1,  # [9, 10]
+        ]
+        assert list(latency) == [3, 4, 5, 6, 7, 8, 9, 10]
+
     def test_double_flow_cross_case(self):
         records_raw = [
             {'start': 0, 'end': 5},
@@ -331,6 +377,14 @@ class TestResponseHistogram:
         hist, latency = response.to_histogram(1)
         assert list(hist) == [1, 1]
         assert list(latency) == [1, 2, 3]
+
+        hist, latency = response.to_best_case_histogram(1)
+        assert list(hist) == [1]
+        assert list(latency) == [1, 2]
+
+        hist, latency = response.to_worst_case_histogram(1)
+        assert list(hist) == [1]
+        assert list(latency) == [3, 4]
 
     def test_hist_bin_size(self):
         records_raw = [
@@ -375,6 +429,14 @@ class TestResponseHistogram:
             1,  # [0, 100]
         ]
         latency_expected = [0, 100]
+        assert list(hist) == hist_expected
+        assert list(latency) == latency_expected
+
+        hist, latency = response.to_best_case_histogram(3)
+        hist_expected = [
+            1, 0
+        ]
+        latency_expected = [9, 12, 15]
         assert list(hist) == hist_expected
         assert list(latency) == latency_expected
 
