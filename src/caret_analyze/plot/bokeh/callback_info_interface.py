@@ -127,6 +127,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
 
         # Add legends
         num_legend_threshold = 20
+        # In Autoware, the number of callbacks in a node is less than 20.
+        # Here, num_legend_threshold is set to 20 as the maximum value.
         for i in range(0, len(legend_items)+10, 10):
             if not full_legends and i >= num_legend_threshold:
                 logger.warning(
