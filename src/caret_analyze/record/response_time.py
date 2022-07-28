@@ -81,7 +81,6 @@ class TimeRange:
             value to apply.
 
         """
-        self._min = min(self._min, value)
         self._max = max(self._max, value)
 
 
@@ -109,11 +108,15 @@ class ResponseMap():
         """
         d = {}
 
-        def update(input_time: int, output_time: int):
+        def update(input_min_time: int, input_time: int, output_time: int):
             if output_time not in d:
-                d[output_time] = TimeRange(input_time, input_time)
+                d[output_time] = TimeRange(input_min_time, input_time)
 
             d[output_time].update(input_time)
+
+        input_min_time = 0
+        if len(records) > 0:
+            input_min_time = records.data[0].get(input_column)
 
         for i in range(len(records)):
             data: RecordInterface = records.data[i]
@@ -122,7 +125,7 @@ class ResponseMap():
                 continue
 
             input_time, output_time = data.get(input_column), data.get(output_column)
-            update(input_time, output_time)
+            update(input_min_time, input_time, output_time)
 
             for j in range(i+1, len(records)):
                 data_: RecordInterface = records.data[j]
@@ -131,10 +134,10 @@ class ResponseMap():
 
                 input_time_, output_time_ = data_.get(input_column), data_.get(output_column)
 
-                update(input_time, output_time_)
-
                 if output_time < input_time_:
                     break
+
+                update(input_min_time, input_time, output_time_)
 
         self._d = d
         self._input_column = input_column

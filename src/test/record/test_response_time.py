@@ -186,8 +186,8 @@ class TestResponseRecords:
         expect_raw = [
             {'start': 0, 'end': 1},
             {'start': 0, 'end': 3},
+            {'start': 0, 'end': 11},
             {'start': 2, 'end': 3},
-            {'start': 2, 'end': 11},
             {'start': 10, 'end': 11},
         ]
 
