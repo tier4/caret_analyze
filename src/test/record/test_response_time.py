@@ -16,7 +16,6 @@ from caret_analyze.exceptions import InvalidRecordsError
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.record.response_time import ResponseTime
 
-import numpy as np
 import pytest
 
 
