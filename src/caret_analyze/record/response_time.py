@@ -14,7 +14,7 @@
 
 import math
 
-from typing import Iterator, List, Optional, Tuple
+from typing import Iterator, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -766,17 +766,7 @@ class ResponseHistogram:
                 latency = max(output_time - input_time - binsize_ns, 0)
                 latency_ns.append(latency)
 
-        if len(latency_ns) == 0:
-            raise InvalidRecordsError(
-                'Failed to calculate histogram.'
-                'There is no amount of data required to calculate histograms.'
-            )
-
-        range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
-        range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns + binsize_ns
-        bin_num = math.ceil((range_max - range_min) / binsize_ns)
-        return np.histogram(
-            latency_ns, bins=bin_num, range=(range_min, range_max), density=density)
+        return self._to_histogram(latency_ns, binsize_ns, density)
 
     def to_best_case_histogram(
         self,
@@ -811,15 +801,7 @@ class ResponseHistogram:
 
         """
         _, latency_ns = self._timeseries.to_best_case_timeseries()
-
-        if len(latency_ns) == 0:
-            raise InvalidRecordsError('')
-
-        range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
-        range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns + binsize_ns
-        bin_num = math.ceil((range_max - range_min) / binsize_ns)
-        return np.histogram(
-            latency_ns, bins=bin_num, range=(range_min, range_max), density=density)
+        return self._to_histogram(latency_ns, binsize_ns, density)
 
     def to_worst_case_histogram(
         self,
@@ -855,8 +837,14 @@ class ResponseHistogram:
         """
         _, latency_ns = self._timeseries.to_worst_case_timeseries()
 
+        return self._to_histogram(latency_ns, binsize_ns, density)
+
+    @staticmethod
+    def _to_histogram(latency_ns: Sequence[int], binsize_ns: int, density: bool):
         if len(latency_ns) == 0:
-            raise InvalidRecordsError('')
+            raise InvalidRecordsError(
+                'Failed to calculate histogram.'
+                'There is no amount of data required to calculate histograms.')
 
         range_min = math.floor(min(latency_ns) / binsize_ns) * binsize_ns
         range_max = math.ceil(max(latency_ns) / binsize_ns) * binsize_ns + binsize_ns
