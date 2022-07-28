@@ -518,6 +518,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#caret_analyze.plot.callback_sched" class="md-nav__link">
+    callback_sched()
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -768,6 +775,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.plot.callback_sched" class="md-nav__link">
+    callback_sched()
+  </a>
   
 </li>
       
@@ -1372,6 +1386,101 @@ The default is "system_time".</p></td>
 
 </div>
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="caret_analyze.plot.callback_sched" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_sched</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">lstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">coloring_rule</span><span class="o">=</span><span class="s1">&#39;callback&#39;</span><span class="p">,</span> <span class="n">use_sim_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">export_path</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.plot.callback_sched" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Visualize callback scheduling behavior.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code>Union[Node, CallbackGroup, Executor].</code>
+          </td>
+          <td><p>The target which you want to visualize,
+it can be a Node, a CallbackGroup or a Executor.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>lstrip_s</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Left strip. The default value is 0.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>rstrip_s</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Right strip. The default value is 0.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>coloring_rule</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The unit of color change.
+There are three rules which are callback, callback_group and node.
+The default value is "callback".</p></td>
+          <td>
+                <code>&#39;callback&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_sim_time</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>If you want to use the simulation time, you can set this Parameter to True.</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>export_path</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>If you give path, the drawn graph will be saved as a file.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 
