@@ -150,7 +150,7 @@ class ResponseMap():
         Yields
         ------
         Iterator[int]
-            output time.
+            iterator which returns output time.
 
         """
         return iter(sorted(self._d))
@@ -284,12 +284,12 @@ class ResponseTime:
 
     def to_records(self, *, all_pattern=False) -> RecordsInterface:
         """
-        Calculate records.
+        Calculate response time records.
 
         Parameters
         ----------
         all_pattern : bool, optional
-            Get response times with time overlap, by default False. [for debug]
+            If True, get response times with time overlap, by default False. [for debug]
 
         Returns
         -------
@@ -305,7 +305,7 @@ class ResponseTime:
 
     def to_response_records(self) -> RecordsInterface:
         """
-        Calculate records.
+        Calculate response records.
 
         Returns
         -------
@@ -323,13 +323,12 @@ class ResponseTime:
         """
         Calculate the best-case time series data for response time.
 
-        The best case for response time also includes values
-        corresponding to the message flow latency.
+        The best case for response time are included message flow latency.
 
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            input timeseries[ns], latency[ns]
+            input time[ns], latency[ns]
 
         """
         return self._timeseries.to_best_case_timeseries()
@@ -338,13 +337,13 @@ class ResponseTime:
         """
         Calculate the worst-case time series data for response time.
 
-        The worst case in response time includes message flow latenciesa
+        The worst case in response time includes message flow latencies
         as well as delays caused by various factors such as lost messages.
 
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            input timeseries[ns], latency[ns]
+            input time[ns], latency[ns]
 
         """
         return self._timeseries.to_worst_case_timeseries()
@@ -355,7 +354,7 @@ class ResponseTime:
         density: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Get response time histogram.
+        Calculate response time histogram.
 
         Parameters
         ----------
@@ -371,7 +370,7 @@ class ResponseTime:
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            hist and bin_edges.
+            frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         """
@@ -385,13 +384,13 @@ class ResponseTime:
         """
         Calculate the best-case histogram for response time.
 
-        The best case for response time also includes values
-        corresponding to the message flow latency.
+        The best case for response time are included message flow latency.
 
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            frequency, latency[ns]
+            frequency, latencies[ns].
+            ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         """
         return self._histogram.to_best_case_histogram(binsize_ns, density)
@@ -404,13 +403,14 @@ class ResponseTime:
         """
         Calculate the worst-case histogram for response time.
 
-        The worst case in response time includes message flow latenciesa
+        The worst case in response time includes message flow latencies
         as well as delays caused by various factors such as lost messages.
 
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            frequency, latency[ns]
+            frequency, latencies[ns].
+            ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         """
         return self._histogram.to_worst_case_histogram(binsize_ns, density)
@@ -443,7 +443,7 @@ class ResponseRecords:
         Parameters
         ----------
         all_pattern : bool
-            Get response times with time overlap, by default False. [for debug]
+            Calculate response times with time overlap, by default False. [for debug]
 
         Returns
         -------
@@ -465,7 +465,7 @@ class ResponseRecords:
 
     def to_range_records(self) -> RecordsInterface:
         """
-        Calculate records.
+        Calculate response time records.
 
         Returns
         -------
@@ -504,7 +504,7 @@ class ResponseRecords:
 
     def to_best_case_records(self) -> RecordsInterface:
         """
-        Calculate records.
+        Calculate best case reponse time records.
 
         Returns
         -------
@@ -539,7 +539,7 @@ class ResponseRecords:
 
     def to_worst_case_records(self) -> RecordsInterface:
         """
-        Calculate records.
+        Calculate worst case response records.
 
         Returns
         -------
@@ -738,7 +738,7 @@ class ResponseHistogram:
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            hist and bin_edges.
+            frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         Raises
@@ -801,7 +801,7 @@ class ResponseHistogram:
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            hist and bin_edges.
+            frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         Raises
@@ -844,7 +844,7 @@ class ResponseHistogram:
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            hist and bin_edges.
+            frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         Raises
