@@ -624,6 +624,40 @@ class ResponseRecords:
         return records
 
 
+class ResponseTimeseries:
+
+    def __init__(
+        self,
+        response_records: ResponseRecords
+    ) -> None:
+        self._records = response_records
+
+    def to_best_case_timeseries(self):
+        records = self._records.to_range_records()
+        input_column = records.columns[1]
+        output_column = records.columns[2]
+        return self._to_timeseries(input_column, output_column)
+
+    def to_worst_case_timeseries(self):
+        records = self._records.to_range_records()
+        input_column = records.columns[0]
+        output_column = records.columns[2]
+        return self._to_timeseries(input_column, output_column)
+
+    def _to_timeseries(self, input_column, output_column):
+        records = self._records.to_range_records()
+
+        t_ = records.get_column_series(input_column)
+        t_in = np.array(t_, dtype=np.int64)
+
+        t_out_ = records.get_column_series(output_column)
+        t_out = np.array(t_out_, dtype=np.int64)
+
+        latency = t_out - t_in
+
+        return t_in, latency
+
+
 class ResponseHistogram:
     """Class that calculates response time histogram."""
 
@@ -705,33 +739,7 @@ class ResponseHistogram:
             latency_ns, bins=bin_num, range=(range_min, range_max), density=density)
 
 
-class ResponseTimeseries:
 
-    def __init__(
-        self,
-        response_records: ResponseRecords
-    ) -> None:
-        self._records = response_records
 
-    def to_best_case_timeseries(self):
-        records = self._records.to_range_records()
-        input_column = records.columns[1]
-        output_column = records.columns[2]
-        return self._to_timeseries(input_column, output_column)
 
-    def to_worst_case_timeseries(self):
-        records = self._records.to_range_records()
-        input_column = records.columns[0]
-        output_column = records.columns[2]
-        return self._to_timeseries(input_column, output_column)
 
-    def _to_timeseries(self, input_column, output_column):
-        records = self._records.to_range_records()
-
-        t_ = records.get_column_series(input_column)
-        t = np.array(t_, dtype=np.int64)
-
-        latency_ = records.get_column_series(output_column)
-        latency = np.array(latency_, dtype=np.int64)
-
-        return t, latency
