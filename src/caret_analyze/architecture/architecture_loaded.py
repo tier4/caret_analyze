@@ -24,20 +24,32 @@ from ..common import Progress, Util
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
                           InvalidYamlFormatError, ItemNotFoundError,
                           MultipleItemFoundError, UnsupportedTypeError)
-from ..value_objects import (CallbackChain, CallbackGroupStructValue,
-                             CallbackGroupValue, CallbackStructValue,
-                             CallbackValue, CommunicationStructValue,
-                             ExecutorStructValue, ExecutorValue,
-                             MessageContext, NodePathStructValue,
-                             NodePathValue, NodeStructValue, NodeValue,
-                             NodeValueWithId, PathStructValue, PathValue,
-                             PublisherStructValue, PublisherValue,
-                             SubscriptionCallbackStructValue,
+from ..value_objects import (CallbackChain,
+                             CallbackGroupValue,
+                             CallbackValue,
+                             ExecutorValue,
+                             NodePathValue, NodeValue,
+                             NodeValueWithId, PathValue,
+                             PublisherValue,
                              SubscriptionCallbackValue,
-                             SubscriptionStructValue, SubscriptionValue,
-                             TimerCallbackStructValue, TimerCallbackValue, TimerStructValue,
-                             TimerValue, VariablePassingStructValue, VariablePassingValue)
-from ..struct.node import (NodeStruct)
+                             SubscriptionValue,
+                             TimerCallbackValue,
+                             TimerValue, VariablePassingValue)
+from ..struct import (NodeStruct,
+                      CallbackGroupStruct,
+                      CallbackStruct,
+                      CommunicationStruct,
+                      ExecutorStruct,
+                      NodePathStruct,
+                      PathStruct,
+                      PublisherStruct,
+                      SubscriptionStruct,
+                      SubscriptionCallbackStruct,
+                      TimerCallbackStruct,
+                      TimerStruct,
+                      VariablePassingStruct,
+                      MessageContext,
+                      )
 
 logger = getLogger(__name__)
 
@@ -62,26 +74,26 @@ class ArchitectureLoaded():
         self._nodes = nodes_loaded.data
 
         execs_loaded = ExecutorValuesLoaded(topic_ignored_reader, nodes_loaded)
-        self._executors: Tuple[ExecutorStructValue, ...]
+        self._executors: Tuple[ExecutorStruct, ...]
         self._executors = execs_loaded.data
 
         comms_loaded = CommValuesLoaded(nodes_loaded)
-        self._communications: Tuple[CommunicationStructValue, ...]
+        self._communications: Tuple[CommunicationStruct, ...]
         self._communications = comms_loaded.data
 
         paths_loaded = PathValuesLoaded(
             topic_ignored_reader, nodes_loaded, comms_loaded)
-        self._named_paths: Tuple[PathStructValue, ...]
+        self._named_paths: Tuple[PathStruct, ...]
         self._paths = paths_loaded.data
 
         return None
 
     @property
-    def paths(self) -> Tuple[PathStructValue, ...]:
+    def paths(self) -> Tuple[PathStruct, ...]:
         return self._paths
 
     @property
-    def executors(self) -> Tuple[ExecutorStructValue, ...]:
+    def executors(self) -> Tuple[ExecutorStruct, ...]:
         return self._executors
 
     @property
@@ -89,7 +101,7 @@ class ArchitectureLoaded():
         return self._nodes
 
     @property
-    def communications(self) -> Tuple[CommunicationStructValue, ...]:
+    def communications(self) -> Tuple[CommunicationStruct, ...]:
         return self._communications
 
 
@@ -101,7 +113,7 @@ class CommValuesLoaded():
     ) -> None:
         node_values = nodes_loaded.data
 
-        data: List[CommunicationStructValue] = []
+        data: List[CommunicationStruct] = []
         pub_sub_pair = product(node_values, node_values)
 
         node_pub: NodeStruct
@@ -118,11 +130,11 @@ class CommValuesLoaded():
     @staticmethod
     def _to_struct(
         nodes_loaded: NodeValuesLoaded,
-        pub: PublisherStructValue,
-        sub: SubscriptionStructValue,
+        pub: PublisherStruct,
+        sub: SubscriptionStruct,
         node_pub: NodeStruct,
         node_sub: NodeStruct,
-    ) -> CommunicationStructValue:
+    ) -> CommunicationStruct:
         from ..common import Util
 
         try:
@@ -151,11 +163,11 @@ class CommValuesLoaded():
             msg += f'topic_name: {sub.topic_name}'
             logger.warning(msg)
 
-        return CommunicationStructValue(
+        return CommunicationStruct(
             node_pub, node_sub, pub, sub, callbacks_pub, callback_sub)
 
     @property
-    def data(self) -> Tuple[CommunicationStructValue, ...]:
+    def data(self) -> Tuple[CommunicationStruct, ...]:
         return self._data
 
     def find_communication(
@@ -163,10 +175,10 @@ class CommValuesLoaded():
         topic_name: str,
         publish_node_name: str,
         subscribe_node_name: str,
-    ) -> CommunicationStructValue:
+    ) -> CommunicationStruct:
         from ..common import Util
 
-        def is_target(comm: CommunicationStructValue):
+        def is_target(comm: CommunicationStruct):
             return comm.publish_node_name == publish_node_name and \
                 comm.subscribe_node_name == subscribe_node_name and \
                 comm.topic_name == topic_name
@@ -182,20 +194,20 @@ class CommValuesLoaded():
 
     class IsTargetPubCallback:
 
-        def __init__(self, publish: PublisherStructValue):
+        def __init__(self, publish: PublisherStruct):
             self._publish = publish
 
-        def __call__(self, callback: CallbackStructValue) -> bool:
+        def __call__(self, callback: CallbackStruct) -> bool:
             if callback.publish_topic_names is None:
                 return False
             return self._publish.topic_name in callback.publish_topic_names
 
     class IsTargetSubCallback:
 
-        def __init__(self, subscription: SubscriptionStructValue):
+        def __init__(self, subscription: SubscriptionStruct):
             self._subscription = subscription
 
-        def __call__(self, callback: CallbackStructValue) -> bool:
+        def __call__(self, callback: CallbackStruct) -> bool:
             if callback.subscribe_topic_name is None:
                 return False
             return self._subscription.topic_name == callback.subscribe_topic_name
@@ -262,7 +274,7 @@ class NodeValuesLoaded():
     def get_callbacks(
         self,
         node_name: str
-    ) -> Tuple[CallbackStructValue, ...]:
+    ) -> Tuple[CallbackStruct, ...]:
         from ..common import Util
         try:
             cb_loaded: CallbacksLoaded
@@ -285,10 +297,10 @@ class NodeValuesLoaded():
     def find_node_path(
         self,
         node_path_value: NodePathValue,
-    ) -> NodePathStructValue:
+    ) -> NodePathStruct:
         from ..common import Util
 
-        def is_target(value: NodePathStructValue):
+        def is_target(value: NodePathStruct):
             return value.publish_topic_name == node_path_value.publish_topic_name and \
                 value.subscribe_topic_name == node_path_value.subscribe_topic_name
 
@@ -312,7 +324,7 @@ class NodeValuesLoaded():
     def find_callback_group(
         self,
         callback_group_id: str
-    ) -> CallbackGroupStructValue:
+    ) -> CallbackGroupStruct:
         for cbg_loaded in self._cbg_loaded:
             try:
                 return cbg_loaded.find_callback_group(callback_group_id)
@@ -325,7 +337,7 @@ class NodeValuesLoaded():
     def find_callback(
         self,
         callback_id: str
-    ) -> CallbackStructValue:
+    ) -> CallbackStruct:
         for cb_loaded in self._cb_loaded:
             try:
                 return cb_loaded.find_callback(callback_id)
@@ -336,8 +348,8 @@ class NodeValuesLoaded():
     def find_callbacks(
         self,
         callback_ids: Tuple[str, ...]
-    ) -> Tuple[CallbackStructValue, ...]:
-        callbacks: List[CallbackStructValue] = []
+    ) -> Tuple[CallbackStruct, ...]:
+        callbacks: List[CallbackStruct] = []
         for cb_loaded in self._cb_loaded:
             callbacks += cb_loaded.search_callbacks(callback_ids)
 
@@ -354,20 +366,20 @@ class NodeValuesLoaded():
 
         callbacks_loaded = CallbacksLoaded(reader, node)
 
-        publishers: Tuple[PublisherStructValue, ...]
+        publishers: Tuple[PublisherStruct, ...]
         publishers = PublishersLoaded(reader, callbacks_loaded, node).data
 
-        subscriptions: Tuple[SubscriptionStructValue, ...]
+        subscriptions: Tuple[SubscriptionStruct, ...]
         subscriptions = SubscriptionsLoaded(reader, callbacks_loaded, node).data
 
-        timers: Tuple[TimerStructValue, ...]
+        timers: Tuple[TimerStruct, ...]
         timers = TimersLoaded(reader, callbacks_loaded, node).data
 
-        callback_groups: Tuple[CallbackGroupStructValue, ...]
+        callback_groups: Tuple[CallbackGroupStruct, ...]
         cbg_loaded = CallbackGroupsLoaded(reader, callbacks_loaded, node)
         callback_groups = cbg_loaded.data
 
-        variable_passings: Tuple[VariablePassingStructValue, ...]
+        variable_passings: Tuple[VariablePassingStruct, ...]
         variable_passings = VariablePassingsLoaded(
             reader, callbacks_loaded, node).data
 
@@ -397,9 +409,9 @@ class NodeValuesLoaded():
     def _search_node_paths(
         node: NodeStruct,
         reader: ArchitectureReader
-    ) -> Tuple[NodePathStructValue, ...]:
+    ) -> Tuple[NodePathStruct, ...]:
 
-        node_paths: List[NodePathStructValue] = []
+        node_paths: List[NodePathStruct] = []
 
         # # add single callback paths
         # if node.callback_values is not None:
@@ -415,11 +427,11 @@ class NodeValuesLoaded():
         #                 pubs.append(node.get_publisher_value(publish_topic_name))
 
         #         if pubs is None:
-        #             path = NodePathStructValue(node.node_name, sub, None, (callback, ), None)
+        #             path = NodePathStruct(node.node_name, sub, None, (callback, ), None)
         #             node_paths.append(path)
         #             continue
         #         for pub in pubs:
-        #             path = NodePathStructValue(node.node_name, sub, pub, (callback, ), None)
+        #             path = NodePathStruct(node.node_name, sub, pub, (callback, ), None)
         #             node_paths.append(path)
 
         # add callback-graph paths
@@ -451,7 +463,7 @@ class NodeValuesLoaded():
         for pub in node.publishers:
             added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
                                    for n in node_paths]
-            node_path = NodePathStructValue(
+            node_path = NodePathStruct(
                 node.node_name,
                 None,
                 pub,
@@ -471,7 +483,7 @@ class NodeValuesLoaded():
         for sub in node.subscriptions:
             added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
                                    for n in node_paths]
-            node_path = NodePathStructValue(
+            node_path = NodePathStruct(
                 node.node_name,
                 sub,
                 None,
@@ -513,9 +525,9 @@ class NodeValuesLoaded():
 
     @staticmethod
     def _message_context_assigned(
-        node_paths: Sequence[NodePathStructValue],
+        node_paths: Sequence[NodePathStruct],
         message_contexts: Sequence[MessageContext],
-    ) -> List[NodePathStructValue]:
+    ) -> List[NodePathStruct]:
         node_paths_ = list(node_paths)
         for i, node_path in enumerate(node_paths_):
             for context in message_contexts:
@@ -530,7 +542,7 @@ class NodeValuesLoaded():
                 ):
                     continue
 
-                node_paths_[i] = NodePathStructValue(
+                node_paths_[i] = NodePathStruct(
                     node_path.node_name,
                     node_path.subscription,
                     node_path.publisher,
@@ -545,7 +557,7 @@ class MessageContextsLoaded:
         self,
         reader: ArchitectureReader,
         node: NodeStruct,
-        node_paths: Sequence[NodePathStructValue]
+        node_paths: Sequence[NodePathStruct]
     ) -> None:
         self._data: Tuple[MessageContext, ...]
         data: List[MessageContext] = []
@@ -576,10 +588,10 @@ class MessageContextsLoaded:
 
     @staticmethod
     def get_node_path(
-        node_paths: Sequence[NodePathStructValue],
+        node_paths: Sequence[NodePathStruct],
         publisher_topic_name: str,
         subscription_topic_name: str
-    ) -> NodePathStructValue:
+    ) -> NodePathStruct:
         def is_target(path: NodePathValue):
             return path.publish_topic_name == publisher_topic_name and \
                 path.subscribe_topic_name == subscription_topic_name
@@ -591,7 +603,7 @@ class MessageContextsLoaded:
 
     @staticmethod
     def _create_callack_chain(
-        node_paths: Sequence[NodePathStructValue]
+        node_paths: Sequence[NodePathStruct]
     ) -> List[MessageContext]:
         chains: List[MessageContext] = []
         for path in node_paths:
@@ -609,7 +621,7 @@ class MessageContextsLoaded:
     @staticmethod
     def _to_struct(
         context_dict: Dict,
-        node_path: NodePathStructValue
+        node_path: NodePathStruct
     ) -> MessageContext:
         type_name = context_dict['context_type']
 
@@ -631,19 +643,19 @@ class MessageContextsLoaded:
 class NodePathCreated:
     def __init__(
         self,
-        subscription_values: Tuple[SubscriptionStructValue, ...],
-        publisher_values: Tuple[PublisherStructValue, ...],
+        subscription_values: Tuple[SubscriptionStruct, ...],
+        publisher_values: Tuple[PublisherStruct, ...],
     ) -> None:
-        paths: List[NodePathStructValue] = []
+        paths: List[NodePathStruct] = []
         for sub, pub in product(subscription_values, publisher_values):
             paths.append(
-                NodePathStructValue(sub.node_name, sub, pub, None, None)
+                NodePathStruct(sub.node_name, sub, pub, None, None)
             )
 
         self._data = tuple(paths)
 
     @property
-    def data(self) -> Tuple[NodePathStructValue, ...]:
+    def data(self) -> Tuple[NodePathStruct, ...]:
         return self._data
 
 
@@ -662,9 +674,9 @@ class PublishersLoaded:
     def _to_struct(
         callbacks_loaded: CallbacksLoaded,
         publisher_value: PublisherValue
-    ) -> PublisherStructValue:
+    ) -> PublisherStruct:
 
-        pub_callbacks: List[CallbackStructValue] = []
+        pub_callbacks: List[CallbackStruct] = []
         if publisher_value.callback_ids is not None:
             for callback_id in publisher_value.callback_ids:
                 if callback_id == UNDEFINED_STR:
@@ -683,7 +695,7 @@ class PublishersLoaded:
                     callback not in pub_callbacks:
                 pub_callbacks.append(callback)
 
-        return PublisherStructValue(
+        return PublisherStruct(
             publisher_value.node_name,
             publisher_value.topic_name,
             callback_values=tuple(pub_callbacks),
@@ -692,9 +704,9 @@ class PublishersLoaded:
     @staticmethod
     def _get_callbacks(
         callbacks_loaded: CallbacksLoaded,
-    ) -> List[CallbackStructValue]:
-        def is_user_defined(callback: CallbackStructValue):
-            if isinstance(callback, SubscriptionCallbackStructValue):
+    ) -> List[CallbackStruct]:
+        def is_user_defined(callback: CallbackStruct):
+            if isinstance(callback, SubscriptionCallbackStruct):
                 if callback.subscribe_topic_name == '/parameter_events':
                     return False
             return True
@@ -703,7 +715,7 @@ class PublishersLoaded:
         return Util.filter_items(is_user_defined, callbacks)
 
     @property
-    def data(self) -> Tuple[PublisherStructValue, ...]:
+    def data(self) -> Tuple[PublisherStruct, ...]:
         return self._data
 
 
@@ -722,23 +734,23 @@ class SubscriptionsLoaded:
         self,
         callbacks_loaded: CallbacksLoaded,
         subscription_value: SubscriptionValue
-    ) -> SubscriptionStructValue:
-        sub_callback: Optional[CallbackStructValue] = None
+    ) -> SubscriptionStruct:
+        sub_callback: Optional[CallbackStruct] = None
 
         if subscription_value.callback_id is not None:
             sub_callback = callbacks_loaded.find_callback(
                 subscription_value.callback_id)
 
-        assert isinstance(sub_callback, SubscriptionCallbackStructValue)
+        assert isinstance(sub_callback, SubscriptionCallbackStruct)
 
-        return SubscriptionStructValue(
+        return SubscriptionStruct(
             subscription_value.node_name,
             subscription_value.topic_name,
             sub_callback
         )
 
     @property
-    def data(self) -> Tuple[SubscriptionStructValue, ...]:
+    def data(self) -> Tuple[SubscriptionStruct, ...]:
         return self._data
 
 
@@ -757,22 +769,22 @@ class TimersLoaded:
         self,
         callbacks_loaded: CallbacksLoaded,
         timer_value: TimerValue
-    ) -> TimerStructValue:
+    ) -> TimerStruct:
 
-        timer_callback: Optional[TimerCallbackStructValue] = None
+        timer_callback: Optional[TimerCallbackStruct] = None
 
         if timer_value.callback_id is not None:
             timer_callback = callbacks_loaded.find_callback(
                 timer_value.callback_id)  # type: ignore
 
-        return TimerStructValue(
+        return TimerStruct(
             timer_value.node_name,
             timer_value.period,
             timer_callback
         )
 
     @property
-    def data(self) -> Tuple[TimerStructValue, ...]:
+    def data(self) -> Tuple[TimerStruct, ...]:
         return self._data
 
 
@@ -783,14 +795,14 @@ class VariablePassingsLoaded():
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue,
     ) -> None:
-        data: List[VariablePassingStructValue] = []
+        data: List[VariablePassingStruct] = []
 
         for var_pass in reader.get_variable_passings(node):
             if var_pass.callback_id_read == UNDEFINED_STR or\
                     var_pass.callback_id_write == UNDEFINED_STR:
                 continue
             data.append(
-                VariablePassingStructValue(
+                VariablePassingStruct(
                     node.node_name,
                     callback_write=callbacks_loaded.find_callback(
                         var_pass.callback_id_write),
@@ -799,11 +811,11 @@ class VariablePassingsLoaded():
                 )
             )
 
-        self._data: Tuple[VariablePassingStructValue, ...]
+        self._data: Tuple[VariablePassingStruct, ...]
         self._data = tuple(data)
 
     @property
-    def data(self) -> Tuple[VariablePassingStructValue, ...]:
+    def data(self) -> Tuple[VariablePassingStruct, ...]:
         return self._data
 
 
@@ -814,12 +826,12 @@ class CallbackGroupsLoaded():
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue
     ) -> None:
-        self._data: Dict[str, CallbackGroupStructValue] = {}
+        self._data: Dict[str, CallbackGroupStruct] = {}
         for i, cbg in enumerate(reader.get_callback_groups(node)):
             self._validate(cbg, node)
             cbg_name = cbg.callback_group_name or f'{node.node_name}/callback_group_{i}'
 
-            cbg_struct = CallbackGroupStructValue(
+            cbg_struct = CallbackGroupStruct(
                 cbg.callback_group_type,
                 node.node_name,
                 self._get_callbacks(callbacks_loaded, cbg),
@@ -836,7 +848,7 @@ class CallbackGroupsLoaded():
             raise InvalidReaderError(f'duplicated callback id. {node}, {cbg}')
 
     @property
-    def data(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def data(self) -> Tuple[CallbackGroupStruct, ...]:
         return tuple(self._data.values())
 
     def find_callback_group(self, callback_group_id: str):
@@ -849,8 +861,8 @@ class CallbackGroupsLoaded():
         self,
         callbacks_loaded: CallbacksLoaded,
         callback_group: CallbackGroupValue,
-    ) -> Tuple[CallbackStructValue, ...]:
-        callback_structs: List[CallbackStructValue] = []
+    ) -> Tuple[CallbackStruct, ...]:
+        callback_structs: List[CallbackStruct] = []
         for callback_id in callback_group.callback_ids:
             # Ensure that the callback information exists.
             callback_struct = callbacks_loaded.find_callback(callback_id)
@@ -874,7 +886,7 @@ class CallbacksLoaded():
         self._callbacks = callbacks
 
         self._callback_count: Dict[CallbackValue, int] = {}
-        self._cb_dict: Dict[str, CallbackStructValue] = {}
+        self._cb_dict: Dict[str, CallbackStruct] = {}
 
         callback_num = Util.num_digit(len(callbacks))
         for callback in callbacks:
@@ -888,14 +900,14 @@ class CallbacksLoaded():
         return self._node.node_name
 
     @property
-    def data(self) -> Tuple[CallbackStructValue, ...]:
+    def data(self) -> Tuple[CallbackStruct, ...]:
         return tuple(self._cb_dict.values())
 
     def _to_struct(
         self,
         callback: CallbackValue,
         callback_num: int
-    ) -> CallbackStructValue:
+    ) -> CallbackStruct:
 
         if isinstance(callback, TimerCallbackValue):
             self._callback_count[callback] = self._callback_count.get(
@@ -905,7 +917,7 @@ class CallbacksLoaded():
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
 
-            return TimerCallbackStructValue(
+            return TimerCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 period_ns=callback.period_ns,
@@ -920,7 +932,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
-            return SubscriptionCallbackStructValue(
+            return SubscriptionCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 subscribe_topic_name=callback.subscribe_topic_name,
@@ -964,7 +976,7 @@ class CallbacksLoaded():
     def find_callback(
         self,
         callback_id: str
-    ) -> CallbackStructValue:
+    ) -> CallbackStruct:
         if callback_id in self._cb_dict.keys():
             return self._cb_dict[callback_id]
 
@@ -976,7 +988,7 @@ class CallbacksLoaded():
     def search_callbacks(
         self,
         callback_ids: Tuple[str, ...]
-    ) -> Tuple[CallbackStructValue, ...]:
+    ) -> Tuple[CallbackStruct, ...]:
         """
         Search callbacks.
 
@@ -987,11 +999,11 @@ class CallbacksLoaded():
 
         Returns
         -------
-        Tuple[CallbackStructValue, ...]
+        Tuple[CallbackStruct, ...]
             If the callback is not found, it returns an empty tuple.
 
         """
-        callbacks: List[CallbackStructValue] = []
+        callbacks: List[CallbackStruct] = []
 
         for callback_id in callback_ids:
             if callback_id not in self._cb_dict.keys():
@@ -1008,7 +1020,7 @@ class ExecutorValuesLoaded():
         reader: ArchitectureReader,
         nodes_loaded: NodeValuesLoaded,
     ) -> None:
-        execs: List[ExecutorStructValue] = []
+        execs: List[ExecutorStruct] = []
 
         exec_vals = reader.get_executors()
         num_digit = Util.num_digit(len(exec_vals))
@@ -1031,8 +1043,8 @@ class ExecutorValuesLoaded():
         executor_name: str,
         executor: ExecutorValue,
         nodes_loaded: NodeValuesLoaded,
-    ) -> ExecutorStructValue:
-        callback_group_values: List[CallbackGroupStructValue] = []
+    ) -> ExecutorStruct:
+        callback_group_values: List[CallbackGroupStruct] = []
 
         for cbg_id in executor.callback_group_ids:
             try:
@@ -1045,7 +1057,7 @@ class ExecutorValuesLoaded():
                     f'Failed to load executor. executor_name: {executor_name}')
                 logger.warn(e)
 
-        return ExecutorStructValue(
+        return ExecutorStruct(
             executor.executor_type,
             tuple(callback_group_values),
             executor_name,
@@ -1055,11 +1067,11 @@ class ExecutorValuesLoaded():
     def _find_struct_callback_group(
         callback_group_id: str,
         nodes_loaded: NodeValuesLoaded,
-    ) -> CallbackGroupStructValue:
+    ) -> CallbackGroupStruct:
         return nodes_loaded.find_callback_group(callback_group_id)
 
     @property
-    def data(self) -> Tuple[ExecutorStructValue, ...]:
+    def data(self) -> Tuple[ExecutorStruct, ...]:
         return self._data
 
 
@@ -1070,7 +1082,7 @@ class PathValuesLoaded():
         nodes_loaded: NodeValuesLoaded,
         communications_loaded: CommValuesLoaded,
     ) -> None:
-        paths: List[PathStructValue] = []
+        paths: List[PathStruct] = []
         for path in reader.get_paths():
             try:
                 paths.append(
@@ -1086,11 +1098,11 @@ class PathValuesLoaded():
         path_info: PathValue,
         nodes_loaded: NodeValuesLoaded,
         comms_loaded: CommValuesLoaded,
-    ) -> PathStructValue:
+    ) -> PathStruct:
         node_paths_info = PathValuesLoaded._to_node_path_struct(
             path_info.node_path_values, nodes_loaded)
 
-        child: List[Union[NodePathStructValue, CommunicationStructValue]] = []
+        child: List[Union[NodePathStruct, CommunicationStruct]] = []
         child.append(node_paths_info[0])
         for pub_node_path, sub_node_path in zip(node_paths_info[:-1], node_paths_info[1:]):
             topic_name = sub_node_path.subscribe_topic_name
@@ -1108,17 +1120,17 @@ class PathValuesLoaded():
             child.append(comm_info)
             child.append(sub_node_path)
 
-        return PathStructValue(path_info.path_name, tuple(child))
+        return PathStruct(path_info.path_name, tuple(child))
 
     @staticmethod
     def _to_node_path_struct(
         node_path_values: Tuple[NodePathValue, ...],
         nodes_loaded: NodeValuesLoaded,
-    ) -> Tuple[NodePathStructValue, ...]:
+    ) -> Tuple[NodePathStruct, ...]:
         return tuple(nodes_loaded.find_node_path(_) for _ in node_path_values)
 
     @property
-    def data(self) -> Tuple[PathStructValue, ...]:
+    def data(self) -> Tuple[PathStruct, ...]:
         return self._data
 
     # serviceはactioに対応していないので、おかしな結果になってしまう。
@@ -1165,12 +1177,12 @@ class CallbackPathSearched():
         node: NodeStruct,
     ) -> None:
         from .graph_search import CallbackPathSearcher
-        self._data: Tuple[NodePathStructValue, ...]
+        self._data: Tuple[NodePathStruct, ...]
 
         searcher = CallbackPathSearcher(node)
 
         callbacks = node.callbacks
-        paths: List[NodePathStructValue] = []
+        paths: List[NodePathStruct] = []
 
         if callbacks is not None:
             for write_callback, read_callback in product(callbacks, callbacks):
@@ -1186,7 +1198,7 @@ class CallbackPathSearched():
         self._data = tuple(paths)
 
     @property
-    def data(self) -> Tuple[NodePathStructValue, ...]:
+    def data(self) -> Tuple[NodePathStruct, ...]:
         return self._data
 
 

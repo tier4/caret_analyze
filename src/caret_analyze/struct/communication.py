@@ -1,22 +1,22 @@
 from typing import Optional, Tuple
 
-from ..value_objects.callback import CallbackStructValue
+from .callback import CallbackStruct
 from .node import NodeStruct
-from ..value_objects.publisher import PublisherStructValue
-from ..value_objects.subscription import SubscriptionStructValue
+from .publisher import PublisherStruct
+from .subscription import SubscriptionStruct
 from ..common import Summarizable, Summary, Util
 
 
-class CommunicationStructValue(Summarizable):
+class CommunicationStruct(Summarizable):
 
     def __init__(
         self,
         node_publish: NodeStruct,
         node_subscription: NodeStruct,
-        publisher_value: PublisherStructValue,
-        subscription_value: SubscriptionStructValue,
-        publish_callback_values: Optional[Tuple[CallbackStructValue, ...]],
-        subscription_callback_value: Optional[CallbackStructValue],
+        publisher_value: PublisherStruct,
+        subscription_value: SubscriptionStruct,
+        publish_callback_values: Optional[Tuple[CallbackStruct, ...]],
+        subscription_callback_value: Optional[CallbackStruct],
     ) -> None:
         self._publisher_value = publisher_value
         self._subscription_value = subscription_value
@@ -27,21 +27,21 @@ class CommunicationStructValue(Summarizable):
         self._publish_callbacks_value = publish_callback_values
 
     def _find_publish_value(self, node: NodeStruct, topic_name: str):
-        def is_target(pub: PublisherStructValue):
+        def is_target(pub: PublisherStruct):
             return pub.topic_name == topic_name
         return Util.find_one(is_target, node.publishers)
 
     def _find_subscription_value(self, node: NodeStruct, topic_name: str):
-        def is_target(sub: SubscriptionStructValue):
+        def is_target(sub: SubscriptionStruct):
             return sub.topic_name == topic_name
         return Util.find_one(is_target, node.subscriptions)
 
     @property
-    def subscribe_node(self) -> NodeStructValue:
+    def subscribe_node(self) -> NodeStruct:
         return self._node_sub
 
     @property
-    def publish_node(self) -> NodeStructValue:
+    def publish_node(self) -> NodeStruct:
         return self._node_pub
 
     @property
@@ -61,19 +61,19 @@ class CommunicationStructValue(Summarizable):
         return self._subscription_callback_value.callback_name
 
     @property
-    def publisher(self) -> PublisherStructValue:
+    def publisher(self) -> PublisherStruct:
         return self._publisher_value
 
     @property
-    def subscription(self) -> SubscriptionStructValue:
+    def subscription(self) -> SubscriptionStruct:
         return self._subscription_value
 
     @property
-    def publish_callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
+    def publish_callbacks(self) -> Optional[Tuple[CallbackStruct, ...]]:
         return self._publish_callbacks_value
 
     @property
-    def subscribe_callback(self) -> Optional[CallbackStructValue]:
+    def subscribe_callback(self) -> Optional[CallbackStruct]:
         return self._subscription_callback_value
 
     @property

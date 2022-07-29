@@ -1,12 +1,12 @@
 from typing import Optional, Tuple
 
-from ..value_objects.callback import CallbackStructValue
-from ..value_objects.callback_group import CallbackGroupStructValue
-from ..value_objects.node_path import NodePathStructValue
-from ..value_objects.publisher import PublisherStructValue
-from ..value_objects.subscription import SubscriptionStructValue
-from ..value_objects.timer import TimerStructValue
-from ..value_objects.variable_passing import VariablePassingStructValue
+from .callback import CallbackStruct
+from .callback_group import CallbackGroupStruct
+from .node_path import NodePathStruct
+from .publisher import PublisherStruct
+from .subscription import SubscriptionStruct
+from .timer import TimerStruct
+from .variable_passing import VariablePassingStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import ItemNotFoundError
 
@@ -17,12 +17,12 @@ class NodeStruct(Summarizable):
     def __init__(
         self,
         node_name: str,
-        publishers: Tuple[PublisherStructValue, ...],
-        subscriptions_info: Tuple[SubscriptionStructValue, ...],
-        timers: Tuple[TimerStructValue, ...],
-        node_paths: Tuple[NodePathStructValue, ...],
-        callback_groups: Optional[Tuple[CallbackGroupStructValue, ...]],
-        variable_passings: Optional[Tuple[VariablePassingStructValue, ...]],
+        publishers: Tuple[PublisherStruct, ...],
+        subscriptions_info: Tuple[SubscriptionStruct, ...],
+        timers: Tuple[TimerStruct, ...],
+        node_paths: Tuple[NodePathStruct, ...],
+        callback_groups: Optional[Tuple[CallbackGroupStruct, ...]],
+        variable_passings: Optional[Tuple[VariablePassingStruct, ...]],
     ) -> None:
         self._node_name = node_name
         self._publishers = publishers
@@ -37,7 +37,7 @@ class NodeStruct(Summarizable):
         return self._node_name
 
     @property
-    def publishers(self) -> Tuple[PublisherStructValue, ...]:
+    def publishers(self) -> Tuple[PublisherStruct, ...]:
         return self._publishers
 
     @property
@@ -49,26 +49,26 @@ class NodeStruct(Summarizable):
         return tuple(s.topic_name for s in self._subscriptions)
 
     @property
-    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
+    def subscriptions(self) -> Tuple[SubscriptionStruct, ...]:
         return self._subscriptions
 
     @property
-    def timers(self) -> Tuple[TimerStructValue, ...]:
+    def timers(self) -> Tuple[TimerStruct, ...]:
         return self._timers
 
     def get_path(
         self,
         subscribe_topic_name: str,
         publish_topic_name: str
-    ) -> NodePathStructValue:
-        def is_target(path: NodePathStructValue):
+    ) -> NodePathStruct:
+        def is_target(path: NodePathStruct):
             return path.publish_topic_name == publish_topic_name and \
                 path.subscribe_topic_name == subscribe_topic_name
 
         return Util.find_one(is_target, self.paths)
 
     @property
-    def callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
+    def callbacks(self) -> Optional[Tuple[CallbackStruct, ...]]:
         if self._callback_groups is None:
             return None
         return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
@@ -80,7 +80,7 @@ class NodeStruct(Summarizable):
         return tuple(_.callback_name for _ in self.callbacks)
 
     @property
-    def callback_groups(self) -> Optional[Tuple[CallbackGroupStructValue, ...]]:
+    def callback_groups(self) -> Optional[Tuple[CallbackGroupStruct, ...]]:
         return self._callback_groups
 
     @property
@@ -90,17 +90,17 @@ class NodeStruct(Summarizable):
         return tuple(_.callback_group_name for _ in self.callback_groups)
 
     @property
-    def paths(self) -> Tuple[NodePathStructValue, ...]:
+    def paths(self) -> Tuple[NodePathStruct, ...]:
         return self._node_paths
 
     @property
-    def variable_passings(self) -> Optional[Tuple[VariablePassingStructValue, ...]]:
+    def variable_passings(self) -> Optional[Tuple[VariablePassingStruct, ...]]:
         return self._variable_passings_info
 
     def get_subscription(
         self,
         subscribe_topic_name: str
-    ) -> SubscriptionStructValue:
+    ) -> SubscriptionStruct:
 
         try:
             return Util.find_one(
@@ -114,7 +114,7 @@ class NodeStruct(Summarizable):
     def get_publisher(
         self,
         publish_topic_name: str
-    ) -> PublisherStructValue:
+    ) -> PublisherStruct:
         try:
             return Util.find_one(
                 lambda x: x.topic_name == publish_topic_name,
@@ -127,7 +127,7 @@ class NodeStruct(Summarizable):
     def get_timer(
         self,
         timer_period: str
-    ) -> TimerStructValue:
+    ) -> TimerStruct:
         try:
             return Util.find_one(
                 lambda x: x.period == timer_period,

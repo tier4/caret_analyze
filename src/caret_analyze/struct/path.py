@@ -19,18 +19,18 @@ from logging import getLogger
 from typing import Optional, Tuple, Union
 
 from .communication import CommunicationStruct
-from ..struct.node_path import NodePathStructValue, NodePathValue
+from .node_path import NodePathStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError
 
 logger = getLogger(__name__)
 
 
-class PathStruct(ValueObject, Summarizable):
+class PathStruct(Summarizable):
     def __init__(
         self,
         path_name: Optional[str],
-        child: Tuple[Union[NodePathStructValue, CommunicationStruct], ...],
+        child: Tuple[Union[NodePathStruct, CommunicationStruct], ...],
     ) -> None:
         self._path_name = path_name
         self._child = child
@@ -52,16 +52,16 @@ class PathStruct(ValueObject, Summarizable):
     def child_names(self) -> Tuple[str, ...]:
         names = []
         for child in self.child:
-            if isinstance(child, NodePathStructValue):
+            if isinstance(child, NodePathStruct):
                 names.append(child.node_name)
             elif isinstance(child, CommunicationStruct):
                 names.append(child.topic_name)
         return tuple(names)
 
     @property
-    def node_paths(self) -> Tuple[NodePathStructValue, ...]:
+    def node_paths(self) -> Tuple[NodePathStruct, ...]:
         node_paths = Util.filter_items(
-            lambda x: isinstance(x, NodePathStructValue),
+            lambda x: isinstance(x, NodePathStruct),
             self._child)
         return tuple(node_paths)
 
@@ -77,7 +77,7 @@ class PathStruct(ValueObject, Summarizable):
         d: Summary = Summary()
         d['path'] = []
         for child in self.child:
-            if isinstance(child, NodePathStructValue):
+            if isinstance(child, NodePathStruct):
                 context = None
                 if child.message_context is not None:
                     context = child.message_context.summary
@@ -92,21 +92,21 @@ class PathStruct(ValueObject, Summarizable):
         return d
 
     @property
-    def child(self) -> Tuple[Union[NodePathStructValue, CommunicationStruct], ...]:
+    def child(self) -> Tuple[Union[NodePathStruct, CommunicationStruct], ...]:
         return self._child
 
     @staticmethod
-    def _validate(path_elements: Tuple[Union[NodePathStructValue, CommunicationStruct], ...]):
+    def _validate(path_elements: Tuple[Union[NodePathStruct, CommunicationStruct], ...]):
         if len(path_elements) == 0:
             return
 
-        t = NodePathStructValue \
-            if isinstance(path_elements[0], NodePathStructValue) \
+        t = NodePathStruct \
+            if isinstance(path_elements[0], NodePathStruct) \
             else CommunicationStruct
 
         for e in path_elements[1:]:
-            if t == CommunicationStructValue:
-                t = NodePathStructValue
+            if t == CommunicationStruct:
+                t = NodePathStruct
             else:
                 t = CommunicationStruct
             if isinstance(e, t):

@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ..value_objects.callback import CallbackStructValue
-from ..value_objects.callback_group import CallbackGroupStructValue
+from .callback import CallbackStruct
+from .callback_group import CallbackGroupStruct
 from ..common import Summarizable, Summary, Util
 
 
@@ -58,15 +58,15 @@ class ExecutorStruct(Summarizable):
     def __init__(
         self,
         executor_type: ExecutorType,
-        callback_groups: Tuple[CallbackGroupStructValue, ...],
+        callback_groups: Tuple[CallbackGroupStruct, ...],
         executor_name: str,
     ) -> None:
         self._executor_type = executor_type
-        self._cbg_values: Tuple[CallbackGroupStructValue, ...] = callback_groups
+        self._cbg_values: Tuple[CallbackGroupStruct, ...] = callback_groups
         self._executor_name = executor_name
 
     @property
-    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
+    def callbacks(self) -> Tuple[CallbackStruct, ...]:
         return tuple(Util.flatten([cbg.callbacks for cbg in self._cbg_values]))
 
     @property
@@ -86,7 +86,7 @@ class ExecutorStruct(Summarizable):
         return self._executor_name
 
     @property
-    def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def callback_groups(self) -> Tuple[CallbackGroupStruct, ...]:
         return self._cbg_values
 
     @property

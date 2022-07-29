@@ -62,6 +62,94 @@ CallbackType.TIMER = CallbackType('timer_callback')
 CallbackType.SUBSCRIPTION = CallbackType('subscription_callback')
 
 
+class CallbackStruct(Summarizable, metaclass=ABCMeta):
+    """Callback value base class."""
+
+    def __init__(
+        self,
+        node_name: str,
+        symbol: str,
+        subscribe_topic_name: Optional[str],
+        publish_topic_names: Optional[Tuple[str, ...]],
+        callback_name: str,
+    ) -> None:
+        self._node_name = node_name
+        self._callback_name = callback_name
+        self._symbol = symbol
+        self._subscribe_topic_name = subscribe_topic_name
+        self._publish_topic_names = publish_topic_names
+
+    @property
+    def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            node name
+
+        """
+        return self._node_name
+
+    @property
+    def symbol(self) -> str:
+        """
+        Get callback symbol name.
+
+        Returns
+        -------
+        str
+            callback symbol name
+
+        """
+        return self._symbol
+
+    @property
+    def callback_name(self) -> str:
+        """
+        Get callback name.
+
+        Returns
+        -------
+        str
+            callback name
+
+        """
+        return self._callback_name
+
+    @property
+    @abstractmethod
+    def callback_type(self) -> CallbackType:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        CallbackType
+            callback type
+
+        """
+        pass
+
+    @property
+    def callback_type_name(self) -> str:
+        return str(self.callback_type)
+
+    @property
+    def subscribe_topic_name(self) -> Optional[str]:
+        return self._subscribe_topic_name
+
+    @property
+    def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
+        return self._publish_topic_names
+
+    @property
+    @abstractmethod
+    def summary(self) -> Summary:
+        pass
+
+
 class TimerCallbackStruct(CallbackStruct):
     """Structured timer callback value."""
 

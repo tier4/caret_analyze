@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ..value_objects.callback import CallbackStructValue
+from .callback import CallbackStruct
 from ..common import Summarizable, Summary
 
 
@@ -63,14 +63,14 @@ CallbackGroupType.MUTUALLY_EXCLUSIVE = CallbackGroupType('mutually_exclusive')
 CallbackGroupType.REENTRANT = CallbackGroupType('reentrant')
 
 
-class CallbackGroupStruct(ValueObject, Summarizable):
+class CallbackGroupStruct(Summarizable):
     """Callback group value object."""
 
     def __init__(
         self,
         callback_group_type: CallbackGroupType,
         node_name: str,
-        callback_values: Tuple[CallbackStructValue, ...],
+        callback_values: Tuple[CallbackStruct, ...],
         callback_group_name: str
     ) -> None:
         """
@@ -129,7 +129,7 @@ class CallbackGroupStruct(ValueObject, Summarizable):
         return self._node_name
 
     @property
-    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
+    def callbacks(self) -> Tuple[CallbackStruct, ...]:
         return self._callback_values
 
     @property
