@@ -116,10 +116,10 @@ class ResponseMap():
             if input_column not in data.columns or output_column not in data.columns:
                 continue
 
-            if input_min_time is None:
-                input_min_time = data.get(input_column)
-
             input_time, output_time = data.get(input_column), data.get(output_column)
+
+            if input_min_time is None:
+                input_min_time = input_time
 
             if output_time not in d:
                 d[output_time] = TimeRange(input_min_time, input_time)
