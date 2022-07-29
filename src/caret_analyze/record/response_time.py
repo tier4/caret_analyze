@@ -759,15 +759,22 @@ class ResponseHistogram:
         output_column = records.columns[2]
 
         latency_ns = []
-        # Note: need to speed up.
 
+        def to_bin_sized(num):
+            return (num // binsize_ns) * binsize_ns
+
+        # Note: need to speed up.
         for record in records:
             output_time = record.get(output_column)
             input_time_min = record.get(input_min_column)
             input_time_max = record.get(input_max_column)
-            for input_time in range(input_time_min, input_time_max, binsize_ns):
-                latency = max(output_time - input_time - binsize_ns, 0)
-                latency_ns.append(latency)
+            bin_sized_latency_min = to_bin_sized(output_time - input_time_max)
+
+            for input_time in range(input_time_min, input_time_max + binsize_ns, binsize_ns):
+                bin_sized_latency = to_bin_sized(output_time - input_time)
+                if bin_sized_latency < bin_sized_latency_min:
+                    break
+                latency_ns.append(bin_sized_latency)
 
         return self._to_histogram(latency_ns, binsize_ns, density)
 

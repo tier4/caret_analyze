@@ -319,8 +319,8 @@ class TestResponseHistogram:
         response = ResponseTime(records)
 
         hist, latency = response.to_histogram(1)
-        assert list(hist) == [1, 1]
-        assert list(latency) == [1, 2, 3]
+        assert list(hist) == [1, 1, 1]
+        assert list(latency) == [1, 2, 3, 4]
 
         hist, latency = response.to_best_case_histogram(1)
         assert list(hist) == [1]
@@ -336,6 +336,8 @@ class TestResponseHistogram:
             {'start': 3, 'end': 4},
             {'start': 4, 'end': 8},
             {'start': 6, 'end': 6},
+            # latency: 1~4
+            # latency: 0~3
         ]
         columns = ['start', 'end']
 
@@ -343,8 +345,14 @@ class TestResponseHistogram:
         response = ResponseTime(records)
 
         hist, latency = response.to_histogram(1)
-        assert list(hist) == [1, 2, 2, 1]
-        assert list(latency) == [0, 1, 2, 3, 4]
+        assert list(hist) == [
+            1,  # [0, 1)
+            2,  # [1, 2)
+            2,  # [2, 3)
+            2,  # [3, 4)
+            1,  # [4, 5]
+        ]
+        assert list(latency) == [0, 1, 2, 3, 4, 5]
 
         hist, latency = response.to_best_case_histogram(1)
         assert list(hist) == [1, 1]
@@ -369,14 +377,15 @@ class TestResponseHistogram:
         assert list(hist) == [
             2,  # [1, 2)
             2,  # [2, 3)
-            1,  # [3, 4)
+            2,  # [3, 4)
             1,  # [4, 5)
             1,  # [5, 6)
             1,  # [6, 7)
             1,  # [7, 8)
-            1   # [8, 9]
+            1,  # [8, 9)
+            1,  # [9, 10]
         ]
-        assert list(latency) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        assert list(latency) == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
         hist, latency = response.to_best_case_histogram(1)
         assert list(hist) == [
@@ -400,6 +409,7 @@ class TestResponseHistogram:
         records_raw = [
             {'start': 0, 'end': 5},
             {'start': 2, 'end': 3},
+            # latency: 1~3
         ]
         columns = ['start', 'end']
 
@@ -407,8 +417,12 @@ class TestResponseHistogram:
         response = ResponseTime(records)
 
         hist, latency = response.to_histogram(1)
-        assert list(hist) == [1, 1]
-        assert list(latency) == [1, 2, 3]
+        assert list(hist) == [
+            1,  # [0, 1)
+            1,  # [1, 2)
+            1,  # [2, 3]
+        ]
+        assert list(latency) == [1, 2, 3, 4]
 
         hist, latency = response.to_best_case_histogram(1)
         assert list(hist) == [1]
@@ -421,44 +435,96 @@ class TestResponseHistogram:
     def test_hist_bin_size(self):
         records_raw = [
             {'start': 0, 'end': 0},
-            {'start': 20, 'end': 30},
+            {'start': 20, 'end': 30},  # latency: 10~30
+            {'start': 30, 'end': 40},  # latency: 10~20
         ]
         columns = ['start', 'end']
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        latency_min, latency_max = 30-20, 30-0
+        latency_min, latency_max = 10, 30
 
         hist, latency = response.to_histogram(1, False)
-        hist_expected = [1] * (latency_max - latency_min)
-        latency_expected = list(range(latency_min, latency_max + 1))
+        hist_expected = [
+            2,  # [10, 11)
+            2,  # [11, 12)
+            2,  # [12, 13)
+            2,  # [13, 14)
+            2,  # [14, 15)
+            2,  # [15, 16)
+            2,  # [16, 17)
+            2,  # [17, 18)
+            2,  # [18, 19)
+            2,  # [19, 20)
+            2,  # [20, 21)
+            1,  # [21, 22)
+            1,  # [22, 23)
+            1,  # [23, 24)
+            1,  # [24, 25)
+            1,  # [25, 26)
+            1,  # [26, 27)
+            1,  # [27, 28)
+            1,  # [28, 29)
+            1,  # [29, 30)
+            1,  # [30, 31]
+        ]
+
+        latency_expected = list(range(latency_min, latency_max + 2))
         assert list(hist) == hist_expected
         assert list(latency) == latency_expected
 
         hist, latency = response.to_histogram(2, False)
-        hist_expected = [1] * ((latency_max - latency_min)//2)
-        latency_expected = list(range(latency_min, latency_max+2, 2))
+        hist_expected = [
+            2,  # [10, 12)
+            2,  # [12, 14)
+            2,  # [14, 16)
+            2,  # [16, 18)
+            2,  # [18, 20)
+            2,  # [20, 22)
+            1,  # [22, 24)
+            1,  # [24, 26)
+            1,  # [26, 28)
+            1,  # [28, 30)
+            1,  # [30, 32]
+        ]
+
+        latency_expected = list(range(latency_min, latency_max+2 + 2, 2))
         assert list(hist) == hist_expected
         assert list(latency) == latency_expected
 
         hist, latency = response.to_histogram(3)
         hist_expected = [
-            1,  # [9, 12)
-            1,  # [12, 15)
-            1,  # [15, 18)
-            1,  # [18, 21)
+            2,  # [9, 12)
+            2,  # [12, 15)
+            2,  # [15, 18)
+            2,  # [18, 21)
             1,  # [21, 24)
             1,  # [24, 27)
-            1,  # [27, 30]
+            1,  # [27, 30)
+            1,  # [30, 33]
         ]
-        latency_expected = [9, 12, 15, 18, 21, 24, 27, 30]
+        latency_expected = [9, 12, 15, 18, 21, 24, 27, 30, 33]
         assert list(hist) == hist_expected
         assert list(latency) == latency_expected
 
+        hist, latency = response.to_histogram(5)
+        hist_expected = [
+            2,  # [10, 15)
+            2,  # [15, 20)
+            2,  # [20, 25)
+            1,  # [25, 30)
+            1,  # [30, 35]
+        ]
+        latency_expected = [10, 15, 20, 25, 30, 35]
+        assert list(hist) == hist_expected
+        assert list(latency) == latency_expected
+
+        hist, latency = response.to_best_case_histogram(2)
+
         hist, latency = response.to_histogram(100)
         hist_expected = [
-            1,  # [0, 100]
+            2,  # [0, 100]
         ]
         latency_expected = [0, 100]
         assert list(hist) == hist_expected
@@ -466,7 +532,7 @@ class TestResponseHistogram:
 
         hist, latency = response.to_best_case_histogram(3)
         hist_expected = [
-            1, 0
+            2, 0
         ]
         latency_expected = [9, 12, 15]
         assert list(hist) == hist_expected
@@ -488,10 +554,12 @@ class TestResponseHistogram:
         hist, latency = response.to_histogram(1, False)
 
         hist_expected = [
-            4, 1
+            4,  # [1, 2)
+            5,  # [2, 3)
+            1,  # [3, 4]
         ]
         latency_expected = [
-            1, 2, 3
+            1, 2, 3, 4
         ]
         assert list(hist) == hist_expected
         assert list(latency) == latency_expected
