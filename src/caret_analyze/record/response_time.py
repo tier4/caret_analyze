@@ -108,12 +108,6 @@ class ResponseMap():
         """
         d = {}
 
-        def update(input_min_time: int, input_time: int, output_time: int):
-            if output_time not in d:
-                d[output_time] = TimeRange(input_min_time, input_time)
-
-            d[output_time].update(input_time)
-
         input_min_time = None
 
         for i in range(len(records)):
@@ -126,19 +120,11 @@ class ResponseMap():
                 input_min_time = data.get(input_column)
 
             input_time, output_time = data.get(input_column), data.get(output_column)
-            update(input_min_time, input_time, output_time)
 
-            for j in range(i+1, len(records)):
-                data_: RecordInterface = records.data[j]
-                if input_column not in data_.columns or output_column not in data_.columns:
-                    continue
+            if output_time not in d:
+                d[output_time] = TimeRange(input_min_time, input_time)
 
-                input_time_, output_time_ = data_.get(input_column), data_.get(output_column)
-
-                if output_time < input_time_:
-                    break
-
-                update(input_min_time, input_time, output_time_)
+            d[output_time].update(input_time)
 
         self._d = d
         self._input_column = input_column
