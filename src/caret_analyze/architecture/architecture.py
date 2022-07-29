@@ -26,6 +26,7 @@ from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
+from ..struct.node import (NodeStruct)
 
 
 class Architecture(Summarizable):
@@ -44,7 +45,7 @@ class Architecture(Summarizable):
             file_type, file_path)
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
-        self._nodes: Tuple[NodeStructValue, ...] = loaded.nodes
+        self._nodes: Tuple[NodeStruct, ...] = loaded.nodes
         self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
         self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
         self._path_manager = NamedPathManager(loaded.paths)
@@ -165,7 +166,7 @@ class Architecture(Summarizable):
         return path_searcher.search(*node_names, max_node_depth=max_node_depth)
 
     @staticmethod
-    def _verify(nodes: Collection[NodeStructValue]) -> None:
+    def _verify(nodes: Collection[NodeStruct]) -> None:
         from collections import Counter
 
         # verify callback parameter uniqueness
@@ -194,15 +195,19 @@ class Architecture(Summarizable):
                      f'period_ns: {uniqueness_violated[1]}'))
 
     def rename_callback(src: str, dest: str):
-
+        pass
+    
     def rename_node(src: str, dest: str):
-
+        pass
+    
     def rename_path(src: str, dest: str):
-
+        pass
+    
     def rename_executor(src: str, dest: str):
-
+        pass
+    
     def rename_topic(src: str, dest: str):
-        
+        pass  
 
 
 class NamedPathManager():

@@ -37,6 +37,7 @@ from ..value_objects import (CallbackChain, CallbackGroupStructValue,
                              SubscriptionStructValue, SubscriptionValue,
                              TimerCallbackStructValue, TimerCallbackValue, TimerStructValue,
                              TimerValue, VariablePassingStructValue, VariablePassingValue)
+from ..struct.node import (NodeStruct)
 
 logger = getLogger(__name__)
 
@@ -55,7 +56,7 @@ class ArchitectureLoaded():
 
         topic_ignored_reader = TopicIgnoredReader(reader, ignore_topics)
 
-        self._nodes: Tuple[NodeStructValue, ...]
+        self._nodes: Tuple[NodeStruct, ...]
         nodes_loaded = NodeValuesLoaded(topic_ignored_reader)
 
         self._nodes = nodes_loaded.data
@@ -84,7 +85,7 @@ class ArchitectureLoaded():
         return self._executors
 
     @property
-    def nodes(self) -> Tuple[NodeStructValue, ...]:
+    def nodes(self) -> Tuple[NodeStruct, ...]:
         return self._nodes
 
     @property
@@ -103,8 +104,8 @@ class CommValuesLoaded():
         data: List[CommunicationStructValue] = []
         pub_sub_pair = product(node_values, node_values)
 
-        node_pub: NodeStructValue
-        node_sub: NodeStructValue
+        node_pub: NodeStruct
+        node_sub: NodeStruct
         for node_pub, node_sub in Progress.tqdm(pub_sub_pair, 'Searching communications.'):
             for pub, sub in product(node_pub.publishers, node_sub.subscriptions):
                 if pub.topic_name != sub.topic_name:
@@ -119,8 +120,8 @@ class CommValuesLoaded():
         nodes_loaded: NodeValuesLoaded,
         pub: PublisherStructValue,
         sub: SubscriptionStructValue,
-        node_pub: NodeStructValue,
-        node_sub: NodeStructValue,
+        node_pub: NodeStruct,
+        node_sub: NodeStruct,
     ) -> CommunicationStructValue:
         from ..common import Util
 
@@ -206,7 +207,7 @@ class NodeValuesLoaded():
         self,
         reader: ArchitectureReader,
     ) -> None:
-        nodes_struct: List[NodeStructValue] = []
+        nodes_struct: List[NodeStruct] = []
         self._cb_loaded: List[CallbacksLoaded] = []
         self._cbg_loaded: List[CallbackGroupsLoaded] = []
 
@@ -255,7 +256,7 @@ class NodeValuesLoaded():
             raise InvalidReaderError(f'Duplicated node name. {duplicated}. Use first node only.')
 
     @property
-    def data(self) -> Tuple[NodeStructValue, ...]:
+    def data(self) -> Tuple[NodeStruct, ...]:
         return self._data
 
     def get_callbacks(
@@ -272,7 +273,7 @@ class NodeValuesLoaded():
             msg += f'node_name: {node_name}'
             raise ItemNotFoundError(msg)
 
-    def find_node(self, node_name: str) -> NodeStructValue:
+    def find_node(self, node_name: str) -> NodeStruct:
         from ..common import Util
         try:
             return Util.find_one(lambda x: x.node_name == node_name, self.data)
@@ -349,7 +350,7 @@ class NodeValuesLoaded():
     def _create_node(
         node: NodeValue,
         reader: ArchitectureReader,
-    ) -> Tuple[NodeStructValue, CallbacksLoaded, CallbackGroupsLoaded]:
+    ) -> Tuple[NodeStruct, CallbacksLoaded, CallbackGroupsLoaded]:
 
         callbacks_loaded = CallbacksLoaded(reader, node)
 
@@ -370,14 +371,14 @@ class NodeValuesLoaded():
         variable_passings = VariablePassingsLoaded(
             reader, callbacks_loaded, node).data
 
-        node_struct = NodeStructValue(
+        node_struct = NodeStruct(
             node.node_name, publishers, subscriptions, timers, (),
             callback_groups, variable_passings
         )
 
         try:
             node_paths = NodeValuesLoaded._search_node_paths(node_struct, reader)
-            node_path_added = NodeStructValue(
+            node_path_added = NodeStruct(
                 node_struct.node_name, node_struct.publishers,
                 node_struct.subscriptions,
                 node_struct.timers,
@@ -394,7 +395,7 @@ class NodeValuesLoaded():
 
     @staticmethod
     def _search_node_paths(
-        node: NodeStructValue,
+        node: NodeStruct,
         reader: ArchitectureReader
     ) -> Tuple[NodePathStructValue, ...]:
 
@@ -543,7 +544,7 @@ class MessageContextsLoaded:
     def __init__(
         self,
         reader: ArchitectureReader,
-        node: NodeStructValue,
+        node: NodeStruct,
         node_paths: Sequence[NodePathStructValue]
     ) -> None:
         self._data: Tuple[MessageContext, ...]
@@ -1161,7 +1162,7 @@ class PathValuesLoaded():
 class CallbackPathSearched():
     def __init__(
         self,
-        node: NodeStructValue,
+        node: NodeStruct,
     ) -> None:
         from .graph_search import CallbackPathSearcher
         self._data: Tuple[NodePathStructValue, ...]
