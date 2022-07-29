@@ -140,8 +140,6 @@ class ResponseMap():
 
                 update(input_min_time, input_time, output_time_)
 
-        input_min_time = input_min_time or 0
-
         self._d = d
         self._input_column = input_column
         self._output_column = output_column
