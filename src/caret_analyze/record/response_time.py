@@ -114,15 +114,16 @@ class ResponseMap():
 
             d[output_time].update(input_time)
 
-        input_min_time = 0
-        if len(records) > 0:
-            input_min_time = records.data[0].get(input_column)
+        input_min_time = None
 
         for i in range(len(records)):
             data: RecordInterface = records.data[i]
 
             if input_column not in data.columns or output_column not in data.columns:
                 continue
+
+            if input_min_time is None:
+                input_min_time = data.get(input_column)
 
             input_time, output_time = data.get(input_column), data.get(output_column)
             update(input_min_time, input_time, output_time)
@@ -138,6 +139,8 @@ class ResponseMap():
                     break
 
                 update(input_min_time, input_time, output_time_)
+
+        input_min_time = input_min_time or 0
 
         self._d = d
         self._input_column = input_column

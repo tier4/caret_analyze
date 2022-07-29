@@ -237,6 +237,39 @@ class TestResponseRecords:
         result = to_dict(response.to_records(all_pattern=True))
         assert result == expect_raw
 
+    def test_drop_case(self):
+        records_raw = [
+            {'start': 0},
+            {'start': 2, 'end': 3},
+            {'start': 3, 'end': 4},
+        ]
+        columns = ['start', 'end']
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        expect_raw = [
+            {'start': 2, 'end': 4},
+            {'start': 3, 'end': 4}
+        ]
+        result = to_dict(response.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'start_min': 2, 'start_max': 3, 'end': 4},
+        ]
+        result = to_dict(response.to_response_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'start': 2, 'end': 3},
+            {'start': 2, 'end': 4},
+            {'start': 3, 'end': 4},
+        ]
+
+        result = to_dict(response.to_records(all_pattern=True))
+        assert result == expect_raw
+
 
 class TestResponseHistogram:
 
