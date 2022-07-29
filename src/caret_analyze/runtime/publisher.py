@@ -22,29 +22,78 @@ from ..value_objects import PublisherStructValue, Qos
 
 
 class Publisher(PathBase, Summarizable):
+    """Class that represents publisher."""
+
     def __init__(
         self,
         publisher: PublisherStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        publisher : PublisherStructValue
+            static info.
+        provider : Union[RecordsProvider, RuntimeDataProvider]
+            provider to be evaluated.
+
+        """
         super().__init__()
         self._val = publisher
         self._provider = provider
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            node name which contains the publisher.
+
+        """
         return self._val.node_name
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary [override].
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return self._val.summary
 
     @property
     def topic_name(self) -> str:
+        """
+        Get a topic name.
+
+        Returns
+        -------
+        str
+            A topic name that the publisher publishes.
+
+        """
         return self._val.topic_name
 
     @property
     def callback_names(self) -> Optional[List[str]]:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        Optional[List[str]]
+            Callback names which uses the publisher to publish.
+
+        """
         names = self._val.callback_names
         if names is None:
             return None
@@ -52,10 +101,28 @@ class Publisher(PathBase, Summarizable):
 
     @property
     def qos(self) -> Optional[Qos]:
+        """
+        Get QoS.
+
+        Returns
+        -------
+        Optional[Qos]
+            Publisher QoS
+
+        """
         if isinstance(self._provider, RuntimeDataProvider):
             return self._provider.get_qos(self._val)
         return None
 
     def _to_records_core(self) -> RecordsInterface:
+        """
+        Calculate records.
+
+        Returns
+        -------
+        RecordsInterface
+            Publish records.
+
+        """
         records = self._provider.publish_records(self._val)
         return records

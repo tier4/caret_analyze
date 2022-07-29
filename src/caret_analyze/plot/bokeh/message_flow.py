@@ -15,6 +15,8 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
+from functools import cached_property
 from typing import Dict, List, Optional
 
 from bokeh.io import save, show
@@ -47,10 +49,10 @@ def message_flow(
 
     TOOLTIPS = """
     <div style="width:400px; word-wrap: break-word;">
-    t = @x [ns] <br>
-    t_start = @x_min [ns] <br>
-    t_end = @x_max [ns] <br>
+    t_start = @t_start [s] <br>
+    t_end = @t_end [s] <br>
     latency = @latency [ms] <br>
+    t_offset = @t_offset <br>
 
     <br>
     @desc
@@ -85,6 +87,8 @@ def message_flow(
     frame_min: float = clip.min_ns
     frame_max: float = clip.max_ns
 
+    offset = Offset(clip.min_ns)
+
     if converter:
         frame_min = converter.convert(frame_min)
         frame_max = converter.convert(frame_max)
@@ -101,7 +105,7 @@ def message_flow(
     fig.yaxis.ticker = yaxis_property.values
     fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
-    rect_source = get_callback_rects(path, yaxis_values, granularity, clip, converter)
+    rect_source = get_callback_rects(path, yaxis_values, granularity, clip, converter, offset)
     fig.rect(
         'x',
         'y',
@@ -115,7 +119,7 @@ def message_flow(
         x_range_name=x_range_name
     )
 
-    line_sources = get_flow_lines(df, converter)
+    line_sources = get_flow_lines(df, converter, offset)
     for i, line_source in enumerate(line_sources):
         fig.line(
             x='x',
@@ -133,18 +137,45 @@ def message_flow(
         save(fig, export_path, title='time vs tracepoint', resources=CDN)
 
 
+class Offset:
+    def __init__(
+        self,
+        offset_ns: int
+    ) -> None:
+        self._offset = offset_ns
+
+    def __str__(self) -> str:
+        return self._str
+
+    @cached_property
+    def _str(self) -> str:
+        t_offset = datetime.fromtimestamp(self._offset * 10**-9)
+        return t_offset.isoformat(sep=' ', timespec='seconds')
+
+    @property
+    def value(self) -> int:
+        return self._offset
+
+
+def to_format_str(ns: int) -> str:
+    s = (ns) * 10**-9
+    return '{:.3f}'.format(s)
+
+
 def get_callback_rects(
     path: Path,
     y_axi_values: YAxisValues,
     granularity: str,
     clip: Optional[Clip],
-    converter: Optional[ClockConverter]
+    converter: Optional[ClockConverter],
+    offset: Offset
 ) -> ColumnDataSource:
     rect_source = ColumnDataSource(data={
         'x': [],
         'y': [],
-        'x_min': [],
-        'x_max': [],
+        't_start': [],
+        't_end': [],
+        't_offset': [],
         'desc': [],
         'width': [],
         'latency': [],
@@ -156,8 +187,9 @@ def get_callback_rects(
 
     x = []
     y = []
-    x_min = []
-    x_max = []
+    t_start = []
+    t_end = []
+    t_offset = []
     desc = []
     width = []
     latency = []
@@ -185,8 +217,9 @@ def get_callback_rects(
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
                 x.append(rect.x)
                 y.append(rect.y)
-                x_min.append(callback_start)
-                x_max.append(callback_end)
+                t_offset.append(str(offset))
+                t_start.append(to_format_str(callback_start - offset.value))
+                t_end.append(to_format_str(callback_end - offset.value))
                 width.append(rect.width)
                 latency.append((callback_end-callback_start)*1.0e-6)
                 height.append(rect.height)
@@ -198,8 +231,9 @@ def get_callback_rects(
     rect_source = ColumnDataSource(data={
         'x': x,
         'y': y,
-        'x_min': x_min,
-        'x_max': x_max,
+        't_start': t_start,
+        't_end': t_end,
+        't_offset': t_offset,
         'desc': desc,
         'width': width,
         'latency': latency,
@@ -208,7 +242,11 @@ def get_callback_rects(
     return rect_source
 
 
-def get_flow_lines(df: pd.DataFrame, converter: Optional[ClockConverter]) -> ColumnDataSource:
+def get_flow_lines(
+    df: pd.DataFrame,
+    converter: Optional[ClockConverter],
+    offset: Offset
+) -> ColumnDataSource:
     tick_labels = YAxisProperty(df)
     line_sources = []
 
@@ -220,11 +258,14 @@ def get_flow_lines(df: pd.DataFrame, converter: Optional[ClockConverter]) -> Col
         x_max = max(row_values)
         width = x_max - x_min
 
+        t_start_s = to_format_str(x_min-offset.value)
+        t_end_s = to_format_str(x_max-offset.value)
         line_source = ColumnDataSource({
             'x': row_values,
             'y': tick_labels.values[:len(row_values)],
-            'x_min': [x_min]*len(row_values),
-            'x_max': [x_max]*len(row_values),
+            't_start': [t_start_s]*len(row_values),
+            't_end': [t_end_s]*len(row_values),
+            't_offset': [str(offset)]*len(row_values),
             'width': [width]*len(row_values),
             'height': [0]*len(row_values),
             'latency': [width*1.0e-6]*len(row_values),

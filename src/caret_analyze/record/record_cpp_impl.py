@@ -37,11 +37,11 @@ class RecordsCppImpl(RecordsInterface):
         Records._validate(init, columns)
         self._records = RecordsBase(init or [], columns or [])
 
-    def export_json(self, path: str) -> None:
-        import json
+    def export_yaml(self, path: str) -> None:
+        import yaml
 
         data_dict = [dic.data for dic in self.data]
-        s = json.dumps(data_dict)
+        s = yaml.dump(data_dict)
 
         with open(path, mode='w') as f:
             f.write(s)
@@ -51,7 +51,7 @@ class RecordsCppImpl(RecordsInterface):
         self,
         other: RecordInterface
     ) -> None:
-        unknown_columns = set(other.columns) ^ set(self.columns)
+        unknown_columns = set(other.columns) - set(self.columns)
         if len(unknown_columns) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_columns}'

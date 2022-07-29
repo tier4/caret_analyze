@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from copy import deepcopy
+import os
 from typing import Any, Optional
 
 from caret_analyze.exceptions import InvalidArgumentError
@@ -31,10 +32,17 @@ try:
     RecordCppImpl = cpp_impl.RecordCppImpl
     RecordsCppImpl = cpp_impl.RecordsCppImpl
     CppImplEnabled = True
-except ModuleNotFoundError:
-    RecordCppImpl = None
-    RecordsCppImpl = None
-    CppImplEnabled = False
+except ModuleNotFoundError as e:
+    if 'GITHUB_ACTION' in os.environ:
+        # skip cpp_impl tests
+        # Because CARET_analyze does not use CARET_analyze_cpp_Impl on GithubAction.
+        RecordCppImpl = None
+        RecordsCppImpl = None
+        CppImplEnabled = False
+    else:
+        raise ModuleNotFoundError(
+            'Failed to load RecordsCppImpl, ',
+            'possibly due to missing information in the PYTHONPATH environment variable.') from e
 
 
 def to_cpp_record(record: RecordInterface) -> Optional[RecordCppImpl]:
@@ -246,6 +254,7 @@ class TestRecords:
             [
                 Record({'value': 0, 'stamp': 1}),
                 Record({'value': 2, 'stamp': 4}),
+                Record({'value': 3}),
             ],
             ['value', 'stamp']
         )
@@ -257,6 +266,7 @@ class TestRecords:
             records = records_type(None, ['value', 'stamp'])
             records.append(expects.data[0])
             records.append(expects.data[1])
+            records.append(expects.data[2])
             assert records.equals(expects)
             assert records.columns == expects.columns
 

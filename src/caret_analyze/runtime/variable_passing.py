@@ -28,6 +28,17 @@ class VariablePassing(PathBase, Summarizable):
         variable_passing: VariablePassingStructValue,
         records_provider: RecordsProvider,
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        variable_passing : VariablePassingStructValue
+            static info.
+        records_provider : RecordsProvider
+            provider to be evaluated.
+
+        """
         super().__init__()
         self._val = variable_passing
         self._provider = records_provider
@@ -40,6 +51,15 @@ class VariablePassing(PathBase, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary [override].
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return self._val.summary
 
     @property
@@ -50,7 +70,7 @@ class VariablePassing(PathBase, Summarizable):
         Returns
         -------
         str
-            node name
+            node name which has the variable passing.
 
         """
         return self._val.node_name
@@ -58,7 +78,7 @@ class VariablePassing(PathBase, Summarizable):
     @property
     def callback_name_write(self) -> str:
         """
-        Get write-side callback name.
+        Get write side callback name.
 
         Returns
         -------
@@ -71,7 +91,7 @@ class VariablePassing(PathBase, Summarizable):
     @property
     def callback_name_read(self):
         """
-        Get read-side callback name.
+        Get read side callback name.
 
         Returns
         -------

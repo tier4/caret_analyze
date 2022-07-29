@@ -220,7 +220,7 @@ class Lttng(InfraBase):
 
         if len(event_filters) > 0:
             events = Lttng._filter_events(events, event_filters)
-            print('filted to {} events.'.format(len(events)))
+            print('filtered to {} events.'.format(len(events)))
 
         handler = Ros2Handler.process(events)
         return handler.data, events
@@ -429,17 +429,18 @@ class Lttng(InfraBase):
 
     def get_trace_range(
         self
-    ) -> Tuple[int, int]:
+    ) -> Tuple[datetime, datetime]:
         """
         Get trace range.
 
         Returns
         -------
-        trace_range: Tuple[int, int]
-            Trace begin time and trace end time [ns].
+        trace_range: Tuple[datetime, datetime]
+            Trace begin time and trace end time.
 
         """
-        return Lttng._last_trace_begin_time, Lttng._last_trace_end_time
+        return (datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9),
+                datetime.fromtimestamp(Lttng._last_trace_end_time * 1.0e-9))
 
     def get_trace_creation_datetime(
         self

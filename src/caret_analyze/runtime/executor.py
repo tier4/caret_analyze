@@ -25,25 +25,64 @@ from .callback_group import CallbackGroup
 
 
 class Executor(Summarizable):
+    """Class that represents executor."""
 
     def __init__(
         self,
         executor_value: ExecutorStructValue,
         callback_groups: List[CallbackGroup],
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        executor_value : ExecutorStructValue
+            Static info.
+        callback_groups : List[CallbackGroup]
+            Callback groups added to the executor.
+
+        """
         self._val = executor_value
         self._cbgs: List[CallbackGroup] = callback_groups
 
     @property
     def executor_type(self) -> ExecutorType:
+        """
+        Get executor type.
+
+        Returns
+        -------
+        ExecutorType
+            executor type.
+
+        """
         return self._val.executor_type
 
     @property
     def executor_name(self) -> str:
+        """
+        Get executor name.
+
+        Returns
+        -------
+        str
+            executor name defined in the architecture.
+
+        """
         return self._val.executor_name
 
     @property
     def callbacks(self) -> List[CallbackBase]:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        List[CallbackBase]
+            Callbacks added to the executor.
+
+        """
         cbs = Util.flatten([cbg.callbacks for cbg in self._cbgs])
         return sorted(cbs, key=lambda x: x.callback_name)
 
@@ -51,6 +90,29 @@ class Executor(Summarizable):
         self,
         callback_group_name: str
     ) -> CallbackGroup:
+        """
+        Get callback group.
+
+        Parameters
+        ----------
+        callback_group_name : str
+            callback group name to get.
+
+        Returns
+        -------
+        CallbackGroup
+            Callback group that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         if not isinstance(callback_group_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -59,6 +121,29 @@ class Executor(Summarizable):
         return Util.find_one(is_target, self.callback_groups)
 
     def get_callback(self, callback_name: str) -> CallbackBase:
+        """
+        Get callback.
+
+        Parameters
+        ----------
+        callback_name : str
+            callback name to get.
+
+        Returns
+        -------
+        CallbackBase
+            callback that matches the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         if not isinstance(callback_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
@@ -68,6 +153,15 @@ class Executor(Summarizable):
         return Util.find_one(is_target_callback, self.callbacks)
 
     def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        List[CallbackBase]
+            callbacks that match the condition.
+
+        """
         callbacks = []
         for callback_name in callback_names:
             callbacks.append(self.get_callback(callback_name))
@@ -76,16 +170,52 @@ class Executor(Summarizable):
 
     @property
     def callback_names(self) -> List[str]:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        List[str]
+            callback names added to the executor.
+
+        """
         return sorted(c.callback_name for c in self.callbacks)
 
     @property
     def callback_groups(self) -> List[CallbackGroup]:
+        """
+        Get callback groups.
+
+        Returns
+        -------
+        List[CallbackGroup]
+            Callback groups added to the executor.
+
+        """
         return sorted(self._cbgs, key=lambda x: x.callback_group_name)
 
     @property
     def callback_group_names(self) -> List[str]:
+        """
+        Get callback group names.
+
+        Returns
+        -------
+        List[str]
+            Callback group names added to the executor.
+
+        """
         return sorted(cbg.callback_group_name for cbg in self.callback_groups)
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary [override].
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         return self._val.summary
