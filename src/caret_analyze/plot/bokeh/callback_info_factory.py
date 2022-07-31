@@ -19,11 +19,11 @@ from .callback_info import (CallbackFrequencyPlot,
                             CallbackLatencyPlot)
 from .callback_info_interface import TimeSeriesPlot
 from ...runtime import (Application, CallbackBase, CallbackGroup,
-                        Executor, Node, PathBase)
+                        Executor, Node, Path)
 
 
-CallbacksType = Union[Application, PathBase, Executor,
-                      Node, CallbackGroup, List[CallbackBase]]
+CallbacksType = Union[Application, Path, Executor, Node,
+                      CallbackGroup, CallbackBase, List[CallbackBase]]
 
 
 class Plot:
@@ -39,10 +39,11 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
-                                  PathBase,
+                                  Path,
                                   Executor,
                                   Node,
                                   CallbackGroup,
+                                  CallbackBase
                                   List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 
@@ -64,10 +65,11 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
-                                  PathBase,
+                                  Path,
                                   Executor,
                                   Node,
                                   CallbackGroup,
+                                  CallbackBase
                                   List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 
@@ -89,10 +91,11 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
-                                  PathBase,
+                                  Path,
                                   Executor,
                                   Node,
                                   CallbackGroup,
+                                  CallbackBase
                                   List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 

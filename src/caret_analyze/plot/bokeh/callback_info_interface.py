@@ -27,12 +27,12 @@ from .callback_sched import ColorSelector, get_range
 from .util import apply_x_axis_offset, get_callback_param_desc
 from ...exceptions import UnsupportedTypeError
 from ...runtime import (Application, CallbackBase, CallbackGroup,
-                        Executor, Node, PathBase)
+                        Executor, Node, Path)
 
 logger = getLogger(__name__)
 
-CallbacksType = Union[Application, Executor,
-                      Node, CallbackGroup, List[CallbackBase]]
+CallbacksType = Union[Application, Path, Executor, Node,
+                      CallbackGroup, CallbackBase, List[CallbackBase]]
 
 
 class TimeSeriesPlot(metaclass=ABCMeta):
@@ -44,11 +44,13 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         self._callbacks: List[CallbackBase] = []
         if(isinstance(target, (Application, Executor, Node, CallbackGroup))):
             self._callbacks = target.callbacks
-        elif(isinstance(target, PathBase)):
+        elif(isinstance(target, Path)):
             for comm in target.communications:
                 self._callbacks += comm.publish_node.callbacks
             self._callbacks += \
                 target.communications[-1].subscribe_node.callbacks
+        elif(isinstance(target, CallbackBase)):
+            self._callbacks = [target]
         else:
             self._callbacks = target
 
