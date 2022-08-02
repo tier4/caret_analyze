@@ -24,6 +24,6 @@
         sd -s -- \
         '      - "**/*.jpg"' \
         '      - "**/*.jpg"
-               - "**/*.py"' \
+              - "**/*.py"' \
         {source}
     - source: .github/workflows/delete-closed-pr-docs.yaml
