@@ -20,4 +20,10 @@
 - repository: autowarefoundation/autoware-documentation
   files:
     - source: .github/workflows/deploy-docs.yaml
+      pre-commands: |
+        sd -s -- \
+        '      - "**/*.jpg"' \
+        '      - "**/*.jpg"
+               - "**/*.py"' \
+        {source}
     - source: .github/workflows/delete-closed-pr-docs.yaml
