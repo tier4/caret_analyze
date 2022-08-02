@@ -38,6 +38,7 @@ from ..value_objects import NodePathStructValue
 logger = getLogger(__name__)
 
 
+
 class Application(Summarizable):
     """A class that represents the entire application to be measured."""
 
