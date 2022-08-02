@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://tier4.github.io/CARET_analyze/latest/infra/">
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.3.7">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.3.9">
     
     
       
@@ -19,7 +19,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.4a0965b7.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.1d29e8d0.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
@@ -515,6 +515,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_creation_datetime" class="md-nav__link">
+    get_trace_creation_datetime()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="md-nav__link">
+    get_trace_range()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -880,6 +894,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_creation_datetime" class="md-nav__link">
+    get_trace_creation_datetime()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="md-nav__link">
+    get_trace_range()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1016,30 +1044,11 @@
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="caret_analyze.common.Singleton">Singleton</span></code></p>
 
   
       <p>infrastracture base class.</p>
-<p>This class is a singleton in order to retain information.</p>
 
 
-
-  
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-
-  </div>
 
   </div>
 
@@ -1674,6 +1683,78 @@ The main processing is done by LttngInfo and RecordsSource.</p>
                 <code><span title="typing.Sequence">Sequence</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.timer.TimerValue" href="../value_objects/#caret_analyze.value_objects.TimerValue">TimerValue</a>]</code>
           </td>
           <td></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.infra.lttng.lttng.Lttng.get_trace_creation_datetime" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_trace_creation_datetime</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_creation_datetime" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get trace creation datetime.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>trace_creation_datetime</code></td>          <td>
+                <code><span title="datetime.datetime">datetime</span></code>
+          </td>
+          <td><p>Date and time the trace data was created.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_trace_range</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.infra.lttng.lttng.Lttng.get_trace_range" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get trace range.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>trace_range</code></td>          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="datetime.datetime">datetime</span>, <span title="datetime.datetime">datetime</span>]</code>
+          </td>
+          <td><p>Trace begin time and trace end time.</p></td>
         </tr>
     </tbody>
   </table>
@@ -2386,7 +2467,7 @@ The main processing is done by LttngInfo and RecordsSource.</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.b97dbffb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.0238f547.min.js"></script>
+      <script src="../assets/javascripts/bundle.6c7ad80a.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
       
