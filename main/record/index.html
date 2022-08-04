@@ -606,13 +606,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.record.interface.RecordsInterface.append" class="md-nav__link">
-    append()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#caret_analyze.record.interface.RecordsInterface.append_column" class="md-nav__link">
     append_column()
   </a>
@@ -988,13 +981,6 @@
   
     <nav class="md-nav" aria-label="RecordsInterface">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.interface.RecordsInterface.append" class="md-nav__link">
-    append()
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#caret_analyze.record.interface.RecordsInterface.append_column" class="md-nav__link">
@@ -1418,8 +1404,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -1427,7 +1413,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Get columnnames.</p>
+      <p>Get column names.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -1459,8 +1445,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -1756,7 +1742,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Mege record.</p>
+      <p>Merge record.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1852,52 +1838,6 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
 
 
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="caret_analyze.record.interface.RecordsInterface.append" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-<a href="#caret_analyze.record.interface.RecordsInterface.append" class="headerlink" title="Permanent link">#</a></h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Append new record.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>other</code></td>
-          <td>
-                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a></code>
-          </td>
-          <td><p>record to be added.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
 
 <div class="doc doc-object doc-function">
 
@@ -2025,8 +1965,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2034,7 +1974,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Get columnnames.</p>
+      <p>Get column names.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2130,8 +2070,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -2152,7 +2092,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
     <tbody>
         <tr>
           <td>
-                <code>Seque[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>]</code>
+                <code><span title="typing.Sequence">Sequence</span>[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>]</code>
           </td>
           <td><p>Records list.</p></td>
         </tr>
@@ -2289,7 +2229,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Get filterd records.</p>
+      <p>Get filtered records.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
