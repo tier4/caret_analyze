@@ -17,15 +17,14 @@ from __future__ import annotations
 import logging
 from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 
-from caret_analyze.value_objects.callback import TimerCallbackStructValue
-
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
-                             NodeStructValue, PathStructValue)
+                             TimerCallbackStructValue,
+                             NodeStructValue, NodePathStructValue, PathStructValue)
 
 
 class Architecture(Summarizable):
@@ -83,6 +82,18 @@ class Architecture(Summarizable):
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
         return tuple(_.callbacks for _ in self.callback_groups)
+
+    @property
+    def node_paths(self) -> Tuple[NodePathStructValue, ...]:
+        return tuple(Util.flatten(_.paths for _ in self.nodes))
+
+    def get_node_path(
+        self,
+        node_name: str,
+        subscribe_topic_name: Optional[str],
+        publish_topic_name: Optional[str]
+    ) -> NodePathStructValue:
+        raise NotImplementedError('')
 
     def get_communication(
         self,
