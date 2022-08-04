@@ -40,9 +40,12 @@ except ModuleNotFoundError as e:
         RecordsCppImpl = None
         CppImplEnabled = False
     else:
-        raise ModuleNotFoundError(
-            'Failed to load RecordsCppImpl, ',
-            'possibly due to missing information in the PYTHONPATH environment variable.') from e
+        RecordCppImpl = None
+        RecordsCppImpl = None
+        CppImplEnabled = False
+        # raise ModuleNotFoundError(
+        #     'Failed to load RecordsCppImpl, ',
+        #     'possibly due to missing information in the PYTHONPATH environment variable.') from e
 
 
 def to_cpp_record(record: RecordInterface) -> Optional[RecordCppImpl]:

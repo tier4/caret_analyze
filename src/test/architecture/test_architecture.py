@@ -273,6 +273,15 @@ class TestArchitecture:
         paths = arch.search_paths('0', '1', '2')
         assert len(paths) == 1
 
+        # 
+        path01 = arch.search_paths('0', '1')[0]
+        path12 = arch.search_paths('1', '2')[0]
+        path02 = path01.combine(path12)
+        with pytest.raises(ValueError):
+            path12.combine(path01)
+
+        assert False
+
     def test_verify_callback_uniqueness(self, mocker, caplog):
         node_mock = mocker.Mock(spec=NodeStructValue)
         callback_mock = mocker.Mock(spec=TimerCallbackStructValue)

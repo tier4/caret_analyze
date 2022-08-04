@@ -153,3 +153,19 @@ class PathStructValue(ValueObject, Summarizable):
                 is_valid = False
 
         return is_valid
+
+
+    def combine(self, path: PathStructValue) -> PathStructValue:
+        """
+        Combine two paths.
+
+        Returns
+        -------
+        PathStructValue
+            combined new path.
+
+        """
+        if self.child[-1].node_name != path.child[0].node_name:
+            raise ValueError
+        new_path = PathStructValue(None, self.child + path.child[1:])
+        return new_path
