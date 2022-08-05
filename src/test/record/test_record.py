@@ -270,6 +270,14 @@ class TestRecords:
             assert records.equals(expects)
             assert records.columns == expects.columns
 
+            # tests for multimethod
+            records = records_type(None, ['value', 'stamp'])
+            records.append(expects.data[0].data)
+            records.append(expects.data[1].data)
+            records.append(expects.data[2].data)
+            assert records.equals(expects)
+            assert records.columns == expects.columns
+
     def test_drop_columns(self):
         key = 'stamp'
         value = 'value'

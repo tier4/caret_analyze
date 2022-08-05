@@ -47,7 +47,14 @@ class RecordsCppImpl(RecordsInterface):
             f.write(s)
         return None
 
-    def append(
+    def _append_dict(
+        self,
+        other: Dict[str, int]
+    ) -> None:
+        record = RecordBase(other)
+        self._records.append(record)
+
+    def _append_record(
         self,
         other: RecordInterface
     ) -> None:

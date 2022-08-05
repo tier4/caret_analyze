@@ -17,7 +17,10 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
+from multimethod import multimethod as singledispatchmethod
 import pandas as pd
+
+from ..exceptions import InvalidArgumentError
 
 
 class RecordInterface:
@@ -49,7 +52,7 @@ class RecordInterface:
     @abstractmethod
     def merge(self, other: RecordInterface) -> None:
         """
-        Mege record.
+        Merge record.
 
         Parameters
         ----------
@@ -165,7 +168,7 @@ class RecordInterface:
     @abstractmethod
     def columns(self) -> Set[str]:
         """
-        Get columnnames.
+        Get column names.
 
         Returns
         -------
@@ -174,6 +177,18 @@ class RecordInterface:
 
         """
         pass
+
+
+try:
+    from record_cpp_impl import RecordBase
+    # RecordBase in C++ implementation cannot inherit RecordInterface,
+    # so RecordBase case should be written separately.
+except ModuleNotFoundError as e:
+    import os
+    if 'GITHUB_ACTION' in os.environ:
+        RecordBase = RecordInterface
+    else:
+        raise e
 
 
 class RecordsInterface:
@@ -201,8 +216,37 @@ class RecordsInterface:
         """
         pass
 
+    @singledispatchmethod
+    def append(self, arg):
+        raise InvalidArgumentError(f'Unknown argument type: {arg}')
+
+    @append.register
+    def __append_record(self, other: RecordInterface) -> None:
+        self._append_record(other)
+
+    @append.register
+    def __append_record_base(self, other: RecordBase) -> None:
+        self._append_record(other)  # type: ignore
+
     @abstractmethod
-    def append(self, other: RecordInterface) -> None:
+    def _append_record(self, other: RecordInterface) -> None:
+        """
+        Append new record.
+
+        Parameters
+        ----------
+        other : RecordInterface
+            record to be added.
+
+        """
+        pass
+
+    @append.register
+    def __append_dict(self, other: Dict[str, int]) -> None:
+        self._append_dict(other)
+
+    @abstractmethod
+    def _append_dict(self, other: Dict[str, int]) -> None:
         """
         Append new record.
 
@@ -274,7 +318,7 @@ class RecordsInterface:
         self, f: Callable[[RecordInterface], bool]
     ) -> None:
         """
-        Get filterd records.
+        Get filtered records.
 
         Parameters
         ----------
@@ -294,7 +338,7 @@ class RecordsInterface:
 
         Returns
         -------
-        Seque[RecordInterface]
+        Sequence[RecordInterface]
             Records list.
 
         """
@@ -359,7 +403,7 @@ class RecordsInterface:
     @abstractmethod
     def columns(self) -> List[str]:
         """
-        Get columnnames.
+        Get column names.
 
         Returns
         -------
