@@ -274,7 +274,7 @@ class TestRecords:
             assert records._columns.to_value() == expects._columns.to_value()
 
             # tests for multimethod
-            records = records_type(None, ['value', 'stamp'])
+            records = records_type(None, [ColumnValue('value'), ColumnValue('stamp')])
             records.append(expects.data[0].data)
             records.append(expects.data[1].data)
             records.append(expects.data[2].data)
