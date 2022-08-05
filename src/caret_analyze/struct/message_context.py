@@ -66,9 +66,9 @@ class MessageContext(Summarizable):
         self,
         node_name: str,
         message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        child: Optional[Tuple[CallbackStructValue, ...]],
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        child: Optional[Tuple[CallbackStruct, ...]],
     ) -> None:
         # Since it is used as a value object,
         # mutable types such as dict should not be used.
@@ -93,7 +93,7 @@ class MessageContext(Summarizable):
     @property
     def callbacks(
         self
-    ) -> Optional[Tuple[CallbackStructValue, ...]]:
+    ) -> Optional[Tuple[CallbackStruct, ...]]:
         return self._callbacks
 
     def to_dict(self) -> Dict:
@@ -105,9 +105,9 @@ class MessageContext(Summarizable):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
         return self._sub == subscription and self._pub == publisher
 
@@ -140,9 +140,9 @@ class MessageContext(Summarizable):
         context_type_name: str,
         context_dict: Dict,
         node_name: str,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        child: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        child: Optional[Tuple[CallbackStruct, ...]]
     ) -> MessageContext:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
             return CallbackChain(node_name,
@@ -222,9 +222,9 @@ class CallbackChain(MessageContext):
         self,
         node_name: str,
         message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -238,9 +238,9 @@ class CallbackChain(MessageContext):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
@@ -286,9 +286,9 @@ class Tilde(MessageContext):
         self,
         node_name: str,
         message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -302,9 +302,9 @@ class Tilde(MessageContext):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False

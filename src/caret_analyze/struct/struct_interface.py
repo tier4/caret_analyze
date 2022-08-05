@@ -1,10 +1,12 @@
+from abc import ABCMeta, abstractmethod
+
 class NodeStructInterface(metaclass=ABCMeta):
 
     @property
     @abstractmethod
     def node_name(self) -> str:
         pass
-
+"""
     @property
     @abstractmethod
     def callbacks(self) -> Optional[CallbacksStructInterface]:
@@ -50,3 +52,4 @@ class NodeStructInterface(metaclass=ABCMeta):
     @abstractmethod
     def tf_buffer(self) -> Optional[TransformBufferStructInterface]:
         pass
+    """
