@@ -187,7 +187,11 @@ class Records(RecordsInterface):
     def data(self) -> List[RecordInterface]:
         return self._data
 
-    def append(self, other: RecordInterface):
+    def _append_dict(self, other: Dict[str, int]):
+        record = Record(other)
+        self._append_record(record)
+
+    def _append_record(self, other: RecordInterface):
         self._data.append(other)
         unknown_columns = set(other.columns) - set(self.columns)
         if len(unknown_columns) > 0:
