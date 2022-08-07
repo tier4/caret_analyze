@@ -58,11 +58,11 @@ class CallbackLatencyPlot(TimeSeriesPlot):
         return latency_df
 
 
-class CallbackJitterPlot(TimeSeriesPlot):
+class CallbackPeriodPlot(TimeSeriesPlot):
     """
-    Class that provides API for callback jitter.
+    Class that provides API for callback period.
 
-    This class provides the API to visualize the jitter per unit of time
+    This class provides the API to visualize the period per unit of time
     for each callback and to obtain it in the pandas DataFrame format.
     """
 
@@ -81,18 +81,18 @@ class CallbackJitterPlot(TimeSeriesPlot):
         if(xaxis_type == 'sim_time'):
             self._df_convert_to_sim_time(latency_table)
 
-        jitter_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
+        period_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
                 latency_table.columns,
                 ['callback_start_timestamp [ns]', 'period [ms]']]))
         for cb_name in latency_table.columns:
-            jitter_df[(cb_name, 'callback_start_timestamp [ns]')] = \
+            period_df[(cb_name, 'callback_start_timestamp [ns]')] = \
                     latency_table[cb_name]
-            jitter_df[(cb_name,
+            period_df[(cb_name,
                        'period [ms]')] = latency_table[cb_name].diff()*10**(-6)
-        jitter_df = jitter_df.drop(jitter_df.index[0])
-        jitter_df = jitter_df.reset_index(drop=True)
+        period_df = period_df.drop(period_df.index[0])
+        period_df = period_df.reset_index(drop=True)
 
-        return jitter_df
+        return period_df
 
 
 class CallbackFrequencyPlot(TimeSeriesPlot):

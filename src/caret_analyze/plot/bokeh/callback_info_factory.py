@@ -15,7 +15,7 @@
 from typing import List, Union
 
 from .callback_info import (CallbackFrequencyPlot,
-                            CallbackJitterPlot,
+                            CallbackPeriodPlot,
                             CallbackLatencyPlot)
 from .callback_info_interface import TimeSeriesPlot
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
@@ -52,11 +52,11 @@ class Plot:
         return CallbackFrequencyPlot(callbacks)
 
     @staticmethod
-    def create_callback_jitter_plot(
+    def create_callback_period_plot(
         callbacks: CallbacksType
     ) -> TimeSeriesPlot:
         """
-        Get CallbackJitterPlot instance.
+        Get CallbackPeriodPlot instance.
 
         Parameters
         ----------
@@ -70,10 +70,10 @@ class Plot:
 
         Returns
         -------
-        CallbackJitterPlot
+        CallbackPeriodPlot
 
         """
-        return CallbackJitterPlot(callbacks)
+        return CallbackPeriodPlot(callbacks)
 
     @staticmethod
     def create_callback_latency_plot(
