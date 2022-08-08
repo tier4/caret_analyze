@@ -27,6 +27,7 @@ from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
 from caret_analyze.record import Record, Records, RecordsInterface
+from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.interface import RecordInterface
 from caret_analyze.value_objects import (CallbackChain, CallbackStructValue,
                                          CommunicationStructValue,
@@ -378,8 +379,8 @@ class TestNodeRecordsCallbackChain:
         cb_records = Records(
             records_data,
             [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
             ]
         )
         mocker.patch.object(provider_mock, 'callback_records', return_value=cb_records)
@@ -422,8 +423,8 @@ class TestNodeRecordsCallbackChain:
         vp_records = Records(
             records_data,
             [
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
             ]
         )
         mocker.patch.object(provider_mock, 'variable_passing_records', return_value=vp_records)
@@ -472,8 +473,8 @@ class TestNodeRecordsCallbackChain:
                 }),
             ],
             [
-                f'cb0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}',
-                f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}',
+                ColumnValue(f'cb0/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
+                ColumnValue(f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}'),
             ]
         )
         vp_records = Records(
@@ -488,8 +489,8 @@ class TestNodeRecordsCallbackChain:
                 }),
             ],
             [
-                f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}',
-                f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}',
+                ColumnValue(f'cb0/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}'),
+                ColumnValue(f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
             ]
         )
         cb1_records = Records(
@@ -504,8 +505,8 @@ class TestNodeRecordsCallbackChain:
                 }),
             ],
             [
-                f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}',
-                f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}',
+                ColumnValue(f'cb1/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'),
+                ColumnValue(f'cb1/{COLUMN_NAME.CALLBACK_END_TIMESTAMP}'),
             ]
         )
 
@@ -557,6 +558,6 @@ class TestNodeRecordsCallbackChain:
                     column_names[3]: 5,
                 }),
             ],
-            column_names
+            [ColumnValue(c) for c in column_names]
         )
         assert records.equals(expect)

@@ -14,10 +14,11 @@
 
 import math
 
-from typing import Iterator, List, Optional, Sequence, Tuple
+from typing import Iterator, Optional, Sequence, Tuple
 
 import numpy as np
 
+from .column import ColumnValue
 from .interface import RecordInterface, RecordsInterface
 from .record_factory import RecordFactory, RecordsFactory
 from ..exceptions import InvalidRecordsError
@@ -465,9 +466,9 @@ class ResponseRecords:
 
         """
         columns = [
-            f'{self._input_column}_min',
-            f'{self._input_column}_max',
-            self._response_map.output_column,
+            ColumnValue(f'{self._input_column}_min'),
+            ColumnValue(f'{self._input_column}_max'),
+            ColumnValue(self._response_map.output_column),
         ]
 
         records = self._create_empty_records(columns)
@@ -567,11 +568,14 @@ class ResponseRecords:
     def _output_column(self):
         return self._response_map.output_column
 
-    def _create_empty_records(self, columns: Optional[List[str]] = None) -> RecordsInterface:
-        columns_ = columns or [self._input_column, self._output_column]
+    def _create_empty_records(
+        self,
+        columns: Optional[Sequence[ColumnValue]] = None
+    ) -> RecordsInterface:
+        columns = columns or [ColumnValue(self._input_column), ColumnValue(self._output_column)]
         return RecordsFactory.create_instance(
             None,
-            columns_
+            columns
         )
 
     def _create_all_pattern_records(self) -> RecordsInterface:

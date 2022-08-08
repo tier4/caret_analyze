@@ -7,6 +7,7 @@
   <maintainer email="hasegawa@isp.co.jp">hsgwa</maintainer>
   <license>Apache License 2.0</license>
 
+  <depend>python3-multimethod-pip</depend>
   <exec_depend>tracetools_analysis</exec_depend>
   <exec_depend>python3-tqdm</exec_depend>
   <exec_depend>python3-yaml</exec_depend>

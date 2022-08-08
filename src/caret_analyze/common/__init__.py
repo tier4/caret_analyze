@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from .clock_converter import ClockConverter
-from .columns import Columns
 from .progress import Progress
 from .singleton import Singleton
 from .summary import Summarizable, Summary
@@ -21,7 +20,6 @@ from .util import Util
 
 __all__ = [
     'ClockConverter',
-    'Columns',
     'Progress',
     'Singleton',
     'Summarizable',

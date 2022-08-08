@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from caret_analyze.exceptions import InvalidRecordsError
+from caret_analyze.record import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.record.response_time import ResponseTime
 
@@ -46,7 +47,7 @@ class TestResponseRecords:
     def test_empty_flow_case(self):
         records_raw = [
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -66,7 +67,7 @@ class TestResponseRecords:
         records_raw = [
             {'start': 0, 'end': 1},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -91,7 +92,7 @@ class TestResponseRecords:
             {'start': 0, 'end': 1},
             {'start': 2, 'end': 3},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -124,7 +125,7 @@ class TestResponseRecords:
             {'start': 4, 'end': 8},
             {'start': 6, 'end': 6},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -168,7 +169,7 @@ class TestResponseRecords:
             {'start': 2, 'end': 3},
             {'start': 10, 'end': 11},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -210,7 +211,7 @@ class TestResponseRecords:
             {'start': 0, 'end': 5},
             {'start': 2, 'end': 3},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -244,6 +245,7 @@ class TestResponseRecords:
             {'start': 3, 'end': 4},
         ]
         columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -276,7 +278,7 @@ class TestResponseHistogram:
     def test_empty(self):
         records_raw = [
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -294,7 +296,7 @@ class TestResponseHistogram:
         records_raw = [
             {'start': 0, 'end': 1},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -313,7 +315,7 @@ class TestResponseHistogram:
             {'start': 0, 'end': 1},
             {'start': 2, 'end': 3},  # latency: 1~3
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -339,7 +341,7 @@ class TestResponseHistogram:
             # latency: 1~4
             # latency: 0~3
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -368,7 +370,7 @@ class TestResponseHistogram:
             {'start': 2, 'end': 3},  # 1~3
             {'start': 10, 'end': 11},  # 1~9
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -411,7 +413,7 @@ class TestResponseHistogram:
             {'start': 2, 'end': 3},
             # latency: 1~3
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -438,7 +440,7 @@ class TestResponseHistogram:
             {'start': 20, 'end': 30},  # latency: 10~30
             {'start': 30, 'end': 40},  # latency: 10~20
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -547,7 +549,7 @@ class TestResponseHistogram:
             {'start': 5, 'end': 6},  # 1~2
             {'start': 6, 'end': 8},  # 2~3
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -570,7 +572,7 @@ class TestResponseTimeseries:
     def test_empty_flow_case(self):
         records_raw = [
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -591,7 +593,7 @@ class TestResponseTimeseries:
         records_raw = [
             {'start': 0, 'end': 1},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -613,7 +615,7 @@ class TestResponseTimeseries:
             {'start': 0, 'end': 1},
             {'start': 2, 'end': 3},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
@@ -637,7 +639,7 @@ class TestResponseTimeseries:
             {'start': 4, 'end': 8},
             {'start': 6, 'end': 6},
         ]
-        columns = ['start', 'end']
+        columns = [ColumnValue('start'), ColumnValue('end')]
 
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
