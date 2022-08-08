@@ -32,7 +32,7 @@ import colorcet as cc
 import pandas as pd
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
-from ...common import ClockConverter, Util
+from ...common import ClockConverter, UniqueList, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
 from ...runtime import (Application, CallbackBase, CallbackGroup,
@@ -124,11 +124,13 @@ def get_cbg_and_name(
         return target.callback_groups, target.executor_name
 
     elif (isinstance(target, Path)):
-        cbgs = set()
+        cbgs = UniqueList()
         for comm in target.communications:
-            cbgs |= set(comm.publish_node.callback_groups)
-        cbgs |= set(target.communications[-1].subscribe_node.callback_groups)
-        return list(cbgs), target.path_name
+            for cbg in comm.publish_node.callback_groups:
+                cbgs.append(cbg)
+        for cbg in target.communications[-1].subscribe_node.callback_groups:
+            cbgs.append(cbg)
+        return cbgs.as_list(), target.path_name
 
     elif (isinstance(target, Node)):
         if target.callback_groups is None:
