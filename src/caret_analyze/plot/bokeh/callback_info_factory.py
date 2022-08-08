@@ -15,8 +15,8 @@
 from typing import List, Union
 
 from .callback_info import (CallbackFrequencyPlot,
-                            CallbackPeriodPlot,
-                            CallbackLatencyPlot)
+                            CallbackLatencyPlot,
+                            CallbackPeriodPlot)
 from .callback_info_interface import TimeSeriesPlot
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
 
