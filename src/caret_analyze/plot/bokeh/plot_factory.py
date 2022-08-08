@@ -18,7 +18,14 @@ from .callback_info import (CallbackFrequencyPlot,
                             CallbackJitterPlot,
                             CallbackLatencyPlot)
 from .callback_info_interface import TimeSeriesPlot
-from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
+from .communication_info import (CommunicationFrequencyPlot,
+                                 CommunicationLatencyPlot,
+                                 CommunicationPeriodPlot)
+from .communication_info_interface import CommunicationTimeSeriesPlot
+from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
+from .pub_sub_info_interface import PubSubTimeSeriesPlot
+from ...runtime import (Application, CallbackBase, CallbackGroup,
+                        Communication, Executor, Node, Publisher, Subscription)
 
 
 CallbacksType = Union[Application, Executor,
@@ -98,3 +105,33 @@ class Plot:
 
         """
         return CallbackLatencyPlot(callbacks)
+
+    @staticmethod
+    def create_publish_subscription_period_plot(
+        *pub_subs: Union[Publisher, Subscription]
+    ) -> PubSubTimeSeriesPlot:
+        return PubSubPeriodPlot(pub_subs)
+
+    @staticmethod
+    def create_publish_subscription_frequency_plot(
+        *pub_subs: Union[Publisher, Subscription]
+    ) -> PubSubTimeSeriesPlot:
+        return PubSubFrequencyPlot(pub_subs)
+
+    @staticmethod
+    def create_communication_latency_plot(
+        *communications: Communication
+    ) -> CommunicationTimeSeriesPlot:
+        return CommunicationLatencyPlot(communications)
+
+    @staticmethod
+    def create_communication_frequency_plot(
+        *communications: Communication
+    ) -> CommunicationTimeSeriesPlot:
+        return CommunicationFrequencyPlot(communications)
+
+    @staticmethod
+    def create_communication_period_plot(
+        *communications: Communication
+    ) -> CommunicationTimeSeriesPlot:
+        return CommunicationPeriodPlot(communications)
