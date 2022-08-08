@@ -22,13 +22,14 @@ from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
-from ...common import ClockConverter, Columns, Util
+from ...common import ClockConverter, Util
 from ...exceptions import (InvalidArgumentError,
                            UnsupportedNodeRecordsError,
                            UnsupportedTypeError)
 from ...infra.interface import RuntimeDataProvider
 from ...infra.lttng.column_names import COLUMN_NAME
 from ...record import (merge, merge_sequencial, RecordsFactory, RecordsInterface)
+from ...record.column import Columns, ColumnValue
 from ...value_objects import (CallbackChain,
                               CallbackStructValue,
                               CommunicationStructValue,
@@ -292,7 +293,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 join_left_key=None,
                 join_right_key=None,
                 how='left',
-                columns=Columns(sub_records.columns + tilde_records.columns).as_list(),
+                columns=Columns.from_str(
+                    sub_records.columns + tilde_records.columns
+                ).column_names,
                 progress_label='binding: tilde_records',
             )
 
@@ -427,7 +430,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
             right_stamp_key='rclcpp_publish_timestamp',
             join_left_key=None,
             join_right_key=None,
-            columns=Columns(tilde_records.columns + pub_records.columns).as_list(),
+            columns=Columns.from_str(
+                tilde_records.columns + pub_records.columns
+            ).column_names,
             how='right',
             progress_label='binding: tilde_records',
         )
@@ -482,7 +487,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
             right_stamp_key=callback_records.columns[0],
             join_left_key=None,
             join_right_key=None,
-            columns=Columns(timer_events.columns + callback_records.columns).as_list(),
+            columns=Columns.from_str(
+                timer_events.columns + callback_records.columns
+            ).column_names,
             how='left'
         )
 
@@ -518,7 +525,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
             right_records=pub_records,
             join_left_key=COLUMN_NAME.TILDE_MESSAGE_ID,
             join_right_key=COLUMN_NAME.TILDE_MESSAGE_ID,
-            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
+            columns=Columns.from_str(
+                sub_records.columns + pub_records.columns
+            ).column_names,
             how='left',
             progress_label='binding: tilde pub and sub records'
         )
@@ -963,7 +972,9 @@ class NodeRecordsCallbackChain:
                     right_records=records_,
                     join_left_key=join_key,
                     join_right_key=join_key,
-                    columns=Columns(records.columns + records_.columns),
+                    columns=Columns.from_str(
+                        records.columns + records_.columns
+                    ).column_names,
                     how='left',
                     progress_label='binding: callback_start and callback end'
                 )
@@ -978,7 +989,9 @@ class NodeRecordsCallbackChain:
                     right_records=records_,
                     join_left_key=join_key,
                     join_right_key=join_key,
-                    columns=Columns(records.columns + records_.columns).as_list(),
+                    columns=Columns.from_str(
+                        records.columns + records_.columns
+                    ).column_names,
                     how='left',
                     progress_label='binding: callback_end and callback start'
                 )
@@ -1003,7 +1016,9 @@ class NodeRecordsCallbackChain:
                 join_right_key=None,
                 left_stamp_key=last_callback_start_name,
                 right_stamp_key=publish_column,
-                columns=Columns(records.columns + publish_records.columns).as_list(),
+                columns=Columns.from_str(
+                    records.columns + publish_records.columns
+                ).column_names,
                 how='left',
                 progress_label='binding: callback_start and publish',
             )
@@ -1074,7 +1089,9 @@ class NodeRecordsInheritUniqueTimestamp:
             right_stamp_key=pub_records.columns[0],
             join_left_key=join_left_key,
             join_right_key=join_right_key,
-            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
+            columns=Columns.from_str(
+                sub_records.columns + pub_records.columns
+            ).column_names,
             how='left_use_latest',
             progress_label='binding: inherit unique timestamp',
         )
@@ -1136,7 +1153,9 @@ class NodeRecordsUseLatestMessage:
             right_stamp_key=pub_records.columns[0],
             join_left_key=None,
             join_right_key=None,
-            columns=Columns(sub_records.columns + pub_records.columns).as_list(),
+            columns=Columns.from_str(
+                sub_records.columns + pub_records.columns
+            ).column_names,
             how='left_use_latest',
             progress_label='binding use_latest_message.'
         )
@@ -1198,7 +1217,9 @@ class NodeRecordsTilde:
             right_records=tilde_records,
             join_left_key=right_stamp_key,
             join_right_key=right_stamp_key,
-            columns=Columns(sub_records.columns + tilde_records.columns).as_list(),
+            columns=Columns.from_str(
+                sub_records.columns + tilde_records.columns
+            ).column_names,
             how='left',
             progress_label='binding tilde subscribe records.'
         )
@@ -1211,7 +1232,9 @@ class NodeRecordsTilde:
             right_records=pub_records,
             join_left_key=left_stamp_key,
             join_right_key=left_stamp_key,
-            columns=Columns(records.columns + pub_records.columns).as_list(),
+            columns=Columns.from_str(
+                records.columns + pub_records.columns
+            ).column_names,
             how='left',
             progress_label='binding tilde publish records.'
         )
@@ -1280,14 +1303,14 @@ class FilteredRecordsSource:
             return RecordsFactory.create_instance(
                 None,
                 [
-                    COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP,
-                    COLUMN_NAME.TILDE_SUBSCRIPTION,
-                    COLUMN_NAME.TILDE_MESSAGE_ID
+                    ColumnValue(COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.TILDE_SUBSCRIPTION),
+                    ColumnValue(COLUMN_NAME.TILDE_MESSAGE_ID),
                 ]
             )
         sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
-        sub_records = RecordsFactory.create_instance(None, columns)
+        column_values = Columns.from_str(sample_records.columns).to_value()
+        sub_records = RecordsFactory.create_instance(None, column_values)
 
         if tilde_subscription is not None and tilde_subscription in grouped_records:
             sub_records_ = grouped_records[tilde_subscription].clone()
@@ -1326,14 +1349,14 @@ class FilteredRecordsSource:
             return RecordsFactory.create_instance(
                 None,
                 [
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                    COLUMN_NAME.MESSAGE_TIMESTAMP,
-                    COLUMN_NAME.SOURCE_TIMESTAMP,
+                    ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
         sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
-        sub_records = RecordsFactory.create_instance(None, columns)
+        column_values = Columns.from_str(sample_records.columns).to_value()
+        sub_records = RecordsFactory.create_instance(None, column_values)
 
         if inter_callback_object in grouped_records:
             sub_records.concat(grouped_records[inter_callback_object].clone())
@@ -1371,7 +1394,9 @@ class FilteredRecordsSource:
             right_records=sub_records,
             join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
             join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
-            columns=Columns(pub_records.columns + sub_records.columns).as_list(),
+            columns=Columns.from_str(
+                pub_records.columns + sub_records.columns
+            ).column_names,
             how='left'
         )
 
@@ -1424,16 +1449,16 @@ class FilteredRecordsSource:
 
         if len(grouped_records) == 0:
             return RecordsFactory.create_instance(None, [
-                COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.MESSAGE_TIMESTAMP
+                ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
+                ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
             ])
 
         sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
-        records = RecordsFactory.create_instance(None, columns)
+        column_values = Columns.from_str(sample_records.columns).to_value()
+        records = RecordsFactory.create_instance(None, column_values)
 
         if intra_callback_object is not None:
             for publisher_handle in publisher_handles:
@@ -1481,16 +1506,16 @@ class FilteredRecordsSource:
             return RecordsFactory.create_instance(
                 None,
                 [
-                    COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.MESSAGE_TIMESTAMP,
-                    COLUMN_NAME.SOURCE_TIMESTAMP,
-                    COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.TILDE_MESSAGE_ID,
+                    ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.TILDE_MESSAGE_ID),
                 ]
             )
         sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
-        pub_records = RecordsFactory.create_instance(None, columns)
+        column_values = Columns.from_str(sample_records.columns).to_value()
+        pub_records = RecordsFactory.create_instance(None, column_values)
 
         for publisher_handle in publisher_handles:
             if publisher_handle in grouped_records:
@@ -1525,15 +1550,15 @@ class FilteredRecordsSource:
             return RecordsFactory.create_instance(
                 None,
                 [
-                    COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP,
-                    COLUMN_NAME.TILDE_PUBLISHER,
-                    COLUMN_NAME.TILDE_MESSAGE_ID,
-                    COLUMN_NAME.TILDE_SUBSCRIPTION,
+                    ColumnValue(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.TILDE_PUBLISHER),
+                    ColumnValue(COLUMN_NAME.TILDE_MESSAGE_ID),
+                    ColumnValue(COLUMN_NAME.TILDE_SUBSCRIPTION),
                 ]
             )
         sample_records = list(grouped_records.values())[0]
-        columns = sample_records.columns
-        tilde_records = RecordsFactory.create_instance(None, columns)
+        column_values = Columns.from_str(sample_records.columns).to_value()
+        tilde_records = RecordsFactory.create_instance(None, column_values)
 
         for tilde_publisher in tilde_publishers:
             if tilde_publisher in grouped_records:
@@ -1580,9 +1605,9 @@ class FilteredRecordsSource:
         callback_records = RecordsFactory.create_instance(
             None,
             [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_OBJECT
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
             ]
         )
 

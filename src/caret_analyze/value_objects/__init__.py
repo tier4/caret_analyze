@@ -34,6 +34,7 @@ from .publisher import PublisherStructValue, PublisherValue
 from .qos import Qos
 from .subscription import SubscriptionStructValue, SubscriptionValue
 from .timer import TimerStructValue, TimerValue
+from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue, VariablePassingValue
 
 
@@ -72,6 +73,7 @@ __all__ = [
     'TimerCallbackStructValue',
     'TimerCallbackValue',
     'UseLatestMessage',
+    'ValueObject',
     'VariablePassingStructValue',
     'VariablePassingValue',
 ]

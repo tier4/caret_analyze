@@ -21,12 +21,13 @@ from .events_factory import EventsFactory
 from .lttng_info import LttngInfo
 from .ros2_tracing.data_model import Ros2DataModel
 from .value_objects import TimerCallbackValueLttng, TimerControl, TimerInit
-from ...common import Columns, Util
+from ...common import Util
 from ...record import (merge, merge_sequencial,
                        merge_sequencial_for_addr_track,
                        RecordFactory,
                        RecordsFactory,
                        RecordsInterface)
+from ...record.column import Columns, ColumnValue
 
 
 class RecordsSource():
@@ -135,7 +136,9 @@ class RecordsSource():
                 right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
                 join_left_key=COLUMN_NAME.MESSAGE,
                 join_right_key=COLUMN_NAME.MESSAGE,
-                columns=Columns(publish.columns + dds_write.columns).as_list(),
+                columns=Columns.from_str(
+                    publish.columns + dds_write.columns
+                ).column_names,
                 how='left',
                 progress_label='binding: rcl_publish and dds_write',
             )
@@ -154,7 +157,9 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
             join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
-            columns=Columns(intra_publish.columns + publish.columns).as_list(),
+            columns=Columns.from_str(
+                intra_publish.columns + publish.columns
+            ).column_names,
             how='right'
         )
         rclcpp_publish = [None] * len(publish.data)
@@ -164,7 +169,7 @@ class RecordsSource():
             else:
                 rclcpp_publish[i] = record.data[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP]
         publish.append_column(
-            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, rclcpp_publish)
+            ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP), rclcpp_publish)
         publish.drop_columns([
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP
@@ -180,7 +185,9 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns(subscription.columns + callback_start_instances.columns).as_list(),
+            columns=Columns.from_str(
+                subscription.columns + callback_start_instances.columns
+            ).column_names,
             how='left',
             progress_label='binding: dispatch_subscription_callback and callback_start',
         )
@@ -200,7 +207,9 @@ class RecordsSource():
             subscription,
             join_left_key=COLUMN_NAME.SOURCE_TIMESTAMP,
             join_right_key=COLUMN_NAME.SOURCE_TIMESTAMP,
-            columns=Columns(publish.columns + subscription.columns).as_list(),
+            columns=Columns.from_str(
+                publish.columns + subscription.columns
+            ).column_names,
             how='left',
             progress_label='binding: source_timestamp and callback_start',
         )
@@ -267,7 +276,9 @@ class RecordsSource():
                 right_stamp_key=COLUMN_NAME.DDS_WRITE_TIMESTAMP,
                 join_left_key='tid',
                 join_right_key='tid',
-                columns=Columns(inter_proc_publish.columns + dds_write.columns).as_list(),
+                columns=Columns.from_str(
+                    inter_proc_publish.columns + dds_write.columns
+                ).column_names,
                 how='left',
                 progress_label='binding: rclcppp_publish and dds_write',
             )
@@ -279,8 +290,9 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.DDS_BIND_ADDR_TO_STAMP_TIMESTAMP,
             join_left_key='tid',
             join_right_key='tid',
-            columns=Columns(
-                inter_proc_publish.columns + self._data.dds_bind_addr_to_stamp.columns).as_list(),
+            columns=Columns.from_str(
+                inter_proc_publish.columns + self._data.dds_bind_addr_to_stamp.columns
+            ).column_names,
             how='left',
             progress_label='binding: rclcppp_publish and source_timestamp',
         )
@@ -311,7 +323,9 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.PUBLISHER_HANDLE,
             join_right_key=COLUMN_NAME.PUBLISHER_HANDLE,
-            columns=Columns(inter_proc_publish.columns + intra_proc_publish.columns).as_list(),
+            columns=Columns.from_str(
+                inter_proc_publish.columns + intra_proc_publish.columns
+            ).column_names,
             how='outer',
             progress_label='binding intra_publish and inter_publish'
         )
@@ -327,7 +341,7 @@ class RecordsSource():
             inter_intra_publish = min(rclcpp_publish, rclcpp_intra_publish)
             publish_stamps.append(inter_intra_publish)
 
-        publish.append_column(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP, publish_stamps)
+        publish.append_column(ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP), publish_stamps)
 
         columns = []
         columns.append(COLUMN_NAME.PUBLISHER_HANDLE)
@@ -370,7 +384,7 @@ class RecordsSource():
             def create(self, until_ns: int) -> RecordsInterface:
 
                 columns = [
-                    COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
+                    ColumnValue(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
                 ]
 
                 records = RecordsFactory.create_instance(None, columns)
@@ -419,7 +433,7 @@ class RecordsSource():
             subscription_id = record.get('subscription_id')
             subscription.append(self._info.tilde_sub_id_map[subscription_id])
 
-        records.append_column('tilde_subscription', subscription)
+        records.append_column(ColumnValue('tilde_subscription'), subscription)
         records.drop_columns(['subscription_id'])
         return records
 
@@ -445,7 +459,11 @@ class RecordsSource():
     def intra_callback_records(self) -> RecordsInterface:
         intra_proc_subscribe = RecordsFactory.create_instance(
             None,
-            ['callback_start_timestamp', 'callback_object', 'is_intra_process']
+            [
+                ColumnValue('callback_start_timestamp'),
+                ColumnValue('callback_object'),
+                ColumnValue('is_intra_process'),
+            ]
         )
         if 1 in self._grouped_callback_start:
             intra_callback_start = self._grouped_callback_start[1].clone()
@@ -456,7 +474,11 @@ class RecordsSource():
     def inter_callback_records(self) -> RecordsInterface:
         intra_proc_subscribe = RecordsFactory.create_instance(
             None,
-            ['callback_start_timestamp', 'callback_object', 'is_intra_process']
+            [
+                ColumnValue('callback_start_timestamp'),
+                ColumnValue('callback_object'),
+                ColumnValue('is_intra_process')
+            ]
         )
         if 0 in self._grouped_callback_start:
             intra_callback_start = self._grouped_callback_start[0].clone()
@@ -475,8 +497,9 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns(
-                inter_proc_subscrube.columns + callback_start_instances.columns).as_list(),
+            columns=Columns.from_str(
+                inter_proc_subscrube.columns + callback_start_instances.columns
+            ).column_names,
             how='left',
             progress_label='binding: dispatch_subscription_callback and callback_start',
         )
@@ -490,7 +513,9 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns(inter_proc_subscrube.columns + intra_proc_subscribe.columns).as_list(),
+            columns=Columns.from_str(
+                inter_proc_subscrube.columns + intra_proc_subscribe.columns
+            ).column_names,
             how='outer',
             progress_label='binding intra and inter subscribe'
         )
@@ -572,8 +597,12 @@ class RecordsSource():
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=intra_publish_records.columns + [
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP, COLUMN_NAME.IS_INTRA_PROCESS],
+            columns=Columns.from_str(
+                intra_publish_records.columns +
+                [
+                    COLUMN_NAME.CALLBACK_START_TIMESTAMP, COLUMN_NAME.IS_INTRA_PROCESS,
+                ]
+            ).column_names,
             how='left',
             progress_label='bindig: dispath_subsription and callback_start',
         )
