@@ -23,8 +23,8 @@ from bokeh.resources import CDN
 
 import pandas as pd
 
-from .callback_sched import ColorSelector, get_range
-from .util import apply_x_axis_offset, get_callback_param_desc
+from .util import (apply_x_axis_offset, ColorSelector,
+                   get_callback_param_desc, get_range)
 from ...exceptions import UnsupportedTypeError
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
 

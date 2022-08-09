@@ -118,12 +118,12 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         # Calculate initial timestamp
         if len(initial_timestamps) != len(timestamp_df.columns):
             if len(initial_timestamps) == 1:
-                initial_timestamps = [initial_timestamps[0]
-                                      for _ in range(len(timestamp_df.columns))]
+                initial_timestamps = [initial_timestamps[0] for _ in
+                                      range(len(timestamp_df.columns))]
             else:
                 # TODO: Emit an exception when latency_table size is 0.
-                initial_timestamps = [timestamp_df.iloc(0).mean
-                                      for _ in range(len(timestamp_df.columns))]
+                initial_timestamps = [timestamp_df.iloc(0).mean for _ in
+                                      range(len(timestamp_df.columns))]
 
         # Create frequency DataFrame
         frequency_df = pd.DataFrame()

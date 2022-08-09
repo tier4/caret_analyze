@@ -14,12 +14,9 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
-
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
-from bokeh.colors import Color, RGB
 from bokeh.io import save, show
 from bokeh.models import Arrow, HoverTool, NormalHead
 from bokeh.plotting import ColumnDataSource, figure
@@ -27,11 +24,10 @@ from bokeh.resources import CDN
 
 from caret_analyze.runtime.callback import TimerCallback
 
-import colorcet as cc
-
 import pandas as pd
 
-from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
+from .util import (apply_x_axis_offset, ColorSelector,
+                   get_callback_param_desc, get_range, RectValues)
 from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
@@ -66,7 +62,8 @@ def callback_sched(
         There are three rules which are callback, callback_group and node.
         The default value is "callback".
     use_sim_time: bool
-        If you want to use the simulation time, you can set this Parameter to True.
+        If you want to use the simulation time,
+        you can set this Parameter to True.
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
 
@@ -81,7 +78,8 @@ def callback_sched(
     clip = Clip(clip_min, clip_max)
 
     color_selector = ColorSelector.create_instance(coloring_rule)
-    sched_plot_cbg(target_name, cbgs, color_selector, clip, use_sim_time, export_path)
+    sched_plot_cbg(target_name, cbgs, color_selector,
+                   clip, use_sim_time, export_path)
 
 
 def get_cbg_and_name(
@@ -93,7 +91,8 @@ def get_cbg_and_name(
     Parameters
     ----------
     target: Union[Node, CallbackGroup, Executor]
-        The target which you want to visualize, it can be a Node, a CallbackGroup or a Executor.
+        The target which you want to visualize,
+        it can be a Node, a CallbackGroup or a Executor.
 
     Returns
     -------
@@ -112,34 +111,6 @@ def get_cbg_and_name(
 
     else:
         return [target], target.callback_group_name
-
-
-def get_range(callbacks: Sequence[CallbackBase]) -> Tuple[int, int]:
-    """
-    Get measurement duration.
-
-    Parameters
-    ----------
-    callbacks: Sequence[CallbackBase]
-
-    Returns
-    -------
-    Tuple[int, int]
-        The timestamp of callback start and callback end
-
-    """
-    callbacks_valid = [cb for cb in callbacks if len(cb.to_records()) > 0]
-
-    if len(callbacks_valid) == 0:
-        logger.warning('Failed to found Callback measurement results.')
-        return 0, 1
-
-    cb_dfs = [cb.to_dataframe() for cb in callbacks]
-    cb_dfs_valid = [cb_df for cb_df in cb_dfs if len(cb_df) > 0]
-    cb_min = min(min(df.min()) for df in cb_dfs_valid)
-    cb_max = max(max(df.max()) for df in cb_dfs_valid)
-
-    return cb_min, cb_max
 
 
 def sched_plot_cbg(
@@ -161,7 +132,8 @@ def sched_plot_cbg(
     clipper : Clip
         Values outside the range are replaced by the minimum or maximum value
     use_sim_time : bool
-        If you want to use the simulation time, you can set this Parameter to True.
+        If you want to use the simulation time,
+        you can set this Parameter to True.
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
 
@@ -174,13 +146,14 @@ def sched_plot_cbg(
                tools=['xwheel_zoom', 'xpan', 'save', 'reset'],
                active_scroll='xwheel_zoom',
                 )
-    p.sizing_mode = 'stretch_width'  # automatically adjust plot width to the screen size
+    p.sizing_mode = 'stretch_width'
     x_range_name = 'x_plot_axis'
     converter: Optional[ClockConverter] = None
     if use_sim_time:
         cbs: List[CallbackBase] = Util.flatten(
             cbg.callbacks for cbg in cbgs if len(cbg.callbacks) > 0)
-        converter = cbs[0]._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
+        # TODO(hsgwa): refactor
+        converter = cbs[0]._provider.get_sim_time_converter()
         frame_min = converter.convert(clipper.min_ns)
         frame_max = converter.convert(clipper.max_ns)
     else:
@@ -196,68 +169,74 @@ def sched_plot_cbg(
     for callback_group in cbgs:
         for callback in callback_group.callbacks:
             callback_idx += 1
-            rect_source = get_callback_rects(callback, clipper, rect_y, rect_height, converter)
-            bar_source = get_callback_bar(callback, rect_y, frame_max, frame_min)
+            rect_source = get_callback_rects(callback, clipper, rect_y,
+                                             rect_height, converter)
+            bar_source = get_callback_bar(callback, rect_y,
+                                          frame_max, frame_min)
             color = color_selector.get_color(
                 callback.node_name,
                 callback_group.callback_group_name,
                 callback.callback_name)
             plot1 = p.rect(
-                   'x',
-                   'y',
-                   'width',
-                   'height',
-                   source=rect_source,
-                   color=color,
-                   alpha=1.0,
-                   legend_label=f'callback{callback_idx}',
-                   # Since setting callback name to legend will narrow the graph,
-                   # sequential numbering is used here.
-                   hover_fill_color=color,
-                   hover_alpha=1.0,
-                   x_range_name=x_range_name)
+                'x',
+                'y',
+                'width',
+                'height',
+                source=rect_source,
+                color=color,
+                alpha=1.0,
+                legend_label=f'callback{callback_idx}',
+                # Since setting callback name to legend will narrow the graph,
+                # sequential numbering is used here.
+                hover_fill_color=color,
+                hover_alpha=1.0,
+                x_range_name=x_range_name
+            )
 
             plot2 = p.rect(
-                   'x',
-                   'y',
-                   'width',
-                   'height',
-                   source=bar_source,
-                   fill_color=color,
-                   legend_label=f'callback{callback_idx}',
-                   hover_fill_color=color,
-                   hover_alpha=0.1,
-                   fill_alpha=0.1,
-                   level='underlay',
-                   x_range_name=x_range_name)
+                'x',
+                'y',
+                'width',
+                'height',
+                source=bar_source,
+                fill_color=color,
+                legend_label=f'callback{callback_idx}',
+                hover_fill_color=color,
+                hover_alpha=0.1,
+                fill_alpha=0.1,
+                level='underlay',
+                x_range_name=x_range_name
+            )
 
             Hover1 = HoverTool(
-                     renderers=[plot1],
-                     tooltips="""
-                     <div style="width:400px; word-wrap: break-word;">
-                     <br>
-                     callback_start = @x_min [ns] <br>
-                     callback_end = @x_max [ns] <br>
-                     latency = @latency [ms] <br>
-                     """,
-                     toggleable=False,
-                     attachment='above')
+                renderers=[plot1],
+                tooltips="""
+                <div style="width:400px; word-wrap: break-word;">
+                <br>
+                callback_start = @x_min [ns] <br>
+                callback_end = @x_max [ns] <br>
+                latency = @latency [ms] <br>
+                """,
+                toggleable=False,
+                attachment='above'
+            )
 
             Hover2 = HoverTool(
-                     renderers=[plot2],
-                     tooltips="""
-                     <div style="width:400px; word-wrap: break-word;">
-                     <br>
-                     node_name = @node_name <br>
-                     callback_name = @callback_name <br>
-                     callback_type = @callback_type <br>
-                     @callback_param <br>
-                     symbol = @symbol
-                     </div>
-                     """,
-                     toggleable=False,
-                     point_policy='follow_mouse',
-                     attachment='below')
+                renderers=[plot2],
+                tooltips="""
+                <div style="width:400px; word-wrap: break-word;">
+                <br>
+                node_name = @node_name <br>
+                callback_name = @callback_name <br>
+                callback_type = @callback_type <br>
+                @callback_param <br>
+                symbol = @symbol
+                </div>
+                """,
+                toggleable=False,
+                point_policy='follow_mouse',
+                attachment='below'
+            )
             p.add_tools(Hover1)
             p.add_tools(Hover2)
 
@@ -271,24 +250,32 @@ def sched_plot_cbg(
                     callback_start = item._2
                     # callback_end = item._3
                     res = callback_start-timerstamp
+                    # The callback is considered delayed
+                    # if this value is exceeded.
                     delayed_th = 500000
-                    # The callback is considered delayed if this value is exceeded.
                     if not pd.isna(res):
                         if res > delayed_th:
-                            p.add_layout(Arrow(end=NormalHead(
-                                fill_color='red',
-                                line_width=1,
-                                size=10
-                                ),
-                                       x_start=(timerstamp-frame_min)*1.0e-9, y_start=y_start,
-                                       x_end=(timerstamp-frame_min)*1.0e-9, y_end=y_end))
+                            p.add_layout(
+                                Arrow(end=NormalHead(fill_color='red',
+                                                     line_width=1,
+                                                     size=10),
+                                      x_start=(timerstamp-frame_min)*1.0e-9,
+                                      y_start=y_start,
+                                      x_end=(timerstamp-frame_min)*1.0e-9,
+                                      y_end=y_end
+                                      )
+                            )
                         else:
-                            p.add_layout(Arrow(end=NormalHead(
-                                fill_color='white',
-                                line_width=1,
-                                size=10),
-                                       x_start=(timerstamp-frame_min)*1.0e-9, y_start=y_start,
-                                       x_end=(timerstamp-frame_min)*1.0e-9, y_end=y_end))
+                            p.add_layout(
+                                Arrow(end=NormalHead(fill_color='white',
+                                                     line_width=1,
+                                                     size=10),
+                                      x_start=(timerstamp-frame_min)*1.0e-9,
+                                      y_start=y_start,
+                                      x_end=(timerstamp-frame_min)*1.0e-9,
+                                      y_end=y_end
+                                      )
+                            )
             rect_y += rect_y_step
 
     p.ygrid.grid_line_alpha = 0
@@ -300,7 +287,8 @@ def sched_plot_cbg(
     if export_path is None:
         show(p)
     else:
-        save(p, export_path, title='callback execution timing-chart', resources=CDN)
+        save(p, export_path,
+             title='callback execution timing-chart', resources=CDN)
 
 
 def get_callback_rects(
@@ -420,64 +408,3 @@ def get_callback_bar(
         })
 
     return rect_source
-
-
-class ColorSelector:
-    """
-    Class that provides API for color selection.
-
-    This class provides the API to get the color for each callback in the different rules.
-    """
-
-    @staticmethod
-    def create_instance(coloring_rule: str):
-        if coloring_rule == 'callback':
-            return ColorSelectorCallback()
-
-        if coloring_rule == 'callback_group':
-            return ColorSelectorCbg()
-
-        if coloring_rule == 'node':
-            return ColorSelectorNode()
-
-    def __init__(self) -> None:
-        self._palette: Sequence[Color] = [self._from_rgb(*rgb) for rgb in cc.glasbey_bw_minc_20]
-        self._color_map: Dict[str, Color] = {}
-
-    def get_color(self, node_name: str, cbg_name: str, callback_name: str) -> Color:
-        color_hash = self._get_color_hash(node_name, cbg_name, callback_name)
-
-        if color_hash not in self._color_map:
-            color_index = len(self._color_map) % len(self._palette)
-            self._color_map[color_hash] = self._palette[color_index]
-
-        return self._color_map[color_hash]
-
-    @abstractmethod
-    def _get_color_hash(self, node_name: str, cbg_name: str, callback_name: str) -> Color:
-        return
-
-    @staticmethod
-    def _from_rgb(r: float, g: float, b: float) -> Color:
-        r_ = int(r*255)
-        g_ = int(g*255)
-        b_ = int(b*255)
-        return RGB(r_, g_, b_)
-
-
-class ColorSelectorCallback(ColorSelector):
-
-    def _get_color_hash(self, node_name: str, cbg_name: str, callback_name: str) -> Color:
-        return callback_name
-
-
-class ColorSelectorCbg(ColorSelector):
-
-    def _get_color_hash(self, node_name: str, cbg_name: str, callback_name: str) -> Color:
-        return cbg_name
-
-
-class ColorSelectorNode(ColorSelector):
-
-    def _get_color_hash(self, node_name: str, cbg_name: str, callback_name: str) -> Color:
-        return node_name
