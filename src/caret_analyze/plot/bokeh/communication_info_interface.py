@@ -23,13 +23,6 @@ from ...runtime import Communication
 
 class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
 
-    def __init__(
-        self,
-        *communications: Communication
-    ) -> None:
-        super().__init__()
-        pass  # TODO
-
     def show(
         self,
         xaxis_type: Optional[str] = None,
@@ -58,3 +51,33 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
     @abstractmethod
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         pass
+
+    def _get_comm_name(
+        self,
+        comm: Communication
+    ) -> str:
+        return (f'{comm.summary["publish_node"]}|'
+                f'{comm.summary["topic_name"]}|'
+                f'{comm.summary["subscirbe_node"]}')
+
+    def _create_rclcpp_pub_ts_df(
+        self
+    ) -> pd.DataFrame:
+        rclcpp_pub_ts_df = pd.DataFrame()
+        for comm in self._communications:
+            pub_ts_series = comm.to_dataframe().iloc[:, 0]
+            pub_ts_series.rename(self._get_comm_name(comm), inplace=True)
+            rclcpp_pub_ts_df = pd.concat([rclcpp_pub_ts_df, pub_ts_series],
+                                         axis=1)
+
+        return rclcpp_pub_ts_df
+
+    def _df_convert_to_sim_time(
+        self,
+        latency_table: pd.DataFrame
+    ) -> None:
+        converter = self._communications[0]._callback_subscription[0]._provider.get_sim_time_converter()
+        for c in range(len(latency_table.columns)):
+            for i in range(len(latency_table)):
+                latency_table.iat[i, c] = converter.convert(
+                        latency_table.iat[i, c])
