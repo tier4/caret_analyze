@@ -22,7 +22,7 @@ from typing import Dict, List, Optional
 from bokeh.io import save, show
 from bokeh.models import CrosshairTool
 from bokeh.palettes import Bokeh8
-from bokeh.plotting import ColumnDataSource, figure
+from bokeh.plotting import ColumnDataSource, Figure, figure
 from bokeh.resources import CDN
 import numpy as np
 import pandas as pd
@@ -42,7 +42,7 @@ def message_flow(
     lstrip_s: float = 0,
     rstrip_s: float = 0,
     use_sim_time: bool = False
-) -> None:
+) -> Figure:
     granularity = granularity or 'raw'
     if granularity not in ['raw', 'node']:
         raise InvalidArgumentError('granularity must be [ raw / node ]')
@@ -135,6 +135,8 @@ def message_flow(
         show(fig)
     else:
         save(fig, export_path, title='time vs tracepoint', resources=CDN)
+
+    return fig
 
 
 class Offset:

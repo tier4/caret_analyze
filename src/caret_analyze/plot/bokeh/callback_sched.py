@@ -22,7 +22,7 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 from bokeh.colors import Color, RGB
 from bokeh.io import save, show
 from bokeh.models import Arrow, HoverTool, NormalHead
-from bokeh.plotting import ColumnDataSource, figure
+from bokeh.plotting import ColumnDataSource, Figure, figure
 from bokeh.resources import CDN
 
 from caret_analyze.runtime.callback import TimerCallback
@@ -51,7 +51,7 @@ def callback_sched(
     coloring_rule: str = 'callback',
     use_sim_time: bool = False,
     export_path: Optional[str] = None
-):
+) -> Figure:
     """
     Visualize callback scheduling behavior.
 
@@ -79,6 +79,10 @@ def callback_sched(
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
 
+    Returns
+    -------
+    bokeh.plotting.Figure
+
     """
     assert coloring_rule in ['callback', 'callback_group', 'node']
 
@@ -90,8 +94,9 @@ def callback_sched(
     clip = Clip(clip_min, clip_max)
 
     color_selector = ColorSelector.create_instance(coloring_rule)
-    sched_plot_cbg(target_name, cbgs, color_selector,
-                   clip, use_sim_time, export_path)
+    figure = sched_plot_cbg(target_name, cbgs, color_selector,
+                            clip, use_sim_time, export_path)
+    return figure
 
 
 def get_cbg_and_name(
@@ -179,7 +184,7 @@ def sched_plot_cbg(
     clipper: Clip,
     use_sim_time: bool,
     export_path: Optional[str] = None
-):
+) -> Figure:
     """
     Show the graph of callback scheduling visualization.
 
@@ -194,6 +199,10 @@ def sched_plot_cbg(
         If you want to use the simulation time, you can set this Parameter to True.
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
+
+    Returns
+    -------
+    bokeh.plotting.Figure
 
     """
     p = figure(
@@ -331,6 +340,8 @@ def sched_plot_cbg(
         show(p)
     else:
         save(p, export_path, title='callback execution timing-chart', resources=CDN)
+
+    return p
 
 
 def get_callback_rects(

@@ -17,7 +17,7 @@ from logging import getLogger
 from typing import List, Optional, Union
 
 from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
 
 
@@ -60,7 +60,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None
-    ) -> None:
+    ) -> Figure:
         """
         Draw a line graph for each callback using the bokeh library.
 
@@ -78,6 +78,10 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             even if the number of legends exceeds the threshold.
         export_path : Optional[str]
             If you give path, the drawn graph will be saved as a file.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
 
         Raises
         ------
@@ -153,6 +157,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             show(p)
         else:
             save(p, export_path, title='callback time-line', resources=CDN)
+
+        return p
 
     def to_dataframe(self, xaxis_type: Optional[str] = None):
         """
