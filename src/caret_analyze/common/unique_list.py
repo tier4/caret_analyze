@@ -12,19 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .clock_converter import ClockConverter
-from .progress import Progress
-from .singleton import Singleton
-from .summary import Summarizable, Summary
-from .unique_list import UniqueList
-from .util import Util
+from collections import UserList
+from typing import Any, List
 
-__all__ = [
-    'ClockConverter',
-    'Progress',
-    'Singleton',
-    'Summarizable',
-    'Summary',
-    'Util',
-    'UniqueList'
-]
+
+class UniqueList(UserList):
+
+    def __init__(
+        self,
+        init=None,
+    ) -> None:
+        super().__init__(None)
+        init = init or []
+        for i in init:
+            self.append(i)
+
+    def append(self, i):
+        if i in self.data:
+            return
+        self.data.append(i)
+
+    def __add__(self, other):
+        return self.data + other
+
+    def __iadd__(self, other):
+        for i in other:
+            self.append(i)
+        return self
+
+    def as_list(self) -> List[Any]:
+        return self.data

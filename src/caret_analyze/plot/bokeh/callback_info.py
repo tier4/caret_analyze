@@ -17,11 +17,12 @@ from typing import List, Tuple, Union
 import pandas as pd
 
 from .callback_info_interface import TimeSeriesPlot
-from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
+from ...runtime import (Application, CallbackBase, CallbackGroup,
+                        Executor, Node, Path)
 
 
-CallbacksType = Union[Application, Executor,
-                      Node, CallbackGroup, List[CallbackBase]]
+CallbacksType = Union[Application, Path, Executor, Node,
+                      CallbackGroup, CallbackBase, List[CallbackBase]]
 
 
 class CallbackLatencyPlot(TimeSeriesPlot):

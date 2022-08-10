@@ -25,6 +25,7 @@ from typing import (
     Tuple,
 )
 
+from ..common import UniqueList
 from ..exceptions import (
     InvalidArgumentError,
     ItemNotFoundError,
@@ -107,34 +108,6 @@ class Column():
     def from_str(column_name: str) -> Column:
         assert isinstance(column_name, str)
         return Column(ColumnValue(column_name))
-
-
-class UniqueList(UserList):
-
-    def __init__(
-        self,
-        init=None,
-    ) -> None:
-        super().__init__(None)
-        init = init or []
-        for i in init:
-            self.append(i)
-
-    def append(self, i):
-        if i in self.data:
-            return
-        self.data.append(i)
-
-    def __add__(self, other):
-        return self.data + other
-
-    def __iadd__(self, other):
-        for i in other:
-            self.append(i)
-        return self
-
-    def as_list(self) -> List[ColumnValue]:
-        return self.data
 
 
 class Columns(UserList):
