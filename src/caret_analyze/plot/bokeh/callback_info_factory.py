@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Union
 
 from .callback_info import (CallbackFrequencyPlot,
-                            CallbackJitterPlot,
-                            CallbackLatencyPlot)
+                            CallbackLatencyPlot,
+                            CallbackPeriodPlot)
 from .callback_info_interface import TimeSeriesPlot
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
 
 
 CallbacksType = Union[Application, Executor,
                       Node, CallbackGroup, List[CallbackBase]]
+
+logger = getLogger(__name__)
 
 
 class Plot:
@@ -55,8 +58,16 @@ class Plot:
     def create_callback_jitter_plot(
         callbacks: CallbacksType
     ) -> TimeSeriesPlot:
+        logger.warning('create_callback_jitter_plot is deprecated.'
+                       'Use create_callback_period_plot')
+        return Plot.create_callback_period_plot(callbacks)
+
+    @staticmethod
+    def create_callback_period_plot(
+        callbacks: CallbacksType
+    ) -> TimeSeriesPlot:
         """
-        Get CallbackJitterPlot instance.
+        Get CallbackPeriodPlot instance.
 
         Parameters
         ----------
@@ -70,10 +81,10 @@ class Plot:
 
         Returns
         -------
-        CallbackJitterPlot
+        CallbackPeriodPlot
 
         """
-        return CallbackJitterPlot(callbacks)
+        return CallbackPeriodPlot(callbacks)
 
     @staticmethod
     def create_callback_latency_plot(
