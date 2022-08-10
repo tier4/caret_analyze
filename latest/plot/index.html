@@ -1012,9 +1012,11 @@ for each callback and to obtain it in the pandas DataFrame format.</p>
                 <code><span title="caret_analyze.plot.bokeh.callback_info_factory.CallbacksType">CallbacksType</span></code>
           </td>
           <td><p>CallbacksType = Union[Application,
+Path,
 Executor,
 Node,
 CallbackGroup,
+CallbackBase
 List[CallbackBase]].
 Instances that have callbacks or a list of callbacks.</p></td>
           <td>
@@ -1081,9 +1083,11 @@ Instances that have callbacks or a list of callbacks.</p></td>
                 <code><span title="caret_analyze.plot.bokeh.callback_info_factory.CallbacksType">CallbacksType</span></code>
           </td>
           <td><p>CallbacksType = Union[Application,
+Path,
 Executor,
 Node,
 CallbackGroup,
+CallbackBase
 List[CallbackBase]].
 Instances that have callbacks or a list of callbacks.</p></td>
           <td>
@@ -1150,9 +1154,11 @@ Instances that have callbacks or a list of callbacks.</p></td>
                 <code><span title="caret_analyze.plot.bokeh.callback_info_factory.CallbacksType">CallbacksType</span></code>
           </td>
           <td><p>CallbacksType = Union[Application,
+Path,
 Executor,
 Node,
 CallbackGroup,
+CallbackBase
 List[CallbackBase]].
 Instances that have callbacks or a list of callbacks.</p></td>
           <td>
@@ -1415,10 +1421,15 @@ The default is "system_time".</p></td>
         <tr>
           <td><code>target</code></td>
           <td>
-                <code>Union[Node, CallbackGroup, Executor].</code>
+                <code><span title="caret_analyze.plot.bokeh.callback_sched.CallbackGroupTypes">CallbackGroupTypes</span></code>
           </td>
-          <td><p>The target which you want to visualize,
-it can be a Node, a CallbackGroup or a Executor.</p></td>
+          <td><p>CallbackGroupTypes = Union[Application,
+Executor,
+Path,
+Node,
+CallbackGroup,
+List[CallbackGroup]].
+The target which you want to visualize.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -1460,7 +1471,8 @@ The default value is "callback".</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>If you want to use the simulation time, you can set this Parameter to True.</p></td>
+          <td><p>If you want to use the simulation time,
+you can set this Parameter to True.</p></td>
           <td>
                 <code>False</code>
           </td>
