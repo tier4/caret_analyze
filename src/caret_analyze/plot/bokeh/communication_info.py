@@ -28,7 +28,7 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
         self,
         *communications: Communication
     ) -> None:
-        self._communications = list(*communications)
+        self._communications = communications
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concated_latency_df = pd.DataFrame()
@@ -57,7 +57,7 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
         self,
         *communications: Communication
     ) -> None:
-        self._communications = list(*communications)
+        self._communications = communications
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         rclcpp_pub_ts_df = self._create_rclcpp_pub_ts_df()
@@ -85,7 +85,7 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         self,
         *communications: Communication
     ) -> None:
-        self._communications = list(*communications)
+        self._communications = communications
 
     def _get_freq_with_timestamp(
         self,

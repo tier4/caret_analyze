@@ -110,28 +110,28 @@ class Plot:
     def create_publish_subscription_period_plot(
         *pub_subs: Union[Publisher, Subscription]
     ) -> PubSubTimeSeriesPlot:
-        return PubSubPeriodPlot(pub_subs)
+        return PubSubPeriodPlot(*pub_subs)
 
     @staticmethod
     def create_publish_subscription_frequency_plot(
         *pub_subs: Union[Publisher, Subscription]
     ) -> PubSubTimeSeriesPlot:
-        return PubSubFrequencyPlot(pub_subs)
+        return PubSubFrequencyPlot(*pub_subs)
 
     @staticmethod
     def create_communication_latency_plot(
         *communications: Communication
     ) -> CommunicationTimeSeriesPlot:
-        return CommunicationLatencyPlot(communications)
+        return CommunicationLatencyPlot(*communications)
 
     @staticmethod
     def create_communication_frequency_plot(
         *communications: Communication
     ) -> CommunicationTimeSeriesPlot:
-        return CommunicationFrequencyPlot(communications)
+        return CommunicationFrequencyPlot(*communications)
 
     @staticmethod
     def create_communication_period_plot(
         *communications: Communication
     ) -> CommunicationTimeSeriesPlot:
-        return CommunicationPeriodPlot(communications)
+        return CommunicationPeriodPlot(*communications)
