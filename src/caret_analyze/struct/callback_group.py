@@ -17,51 +17,12 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
+from caret_analyze.value_objects.callback_group import CallbackGroupType
+
 from .callback import CallbackStruct
 from ..common import Summarizable, Summary
 
-
-class CallbackGroupType():
-    """callback group type class."""
-
-    MUTUALLY_EXCLUSIVE: CallbackGroupType
-    REENTRANT: CallbackGroupType
-
-    def __init__(self, name: str) -> None:
-        """
-        Construct CallbackGroupType.
-
-        Parameters
-        ----------
-        name : str
-            type name ['mutually_exclusive', 'reentrant']
-
-        """
-        if name not in ['mutually_exclusive', 'reentrant']:
-            raise ValueError(f'Unsupported callback group type: {name}')
-
-        self._name = name
-
-    def __str__(self) -> str:
-        return self.type_name
-
-    @property
-    def type_name(self) -> str:
-        """
-        Return callback group type name.
-
-        Returns
-        -------
-        str
-            type name.
-
-        """
-        return self._name
-
-
-CallbackGroupType.MUTUALLY_EXCLUSIVE = CallbackGroupType('mutually_exclusive')
-CallbackGroupType.REENTRANT = CallbackGroupType('reentrant')
-
+from ..value_objects import CallbackGroupType
 
 class CallbackGroupStruct(Summarizable):
     """Callback group value object."""

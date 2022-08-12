@@ -19,47 +19,7 @@ from typing import Optional, Tuple
 
 from ..common import Summarizable, Summary
 
-
-class CallbackType():
-    """callback group type class."""
-
-    TIMER: CallbackType
-    SUBSCRIPTION: CallbackType
-
-    def __init__(self, name: str) -> None:
-        """
-        Construct callback type.
-
-        Parameters
-        ----------
-        name : str
-            callback type name ['timer_callback', 'subscription_callback']
-
-        """
-        if name not in ['timer_callback', 'subscription_callback']:
-            raise ValueError(f'Unsupported callback type: {name}')
-
-        self._name = name
-
-    def __str__(self) -> str:
-        return self.type_name
-
-    @property
-    def type_name(self) -> str:
-        """
-        Return callback type name.
-
-        Returns
-        -------
-        str
-            type name.
-
-        """
-        return self._name
-
-
-CallbackType.TIMER = CallbackType('timer_callback')
-CallbackType.SUBSCRIPTION = CallbackType('subscription_callback')
+from ..value_objects import CallbackType
 
 
 class CallbackStruct(Summarizable, metaclass=ABCMeta):

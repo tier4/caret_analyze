@@ -21,35 +21,7 @@ from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
 from ..common import Summarizable, Summary, Util
 
-
-class ExecutorType():
-    """executor type class."""
-
-    SINGLE_THREADED_EXECUTOR: ExecutorType
-    MULTI_THREADED_EXECUTOR: ExecutorType
-
-    def __init__(self, type_name: str) -> None:
-        self._type_name = type_name
-
-    @property
-    def type_name(self) -> str:
-        """
-        Return executor type name.
-
-        Returns
-        -------
-        str
-            type name.
-
-        """
-        return self._type_name
-
-    def __str__(self) -> str:
-        return self.type_name
-
-
-ExecutorType.SINGLE_THREADED_EXECUTOR = ExecutorType('single_threaded_executor')
-ExecutorType.MULTI_THREADED_EXECUTOR = ExecutorType('multi_threaded_executor')
+from ..value_objects import ExecutorType
 
 
 class ExecutorStruct(Summarizable):
