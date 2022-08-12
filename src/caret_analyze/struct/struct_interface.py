@@ -52,4 +52,7 @@ class NodeStructInterface(metaclass=ABCMeta):
     @abstractmethod
     def tf_buffer(self) -> Optional[TransformBufferStructInterface]:
         pass
+<<<<<<< HEAD
     """
+=======
+>>>>>>> 8ae0e6865535eeb19d828399e9d777ee559cd2d0

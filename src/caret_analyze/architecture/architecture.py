@@ -198,18 +198,18 @@ class Architecture(Summarizable):
 
     def rename_callback(src: str, dest: str):
         pass
-    
+
     def rename_node(src: str, dest: str):
         pass
-    
+
     def rename_path(src: str, dest: str):
         pass
-    
+
     def rename_executor(src: str, dest: str):
         pass
-    
+
     def rename_topic(src: str, dest: str):
-        pass  
+        pass
 
 
 class NamedPathManager():
