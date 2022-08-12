@@ -14,6 +14,7 @@
 
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.record import Record, Records
+from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
@@ -85,7 +86,7 @@ class TestColumnMerged:
         merged = ColumnMerger()
         assert merged.column_names == []
 
-    def test_column_names(self, mocker):
+    def test_columns(self, mocker):
         path_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(path_mock, 'columns',
                             ['cb_start', 'xxx', 'pub'])
@@ -154,7 +155,11 @@ class TestRecordsMerged:
                         'callback_start': 0, 'xxx': 1, 'pub': 2
                     }),
                 ],
-                ['callback_start', 'xxx', 'pub']
+                [
+                    ColumnValue('callback_start'),
+                    ColumnValue('xxx'),
+                    ColumnValue('pub'),
+                ]
             )
         )
 
@@ -166,7 +171,12 @@ class TestRecordsMerged:
                     Record({'pub': 2, 'write': 4,
                             'read': 5, 'callback_start': 6}),
                 ],
-                ['pub', 'write', 'read', 'callback_start']
+                [
+                    ColumnValue('pub'),
+                    ColumnValue('write'),
+                    ColumnValue('read'),
+                    ColumnValue('callback_start'),
+                ]
             )
         )
 
@@ -205,8 +215,14 @@ class TestRecordsMerged:
                     'write/0': 4, 'read/0': 5, 'callback_start/1': 6
                 }),
             ],
-            ['callback_start/0', 'xxx/0', 'pub/0',
-                'write/0', 'read/0', 'callback_start/1']
+            [
+                ColumnValue('callback_start/0'),
+                ColumnValue('xxx/0'),
+                ColumnValue('pub/0'),
+                ColumnValue('write/0'),
+                ColumnValue('read/0'),
+                ColumnValue('callback_start/1'),
+            ]
         )
 
         assert records.equals(expected)
@@ -221,7 +237,11 @@ class TestRecordsMerged:
                 Record({'callback_start': 12,
                         'xxx': 13, 'pub': 14}),
             ],
-            ['callback_start', 'xxx', 'pub']
+            [
+                ColumnValue('callback_start'),
+                ColumnValue('xxx'),
+                ColumnValue('pub'),
+            ]
         )
         node_path_0 = mocker.Mock(spec=NodePath)
         mocker.patch.object(
@@ -244,7 +264,12 @@ class TestRecordsMerged:
                     Record({'pub': 8, 'write': 10,
                             'read': 11, 'callback_start': 12}),
                 ],
-                ['pub', 'write', 'read', 'callback_start']
+                [
+                    ColumnValue('pub'),
+                    ColumnValue('write'),
+                    ColumnValue('read'),
+                    ColumnValue('callback_start'),
+                ]
             )
         )
 
@@ -293,9 +318,14 @@ class TestRecordsMerged:
                 }),
             ],
             [
-                'callback_start/0', 'xxx/0', 'pub/0',
-                'write/0', 'read/0',
-                'callback_start/1', 'xxx/1', 'pub/1'
+                ColumnValue('callback_start/0'),
+                ColumnValue('xxx/0'),
+                ColumnValue('pub/0'),
+                ColumnValue('write/0'),
+                ColumnValue('read/0'),
+                ColumnValue('callback_start/1'),
+                ColumnValue('xxx/1'),
+                ColumnValue('pub/1'),
             ]
         )
         assert records.equals(expected)

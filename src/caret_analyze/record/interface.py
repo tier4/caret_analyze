@@ -20,6 +20,7 @@ from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tupl
 from multimethod import multimethod as singledispatchmethod
 import pandas as pd
 
+from .column import ColumnValue
 from ..exceptions import InvalidArgumentError
 
 
@@ -407,8 +408,8 @@ class RecordsInterface:
 
         Returns
         -------
-        Sequence[str]
-            Column names.
+        List[str]
+            Columns.
 
         """
         pass
@@ -614,13 +615,13 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def append_column(self, column: str, values: List[int]) -> None:
+    def append_column(self, column: ColumnValue, values: List[int]) -> None:
         """
         Append column to records.
 
         Parameters
         ----------
-        column : str
+        column : ColumnValue
         values: List[int]
 
         """

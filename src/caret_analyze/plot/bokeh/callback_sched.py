@@ -32,20 +32,23 @@ import colorcet as cc
 import pandas as pd
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
-from ...common import ClockConverter, Util
+from ...common import ClockConverter, UniqueList, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
-from ...runtime import CallbackBase, CallbackGroup, Executor, Node
-
+from ...runtime import (Application, CallbackBase, CallbackGroup,
+                        Executor, Node, Path)
 
 logger = getLogger(__name__)
 
+CallbackGroupTypes = Union[Application, Executor, Path, Node,
+                           CallbackGroup, List[CallbackGroup]]
+
 
 def callback_sched(
-    target: Union[Node, CallbackGroup, Executor],
+    target: CallbackGroupTypes,
     lstrip_s: float = 0,
     rstrip_s: float = 0,
-    coloring_rule='callback',
+    coloring_rule: str = 'callback',
     use_sim_time: bool = False,
     export_path: Optional[str] = None
 ):
@@ -54,9 +57,14 @@ def callback_sched(
 
     Parameters
     ----------
-    target : Union[Node, CallbackGroup, Executor].
-        The target which you want to visualize,
-        it can be a Node, a CallbackGroup or a Executor.
+    target : CallbackGroupTypes
+        CallbackGroupTypes = Union[Application,
+                                   Executor,
+                                   Path,
+                                   Node,
+                                   CallbackGroup,
+                                   List[CallbackGroup]].
+        The target which you want to visualize.
     lstrip_s : float
         Left strip. The default value is 0.
     rstrip_s : float
@@ -66,7 +74,8 @@ def callback_sched(
         There are three rules which are callback, callback_group and node.
         The default value is "callback".
     use_sim_time: bool
-        If you want to use the simulation time, you can set this Parameter to True.
+        If you want to use the simulation time,
+        you can set this Parameter to True.
     export_path : Optional[str]
         If you give path, the drawn graph will be saved as a file.
 
@@ -81,19 +90,26 @@ def callback_sched(
     clip = Clip(clip_min, clip_max)
 
     color_selector = ColorSelector.create_instance(coloring_rule)
-    sched_plot_cbg(target_name, cbgs, color_selector, clip, use_sim_time, export_path)
+    sched_plot_cbg(target_name, cbgs, color_selector,
+                   clip, use_sim_time, export_path)
 
 
 def get_cbg_and_name(
-    target: Union[Node, CallbackGroup, Executor]
+    target: CallbackGroupTypes
 ) -> Tuple[Sequence[CallbackGroup], str]:
     """
     Get callback group of target and its name.
 
     Parameters
     ----------
-    target: Union[Node, CallbackGroup, Executor]
-        The target which you want to visualize, it can be a Node, a CallbackGroup or a Executor.
+    target: CallbackGroupTypes
+        CallbackGroupTypes = Union[Application,
+                                   Executor,
+                                   Path,
+                                   Node,
+                                   CallbackGroup,
+                                   List[CallbackGroup]].
+        The target which you want to visualize.
 
     Returns
     -------
@@ -101,17 +117,31 @@ def get_cbg_and_name(
         callback group instance and the name of target
 
     """
-    if isinstance(target, Node):
-        if target.callback_groups is None:
-            raise InvalidArgumentError('target.callback_groups is None')
+    if (isinstance(target, Application)):
+        return target.callback_groups, 'application'
 
-        return target.callback_groups, target.node_name
-
-    elif isinstance(target, Executor):
+    elif (isinstance(target, Executor)):
         return target.callback_groups, target.executor_name
 
-    else:
+    elif (isinstance(target, Path)):
+        cbgs = UniqueList()
+        for comm in target.communications:
+            for cbg in comm.publish_node.callback_groups:
+                cbgs.append(cbg)
+        for cbg in target.communications[-1].subscribe_node.callback_groups:
+            cbgs.append(cbg)
+        return cbgs.as_list(), target.path_name
+
+    elif (isinstance(target, Node)):
+        if target.callback_groups is None:
+            raise InvalidArgumentError('target.callback_groups is None')
+        return target.callback_groups, target.node_name
+
+    elif (isinstance(target, CallbackGroup)):
         return [target], target.callback_group_name
+
+    else:
+        return target, ' and '.join([t.callback_group_name for t in target])
 
 
 def get_range(callbacks: Sequence[CallbackBase]) -> Tuple[int, int]:

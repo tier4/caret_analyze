@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from .bokeh.callback_info import (CallbackFrequencyPlot,
-                                  CallbackJitterPlot,
-                                  CallbackLatencyPlot)
+                                  CallbackLatencyPlot,
+                                  CallbackPeriodPlot)
 from .bokeh.callback_info_factory import Plot
 from .bokeh.callback_info_interface import TimeSeriesPlot
 from .bokeh.callback_sched import callback_sched
@@ -26,7 +26,7 @@ from .graphviz.node_graph import node_graph
 __all__ = [
     'Plot',
     'CallbackLatencyPlot',
-    'CallbackJitterPlot',
+    'CallbackPeriodPlot',
     'CallbackFrequencyPlot',
     'TimeSeriesPlot',
     'callback_graph',

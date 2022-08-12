@@ -13,12 +13,15 @@
 # limitations under the License.
 
 from collections import UserList
-from typing import List, Optional
+from typing import Any, List
 
 
 class UniqueList(UserList):
 
-    def __init__(self, init=None):
+    def __init__(
+        self,
+        init=None,
+    ) -> None:
         super().__init__(None)
         init = init or []
         for i in init:
@@ -37,11 +40,5 @@ class UniqueList(UserList):
             self.append(i)
         return self
 
-
-class Columns(UniqueList):
-
-    def __init__(self, init: Optional[List[str]] = None):
-        super().__init__(init=init)
-
-    def as_list(self) -> List[str]:
-        return list(self)
+    def as_list(self) -> List[Any]:
+        return self.data
