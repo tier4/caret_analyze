@@ -13,16 +13,14 @@
 # limitations under the License.
 
 from .callback import (CallbackStruct,
-                       CallbackType,
                        SubscriptionCallbackStruct,
                        TimerCallbackStruct)
-from .callback_group import CallbackGroupStruct, CallbackGroupType
+from .callback_group import CallbackGroupStruct
 from .communication import CommunicationStruct
-from .executor import ExecutorStruct, ExecutorType
+from .executor import ExecutorStruct
 from .message_context import (CallbackChain,
                               InheritUniqueStamp,
                               MessageContext,
-                              MessageContextType,
                               Tilde,
                               UseLatestMessage)
 from .node import NodeStruct
@@ -38,14 +36,11 @@ from .variable_passing import VariablePassingStruct
 __all__ = [
     'CallbackChain',
     'CallbackGroupStruct',
-    'CallbackGroupType',
     'CallbackGroupValue',
     'CallbackStruct',
-    'CallbackType',
     'CallbackValue',
     'CommunicationStruct',
     'ExecutorStruct',
-    'ExecutorType',
     'ExecutorValue',
     'InheritUniqueStamp',
     'MessageContext',

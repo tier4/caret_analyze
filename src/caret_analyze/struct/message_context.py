@@ -29,27 +29,7 @@ from ..exceptions import UnsupportedTypeError
 logger = getLogger(__name__)
 
 
-class MessageContextType():
-    """Message context type."""
-
-    USE_LATEST_MESSAGE: MessageContextType
-    CALLBACK_CHAIN: MessageContextType
-    INHERIT_UNIQUE_STAMP:  MessageContextType
-    TILDE:  MessageContextType
-
-    def __init__(
-        self,
-        type_name: str
-    ) -> None:
-        self._type_name = type_name
-
-    @property
-    def type_name(self) -> str:
-        return self._type_name
-
-    def __str__(self) -> str:
-        return self.type_name
-
+from ..value_objects import MessageContextType
 
 MessageContextType.USE_LATEST_MESSAGE = \
         MessageContextType('use_latest_message')

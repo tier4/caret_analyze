@@ -34,7 +34,8 @@ from ..value_objects import (CallbackChain,
                              SubscriptionCallbackValue,
                              SubscriptionValue,
                              TimerCallbackValue,
-                             TimerValue, VariablePassingValue)
+                             TimerValue, VariablePassingValue,
+                             )
 from ..struct import (NodeStruct,
                       CallbackGroupStruct,
                       CallbackStruct,
@@ -48,7 +49,7 @@ from ..struct import (NodeStruct,
                       TimerCallbackStruct,
                       TimerStruct,
                       VariablePassingStruct,
-                      MessageContext,
+                      MessageContext
                       )
 
 logger = getLogger(__name__)

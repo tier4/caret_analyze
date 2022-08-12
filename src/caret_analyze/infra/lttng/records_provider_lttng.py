@@ -16,7 +16,8 @@ from functools import cached_property
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
-from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
+from caret_analyze.value_objects.message_context import MessageContextType
+from caret_analyze.struct.message_context import MessageContext
 
 from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
@@ -31,19 +32,19 @@ from ...infra.lttng.column_names import COLUMN_NAME
 from ...record import (merge, merge_sequencial, RecordsFactory, RecordsInterface)
 from ...record.column import Columns, ColumnValue
 from ...value_objects import (CallbackChain,
-                              CallbackStructValue,
-                              CommunicationStructValue,
                               InheritUniqueStamp,
-                              NodePathStructValue,
-                              PublisherStructValue,
                               Qos,
-                              SubscriptionCallbackStructValue,
-                              SubscriptionStructValue,
                               Tilde,
-                              TimerCallbackStructValue,
-                              TimerStructValue,
-                              UseLatestMessage,
-                              VariablePassingStructValue)
+                              UseLatestMessage,)
+from ...struct import (CallbackStruct,
+                       CommunicationStruct,
+                       NodePathStruct,
+                       PublisherStruct,
+                       SubscriptionCallbackStruct,
+                       SubscriptionStruct,
+                       TimerCallbackStruct,
+                       TimerStruct,
+                       VariablePassingStruct)
 
 logger = getLogger(__name__)
 
@@ -66,7 +67,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def communication_records(
         self,
-        comm_val: CommunicationStructValue
+        comm_val: CommunicationStruct
     ) -> RecordsInterface:
         """
         Provide communication records.
@@ -95,7 +96,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def node_records(
         self,
-        node_path_val: NodePathStructValue,
+        node_path_val: NodePathStruct,
     ) -> RecordsInterface:
         if node_path_val.message_context is None:
             # dummy record
@@ -123,14 +124,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def callback_records(
         self,
-        callback: CallbackStructValue
+        callback: CallbackStruct
     ) -> RecordsInterface:
         """
         Return callback duration records.
 
         Parameters
         ----------
-        callback_val : CallbackStructValue
+        callback_val : CallbackStruct
             target callback value.
 
         Returns
@@ -156,14 +157,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def subscribe_records(
         self,
-        subscription: SubscriptionStructValue
+        subscription: SubscriptionStruct
     ) -> RecordsInterface:
         """
         Provide subscription records.
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription_value : SubscriptionStruct
             Target subscription value.
 
         Returns
@@ -191,14 +192,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def _subscribe_records(
         self,
-        subscription: SubscriptionStructValue
+        subscription: SubscriptionStruct
     ) -> RecordsInterface:
         """
         Provide subscription records.
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription_value : SubscriptionStruct
             Target subscription value.
 
         Returns
@@ -243,14 +244,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def _subscribe_records_with_tilde(
         self,
-        subscription: SubscriptionStructValue
+        subscription: SubscriptionStruct
     ) -> RecordsInterface:
         """
         Provide subscription records.
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription_value : SubscriptionStruct
             Target subscription value.
 
         Returns
@@ -318,14 +319,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def _publish_records(
         self,
-        publisher: PublisherStructValue
+        publisher: PublisherStruct
     ) -> RecordsInterface:
         """
         Return publish records.
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publish : PublisherStruct
             target publisher
 
         Returns
@@ -358,14 +359,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def publish_records(
         self,
-        publisher: PublisherStructValue
+        publisher: PublisherStruct
     ) -> RecordsInterface:
         """
         Return publish records.
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publish : PublisherStruct
             target publisher
 
         Returns
@@ -392,14 +393,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def _publish_records_with_tilde(
         self,
-        publisher: PublisherStructValue
+        publisher: PublisherStruct
     ) -> RecordsInterface:
         """
         Return publish records.
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publish : PublisherStruct
             target publisher
 
         Returns
@@ -454,13 +455,13 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return pub_records
 
-    def timer_records(self, timer: TimerStructValue) -> RecordsInterface:
+    def timer_records(self, timer: TimerStruct) -> RecordsInterface:
         """
         Return timer records.
 
         Parameters
         ----------
-        timer : TimerStructValue
+        timer : TimerStruct
             [description]
 
         Returns
@@ -506,8 +507,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def tilde_records(
         self,
-        subscription: SubscriptionStructValue,
-        publisher: PublisherStructValue
+        subscription: SubscriptionStruct,
+        publisher: PublisherStruct
     ) -> RecordsInterface:
         assert subscription.callback is not None
 
@@ -547,9 +548,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def get_qos(
         self,
-        pub_sub: Union[PublisherStructValue, SubscriptionStructValue]
+        pub_sub: Union[PublisherStruct, SubscriptionStruct]
     ) -> Qos:
-        if isinstance(pub_sub, SubscriptionStructValue):
+        if isinstance(pub_sub, SubscriptionStruct):
             sub_cb = pub_sub.callback
             if sub_cb is None:
                 raise InvalidArgumentError('Failed to get callback information.'
@@ -572,7 +573,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def variable_passing_records(
         self,
-        variable_passing_info: VariablePassingStructValue
+        variable_passing_info: VariablePassingStruct
     ) -> RecordsInterface:
         """
         Return variable passing records.
@@ -621,7 +622,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def is_intra_process_communication(
         self,
-        communication_value: CommunicationStructValue
+        communication_value: CommunicationStruct
     ) -> Optional[bool]:
         intra_record = self._compose_intra_proc_comm_records(communication_value)
         return len(intra_record) > 0
@@ -644,7 +645,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def verify_communication(
         self,
-        communication: CommunicationStructValue,
+        communication: CommunicationStruct,
     ) -> bool:
         is_intra_proc = self.is_intra_process_communication(communication)
         if is_intra_proc is True:
@@ -674,7 +675,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def _compose_intra_proc_comm_records(
         self,
-        comm_info: CommunicationStructValue,
+        comm_info: CommunicationStruct,
     ) -> RecordsInterface:
         """
         Compose intra process communication records.
@@ -696,7 +697,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         subscription_cb = comm_info.subscribe_callback
 
         assert subscription_cb is not None
-        assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
+        assert isinstance(subscription_cb, SubscriptionCallbackStruct)
 
         publisher_handles = self._helper.get_publisher_handles(publisher)
         callback_object_intra = self._helper.get_subscription_callback_object_intra(
@@ -716,14 +717,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def _compose_inter_proc_comm_records(
         self,
-        comm_value: CommunicationStructValue
+        comm_value: CommunicationStruct
     ) -> RecordsInterface:
         """
         Composer intar process communication records.
 
         Parameters
         ----------
-        comm_value : CommunicationStructValue
+        comm_value : CommunicationStruct
             target communication value.
 
         Returns
@@ -740,7 +741,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         subscription_cb = comm_value.subscribe_callback
 
         assert subscription_cb is not None
-        assert isinstance(subscription_cb, SubscriptionCallbackStructValue)
+        assert isinstance(subscription_cb, SubscriptionCallbackStruct)
 
         publisher_handles = self._helper.get_publisher_handles(publisher)
         callback_object = self._helper.get_subscription_callback_object_inter(subscription_cb)
@@ -853,12 +854,12 @@ class RecordsProviderLttngHelper:
 
     def get_callback_objects(
         self,
-        callback: CallbackStructValue
+        callback: CallbackStruct
     ) -> Tuple[int, Optional[int]]:
-        if isinstance(callback, TimerCallbackStructValue):
+        if isinstance(callback, TimerCallbackStruct):
             return self.get_timer_callback_object(callback), None
 
-        if isinstance(callback, SubscriptionCallbackStructValue):
+        if isinstance(callback, SubscriptionCallbackStruct):
             obj = self.get_subscription_callback_object_inter(callback)
             obj_intra = self.get_subscription_callback_object_intra(callback)
             if obj_intra is not None:
@@ -871,41 +872,41 @@ class RecordsProviderLttngHelper:
 
     def get_timer_callback_object(
         self,
-        callback: TimerCallbackStructValue
+        callback: TimerCallbackStruct
     ) -> int:
         callback_lttng = self._bridge.get_timer_callback(callback)
         return callback_lttng.callback_object
 
     def get_subscription_callback_objects(
         self,
-        callback: SubscriptionCallbackStructValue
+        callback: SubscriptionCallbackStruct
     ) -> Tuple[int, Optional[int]]:
         return self.get_callback_objects(callback)
 
     def get_subscription_callback_object_inter(
         self,
-        callback: SubscriptionCallbackStructValue
+        callback: SubscriptionCallbackStruct
     ) -> int:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object
 
     def get_subscription_callback_object_intra(
         self,
-        callback: SubscriptionCallbackStructValue
+        callback: SubscriptionCallbackStruct
     ) -> Optional[int]:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object_intra
 
     def get_tilde_subscription(
         self,
-        callback: SubscriptionCallbackStructValue
+        callback: SubscriptionCallbackStruct
     ) -> Optional[int]:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.tilde_subscription
 
     def get_publisher_handles(
         self,
-        publisher: PublisherStructValue
+        publisher: PublisherStruct
     ) -> List[int]:
         publisher_lttng = self._bridge.get_publishers(publisher)
         return [pub_info.publisher_handle
@@ -914,7 +915,7 @@ class RecordsProviderLttngHelper:
 
     def get_tilde_publishers(
         self,
-        publisher_info: PublisherStructValue
+        publisher_info: PublisherStruct
     ) -> List[int]:
         publisher_lttng = self._bridge.get_publishers(publisher_info)
         publisher = [pub_info.tilde_publisher
@@ -925,19 +926,19 @@ class RecordsProviderLttngHelper:
 
     def get_lttng_publishers(
         self,
-        publisher: PublisherStructValue
+        publisher: PublisherStruct
     ) -> List[PublisherValueLttng]:
         return self._bridge.get_publishers(publisher)
 
     def get_lttng_subscription(
         self,
-        callback: SubscriptionCallbackStructValue
+        callback: SubscriptionCallbackStruct
     ) -> SubscriptionCallbackValueLttng:
         return self._bridge.get_subscription_callback(callback)
 
     def get_lttng_timer(
         self,
-        callback: TimerCallbackStructValue
+        callback: TimerCallbackStruct
     ) -> TimerCallbackValueLttng:
         return self._bridge.get_timer_callback(callback)
 
@@ -946,7 +947,7 @@ class NodeRecordsCallbackChain:
     def __init__(
         self,
         provider: RecordsProviderLttng,
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
     ) -> None:
 
         self._provider = provider
@@ -956,7 +957,7 @@ class NodeRecordsCallbackChain:
     def to_records(self):
         chain_info = self._val.child
 
-        if isinstance(chain_info[0], CallbackStructValue):
+        if isinstance(chain_info[0], CallbackStruct):
             cb_info = chain_info[0]
             records = self._provider.callback_records(cb_info)
         else:
@@ -964,7 +965,7 @@ class NodeRecordsCallbackChain:
             records = self._provider.variable_passing_records(var_pass_info)
 
         for chain_element in chain_info[1:]:
-            if isinstance(chain_element, CallbackStructValue):
+            if isinstance(chain_element, CallbackStruct):
                 records_ = self._provider.callback_records(chain_element)
                 join_key = records_.columns[0]
                 records = merge(
@@ -980,7 +981,7 @@ class NodeRecordsCallbackChain:
                 )
                 continue
 
-            if isinstance(chain_element, VariablePassingStructValue):
+            if isinstance(chain_element, VariablePassingStruct):
                 records_ = self._provider.variable_passing_records(chain_element)
                 # self._rename_var_pass_records(records_, chain_element)
                 join_key = records_.columns[0]
@@ -998,7 +999,7 @@ class NodeRecordsCallbackChain:
                 continue
 
         last_element = chain_info[-1]
-        if isinstance(last_element, CallbackStructValue) \
+        if isinstance(last_element, CallbackStruct) \
                 and self._val.publisher is not None:
             last_callback_end_name = Util.filter_items(
                 lambda x: COLUMN_NAME.CALLBACK_END_TIMESTAMP in x, records.columns)[-1]
@@ -1028,7 +1029,7 @@ class NodeRecordsCallbackChain:
 
     @staticmethod
     def _validate(
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
     ) -> None:
         if node_path.callbacks is None:
             raise UnsupportedNodeRecordsError('')
@@ -1058,7 +1059,7 @@ class NodeRecordsInheritUniqueTimestamp:
     def __init__(
         self,
         provider: RecordsProviderLttng,
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
     ) -> None:
         if node_path.message_context is None:
             raise UnsupportedNodeRecordsError('node_path.message context is None')
@@ -1103,7 +1104,7 @@ class NodeRecordsInheritUniqueTimestamp:
 
     @staticmethod
     def _validate(
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
         context: InheritUniqueStamp,
     ) -> None:
         def is_valid() -> bool:
@@ -1125,7 +1126,7 @@ class NodeRecordsUseLatestMessage:
     def __init__(
         self,
         provider: RecordsProviderLttng,
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
     ) -> None:
         if node_path.message_context is None:
             raise UnsupportedNodeRecordsError('node_path.message context is None')
@@ -1167,7 +1168,7 @@ class NodeRecordsUseLatestMessage:
 
     @staticmethod
     def _validate(
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
         context: UseLatestMessage,
     ) -> None:
         def is_valid() -> bool:
@@ -1189,7 +1190,7 @@ class NodeRecordsTilde:
     def __init__(
         self,
         provider: RecordsProviderLttng,
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
     ) -> None:
         if node_path.message_context is None:
             raise UnsupportedNodeRecordsError('node_path.message context is None')
@@ -1251,7 +1252,7 @@ class NodeRecordsTilde:
 
     @staticmethod
     def _validate(
-        node_path: NodePathStructValue,
+        node_path: NodePathStruct,
         context: MessageContext,
     ) -> None:
         def is_valid() -> bool:

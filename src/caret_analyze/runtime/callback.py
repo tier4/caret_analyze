@@ -23,10 +23,10 @@ from .timer import Timer
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
-from ..value_objects import (CallbackStructValue,
-                             CallbackType,
-                             SubscriptionCallbackStructValue,
-                             TimerCallbackStructValue)
+from ..value_objects import CallbackType
+from ..struct import (CallbackStruct,
+                      SubscriptionCallbackStruct,
+                      TimerCallbackStruct)
 
 
 class CallbackBase(PathBase, Summarizable):
@@ -34,7 +34,7 @@ class CallbackBase(PathBase, Summarizable):
 
     def __init__(
         self,
-        info: CallbackStructValue,
+        info: CallbackStruct,
         records_provider: RecordsProvider,
         subscription: Optional[Subscription],
         publishers: Optional[List[Publisher]],
@@ -45,7 +45,7 @@ class CallbackBase(PathBase, Summarizable):
 
         Parameters
         ----------
-        info : CallbackStructValue
+        info : CallbackStruct
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.
@@ -221,7 +221,7 @@ class TimerCallback(CallbackBase):
 
     def __init__(
         self,
-        callback: TimerCallbackStructValue,
+        callback: TimerCallbackStruct,
         records_provider: RecordsProvider,
         publishers: Optional[List[Publisher]],
         timer: Timer
@@ -231,7 +231,7 @@ class TimerCallback(CallbackBase):
 
         Parameters
         ----------
-        callback : TimerCallbackStructValue
+        callback : TimerCallbackStruct
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.
@@ -242,7 +242,7 @@ class TimerCallback(CallbackBase):
 
         """
         super().__init__(callback, records_provider, None, publishers, timer)
-        self.__val: TimerCallbackStructValue = callback
+        self.__val: TimerCallbackStruct = callback
 
     @property
     def period_ns(self) -> int:
@@ -263,7 +263,7 @@ class SubscriptionCallback(CallbackBase):
 
     def __init__(
         self,
-        callback_info: SubscriptionCallbackStructValue,
+        callback_info: SubscriptionCallbackStruct,
         records_provider: RecordsProvider,
         subscription: Subscription,
         publishers: Optional[List[Publisher]] = None,
@@ -273,7 +273,7 @@ class SubscriptionCallback(CallbackBase):
 
         Parameters
         ----------
-        callback_info : SubscriptionCallbackStructValue
+        callback_info : SubscriptionCallbackStruct
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.

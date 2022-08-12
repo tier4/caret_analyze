@@ -25,20 +25,22 @@ from caret_analyze.infra.lttng.value_objects import (
 )
 from caret_analyze.record import RecordFactory, RecordsFactory, RecordsInterface
 from caret_analyze.record.column import ColumnValue
+from caret_analyze.struct import (
+    CallbackStruct,
+    CommunicationStruct,
+    NodePathStruct,
+    PublisherStruct,
+    SubscriptionCallbackStruct,
+    SubscriptionStruct,
+    TimerCallbackStruct,
+    TimerStruct,
+    VariablePassingStruct,
+)
 from caret_analyze.value_objects import (
     CallbackChain,
-    CallbackStructValue,
-    CommunicationStructValue,
     MessageContextType,
-    NodePathStructValue,
-    PublisherStructValue,
-    SubscriptionCallbackStructValue,
-    SubscriptionStructValue,
     Tilde,
-    TimerCallbackStructValue,
-    TimerStructValue,
     UseLatestMessage,
-    VariablePassingStructValue,
 )
 
 import pandas as pd
@@ -120,7 +122,7 @@ def create_subscription_callback_struct(
         topic_name: str = 'topic_name',
         callback_name: str = 'callback_name',
     ):
-        sub = mocker.Mock(spec=SubscriptionCallbackStructValue)
+        sub = mocker.Mock(spec=SubscriptionCallbackStruct)
         mocker.patch.object(sub, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub, 'node_name', node_name)
         mocker.patch.object(sub, 'callback_name', callback_name)
@@ -136,13 +138,13 @@ def create_subscription_struct(
         node_name: str = 'node_name',
         topic_name: str = 'topic_name',
         callback_name: str = 'callback_name',
-    ) -> SubscriptionStructValue:
-        sub_cb = mocker.Mock(spec=SubscriptionCallbackStructValue)
+    ) -> SubscriptionStruct:
+        sub_cb = mocker.Mock(spec=SubscriptionCallbackStruct)
         mocker.patch.object(sub_cb, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub_cb, 'node_name', node_name)
         mocker.patch.object(sub_cb, 'callback_name', callback_name)
 
-        subscription = mocker.Mock(spec=SubscriptionStructValue)
+        subscription = mocker.Mock(spec=SubscriptionStruct)
         mocker.patch.object(subscription, 'topic_name', topic_name)
         mocker.patch.object(subscription, 'callback_name', callback_name)
         mocker.patch.object(subscription, 'callback', sub_cb)
@@ -155,7 +157,7 @@ def create_publisher_struct(
     mocker,
 ):
     def _create_publisher_lttng(topic_name: str = 'topic_name'):
-        publisher = mocker.Mock(spec=PublisherStructValue)
+        publisher = mocker.Mock(spec=PublisherStruct)
         mocker.patch.object(publisher, 'topic_name', topic_name)
         return publisher
 
@@ -166,11 +168,11 @@ def create_publisher_struct(
 def create_comm_struct(
     mocker
 ):
-    def _create(publisher: PublisherStructValue, subscription: SubscriptionStructValue):
+    def _create(publisher: PublisherStruct, subscription: SubscriptionStruct):
         callback = subscription.callback
         assert callback is not None
 
-        communication = mocker.Mock(spec=CommunicationStructValue)
+        communication = mocker.Mock(spec=CommunicationStruct)
         mocker.patch.object(communication, 'subscribe_callback', callback)
         mocker.patch.object(communication, 'subscription', subscription)
         mocker.patch.object(communication, 'publisher', publisher)
@@ -189,11 +191,11 @@ def create_timer_struct(mocker):
         callback_name: str,
         period: int,
     ):
-        timer = mocker.Mock(spec=TimerStructValue)
+        timer = mocker.Mock(spec=TimerStruct)
         mocker.patch.object(timer, 'callback_name', callback_name)
         mocker.patch.object(timer, 'period_ns', period)
 
-        callback = mocker.Mock(spec=TimerCallbackStructValue)
+        callback = mocker.Mock(spec=TimerCallbackStruct)
         mocker.patch.object(callback, 'callback_name', callback_name)
 
         mocker.patch.object(timer, 'callback', callback)
@@ -222,10 +224,10 @@ def setup_bridge_get_publisher(
     mocker,
     bridge_mock,
 ):
-    pub_map: Dict[PublisherStructValue, Sequence[PublisherValueLttng]] = {}
+    pub_map: Dict[PublisherStruct, Sequence[PublisherValueLttng]] = {}
 
     def _setup(
-        publisher: PublisherStructValue,
+        publisher: PublisherStruct,
         publisher_lttngs: Sequence[PublisherValueLttng]
     ):
         pub_map[publisher] = publisher_lttngs
@@ -247,36 +249,36 @@ def bridge_setup_get_callback(
 ):
 
     cb_map: Dict[
-        CallbackStructValue,
+        CallbackStruct,
         Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
     ] = {}
 
     def _setup(
-        callback: CallbackStructValue,
+        callback: CallbackStruct,
         callback_lttng: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng],
     ):
         cb_map[callback] = callback_lttng
 
-        if isinstance(callback, TimerCallbackStructValue):
+        if isinstance(callback, TimerCallbackStruct):
             mocker.patch.object(
                 bridge_mock,
                 'get_timer_callback',
                 lambda callback: cb_map[callback]
             )
-        elif isinstance(callback, SubscriptionCallbackStructValue):
+        elif isinstance(callback, SubscriptionCallbackStruct):
             mocker.patch.object(
                 bridge_mock,
                 'get_subscription_callback',
                 lambda callback: cb_map[callback]
             )
 
-        if isinstance(callback, SubscriptionCallbackStructValue):
+        if isinstance(callback, SubscriptionCallbackStruct):
             mocker.patch.object(
                 bridge_mock,
                 'get_subscription_callback',
                 lambda callback: cb_map[callback]
             )
-        elif isinstance(callback, TimerCallbackStructValue):
+        elif isinstance(callback, TimerCallbackStruct):
             mocker.patch.object(
                 bridge_mock,
                 'get_timer_callback',
@@ -835,7 +837,7 @@ class TestNodeRecords:
         mocker.patch.object(
             callback_, 'publish_topic_names', ['pub_topic_name'])
 
-        node_path = mocker.Mock(spec=NodePathStructValue)
+        node_path = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path, 'message_context_type',
                             MessageContextType.CALLBACK_CHAIN)
         mocker.patch.object(node_path, 'publish_topic_name', 'pub_topic_name')
@@ -845,7 +847,7 @@ class TestNodeRecords:
         mocker.patch.object(node_path, 'publisher', publisher)
         mocker.patch.object(node_path, 'callbacks', [callback, callback_])
 
-        var_pass = mocker.Mock(spec=VariablePassingStructValue)
+        var_pass = mocker.Mock(spec=VariablePassingStruct)
         mocker.patch.object(node_path, 'child', [
                             callback, var_pass, callback_])
 
@@ -973,7 +975,7 @@ class TestNodeRecords:
         lttng = create_lttng(data)
         provider = RecordsProviderLttng(lttng)
 
-        node_path = mocker.Mock(spec=NodePathStructValue)
+        node_path = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path, 'message_context_type',
                             MessageContextType.USE_LATEST_MESSAGE)
         mocker.patch.object(node_path, 'publish_topic_name', 'pub_topic_name')
@@ -1066,7 +1068,7 @@ class TestNodeRecords:
         lttng = create_lttng(data)
         provider = RecordsProviderLttng(lttng)
 
-        node_path = mocker.Mock(spec=NodePathStructValue)
+        node_path = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path, 'message_context_type',
                             MessageContextType.TILDE)
         mocker.patch.object(node_path, 'publish_topic_name', 'pub_topic_name')
@@ -1320,7 +1322,7 @@ class TestVarPassRecords:
         def _create_timer_struct(
             callback_name: str,
         ):
-            callback = mocker.Mock(spec=TimerCallbackStructValue)
+            callback = mocker.Mock(spec=TimerCallbackStruct)
             mocker.patch.object(callback, 'callback_name', callback_name)
 
             return callback
@@ -1346,7 +1348,7 @@ class TestVarPassRecords:
         data.add_callback_end_instance(10, callback_obj_)
         data.finalize()
 
-        var_pass = mocker.Mock(spec=VariablePassingStructValue)
+        var_pass = mocker.Mock(spec=VariablePassingStruct)
         callback_read_strct = create_callback_struct('callback_read')
         callback_write_strct = create_callback_struct('callback_write')
 

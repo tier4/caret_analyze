@@ -18,7 +18,8 @@ from logging import getLogger
 from typing import Optional, Tuple, Union
 
 from .callback import CallbackStruct, SubscriptionCallbackStruct
-from .message_context import MessageContext, MessageContextType
+from ..value_objects.message_context import MessageContextType
+from .message_context import MessageContext
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .variable_passing import VariablePassingStruct

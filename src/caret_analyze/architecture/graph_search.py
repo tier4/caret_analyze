@@ -23,11 +23,11 @@ from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, Unio
 from ..common import Util
 from ..exceptions import (InvalidArgumentError, ItemNotFoundError,
                           MultipleItemFoundError)
-from ..value_objects import (CallbackStructValue, CommunicationStructValue,
-                             NodePathStructValue, NodeStructValue,
-                             PathStructValue, PublisherStructValue,
-                             SubscriptionStructValue,
-                             VariablePassingStructValue)
+from ..struct import (CallbackStruct, CommunicationStruct,
+                             NodePathStruct, NodeStruct,
+                             PathStruct, PublisherStruct,
+                             SubscriptionStruct,
+                             VariablePassingStruct)
 from ..value_objects.value_object import ValueObject
 
 logger = getLogger(__name__)
@@ -321,7 +321,7 @@ class CallbackPathSearcher:
 
     def __init__(
         self,
-        node: NodeStructValue,
+        node: NodeStruct,
     ) -> None:
         self._node = node
 
@@ -355,9 +355,9 @@ class CallbackPathSearcher:
 
     def search(
         self,
-        start_callback: CallbackStructValue,
-        end_callback: CallbackStructValue,
-    ) -> Tuple[NodePathStructValue, ...]:
+        start_callback: CallbackStruct,
+        end_callback: CallbackStruct,
+    ) -> Tuple[NodePathStruct, ...]:
         # src_node = GraphNode(self._to_node_point_name(start_callback.callback_name, 'write'))
         # dst_node = GraphNode(self._to_node_point_name(end_callback.callback_name, 'read'))
 
@@ -368,7 +368,7 @@ class CallbackPathSearcher:
 
         graph_paths = self._graph.search_paths(GraphNode(start_name), GraphNode(end_name))
 
-        paths: List[NodePathStructValue] = []
+        paths: List[NodePathStruct] = []
         for graph_path in graph_paths:
             paths += self._to_paths(graph_path, start_callback, end_callback)
 
@@ -377,9 +377,9 @@ class CallbackPathSearcher:
     def _to_paths(
         self,
         callback_graph_path: GraphPath,
-        start_callback: CallbackStructValue,
-        end_callback: CallbackStructValue,
-    ) -> List[NodePathStructValue]:
+        start_callback: CallbackStruct,
+        end_callback: CallbackStruct,
+    ) -> List[NodePathStruct]:
         subscribe_topic_name = start_callback.subscribe_topic_name
 
         if end_callback.publish_topic_names is None or \
@@ -398,8 +398,8 @@ class CallbackPathSearcher:
         callbacks_graph_path: GraphPath,
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
-    ) -> NodePathStructValue:
-        child: List[Union[CallbackStructValue, VariablePassingStructValue]] = []
+    ) -> NodePathStruct:
+        child: List[Union[CallbackStruct, VariablePassingStruct]] = []
 
         graph_nodes = callbacks_graph_path.nodes
         graph_node_names = [_.node_name for _ in graph_nodes]
@@ -409,8 +409,8 @@ class CallbackPathSearcher:
                 graph_node_from, graph_node_to)
             child.append(cb_or_varpass)
 
-        sub: Optional[SubscriptionStructValue] = None
-        pub: Optional[PublisherStructValue] = None
+        sub: Optional[SubscriptionStruct] = None
+        pub: Optional[PublisherStruct] = None
 
         if subscribe_topic_name is not None:
             try:
@@ -440,7 +440,7 @@ class CallbackPathSearcher:
                 msg += f'topic_name: {publish_topic_name}'
                 logger.warning(msg)
 
-        return NodePathStructValue(
+        return NodePathStruct(
             self._node.node_name,
             sub,
             pub,
@@ -451,7 +451,7 @@ class CallbackPathSearcher:
         self,
         graph_node_from: str,
         graph_node_to: str,
-    ) -> Union[CallbackStructValue, VariablePassingStructValue]:
+    ) -> Union[CallbackStruct, VariablePassingStruct]:
         read_write_name_ = self._point_name_to_read_write_name(graph_node_from)
 
         read_read_name = self._point_name_to_read_write_name(graph_node_to)
@@ -468,9 +468,9 @@ class CallbackPathSearcher:
         self,
         graph_node_from: str,
         graph_node_to: str,
-    ) -> VariablePassingStructValue:
+    ) -> VariablePassingStruct:
 
-        def is_target(var_pass:  VariablePassingStructValue):
+        def is_target(var_pass:  VariablePassingStruct):
             if graph_node_to is not None:
                 read_cb_name = self._point_name_to_callback_name(graph_node_to)
                 read_cb_match = var_pass.callback_name_read == read_cb_name
@@ -495,8 +495,8 @@ class CallbackPathSearcher:
         self,
         graph_node_from: str,
         graph_node_to: str,
-    ) -> CallbackStructValue:
-        def is_target(callback: CallbackStructValue):
+    ) -> CallbackStruct:
+        def is_target(callback: CallbackStruct):
             callback_name = self._point_name_to_callback_name(graph_node_from)
             return callback.callback_name == callback_name
 
@@ -523,8 +523,8 @@ class NodePathSearcher:
 
     def __init__(
         self,
-        nodes: Tuple[NodeStructValue, ...],
-        communications: Tuple[CommunicationStructValue, ...],
+        nodes: Tuple[NodeStruct, ...],
+        communications: Tuple[CommunicationStruct, ...],
         node_filter: Optional[Callable[[str], bool]] = None,
         communication_filter: Optional[Callable[[str], bool]] = None,
     ) -> None:
@@ -533,10 +533,10 @@ class NodePathSearcher:
 
         self._graph = Graph()
 
-        self._node_path_dict: Dict[NodePathKey, NodePathStructValue] = {}
-        self._comm_dict: Dict[Tuple[str, str, str], CommunicationStructValue] = {}
+        self._node_path_dict: Dict[NodePathKey, NodePathStruct] = {}
+        self._comm_dict: Dict[Tuple[str, str, str], CommunicationStruct] = {}
 
-        node_paths: List[NodePathStructValue] = Util.flatten([n.paths for n in self._nodes])
+        node_paths: List[NodePathStruct] = Util.flatten([n.paths for n in self._nodes])
         for node_path in node_paths:
             key = self._node_path_key(
                 node_path.subscribe_topic_name, node_path.publish_topic_name, node_path.node_name
@@ -603,8 +603,8 @@ class NodePathSearcher:
         self,
         *node_names: str,
         max_node_depth: Optional[int] = None
-    ) -> List[PathStructValue]:
-        paths: List[PathStructValue] = []
+    ) -> List[PathStruct]:
+        paths: List[PathStruct] = []
 
         max_search_depth = max_node_depth or 0
 
@@ -618,7 +618,7 @@ class NodePathSearcher:
 
         return paths
 
-    def _find_node(self, node_name: str) -> NodeStructValue:
+    def _find_node(self, node_name: str) -> NodeStruct:
         try:
             return Util.find_one(lambda x: x.node_name == node_name, self._nodes)
         except ItemNotFoundError:
@@ -628,49 +628,49 @@ class NodePathSearcher:
 
     @staticmethod
     def _get_publisher(
-        nodes: Tuple[NodeStructValue, ...],
+        nodes: Tuple[NodeStruct, ...],
         node_name: str,
         topic_name: str
-    ) -> PublisherStructValue:
-        node: NodeStructValue
+    ) -> PublisherStruct:
+        node: NodeStruct
         node = Util.find_one(lambda x: x.node_name == node_name, nodes)
         return node.get_publisher(topic_name)
 
     @staticmethod
     def _get_subscription(
-        nodes: Tuple[NodeStructValue, ...],
+        nodes: Tuple[NodeStruct, ...],
         node_name: str,
         topic_name: str
-    ) -> SubscriptionStructValue:
-        node: NodeStructValue
+    ) -> SubscriptionStruct:
+        node: NodeStruct
         node = Util.find_one(lambda x: x.node_name == node_name, nodes)
         return node.get_subscription(topic_name)
 
     @staticmethod
     def _create_head_dummy_node_path(
-        nodes: Tuple[NodeStructValue, ...],
+        nodes: Tuple[NodeStruct, ...],
         head_edge: GraphEdge
-    ) -> NodePathStructValue:
+    ) -> NodePathStruct:
         node_name = head_edge.node_name_from
         topic_name = head_edge.label
         publisher = NodePathSearcher._get_publisher(nodes, node_name, topic_name)
-        return NodePathStructValue(node_name, None, publisher, None, None)
+        return NodePathStruct(node_name, None, publisher, None, None)
 
     @staticmethod
     def _create_tail_dummy_node_path(
-        nodes: Tuple[NodeStructValue, ...],
+        nodes: Tuple[NodeStruct, ...],
         tail_edge: GraphEdge,
-    ) -> NodePathStructValue:
+    ) -> NodePathStruct:
         node_name = tail_edge.node_name_to
         topic_name: str = tail_edge.label
         sub = NodePathSearcher._get_subscription(nodes, node_name, topic_name)
-        return NodePathStructValue(node_name, sub, None, None, None)
+        return NodePathStruct(node_name, sub, None, None, None)
 
     def _to_path(
         self,
         node_graph_path: GraphPath,
-    ) -> PathStructValue:
-        child: List[Union[NodePathStructValue, CommunicationStructValue]] = []
+    ) -> PathStruct:
+        child: List[Union[NodePathStruct, CommunicationStruct]] = []
 
         # add head node path
         if len(node_graph_path.edges) == 0:
@@ -705,7 +705,7 @@ class NodePathSearcher:
         tail_node_path = self._create_tail_dummy_node_path(self._nodes, tail_edge)
         child.append(tail_node_path)
 
-        path_info = PathStructValue(
+        path_info = PathStruct(
             None,
             tuple(child)
         )
@@ -716,7 +716,7 @@ class NodePathSearcher:
         node_from: str,
         node_to: str,
         topic_name: str
-    ) -> CommunicationStructValue:
+    ) -> CommunicationStruct:
         key = self._comm_key(node_from, node_to, topic_name)
         if key not in self._comm_dict:
             msg = 'Failed to find communication path. '
@@ -732,7 +732,7 @@ class NodePathSearcher:
         sub_topic_name: str,
         pub_topic_name: str,
         node_name: str,
-    ) -> NodePathStructValue:
+    ) -> NodePathStruct:
         key = self._node_path_key(sub_topic_name, pub_topic_name, node_name)
         if key not in self._node_path_dict:
             msg = 'Failed to find node path. '

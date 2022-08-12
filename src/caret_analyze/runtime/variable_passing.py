@@ -18,14 +18,14 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
-from ..value_objects import VariablePassingStructValue
+from ..struct import VariablePassingStruct
 
 
 class VariablePassing(PathBase, Summarizable):
 
     def __init__(
         self,
-        variable_passing: VariablePassingStructValue,
+        variable_passing: VariablePassingStruct,
         records_provider: RecordsProvider,
     ) -> None:
         """
@@ -33,7 +33,7 @@ class VariablePassing(PathBase, Summarizable):
 
         Parameters
         ----------
-        variable_passing : VariablePassingStructValue
+        variable_passing : VariablePassingStruct
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.

@@ -14,7 +14,7 @@
 
 from typing import Optional, Union
 
-from caret_analyze.value_objects.timer import TimerStructValue
+from caret_analyze.struct.timer import TimerStruct
 
 from .path_base import PathBase
 from ..common import Summarizable, Summary
@@ -27,7 +27,7 @@ class Timer(PathBase, Summarizable):
 
     def __init__(
         self,
-        val: TimerStructValue,
+        val: TimerStruct,
         data_provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         """
@@ -35,7 +35,7 @@ class Timer(PathBase, Summarizable):
 
         Parameters
         ----------
-        val : TimerStructValue
+        val : TimerStruct
             static info.
         data_provider : Union[RecordsProvider, RuntimeDataProvider]
             provider to be evaluated.

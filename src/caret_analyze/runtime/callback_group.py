@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from typing import List, Tuple
 
-from caret_analyze.value_objects import (CallbackGroupStructValue,
-                                         CallbackGroupType)
+from caret_analyze.value_objects import CallbackGroupType
+from caret_analyze.struct import CallbackGroupStruct
 
 from .callback import CallbackBase
 from ..common import Summarizable, Summary, Util
@@ -29,7 +29,7 @@ class CallbackGroup(Summarizable):
 
     def __init__(
         self,
-        callback_group_info: CallbackGroupStructValue,
+        callback_group_info: CallbackGroupStruct,
         callbacks: List[CallbackBase],
     ) -> None:
         """
@@ -37,7 +37,7 @@ class CallbackGroup(Summarizable):
 
         Parameters
         ----------
-        callback_group_info : CallbackGroupStructValue
+        callback_group_info : CallbackGroupStruct
             static information.
         callbacks : List[CallbackBase]
             callbacks to be added to the callback group.

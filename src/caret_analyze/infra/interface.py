@@ -19,11 +19,12 @@ from typing import Optional, Union
 
 from ..common import ClockConverter
 from ..record.interface import RecordsInterface
-from ..value_objects import (CallbackStructValue, CommunicationStructValue,
-                             NodePathStructValue, PublisherStructValue, Qos,
-                             SubscriptionStructValue,
-                             TimerStructValue,
-                             VariablePassingStructValue)
+from ..value_objects import Qos
+from ..struct import (CallbackStruct, CommunicationStruct,
+                      NodePathStruct, PublisherStruct,
+                      SubscriptionStruct,
+                      TimerStruct,
+                      VariablePassingStruct)
 
 
 class RecordsProvider(metaclass=ABCMeta):
@@ -33,7 +34,7 @@ class RecordsProvider(metaclass=ABCMeta):
     @abstractmethod
     def callback_records(
         self,
-        callback_info: CallbackStructValue
+        callback_info: CallbackStruct
     ) -> RecordsInterface:
         """
         Compose callback records.
@@ -57,7 +58,7 @@ class RecordsProvider(metaclass=ABCMeta):
     @abstractmethod
     def variable_passing_records(
         self,
-        variable_passing_info: VariablePassingStructValue
+        variable_passing_info: VariablePassingStruct
     ) -> RecordsInterface:
         """
         Compose variable passing records.
@@ -79,7 +80,7 @@ class RecordsProvider(metaclass=ABCMeta):
     @abstractmethod
     def node_records(
         self,
-        node_path_info: NodePathStructValue
+        node_path_info: NodePathStruct
     ) -> RecordsInterface:
         pass
 
@@ -89,28 +90,28 @@ class RecordsProvider(metaclass=ABCMeta):
     @abstractmethod
     def communication_records(
         self,
-        communication_info: CommunicationStructValue
+        communication_info: CommunicationStruct
     ) -> RecordsInterface:
         pass
 
     @abstractmethod
     def subscribe_records(
         self,
-        subscription: SubscriptionStructValue
+        subscription: SubscriptionStruct
     ) -> RecordsInterface:
         pass
 
     @abstractmethod
     def publish_records(
         self,
-        publisher: PublisherStructValue
+        publisher: PublisherStruct
     ) -> RecordsInterface:
         pass
 
     @abstractmethod
     def timer_records(
         self,
-        timer: TimerStructValue
+        timer: TimerStruct
     ) -> RecordsInterface:
         pass
 
@@ -123,7 +124,7 @@ class RecordsProvider(metaclass=ABCMeta):
     @abstractmethod
     def verify_communication(
         self,
-        communication: CommunicationStructValue
+        communication: CommunicationStruct
     ) -> bool:
         pass
 
@@ -139,13 +140,13 @@ class RuntimeDataProvider(RecordsProvider):
     @abstractmethod
     def is_intra_process_communication(
         self,
-        communication_info: CommunicationStructValue
+        communication_info: CommunicationStruct
     ) -> Optional[bool]:
         pass
 
     @abstractmethod
     def get_qos(
         self,
-        info: Union[PublisherStructValue, SubscriptionStructValue]
+        info: Union[PublisherStruct, SubscriptionStruct]
     ) -> Optional[Qos]:
         pass

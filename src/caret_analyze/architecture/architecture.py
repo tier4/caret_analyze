@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 
-from caret_analyze.value_objects.callback import TimerCallbackStructValue
+from caret_analyze.struct.callback import TimerCallbackStruct
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
@@ -26,7 +26,9 @@ from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
-from ..struct.node import (NodeStruct)
+from ..struct import (CallbackGroupStruct, CallbackStruct,
+                           CommunicationStruct, ExecutorStruct,
+                           NodeStruct, PathStruct)
 
 
 class Architecture(Summarizable):
@@ -46,12 +48,12 @@ class Architecture(Summarizable):
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
         self._nodes: Tuple[NodeStruct, ...] = loaded.nodes
-        self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
-        self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
+        self._communications: Tuple[CommunicationStruct, ...] = loaded.communications
+        self._executors: Tuple[ExecutorStruct, ...] = loaded.executors
         self._path_manager = NamedPathManager(loaded.paths)
         self._verify(self._nodes)
 
-    def get_node(self, node_name: str) -> NodeStructValue:
+    def get_node(self, node_name: str) -> NodeStruct:
         try:
             return Util.find_one(lambda x: x.node_name == node_name, self.nodes)
         except ItemNotFoundError:
@@ -59,30 +61,30 @@ class Architecture(Summarizable):
             msg += f'node_name: {node_name}'
             raise ItemNotFoundError(msg)
 
-    def get_executor(self, executor_name: str) -> ExecutorStructValue:
+    def get_executor(self, executor_name: str) -> ExecutorStruct:
         return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
 
-    def get_callback_group(self, callback_group_name: str) -> CallbackGroupStructValue:
+    def get_callback_group(self, callback_group_name: str) -> CallbackGroupStruct:
         return Util.find_one(
             lambda x: x.callback_group_name == callback_group_name, self.callback_groups)
 
     @property
-    def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def callback_groups(self) -> Tuple[CallbackGroupStruct, ...]:
         return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
 
     @property
-    def callback_group_names(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def callback_group_names(self) -> Tuple[CallbackGroupStruct, ...]:
         return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
 
     @property
     def topic_names(self) -> Tuple[str, ...]:
         return tuple(sorted({_.topic_name for _ in self.communications}))
 
-    def get_callback(self, callback_name: str) -> CallbackStructValue:
+    def get_callback(self, callback_name: str) -> CallbackStruct:
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
     @property
-    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
+    def callbacks(self) -> Tuple[CallbackStruct, ...]:
         return tuple(_.callbacks for _ in self.callback_groups)
 
     def get_communication(
@@ -90,28 +92,28 @@ class Architecture(Summarizable):
         publisher_node_name: str,
         subscription_node_name: str,
         topic_name: str
-    ) -> CommunicationStructValue:
-        def is_target_comm(comm: CommunicationStructValue):
+    ) -> CommunicationStruct:
+        def is_target_comm(comm: CommunicationStruct):
             return comm.publish_node_name == publisher_node_name and \
                 comm.subscribe_node_name == subscription_node_name and \
                 comm.topic_name == topic_name
 
         return Util.find_one(is_target_comm, self.communications)
 
-    def get_path(self, path_name: str) -> PathStructValue:
+    def get_path(self, path_name: str) -> PathStruct:
         return self._path_manager.get_named_path(path_name)
 
-    def add_path(self, path_name: str, path_info: PathStructValue) -> None:
+    def add_path(self, path_name: str, path_info: PathStruct) -> None:
         self._path_manager.add_named_path(path_name, path_info)
 
     def remove_path(self, path_name: str) -> None:
         self._path_manager.remove_named_path(path_name)
 
-    def update_path(self, path_name: str, path: PathStructValue) -> None:
+    def update_path(self, path_name: str, path: PathStruct) -> None:
         self._path_manager.update_named_path(path_name, path)
 
     @property
-    def nodes(self) -> Tuple[NodeStructValue, ...]:
+    def nodes(self) -> Tuple[NodeStruct, ...]:
         return self._nodes
 
     @property
@@ -119,15 +121,15 @@ class Architecture(Summarizable):
         return tuple(sorted(_.node_name for _ in self._nodes))
 
     @property
-    def executors(self) -> Tuple[ExecutorStructValue, ...]:
+    def executors(self) -> Tuple[ExecutorStruct, ...]:
         return self._executors
 
     @property
-    def executor_names(self) -> Tuple[ExecutorStructValue, ...]:
+    def executor_names(self) -> Tuple[ExecutorStruct, ...]:
         return tuple(sorted(_.executor_name for _ in self._executors))
 
     @property
-    def paths(self) -> Tuple[PathStructValue, ...]:
+    def paths(self) -> Tuple[PathStruct, ...]:
         return self._path_manager.named_paths
 
     @property
@@ -135,7 +137,7 @@ class Architecture(Summarizable):
         return tuple(sorted(_.path_name for _ in self._path_manager.named_paths))
 
     @property
-    def communications(self) -> Tuple[CommunicationStructValue, ...]:
+    def communications(self) -> Tuple[CommunicationStruct, ...]:
         return self._communications
 
     @property
@@ -155,7 +157,7 @@ class Architecture(Summarizable):
         max_node_depth: Optional[int] = None,
         node_filter: Optional[Callable[[str], bool]] = None,
         communication_filter: Optional[Callable[[str], bool]] = None,
-    ) -> List[PathStructValue]:
+    ) -> List[PathStruct]:
         from .graph_search import NodePathSearcher
         for node_name in node_names:
             if node_name not in self.node_names:
@@ -179,7 +181,7 @@ class Architecture(Summarizable):
             for callback in callbacks:
                 cb_type = callback.callback_type_name
                 cb_param: Union[str, int]
-                if isinstance(callback, TimerCallbackStructValue):
+                if isinstance(callback, TimerCallbackStruct):
                     cb_param = callback.period_ns
                 else:
                     continue
@@ -212,26 +214,26 @@ class Architecture(Summarizable):
 
 class NamedPathManager():
 
-    def __init__(self, paths: Tuple[PathStructValue, ...]) -> None:
-        self._named_paths: Dict[str, PathStructValue] = {}
+    def __init__(self, paths: Tuple[PathStruct, ...]) -> None:
+        self._named_paths: Dict[str, PathStruct] = {}
         for path in paths:
             if path.path_name is None:
                 continue
             self._named_paths[path.path_name] = path
 
     @property
-    def named_paths(self) -> Tuple[PathStructValue, ...]:
+    def named_paths(self) -> Tuple[PathStruct, ...]:
         return tuple(self._named_paths.values())
 
-    def get_named_path(self, path_name: str) -> PathStructValue:
+    def get_named_path(self, path_name: str) -> PathStruct:
         if path_name not in self._named_paths.keys():
             raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
         return self._named_paths[path_name]
 
-    def add_named_path(self, path_name: str, path_info: PathStructValue):
+    def add_named_path(self, path_name: str, path_info: PathStruct):
         if path_name in self._named_paths.keys():
             raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
-        named_path_info = PathStructValue(path_name, path_info.child)
+        named_path_info = PathStruct(path_name, path_info.child)
         self._named_paths[path_name] = named_path_info
 
     def remove_named_path(self, path_name: str):
@@ -239,7 +241,7 @@ class NamedPathManager():
             raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
         del self._named_paths[path_name]
 
-    def update_named_path(self, path_name: str, path_info: PathStructValue):
+    def update_named_path(self, path_name: str, path_info: PathStruct):
         if path_info.path_name is None:
             raise InvalidArgumentError('path_info.path_name is None')
 
