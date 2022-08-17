@@ -24,9 +24,9 @@ from .data_model import Ros2DataModel
 
 def get_field(event, key):
     e = event[key]
-    if type(e) is bt2._StringFieldConst:
+    if isinstance(e, bt2._StringFieldConst):
         return str(e)
-    if type(e) is bt2._UnsignedIntegerFieldConst:
+    if isinstance(e, bt2._IntegerFieldConst):
         return int(e)
     return e
 
