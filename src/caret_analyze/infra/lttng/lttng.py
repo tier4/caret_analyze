@@ -13,11 +13,14 @@
 # limitations under the License.
 
 from __future__ import annotations
+from functools import cached_property
 
-from abc import ABCMeta, abstractmethod
+import os
+from abc import ABCMeta, abstractmethod, abstractproperty
 from datetime import datetime
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Sequence, Sized, Tuple, Union, Iterable, Iterator
+import pickle
 
 import bt2
 import pandas as pd
@@ -151,21 +154,63 @@ class EventDurationFilter(LttngEventFilter):
 
 class EventCollection(Iterable, Sized):
 
-    def __init__(self, events_path: str) -> None:
+    def __init__(self, trace_dir: str) -> None:
         self._iterable_events: IterableEvents
-        self._iterable_events = CtfEventCollection(events_path)
+        cache_path = self._cache_path(trace_dir)
 
+        if os.path.exists(cache_path):
+            logger.info('Found converted file.')
+            self._iterable_events = PickleEventCollection(cache_path)
+        else:
+            self._iterable_events = CtfEventCollection(trace_dir)
+            self._store_cache(self._iterable_events, cache_path)
+            logger.info(f'Converted to {cache_path}')
+
+    @staticmethod
+    def _store_cache(iterable_events: IterableEvents, path) -> None:
+        with open(path, mode='wb') as f:
+            pickle.dump(iterable_events.events, f)
 
     def __len__(self) -> int:
         return len(self._iterable_events)
 
     def __iter__(self) -> Iterator[Dict]:
         return iter(self._iterable_events)
+
+    def _cache_path(self, events_path: str) -> str:
+        return os.path.join(events_path, 'caret_converted')
+
+
 class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
 
     @abstractmethod
     def __iter__(self) -> Iterator[Dict]:
         pass
+
+    @abstractmethod
+    def __len__(self) -> int:
+        pass
+
+    @abstractproperty
+    def events(self) -> List[Dict]:
+        pass
+
+
+class PickleEventCollection(IterableEvents):
+
+    def __init__(self, events_path: str) -> None:
+        with open(events_path, mode='rb') as f:
+            self._events = pickle.load(f)
+
+    def __iter__(self) -> Iterator[Dict]:
+        return iter(self._events)
+
+    def __len__(self) -> int:
+        return len(self._events)
+
+    @property
+    def events(self) -> List[Dict]:
+        return self._events
 
 
 class CtfEventCollection(IterableEvents):
@@ -206,6 +251,10 @@ class CtfEventCollection(IterableEvents):
         event.update(msg.event.payload_field)
         event.update(msg.event.common_context_field)
         return event
+
+    @property
+    def events(self) -> List[Dict]:
+        return self._events
 
     @staticmethod
     def _to_dicts(trace_dir: str) -> List[Dict]:
