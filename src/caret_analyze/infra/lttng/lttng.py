@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Sized, Tuple, Union, Iterable, Iterator
 
 import bt2
 import pandas as pd
@@ -149,6 +149,84 @@ class EventDurationFilter(LttngEventFilter):
         return self._offset <= elapsed_s and elapsed_s < (self._offset + self._duration)
 
 
+class EventCollection(Iterable, Sized):
+
+    def __init__(self, events_path: str) -> None:
+        self._iterable_events: IterableEvents
+        self._iterable_events = CtfEventCollection(events_path)
+
+
+    def __len__(self) -> int:
+        return len(self._iterable_events)
+
+    def __iter__(self) -> Iterator[Dict]:
+        return iter(self._iterable_events)
+class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[Dict]:
+        pass
+
+
+class CtfEventCollection(IterableEvents):
+
+    def __init__(self, events_path: str) -> None:
+        event_count = 0
+        for msg in bt2.TraceCollectionMessageIterator(events_path):
+            if type(msg) is bt2._EventMessageConst:
+                event_count += 1
+
+            if (not Lttng._last_trace_begin_time
+                    and type(msg) is bt2._PacketBeginningMessageConst):
+                Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
+            elif type(msg) is bt2._PacketEndMessageConst:
+                Lttng._last_trace_end_time = msg.default_clock_snapshot.ns_from_origin
+            # Check for traces lost
+            elif(type(msg) is bt2._DiscardedEventsMessageConst):
+                msg = ('Tracer discarded '
+                        f'{msg.count} events between '
+                        f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
+                        f'{msg.end_default_clock_snapshot.ns_from_origin}.')
+                logger.warning(msg)
+
+        self._size = event_count
+        self._events = self._to_dicts(events_path)
+
+    def __iter__(self) -> Iterator[Dict]:
+        return iter(self._events)
+
+    def __len__(self) -> int:
+        return self._size
+
+    @staticmethod
+    def _to_event(msg: Any) -> Dict[str, Any]:
+        event: Dict[str, Any] = {}
+        event[LttngEventFilter.NAME] = msg.event.name
+        event['timestamp'] = msg.default_clock_snapshot.ns_from_origin
+        event.update(msg.event.payload_field)
+        event.update(msg.event.common_context_field)
+        return event
+
+    @staticmethod
+    def _to_dicts(trace_dir: str) -> List[Dict]:
+        msg_it = bt2.TraceCollectionMessageIterator(trace_dir)
+        events = []
+        acceptable_tracepoints = set(Ros2Handler.get_trace_points())
+        for msg in msg_it:
+            if type(msg) is not bt2._EventMessageConst:
+                continue
+            if msg.event.name not in acceptable_tracepoints:
+                continue
+
+            event = CtfEventCollection._to_event(msg)
+            event_dict = {
+                k: get_field(event, k) for k in event
+            }
+            events.append(event_dict)
+
+        return events
+
+
 class Lttng(InfraBase):
     """
     Lttng data container class.
@@ -193,64 +271,33 @@ class Lttng(InfraBase):
         store_events: bool
     ) -> Tuple[Any, Dict]:
 
-        def to_event(msg: Any) -> Dict[str, Any]:
-            event: Dict[str, Any] = {}
-            event[LttngEventFilter.NAME] = msg.event.name
-            event['timestamp'] = msg.default_clock_snapshot.ns_from_origin
-            event.update(msg.event.payload_field)
-            event.update(msg.event.common_context_field)
-            return event
-
         data = Ros2DataModel()
         handler = Ros2Handler(data)
         events = []
 
         if isinstance(trace_dir_or_events, str):
             Lttng._last_trace_begin_time = None
-
-            event_count = 0
-            for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
-                if type(msg) is bt2._EventMessageConst:
-                    event_count += 1
-
-                if (not Lttng._last_trace_begin_time
-                        and type(msg) is bt2._PacketBeginningMessageConst):
-                    Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
-                elif type(msg) is bt2._PacketEndMessageConst:
-                    Lttng._last_trace_end_time = msg.default_clock_snapshot.ns_from_origin
-                # Check for traces lost
-                elif(type(msg) is bt2._DiscardedEventsMessageConst):
-                    msg = ('Tracer discarded '
-                           f'{msg.count} events between '
-                           f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
-                           f'{msg.end_default_clock_snapshot.ns_from_origin}.')
-                    logger.warning(msg)
-
-            print('{} events found.'.format(event_count))
+            event_collection = EventCollection(trace_dir_or_events)
+            print('{} events found.'.format(len(event_collection)))
 
             common = LttngEventFilter.Common()
             common.start_time = Lttng._last_trace_begin_time
             common.end_time = Lttng._last_trace_end_time
 
             filtered_event_count = 0
-            msg_it = bt2.TraceCollectionMessageIterator(trace_dir_or_events)
-            for msg in tqdm(msg_it, total=event_count):
-                if type(msg) is bt2._EventMessageConst:
-                    if msg.event.name not in handler.handler_map:
-                        continue
-
-                    event = to_event(msg)
-                    if len(event_filters) > 0 and \
-                            any(not f.accept(event, common) for f in event_filters):
-                        continue
-                    if store_events:
-                        event_dict = {
-                            k: get_field(event, k) for k in event
-                        }
-                        events.append(event_dict)
-                    filtered_event_count += 1
-                    handler_ = handler.handler_map[msg.event.name]
-                    handler_(event)
+            for event in tqdm(iter(event_collection), total=len(event_collection)):
+                if len(event_filters) > 0 and \
+                        any(not f.accept(event, common) for f in event_filters):
+                    continue
+                if store_events:
+                    event_dict = {
+                        k: get_field(event, k) for k in event
+                    }
+                    events.append(event_dict)
+                filtered_event_count += 1
+                event_name = event[LttngEventFilter.NAME]
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
 
             data.finalize()
             Lttng._last_load_dir = trace_dir_or_events
