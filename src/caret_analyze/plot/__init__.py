@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from .bokeh.callback_info import (CallbackFrequencyPlot,
-                                  CallbackPeriodPlot,
-                                  CallbackLatencyPlot)
+                                  CallbackLatencyPlot,
+                                  CallbackPeriodPlot)
 from .bokeh.callback_info_interface import TimeSeriesPlot
 from .bokeh.callback_sched import callback_sched
 from .bokeh.communication_info_interface import CommunicationTimeSeriesPlot
