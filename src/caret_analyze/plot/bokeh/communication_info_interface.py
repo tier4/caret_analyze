@@ -69,7 +69,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         for i, comm in enumerate(self._communications):
             color = color_selector.get_color(
                 None, None, None,
-                self._get_comm_name(comm)
+                comm_name=self._get_comm_name(comm)
             )
             line_source = self._get_comm_lines(
                 comm,
@@ -156,7 +156,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         fig_args = {'frame_height': 270,
                     'frame_width': 800,
                     'y_axis_label': y_axis_label,
-                    'title': f'Time-line of callbacks {y_axis_label}'}
+                    'title': f'Time-line of communications {y_axis_label}'}
 
         if xaxis_type == 'system_time':
             fig_args['x_axis_label'] = 'system time [s]'

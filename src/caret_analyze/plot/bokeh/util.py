@@ -26,8 +26,8 @@ import numpy as np
 
 
 from ...exceptions import UnsupportedTypeError
-from ...runtime import (CallbackBase, Communication,
-                        SubscriptionCallback, TimerCallback)
+from ...runtime import (CallbackBase, Communication, Subscription,
+                        SubscriptionCallback, Publisher, TimerCallback)
 
 logger = getLogger(__name__)
 
@@ -97,8 +97,11 @@ def get_callback_param_desc(callback: CallbackBase):
                                '[ TimerCallback/ SubscriptionCallback]')
 
 
+PlotObjectTypes = Union[CallbackBase, Communication, Publisher, Subscription]
+
+
 def get_range(
-    plot_objects: Sequence[Union[CallbackBase, Communication]]
+    plot_objects: Sequence[PlotObjectTypes]
 ) -> Tuple[int, int]:
     """
     Get measurement duration.
@@ -148,6 +151,9 @@ class ColorSelector:
         if coloring_rule == 'communication':
             return ColorSelectorComm()
 
+        if coloring_rule == 'publish_subscribe':
+            return ColorSelectorPubSub()
+
     def __init__(self) -> None:
         self._palette: Sequence[Color] = \
             [self._from_rgb(*rgb) for rgb in cc.glasbey_bw_minc_20]
@@ -158,12 +164,14 @@ class ColorSelector:
         node_name: str,
         cbg_name: str,
         callback_name: str,
-        comm_name: Optional[str] = None
+        comm_name: Optional[str] = None,
+        pub_sub_name: Optional[str] = None
     ) -> Color:
         color_hash = self._get_color_hash(node_name,
                                           cbg_name,
                                           callback_name,
-                                          comm_name)
+                                          comm_name,
+                                          pub_sub_name)
 
         if color_hash not in self._color_map:
             color_index = len(self._color_map) % len(self._palette)
@@ -177,7 +185,8 @@ class ColorSelector:
         node_name: str,
         cbg_name: str,
         callback_name: str,
-        comm_name: Optional[str] = None
+        comm_name: Optional[str] = None,
+        pub_sub_name: Optional[str] = None
     ) -> Color:
         return
 
@@ -196,7 +205,8 @@ class ColorSelectorCallback(ColorSelector):
         node_name: str,
         cbg_name: str,
         callback_name: str,
-        comm_name: Optional[str] = None
+        comm_name: Optional[str] = None,
+        pub_sub_name: Optional[str] = None
     ) -> Color:
         return callback_name
 
@@ -208,7 +218,8 @@ class ColorSelectorCbg(ColorSelector):
         node_name: str,
         cbg_name: str,
         callback_name: str,
-        comm_name: Optional[str] = None
+        comm_name: Optional[str] = None,
+        pub_sub_name: Optional[str] = None
     ) -> Color:
         return cbg_name
 
@@ -220,7 +231,8 @@ class ColorSelectorNode(ColorSelector):
         node_name: str,
         cbg_name: str,
         callback_name: str,
-        comm_name: Optional[str] = None
+        comm_name: Optional[str] = None,
+        pub_sub_name: Optional[str] = None
     ) -> Color:
         return node_name
 
@@ -232,6 +244,20 @@ class ColorSelectorComm(ColorSelector):
         node_name: str,
         cbg_name: str,
         callback_name: str,
-        comm_name: Optional[str] = None
+        comm_name: Optional[str] = None,
+        pub_sub_name: Optional[str] = None
     ) -> Color:
         return comm_name
+
+
+class ColorSelectorPubSub(ColorSelector):
+
+    def _get_color_hash(
+        self,
+        node_name: str,
+        cbg_name: str,
+        callback_name: str,
+        comm_name: Optional[str] = None,
+        pub_sub_name: Optional[str] = None
+    ) -> Color:
+        return pub_sub_name
