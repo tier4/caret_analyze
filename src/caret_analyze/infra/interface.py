@@ -19,7 +19,7 @@ from typing import Optional, Union
 
 from ..common import ClockConverter
 from ..record.interface import RecordsInterface
-from ..value_objects import (Qos, 
+from ..value_objects import (Qos,
                              CallbackStructValue, CommunicationStructValue,
                              NodePathStructValue, PublisherStructValue,
                              SubscriptionStructValue,
