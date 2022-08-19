@@ -357,6 +357,8 @@ class Lttng(InfraBase):
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
+            # Note: giving events as arguments is used only for debugging.
+            filtered_event_count = 0
             events = trace_dir_or_events
             for event in events:
                 if len(event_filters) > 0 and \
@@ -365,8 +367,13 @@ class Lttng(InfraBase):
                 if store_events:
                     events.append(event)
                 filtered_event_count += 1
-                handler_ = handler.handler_map[msg.event.name]
+                event_name = event[LttngEventFilter.NAME]
+                handler_ = handler.handler_map[event_name]
                 handler_(event)
+            data.finalize()
+            Lttng._last_filters = event_filters
+            if len(event_filters) > 0:
+                print('filtered to {} events.'.format(filtered_event_count))
 
         events_ = None if len(events) == 0 else events
         return data, events_
