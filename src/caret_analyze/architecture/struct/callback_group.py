@@ -20,9 +20,9 @@ from typing import Optional, Tuple
 from caret_analyze.value_objects.callback_group import CallbackGroupType
 
 from .callback import CallbackStruct
-from ..common import Summarizable, Summary
+from ...common import Summarizable, Summary
 
-from ..value_objects import CallbackGroupType
+from ...value_objects import CallbackGroupType
 
 class CallbackGroupStruct(Summarizable):
     """Callback group value object."""

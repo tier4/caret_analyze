@@ -25,20 +25,20 @@ from .node_path import NodePath
 from .path import Path
 from .publisher import Publisher
 from .subscription import Subscription
-from .timer import Timer, TimerStruct
+from .timer import Timer, TimerStructValue
 from .variable_passing import VariablePassing
 from ..architecture import Architecture
 from ..common import Util
 from ..exceptions import (ItemNotFoundError, MultipleItemFoundError,
                           UnsupportedTypeError)
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
-from ..struct import (CallbackGroupStruct, CallbackStruct,
-                      CommunicationStruct, ExecutorStruct,
-                      NodePathStruct, NodeStruct,
-                      PathStruct, PublisherStruct,
-                      SubscriptionCallbackStruct,
-                      SubscriptionStruct, TimerCallbackStruct,
-                      VariablePassingStruct)
+from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
+                             CommunicationStructValue, ExecutorStructValue,
+                             NodePathStructValue, NodeStructValue,
+                             PathStructValue, PublisherStructValue,
+                             SubscriptionCallbackStructValue,
+                             SubscriptionStructValue, TimerCallbackStructValue,
+                             VariablePassingStructValue)
 
 
 class RuntimeLoaded():
@@ -82,7 +82,7 @@ class RuntimeLoaded():
 class ExecutorsLoaded:
     def __init__(
         self,
-        executors_values: Tuple[ExecutorStruct, ...],
+        executors_values: Tuple[ExecutorStructValue, ...],
         nodes_loaded: NodesLoaded
     ) -> None:
         self._data = [
@@ -93,7 +93,7 @@ class ExecutorsLoaded:
 
     @staticmethod
     def _to_runtime(
-        executor_value: ExecutorStruct,
+        executor_value: ExecutorStructValue,
         nodes_loaded: NodesLoaded
     ) -> Executor:
         cbgs = [
@@ -115,7 +115,7 @@ class ExecutorsLoaded:
 class NodesLoaded:
     def __init__(
         self,
-        node_values: Tuple[NodeStruct, ...],
+        node_values: Tuple[NodeStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider]
     ) -> None:
         self._nodes: List[Node] = [
@@ -126,7 +126,7 @@ class NodesLoaded:
 
     @staticmethod
     def _to_runtime(
-        node_value: NodeStruct,
+        node_value: NodeStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Node:
         publishers_loaded = PublishersLoaded(
@@ -265,7 +265,7 @@ class NodesLoaded:
 class PublishersLoaded:
     def __init__(
         self,
-        publishers_info: Tuple[PublisherStruct, ...],
+        publishers_info: Tuple[PublisherStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         self._pubs = [
@@ -276,7 +276,7 @@ class PublishersLoaded:
 
     @staticmethod
     def _to_runtime(
-        publisher_info: PublisherStruct,
+        publisher_info: PublisherStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Publisher:
         return Publisher(publisher_info, provider)
@@ -342,7 +342,7 @@ class PublishersLoaded:
 class SubscriptionsLoaded:
     def __init__(
         self,
-        subscriptions_info: Tuple[SubscriptionStruct, ...],
+        subscriptions_info: Tuple[SubscriptionStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         self._subs = [
@@ -353,7 +353,7 @@ class SubscriptionsLoaded:
 
     @staticmethod
     def _to_runtime(
-        subscription_info: SubscriptionStruct,
+        subscription_info: SubscriptionStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Subscription:
         return Subscription(subscription_info, provider)
@@ -416,7 +416,7 @@ class SubscriptionsLoaded:
 class TimersLoaded:
     def __init__(
         self,
-        timer_info: Tuple[TimerStruct, ...],
+        timer_info: Tuple[TimerStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         self._timers = [
@@ -427,7 +427,7 @@ class TimersLoaded:
 
     @staticmethod
     def _to_runtime(
-        timer_info: TimerStruct,
+        timer_info: TimerStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> Timer:
         return Timer(timer_info, provider)
@@ -490,7 +490,7 @@ class TimersLoaded:
 class NodePathsLoaded:
     def __init__(
         self,
-        node_path_values: Tuple[NodePathStruct, ...],
+        node_path_values: Tuple[NodePathStructValue, ...],
         provider: RecordsProvider,
         publisher_loaded: PublishersLoaded,
         subscription_loaded: SubscriptionsLoaded,
@@ -505,7 +505,7 @@ class NodePathsLoaded:
 
     @staticmethod
     def _to_runtime(
-        node_path_value: NodePathStruct,
+        node_path_value: NodePathStructValue,
         provider: RecordsProvider,
         publisher_loaded: PublishersLoaded,
         subscription_loaded: SubscriptionsLoaded,
@@ -546,7 +546,7 @@ class NodePathsLoaded:
 class VariablePassingsLoaded:
     def __init__(
         self,
-        variable_passings_info: Tuple[VariablePassingStruct, ...],
+        variable_passings_info: Tuple[VariablePassingStructValue, ...],
         provider: RecordsProvider
     ) -> None:
         self._var_passes = [
@@ -557,7 +557,7 @@ class VariablePassingsLoaded:
 
     @staticmethod
     def _to_runtime(
-        variable_passing_info: VariablePassingStruct,
+        variable_passing_info: VariablePassingStructValue,
         provider: RecordsProvider,
     ) -> VariablePassing:
         return VariablePassing(
@@ -573,7 +573,7 @@ class VariablePassingsLoaded:
 class PathsLoaded:
     def __init__(
         self,
-        paths_info: Tuple[PathStruct, ...],
+        paths_info: Tuple[PathStructValue, ...],
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
     ) -> None:
@@ -585,7 +585,7 @@ class PathsLoaded:
 
     @staticmethod
     def _to_runtime(
-        path_info: PathStruct,
+        path_info: PathStructValue,
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
     ) -> Path:
@@ -595,7 +595,7 @@ class PathsLoaded:
             child.append(
                 PathsLoaded._get_loaded(elem_info, nodes_loaded, comms_loaded)
             )
-            if isinstance(elem_info, NodePathStruct):
+            if isinstance(elem_info, NodePathStructValue):
                 if elem_info.callbacks is None:
                     continue
                 for cb_val in elem_info.callbacks:
@@ -605,25 +605,25 @@ class PathsLoaded:
 
     @staticmethod
     def _get_loaded(
-        path_element: Union[NodePathStruct, CommunicationStruct],
+        path_element: Union[NodePathStructValue, CommunicationStructValue],
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
     ) -> Union[NodePath, Communication]:
-        if isinstance(path_element, NodePathStruct):
+        if isinstance(path_element, NodePathStructValue):
             return nodes_loaded.find_node_path(
                 path_element.node_name,
                 path_element.subscribe_topic_name,
                 path_element.publish_topic_name
             )
 
-        if isinstance(path_element, CommunicationStruct):
+        if isinstance(path_element, CommunicationStructValue):
             return comms_loaded.find_communication(
                 path_element.topic_name,
                 path_element.publish_node_name,
                 path_element.subscribe_node_name
             )
 
-        msg = 'Given type is neither NodePathStructInfo nor CommunicationStructInfo.'
+        msg = 'Given type is neither NodePathStructValueInfo nor CommunicationStructValueInfo.'
         raise UnsupportedTypeError(msg)
 
     @property
@@ -634,7 +634,7 @@ class PathsLoaded:
 class CommunicationsLoaded:
     def __init__(
         self,
-        communication_values: Tuple[CommunicationStruct, ...],
+        communication_values: Tuple[CommunicationStructValue, ...],
         provider: RecordsProvider,
         nodes_loaded: NodesLoaded,
     ) -> None:
@@ -652,7 +652,7 @@ class CommunicationsLoaded:
 
     @staticmethod
     def _to_runtime(
-        communication_value: CommunicationStruct,
+        communication_value: CommunicationStructValue,
         provider: RecordsProvider,
         nodes_loaded: NodesLoaded,
     ) -> Communication:
@@ -700,7 +700,7 @@ class CallbacksLoaded:
 
     def __init__(
         self,
-        callback_values: Tuple[CallbackStruct, ...],
+        callback_values: Tuple[CallbackStructValue, ...],
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
@@ -716,7 +716,7 @@ class CallbacksLoaded:
 
     @staticmethod
     def _to_runtime(
-        callback_value: CallbackStruct,
+        callback_value: CallbackStructValue,
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
@@ -728,7 +728,7 @@ class CallbacksLoaded:
             publishers = publishers_loaded.get_publishers(
                 None, callback_value.callback_name, None)
 
-        if isinstance(callback_value, TimerCallbackStruct):
+        if isinstance(callback_value, TimerCallbackStructValue):
             timer = timers_loaded.get_timer(
                 None, callback_value.callback_name, None)
             return TimerCallback(
@@ -737,7 +737,7 @@ class CallbacksLoaded:
                 publishers,
                 timer
             )
-        if isinstance(callback_value, SubscriptionCallbackStruct):
+        if isinstance(callback_value, SubscriptionCallbackStructValue):
             subscription = subscriptions_loaded.get_subscription(
                 None, callback_value.callback_name, None)
             return SubscriptionCallback(
@@ -757,7 +757,7 @@ class CallbacksLoaded:
 class CallbackGroupsLoaded:
     def __init__(
         self,
-        callback_group_value: Tuple[CallbackGroupStruct, ...],
+        callback_group_value: Tuple[CallbackGroupStructValue, ...],
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
@@ -773,7 +773,7 @@ class CallbackGroupsLoaded:
 
     @staticmethod
     def _to_runtime(
-        cbg_value: CallbackGroupStruct,
+        cbg_value: CallbackGroupStructValue,
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,

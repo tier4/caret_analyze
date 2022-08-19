@@ -15,7 +15,7 @@
 from typing import Optional
 
 from .callback import TimerCallbackStruct
-from ..common import Summarizable, Summary
+from ...common import Summarizable, Summary
 
 
 class TimerStruct(Summarizable):

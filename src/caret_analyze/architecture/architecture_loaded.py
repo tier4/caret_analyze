@@ -36,7 +36,7 @@ from ..value_objects import (CallbackChain,
                              TimerCallbackValue,
                              TimerValue, VariablePassingValue,
                              )
-from ..struct import (NodeStruct,
+from .struct import (NodeStruct,
                       CallbackGroupStruct,
                       CallbackStruct,
                       CommunicationStruct,

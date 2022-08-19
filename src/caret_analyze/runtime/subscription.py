@@ -18,8 +18,7 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import Qos
-from ..struct import SubscriptionStruct
+from ..value_objects import (Qos, SubscriptionStructValue)
 
 
 class Subscription(PathBase, Summarizable):
@@ -27,7 +26,7 @@ class Subscription(PathBase, Summarizable):
 
     def __init__(
         self,
-        val: SubscriptionStruct,
+        val: SubscriptionStructValue,
         data_provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         """
@@ -35,7 +34,7 @@ class Subscription(PathBase, Summarizable):
 
         Parameters
         ----------
-        val : SubscriptionStruct
+        val : SubscriptionStructValue
             static info.
         data_provider : Union[RecordsProvider, RuntimeDataProvider]
             provider to be evaluated.

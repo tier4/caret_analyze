@@ -24,7 +24,7 @@ from .subscription import Subscription
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..struct import CommunicationStruct
+from ..value_objects import CommunicationStructValue
 
 
 class Communication(PathBase, Summarizable):
@@ -36,7 +36,7 @@ class Communication(PathBase, Summarizable):
         node_subscription: Node,
         publisher: Publisher,
         subscription: Subscription,
-        communication_value: CommunicationStruct,
+        communication_value: CommunicationStructValue,
         records_provider: Union[RecordsProvider, RuntimeDataProvider, None],
         callbacks_publish: Optional[List[CallbackBase]],
         callback_subscription: Optional[CallbackBase],
@@ -54,7 +54,7 @@ class Communication(PathBase, Summarizable):
             publisher
         subscription : Subscription
             subscription
-        communication_value : CommunicationStruct
+        communication_value : CommunicationStructValue
             static info.
         records_provider : Union[RecordsProvider, RuntimeDataProvider, None]
             provider to be evaluated.

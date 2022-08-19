@@ -26,7 +26,7 @@ from caret_analyze.value_objects import (CommunicationStructValue,
                                          ExecutorStructValue, NodePathStructValue,
                                          NodeStructValue, PathStructValue,
                                          TimerCallbackStructValue)
-from caret_analyze.struct import (CommunicationStruct,
+from caret_analyze.architecture.struct import (CommunicationStruct,
                                   ExecutorStruct, NodePathStruct,
                                   NodeStruct, PathStruct,
                                   TimerCallbackStruct)

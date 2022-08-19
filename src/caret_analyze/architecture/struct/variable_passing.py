@@ -15,7 +15,7 @@
 
 
 from .callback import CallbackStruct
-from ..common import Summarizable, Summary
+from ...common import Summarizable, Summary
 
 
 class VariablePassingStruct(Summarizable):

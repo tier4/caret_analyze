@@ -4,7 +4,7 @@ from .callback import CallbackStruct
 from .node import NodeStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
-from ..common import Summarizable, Summary, Util
+from ...common import Summarizable, Summary, Util
 
 
 class CommunicationStruct(Summarizable):

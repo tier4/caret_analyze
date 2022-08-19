@@ -7,8 +7,8 @@ from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
-from ..common import Summarizable, Summary, Util
-from ..exceptions import ItemNotFoundError
+from ...common import Summarizable, Summary, Util
+from ...exceptions import ItemNotFoundError
 
 
 class NodeStruct(Summarizable):

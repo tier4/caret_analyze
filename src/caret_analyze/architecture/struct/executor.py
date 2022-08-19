@@ -19,9 +19,9 @@ from typing import Optional, Tuple
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
-from ..common import Summarizable, Summary, Util
+from ...common import Summarizable, Summary, Util
 
-from ..value_objects import ExecutorType
+from ...value_objects import ExecutorType
 
 
 class ExecutorStruct(Summarizable):

@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 
-from caret_analyze.struct.callback import TimerCallbackStruct
+from .struct.callback import TimerCallbackStruct
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
@@ -26,7 +26,7 @@ from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
-from ..struct import (CallbackGroupStruct, CallbackStruct,
+from .struct import (CallbackGroupStruct, CallbackStruct,
                            CommunicationStruct, ExecutorStruct,
                            NodeStruct, PathStruct)
 

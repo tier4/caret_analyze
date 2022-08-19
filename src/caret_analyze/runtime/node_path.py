@@ -21,8 +21,8 @@ from .subscription import Subscription
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider
 from ..record import RecordsFactory, RecordsInterface
-from ..struct import MessageContext
-from ..struct import NodePathStruct
+from ..value_objects import MessageContext
+from ..value_objects import NodePathStructValue
 
 
 class NodePath(PathBase, Summarizable):
@@ -35,7 +35,7 @@ class NodePath(PathBase, Summarizable):
 
     def __init__(
         self,
-        node_path_value: NodePathStruct,
+        node_path_value: NodePathStructValue,
         records_provider: RecordsProvider,
         subscription: Optional[Subscription],
         publisher: Optional[Publisher],
@@ -46,7 +46,7 @@ class NodePath(PathBase, Summarizable):
 
         Parameters
         ----------
-        node_path_value : NodePathStruct
+        node_path_value : NodePathStructValue
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.

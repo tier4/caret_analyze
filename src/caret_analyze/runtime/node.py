@@ -25,7 +25,7 @@ from .timer import Timer
 from .variable_passing import VariablePassing
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
-from ..struct import NodeStruct
+from ..value_objects import NodeStructValue
 
 
 class Node(Summarizable):
@@ -33,7 +33,7 @@ class Node(Summarizable):
 
     def __init__(
         self,
-        node: NodeStruct,
+        node: NodeStructValue,
         publishers: List[Publisher],
         subscription: List[Subscription],
         timers: List[Timer],
@@ -46,7 +46,7 @@ class Node(Summarizable):
 
         Parameters
         ----------
-        node : NodeStruct
+        node : NodeStructValue
             static info
         publishers : List[Publisher]
             publishers in the node.

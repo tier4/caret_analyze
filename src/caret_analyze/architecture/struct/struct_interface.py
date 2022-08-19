@@ -54,5 +54,3 @@ class NodeStructInterface(metaclass=ABCMeta):
         pass
 <<<<<<< HEAD
     """
-=======
->>>>>>> 8ae0e6865535eeb19d828399e9d777ee559cd2d0

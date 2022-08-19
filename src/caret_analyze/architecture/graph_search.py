@@ -23,7 +23,7 @@ from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, Unio
 from ..common import Util
 from ..exceptions import (InvalidArgumentError, ItemNotFoundError,
                           MultipleItemFoundError)
-from ..struct import (CallbackStruct, CommunicationStruct,
+from .struct import (CallbackStruct, CommunicationStruct,
                              NodePathStruct, NodeStruct,
                              PathStruct, PublisherStruct,
                              SubscriptionStruct,

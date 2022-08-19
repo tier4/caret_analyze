@@ -15,7 +15,7 @@
 from typing import Optional, Tuple
 
 from .callback import CallbackStruct
-from ..common import Summarizable, Summary
+from ...common import Summarizable, Summary
 
 
 class PublisherStruct(Summarizable):

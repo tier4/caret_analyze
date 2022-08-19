@@ -17,9 +17,9 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple
 
-from ..common import Summarizable, Summary
+from ...common import Summarizable, Summary
 
-from ..value_objects import CallbackType
+from ...value_objects import CallbackType
 
 
 class CallbackStruct(Summarizable, metaclass=ABCMeta):

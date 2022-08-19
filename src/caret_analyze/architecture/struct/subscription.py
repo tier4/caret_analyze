@@ -15,7 +15,7 @@
 from typing import Optional
 
 from .callback import SubscriptionCallbackStruct
-from ..common import Summarizable, Summary
+from ...common import Summarizable, Summary
 
 
 class SubscriptionStruct(Summarizable):

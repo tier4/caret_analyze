@@ -40,7 +40,7 @@ from caret_analyze.value_objects import (CallbackGroupValue, CallbackGroupType,
                                          SubscriptionCallbackValue,
                                          SubscriptionValue, TimerCallbackValue, 
                                          VariablePassingValue)
-from caret_analyze.struct import (NodeStruct,
+from caret_analyze.architecture.struct import (NodeStruct,
                       CallbackGroupStruct,
                       CallbackStruct,
                       CommunicationStruct,
@@ -1301,7 +1301,7 @@ class TestPathInfoLoaded:
             comm_loaded_mock, 'find_communication', return_value=comm_mock)
 
         path_mock = mocker.Mock(spec=PathStruct)
-        mocker.patch('caret_analyze.struct.path.PathStruct',
+        mocker.patch('caret_analyze.architecture.struct.path.PathStruct',
                      return_value=path_mock)
         paths_info = PathValuesLoaded._to_struct(
             path_info, nodes_loaded_mock, comm_loaded_mock)

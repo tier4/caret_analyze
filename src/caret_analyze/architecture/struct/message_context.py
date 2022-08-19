@@ -23,13 +23,13 @@ from typing import Dict, Optional, Tuple
 from .callback import CallbackStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
-from ..common import Summarizable, Summary
-from ..exceptions import UnsupportedTypeError
+from ...common import Summarizable, Summary
+from ...exceptions import UnsupportedTypeError
 
 logger = getLogger(__name__)
 
 
-from ..value_objects import MessageContextType
+from ...value_objects import MessageContextType
 
 MessageContextType.USE_LATEST_MESSAGE = \
         MessageContextType('use_latest_message')

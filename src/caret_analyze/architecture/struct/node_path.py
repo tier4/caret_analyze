@@ -18,12 +18,12 @@ from logging import getLogger
 from typing import Optional, Tuple, Union
 
 from .callback import CallbackStruct, SubscriptionCallbackStruct
-from ..value_objects.message_context import MessageContextType
+from ...value_objects.message_context import MessageContextType
 from .message_context import MessageContext
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .variable_passing import VariablePassingStruct
-from ..common import Summarizable, Summary, Util
+from ...common import Summarizable, Summary, Util
 
 logger = getLogger(__name__)
 

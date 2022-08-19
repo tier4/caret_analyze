@@ -18,8 +18,7 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import Qos
-from ..struct import PublisherStruct
+from ..value_objects import (Qos, PublisherStructValue)
 
 
 class Publisher(PathBase, Summarizable):
@@ -27,7 +26,7 @@ class Publisher(PathBase, Summarizable):
 
     def __init__(
         self,
-        publisher: PublisherStruct,
+        publisher: PublisherStructValue,
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         """
@@ -35,7 +34,7 @@ class Publisher(PathBase, Summarizable):
 
         Parameters
         ----------
-        publisher : PublisherStruct
+        publisher : PublisherStructValue
             static info.
         provider : Union[RecordsProvider, RuntimeDataProvider]
             provider to be evaluated.

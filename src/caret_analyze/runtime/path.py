@@ -25,8 +25,7 @@ from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record import Columns
 from ..record.record import merge, merge_sequencial, RecordsInterface
-from ..value_objects import CallbackChain
-from ..struct import PathStruct
+from ..value_objects import (CallbackChain, PathStructValue)
 
 logger = getLogger(__name__)
 
@@ -208,7 +207,7 @@ class Path(PathBase, Summarizable):
 
     def __init__(
         self,
-        path: PathStruct,
+        path: PathStructValue,
         child: List[Union[NodePath, Communication]],
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
@@ -217,7 +216,7 @@ class Path(PathBase, Summarizable):
 
         Parameters
         ----------
-        path : PathStruct
+        path : PathStructValue
             static info
         child : List[Union[NodePath, Communication]]
             path childrens which compose path (node paths and communications).

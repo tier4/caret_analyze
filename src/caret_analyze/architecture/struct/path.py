@@ -20,8 +20,8 @@ from typing import Optional, Tuple, Union
 
 from .communication import CommunicationStruct
 from .node_path import NodePathStruct
-from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError
+from ...common import Summarizable, Summary, Util
+from ...exceptions import InvalidArgumentError
 
 logger = getLogger(__name__)
 
