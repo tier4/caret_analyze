@@ -235,7 +235,7 @@ class CtfEventCollection(IterableEvents):
                 logger.warning(msg)
 
         self._size = event_count
-        self._events = self._to_dicts(events_path)
+        self._events = self._to_dicts(events_path, event_count)
 
     def __iter__(self) -> Iterator[Dict]:
         return iter(self._events)
@@ -257,11 +257,11 @@ class CtfEventCollection(IterableEvents):
         return self._events
 
     @staticmethod
-    def _to_dicts(trace_dir: str) -> List[Dict]:
+    def _to_dicts(trace_dir: str, count: int) -> List[Dict]:
         msg_it = bt2.TraceCollectionMessageIterator(trace_dir)
         events = []
         acceptable_tracepoints = set(Ros2Handler.get_trace_points())
-        for msg in msg_it:
+        for msg in tqdm(msg_it, total=count, desc='converting'):
             if type(msg) is not bt2._EventMessageConst:
                 continue
             if msg.event.name not in acceptable_tracepoints:
@@ -334,7 +334,10 @@ class Lttng(InfraBase):
             common.end_time = Lttng._last_trace_end_time
 
             filtered_event_count = 0
-            for event in tqdm(iter(event_collection), total=len(event_collection)):
+            for event in tqdm(
+                    iter(event_collection),
+                    total=len(event_collection),
+                    desc='loading'):
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
                     continue
