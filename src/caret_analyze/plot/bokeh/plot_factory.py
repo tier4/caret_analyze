@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Union
 
 from .callback_info import (CallbackFrequencyPlot,
-                            CallbackJitterPlot,
-                            CallbackLatencyPlot)
+                            CallbackLatencyPlot,
+                            CallbackPeriodPlot)
 from .callback_info_interface import TimeSeriesPlot
 from .communication_info import (CommunicationFrequencyPlot,
                                  CommunicationLatencyPlot,
@@ -25,11 +26,14 @@ from .communication_info_interface import CommunicationTimeSeriesPlot
 from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
 from ...runtime import (Application, CallbackBase, CallbackGroup,
-                        Communication, Executor, Node, Publisher, Subscription)
+                        Communication, Executor, Node,
+                        Path, Publisher, Subscription)
 
 
-CallbacksType = Union[Application, Executor,
-                      Node, CallbackGroup, List[CallbackBase]]
+CallbacksType = Union[Application, Path, Executor, Node,
+                      CallbackGroup, CallbackBase, List[CallbackBase]]
+
+logger = getLogger(__name__)
 
 
 class Plot:
@@ -45,9 +49,11 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
+                                  Path,
                                   Executor,
                                   Node,
                                   CallbackGroup,
+                                  CallbackBase
                                   List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 
@@ -62,25 +68,35 @@ class Plot:
     def create_callback_jitter_plot(
         callbacks: CallbacksType
     ) -> TimeSeriesPlot:
+        logger.warning('create_callback_jitter_plot is deprecated.'
+                       'Use create_callback_period_plot')
+        return Plot.create_callback_period_plot(callbacks)
+
+    @staticmethod
+    def create_callback_period_plot(
+        callbacks: CallbacksType
+    ) -> TimeSeriesPlot:
         """
-        Get CallbackJitterPlot instance.
+        Get CallbackPeriodPlot instance.
 
         Parameters
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
+                                  Path,
                                   Executor,
                                   Node,
                                   CallbackGroup,
+                                  CallbackBase
                                   List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 
         Returns
         -------
-        CallbackJitterPlot
+        CallbackPeriodPlot
 
         """
-        return CallbackJitterPlot(callbacks)
+        return CallbackPeriodPlot(callbacks)
 
     @staticmethod
     def create_callback_latency_plot(
@@ -93,9 +109,11 @@ class Plot:
         ----------
         callbacks : CallbacksType
             CallbacksType = Union[Application,
+                                  Path,
                                   Executor,
                                   Node,
                                   CallbackGroup,
+                                  CallbackBase
                                   List[CallbackBase]].
             Instances that have callbacks or a list of callbacks.
 

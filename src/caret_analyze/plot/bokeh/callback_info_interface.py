@@ -17,7 +17,7 @@ from logging import getLogger
 from typing import List, Optional, Union
 
 from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
 
 
@@ -27,12 +27,13 @@ from .plot_util import get_fig_args, validate_xaxis_type
 from .util import (apply_x_axis_offset, ColorSelector,
                    get_callback_param_desc, get_range)
 from ...common import ClockConverter
-from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
+from ...runtime import (Application, CallbackBase, CallbackGroup,
+                        Executor, Node, Path)
 
 logger = getLogger(__name__)
 
-CallbacksType = Union[Application, Executor,
-                      Node, CallbackGroup, List[CallbackBase]]
+CallbacksType = Union[Application, Path, Executor, Node,
+                      CallbackGroup, CallbackBase, List[CallbackBase]]
 
 
 class TimeSeriesPlot(metaclass=ABCMeta):
@@ -44,6 +45,13 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         self._callbacks: List[CallbackBase] = []
         if(isinstance(target, (Application, Executor, Node, CallbackGroup))):
             self._callbacks = target.callbacks
+        elif(isinstance(target, Path)):
+            for comm in target.communications:
+                self._callbacks += comm.publish_node.callbacks
+            self._callbacks += \
+                target.communications[-1].subscribe_node.callbacks
+        elif(isinstance(target, CallbackBase)):
+            self._callbacks = [target]
         else:
             self._callbacks = target
 
@@ -53,7 +61,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None
-    ) -> None:
+    ) -> Figure:
         """
         Draw a line graph for each callback using the bokeh library.
 
@@ -71,6 +79,10 @@ class TimeSeriesPlot(metaclass=ABCMeta):
             even if the number of legends exceeds the threshold.
         export_path : Optional[str]
             If you give path, the drawn graph will be saved as a file.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
 
         Raises
         ------

@@ -21,8 +21,9 @@ from .callback import CallbackBase
 from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
-from ..common import Columns, Summarizable, Summary, Util
+from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
+from ..record import Columns
 from ..record.record import merge, merge_sequencial, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
 
@@ -173,8 +174,9 @@ class RecordsMerged:
                     join_right_key=None,
                     left_stamp_key=left_stamp_key,
                     right_stamp_key=right_stamp_key,
-                    columns=Columns(left_records.columns +
-                                    right_records.columns).as_list(),
+                    columns=Columns.from_str(
+                        left_records.columns + right_records.columns
+                    ).column_names,
                     how='left_use_latest',
                     progress_label='binding: node records'
                 )
@@ -184,7 +186,9 @@ class RecordsMerged:
                     right_records=right_records,
                     join_left_key=left_records.columns[-1],
                     join_right_key=right_records.columns[0],
-                    columns=Columns(left_records.columns + right_records.columns).as_list(),
+                    columns=Columns.from_str(
+                        left_records.columns + right_records.columns
+                    ).column_names,
                     how='left'
                 )
 

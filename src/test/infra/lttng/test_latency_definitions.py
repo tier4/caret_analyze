@@ -24,6 +24,7 @@ from caret_analyze.infra.lttng.value_objects import (
     TimerCallbackValueLttng,
 )
 from caret_analyze.record import RecordFactory, RecordsFactory, RecordsInterface
+from caret_analyze.record.column import ColumnValue
 from caret_analyze.value_objects import (
     CallbackChain,
     CallbackStructValue,
@@ -870,8 +871,8 @@ class TestNodeRecords:
                         )
                     ],
                     [
-                        f'{callback.callback_name}/callback_start_timestamp',
-                        f'{callback.callback_name}/callback_end_timestamp',
+                        ColumnValue(f'{callback.callback_name}/callback_start_timestamp'),
+                        ColumnValue(f'{callback.callback_name}/callback_end_timestamp'),
                     ]
                 )
             return RecordsFactory.create_instance(
@@ -884,8 +885,8 @@ class TestNodeRecords:
                     )
                 ],
                 [
-                    f'{callback_.callback_name}/callback_start_timestamp',
-                    f'{callback_.callback_name}/callback_end_timestamp',
+                    ColumnValue(f'{callback_.callback_name}/callback_start_timestamp'),
+                    ColumnValue(f'{callback_.callback_name}/callback_end_timestamp'),
                 ]
             )
 
@@ -902,8 +903,8 @@ class TestNodeRecords:
                     )
                 ],
                 [
-                    f'{callback.callback_name}/callback_end_timestamp',
-                    f'{callback_.callback_name}/callback_start_timestamp',
+                    ColumnValue(f'{callback.callback_name}/callback_end_timestamp'),
+                    ColumnValue(f'{callback_.callback_name}/callback_start_timestamp'),
                 ]
             )
 

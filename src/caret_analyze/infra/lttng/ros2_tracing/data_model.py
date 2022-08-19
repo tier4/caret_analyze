@@ -15,7 +15,9 @@
 
 """Module for ROS 2 data model."""
 
+from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
+
 import pandas as pd
 
 from tracetools_analysis.data_model import (DataModel,
@@ -65,71 +67,124 @@ class Ros2DataModel(DataModel):
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
-            None, ['callback_start_timestamp', 'callback_object', 'is_intra_process']
+            None, [
+                ColumnValue('callback_start_timestamp'),
+                ColumnValue('callback_object'),
+                ColumnValue('is_intra_process'),
+            ]
         )
         self.callback_end_instances = RecordsFactory.create_instance(
-            None, ['callback_end_timestamp', 'callback_object']
+            None, [
+                ColumnValue('callback_end_timestamp'),
+                ColumnValue('callback_object'),
+            ]
         )
         self.dds_write_instances = RecordsFactory.create_instance(
-            None, ['tid', 'dds_write_timestamp', 'message']
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('dds_write_timestamp'),
+                ColumnValue('message'),
+            ]
         )
         self.dds_bind_addr_to_stamp = RecordsFactory.create_instance(
-            None, ['tid', 'dds_bind_addr_to_stamp_timestamp', 'addr', 'source_timestamp']
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('dds_bind_addr_to_stamp_timestamp'),
+                ColumnValue('addr'),
+                ColumnValue('source_timestamp'),
+            ]
         )
         self.dds_bind_addr_to_addr = RecordsFactory.create_instance(
-            None, ['dds_bind_addr_to_addr_timestamp', 'addr_from', 'addr_to']
+            None, [
+                ColumnValue('dds_bind_addr_to_addr_timestamp'),
+                ColumnValue('addr_from'),
+                ColumnValue('addr_to'),
+            ]
         )
         self.on_data_available_instances = RecordsFactory.create_instance(
-            None, ['on_data_available_timestamp', 'source_timestamp']
+            None, [
+                ColumnValue('on_data_available_timestamp'),
+                ColumnValue('source_timestamp'),
+            ]
         )
         self.rclcpp_intra_publish_instances = RecordsFactory.create_instance(
-            None, ['tid', 'rclcpp_intra_publish_timestamp', 'publisher_handle',
-                   'message', 'message_timestamp']
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_intra_publish_timestamp'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('message'),
+                ColumnValue('message_timestamp'),
+            ]
         )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
             None, [
-                'tid', 'rclcpp_publish_timestamp', 'publisher_handle',
-                'message', 'message_timestamp'
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_publish_timestamp'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('message'),
+                ColumnValue('message_timestamp'),
             ]
         )
         self.rcl_publish_instances = RecordsFactory.create_instance(
-            None, ['tid', 'rcl_publish_timestamp', 'publisher_handle', 'message']
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('rcl_publish_timestamp'),
+                ColumnValue('publisher_handle'),
+                ColumnValue('message'),
+            ]
         )
         self.dispatch_subscription_callback_instances = RecordsFactory.create_instance(
-            None, ['dispatch_subscription_callback_timestamp', 'callback_object', 'message',
-                   'source_timestamp', 'message_timestamp'])
+            None, [
+                ColumnValue('dispatch_subscription_callback_timestamp'),
+                ColumnValue('callback_object'),
+                ColumnValue('message'),
+                ColumnValue('source_timestamp'),
+                ColumnValue('message_timestamp'),
+            ])
         self.dispatch_intra_process_subscription_callback_instances = \
             RecordsFactory.create_instance(
                 None,
-                ['dispatch_intra_process_subscription_callback_timestamp', 'callback_object',
-                 'message', 'message_timestamp']
+                [
+                    ColumnValue('dispatch_intra_process_subscription_callback_timestamp'),
+                    ColumnValue('callback_object'),
+                    ColumnValue('message'),
+                    ColumnValue('message_timestamp'),
+                ]
             )
         self.message_construct_instances = RecordsFactory.create_instance(
-            None, ['message_construct_timestamp', 'original_message', 'constructed_message']
+            None, [
+                ColumnValue('message_construct_timestamp'),
+                ColumnValue('original_message'),
+                ColumnValue('constructed_message'),
+            ]
         )
 
         self.tilde_subscribe = RecordsFactory.create_instance(
             None, [
-                'tilde_subscribe_timestamp',
-                'subscription',
-                'tilde_message_id']
+                ColumnValue('tilde_subscribe_timestamp'),
+                ColumnValue('subscription'),
+                ColumnValue('tilde_message_id'),
+            ]
         )
 
         self.tilde_publish = RecordsFactory.create_instance(
             None, [
-                'tilde_publish_timestamp',
-                'publisher',
-                'subscription_id',
-                'tilde_message_id']
+                ColumnValue('tilde_publish_timestamp'),
+                ColumnValue('publisher'),
+                ColumnValue('subscription_id'),
+                ColumnValue('tilde_message_id'),
+            ]
         )
         self.sim_time = RecordsFactory.create_instance(
             None, [
-                'system_time',
-                'sim_time']
+                ColumnValue('system_time'),
+                ColumnValue('sim_time'),
+            ]
         )
         self.timer_event = RecordsFactory.create_instance(
             None, [
-                'time_event_stamp']
+                ColumnValue('time_event_stamp'),
+            ]
         )
 
     def add_context(self, pid, context_handle, timestamp, version) -> None:
