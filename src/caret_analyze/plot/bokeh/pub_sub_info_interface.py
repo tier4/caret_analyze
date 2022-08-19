@@ -53,8 +53,9 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         self._last_full_legends = full_legends
         self._last_export_path = export_path
 
+        all_topic_names = list({ps.topic_name for ps in self._pub_subs})
         topic_dropdown = Dropdown(description='Topic:',
-                                  options=['All', '/topic2', '/drive'])
+                                  options=(['All'] + all_topic_names))
         interact(self._show_core,
                  topic_name=topic_dropdown)
 
