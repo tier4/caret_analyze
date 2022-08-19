@@ -153,11 +153,11 @@ class EventDurationFilter(LttngEventFilter):
 
 class EventCollection(Iterable, Sized):
 
-    def __init__(self, trace_dir: str) -> None:
+    def __init__(self, trace_dir: str, force_conversion: bool) -> None:
         self._iterable_events: IterableEvents
         cache_path = self._cache_path(trace_dir)
 
-        if os.path.exists(cache_path):
+        if os.path.exists(cache_path) and not force_conversion:
             logger.info('Found converted file.')
             self._iterable_events = PickleEventCollection(cache_path)
         else:
@@ -292,6 +292,7 @@ class Lttng(InfraBase):
     def __init__(
         self,
         trace_dir_or_events: Union[str, Dict],
+        force_conversion: bool = False,
         *,
         event_filters: Optional[List[LttngEventFilter]] = None,
         store_events: bool = False,
@@ -303,6 +304,7 @@ class Lttng(InfraBase):
 
         data, events = self._parse_lttng_data(
             trace_dir_or_events,
+            force_conversion,
             event_filters or [],
             store_events
         )
@@ -315,6 +317,7 @@ class Lttng(InfraBase):
     @staticmethod
     def _parse_lttng_data(
         trace_dir_or_events: Union[str, Dict],
+        force_conversion: bool,
         event_filters: List[LttngEventFilter],
         store_events: bool
     ) -> Tuple[Any, Dict]:
@@ -325,7 +328,7 @@ class Lttng(InfraBase):
 
         if isinstance(trace_dir_or_events, str):
             Lttng._last_trace_begin_time = None
-            event_collection = EventCollection(trace_dir_or_events)
+            event_collection = EventCollection(trace_dir_or_events, force_conversion)
             print('{} events found.'.format(len(event_collection)))
 
             common = LttngEventFilter.Common()
