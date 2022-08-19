@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Tuple, Union
+from typing import List, Union
 
 import pandas as pd
 
 from .callback_info_interface import TimeSeriesPlot
+from .plot_util import convert_df_to_sim_time, get_preprocessing_frequency
 from ...runtime import Application, CallbackBase, CallbackGroup, Executor, Node
 
 
@@ -41,7 +42,7 @@ class CallbackLatencyPlot(TimeSeriesPlot):
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         latency_table = self._concate_cb_latency_table()
         if(xaxis_type == 'sim_time'):
-            self._df_convert_to_sim_time(latency_table)
+            convert_df_to_sim_time(self._get_converter(), latency_table)
 
         cb_names = [c.callback_name for c in self._callbacks]
         latency_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
@@ -79,7 +80,7 @@ class CallbackJitterPlot(TimeSeriesPlot):
         latency_table.columns = [c.replace('/callback_start_timestamp', '')
                                  for c in latency_table.columns]
         if(xaxis_type == 'sim_time'):
-            self._df_convert_to_sim_time(latency_table)
+            convert_df_to_sim_time(self._get_converter(), latency_table)
 
         jitter_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
                 latency_table.columns,
@@ -117,66 +118,14 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         latency_table.columns = [c.replace('/callback_start_timestamp', '')
                                  for c in latency_table.columns]
         if(xaxis_type == 'sim_time'):
-            self._df_convert_to_sim_time(latency_table)
+            convert_df_to_sim_time(self._get_converter(), latency_table)
 
         # TODO: Emit an exception when latency_table size is 0.
         earliest_timestamp = latency_table.iloc[0].min()
-        frequency_df = self._get_preprocessing_frequency(latency_table,
-                                                         earliest_timestamp)
-
-        return frequency_df
-
-    def _get_cb_freq_with_timestamp(
-        self,
-        timestamp_df,
-        initial_timestamp,
-        callback_name
-    ) -> Tuple[List[float], List[int]]:
-        timestamp_list: List[float] = []
-        frequency_list: List[int] = []
-        diff_base = -1
-
-        for timestamp in timestamp_df[callback_name].dropna():
-            diff = timestamp - initial_timestamp
-            if int(diff*10**(-9)) == diff_base:
-                frequency_list[-1] += 1
-            else:
-                timestamp_list.append(initial_timestamp
-                                      + len(timestamp_list)*10**(9))
-                frequency_list.append(1)
-                diff_base = int(diff*10**(-9))
-
-        return timestamp_list, frequency_list
-
-    def _get_preprocessing_frequency(
-        self,
-        timestamp_df,
-        *initial_timestamp
-    ) -> pd.DataFrame:
-        frequency_df = pd.DataFrame()
-
-        if len(initial_timestamp) != len(timestamp_df.columns):
-            if len(initial_timestamp) == 1:
-                initial_timestamp = [initial_timestamp[0]
-                                     for i in range(len(timestamp_df.columns))]
-            else:
-                # TODO: Emit an exception when latency_table size is 0.
-                initial_timestamp = [timestamp_df.iloc(0).mean
-                                     for i in range(len(timestamp_df.columns))]
-
-        for initial, callback_name in zip(initial_timestamp,
-                                          timestamp_df.columns):
-            timestamp, frequency = self._get_cb_freq_with_timestamp(
-                    timestamp_df, initial, callback_name)
-            ts_df = pd.DataFrame(columns=pd.MultiIndex.from_product(
-                [[callback_name], ['callback_start_timestamp [ns]']]))
-            fq_df = pd.DataFrame(columns=pd.MultiIndex.from_product(
-                [[callback_name], ['frequency [Hz]']]))
-            # adding lists to dataframe
-            ts_df[(callback_name, 'callback_start_timestamp [ns]')] = timestamp
-            fq_df[(callback_name, 'frequency [Hz]')] = frequency
-            # adding dataframe to 'return dataframe'
-            frequency_df = pd.concat([frequency_df, ts_df], axis=1)
-            frequency_df = pd.concat([frequency_df, fq_df], axis=1)
+        frequency_df = get_preprocessing_frequency(
+            earliest_timestamp,
+            timestamp_df=latency_table,
+            l2_left_column_name='callback_start_timestamp [ns]'
+        )
 
         return frequency_df

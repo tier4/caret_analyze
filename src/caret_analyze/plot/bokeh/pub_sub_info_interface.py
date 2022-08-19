@@ -21,14 +21,14 @@ from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, figure, save, show
 from bokeh.resources import CDN
 
+from ipywidgets import Dropdown, interact
+
 import pandas as pd
 
-from ipywidgets import interact, Dropdown
-
-from caret_analyze.runtime.publisher import Publisher
-
+from .plot_util import get_fig_args, validate_xaxis_type
 from .util import apply_x_axis_offset, ColorSelector, get_range
-from ...exceptions import UnsupportedTypeError
+from ...common import ClockConverter
+from ...runtime.publisher import Publisher
 
 logger = getLogger(__name__)
 
@@ -42,13 +42,12 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
     def show(
         self,
-        xaxis_type: Optional[str] = None,
+        xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None,
     ) -> None:
-        xaxis_type = xaxis_type or 'system_time'
-        self._validate_xaxis_type(xaxis_type)
+        validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
         self._last_ywheel_zoom = ywheel_zoom
         self._last_full_legends = full_legends
@@ -81,9 +80,13 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                     point_policy='follow_mouse'
                 )
         frame_min, frame_max = get_range(self._pub_subs)
-        fig_args = self._get_fig_args(self._last_xaxis_type,
-                                      source_df.columns.to_list()[1],
-                                      self._last_ywheel_zoom)
+        y_axis_label = source_df.columns.to_list()[1]
+        fig_args = get_fig_args(
+            xaxis_type=self._last_xaxis_type,
+            title=f'Time-line of publishes/subscribes {y_axis_label}',
+            y_axis_label=y_axis_label,
+            ywheel_zoom=self._last_ywheel_zoom
+        )
         p = figure(**fig_args)
         if self._last_xaxis_type == 'system_time':
             apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
@@ -114,14 +117,13 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             else:
                 legend_label = f'subscription{sub_count}'
                 sub_count += 1
-            renderer = p.line('x',
-                              'y',
+            renderer = p.line('x', 'y',
                               source=line_source,
                               color=color)
             legend_items.append((legend_label, [renderer]))
 
-        # Add legends
-        num_legend_threshold = 20  # TODO(atsushi)
+        # Add legends by ten
+        num_legend_threshold = 20
         for i in range(0, len(legend_items)+10, 10):
             if not self._last_full_legends and i >= num_legend_threshold:
                 logger.warning(
@@ -134,6 +136,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             p.add_layout(Legend(items=legend_items[i:i+10]), 'right')
         p.legend.click_policy = 'hide'
 
+        # Output
         if self._last_export_path is None:
             show(p)
         else:
@@ -150,7 +153,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             line_source_df: pd.DataFrame
         ) -> str:
             return line_source_df.columns.to_list()[0].split('/')[1]
-        
+
         def get_callback_name(
             line_source_df: pd.DataFrame
         ) -> str:
@@ -186,6 +189,18 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
         return line_source
 
+    def to_dataframe(
+        self,
+        xaxis_type: str = 'system_time'
+    ) -> pd.DataFrame:
+        validate_xaxis_type(xaxis_type)
+
+        return self._to_dataframe_core(xaxis_type)
+
+    @abstractmethod
+    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
+        pass
+
     def _get_source_df_by_topic(
         self,
         source_df: pd.DataFrame
@@ -196,55 +211,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             topic_df = source_df.loc[:, pd.IndexSlice[topic_name, :]]
             topic_df.columns = topic_df.columns.droplevel(0)
             source_df_by_topic[topic_name] = topic_df
-    
+
         return source_df_by_topic
-
-    def _get_fig_args(
-        self,
-        xaxis_type: str,
-        y_axis_label: str,
-        ywheel_zoom: bool
-    ) -> dict:
-        fig_args = {'height': 500,
-                    'frame_height': 270,
-                    'frame_width': 800,
-                    'y_axis_label': y_axis_label,
-                    'title': f'Time-line of communications {y_axis_label}'}
-
-        if xaxis_type == 'system_time':
-            fig_args['x_axis_label'] = 'system time [s]'
-        elif xaxis_type == 'sim_time':
-            fig_args['x_axis_label'] = 'simulation time [s]'
-        else:
-            fig_args['x_axis_label'] = xaxis_type
-
-        if(ywheel_zoom):
-            fig_args['active_scroll'] = 'wheel_zoom'
-        else:
-            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
-            fig_args['active_scroll'] = 'xwheel_zoom'
-
-        return fig_args
-
-    def to_dataframe(
-        self,
-        xaxis_type: Optional[str] = None
-    ) -> pd.DataFrame:
-        xaxis_type = xaxis_type or 'system_time'
-        self._validate_xaxis_type(xaxis_type)
-
-        return self._to_dataframe_core(xaxis_type)
-
-    def _validate_xaxis_type(self, xaxis_type: Optional[str]):
-        if xaxis_type not in ['system_time', 'sim_time', 'index']:
-            raise UnsupportedTypeError(
-                f'Unsupported xaxis_type. xaxis_type = {xaxis_type}. '
-                'supported xaxis_type: [system_time/sim_time/index]'
-            )
-
-    @abstractmethod
-    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        pass
 
     def _get_pub_name(
         self,
@@ -271,14 +239,10 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             )
 
         return pub_sub_df_dict
-    
-    def _df_convert_to_sim_time(
-        self,
-        latency_table: pd.DataFrame
-    ) -> None:
-        # TODO(hsgwa): refactor
+
+    def _get_converter(
+        self
+    ) -> ClockConverter:
         converter = self._pub_subs[0]._provider.get_sim_time_converter()
-        for c in range(len(latency_table.columns)):
-            for i in range(len(latency_table)):
-                latency_table.iat[i, c] = converter.convert(
-                        latency_table.iat[i, c])
+
+        return converter

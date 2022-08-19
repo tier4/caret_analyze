@@ -26,8 +26,8 @@ import numpy as np
 
 
 from ...exceptions import UnsupportedTypeError
-from ...runtime import (CallbackBase, Communication, Subscription,
-                        SubscriptionCallback, Publisher, TimerCallback)
+from ...runtime import (CallbackBase, Communication, Publisher,
+                        Subscription, SubscriptionCallback, TimerCallback)
 
 logger = getLogger(__name__)
 
