@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from __future__ import annotations
-from functools import cached_property
 
-import os
 from abc import ABCMeta, abstractmethod, abstractproperty
 from datetime import datetime
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Sequence, Sized, Tuple, Union, Iterable, Iterator
+import os
 import pickle
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Sized, Tuple, Union
 
 import bt2
 import pandas as pd
@@ -229,9 +228,9 @@ class CtfEventCollection(IterableEvents):
             # Check for traces lost
             elif(type(msg) is bt2._DiscardedEventsMessageConst):
                 msg = ('Tracer discarded '
-                        f'{msg.count} events between '
-                        f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
-                        f'{msg.end_default_clock_snapshot.ns_from_origin}.')
+                       f'{msg.count} events between '
+                       f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
+                       f'{msg.end_default_clock_snapshot.ns_from_origin}.')
                 logger.warning(msg)
 
         self._size = event_count
