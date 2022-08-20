@@ -113,7 +113,7 @@ def get_preprocessing_frequency(
                                                        column_name)
 
         top_column = top_column_name or column_name
-        l2_left_column = l2_left_column_name or column_name
+        l2_left_column = l2_left_column_name or f'{column_name} [ns]'
         ts_df = pd.DataFrame(columns=pd.MultiIndex.from_product(
             [[top_column], [l2_left_column]]))
         fq_df = pd.DataFrame(columns=pd.MultiIndex.from_product(
