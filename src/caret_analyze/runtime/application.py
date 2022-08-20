@@ -18,7 +18,7 @@ import fnmatch
 
 from logging import getLogger
 
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -26,6 +26,8 @@ from .communication import Communication
 from .executor import Executor
 from .node import Node
 from .path import Path
+from .publisher import Publisher
+from .subscription import Subscription
 from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
 from ..exceptions import Error, InvalidArgumentError, UnsupportedTypeError
@@ -482,6 +484,40 @@ class Application(Summarizable):
                                   lambda x: x.topic_name)
 
         return sorted(comms, key=lambda x: x.topic_name)
+
+    def get_pub_subs(
+        self,
+        topic_name: str
+    ) -> Tuple[List[Publisher], List[Subscription]]:
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        all_pubs = set()
+        all_subs = set()
+        for node in self.nodes:
+            all_pubs |= set(node.publishers)
+            all_subs |= set(node.subscriptions)
+
+        pubs = Util.filter_items(
+            lambda x: x.topic_name == topic_name,
+            all_pubs
+        )
+        if len(pubs) == 0:
+            Util.find_similar_one(topic_name,
+                                  all_pubs,
+                                  lambda x: x.topic_name)
+
+        subs = Util.filter_items(
+            lambda x: x.topic_name == topic_name,
+            all_subs
+        )
+        if len(subs) == 0:
+            Util.find_similar_one(topic_name,
+                                  all_subs,
+                                  lambda x: x.topic_name)
+
+        return (sorted(pubs, key=lambda x: x.topic_name),
+                sorted(subs, key=lambda x: x.topic_name))
 
     def get_node_paths(
         self,
