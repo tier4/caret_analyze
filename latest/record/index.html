@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://tier4.github.io/CARET_analyze/latest/record/">
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.0">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.1">
     
     
       
@@ -3049,13 +3049,13 @@ True</p>
 </code></pre></div>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Calculate response time</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">records</span> <span class="o">=</span> <span class="n">callback</span><span class="o">.</span><span class="n">to_records</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">ResponseTime</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">records</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">records</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">ResponseTime</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">response_records</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">to_response_records</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">response_df</span> <span class="o">=</span> <span class="n">response_records</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
 </code></pre></div>
     <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s1">&#39;path_name&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">records</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">to_records</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">ResponseTime</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">records</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">records</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">ResponseTime</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">response_records</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">to_response_records</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">response_df</span> <span class="o">=</span> <span class="n">response_records</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
 </code></pre></div>
