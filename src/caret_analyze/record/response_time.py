@@ -19,7 +19,7 @@ from typing import Iterator, Optional, Sequence, Tuple
 import numpy as np
 
 from .column import ColumnValue
-from .interface import RecordInterface, RecordsInterface
+from .interface import RecordsInterface
 from .record_factory import RecordFactory, RecordsFactory
 from ..exceptions import InvalidRecordsError
 
@@ -111,9 +111,7 @@ class ResponseMap():
 
         input_min_time = None
 
-        for i in range(len(records)):
-            data: RecordInterface = records.data[i]
-
+        for data in records.data:
             if input_column not in data.columns or output_column not in data.columns:
                 continue
 
