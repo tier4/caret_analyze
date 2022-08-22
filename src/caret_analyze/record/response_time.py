@@ -229,13 +229,13 @@ class ResponseTime:
 
     >>> # Calculate response time
     >>> records = callback.to_records()
-    >>> response = ResponseTime(records, records.columns[0], records.columns[1])
+    >>> response = ResponseTime(records)
     >>> response_records = response.to_response_records()
     >>> response_df = response_records.to_dataframe()
 
     >>> path = app.get_path('path_name')
     >>> records = path.to_records()
-    >>> response = ResponseTime(records, records.columns[0], records.columns[1])
+    >>> response = ResponseTime(records)
     >>> response_records = response.to_response_records()
     >>> response_df = response_records.to_dataframe()
 
