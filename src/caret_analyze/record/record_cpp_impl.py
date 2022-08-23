@@ -226,6 +226,10 @@ class RecordsCppImpl(RecordsInterface):
             It's strongly recommend to store records.data in a temporary variable or
             use it as an iterable.
 
+        See Also
+        --------
+            https://pybind11.readthedocs.io/en/stable/advanced/cast/stl.html#binding-stl-containers
+
         """
         return self._records.data
 
