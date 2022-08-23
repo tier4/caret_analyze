@@ -211,6 +211,26 @@ class RecordsCppImpl(RecordsInterface):
 
     @property
     def data(self) -> Sequence[RecordInterface]:
+        """
+        Get records list.
+
+        Returns
+        -------
+        Sequence[RecordInterface]
+            Records list.
+
+        Warnings
+        --------
+            Each Execution copies all records.
+            An implementation such as records.data[i] will significantly degrade performance.
+            It's strongly recommend to store records.data in a temporary variable or
+            use it as an iterable.
+
+        See Also
+        --------
+            https://pybind11.readthedocs.io/en/stable/advanced/cast/stl.html#binding-stl-containers
+
+        """
         return self._records.data
 
     def merge_sequencial(
