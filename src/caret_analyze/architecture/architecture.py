@@ -53,27 +53,29 @@ class Architecture(Summarizable):
         self._path_manager = NamedPathManager(loaded.paths)
         self._verify(self._nodes)
 
-    def get_node(self, node_name: str) -> NodeStruct:
+    def get_node(self, node_name: str) -> NodeStructValue:
         try:
-            return Util.find_one(lambda x: x.node_name == node_name, self.nodes)
+            node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self.nodes)
+            return node.to_value()
         except ItemNotFoundError:
             msg = 'Failed to find node. '
             msg += f'node_name: {node_name}'
             raise ItemNotFoundError(msg)
 
-    def get_executor(self, executor_name: str) -> ExecutorStruct:
-        return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
+    def get_executor(self, executor_name: str) -> ExecutorStructValue:
+        executor = Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
+        return executor.to_value()
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroupStruct:
         return Util.find_one(
             lambda x: x.callback_group_name == callback_group_name, self.callback_groups)
 
     @property
-    def callback_groups(self) -> Tuple[CallbackGroupStruct, ...]:
+    def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
         return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
 
     @property
-    def callback_group_names(self) -> Tuple[CallbackGroupStruct, ...]:
+    def callback_group_names(self) -> Tuple[CallbackGroupStructValue, ...]:
         return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
 
     @property
@@ -84,7 +86,7 @@ class Architecture(Summarizable):
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
     @property
-    def callbacks(self) -> Tuple[CallbackStruct, ...]:
+    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
         return tuple(_.callbacks for _ in self.callback_groups)
 
     def get_communication(
@@ -92,7 +94,7 @@ class Architecture(Summarizable):
         publisher_node_name: str,
         subscription_node_name: str,
         topic_name: str
-    ) -> CommunicationStruct:
+    ) -> CommunicationStructValue:
         def is_target_comm(comm: CommunicationStruct):
             return comm.publish_node_name == publisher_node_name and \
                 comm.subscribe_node_name == subscription_node_name and \
@@ -100,20 +102,20 @@ class Architecture(Summarizable):
 
         return Util.find_one(is_target_comm, self.communications)
 
-    def get_path(self, path_name: str) -> PathStruct:
+    def get_path(self, path_name: str) -> PathStructValue:
         return self._path_manager.get_named_path(path_name)
 
-    def add_path(self, path_name: str, path_info: PathStruct) -> None:
+    def add_path(self, path_name: str, path_info: PathStructValue) -> None:
         self._path_manager.add_named_path(path_name, path_info)
 
     def remove_path(self, path_name: str) -> None:
         self._path_manager.remove_named_path(path_name)
 
-    def update_path(self, path_name: str, path: PathStruct) -> None:
+    def update_path(self, path_name: str, path: PathStructValue) -> None:
         self._path_manager.update_named_path(path_name, path)
 
     @property
-    def nodes(self) -> Tuple[NodeStruct, ...]:
+    def nodes(self) -> Tuple[NodeStructValue, ...]:
         return self._nodes
 
     @property
@@ -121,15 +123,15 @@ class Architecture(Summarizable):
         return tuple(sorted(_.node_name for _ in self._nodes))
 
     @property
-    def executors(self) -> Tuple[ExecutorStruct, ...]:
+    def executors(self) -> Tuple[ExecutorStructValue, ...]:
         return self._executors
 
     @property
-    def executor_names(self) -> Tuple[ExecutorStruct, ...]:
+    def executor_names(self) -> Tuple[str, ...]:
         return tuple(sorted(_.executor_name for _ in self._executors))
 
     @property
-    def paths(self) -> Tuple[PathStruct, ...]:
+    def paths(self) -> Tuple[PathStructValue, ...]:
         return self._path_manager.named_paths
 
     @property
@@ -137,7 +139,7 @@ class Architecture(Summarizable):
         return tuple(sorted(_.path_name for _ in self._path_manager.named_paths))
 
     @property
-    def communications(self) -> Tuple[CommunicationStruct, ...]:
+    def communications(self) -> Tuple[CommunicationStructValue, ...]:
         return self._communications
 
     @property
@@ -157,7 +159,7 @@ class Architecture(Summarizable):
         max_node_depth: Optional[int] = None,
         node_filter: Optional[Callable[[str], bool]] = None,
         communication_filter: Optional[Callable[[str], bool]] = None,
-    ) -> List[PathStruct]:
+    ) -> List[PathStructValue]:
         from .graph_search import NodePathSearcher
         for node_name in node_names:
             if node_name not in self.node_names:
@@ -197,19 +199,19 @@ class Architecture(Summarizable):
                      f'period_ns: {uniqueness_violated[1]}'))
 
     def rename_callback(src: str, dest: str):
-        pass
+        raise NotImplementedError('')
 
     def rename_node(src: str, dest: str):
-        pass
+        raise NotImplementedError('')
 
     def rename_path(src: str, dest: str):
-        pass
+        raise NotImplementedError('')
 
     def rename_executor(src: str, dest: str):
-        pass
+        raise NotImplementedError('')
 
     def rename_topic(src: str, dest: str):
-        pass
+        raise NotImplementedError('')
 
 
 class NamedPathManager():
