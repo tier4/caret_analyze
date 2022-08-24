@@ -814,6 +814,20 @@ class TestDataFrameFormatted:
         assert formatted.services_df == srv_mock
         assert formatted.publishers_df == pub_mock
 
+    def test_tilde_subscription(self, mocker):
+        data = Ros2DataModel()
+        data.finalize()
+        formatted = DataFrameFormatted(data)
+
+        df = formatted.tilde_subscriptions_df
+        columns = [
+            'tilde_subscription',
+            'node_name',
+            'topic_name',
+        ]
+        df_expect = pd.DataFrame(columns=columns, dtype='Int64')
+        assert df.equals(df_expect)
+
     # def test_build_subscription_callbacks_df(self):
 
     #     data = Ros2DataModel()
