@@ -176,15 +176,3 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         return (f'{comm.summary["publish_node"]}|'
                 f'{comm.summary["topic_name"]}|'
                 f'{comm.summary["subscirbe_node"]}')
-
-    def _create_rclcpp_pub_ts_df(
-        self
-    ) -> pd.DataFrame:
-        rclcpp_pub_ts_df = pd.DataFrame()
-        for comm in self._communications:
-            pub_ts_series = comm.to_dataframe().iloc[:, 0]
-            pub_ts_series.rename(self._get_comm_name(comm), inplace=True)
-            rclcpp_pub_ts_df = pd.concat([rclcpp_pub_ts_df, pub_ts_series],
-                                         axis=1)
-
-        return rclcpp_pub_ts_df

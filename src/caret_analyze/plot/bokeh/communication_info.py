@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 import pandas as pd
 
 from .communication_info_interface import CommunicationTimeSeriesPlot
-from .plot_util import convert_df_to_sim_time, get_preprocessing_frequency
+from .plot_util import (add_top_level_column,
+                        convert_df_to_sim_time,
+                        get_freq_with_timestamp)
 from ...runtime import Communication
 
 
@@ -29,26 +29,35 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
     ) -> None:
         self._communications = communications
 
-    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        concated_latency_df = pd.DataFrame()
+    def _to_dataframe_core(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
+        concat_latency_df = pd.DataFrame()
         for comm in self._communications:
-            comm_df = comm.to_dataframe()
-            if(xaxis_type == 'sim_time'):
-                convert_df_to_sim_time(self._get_converter(), comm_df)
-            comm_name = self._get_comm_name(comm)
+            latency_df = self._create_latency_df(xaxis_type, comm)
+            concat_latency_df = pd.concat([concat_latency_df, latency_df],
+                                          axis=1)
 
-            latency_df = pd.DataFrame(columns=[
-                np.array([comm_name, comm_name]),
-                np.array(['rclcpp_publish_timestamp [ns]', 'latency [ms]'])
-            ])
-            latency_df[(comm_name, 'rclcpp_publish_timestamp [ns]')] = \
-                comm_df.iloc[:, 0]
-            latency_df[(comm_name, 'latency [ms]')] = \
-                (comm_df.iloc[:, 3] - comm_df.iloc[:, 0]) * 10**(-6)
-            concated_latency_df = pd.concat([concated_latency_df, latency_df],
-                                            axis=1)
+        return concat_latency_df
 
-        return concated_latency_df
+    def _create_latency_df(
+        self,
+        xaxis_type: str,
+        communication: Communication
+    ) -> pd.DataFrame:
+        df = communication.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        latency_df = pd.DataFrame(data={
+            'rclcpp_publish_timestamp [ns]': df.iloc[:, 0],
+            'latency [ms]': (df.iloc[:, 3] - df.iloc[:, 0]) * 10**(-6)
+        })
+        latency_df = add_top_level_column(latency_df,
+                                          self._get_comm_name(communication))
+
+        return latency_df
 
 
 class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
@@ -59,22 +68,34 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
     ) -> None:
         self._communications = communications
 
-    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        rclcpp_pub_ts_df = self._create_rclcpp_pub_ts_df()
-        if(xaxis_type == 'sim_time'):
-            convert_df_to_sim_time(self._get_converter(), rclcpp_pub_ts_df)
+    def _to_dataframe_core(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
+        concat_period_df = pd.DataFrame()
+        for comm in self._communications:
+            latency_df = self._create_period_df(xaxis_type, comm)
+            concat_period_df = pd.concat([concat_period_df, latency_df],
+                                         axis=1)
 
-        period_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
-            rclcpp_pub_ts_df.columns,
-            ['rclcpp_publish_timestamp [ns]', 'period [ms]']
-        ]))
-        for comm_name in rclcpp_pub_ts_df.columns:
-            period_df[(comm_name, 'rclcpp_publish_timestamp [ns]')] = \
-                rclcpp_pub_ts_df[comm_name]
-            period_df[(comm_name, 'period [ms]')] = \
-                rclcpp_pub_ts_df[comm_name].diff() * 10**(-6)
+        return concat_period_df
+
+    def _create_period_df(
+        self,
+        xaxis_type: str,
+        communication: Communication
+    ) -> pd.DataFrame:
+        df = communication.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        period_df = pd.DataFrame(data={
+            'rclcpp_publish_timestamp [ns]': df.iloc[:, 0],
+            'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
+        })
         period_df = period_df.drop(period_df.index[0])
-        period_df = period_df.reset_index(drop=True)
+        period_df = add_top_level_column(period_df,
+                                         self._get_comm_name(communication))
 
         return period_df
 
@@ -87,17 +108,47 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
     ) -> None:
         self._communications = communications
 
-    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        rclcpp_pub_ts_df = self._create_rclcpp_pub_ts_df()
-        if(xaxis_type == 'sim_time'):
-            convert_df_to_sim_time(self._get_converter(), rclcpp_pub_ts_df)
+    def _to_dataframe_core(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
+        concat_frequency_df = pd.DataFrame()
+        for cb in self._communications:
+            frequency_df = self._create_frequency_df(xaxis_type, cb)
+            concat_frequency_df = pd.concat(
+                [concat_frequency_df, frequency_df],
+                axis=1
+            )
 
-        # TODO: Emit an exception when latency_table size is 0.
-        earliest_timestamp = rclcpp_pub_ts_df.iloc[0].min()
-        frequency_df = get_preprocessing_frequency(
-            earliest_timestamp,
-            timestamp_df=rclcpp_pub_ts_df,
-            l2_left_column_name='rclcpp_publish_timestamp [ns]'
-        )
+        return concat_frequency_df
+
+    def _create_frequency_df(
+        self,
+        xaxis_type: str,
+        communication: Communication
+    ) -> pd.DataFrame:
+        df = communication.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        initial_timestamp = self._get_earliest_timestamp()
+        ts_series, freq_series = get_freq_with_timestamp(df.iloc[:, 0],
+                                                         initial_timestamp)
+        frequency_df = pd.DataFrame(data={
+            'rclcpp_publish_timestamp [ns]': ts_series,
+            'frequency [Hz]': freq_series
+        })
+        frequency_df = add_top_level_column(frequency_df,
+                                            self._get_comm_name(communication))
 
         return frequency_df
+
+    def _get_earliest_timestamp(
+        self
+    ) -> int:
+        first_timestamps = []
+        for cb in self._communications:
+            # TODO: Emit an exception when latency_table size is 0.
+            first_timestamps.append(cb.to_dataframe().iloc[0, 0])
+
+        return min(first_timestamps)

@@ -13,9 +13,8 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict
 from logging import getLogger
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, figure, save, show
@@ -28,7 +27,7 @@ import pandas as pd
 from .plot_util import get_fig_args, validate_xaxis_type
 from .util import apply_x_axis_offset, ColorSelector, get_range
 from ...common import ClockConverter
-from ...runtime.publisher import Publisher
+from ...runtime import Publisher, Subscription
 
 logger = getLogger(__name__)
 
@@ -218,31 +217,17 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
         return source_df_by_topic
 
-    def _get_pub_name(
+    def _get_ts_column_name(
         self,
-        pub: Publisher
+        pub_sub: Union[Publisher, Subscription]
     ) -> str:
-        assert len(pub.callback_names) == 1  # HACK
+        if isinstance(pub_sub, Publisher):
+            ts_column_name = (f'{pub_sub.callback_names[0]}'
+                              '/rclcpp_publish_timestamp [ns]')
+        else:
+            ts_column_name = f'{pub_sub.column_names[0]} [ns]'
 
-        return (f'{pub.node_name}{pub.callback_names[0]}'
-                '/rclcpp_publish_timestamp')
-
-    def _create_pub_sub_df_dict(
-        self
-    ) -> Dict:
-        pub_sub_df_dict = defaultdict(pd.DataFrame)
-        for pub_sub in self._pub_subs:
-            pub_sub_series = pub_sub.to_dataframe().iloc[:, 0]
-            if isinstance(pub_sub, Publisher):
-                pub_sub_series.rename(self._get_pub_name(pub_sub),
-                                      inplace=True)
-            pub_sub_df_dict[pub_sub.topic_name] = pd.concat(
-                [pub_sub_df_dict[pub_sub.topic_name],
-                 pub_sub_series],
-                axis=1
-            )
-
-        return pub_sub_df_dict
+        return ts_column_name
 
     def _get_converter(
         self

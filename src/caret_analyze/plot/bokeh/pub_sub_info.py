@@ -14,11 +14,10 @@
 
 from typing import Union
 
-import numpy as np
-
 import pandas as pd
 
-from .plot_util import convert_df_to_sim_time, get_preprocessing_frequency
+from .plot_util import (add_top_level_column, convert_df_to_sim_time,
+                        get_freq_with_timestamp)
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
 from ...runtime import Publisher, Subscription
 
@@ -32,29 +31,32 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
         self._pub_subs = pub_subs
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        pub_sub_df_dict = self._create_pub_sub_df_dict()
-        if(xaxis_type == 'sim_time'):
-            converter = self._pub_subs[0]._provider.get_sim_time_converter()
-            for pub_sub_df in pub_sub_df_dict.values():
-                convert_df_to_sim_time(converter, pub_sub_df)
+        concat_period_df = pd.DataFrame()
+        for pub_sub in self._pub_subs:
+            period_df = self._create_period_df(xaxis_type, pub_sub)
+            concat_period_df = pd.concat([concat_period_df, period_df],
+                                         axis=1)
 
-        concated_period_df = pd.DataFrame()
-        for topic_name, pub_sub_df in pub_sub_df_dict.items():
-            for column_name in pub_sub_df.columns:
-                period_df = pd.DataFrame(columns=[
-                    np.array([topic_name, topic_name]),
-                    np.array([f'{column_name} [ns]', 'period [ms]'])
-                ])
-                period_df[(topic_name, f'{column_name} [ns]')] = \
-                    pub_sub_df[column_name]
-                period_df[(topic_name, 'period [ms]')] = \
-                    pub_sub_df[column_name].diff() * 10**(-6)
-                concated_period_df = pd.concat([concated_period_df, period_df],
-                                               axis=1)
-        concated_period_df.drop(concated_period_df.index[0], inplace=True)
-        concated_period_df.reset_index(drop=True, inplace=True)
+        return concat_period_df.sort_index(level=0, axis=1,
+                                           sort_remaining=False)
 
-        return concated_period_df
+    def _create_period_df(
+        self,
+        xaxis_type: str,
+        pub_sub: Union[Publisher, Subscription]
+    ) -> pd.DataFrame:
+        df = pub_sub.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        period_df = pd.DataFrame(data={
+            self._get_ts_column_name(pub_sub): df.iloc[:, 0],
+            'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
+        })
+        period_df = period_df.drop(period_df.index[0])
+        period_df = add_top_level_column(period_df, pub_sub.topic_name)
+
+        return period_df
 
 
 class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
@@ -66,23 +68,44 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
         self._pub_subs = pub_subs
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        pub_sub_df_dict = self._create_pub_sub_df_dict()
-        if(xaxis_type == 'sim_time'):
-            converter = self._pub_subs[0]._provider.get_sim_time_converter()
-            for pub_sub_df in pub_sub_df_dict.values():
-                convert_df_to_sim_time(converter, pub_sub_df)
-
-        concated_frequency_df = pd.DataFrame()
-        for topic_name, pub_sub_df in pub_sub_df_dict.items():
-            earliest_timestamp = pub_sub_df.iloc[0].min()
-            frequency_df = get_preprocessing_frequency(
-                earliest_timestamp,
-                timestamp_df=pub_sub_df,
-                top_column_name=topic_name
-            )
-            concated_frequency_df = pd.concat(
-                [concated_frequency_df, frequency_df],
+        concat_frequency_df = pd.DataFrame()
+        for pub_sub in self._pub_subs:
+            frequency_df = self._create_frequency_df(xaxis_type, pub_sub)
+            concat_frequency_df = pd.concat(
+                [concat_frequency_df, frequency_df],
                 axis=1
             )
 
-        return concated_frequency_df
+        return concat_frequency_df.sort_index(level=0, axis=1,
+                                              sort_remaining=False)
+
+    def _create_frequency_df(
+        self,
+        xaxis_type: str,
+        pub_sub: Union[Publisher, Subscription]
+    ) -> pd.DataFrame:
+        df = pub_sub.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        initial_timestamp = self._get_earliest_timestamp()
+        ts_series, freq_series = get_freq_with_timestamp(df.iloc[:, 0],
+                                                         initial_timestamp)
+        frequency_df = pd.DataFrame(data={
+            self._get_ts_column_name(pub_sub): ts_series,
+            'frequency [Hz]': freq_series
+        })
+        frequency_df = add_top_level_column(frequency_df,
+                                            pub_sub.topic_name)
+
+        return frequency_df
+
+    def _get_earliest_timestamp(
+        self
+    ) -> int:
+        first_timestamps = []
+        for cb in self._pub_subs:
+            # TODO: Emit an exception when latency_table size is 0.
+            first_timestamps.append(cb.to_dataframe().iloc[0, 0])
+
+        return min(first_timestamps)

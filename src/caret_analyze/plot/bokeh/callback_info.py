@@ -17,7 +17,8 @@ from typing import List, Union
 import pandas as pd
 
 from .callback_info_interface import TimeSeriesPlot
-from .plot_util import convert_df_to_sim_time, get_preprocessing_frequency
+from .plot_util import (add_top_level_column, convert_df_to_sim_time,
+                        get_freq_with_timestamp)
 from ...runtime import (Application, CallbackBase, CallbackGroup,
                         Executor, Node, Path)
 
@@ -41,21 +42,28 @@ class CallbackLatencyPlot(TimeSeriesPlot):
         super().__init__(target)
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        latency_table = self._concate_cb_latency_table()
-        if(xaxis_type == 'sim_time'):
-            convert_df_to_sim_time(self._get_converter(), latency_table)
+        concat_latency_df = pd.DataFrame()
+        for cb in self._callbacks:
+            latency_df = self._create_latency_df(xaxis_type, cb)
+            concat_latency_df = pd.concat([concat_latency_df, latency_df],
+                                          axis=1)
 
-        cb_names = [c.callback_name for c in self._callbacks]
-        latency_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
-                cb_names,
-                ['callback_start_timestamp [ns]', 'latency [ms]']]))
-        for cb_name in cb_names:
-            latency_df[(cb_name, 'callback_start_timestamp [ns]')] = \
-                    latency_table[cb_name + '/callback_start_timestamp']
-            latency_df[(cb_name, 'latency [ms]')] = (
-                    latency_table[cb_name + '/callback_end_timestamp'] -
-                    latency_table[cb_name + '/callback_start_timestamp']
-                ) * 10**(-6)
+        return concat_latency_df
+
+    def _create_latency_df(
+        self,
+        xaxis_type: str,
+        callback: CallbackBase
+    ) -> pd.DataFrame:
+        df = callback.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        latency_df = pd.DataFrame(data={
+            'callback_start_timestamp [ns]': df.iloc[:, 0],
+            'latency [ms]': (df.iloc[:, 1] - df.iloc[:, 0]) * 10**(-6)
+        })
+        latency_df = add_top_level_column(latency_df, callback.callback_name)
 
         return latency_df
 
@@ -75,24 +83,29 @@ class CallbackPeriodPlot(TimeSeriesPlot):
         super().__init__(target)
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        latency_table = self._concate_cb_latency_table()
-        latency_table = latency_table.loc[
-            :, latency_table.columns.str.contains('/callback_start_timestamp')]
-        latency_table.columns = [c.replace('/callback_start_timestamp', '')
-                                 for c in latency_table.columns]
-        if(xaxis_type == 'sim_time'):
-            convert_df_to_sim_time(self._get_converter(), latency_table)
+        concat_period_df = pd.DataFrame()
+        for cb in self._callbacks:
+            period_df = self._create_period_df(xaxis_type, cb)
+            concat_period_df = pd.concat([concat_period_df, period_df],
+                                         axis=1)
 
-        period_df = pd.DataFrame(columns=pd.MultiIndex.from_product([
-                latency_table.columns,
-                ['callback_start_timestamp [ns]', 'period [ms]']]))
-        for cb_name in latency_table.columns:
-            period_df[(cb_name, 'callback_start_timestamp [ns]')] = \
-                    latency_table[cb_name]
-            period_df[(cb_name,
-                       'period [ms]')] = latency_table[cb_name].diff()*10**(-6)
+        return concat_period_df
+
+    def _create_period_df(
+        self,
+        xaxis_type: str,
+        callback: CallbackBase
+    ) -> pd.DataFrame:
+        df = callback.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        period_df = pd.DataFrame(data={
+            'callback_start_timestamp [ns]': df.iloc[:, 0],
+            'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
+        })
         period_df = period_df.drop(period_df.index[0])
-        period_df = period_df.reset_index(drop=True)
+        period_df = add_top_level_column(period_df, callback.callback_name)
 
         return period_df
 
@@ -112,21 +125,47 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
     ) -> None:
         super().__init__(target)
 
-    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
-        latency_table = self._concate_cb_latency_table()
-        latency_table = latency_table.loc[
-            :, latency_table.columns.str.contains('/callback_start_timestamp')]
-        latency_table.columns = [c.replace('/callback_start_timestamp', '')
-                                 for c in latency_table.columns]
-        if(xaxis_type == 'sim_time'):
-            convert_df_to_sim_time(self._get_converter(), latency_table)
+    def _to_dataframe_core(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
+        concat_frequency_df = pd.DataFrame()
+        for cb in self._callbacks:
+            frequency_df = self._create_frequency_df(xaxis_type, cb)
+            concat_frequency_df = pd.concat(
+                [concat_frequency_df, frequency_df],
+                axis=1
+            )
 
-        # TODO: Emit an exception when latency_table size is 0.
-        earliest_timestamp = latency_table.iloc[0].min()
-        frequency_df = get_preprocessing_frequency(
-            earliest_timestamp,
-            timestamp_df=latency_table,
-            l2_left_column_name='callback_start_timestamp [ns]'
-        )
+        return concat_frequency_df
+
+    def _create_frequency_df(
+        self,
+        xaxis_type: str,
+        callback: CallbackBase
+    ) -> pd.DataFrame:
+        df = callback.to_dataframe()
+        if xaxis_type == 'sim_time':
+            convert_df_to_sim_time(self._get_converter(), df)
+
+        initial_timestamp = self._get_earliest_timestamp()
+        ts_series, freq_series = get_freq_with_timestamp(df.iloc[:, 0],
+                                                         initial_timestamp)
+        frequency_df = pd.DataFrame(data={
+            'callback_start_timestamp [ns]': ts_series,
+            'frequency [Hz]': freq_series
+        })
+        frequency_df = add_top_level_column(frequency_df,
+                                            callback.callback_name)
 
         return frequency_df
+
+    def _get_earliest_timestamp(
+        self
+    ) -> int:
+        first_timestamps = []
+        for cb in self._callbacks:
+            # TODO: Emit an exception when latency_table size is 0.
+            first_timestamps.append(cb.to_dataframe().iloc[0, 0])
+
+        return min(first_timestamps)

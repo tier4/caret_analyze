@@ -232,16 +232,6 @@ class TimeSeriesPlot(metaclass=ABCMeta):
     def _to_dataframe_core(self, xaxis_type: str):
         pass
 
-    def _concate_cb_latency_table(self) -> pd.DataFrame:
-        callbacks_latency_table = pd.DataFrame()
-        for callback in self._callbacks:
-            callback_latency_table = callback.to_dataframe()
-            callbacks_latency_table = pd.concat(
-                    [callbacks_latency_table, callback_latency_table],
-                    axis=1)
-
-        return callbacks_latency_table
-
     def _get_converter(
         self
     ) -> ClockConverter:
