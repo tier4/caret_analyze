@@ -1267,7 +1267,7 @@ class DataFrameFormatted:
 
             df = DataFrameFormatted._ensure_columns(df, columns)
 
-            return df[columns]
+            return df[columns].convert_dtypes()
         except KeyError:
             return pd.DataFrame(columns=columns)
 
@@ -1283,7 +1283,7 @@ class DataFrameFormatted:
             df.rename({'subscription': 'tilde_subscription'}, axis=1, inplace=True)
             df = DataFrameFormatted._ensure_columns(df, columns)
 
-            return df[columns]
+            return df[columns].convert_dtypes()
         except KeyError:
             return pd.DataFrame(columns=columns)
 
@@ -1299,7 +1299,7 @@ class DataFrameFormatted:
             df.rename({'publisher': 'tilde_publisher'}, axis=1, inplace=True)
             df = DataFrameFormatted._ensure_columns(df, columns)
 
-            return df[columns]
+            return df[columns].convert_dtypes()
         except KeyError:
             return pd.DataFrame(columns=columns)
 
@@ -1315,7 +1315,7 @@ class DataFrameFormatted:
 
             df = DataFrameFormatted._ensure_columns(df, columns)
 
-            return df[columns]
+            return df[columns].convert_dtypes()
         except KeyError:
             return pd.DataFrame(columns=columns)
 
@@ -1350,7 +1350,7 @@ class DataFrameFormatted:
 
             df = DataFrameFormatted._ensure_columns(df, columns)
 
-            return df[columns]
+            return df[columns].convert_dtypes()
         except KeyError:
             return pd.DataFrame(columns=columns)
 
