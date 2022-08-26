@@ -121,7 +121,7 @@ def get_range(
         logger.warning('Failed to found measurement results.')
         return 0, 1
 
-    po_dfs = [po.to_dataframe() for po in plot_objects]
+    po_dfs = [po.to_dataframe(remove_dropped=True) for po in plot_objects]
     po_dfs_valid = [po_df for po_df in po_dfs if len(po_df) > 0]
     po_min = min(min(df.min()) for df in po_dfs_valid)
     po_max = max(max(df.max()) for df in po_dfs_valid)
