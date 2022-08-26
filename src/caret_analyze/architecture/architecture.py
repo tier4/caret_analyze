@@ -76,7 +76,7 @@ class Architecture(Summarizable):
         return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
 
     @property
-    def callback_group_names(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def callback_group_names(self) -> Tuple[str, ...]:
         return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
 
     @property
@@ -117,7 +117,7 @@ class Architecture(Summarizable):
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
-        return self._nodes
+        return Tuple(v.to_value() for v in self._nodes)
 
     @property
     def node_names(self) -> Tuple[str, ...]:
@@ -125,7 +125,7 @@ class Architecture(Summarizable):
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
-        return self._executors
+        return Tuple(v.to_value() for v in self._executors)
 
     @property
     def executor_names(self) -> Tuple[str, ...]:
@@ -133,7 +133,7 @@ class Architecture(Summarizable):
 
     @property
     def paths(self) -> Tuple[PathStructValue, ...]:
-        return self._path_manager.named_paths
+        return Tuple(v.to_value() for v in self._path_manager.named_paths)
 
     @property
     def path_names(self) -> Tuple[str, ...]:
@@ -141,7 +141,7 @@ class Architecture(Summarizable):
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
-        return self._communications
+        return Tuple(v.to_value() for v in self._communications)
 
     @property
     def summary(self) -> Summary:
