@@ -24,8 +24,8 @@ from ipywidgets import Dropdown, interact
 
 import pandas as pd
 
-from .plot_util import get_fig_args, validate_xaxis_type
-from .util import apply_x_axis_offset, ColorSelector, get_range
+from .plot_util import get_fig_args, PlotColorSelector, validate_xaxis_type
+from .util import apply_x_axis_offset, get_range
 from ...common import ClockConverter
 from ...runtime import Publisher, Subscription
 
@@ -96,18 +96,14 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         p.add_tools(Hover)
 
         # Draw lines
-        color_selector = \
-            ColorSelector.create_instance(coloring_rule='publish_subscribe')
+        color_selector = PlotColorSelector()
         legend_items = []
         pub_count = 0
         sub_count = 0
         for i in range(0, len(source_df.columns), 2):
             line_source_df = source_df.iloc[:, i:i+2].dropna()
             pub_sub_name = line_source_df.columns.to_list()[0]
-            color = color_selector.get_color(
-                None, None, None,
-                pub_sub_name=pub_sub_name
-            )
+            color = color_selector.get_color(pub_sub_name)
             line_source = self._get_pub_sub_lines(
                 line_source_df,
                 frame_min,

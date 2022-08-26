@@ -23,9 +23,10 @@ from bokeh.resources import CDN
 
 import pandas as pd
 
-from .plot_util import get_fig_args, validate_xaxis_type
-from .util import (apply_x_axis_offset, ColorSelector,
-                   get_callback_param_desc, get_range)
+from .plot_util import get_fig_args, PlotColorSelector, validate_xaxis_type
+from .util import (apply_x_axis_offset,
+                   get_callback_param_desc,
+                   get_range)
 from ...common import ClockConverter
 from ...runtime import (Application, CallbackBase, CallbackGroup,
                         Executor, Node, Path)
@@ -119,15 +120,10 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         p.add_tools(Hover)
 
         # Draw lines
-        color_selector = \
-            ColorSelector.create_instance(coloring_rule='callback')
+        color_selector = PlotColorSelector()
         legend_items = []
         for i, callback in enumerate(self._callbacks):
-            color = color_selector.get_color(
-                callback.node_name,
-                None,
-                callback.callback_name
-            )
+            color = color_selector.get_color(callback.callback_name)
             line_source = self._get_callback_lines(callback,
                                                    source_df,
                                                    frame_min,

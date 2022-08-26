@@ -14,9 +14,11 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from logging import getLogger
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
+from bokeh.colors import Color, RGB
 from bokeh.io import save, show
 from bokeh.models import Arrow, HoverTool, NormalHead
 from bokeh.plotting import ColumnDataSource, Figure, figure
@@ -24,9 +26,11 @@ from bokeh.resources import CDN
 
 from caret_analyze.runtime.callback import TimerCallback
 
+import colorcet as cc
+
 import pandas as pd
 
-from .util import (apply_x_axis_offset, ColorSelector,
+from .util import (apply_x_axis_offset,
                    get_callback_param_desc, get_range, RectValues)
 from ...common import ClockConverter, UniqueList, Util
 from ...exceptions import InvalidArgumentError
@@ -446,3 +450,91 @@ def get_callback_bar(
         })
 
     return rect_source
+
+
+class ColorSelector:
+    """
+    Class that provides API for color selection.
+
+    This class provides the API to get the color for each callback
+    in the different rules.
+    """
+
+    @staticmethod
+    def create_instance(coloring_rule: str):
+        if coloring_rule == 'callback':
+            return ColorSelectorCallback()
+
+        if coloring_rule == 'callback_group':
+            return ColorSelectorCbg()
+
+        if coloring_rule == 'node':
+            return ColorSelectorNode()
+
+    def __init__(self) -> None:
+        self._palette: Sequence[Color] = \
+            [self._from_rgb(*rgb) for rgb in cc.glasbey_bw_minc_20]
+        self._color_map: Dict[str, Color] = {}
+
+    def get_color(
+        self,
+        node_name: str,
+        cbg_name: str,
+        callback_name: str
+    ) -> Color:
+        color_hash = self._get_color_hash(node_name, cbg_name, callback_name)
+
+        if color_hash not in self._color_map:
+            color_index = len(self._color_map) % len(self._palette)
+            self._color_map[color_hash] = self._palette[color_index]
+
+        return self._color_map[color_hash]
+
+    @abstractmethod
+    def _get_color_hash(
+        self,
+        node_name: str,
+        cbg_name: str,
+        callback_name: str
+    ) -> Color:
+        return
+
+    @staticmethod
+    def _from_rgb(r: float, g: float, b: float) -> Color:
+        r_ = int(r*255)
+        g_ = int(g*255)
+        b_ = int(b*255)
+        return RGB(r_, g_, b_)
+
+
+class ColorSelectorCallback(ColorSelector):
+
+    def _get_color_hash(
+        self,
+        node_name: str,
+        cbg_name: str,
+        callback_name: str
+    ) -> Color:
+        return callback_name
+
+
+class ColorSelectorCbg(ColorSelector):
+
+    def _get_color_hash(
+        self,
+        node_name: str,
+        cbg_name: str,
+        callback_name: str
+    ) -> Color:
+        return cbg_name
+
+
+class ColorSelectorNode(ColorSelector):
+
+    def _get_color_hash(
+        self,
+        node_name: str,
+        cbg_name: str,
+        callback_name: str
+    ) -> Color:
+        return node_name

@@ -22,8 +22,8 @@ from bokeh.resources import CDN
 
 import pandas as pd
 
-from .plot_util import get_fig_args, validate_xaxis_type
-from .util import apply_x_axis_offset, ColorSelector, get_range
+from .plot_util import get_fig_args, PlotColorSelector, validate_xaxis_type
+from .util import apply_x_axis_offset, get_range
 from ...common import ClockConverter
 from ...runtime import Communication
 
@@ -66,14 +66,10 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         p.add_tools(Hover)
 
         # Draw lines
-        color_selector = \
-            ColorSelector.create_instance(coloring_rule='communication')
+        color_selector = PlotColorSelector()
         legend_items = []
         for i, comm in enumerate(self._communications):
-            color = color_selector.get_color(
-                None, None, None,
-                comm_name=self._get_comm_name(comm)
-            )
+            color = color_selector.get_color(self._get_comm_name(comm))
             line_source = self._get_comm_lines(
                 comm,
                 source_df,
