@@ -64,4 +64,4 @@ class PublisherStruct(Summarizable):
         })
 
     def to_value(self) -> PublisherStructValue:
-        raise NotImplementedError('')
+        return PublisherStructValue(self.node_name, self.topic_name, Optional(Tuple(v.to_value() for v in self.callbacks)))

@@ -90,4 +90,4 @@ class VariablePassingStruct(Summarizable):
         })
 
     def to_value(self) -> VariablePassingStructValue:
-        raise NotImplementedError('')
+        return VariablePassingStructValue(self.node_name, self.callback_write, self.callback_read)

@@ -107,4 +107,4 @@ class CallbackGroupStruct(Summarizable):
         })
 
     def to_value(self) -> CallbackGroupStructValue:
-        raise NotImplementedError('')
+        return CallbackGroupStructValue(self.callback_group_type, self.node_name, Tuple(v.to_value() for v in self.callbacks), self.callback_group_name)

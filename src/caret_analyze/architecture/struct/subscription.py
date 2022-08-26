@@ -70,4 +70,4 @@ class SubscriptionStruct(Summarizable):
         return self._callback_value
 
     def to_value(self) -> SubscriptionStructValue:
-        raise NotImplementedError('')
+        return SubscriptionStructValue(self.node_name, self.topic_name, Optional(self.callback.to_value()))

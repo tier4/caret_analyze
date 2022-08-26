@@ -135,4 +135,4 @@ class PathStruct(Summarizable):
         return is_valid
 
     def to_value(self) -> PathStructValue:
-        raise NotImplementedError('')
+        return PathStructValue(self.path_name, Tuple(v.to_value() for v in self.child))

@@ -59,4 +59,4 @@ class TimerStruct(Summarizable):
         return self._callback_value
 
     def to_value(self) -> TimerStructValue:
-        raise NotImplementedError('')
+        return TimerStructValue(self.node_name, self.period_ns, Optional(self.callback.to_value()))

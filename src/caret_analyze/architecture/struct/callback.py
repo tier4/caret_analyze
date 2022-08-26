@@ -110,7 +110,7 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
         pass
 
     def to_value(self) -> CallbackStructValue:
-        raise NotImplementedError('')
+        CallbackStructValue(self.node_name, self.symbol, self.subscribe_topic_name, self.publish_topic_names, self.callback_name)
 
 
 class TimerCallbackStruct(CallbackStruct):
@@ -149,7 +149,7 @@ class TimerCallbackStruct(CallbackStruct):
         })
 
     def to_value(self) -> TimerCallbackStructValue:
-        raise NotImplementedError('')
+        return TimerCallbackStructValue(self.node_name, self.symbol, self.period_ns, self.publish_topic_names, self.callback_name)
 
 
 class SubscriptionCallbackStruct(CallbackStruct):
@@ -179,4 +179,4 @@ class SubscriptionCallbackStruct(CallbackStruct):
         })
     
     def to_value(self) -> SubscriptionCallbackStructValue:
-        raise NotImplementedError('')
+        return SubscriptionCallbackStructValue(self.node_name, self.symbol, self.subscribe_topic_name, self.publish_topic_names, self.callback_name)
