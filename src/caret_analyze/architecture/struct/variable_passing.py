@@ -16,6 +16,7 @@
 
 from .callback import CallbackStruct
 from ...common import Summarizable, Summary
+from ...value_objects import VariablePassingStructValue
 
 
 class VariablePassingStruct(Summarizable):
@@ -87,3 +88,6 @@ class VariablePassingStruct(Summarizable):
             'write': self.callback_name_write,
             'read': self.callback_name_read,
         })
+
+    def to_value(self) -> VariablePassingStructValue:
+        raise NotImplementedError('')

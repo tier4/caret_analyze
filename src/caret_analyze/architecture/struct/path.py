@@ -22,6 +22,7 @@ from .communication import CommunicationStruct
 from .node_path import NodePathStruct
 from ...common import Summarizable, Summary, Util
 from ...exceptions import InvalidArgumentError
+from ...value_objects import PathStructValue
 
 logger = getLogger(__name__)
 
@@ -132,3 +133,6 @@ class PathStruct(Summarizable):
                 is_valid = False
 
         return is_valid
+
+    def to_value(self) -> PathStructValue:
+        raise NotImplementedError('')

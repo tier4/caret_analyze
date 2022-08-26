@@ -16,6 +16,7 @@ from typing import Optional
 
 from .callback import TimerCallbackStruct
 from ...common import Summarizable, Summary
+from ...value_objects import TimerStructValue
 
 
 class TimerStruct(Summarizable):
@@ -56,3 +57,6 @@ class TimerStruct(Summarizable):
     @property
     def callback(self) -> Optional[TimerCallbackStruct]:
         return self._callback_value
+
+    def to_value(self) -> TimerStructValue:
+        raise NotImplementedError('')

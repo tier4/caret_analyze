@@ -22,7 +22,7 @@ from caret_analyze.value_objects.callback_group import CallbackGroupType
 from .callback import CallbackStruct
 from ...common import Summarizable, Summary
 
-from ...value_objects import CallbackGroupType
+from ...value_objects import CallbackGroupType, CallbackGroupStructValue
 
 class CallbackGroupStruct(Summarizable):
     """Callback group value object."""
@@ -105,3 +105,6 @@ class CallbackGroupStruct(Summarizable):
             'node': self.node_name,
             'callbacks': [_.summary for _ in self.callbacks]
         })
+
+    def to_value(self) -> CallbackGroupStructValue:
+        raise NotImplementedError('')

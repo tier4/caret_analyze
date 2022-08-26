@@ -19,7 +19,7 @@ from typing import Optional, Tuple
 
 from ...common import Summarizable, Summary
 
-from ...value_objects import CallbackType
+from ...value_objects import CallbackType, CallbackStructValue, TimerCallbackStructValue, SubscriptionCallbackStructValue
 
 
 class CallbackStruct(Summarizable, metaclass=ABCMeta):
@@ -109,6 +109,9 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
     def summary(self) -> Summary:
         pass
 
+    def to_value(self) -> CallbackStructValue:
+        raise NotImplementedError('')
+
 
 class TimerCallbackStruct(CallbackStruct):
     """Structured timer callback value."""
@@ -145,6 +148,9 @@ class TimerCallbackStruct(CallbackStruct):
             'period_ns': self.period_ns
         })
 
+    def to_value(self) -> TimerCallbackStructValue:
+        raise NotImplementedError('')
+
 
 class SubscriptionCallbackStruct(CallbackStruct):
     """Structured subscription callback value."""
@@ -171,3 +177,6 @@ class SubscriptionCallbackStruct(CallbackStruct):
             'type': self.callback_type_name,
             'topic': self.subscribe_topic_name
         })
+    
+    def to_value(self) -> SubscriptionCallbackStructValue:
+        raise NotImplementedError('')

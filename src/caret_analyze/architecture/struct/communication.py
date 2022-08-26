@@ -5,6 +5,7 @@ from .node import NodeStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from ...common import Summarizable, Summary, Util
+from ...value_objects import CommunicationStructValue
 
 
 class CommunicationStruct(Summarizable):
@@ -91,3 +92,6 @@ class CommunicationStruct(Summarizable):
             'publish_node': self.publish_node_name,
             'subscirbe_node': self.subscribe_node_name,
         })
+    
+    def to_value(self) -> CommunicationStructValue:
+        raise NotImplementedError('')

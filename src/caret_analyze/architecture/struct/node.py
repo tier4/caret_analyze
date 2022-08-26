@@ -9,6 +9,7 @@ from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Summarizable, Summary, Util
 from ...exceptions import ItemNotFoundError
+from ...value_objects import NodeStructValue
 
 
 class NodeStruct(Summarizable):
@@ -139,6 +140,9 @@ class NodeStruct(Summarizable):
 
     @property
     def summary(self) -> Summary:
+        # node = app.get_node('')
+        # node ?何ノード？コールバックは？
+        # node.summary <-  辞書型で要約情報を取得
         d: Summary = Summary()
         d['node'] = self.node_name
         d['callbacks'] = self.callback_names
@@ -151,3 +155,6 @@ class NodeStruct(Summarizable):
         d['paths'] = [_.summary for _ in self.paths]
 
         return d
+    
+    def to_value(self) -> NodeStructValue:
+        raise NotImplementedError('')

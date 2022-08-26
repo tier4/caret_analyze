@@ -21,7 +21,7 @@ from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
 from ...common import Summarizable, Summary, Util
 
-from ...value_objects import ExecutorType
+from ...value_objects import ExecutorType, ExecutorStructValue
 
 
 class ExecutorStruct(Summarizable):
@@ -73,3 +73,6 @@ class ExecutorStruct(Summarizable):
             'type': self.executor_type_name,
             'callback_groups': [_.summary for _ in self.callback_groups]
         })
+
+    def to_value(self) -> ExecutorStructValue:
+        raise NotImplementedError('')

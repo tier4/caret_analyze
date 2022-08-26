@@ -16,6 +16,7 @@ from typing import Optional
 
 from .callback import SubscriptionCallbackStruct
 from ...common import Summarizable, Summary
+from ...value_objects import SubscriptionStructValue
 
 
 class SubscriptionStruct(Summarizable):
@@ -67,3 +68,6 @@ class SubscriptionStruct(Summarizable):
     @property
     def callback(self) -> Optional[SubscriptionCallbackStruct]:
         return self._callback_value
+
+    def to_value(self) -> SubscriptionStructValue:
+        raise NotImplementedError('')

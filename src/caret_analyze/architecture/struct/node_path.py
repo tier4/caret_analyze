@@ -24,6 +24,7 @@ from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Summarizable, Summary, Util
+from ...value_objects import NodePathStructValue
 
 logger = getLogger(__name__)
 
@@ -133,3 +134,6 @@ class NodePathStruct(Summarizable):
         if self._subscription is None:
             return None
         return self._subscription.topic_name
+
+    def to_value(self) -> NodePathStructValue:
+        raise NotImplementedError('')

@@ -16,6 +16,7 @@ from typing import Optional, Tuple
 
 from .callback import CallbackStruct
 from ...common import Summarizable, Summary
+from ...value_objects import PublisherStructValue
 
 
 class PublisherStruct(Summarizable):
@@ -61,3 +62,6 @@ class PublisherStruct(Summarizable):
             'topic_name': self.topic_name,
             'callbacks': self.callback_names
         })
+
+    def to_value(self) -> PublisherStructValue:
+        raise NotImplementedError('')

@@ -59,6 +59,9 @@ class ArchitectureExporter():
             'executors': executor_dicts.data,
             'nodes': nodes_dicts.data
         }
+        # named_paths: []
+        # executors:[]
+        # nodes:[]
 
 
 class NamedPathsDicts:
