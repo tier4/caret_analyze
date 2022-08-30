@@ -489,32 +489,33 @@ class Application(Summarizable):
         self,
         topic_name: str
     ) -> Tuple[List[Publisher], List[Subscription]]:
+        """
+        Get publishers and subscriptions that match the condition.
+
+        Parameters
+        ----------
+        topic_name : str
+            topic name to get.
+
+        Returns
+        -------
+        Tuple[List[Publisher], List[Subscription]]
+            publishers and subscriptions that match the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        all_pubs = set()
-        all_subs = set()
-        for node in self.nodes:
-            all_pubs |= set(node.publishers)
-            all_subs |= set(node.subscriptions)
-
-        pubs = Util.filter_items(
-            lambda x: x.topic_name == topic_name,
-            all_pubs
-        )
-        if len(pubs) == 0:
-            Util.find_similar_one(topic_name,
-                                  all_pubs,
-                                  lambda x: x.topic_name)
-
-        subs = Util.filter_items(
-            lambda x: x.topic_name == topic_name,
-            all_subs
-        )
-        if len(subs) == 0:
-            Util.find_similar_one(topic_name,
-                                  all_subs,
-                                  lambda x: x.topic_name)
+        comms = self.get_communications(topic_name)
+        pubs = [comm.publisher for comm in comms]
+        subs = [comm.subscription for comm in comms]
 
         return (sorted(pubs, key=lambda x: x.topic_name),
                 sorted(subs, key=lambda x: x.topic_name))
