@@ -18,7 +18,7 @@ import fnmatch
 
 from logging import getLogger
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
