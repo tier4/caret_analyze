@@ -154,7 +154,7 @@ class MessageContextStruct(Summarizable):
                                    message_context={context_type_name}')
 
     def to_value(self) -> MessageContext:
-        return MessageContext(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(), 
+        return MessageContext(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(),
         tuple([v.to_value() for v in self.child]))
 
 
