@@ -171,4 +171,4 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
     ) -> str:
         return (f'{comm.summary["publish_node"]}|'
                 f'{comm.summary["topic_name"]}|'
-                f'{comm.summary["subscirbe_node"]}')
+                f'{comm.summary["subscribe_node"]}')
