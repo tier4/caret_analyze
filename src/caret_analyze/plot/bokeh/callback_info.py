@@ -165,7 +165,10 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
     ) -> int:
         first_timestamps = []
         for cb in self._callbacks:
-            # TODO: Emit an exception when latency_table size is 0.
-            first_timestamps.append(cb.to_dataframe().iloc[0, 0])
+            df = cb.to_dataframe()
+            if len(df) == 0:
+                # TODO: Emit an exception when latency_table size is 0.
+                continue
+            first_timestamps.append(df.iloc[0, 0])
 
         return min(first_timestamps)
