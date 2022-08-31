@@ -75,4 +75,4 @@ class ExecutorStruct(Summarizable):
         })
 
     def to_value(self) -> ExecutorStructValue:
-        return ExecutorStructValue(self.executor_type, Tuple(v.to_value() for v in self.callback_groups), self.executor_name)
+        return ExecutorStructValue(self.executor_type, tuple(v.to_value() for v in self.callback_groups), self.executor_name)

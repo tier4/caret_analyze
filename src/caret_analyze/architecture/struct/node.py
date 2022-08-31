@@ -157,5 +157,5 @@ class NodeStruct(Summarizable):
         return d
     
     def to_value(self) -> NodeStructValue:
-        return NodeStructValue(self.node_name, Tuple(v.to_value() for v in self.publishers), Tuple(v.to_value() for v in self.subscriptions), Tuple(v.to_value() for v in self.timers),
-        Tuple(v.to_value() for v in self.paths), Optional(Tuple(v.to_value() for v in self.callback_groups)), Optional(Tuple(v.to_value() for v in self.variable_passings)))
+        return NodeStructValue(self.node_name, tuple(v.to_value() for v in self.publishers), tuple(v.to_value() for v in self.subscriptions), tuple(v.to_value() for v in self.timers),
+        tuple(v.to_value() for v in self.paths), tuple(v.to_value() for v in self.callback_groups), tuple(v.to_value() for v in self.variable_passings))

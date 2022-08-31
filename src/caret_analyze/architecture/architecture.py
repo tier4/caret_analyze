@@ -117,7 +117,7 @@ class Architecture(Summarizable):
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
-        return Tuple(v.to_value() for v in self._nodes)
+        return tuple([v.to_value() for v in self._nodes])
 
     @property
     def node_names(self) -> Tuple[str, ...]:
@@ -125,7 +125,7 @@ class Architecture(Summarizable):
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
-        return Tuple(v.to_value() for v in self._executors)
+        return tuple([v.to_value() for v in self._executors])
 
     @property
     def executor_names(self) -> Tuple[str, ...]:
@@ -133,7 +133,7 @@ class Architecture(Summarizable):
 
     @property
     def paths(self) -> Tuple[PathStructValue, ...]:
-        return Tuple(v.to_value() for v in self._path_manager.named_paths)
+        return tuple([v.to_value() for v in self._path_manager.named_paths])
 
     @property
     def path_names(self) -> Tuple[str, ...]:
@@ -141,7 +141,7 @@ class Architecture(Summarizable):
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
-        return Tuple(v.to_value() for v in self._communications)
+        return tuple([v.to_value() for v in self._communications])
 
     @property
     def summary(self) -> Summary:

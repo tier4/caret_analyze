@@ -154,8 +154,8 @@ class MessageContextStruct(Summarizable):
                                    message_context={context_type_name}')
 
     def to_value(self) -> MessageContext:
-        return MessageContext(self.node_name, self.message_context_dict, Optional(self.subscription.to_value()), Optional(self.publisher.to_value()), 
-        Optional(Tuple([v.to_value() for v in self.child])))
+        return MessageContext(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(), 
+        tuple([v.to_value() for v in self.child]))
 
 
 
@@ -259,8 +259,8 @@ class CallbackChainStruct(MessageContextStruct):
         return is_valid
 
     def to_value(self) -> CallbackChain:
-        return CallbackChain(self.node_name, self.message_context_dict, Optional(self.subscription.to_value()), Optional(self.publisher.to_value()),
-         Optional(Tuple([v.to_value() for v in self.callbacks])))
+        return CallbackChain(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(),
+         tuple([v.to_value() for v in self.callbacks]))
 
 
 class TildeStruct(MessageContextStruct):
@@ -305,5 +305,5 @@ class TildeStruct(MessageContextStruct):
         return True
 
     def to_value(self) -> Tilde:
-        return Tilde(self.node_name, self.message_context_dict, Optional(self.subscription.to_value()), Optional(self.publisher.to_value()),
-         Optional(Tuple([v.to_value() for v in self.callbacks])))
+        return Tilde(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(),
+         tuple([v.to_value() for v in self.callbacks]))
