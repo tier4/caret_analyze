@@ -18,11 +18,11 @@ from .callback import (CallbackStruct,
 from .callback_group import CallbackGroupStruct
 from .communication import CommunicationStruct
 from .executor import ExecutorStruct
-from .message_context import (CallbackChain,
-                              InheritUniqueStamp,
-                              MessageContext,
-                              Tilde,
-                              UseLatestMessage)
+from .message_context import (CallbackChainStruct,
+                              InheritUniqueStampStruct,
+                              MessageContextStruct,
+                              TildeStruct,
+                              UseLatestMessageStruct)
 from .node import NodeStruct
 from .node_path import NodePathStruct
 from .path import PathStruct
@@ -34,7 +34,7 @@ from .variable_passing import VariablePassingStruct
 
 
 __all__ = [
-    'CallbackChain',
+    'CallbackChainStruct',
     'CallbackGroupStruct',
     'CallbackGroupValue',
     'CallbackStruct',
@@ -42,8 +42,8 @@ __all__ = [
     'CommunicationStruct',
     'ExecutorStruct',
     'ExecutorValue',
-    'InheritUniqueStamp',
-    'MessageContext',
+    'InheritUniqueStampStruct',
+    'MessageContextStruct',
     'MessageContextType',
     'NodePathStruct',
     'NodePathValue',
@@ -59,12 +59,12 @@ __all__ = [
     'SubscriptionCallbackValue',
     'SubscriptionStruct',
     'SubscriptionValue',
-    'Tilde',
+    'TildeStruct',
     'TimerValue',
     'TimerStruct',
     'TimerCallbackStruct',
     'TimerCallbackValue',
-    'UseLatestMessage',
+    'UseLatestMessageStruct',
     'VariablePassingStruct',
     'VariablePassingValue',
 ]

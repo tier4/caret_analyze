@@ -49,7 +49,7 @@ from .struct import (NodeStruct,
                       TimerCallbackStruct,
                       TimerStruct,
                       VariablePassingStruct,
-                      MessageContext
+                      MessageContextStruct
                       )
 
 logger = getLogger(__name__)
@@ -501,7 +501,7 @@ class NodeValuesLoaded():
                     f'publish: {node_path.publish_topic_name}'
                 )
 
-        message_contexts: List[MessageContext] = []
+        message_contexts: List[MessageContextStruct] = []
         message_contexts += list(MessageContextsLoaded(reader, node, node_paths).data)
 
         # assign message context to each node paths
@@ -527,7 +527,7 @@ class NodeValuesLoaded():
     @staticmethod
     def _message_context_assigned(
         node_paths: Sequence[NodePathStruct],
-        message_contexts: Sequence[MessageContext],
+        message_contexts: Sequence[MessageContextStruct],
     ) -> List[NodePathStruct]:
         node_paths_ = list(node_paths)
         for i, node_path in enumerate(node_paths_):
@@ -560,8 +560,8 @@ class MessageContextsLoaded:
         node: NodeStruct,
         node_paths: Sequence[NodePathStruct]
     ) -> None:
-        self._data: Tuple[MessageContext, ...]
-        data: List[MessageContext] = []
+        self._data: Tuple[MessageContextStruct, ...]
+        data: List[MessageContextStruct] = []
 
         context_dicts = reader.get_message_contexts(NodeValue(node.node_name, None))
         pub_sub_pairs: List[Tuple[Optional[str], Optional[str]]] = []
@@ -599,14 +599,14 @@ class MessageContextsLoaded:
         return Util.find_one(is_target, node_paths)
 
     @property
-    def data(self) -> Tuple[MessageContext, ...]:
+    def data(self) -> Tuple[MessageContextStruct, ...]:
         return self._data
 
     @staticmethod
     def _create_callack_chain(
         node_paths: Sequence[NodePathStruct]
-    ) -> List[MessageContext]:
-        chains: List[MessageContext] = []
+    ) -> List[MessageContextStruct]:
+        chains: List[MessageContextStruct] = []
         for path in node_paths:
             if path.callbacks is not None:
                 chains.append(
@@ -623,11 +623,11 @@ class MessageContextsLoaded:
     def _to_struct(
         context_dict: Dict,
         node_path: NodePathStruct
-    ) -> MessageContext:
+    ) -> MessageContextStruct:
         type_name = context_dict['context_type']
 
         try:
-            return MessageContext.create_instance(
+            return MessageContextStruct.create_instance(
                 type_name,
                 context_dict,
                 node_path.node_name,

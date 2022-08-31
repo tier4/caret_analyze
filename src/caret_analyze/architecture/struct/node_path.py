@@ -19,7 +19,7 @@ from typing import Optional, Tuple, Union
 
 from .callback import CallbackStruct, SubscriptionCallbackStruct
 from ...value_objects.message_context import MessageContextType
-from .message_context import MessageContext
+from .message_context import MessageContextStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .variable_passing import VariablePassingStruct
@@ -36,7 +36,7 @@ class NodePathStruct(Summarizable):
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
         child: Optional[Tuple[Union[CallbackStruct, VariablePassingStruct], ...]],
-        message_context: Optional[MessageContext],
+        message_context: Optional[MessageContextStruct],
     ) -> None:
         self._node_name = node_name
         self._child = child
@@ -90,7 +90,7 @@ class NodePathStruct(Summarizable):
         return tuple(cbs_info)
 
     @property
-    def message_context(self) -> Optional[MessageContext]:
+    def message_context(self) -> Optional[MessageContextStruct]:
         return self._context
 
     @property

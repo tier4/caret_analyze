@@ -20,6 +20,8 @@ from abc import abstractmethod
 from logging import getLogger
 from typing import Dict, Optional, Tuple
 
+from caret_analyze.value_objects.message_context import (MessageContext, Tilde, CallbackChain)
+
 from .callback import CallbackStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
@@ -39,7 +41,7 @@ MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
 MessageContextType.TILDE = MessageContextType('tilde')
 
 
-class MessageContext(Summarizable):
+class MessageContextStruct(Summarizable):
     """Structured message context value."""
 
     def __init__(
@@ -123,26 +125,26 @@ class MessageContext(Summarizable):
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
         child: Optional[Tuple[CallbackStruct, ...]]
-    ) -> MessageContext:
+    ) -> MessageContextStruct:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
-            return CallbackChain(node_name,
+            return CallbackChainStruct(node_name,
                                  context_dict,
                                  subscription,
                                  publisher, child)
         if context_type_name == str(MessageContextType.INHERIT_UNIQUE_STAMP):
-            return InheritUniqueStamp(node_name,
+            return InheritUniqueStampStruct(node_name,
                                       context_dict,
                                       subscription,
                                       publisher,
                                       child)
         if context_type_name == str(MessageContextType.USE_LATEST_MESSAGE):
-            return UseLatestMessage(node_name,
+            return UseLatestMessageStruct(node_name,
                                     context_dict,
                                     subscription,
                                     publisher,
                                     child)
         if context_type_name == str(MessageContextType.TILDE):
-            return Tilde(node_name,
+            return TildeStruct(node_name,
                          context_dict,
                          subscription,
                          publisher,
@@ -151,8 +153,13 @@ class MessageContext(Summarizable):
         raise UnsupportedTypeError(f'Failed to load message context. \
                                    message_context={context_type_name}')
 
+    def to_value(self) -> MessageContext:
+        return MessageContext(self.node_name, self.message_context_dict, Optional(self.subscription.to_value()), Optional(self.publisher.to_value()), 
+        Optional(Tuple([v.to_value() for v in self.child])))
 
-class UseLatestMessage(MessageContext):
+
+
+class UseLatestMessageStruct(MessageContextStruct):
     TYPE_NAME = 'use_latest_message'
 
     """Use messsage context"""
@@ -165,7 +172,7 @@ class UseLatestMessage(MessageContext):
         return MessageContextType.USE_LATEST_MESSAGE
 
 
-class InheritUniqueStamp(MessageContext):
+class InheritUniqueStampStruct(MessageContextStruct):
     TYPE_NAME = 'inherit_unique_stamp'
 
     """
@@ -183,7 +190,7 @@ class InheritUniqueStamp(MessageContext):
         pass
 
 
-class CallbackChain(MessageContext):
+class CallbackChainStruct(MessageContextStruct):
     TYPE_NAME = 'callback_chain'
 
     """
@@ -251,8 +258,12 @@ class CallbackChain(MessageContext):
 
         return is_valid
 
+    def to_value(self) -> CallbackChain:
+        return CallbackChain(self.node_name, self.message_context_dict, Optional(self.subscription.to_value()), Optional(self.publisher.to_value()),
+         Optional(Tuple([v.to_value() for v in self.callbacks])))
 
-class Tilde(MessageContext):
+
+class TildeStruct(MessageContextStruct):
     TYPE_NAME = 'tilde'
 
     """
@@ -292,3 +303,7 @@ class Tilde(MessageContext):
 
     def verify(self) -> bool:
         return True
+
+    def to_value(self) -> Tilde:
+        return Tilde(self.node_name, self.message_context_dict, Optional(self.subscription.to_value()), Optional(self.publisher.to_value()),
+         Optional(Tuple([v.to_value() for v in self.callbacks])))
