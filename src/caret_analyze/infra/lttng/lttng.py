@@ -47,8 +47,9 @@ class LttngEventFilter(metaclass=ABCMeta):
     NAME = '_name'
     TIMESTAMP = '_timestamp'
     CPU_ID = '_cpuid'
-    VPID = 'vpid'
-    VTID = 'vtid'
+    VPID = '_vpid'
+    VTID = '_vtid'
+    PROCNAME = '_procname'
 
     class Common:
         start_time: int
@@ -267,6 +268,10 @@ class CtfEventCollection(IterableEvents):
                 continue
 
             event = CtfEventCollection._to_event(msg)
+            event[LttngEventFilter.TIMESTAMP] = event.pop('timestamp')
+            event[LttngEventFilter.VTID] = event.pop('vtid')
+            event[LttngEventFilter.VPID] = event.pop('vpid')
+            event[LttngEventFilter.PROCNAME] = event.pop('procname')
             event_dict = {
                 k: get_field(event, k) for k in event
             }
