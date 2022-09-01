@@ -176,6 +176,9 @@ class EventCollection(Iterable, Sized):
     def __iter__(self) -> Iterator[Dict]:
         return iter(self._iterable_events)
 
+    def time_range(self) -> Tuple[int, int]:
+        return self._iterable_events.time_range()
+
     def _cache_path(self, events_path: str) -> str:
         return os.path.join(events_path, 'caret_converted')
 
@@ -192,6 +195,10 @@ class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
 
     @abstractproperty
     def events(self) -> List[Dict]:
+        pass
+
+    @abstractmethod
+    def time_range(self) -> Tuple[int, int]:
         pass
 
 
@@ -211,20 +218,27 @@ class PickleEventCollection(IterableEvents):
     def events(self) -> List[Dict]:
         return self._events
 
+    def time_range(self) -> Tuple[int, int]:
+        begin_time = self._events[0][LttngEventFilter.TIMESTAMP]
+        end_time = self._events[-1][LttngEventFilter.TIMESTAMP]
+        return begin_time, end_time
+
 
 class CtfEventCollection(IterableEvents):
 
     def __init__(self, events_path: str) -> None:
         event_count = 0
+        begin_time: Optional[int] = None
+        end_time: int
+
         for msg in bt2.TraceCollectionMessageIterator(events_path):
             if type(msg) is bt2._EventMessageConst:
                 event_count += 1
 
-            if (not Lttng._last_trace_begin_time
-                    and type(msg) is bt2._PacketBeginningMessageConst):
-                Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
+            if not begin_time and type(msg) is bt2._PacketBeginningMessageConst:
+                begin_time = msg.default_clock_snapshot.ns_from_origin
             elif type(msg) is bt2._PacketEndMessageConst:
-                Lttng._last_trace_end_time = msg.default_clock_snapshot.ns_from_origin
+                end_time = msg.default_clock_snapshot.ns_from_origin
             # Check for traces lost
             elif(type(msg) is bt2._DiscardedEventsMessageConst):
                 msg = ('Tracer discarded '
@@ -233,6 +247,9 @@ class CtfEventCollection(IterableEvents):
                        f'{msg.end_default_clock_snapshot.ns_from_origin}.')
                 logger.warning(msg)
 
+        assert begin_time is not None
+        self._begin_time: int = begin_time
+        self._end_time: int = end_time
         self._size = event_count
         self._events = self._to_dicts(events_path, event_count)
 
@@ -254,6 +271,9 @@ class CtfEventCollection(IterableEvents):
     @property
     def events(self) -> List[Dict]:
         return self._events
+
+    def time_range(self) -> Tuple[int, int]:
+        return self._begin_time, self._end_time
 
     @staticmethod
     def _to_dicts(trace_dir: str, count: int) -> List[Dict]:
@@ -284,9 +304,6 @@ class Lttng(InfraBase):
 
     """
 
-    _last_trace_begin_time: Optional[int] = None
-    _last_trace_end_time: Optional[int] = None
-
     def __init__(
         self,
         trace_dir_or_events: Union[str, Dict],
@@ -294,13 +311,14 @@ class Lttng(InfraBase):
         *,
         event_filters: Optional[List[LttngEventFilter]] = None,
         store_events: bool = False,
-        validate: bool = True  # TODO(hsgwa): change validate function to public "verify".
+        # TODO(hsgwa): change validate function to public "verify".
+        validate: bool = True
     ) -> None:
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
         from .event_counter import EventCounter
 
-        data, events = self._parse_lttng_data(
+        data, events, begin, end = self._parse_lttng_data(
             trace_dir_or_events,
             force_conversion,
             event_filters or [],
@@ -311,27 +329,32 @@ class Lttng(InfraBase):
         self._source: RecordsSource = RecordsSource(data, self._info)
         self._counter = EventCounter(data, validate=validate)
         self.events = events
+        self._begin = begin
+        self._end = end
 
     @staticmethod
     def _parse_lttng_data(
         trace_dir_or_events: Union[str, Dict],
         force_conversion: bool,
         event_filters: List[LttngEventFilter],
-        store_events: bool
-    ) -> Tuple[Any, Dict]:
+        store_events: bool,
+
+    ) -> Tuple[Any, Dict, int, int]:
 
         data = Ros2DataModel()
         handler = Ros2Handler(data)
         events = []
+        begin: int
+        end: int
 
         if isinstance(trace_dir_or_events, str):
-            Lttng._last_trace_begin_time = None
-            event_collection = EventCollection(trace_dir_or_events, force_conversion)
+            event_collection = EventCollection(
+                trace_dir_or_events, force_conversion)
             print('{} events found.'.format(len(event_collection)))
 
             common = LttngEventFilter.Common()
-            common.start_time = Lttng._last_trace_begin_time
-            common.end_time = Lttng._last_trace_end_time
+            begin, end = event_collection.time_range()
+            common.start_time, common.end_time = begin, end
 
             filtered_event_count = 0
             for event in tqdm(
@@ -358,6 +381,9 @@ class Lttng(InfraBase):
             # Note: giving events as arguments is used only for debugging.
             filtered_event_count = 0
             events = trace_dir_or_events
+            begin = events[0][LttngEventFilter.TIMESTAMP]
+            end = events[-1][LttngEventFilter.TIMESTAMP]
+
             for event in events:
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
@@ -373,7 +399,7 @@ class Lttng(InfraBase):
                 print('filtered to {} events.'.format(filtered_event_count))
 
         events_ = None if len(events) == 0 else events
-        return data, events_
+        return data, events_, begin, end
 
     def get_nodes(
         self
@@ -572,8 +598,8 @@ class Lttng(InfraBase):
             Trace begin time and trace end time.
 
         """
-        return (datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9),
-                datetime.fromtimestamp(Lttng._last_trace_end_time * 1.0e-9))
+        return (datetime.fromtimestamp(self._begin * 1.0e-9),
+                datetime.fromtimestamp(self._end * 1.0e-9))
 
     def get_trace_creation_datetime(
         self
