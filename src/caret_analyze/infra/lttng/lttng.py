@@ -284,8 +284,6 @@ class Lttng(InfraBase):
 
     """
 
-    _last_load_dir: Optional[str] = None
-    _last_filters: Optional[List[LttngEventFilter]] = None
     _last_trace_begin_time: Optional[int] = None
     _last_trace_end_time: Optional[int] = None
 
@@ -354,8 +352,6 @@ class Lttng(InfraBase):
                 handler_(event)
 
             data.finalize()
-            Lttng._last_load_dir = trace_dir_or_events
-            Lttng._last_filters = event_filters
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
@@ -373,7 +369,6 @@ class Lttng(InfraBase):
                 handler_ = handler.handler_map[event_name]
                 handler_(event)
             data.finalize()
-            Lttng._last_filters = event_filters
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
 
