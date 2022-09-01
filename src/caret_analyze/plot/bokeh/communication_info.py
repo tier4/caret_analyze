@@ -12,39 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union
-
 import pandas as pd
 
-from .callback_info_interface import TimeSeriesPlot
-from .plot_util import (add_top_level_column, convert_df_to_sim_time,
+from .communication_info_interface import CommunicationTimeSeriesPlot
+from .plot_util import (add_top_level_column,
+                        convert_df_to_sim_time,
                         get_freq_with_timestamp)
-from ...runtime import (Application, CallbackBase, CallbackGroup,
-                        Executor, Node, Path)
+from ...runtime import Communication
 
 
-CallbacksType = Union[Application, Path, Executor, Node,
-                      CallbackGroup, CallbackBase, List[CallbackBase]]
-
-
-class CallbackLatencyPlot(TimeSeriesPlot):
-    """
-    Class that provides API for callback latency.
-
-    This class provides the API to visualize the latency per unit of time
-    for each callback and to obtain it in the pandas DataFrame format.
-    """
+class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
 
     def __init__(
         self,
-        target: CallbacksType
+        *communications: Communication
     ) -> None:
-        super().__init__(target)
+        self._communications = communications
 
-    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
+    def _to_dataframe_core(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
         concat_latency_df = pd.DataFrame()
-        for cb in self._callbacks:
-            latency_df = self._create_latency_df(xaxis_type, cb)
+        for comm in self._communications:
+            latency_df = self._create_latency_df(xaxis_type, comm)
             concat_latency_df = pd.concat([concat_latency_df, latency_df],
                                           axis=1)
 
@@ -53,40 +44,38 @@ class CallbackLatencyPlot(TimeSeriesPlot):
     def _create_latency_df(
         self,
         xaxis_type: str,
-        callback: CallbackBase
+        communication: Communication
     ) -> pd.DataFrame:
-        df = callback.to_dataframe()
+        df = communication.to_dataframe()
         if xaxis_type == 'sim_time':
             convert_df_to_sim_time(self._get_converter(), df)
 
         latency_df = pd.DataFrame(data={
-            'callback_start_timestamp [ns]': df.iloc[:, 0],
-            'latency [ms]': (df.iloc[:, 1] - df.iloc[:, 0]) * 10**(-6)
+            'rclcpp_publish_timestamp [ns]': df.iloc[:, 0],
+            'latency [ms]': (df.iloc[:, 3] - df.iloc[:, 0]) * 10**(-6)
         })
-        latency_df = add_top_level_column(latency_df, callback.callback_name)
+        latency_df = add_top_level_column(latency_df,
+                                          self._get_comm_name(communication))
 
         return latency_df
 
 
-class CallbackPeriodPlot(TimeSeriesPlot):
-    """
-    Class that provides API for callback period.
-
-    This class provides the API to visualize the period per unit of time
-    for each callback and to obtain it in the pandas DataFrame format.
-    """
+class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
 
     def __init__(
         self,
-        target: CallbacksType
+        *communications: Communication
     ) -> None:
-        super().__init__(target)
+        self._communications = communications
 
-    def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
+    def _to_dataframe_core(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
-        for cb in self._callbacks:
-            period_df = self._create_period_df(xaxis_type, cb)
-            concat_period_df = pd.concat([concat_period_df, period_df],
+        for comm in self._communications:
+            latency_df = self._create_period_df(xaxis_type, comm)
+            concat_period_df = pd.concat([concat_period_df, latency_df],
                                          axis=1)
 
         return concat_period_df
@@ -94,43 +83,37 @@ class CallbackPeriodPlot(TimeSeriesPlot):
     def _create_period_df(
         self,
         xaxis_type: str,
-        callback: CallbackBase
+        communication: Communication
     ) -> pd.DataFrame:
-        df = callback.to_dataframe()
+        df = communication.to_dataframe()
         if xaxis_type == 'sim_time':
             convert_df_to_sim_time(self._get_converter(), df)
 
         period_df = pd.DataFrame(data={
-            'callback_start_timestamp [ns]': df.iloc[:, 0],
+            'rclcpp_publish_timestamp [ns]': df.iloc[:, 0],
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
         period_df = period_df.drop(period_df.index[0])
-        period_df = add_top_level_column(period_df, callback.callback_name)
+        period_df = add_top_level_column(period_df,
+                                         self._get_comm_name(communication))
 
         return period_df
 
 
-class CallbackFrequencyPlot(TimeSeriesPlot):
-    """
-    Class that provides API for callback execution frequency.
-
-    This class provides the API to visualize the execution frequency
-    per unit of time for each callback and to obtain it
-    in the pandas DataFrame format.
-    """
+class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
 
     def __init__(
         self,
-        target: CallbacksType
+        *communications: Communication
     ) -> None:
-        super().__init__(target)
+        self._communications = communications
 
     def _to_dataframe_core(
         self,
         xaxis_type: str
     ) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
-        for cb in self._callbacks:
+        for cb in self._communications:
             frequency_df = self._create_frequency_df(xaxis_type, cb)
             concat_frequency_df = pd.concat(
                 [concat_frequency_df, frequency_df],
@@ -142,9 +125,9 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
     def _create_frequency_df(
         self,
         xaxis_type: str,
-        callback: CallbackBase
+        communication: Communication
     ) -> pd.DataFrame:
-        df = callback.to_dataframe()
+        df = communication.to_dataframe()
         if xaxis_type == 'sim_time':
             convert_df_to_sim_time(self._get_converter(), df)
 
@@ -152,11 +135,11 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         ts_series, freq_series = get_freq_with_timestamp(df.iloc[:, 0],
                                                          initial_timestamp)
         frequency_df = pd.DataFrame(data={
-            'callback_start_timestamp [ns]': ts_series,
+            'rclcpp_publish_timestamp [ns]': ts_series,
             'frequency [Hz]': freq_series
         })
         frequency_df = add_top_level_column(frequency_df,
-                                            callback.callback_name)
+                                            self._get_comm_name(communication))
 
         return frequency_df
 
@@ -164,7 +147,7 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         self
     ) -> int:
         first_timestamps = []
-        for cb in self._callbacks:
+        for cb in self._communications:
             df = cb.to_dataframe()
             if len(df) == 0:
                 # TODO: Emit an exception when latency_table size is 0.

@@ -12,13 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
+from typing import Sequence, Tuple, Union
+
 from bokeh.models import LinearAxis, Range1d, SingleIntervalTicker
 from bokeh.plotting import Figure
 
 import numpy as np
 
+
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, SubscriptionCallback, TimerCallback
+from ...runtime import (CallbackBase, Communication, Publisher,
+                        Subscription, SubscriptionCallback, TimerCallback)
+
+logger = getLogger(__name__)
 
 
 class RectValues():
@@ -49,7 +56,12 @@ class RectValues():
         return abs(self._y[0] - self._y[1])
 
 
-def apply_x_axis_offset(fig: Figure, x_range_name: str, min_ns: float, max_ns: float):
+def apply_x_axis_offset(
+    fig: Figure,
+    x_range_name: str,
+    min_ns: float,
+    max_ns: float
+) -> None:
     offset_s = min_ns*1.0e-9
     end_s = (max_ns-min_ns)*1.0e-9
 
@@ -77,4 +89,37 @@ def get_callback_param_desc(callback: CallbackBase):
     if isinstance(callback, SubscriptionCallback):
         return f'topic_name: {callback.subscribe_topic_name}'
 
-    raise UnsupportedTypeError('callback type must be [ TimerCallback/ SubscriptionCallback]')
+    raise UnsupportedTypeError('callback type must be '
+                               '[ TimerCallback/ SubscriptionCallback]')
+
+
+PlotObjectTypes = Union[CallbackBase, Communication, Publisher, Subscription]
+
+
+def get_range(
+    plot_objects: Sequence[PlotObjectTypes]
+) -> Tuple[int, int]:
+    """
+    Get measurement duration.
+
+    Parameters
+    ----------
+    plot_objects: Sequence[Union[CallbackBase, Communication]]
+
+    Returns
+    -------
+    Tuple[int, int]
+        The timestamp of measurement start and measurement end
+
+    """
+    po_valid = [po for po in plot_objects if len(po.to_records()) > 0]
+    if len(po_valid) == 0:
+        logger.warning('Failed to found measurement results.')
+        return 0, 1
+
+    po_dfs = [po.to_dataframe(remove_dropped=True) for po in plot_objects]
+    po_dfs_valid = [po_df for po_df in po_dfs if len(po_df) > 0]
+    po_min = min(min(df.min()) for df in po_dfs_valid)
+    po_max = max(max(df.max()) for df in po_dfs_valid)
+
+    return po_min, po_max

@@ -15,10 +15,12 @@
 from .bokeh.callback_info import (CallbackFrequencyPlot,
                                   CallbackLatencyPlot,
                                   CallbackPeriodPlot)
-from .bokeh.callback_info_factory import Plot
 from .bokeh.callback_info_interface import TimeSeriesPlot
 from .bokeh.callback_sched import callback_sched
+from .bokeh.communication_info_interface import CommunicationTimeSeriesPlot
 from .bokeh.message_flow import message_flow
+from .bokeh.plot_factory import Plot
+from .bokeh.pub_sub_info_interface import PubSubTimeSeriesPlot
 from .graphviz.callback_graph import callback_graph
 from .graphviz.chain_latency import chain_latency
 from .graphviz.node_graph import node_graph
@@ -29,6 +31,8 @@ __all__ = [
     'CallbackPeriodPlot',
     'CallbackFrequencyPlot',
     'TimeSeriesPlot',
+    'PubSubTimeSeriesPlot',
+    'CommunicationTimeSeriesPlot',
     'callback_graph',
     'callback_sched',
     'chain_latency',

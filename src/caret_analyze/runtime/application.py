@@ -26,6 +26,8 @@ from .communication import Communication
 from .executor import Executor
 from .node import Node
 from .path import Path
+from .publisher import Publisher
+from .subscription import Subscription
 from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
 from ..exceptions import Error, InvalidArgumentError, UnsupportedTypeError
@@ -482,6 +484,72 @@ class Application(Summarizable):
                                   lambda x: x.topic_name)
 
         return sorted(comms, key=lambda x: x.topic_name)
+
+    def get_publishers(
+        self,
+        topic_name: str
+    ) -> List[Publisher]:
+        """
+        Get publishers that match the condition.
+
+        Parameters
+        ----------
+        topic_name : str
+            topic name to get.
+
+        Returns
+        -------
+        List[Publisher]
+            publishers that match the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        comms = self.get_communications(topic_name)
+        pubs = [comm.publisher for comm in comms]
+
+        return sorted(pubs, key=lambda x: x.topic_name)
+
+    def get_subscriptions(
+        self,
+        topic_name: str
+    ) -> List[Subscription]:
+        """
+        Get subscriptions that match the condition.
+
+        Parameters
+        ----------
+        topic_name : str
+            topic name to get.
+
+        Returns
+        -------
+        List[Publisher]
+            subscriptions that match the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        comms = self.get_communications(topic_name)
+        subs = [comm.subscription for comm in comms]
+
+        return sorted(subs, key=lambda x: x.topic_name)
 
     def get_node_paths(
         self,
