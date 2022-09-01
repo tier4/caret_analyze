@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from datetime import datetime
+
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.event_counter import EventCounter
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
@@ -30,7 +32,8 @@ class TestLttng:
 
     def test_get_nodes(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -52,7 +55,8 @@ class TestLttng:
 
     def test_get_rmw_implementation(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -72,7 +76,8 @@ class TestLttng:
 
     def test_get_publishers(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -92,7 +97,8 @@ class TestLttng:
 
     def test_get_timer_callbacks(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -112,7 +118,8 @@ class TestLttng:
 
     def test_get_subscription_callbacks(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -133,7 +140,8 @@ class TestLttng:
 
     def test_get_executors(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -154,7 +162,8 @@ class TestLttng:
 
     def test_compose_inter_proc_comm_records(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -177,7 +186,8 @@ class TestLttng:
 
     def test_compose_intra_proc_comm_records(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -200,7 +210,8 @@ class TestLttng:
 
     def test_compose_callback_records(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
@@ -225,7 +236,8 @@ class TestLttng:
         data = Ros2DataModel()
         data.finalize()
         events = {'b': None}
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data, events))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data, events, 0, 0))
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
                      return_value=lttng_info_mock)
@@ -234,8 +246,12 @@ class TestLttng:
         data_ = Ros2DataModel()
         data_.finalize()
         events_ = {'a': None}
-        mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_, events_))
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_, events_, 0, 1*10**9))
         lttng_ = Lttng('', validate=False, store_events=True)
+        begin, end = lttng_.get_trace_range()
+        assert begin == datetime.fromtimestamp(0)
+        assert end == datetime.fromtimestamp(1)
         assert lttng.events == events
         assert lttng_.events == events_
         assert lttng.events != lttng_.events

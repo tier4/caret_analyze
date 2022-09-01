@@ -65,7 +65,7 @@ def create_lttng(
 ):
     def _lttng(data: Ros2DataModel):
         mocker.patch.object(Lttng, '_parse_lttng_data',
-                            return_value=(data, None))
+                            return_value=(data, None, 0, 1))
         lttng = Lttng('', validate=False)
         # mocker.patch.object(lttng, '_bridge',  bridge_mock)
         return lttng
