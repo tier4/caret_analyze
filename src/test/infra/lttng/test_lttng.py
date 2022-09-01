@@ -17,7 +17,7 @@ from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.event_counter import EventCounter
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.records_source import RecordsSource
-from caret_analyze.infra.lttng.ros2_tracing.data_model import DataModel, Ros2DataModel
+from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
@@ -29,7 +29,7 @@ from caret_analyze.value_objects.node import NodeValue
 class TestLttng:
 
     def test_get_nodes(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -43,7 +43,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         node = NodeValue('/node', None)
         mocker.patch.object(lttng_info_mock, 'get_nodes', return_value=[node])
@@ -51,7 +51,7 @@ class TestLttng:
         assert nodes == [node]
 
     def test_get_rmw_implementation(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -65,13 +65,13 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         mocker.patch.object(lttng_info_mock, 'get_rmw_impl', return_value='rmw')
         assert lttng.get_rmw_impl() == 'rmw'
 
     def test_get_publishers(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -84,14 +84,14 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         pub_mock = mocker.Mock(spec=PublisherValueLttng)
         mocker.patch.object(lttng_info_mock, 'get_publishers', return_value=[pub_mock])
         assert lttng.get_publishers(NodeValue('node', None)) == [pub_mock]
 
     def test_get_timer_callbacks(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -103,7 +103,7 @@ class TestLttng:
         counter_mock = mocker.Mock(spec=EventCounter)
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         timer_cb_mock = mocker.Mock(spec=TimerCallbackValueLttng)
         mocker.patch.object(lttng_info_mock, 'get_timer_callbacks',
@@ -111,7 +111,7 @@ class TestLttng:
         assert lttng.get_timer_callbacks(NodeValue('node', None)) == [timer_cb_mock]
 
     def test_get_subscription_callbacks(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -124,7 +124,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         sub_cb_mock = mocker.Mock(spec=SubscriptionCallbackValueLttng)
         mocker.patch.object(lttng_info_mock, 'get_subscription_callbacks',
@@ -132,7 +132,7 @@ class TestLttng:
         assert lttng.get_subscription_callbacks(NodeValue('node', None)) == [sub_cb_mock]
 
     def test_get_executors(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -145,7 +145,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         exec_info_mock = mocker.Mock(spec=ExecutorValue)
         mocker.patch.object(lttng_info_mock, 'get_executors',
@@ -153,7 +153,7 @@ class TestLttng:
         assert lttng.get_executors() == [exec_info_mock]
 
     def test_compose_inter_proc_comm_records(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -167,7 +167,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
                      return_value=records_source_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         records_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(records_mock, 'clone', return_value=records_mock)
@@ -176,7 +176,7 @@ class TestLttng:
         assert lttng.compose_inter_proc_comm_records() == records_mock
 
     def test_compose_intra_proc_comm_records(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -190,7 +190,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         records_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(records_mock, 'clone', return_value=records_mock)
@@ -199,7 +199,7 @@ class TestLttng:
         assert lttng.compose_intra_proc_comm_records() == records_mock
 
     def test_compose_callback_records(self, mocker):
-        data_mock = mocker.Mock(spec=DataModel)
+        data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data', return_value=(data_mock, {}))
 
         lttng_info_mock = mocker.Mock(spec=LttngInfo)
@@ -213,7 +213,7 @@ class TestLttng:
         mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
                      return_value=counter_mock)
 
-        lttng = Lttng('trace_dir', force_conversion=False)
+        lttng = Lttng('trace_dir')
 
         records_mock = mocker.Mock(spec=RecordsInterface)
         mocker.patch.object(records_mock, 'clone', return_value=records_mock)
