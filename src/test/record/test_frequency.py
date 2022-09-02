@@ -49,11 +49,11 @@ class TestFrequencyRecords:
 
     def test_one_column_default_case(self):
         records_raw = [
-            {'timestamp': 1000000000},
-            {'timestamp': 1000500000},
-            {'timestamp': 2000000000},
-            {'timestamp': 2000300000},
-            {'timestamp': 2000500000},
+            {'timestamp': 0},
+            {'timestamp': 1},
+            {'timestamp': 11},
+            {'timestamp': 12},
+            {'timestamp': 14},
         ]
         columns = ColumnValue('timestamp')
         records = create_records(records_raw, columns)
@@ -61,10 +61,10 @@ class TestFrequencyRecords:
         frequency = Frequency(records)
 
         expect_raw = [
-            {'timestamp': 1000000000, 'frequency': 2},
-            {'timestamp': 2000000000, 'frequency': 3}
+            {'timestamp': 0, 'frequency': 2},
+            {'timestamp': 10, 'frequency': 3}
         ]
-        result = to_dict(frequency.to_records())
+        result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
     def test_specify_interval_ns_case(self):
@@ -87,13 +87,13 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=2000000000))
         assert result == expect_raw
 
-    def test_specify_initial_timestamp_case(self):
+    def test_specify_base_timestamp_case(self):
         records_raw = [
-            {'timestamp': 1000000000},
-            {'timestamp': 1000500000},
-            {'timestamp': 2000000000},
-            {'timestamp': 2000300000},
-            {'timestamp': 2000500000},
+            {'timestamp': 5},
+            {'timestamp': 6},
+            {'timestamp': 11},
+            {'timestamp': 12},
+            {'timestamp': 15},
         ]
         columns = ColumnValue('timestamp')
         records = create_records(records_raw, columns)
@@ -101,20 +101,20 @@ class TestFrequencyRecords:
         frequency = Frequency(records)
 
         expect_raw = [
-            {'timestamp': 400000, 'frequency': 1},
-            {'timestamp': 1000400000, 'frequency': 3},
-            {'timestamp': 2000400000, 'frequency': 1}
+            {'timestamp': 4, 'frequency': 4},
+            {'timestamp': 14, 'frequency': 1}
         ]
-        result = to_dict(frequency.to_records(initial_timestamp=400000))
+        result = to_dict(frequency.to_records(interval_ns=10,
+                                              base_timestamp=4))
         assert result == expect_raw
 
     def test_two_column_default_case(self):
         records_raw = [
-            {'timestamp1': 1000000000, 'timestamp2': 1000001000},
-            {'timestamp1': 1000500000, 'timestamp2': 1000501000},
-            {'timestamp1': 2000000000, 'timestamp2': 2000001000},
-            {'timestamp1': 2000300000, 'timestamp2': 2000301000},
-            {'timestamp1': 2000500000, 'timestamp2': 2000501000},
+            {'timestamp1': 0, 'timestamp2': 2},
+            {'timestamp1': 3, 'timestamp2': 4},
+            {'timestamp1': 11, 'timestamp2': 12},
+            {'timestamp1': 13, 'timestamp2': 14},
+            {'timestamp1': 15, 'timestamp2': 16},
         ]
         columns = ColumnValue('timestamp')
         records = create_records(records_raw, columns)
@@ -122,19 +122,19 @@ class TestFrequencyRecords:
         frequency = Frequency(records)
 
         expect_raw = [
-            {'timestamp1': 1000000000, 'frequency': 2},
-            {'timestamp1': 2000000000, 'frequency': 3}
+            {'timestamp1': 0, 'frequency': 2},
+            {'timestamp1': 10, 'frequency': 3}
         ]
-        result = to_dict(frequency.to_records())
+        result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
     def test_specify_target_column_case(self):
         records_raw = [
-            {'timestamp1': 1000000000, 'timestamp2': 1000001000},
-            {'timestamp1': 1000500000, 'timestamp2': 1000501000},
-            {'timestamp1': 2000000000, 'timestamp2': 2000001000},
-            {'timestamp1': 2000300000, 'timestamp2': 2000301000},
-            {'timestamp1': 2000500000, 'timestamp2': 2000501000},
+            {'timestamp1': 0, 'timestamp2': 2},
+            {'timestamp1': 3, 'timestamp2': 4},
+            {'timestamp1': 11, 'timestamp2': 12},
+            {'timestamp1': 13, 'timestamp2': 14},
+            {'timestamp1': 15, 'timestamp2': 16},
         ]
         columns = ColumnValue('timestamp')
         records = create_records(records_raw, columns)
@@ -142,19 +142,19 @@ class TestFrequencyRecords:
         frequency = Frequency(records, target_column='timestamp2')
 
         expect_raw = [
-            {'timestamp2': 1000001000, 'frequency': 2},
-            {'timestamp2': 2000001000, 'frequency': 3}
+            {'timestamp2': 2, 'frequency': 2},
+            {'timestamp2': 12, 'frequency': 3}
         ]
-        result = to_dict(frequency.to_records())
+        result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
     def test_drop_case(self):
         records_raw = [
-            {'timestamp1': 1000000000, 'timestamp2': 1000001000},
-            {'timestamp2': 1000501000},
-            {'timestamp1': 2000000000, 'timestamp2': 2000001000},
-            {'timestamp1': 2000300000, 'timestamp2': 2000301000},
-            {'timestamp1': 2000500000, 'timestamp2': 2000501000},
+            {'timestamp1': 0, 'timestamp2': 2},
+            {'timestamp2': 4},
+            {'timestamp1': 11, 'timestamp2': 12},
+            {'timestamp1': 13, 'timestamp2': 14},
+            {'timestamp1': 15, 'timestamp2': 16},
         ]
         columns = ColumnValue('timestamp')
         records = create_records(records_raw, columns)
@@ -162,8 +162,8 @@ class TestFrequencyRecords:
         frequency = Frequency(records)
 
         expect_raw = [
-            {'timestamp1': 1000000000, 'frequency': 1},
-            {'timestamp1': 2000000000, 'frequency': 3}
+            {'timestamp1': 0, 'frequency': 1},
+            {'timestamp1': 10, 'frequency': 3}
         ]
-        result = to_dict(frequency.to_records())
+        result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
