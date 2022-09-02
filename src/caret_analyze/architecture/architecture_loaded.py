@@ -1120,7 +1120,7 @@ class PathValuesLoaded():
     def data(self) -> Tuple[PathStructValue, ...]:
         return self._data
 
-    # serviceはactioに対応していないので、おかしな結果になってしまう。
+    # serviceはactionに対応していないので、おかしな結果になってしまう。
     # def _insert_publishers_to_callbacks(
     #     self,
     #     publishers: List[PublisherInfo],
