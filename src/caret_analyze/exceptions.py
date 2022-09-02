@@ -17,7 +17,7 @@ class Error(Exception):
     """Base class for exception in this module."""
 
 
-class TraceResultAanalyzeError(Error):
+class TraceResultAnalyzeError(Error):
     """Failed to parse trace results."""
 
     def __init__(self, *args: object) -> None:

@@ -739,7 +739,7 @@ class LttngInfo:
 #         def select_record_index(records: RecordsInterface) -> int:
 #             # Select publish after the initialization is complete.
 #             # To reduce the search time from the beginning. The smaller the index, the better.
-#             # Note: intra_porocess cyclic demo is manually publishing the first message.
+#             # Note: intra_process cyclic demo is manually publishing the first message.
 #             return min(len(publisher_records.data)-1, self.TARGET_RECORD_MAX_INDEX)
 
 #         publisher_handle = publisher_info.publisher_handle

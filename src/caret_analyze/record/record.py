@@ -259,7 +259,7 @@ class Records(RecordsInterface):
             if r.equals(r_) is False:
                 return False
 
-        # TODO(hsgwa): fix protected variagble acceccing.
+        # TODO(hsgwa): fix protected variable acceccing.
         if self._columns.to_value() != records._columns.to_value():
             return False
 
@@ -453,12 +453,12 @@ class Records(RecordsInterface):
             elif side == MergeSide.RIGHT and merge_right:
                 merged_records.append(record)
 
-        temporay_columns = [column_side, column_merge_stamp, column_join_key,
+        temporary_columns = [column_side, column_merge_stamp, column_join_key,
                             column_has_valid_join_key, column_found_right_record]
 
-        merged_records.drop_columns(temporay_columns)
-        left_records.drop_columns(temporay_columns)
-        right_records.drop_columns(temporay_columns)
+        merged_records.drop_columns(temporary_columns)
+        left_records.drop_columns(temporary_columns)
+        right_records.drop_columns(temporary_columns)
 
         merged_records.reindex(columns)
 
@@ -615,16 +615,16 @@ class Records(RecordsInterface):
                 added.add(current_record)
                 added.add(sub_record)
 
-        temporay_columns = [
+        temporary_columns = [
             column_side,
             column_merge_stamp,
             column_has_merge_stamp,
             column_has_valid_join_key,
             column_sub_records,
         ]
-        merged_records.drop_columns(temporay_columns)
-        left_records.drop_columns(temporay_columns)
-        right_records.drop_columns(temporay_columns)
+        merged_records.drop_columns(temporary_columns)
+        left_records.drop_columns(temporary_columns)
+        right_records.drop_columns(temporary_columns)
 
         merged_records.reindex(columns)
 
