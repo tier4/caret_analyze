@@ -197,12 +197,12 @@ class TimerCallbackBindCondition:
     def _compare(
         self,
         value: TimerCallbackValue,
-        StructValue_value: TimerCallbackStructValue
+        struct_value: TimerCallbackStructValue
     ) -> bool:
-        return value.node_name == StructValue_value.node_name and \
-            value.callback_type == StructValue_value.callback_type and \
-            value.period_ns == StructValue_value.period_ns and \
-            value.symbol == StructValue_value.symbol
+        return value.node_name == struct_value.node_name and \
+            value.callback_type == struct_value.callback_type and \
+            value.period_ns == struct_value.period_ns and \
+            value.symbol == struct_value.symbol
 
     def __str__(self):
         return str(self._target)
@@ -246,7 +246,7 @@ class SubscriptionCallbackBindCondition:
     def _compare(
         self,
         value: SubscriptionCallbackValue,
-        StructValue_value: SubscriptionCallbackStructValue
+        struct_value: SubscriptionCallbackStructValue
     ) -> bool:
         # The value on publish_topic_names obtained from lttng and
         # publish_topic_names obtained from yaml are different.
@@ -254,10 +254,10 @@ class SubscriptionCallbackBindCondition:
         # # if value.publish_topic_names is not None:
         # #     pub_match = value.publish_topic_names == StructValue_value.publish_topic_names
 
-        return value.node_name == StructValue_value.node_name and \
-            value.callback_type == StructValue_value.callback_type and \
-            value.subscribe_topic_name == StructValue_value.subscribe_topic_name and \
-            value.symbol == StructValue_value.symbol
+        return value.node_name == struct_value.node_name and \
+            value.callback_type == struct_value.callback_type and \
+            value.subscribe_topic_name == struct_value.subscribe_topic_name and \
+            value.symbol == struct_value.symbol
 
     def __str__(self):
         return str(self._target)
@@ -298,10 +298,10 @@ class PublisherBindCondition:
     def _compare(
         self,
         value: PublisherValue,
-        StructValue_value: PublisherStructValue
+        struct_value: PublisherStructValue
     ) -> bool:
-        return value.node_name == StructValue_value.node_name and \
-            value.topic_name == StructValue_value.topic_name
+        return value.node_name == struct_value.node_name and \
+            value.topic_name == struct_value.topic_name
 
     def __str__(self):
         return self._target
