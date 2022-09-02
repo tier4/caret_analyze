@@ -78,13 +78,13 @@ class TestFrequencyRecords:
         columns = ColumnValue('timestamp')
         records = create_records(records_raw, columns)
 
-        frequency = Frequency(records, interval_ns=2000000000)
+        frequency = Frequency(records)
 
         expect_raw = [
             {'timestamp': 1000000000, 'frequency': 4},
             {'timestamp': 3000000000, 'frequency': 1}
         ]
-        result = to_dict(frequency.to_records())
+        result = to_dict(frequency.to_records(interval_ns=2000000000))
         assert result == expect_raw
 
     def test_specify_initial_timestamp_case(self):
