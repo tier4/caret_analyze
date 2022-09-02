@@ -42,8 +42,8 @@
 #         callback = node.callbacks[0]
 
 #         df = callback.to_dataframe()
-#         columns_exepct = {'callback_start_timestamp', 'callback_end_timestamp'}
-#         assert set(df.columns) == columns_exepct
+#         columns_expect = {'callback_start_timestamp', 'callback_end_timestamp'}
+#         assert set(df.columns) == columns_expect
 
 #         t, latencies = callback.to_timeseries()
 #         bin_latencies, hist = callback.to_histogram()

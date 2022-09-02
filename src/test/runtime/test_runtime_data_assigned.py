@@ -222,7 +222,7 @@ class TestNodesLoaded:
         assert node.paths == [node_path_mock]
 
 
-class TestPublishsersLoaded:
+class TestPublishersLoaded:
 
     def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)

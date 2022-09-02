@@ -363,7 +363,7 @@ class TestRecords:
 
             assert records.columns == ['stamp_', 'aaa_']
 
-    def test_rename_colums_validate_argument(self):
+    def test_rename_columns_validate_argument(self):
         records_py: Records = Records(
             [
                 Record({'AAA': 0, 'BBB': 0}),

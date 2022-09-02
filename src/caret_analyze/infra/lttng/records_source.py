@@ -564,7 +564,7 @@ class RecordsSource():
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.MESSAGE_TIMESTAMP,
             ],
-            progress_label='bindig: publish_timestamp and message_addr',
+            progress_label='binding: publish_timestamp and message_addr',
         )
 
         # note: Incorrect latency is calculated when intra_publish of ros-rclcpp is included.
@@ -604,7 +604,7 @@ class RecordsSource():
                 ]
             ).column_names,
             how='left',
-            progress_label='bindig: dispath_subsription and callback_start',
+            progress_label='binding: dispatch_subsription and callback_start',
         )
 
         intra_records.drop_columns(

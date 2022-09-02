@@ -114,10 +114,10 @@ class Records(RecordsInterface):
 
         columns_set = set(columns)
         for record in init:
-            unkown_column = set(record.columns) - columns_set
-            if len(unkown_column) > 0:
+            unknown_column = set(record.columns) - columns_set
+            if len(unknown_column) > 0:
                 msg = 'Contains an unknown columns. '
-                msg += f'{unkown_column}'
+                msg += f'{unknown_column}'
                 raise InvalidArgumentError(msg)
 
         if len(set(columns)) != len(columns):
@@ -692,10 +692,10 @@ class Records(RecordsInterface):
                 processing_records.values(),
             ):
                 processing_record_keys = processing_record.get(sink_from_keys)
-                coresponding_record_keys = processing_record_.get(
+                corresponding_record_keys = processing_record_.get(
                     sink_from_keys)
 
-                merged_set = processing_record_keys | coresponding_record_keys
+                merged_set = processing_record_keys | corresponding_record_keys
                 processing_record.data[sink_from_keys] = merged_set
                 processing_record_.data[sink_from_keys] = merged_set
 

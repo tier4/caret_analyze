@@ -40,7 +40,7 @@ class InvalidTraceFormatError(Error):
 
 
 class InvalidReaderError(Error):
-    """Failed to load architecutre."""
+    """Failed to load architecture."""
 
     def __init__(self, message: str) -> None:
         self.message = message

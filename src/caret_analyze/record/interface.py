@@ -634,7 +634,7 @@ class RecordsInterface:
         Returns
         -------
         RecordsInterface
-            deep-copyed records.
+            deep-copied records.
 
         """
         pass

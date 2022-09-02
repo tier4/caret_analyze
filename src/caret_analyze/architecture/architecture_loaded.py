@@ -566,7 +566,7 @@ class MessageContextsLoaded:
             except Error as e:
                 logger.warning(e)
 
-        for context in self._create_callack_chain(node_paths):
+        for context in self._create_callback_chain(node_paths):
             pub_sub_pair = (context.publisher_topic_name, context.subscription_topic_name)
             if context not in data and pub_sub_pair not in pub_sub_pairs:
                 data.append(context)
@@ -589,7 +589,7 @@ class MessageContextsLoaded:
         return self._data
 
     @staticmethod
-    def _create_callack_chain(
+    def _create_callback_chain(
         node_paths: Sequence[NodePathStructValue]
     ) -> List[MessageContext]:
         chains: List[MessageContext] = []
