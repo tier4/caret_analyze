@@ -454,7 +454,7 @@ class Records(RecordsInterface):
                 merged_records.append(record)
 
         temporary_columns = [column_side, column_merge_stamp, column_join_key,
-                            column_has_valid_join_key, column_found_right_record]
+                             column_has_valid_join_key, column_found_right_record]
 
         merged_records.drop_columns(temporary_columns)
         left_records.drop_columns(temporary_columns)
