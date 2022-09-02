@@ -446,17 +446,17 @@ class TestCallbackPathSearcher:
             graph_path_mock, sub_topic_name, pub_topic_name)
         expected = NodePathStruct(
             '/node', sub_info_mock, pub_info_mock, tuple(chain), None)
-        assert node_path == expected
+        assert node_path.to_value() == expected.to_value()
 
         node_path = searcher._to_path(graph_path_mock, None, pub_topic_name)
         expected = NodePathStruct(
             '/node', None, pub_info_mock, tuple(chain), None)
-        assert node_path == expected
+        assert node_path.to_value() == expected.to_value()
 
         node_path = searcher._to_path(graph_path_mock, sub_topic_name, None)
         expected = NodePathStruct(
             '/node', sub_info_mock, None, tuple(chain), None)
-        assert node_path == expected
+        assert node_path.to_value() == expected.to_value()
 
 
 class TestNodePathSearcher:
@@ -544,7 +544,7 @@ class TestNodePathSearcher:
         expected = PathStruct(
             None, (node_path_mock, comm_mock, node_path_mock)
         )
-        assert path == expected
+        assert path.to_value() == expected.to_value()
 
     def test_single_node_cyclic_case(self, mocker):
         node_name = '/node'
@@ -580,4 +580,4 @@ class TestNodePathSearcher:
             None,
             (node_path_mock, comm_mock, node_path_mock),
         )
-        assert paths == [expect]
+        assert [v.to_value() for v in paths] == [expect.to_value()]

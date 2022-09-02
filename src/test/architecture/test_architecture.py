@@ -124,16 +124,16 @@ class TestArchitecture:
         arch = Architecture('file_type', 'file_path')
 
         assert len(arch.nodes) == 1
-        assert arch.nodes[0] == node_mock
+        assert arch.nodes[0] == node_mock.to_value()
 
         assert len(arch.executors) == 1
-        assert arch.executors[0] == executor_mock
+        assert arch.executors[0] == executor_mock.to_value()
 
         assert len(arch.paths) == 1
-        assert arch.paths[0] == path_mock
+        assert arch.paths[0] == path_mock.to_value()
 
         assert len(arch.communications) == 1
-        assert arch.communications[0] == comm_mock
+        assert arch.communications[0] == comm_mock.to_value()
 
     def test_path(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
