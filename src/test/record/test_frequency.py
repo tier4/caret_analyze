@@ -37,7 +37,7 @@ class TestFrequencyRecords:
     def test_empty_case(self):
         records_raw = [
         ]
-        columns = ColumnValue('timestamp')
+        columns = [ColumnValue('timestamp')]
         records = create_records(records_raw, columns)
 
         frequency = Frequency(records)
@@ -55,7 +55,7 @@ class TestFrequencyRecords:
             {'timestamp': 12},
             {'timestamp': 14},
         ]
-        columns = ColumnValue('timestamp')
+        columns = [ColumnValue('timestamp')]
         records = create_records(records_raw, columns)
 
         frequency = Frequency(records)
@@ -75,7 +75,7 @@ class TestFrequencyRecords:
             {'timestamp': 2000300000},
             {'timestamp': 3000000000},
         ]
-        columns = ColumnValue('timestamp')
+        columns = [ColumnValue('timestamp')]
         records = create_records(records_raw, columns)
 
         frequency = Frequency(records)
@@ -95,7 +95,7 @@ class TestFrequencyRecords:
             {'timestamp': 12},
             {'timestamp': 15},
         ]
-        columns = ColumnValue('timestamp')
+        columns = [ColumnValue('timestamp')]
         records = create_records(records_raw, columns)
 
         frequency = Frequency(records)
@@ -116,7 +116,7 @@ class TestFrequencyRecords:
             {'timestamp1': 13, 'timestamp2': 14},
             {'timestamp1': 15, 'timestamp2': 16},
         ]
-        columns = ColumnValue('timestamp')
+        columns = [ColumnValue('timestamp1'), ColumnValue('timestamp2')]
         records = create_records(records_raw, columns)
 
         frequency = Frequency(records)
@@ -136,7 +136,7 @@ class TestFrequencyRecords:
             {'timestamp1': 13, 'timestamp2': 14},
             {'timestamp1': 15, 'timestamp2': 16},
         ]
-        columns = ColumnValue('timestamp')
+        columns = [ColumnValue('timestamp1'), ColumnValue('timestamp2')]
         records = create_records(records_raw, columns)
 
         frequency = Frequency(records, target_column='timestamp2')
@@ -156,7 +156,7 @@ class TestFrequencyRecords:
             {'timestamp1': 13, 'timestamp2': 14},
             {'timestamp1': 15, 'timestamp2': 16},
         ]
-        columns = ColumnValue('timestamp')
+        columns = [ColumnValue('timestamp1'), ColumnValue('timestamp2')]
         records = create_records(records_raw, columns)
 
         frequency = Frequency(records)
