@@ -221,13 +221,13 @@ class NamedPathManager():
             self._named_paths[path.path_name] = path
 
     @property
-    def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return tuple([v.to_value() for v in tuple(self._named_paths.values())])
+    def named_paths(self) -> Tuple[PathStruct, ...]:
+        return tuple(self._named_paths.values())
 
-    def get_named_path(self, path_name: str) -> PathStructValue:
+    def get_named_path(self, path_name: str) -> PathStruct:
         if path_name not in self._named_paths.keys():
             raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
-        return self._named_paths[path_name].to_value()
+        return self._named_paths[path_name]
 
     def add_named_path(self, path_name: str, path_info: PathStruct):
         if path_name in self._named_paths.keys():
