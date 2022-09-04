@@ -427,8 +427,11 @@ class NodeLevelFormatter(DataFrameFormatter):
             parsed_before = DataFrameColumnNameParsed(self._path, column_name_)
             parsed = DataFrameColumnNameParsed(self._path, column_name)
 
+            # Exclude all columns except the first column of the node and
+            # the last publish column of the node.
             if parsed_before.node_name is not None and parsed.node_name is not None and \
-                    parsed_before.node_name == parsed.node_name:
+                    parsed_before.node_name == parsed.node_name and \
+                    'rclcpp_publish' not in parsed.tracepoint_name:
                 drop_columns.append(column_name)
 
             if parsed_before.topic_name is not None and parsed.topic_name is not None and \
