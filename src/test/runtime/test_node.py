@@ -18,7 +18,7 @@
 
 # class TestNode:
 
-#     def test_init_satus(self):
+#     def test_init_status(self):
 #         lttng = Lttng('sample/lttng_samples/talker_listener/')
 #         app = Application(
 #             'sample/lttng_samples/talker_listener/architecture.yaml', 'yaml', lttng)

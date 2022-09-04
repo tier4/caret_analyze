@@ -1137,7 +1137,7 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(node_info_mock, 'publishers', [pub_info])
         mocker.patch.object(node_info_mock, 'subscriptions', [sub_info])
 
-        comm_mock = mocker.Mock(seck=CommunicationStructValue)
+        comm_mock = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(CommValuesLoaded,
                             '_to_struct', return_value=comm_mock)
 

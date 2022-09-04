@@ -259,7 +259,7 @@ class Records(RecordsInterface):
             if r.equals(r_) is False:
                 return False
 
-        # TODO(hsgwa): fix protected variable acceccing.
+        # TODO(hsgwa): fix protected variable accessing.
         if self._columns.to_value() != records._columns.to_value():
             return False
 

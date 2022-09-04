@@ -719,7 +719,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         comm_value: CommunicationStructValue
     ) -> RecordsInterface:
         """
-        Composer intar process communication records.
+        Composer inter process communication records.
 
         Parameters
         ----------

@@ -612,7 +612,7 @@ class TestCallbacksLoaded:
 class TestCallbackGroupsLoaded:
 
     def test_empty(self, mocker):
-        provider_mock = mocker.Mock(spedc=RecordsProvider)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
         publisher_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
         timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
@@ -622,7 +622,7 @@ class TestCallbackGroupsLoaded:
         assert cbgs == []
 
     def test_to_runtime(self, mocker):
-        provider_mock = mocker.Mock(spedc=RecordsProvider)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
         cbg_info_mock = mocker.Mock(spec=CallbackGroupStructValue)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
