@@ -518,7 +518,7 @@ class Lttng(InfraBase):
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValueLttng]:
         """
-        Get subscription callbacks infomation.
+        Get subscription callbacks information.
 
         Parameters
         ----------

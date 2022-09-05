@@ -81,7 +81,7 @@
 #         )
 #         data.finalize()
 
-#         source = RecordsSourse(data)
+#         source = RecordsSource(data)
 
 #         records = source.compose_intra_process_communication_records()
 
@@ -136,7 +136,7 @@
 #         )
 #         data.finalize()
 
-#         source = RecordsSourse(data)
+#         source = RecordsSource(data)
 
 #         records = source.compose_inter_process_communication_records()
 

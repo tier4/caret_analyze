@@ -14,4 +14,4 @@
 
 
 class InfraBase():
-    """infrastracture base class."""
+    """infrastructure base class."""

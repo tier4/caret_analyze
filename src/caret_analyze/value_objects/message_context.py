@@ -176,7 +176,7 @@ class MessageContext(ValueObject, Summarizable):
 class UseLatestMessage(MessageContext):
     TYPE_NAME = 'use_latest_message'
 
-    """Use messsage context"""
+    """Use message context"""
 
     def verify(self) -> bool:
         return True

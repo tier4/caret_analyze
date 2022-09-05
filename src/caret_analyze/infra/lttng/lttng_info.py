@@ -262,7 +262,7 @@ class LttngInfo:
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValueLttng]:
         """
-        Get subscription callbacks infomation.
+        Get subscription callbacks information.
 
         Parameters
         ----------
@@ -417,15 +417,15 @@ class LttngInfo:
         self,
         node_id: str
     ) -> List[CallbackGroupValueLttng]:
-        concate_target_dfs = []
-        concate_target_dfs.append(self._formatted.timer_callbacks_df)
-        concate_target_dfs.append(self._formatted.subscription_callbacks_df)
+        concat_target_dfs = []
+        concat_target_dfs.append(self._formatted.timer_callbacks_df)
+        concat_target_dfs.append(self._formatted.subscription_callbacks_df)
 
         try:
             column_names = [
                 'callback_group_addr', 'callback_id', 'node_handle'
             ]
-            concat_df = concat(column_names, concate_target_dfs)
+            concat_df = concat(column_names, concat_target_dfs)
 
             concat_df = merge(
                 concat_df, self._formatted.nodes_df, 'node_handle')
@@ -631,7 +631,7 @@ class LttngInfo:
 #         callbacks: Sequence[TimerCallbackValueLttng],
 #     ) -> List[TimerCallbackValueLttng]:
 #         """
-#         Return publisher binded callback values.
+#         Return publisher bound callback values.
 
 #         Note:
 #         This function call takes a long time because binding uses records.
@@ -644,7 +644,7 @@ class LttngInfo:
 #         Returns
 #         -------
 #         List[TimerCallbackValueLttng]
-#             publisher binded callback values.
+#             publisher bound callback values.
 
 #         """
 #         callback_list: List[TimerCallbackValueLttng]
@@ -685,7 +685,7 @@ class LttngInfo:
 #         callbacks_info: Sequence[SubscriptionCallbackValueLttng],
 #     ) -> List[SubscriptionCallbackValueLttng]:
 #         """
-#         Return publisher binded callback values.
+#         Return publisher bound callback values.
 
 #         Note:
 #         This function call takes a long time because binding uses records.
@@ -698,7 +698,7 @@ class LttngInfo:
 #         Returns
 #         -------
 #         List[SubscriptionCallbackValueLttng]
-#             publisher binded callback values.
+#             publisher bound callback values.
 
 #         """
 #         system_topics = ['/parameter_events', '/rosout', '/clock']
@@ -739,7 +739,7 @@ class LttngInfo:
 #         def select_record_index(records: RecordsInterface) -> int:
 #             # Select publish after the initialization is complete.
 #             # To reduce the search time from the beginning. The smaller the index, the better.
-#             # Note: intra_porocess cyclic demo is manually publishing the first message.
+#             # Note: intra_process cyclic demo is manually publishing the first message.
 #             return min(len(publisher_records.data)-1, self.TARGET_RECORD_MAX_INDEX)
 
 #         publisher_handle = publisher_info.publisher_handle

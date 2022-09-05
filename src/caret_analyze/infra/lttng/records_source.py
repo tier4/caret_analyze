@@ -280,7 +280,7 @@ class RecordsSource():
                     inter_proc_publish.columns + dds_write.columns
                 ).column_names,
                 how='left',
-                progress_label='binding: rclcppp_publish and dds_write',
+                progress_label='binding: rclcpp_publish and dds_write',
             )
 
         inter_proc_publish = merge_sequencial(
@@ -294,7 +294,7 @@ class RecordsSource():
                 inter_proc_publish.columns + self._data.dds_bind_addr_to_stamp.columns
             ).column_names,
             how='left',
-            progress_label='binding: rclcppp_publish and source_timestamp',
+            progress_label='binding: rclcpp_publish and source_timestamp',
         )
 
         inter_proc_publish.drop_columns(
@@ -364,7 +364,7 @@ class RecordsSource():
         timer_callback: TimerCallbackValueLttng
     ) -> EventsFactory:
         """
-        Create tiemr events factory.
+        Create timer events factory.
 
         Parameters
         ----------
@@ -488,17 +488,17 @@ class RecordsSource():
     @cached_property
     def subscribe_records(self) -> RecordsInterface:
         callback_start_instances = self.inter_callback_records
-        inter_proc_subscrube = self._data.dispatch_subscription_callback_instances
+        inter_proc_subscribe = self._data.dispatch_subscription_callback_instances
 
-        inter_proc_subscrube = merge_sequencial(
-            left_records=inter_proc_subscrube,
+        inter_proc_subscribe = merge_sequencial(
+            left_records=inter_proc_subscribe,
             right_records=callback_start_instances,
             left_stamp_key=COLUMN_NAME.DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
             columns=Columns.from_str(
-                inter_proc_subscrube.columns + callback_start_instances.columns
+                inter_proc_subscribe.columns + callback_start_instances.columns
             ).column_names,
             how='left',
             progress_label='binding: dispatch_subscription_callback and callback_start',
@@ -507,14 +507,14 @@ class RecordsSource():
         intra_proc_subscribe = self.intra_callback_records
 
         subscribe = merge_sequencial(
-            left_records=inter_proc_subscrube,
+            left_records=inter_proc_subscribe,
             right_records=intra_proc_subscribe,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
             columns=Columns.from_str(
-                inter_proc_subscrube.columns + intra_proc_subscribe.columns
+                inter_proc_subscribe.columns + intra_proc_subscribe.columns
             ).column_names,
             how='outer',
             progress_label='binding intra and inter subscribe'
@@ -564,7 +564,7 @@ class RecordsSource():
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.MESSAGE_TIMESTAMP,
             ],
-            progress_label='bindig: publish_timestamp and message_addr',
+            progress_label='binding: publish_timestamp and message_addr',
         )
 
         # note: Incorrect latency is calculated when intra_publish of ros-rclcpp is included.
@@ -604,7 +604,7 @@ class RecordsSource():
                 ]
             ).column_names,
             how='left',
-            progress_label='bindig: dispath_subsription and callback_start',
+            progress_label='binding: dispatch_subscription and callback_start',
         )
 
         intra_records.drop_columns(
