@@ -14,10 +14,10 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
 
 from ipywidgets import Dropdown, interact
@@ -45,7 +45,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None,
-    ) -> None:
+        interactive: bool = True
+    ) -> Union[List[Figure], None]:
         validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
         self._last_ywheel_zoom = ywheel_zoom
@@ -53,18 +54,24 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         self._last_export_path = export_path
 
         all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
-        if len(all_topic_names) >= 2:
+        # not interactive
+        if (len(all_topic_names) == 1
+                or not interactive
+                or self._last_export_path):
+            return [self._show_core(topic_name) for
+                    topic_name in all_topic_names]
+        # interactive
+        else:
             all_topic_names = ['All'] + all_topic_names
-
-        topic_dropdown = Dropdown(description='Topic:',
-                                  options=(all_topic_names))
-        interact(self._show_core,
-                 topic_name=topic_dropdown)
+            topic_dropdown = Dropdown(description='Topic:',
+                                      options=(all_topic_names))
+            interact(self._show_core,
+                     topic_name=topic_dropdown)
 
     def _show_core(
         self,
         topic_name: str
-    ) -> None:
+    ) -> Figure:
         source_df = self._to_dataframe_core(self._last_xaxis_type)
         source_df_by_topic = self._get_source_df_by_topic(source_df)
         if topic_name == 'All':
@@ -141,6 +148,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         else:
             save(p, self._last_export_path,
                  title='PubSub time-line', resources=CDN)
+
+        return p
 
     def _get_pub_sub_lines(
         self,
