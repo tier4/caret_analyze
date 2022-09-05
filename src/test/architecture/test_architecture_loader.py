@@ -679,7 +679,7 @@ class TestPublishersLoaded:
         mocker.patch.object(callbacks_loaded_mock, 'data', [callback_struct_mock])
         mocker.patch.object(callbacks_loaded_mock,
                             'find_callback', return_value=callback_struct_mock)
-        node = NodeValue('node_name', 'ndoe_id')
+        node = NodeValue('node_name', 'node_id')
         loaded = PublishersLoaded(
             reader_mock, callbacks_loaded_mock, node)
 
@@ -752,7 +752,7 @@ class TestCallbacksLoaded:
 
     def test_duplicated_callback_name(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
-        node = NodeValue('node_name', 'ndoe_name')
+        node = NodeValue('node_name', 'node_name')
 
         callback_mock = mocker.Mock(spec=TimerCallbackValue)
         mocker.patch.object(
@@ -965,7 +965,7 @@ class TestCallbackGroupsLoaded:
         assert len(loaded.data) == 0
 
     def test_get_data(self, mocker):
-        node = NodeValueWithId('node', 'ndoe')
+        node = NodeValueWithId('node', 'node')
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
@@ -1137,7 +1137,7 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(node_info_mock, 'publishers', [pub_info])
         mocker.patch.object(node_info_mock, 'subscriptions', [sub_info])
 
-        comm_mock = mocker.Mock(seck=CommunicationStructValue)
+        comm_mock = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(CommValuesLoaded,
                             '_to_struct', return_value=comm_mock)
 

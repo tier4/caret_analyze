@@ -131,7 +131,7 @@ class NodesLoaded:
     ) -> Node:
         publishers_loaded = PublishersLoaded(
             node_value.publishers, provider)
-        publishsers = publishers_loaded.data
+        publishers = publishers_loaded.data
 
         subscriptions_loaded = SubscriptionsLoaded(
             node_value.subscriptions, provider)
@@ -165,7 +165,7 @@ class NodesLoaded:
 
         return Node(
             node_value,
-            publishsers,
+            publishers,
             subscriptions,
             timers,
             node_paths,

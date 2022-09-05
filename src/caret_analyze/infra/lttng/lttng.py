@@ -518,7 +518,7 @@ class Lttng(InfraBase):
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValueLttng]:
         """
-        Get subscription callbacks infomation.
+        Get subscription callbacks information.
 
         Parameters
         ----------
@@ -618,7 +618,7 @@ class Lttng(InfraBase):
             Date and time the trace data was created.
 
         """
-        return datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9)
+        return datetime.fromtimestamp(self._begin * 1.0e-9)
 
     def compose_inter_proc_comm_records(
         self,

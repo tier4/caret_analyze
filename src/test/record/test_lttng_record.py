@@ -150,7 +150,7 @@
 #         lttng = mocker.Mock(spec=Lttng)
 #         records_lttng = RecordsLttng(lttng)
 
-#         subscription_cadllback_object = 8
+#         subscription_callback_object = 8
 #         publisher_handle = 9
 #         period_ns = 88
 #         pub_callback_object = 880
@@ -177,7 +177,7 @@
 #         records_cb = Records(
 #             [
 #                 Record({
-#                     COLUMN_NAME.CALLBACK_OBJECT: subscription_cadllback_object,
+#                     COLUMN_NAME.CALLBACK_OBJECT: subscription_callback_object,
 #                     COLUMN_NAME.PUBLISHER_HANDLE: publisher_handle,
 #                     COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP: 1,
 #                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP: 2,
@@ -223,7 +223,7 @@
 #         lttng = mocker.Mock(spec=Lttng)
 #         records_lttng = RecordsLttng(lttng)
 
-#         subscription_cadllback_object = 8
+#         subscription_callback_object = 8
 #         publisher_handle = 9
 #         period_ns = 88
 #         pub_callback_object = 880
@@ -251,7 +251,7 @@
 #         records_cb = Records(
 #             [
 #                 Record({
-#                     COLUMN_NAME.CALLBACK_OBJECT: subscription_cadllback_object,
+#                     COLUMN_NAME.CALLBACK_OBJECT: subscription_callback_object,
 #                     COLUMN_NAME.PUBLISHER_HANDLE: publisher_handle,
 #                     COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: 1,
 #                     COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,

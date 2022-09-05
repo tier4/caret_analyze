@@ -174,8 +174,8 @@ class VarPassDicts:
 
 class PubDicts:
 
-    def __init__(self, pubisher_values: Tuple[PublisherStructValue, ...]) -> None:
-        dicts = [self._to_dict(p) for p in pubisher_values]
+    def __init__(self, publisher_values: Tuple[PublisherStructValue, ...]) -> None:
+        dicts = [self._to_dict(p) for p in publisher_values]
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
     def _to_dict(self, publisher_value: PublisherStructValue):

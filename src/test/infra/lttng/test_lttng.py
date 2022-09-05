@@ -252,6 +252,8 @@ class TestLttng:
         begin, end = lttng_.get_trace_range()
         assert begin == datetime.fromtimestamp(0)
         assert end == datetime.fromtimestamp(1)
+        creation = lttng_.get_trace_creation_datetime()
+        assert creation == datetime.fromtimestamp(0)
         assert lttng.events == events
         assert lttng_.events == events_
         assert lttng.events != lttng_.events
