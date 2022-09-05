@@ -27,3 +27,7 @@
               - "**/*.py"' \
         {source}
     - source: .github/workflows/delete-closed-pr-docs.yaml
+
+- repository: tier4/caret_common
+  files:
+    - source: .cspell.json
