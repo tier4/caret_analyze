@@ -62,12 +62,11 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             return [self._show_core('All')]
         elif not interactive:
             return [self._show_core(topic_name) for
-                    topic_name in ['All']+all_topic_names]
+                    topic_name in ['All'] + all_topic_names]
         # interactive
         else:
-            all_topic_names = ['All'] + all_topic_names
             topic_dropdown = Dropdown(description='Topic:',
-                                      options=(all_topic_names))
+                                      options=(['All'] + all_topic_names))
             interact(self._show_core,
                      topic_name=topic_dropdown)
 
