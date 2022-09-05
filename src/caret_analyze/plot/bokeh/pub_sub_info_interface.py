@@ -55,9 +55,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
         all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
         # not interactive
-        if (len(all_topic_names) == 1
-                or not interactive
-                or self._last_export_path):
+        if (len(all_topic_names) == 1 or not interactive):
             return [self._show_core(topic_name) for
                     topic_name in all_topic_names]
         # interactive
