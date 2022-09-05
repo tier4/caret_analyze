@@ -95,7 +95,7 @@ class TestApplication:
         mocker.patch.object(records_assigned_mock,
                             'communications', [comm_mock])
 
-        # test senario
+        # test scenario
         app = Application(arch_mock, records_provider_mock)
 
         assert len(app.paths) == 1

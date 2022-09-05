@@ -219,7 +219,7 @@ class Path(PathBase, Summarizable):
         path : PathStructValue
             static info
         child : List[Union[NodePath, Communication]]
-            path childrens which compose path (node paths and communications).
+            path children's which compose path (node paths and communications).
         callbacks : Optional[List[CallbackBase]]
             callbacks that compose the path.
             return None except for all of node paths are not callback-chain.
@@ -249,7 +249,7 @@ class Path(PathBase, Summarizable):
 
     def verify(self) -> bool:
         """
-        Verify whether the path can generate latenies.
+        Verify whether the path can generate latencies.
 
         Returns
         -------
