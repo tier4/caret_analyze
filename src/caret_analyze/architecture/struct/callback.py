@@ -19,7 +19,9 @@ from typing import Optional, Tuple
 
 from ...common import Summarizable, Summary
 
-from ...value_objects import CallbackType, CallbackStructValue, TimerCallbackStructValue, SubscriptionCallbackStructValue
+from ...value_objects import (CallbackStructValue, CallbackType,
+                              SubscriptionCallbackStructValue,
+                              TimerCallbackStructValue)
 
 
 class CallbackStruct(Summarizable, metaclass=ABCMeta):
@@ -110,7 +112,10 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
         pass
 
     def to_value(self) -> CallbackStructValue:
-        CallbackStructValue(self.node_name, self.symbol, self.subscribe_topic_name, self.publish_topic_names, self.callback_name)
+        return CallbackStructValue(self.node_name, self.symbol,
+                                   self.subscribe_topic_name,
+                                   self.publish_topic_names,
+                                   self.callback_name)
 
 
 class TimerCallbackStruct(CallbackStruct):
@@ -149,7 +154,9 @@ class TimerCallbackStruct(CallbackStruct):
         })
 
     def to_value(self) -> TimerCallbackStructValue:
-        return TimerCallbackStructValue(self.node_name, self.symbol, self.period_ns, self.publish_topic_names, self.callback_name)
+        return TimerCallbackStructValue(self.node_name, self.symbol,
+                                        self.period_ns, self.publish_topic_names,
+                                        self.callback_name)
 
 
 class SubscriptionCallbackStruct(CallbackStruct):
@@ -179,4 +186,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
         })
 
     def to_value(self) -> SubscriptionCallbackStructValue:
-        return SubscriptionCallbackStructValue(self.node_name, self.symbol, self.subscribe_topic_name, self.publish_topic_names, self.callback_name)
+        return SubscriptionCallbackStructValue(self.node_name, self.symbol,
+                                               self.subscribe_topic_name,
+                                               self.publish_topic_names,
+                                               self.callback_name)

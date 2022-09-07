@@ -15,13 +15,13 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
 from ...common import Summarizable, Summary, Util
 
-from ...value_objects import ExecutorType, ExecutorStructValue
+from ...value_objects import ExecutorStructValue, ExecutorType
 
 
 class ExecutorStruct(Summarizable):
@@ -75,4 +75,6 @@ class ExecutorStruct(Summarizable):
         })
 
     def to_value(self) -> ExecutorStructValue:
-        return ExecutorStructValue(self.executor_type, tuple(v.to_value() for v in self.callback_groups), self.executor_name)
+        return ExecutorStructValue(self.executor_type,
+                                   tuple(v.to_value() for v in self.callback_groups),
+                                   self.executor_name)

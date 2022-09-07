@@ -20,6 +20,15 @@ from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
+from .struct import (CallbackGroupStruct, CallbackStruct,
+                     CommunicationStruct,
+                     ExecutorStruct,
+                     MessageContextStruct,
+                     NodePathStruct, NodeStruct, PathStruct,
+                     PublisherStruct,
+                     SubscriptionCallbackStruct, SubscriptionStruct,
+                     TimerCallbackStruct, TimerStruct,
+                     VariablePassingStruct)
 from ..common import Progress, Util
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
                           InvalidYamlFormatError, ItemNotFoundError,
@@ -36,21 +45,6 @@ from ..value_objects import (CallbackChain,
                              TimerCallbackValue,
                              TimerValue, VariablePassingValue,
                              )
-from .struct import (NodeStruct,
-                      CallbackGroupStruct,
-                      CallbackStruct,
-                      CommunicationStruct,
-                      ExecutorStruct,
-                      NodePathStruct,
-                      PathStruct,
-                      PublisherStruct,
-                      SubscriptionStruct,
-                      SubscriptionCallbackStruct,
-                      TimerCallbackStruct,
-                      TimerStruct,
-                      VariablePassingStruct,
-                      MessageContextStruct
-                      )
 
 logger = getLogger(__name__)
 

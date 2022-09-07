@@ -15,14 +15,13 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
-from caret_analyze.value_objects.callback_group import CallbackGroupType
+from typing import Tuple
 
 from .callback import CallbackStruct
 from ...common import Summarizable, Summary
 
-from ...value_objects import CallbackGroupType, CallbackGroupStructValue
+from ...value_objects.callback_group import CallbackGroupStructValue, CallbackGroupType
+
 
 class CallbackGroupStruct(Summarizable):
     """Callback group value object."""
@@ -107,4 +106,6 @@ class CallbackGroupStruct(Summarizable):
         })
 
     def to_value(self) -> CallbackGroupStructValue:
-        return CallbackGroupStructValue(self.callback_group_type, self.node_name, tuple(v.to_value() for v in self.callbacks), self.callback_group_name)
+        return CallbackGroupStructValue(self.callback_group_type, self.node_name,
+                                        tuple(v.to_value() for v in self.callbacks),
+                                        self.callback_group_name)

@@ -23,7 +23,7 @@ from .timer import Timer
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider
 from ..record import RecordsInterface
-from ..value_objects import (CallbackType, CallbackStructValue,
+from ..value_objects import (CallbackStructValue, CallbackType,
                              SubscriptionCallbackStructValue,
                              TimerCallbackStructValue)
 

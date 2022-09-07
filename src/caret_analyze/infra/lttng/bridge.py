@@ -20,12 +20,11 @@ from .value_objects import (PublisherValueLttng,
                             TimerCallbackValueLttng)
 from ...common import Util
 from ...exceptions import ItemNotFoundError, MultipleItemFoundError
-from ...value_objects import (NodeValue, PublisherValue,
-                              SubscriptionCallbackValue,
-                              TimerCallbackValue,
-                              PublisherStructValue,
+from ...value_objects import (NodeValue,
+                              PublisherStructValue, PublisherValue,
                               SubscriptionCallbackStructValue,
-                              TimerCallbackStructValue)
+                              SubscriptionCallbackValue,
+                              TimerCallbackStructValue, TimerCallbackValue)
 
 
 class LttngBridge:

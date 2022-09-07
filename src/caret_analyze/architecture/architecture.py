@@ -17,18 +17,17 @@ from __future__ import annotations
 import logging
 from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 
-from .struct.callback import TimerCallbackStruct
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
+from .struct import (CommunicationStruct, ExecutorStruct,
+                     NodeStruct, PathStruct)
+from .struct.callback import TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue)
-from .struct import (CallbackGroupStruct, CallbackStruct,
-                           CommunicationStruct, ExecutorStruct,
-                           NodeStruct, PathStruct)
 
 
 class Architecture(Summarizable):
@@ -65,7 +64,8 @@ class Architecture(Summarizable):
         return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroupStructValue:
-        return Util.find_one(lambda x: x.callback_group_name == callback_group_name, self.callback_groups)
+        return Util.find_one(lambda x: x.callback_group_name == callback_group_name,
+                             self.callback_groups)
 
     @property
     def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:

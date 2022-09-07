@@ -28,32 +28,25 @@ from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
                                                             VariablePassingsLoaded)
 from caret_analyze.architecture.graph_search import CallbackPathSearcher
 from caret_analyze.architecture.reader_interface import ArchitectureReader
+from caret_analyze.architecture.struct import (CallbackGroupStruct, CallbackStruct,
+                                               CommunicationStruct,
+                                               ExecutorStruct,
+                                               NodePathStruct, NodeStruct, PathStruct,
+                                               PublisherStruct,
+                                               SubscriptionCallbackStruct, SubscriptionStruct,
+                                               TimerStruct,
+                                               VariablePassingStruct)
 from caret_analyze.common import Util
 from caret_analyze.exceptions import (InvalidReaderError, ItemNotFoundError,
                                       UnsupportedTypeError)
-from caret_analyze.value_objects import (CallbackGroupValue, CallbackGroupType,
-                                         CallbackValue, CallbackType,
-                                         ExecutorValue,  ExecutorType,
-                                         NodePathValue,
-                                         NodeValue, PathValue,
-                                         PublisherValue,
-                                         SubscriptionCallbackValue,
-                                         SubscriptionValue, TimerCallbackValue,
+from caret_analyze.value_objects import (CallbackGroupType, CallbackGroupValue,
+                                         CallbackType, CallbackValue,
+                                         ExecutorType, ExecutorValue,
+                                         NodePathValue, NodeValue,
+                                         PathValue, PublisherValue,
+                                         SubscriptionCallbackValue, SubscriptionValue,
+                                         TimerCallbackValue,
                                          VariablePassingValue)
-from caret_analyze.architecture.struct import (NodeStruct,
-                      CallbackGroupStruct,
-                      CallbackStruct,
-                      CommunicationStruct,
-                      ExecutorStruct,
-                      NodePathStruct,
-                      PathStruct,
-                      PublisherStruct,
-                      SubscriptionStruct,
-                      SubscriptionCallbackStruct,
-                      TimerCallbackStruct,
-                      TimerStruct,
-                      VariablePassingStruct,
-                      )
 
 from caret_analyze.value_objects.message_context import MessageContextType
 from caret_analyze.value_objects.node import NodeValueWithId

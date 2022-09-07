@@ -20,7 +20,9 @@ from abc import abstractmethod
 from logging import getLogger
 from typing import Dict, Optional, Tuple
 
-from caret_analyze.value_objects.message_context import (MessageContext, Tilde, CallbackChain)
+from caret_analyze.value_objects.message_context import (CallbackChain,
+                                                         MessageContext, MessageContextType,
+                                                         Tilde)
 
 from .callback import CallbackStruct
 from .publisher import PublisherStruct
@@ -29,9 +31,6 @@ from ...common import Summarizable, Summary
 from ...exceptions import UnsupportedTypeError
 
 logger = getLogger(__name__)
-
-
-from ...value_objects import MessageContextType
 
 MessageContextType.USE_LATEST_MESSAGE = \
         MessageContextType('use_latest_message')
@@ -128,35 +127,36 @@ class MessageContextStruct(Summarizable):
     ) -> MessageContextStruct:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
             return CallbackChainStruct(node_name,
-                                 context_dict,
-                                 subscription,
-                                 publisher, child)
+                                       context_dict,
+                                       subscription,
+                                       publisher, child)
         if context_type_name == str(MessageContextType.INHERIT_UNIQUE_STAMP):
             return InheritUniqueStampStruct(node_name,
-                                      context_dict,
-                                      subscription,
-                                      publisher,
-                                      child)
+                                            context_dict,
+                                            subscription,
+                                            publisher,
+                                            child)
         if context_type_name == str(MessageContextType.USE_LATEST_MESSAGE):
             return UseLatestMessageStruct(node_name,
-                                    context_dict,
-                                    subscription,
-                                    publisher,
-                                    child)
+                                          context_dict,
+                                          subscription,
+                                          publisher,
+                                          child)
         if context_type_name == str(MessageContextType.TILDE):
             return TildeStruct(node_name,
-                         context_dict,
-                         subscription,
-                         publisher,
-                         child)
+                               context_dict,
+                               subscription,
+                               publisher,
+                               child)
 
         raise UnsupportedTypeError(f'Failed to load message context. \
                                    message_context={context_type_name}')
 
     def to_value(self) -> MessageContext:
-        return MessageContext(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(),
-        tuple([v.to_value() for v in self.child]))
-
+        return MessageContext(self.node_name, self.message_context_dict,
+                              self.subscription.to_value(),
+                              self.publisher.to_value(),
+                              tuple([v.to_value() for v in self.child]))
 
 
 class UseLatestMessageStruct(MessageContextStruct):
@@ -259,8 +259,10 @@ class CallbackChainStruct(MessageContextStruct):
         return is_valid
 
     def to_value(self) -> CallbackChain:
-        return CallbackChain(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(),
-         tuple([v.to_value() for v in self.callbacks]))
+        return CallbackChain(self.node_name, self.message_context_dict,
+                             self.subscription.to_value(),
+                             self.publisher.to_value(),
+                             tuple([v.to_value() for v in self.callbacks]))
 
 
 class TildeStruct(MessageContextStruct):
@@ -305,5 +307,6 @@ class TildeStruct(MessageContextStruct):
         return True
 
     def to_value(self) -> Tilde:
-        return Tilde(self.node_name, self.message_context_dict, self.subscription.to_value(), self.publisher.to_value(),
-         tuple([v.to_value() for v in self.callbacks]))
+        return Tilde(self.node_name, self.message_context_dict,
+                     self.subscription.to_value(), self.publisher.to_value(),
+                     tuple([v.to_value() for v in self.callbacks]))

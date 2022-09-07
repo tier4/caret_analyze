@@ -20,14 +20,14 @@ from itertools import product
 from logging import getLogger
 from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 
+from .struct import (CallbackStruct, CommunicationStruct,
+                     NodePathStruct, NodeStruct,
+                     PathStruct, PublisherStruct,
+                     SubscriptionStruct,
+                     VariablePassingStruct)
 from ..common import Util
 from ..exceptions import (InvalidArgumentError, ItemNotFoundError,
                           MultipleItemFoundError)
-from .struct import (CallbackStruct, CommunicationStruct,
-                             NodePathStruct, NodeStruct,
-                             PathStruct, PublisherStruct,
-                             SubscriptionStruct,
-                             VariablePassingStruct)
 from ..value_objects.value_object import ValueObject
 
 logger = getLogger(__name__)

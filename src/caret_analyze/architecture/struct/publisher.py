@@ -64,4 +64,5 @@ class PublisherStruct(Summarizable):
         })
 
     def to_value(self) -> PublisherStructValue:
-        return PublisherStructValue(self.node_name, self.topic_name, tuple(v.to_value() for v in self.callbacks))
+        return PublisherStructValue(self.node_name, self.topic_name,
+                                    tuple(v.to_value() for v in self.callbacks))

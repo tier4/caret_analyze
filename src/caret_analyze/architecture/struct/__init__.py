@@ -27,7 +27,7 @@ from .node import NodeStruct
 from .node_path import NodePathStruct
 from .path import PathStruct
 from .publisher import PublisherStruct
-#from .qos import Qos
+# from .qos import Qos
 from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct

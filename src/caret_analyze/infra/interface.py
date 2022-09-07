@@ -19,9 +19,8 @@ from typing import Optional, Union
 
 from ..common import ClockConverter
 from ..record.interface import RecordsInterface
-from ..value_objects import (Qos,
-                             CallbackStructValue, CommunicationStructValue,
-                             NodePathStructValue, PublisherStructValue,
+from ..value_objects import (CallbackStructValue, CommunicationStructValue,
+                             NodePathStructValue, PublisherStructValue, Qos,
                              SubscriptionStructValue,
                              TimerStructValue,
                              VariablePassingStructValue)

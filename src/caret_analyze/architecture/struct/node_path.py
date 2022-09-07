@@ -18,13 +18,13 @@ from logging import getLogger
 from typing import Optional, Tuple, Union
 
 from .callback import CallbackStruct, SubscriptionCallbackStruct
-from ...value_objects.message_context import MessageContextType
 from .message_context import MessageContextStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Summarizable, Summary, Util
 from ...value_objects import NodePathStructValue
+from ...value_objects.message_context import MessageContextType
 
 logger = getLogger(__name__)
 
@@ -136,4 +136,7 @@ class NodePathStruct(Summarizable):
         return self._subscription.topic_name
 
     def to_value(self) -> NodePathStructValue:
-        return NodePathStructValue(self.node_name, self.subscription, self.publisher, tuple(v.to_value() for v in self.child), self.message_context)
+        return NodePathStructValue(self.node_name, self.subscription,
+                                   self.publisher,
+                                   tuple(v.to_value() for v in self.child),
+                                   self.message_context)
