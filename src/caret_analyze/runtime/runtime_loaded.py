@@ -623,7 +623,7 @@ class PathsLoaded:
                 path_element.subscribe_node_name
             )
 
-        msg = 'Given type is neither NodePathStructValueInfo nor CommunicationStructValueInfo.'
+        msg = 'Given type is neither NodePathStructValue nor CommunicationStructValue.'
         raise UnsupportedTypeError(msg)
 
     @property
