@@ -72,7 +72,7 @@ def message_flow(
 
     color_palette = ColorPalette(Bokeh8)
 
-    df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
+    df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay) #  check here!
 
     converter: Optional[ClockConverter] = None
     if use_sim_time:
