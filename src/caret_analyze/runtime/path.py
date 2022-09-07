@@ -24,7 +24,7 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record import Columns
-from ..record.record import merge, merge_sequencial, RecordsInterface
+from ..record.record import merge, merge_sequential, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
 
 logger = getLogger(__name__)
@@ -157,17 +157,17 @@ class RecordsMerged:
             right_stamp_key = right_records.columns[0]
 
             logger.info(
-                '\n[merge_sequencial] \n'
+                '\n[merge_sequential] \n'
                 f'- left_column: {left_stamp_key} \n'
                 f'- right_column: {right_stamp_key} \n'
             )
 
-            is_sequencial = isinstance(target_, NodePath) and \
+            is_sequential = isinstance(target_, NodePath) and \
                 isinstance(target, Communication) and \
                 isinstance(target_.message_context, CallbackChain)
 
-            if is_sequencial:
-                left_records = merge_sequencial(
+            if is_sequential:
+                left_records = merge_sequential(
                     left_records=left_records,
                     right_records=right_records,
                     join_left_key=None,

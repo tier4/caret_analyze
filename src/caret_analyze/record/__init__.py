@@ -15,8 +15,8 @@
 from .column import Column, Columns, ColumnValue
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
 from .record import (merge,
-                     merge_sequencial,
-                     merge_sequencial_for_addr_track,
+                     merge_sequential,
+                     merge_sequential_for_addr_track,
                      Record,
                      RecordInterface,
                      Records,
@@ -40,6 +40,6 @@ __all__ = [
     'ResponseTime',
     'Strip',
     'merge',
-    'merge_sequencial',
-    'merge_sequencial_for_addr_track',
+    'merge_sequential',
+    'merge_sequential_for_addr_track',
 ]

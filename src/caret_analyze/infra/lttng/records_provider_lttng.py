@@ -28,7 +28,7 @@ from ...exceptions import (InvalidArgumentError,
                            UnsupportedTypeError)
 from ...infra.interface import RuntimeDataProvider
 from ...infra.lttng.column_names import COLUMN_NAME
-from ...record import (merge, merge_sequencial, RecordsFactory, RecordsInterface)
+from ...record import (merge, merge_sequential, RecordsFactory, RecordsInterface)
 from ...record.column import Columns, ColumnValue
 from ...value_objects import (CallbackChain,
                               CallbackStructValue,
@@ -285,7 +285,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if tilde_subscription is not None:
             tilde_records = self._source.tilde_subscribe_records(tilde_subscription)
 
-            sub_records = merge_sequencial(
+            sub_records = merge_sequential(
                 left_records=sub_records,
                 right_records=tilde_records,
                 left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
@@ -423,7 +423,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         tilde_publishers = self._helper.get_tilde_publishers(publisher)
         tilde_records = self._source.tilde_publish_records(tilde_publishers)
 
-        pub_records = merge_sequencial(
+        pub_records = merge_sequential(
             left_records=tilde_records,
             right_records=pub_records,
             left_stamp_key='tilde_publish_timestamp',
@@ -480,7 +480,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         last_record = callback_records.data[-1]
         last_callback_start = last_record.get(callback_records.columns[0])
         timer_events = timer_events_factory.create(last_callback_start)
-        timer_records = merge_sequencial(
+        timer_records = merge_sequential(
             left_records=timer_events,
             right_records=callback_records,
             left_stamp_key=COLUMN_NAME.TIMER_EVENT_TIMESTAMP,
@@ -603,7 +603,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             read_records.columns[0],
         ]
 
-        merged_records = merge_sequencial(
+        merged_records = merge_sequential(
             left_records=write_records,
             right_records=read_records,
             left_stamp_key=columns[0],
@@ -1009,7 +1009,7 @@ class NodeRecordsCallbackChain:
             publish_records = self._provider.publish_records(self._val.publisher)
             publish_column = publish_records.columns[0]
             columns = records.columns + [publish_column]
-            records = merge_sequencial(
+            records = merge_sequential(
                 left_records=records,
                 right_records=publish_records,
                 join_left_key=None,
@@ -1082,7 +1082,7 @@ class NodeRecordsInheritUniqueTimestamp:
 
         join_left_key = f'{self._node_path.subscribe_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'
         join_right_key = f'{self._node_path.publish_topic_name}/{COLUMN_NAME.MESSAGE_TIMESTAMP}'
-        pub_sub_records = merge_sequencial(
+        pub_sub_records = merge_sequential(
             left_records=sub_records,
             right_records=pub_records,
             left_stamp_key=sub_records.columns[0],
@@ -1146,7 +1146,7 @@ class NodeRecordsUseLatestMessage:
             f'{self._node_path.publish_topic_name}/rclcpp_publish_timestamp',
         ]
 
-        pub_sub_records = merge_sequencial(
+        pub_sub_records = merge_sequential(
             left_records=sub_records,
             right_records=pub_records,
             left_stamp_key=sub_records.columns[0],
