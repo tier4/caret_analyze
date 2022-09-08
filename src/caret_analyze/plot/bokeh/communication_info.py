@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
+
 import pandas as pd
 
 from .communication_info_interface import CommunicationTimeSeriesPlot
@@ -19,6 +21,8 @@ from .plot_util import (add_top_level_column,
                         convert_df_to_sim_time,
                         get_freq_with_timestamp)
 from ...runtime import Communication
+
+logger = getLogger(__name__)
 
 
 class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
@@ -47,6 +51,12 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
         communication: Communication
     ) -> pd.DataFrame:
         df = communication.to_dataframe()
+        if len(df) == 0:
+            logger.warning(
+                'Since the latency_table size is 0, '
+                'the latency cannot be calculated. '
+                f'communication_name: {self._get_comm_name(communication)}'
+            )
         if xaxis_type == 'sim_time':
             convert_df_to_sim_time(self._get_converter(), df)
 
@@ -93,7 +103,14 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
             'rclcpp_publish_timestamp [ns]': df.iloc[:, 0],
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
-        period_df = period_df.drop(period_df.index[0])
+        if len(period_df) == 0:
+            logger.warning(
+                'Since the latency_table size is 0, '
+                'the period cannot be calculated. '
+                f'communication_name: {self._get_comm_name(communication)}'
+            )
+        else:
+            period_df = period_df.drop(period_df.index[0])
         period_df = add_top_level_column(period_df,
                                          self._get_comm_name(communication))
 
@@ -147,10 +164,14 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         self
     ) -> int:
         first_timestamps = []
-        for cb in self._communications:
-            df = cb.to_dataframe()
+        for comm in self._communications:
+            df = comm.to_dataframe()
             if len(df) == 0:
-                # TODO: Emit an exception when latency_table size is 0.
+                logger.warning(
+                    'Since the latency_table size is 0, '
+                    'the frequency cannot be calculated. '
+                    f'communication_name: {self._get_comm_name(comm)}'
+                )
                 continue
             first_timestamps.append(df.iloc[0, 0])
 

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Union
 
 import pandas as pd
@@ -22,6 +23,7 @@ from .plot_util import (add_top_level_column, convert_df_to_sim_time,
 from ...runtime import (Application, CallbackBase, CallbackGroup,
                         Executor, Node, Path)
 
+logger = getLogger(__name__)
 
 CallbacksType = Union[Application, Path, Executor, Node,
                       CallbackGroup, CallbackBase, List[CallbackBase]]
@@ -56,6 +58,10 @@ class CallbackLatencyPlot(TimeSeriesPlot):
         callback: CallbackBase
     ) -> pd.DataFrame:
         df = callback.to_dataframe()
+        if len(df) == 0:
+            logger.warning('Since the latency_table size is 0, '
+                           'the latency cannot be calculated. '
+                           f'callback_name: {callback.callback_name}')
         if xaxis_type == 'sim_time':
             convert_df_to_sim_time(self._get_converter(), df)
 
@@ -104,7 +110,12 @@ class CallbackPeriodPlot(TimeSeriesPlot):
             'callback_start_timestamp [ns]': df.iloc[:, 0],
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
-        period_df = period_df.drop(period_df.index[0])
+        if len(period_df) == 0:
+            logger.warning('Since the latency_table size is 0, '
+                           'the period cannot be calculated. '
+                           f'callback_name: {callback.callback_name}')
+        else:
+            period_df = period_df.drop(period_df.index[0])
         period_df = add_top_level_column(period_df, callback.callback_name)
 
         return period_df
@@ -167,7 +178,9 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         for cb in self._callbacks:
             df = cb.to_dataframe()
             if len(df) == 0:
-                # TODO: Emit an exception when latency_table size is 0.
+                logger.warning('Since the latency_table size is 0, '
+                               'the frequency cannot be calculated. '
+                               f'callback_name: {cb.callback_name}')
                 continue
             first_timestamps.append(df.iloc[0, 0])
 

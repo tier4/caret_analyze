@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import Union
 
 import pandas as pd
@@ -20,6 +21,8 @@ from .plot_util import (add_top_level_column, convert_df_to_sim_time,
                         get_freq_with_timestamp)
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
 from ...runtime import Publisher, Subscription
+
+logger = getLogger(__name__)
 
 
 class PubSubPeriodPlot(PubSubTimeSeriesPlot):
@@ -53,7 +56,14 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
             self._get_ts_column_name(pub_sub): df.iloc[:, 0],
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
-        period_df = period_df.drop(period_df.index[0])
+        if len(period_df) == 0:
+            logger.warning(
+                'Since the latency_table size is 0, '
+                'the period cannot be calculated. '
+                f'pub_sub_summary: {pub_sub.summary}'
+            )
+        else:
+            period_df = period_df.drop(period_df.index[0])
         period_df = add_top_level_column(period_df, pub_sub.topic_name)
 
         return period_df
@@ -104,10 +114,14 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
         self
     ) -> int:
         first_timestamps = []
-        for cb in self._pub_subs:
-            df = cb.to_dataframe()
+        for pub_sub in self._pub_subs:
+            df = pub_sub.to_dataframe()
             if len(df) == 0:
-                # TODO: Emit an exception when latency_table size is 0.
+                logger.warning(
+                    'Since the latency_table size is 0, '
+                    'the frequency cannot be calculated. '
+                    f'pub_sub_summary: {pub_sub.summary}'
+                )
                 continue
             first_timestamps.append(df.iloc[0, 0])
 
