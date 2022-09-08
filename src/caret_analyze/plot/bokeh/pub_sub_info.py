@@ -58,7 +58,7 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
         })
         if len(period_df) == 0:
             logger.warning(
-                'Since the latency_table size is 0, '
+                'Since no timestamp is recorded, '
                 'the period cannot be calculated. '
                 f'pub_sub_summary: {pub_sub.summary}'
             )
@@ -118,7 +118,7 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
             df = pub_sub.to_dataframe()
             if len(df) == 0:
                 logger.warning(
-                    'Since the latency_table size is 0, '
+                    'Since no timestamp is recorded, '
                     'the frequency cannot be calculated. '
                     f'pub_sub_summary: {pub_sub.summary}'
                 )

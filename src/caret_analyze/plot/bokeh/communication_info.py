@@ -53,7 +53,7 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
         df = communication.to_dataframe()
         if len(df) == 0:
             logger.warning(
-                'Since the latency_table size is 0, '
+                'Since no timestamp is recorded, '
                 'the latency cannot be calculated. '
                 f'communication_name: {self._get_comm_name(communication)}'
             )
@@ -105,7 +105,7 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
         })
         if len(period_df) == 0:
             logger.warning(
-                'Since the latency_table size is 0, '
+                'Since no timestamp is recorded, '
                 'the period cannot be calculated. '
                 f'communication_name: {self._get_comm_name(communication)}'
             )
@@ -168,7 +168,7 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
             df = comm.to_dataframe()
             if len(df) == 0:
                 logger.warning(
-                    'Since the latency_table size is 0, '
+                    'Since no timestamp is recorded, '
                     'the frequency cannot be calculated. '
                     f'communication_name: {self._get_comm_name(comm)}'
                 )

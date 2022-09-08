@@ -59,7 +59,7 @@ class CallbackLatencyPlot(TimeSeriesPlot):
     ) -> pd.DataFrame:
         df = callback.to_dataframe()
         if len(df) == 0:
-            logger.warning('Since the latency_table size is 0, '
+            logger.warning('Since no timestamp is recorded, '
                            'the latency cannot be calculated. '
                            f'callback_name: {callback.callback_name}')
         if xaxis_type == 'sim_time':
@@ -111,7 +111,7 @@ class CallbackPeriodPlot(TimeSeriesPlot):
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
         if len(period_df) == 0:
-            logger.warning('Since the latency_table size is 0, '
+            logger.warning('Since no timestamp is recorded, '
                            'the period cannot be calculated. '
                            f'callback_name: {callback.callback_name}')
         else:
@@ -178,7 +178,7 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         for cb in self._callbacks:
             df = cb.to_dataframe()
             if len(df) == 0:
-                logger.warning('Since the latency_table size is 0, '
+                logger.warning('Since no timestamp is recorded, '
                                'the frequency cannot be calculated. '
                                f'callback_name: {cb.callback_name}')
                 continue
