@@ -136,7 +136,7 @@ class NodePathStruct(Summarizable):
         return self._subscription.topic_name
 
     def to_value(self) -> NodePathStructValue:
-        return NodePathStructValue(self.node_name, self.subscription,
-                                   self.publisher,
+        return NodePathStructValue(self.node_name, self.subscription.to_value(),
+                                   self.publisher.to_value(),
                                    tuple(v.to_value() for v in self.child),
-                                   self.message_context)
+                                   self.message_context.to_value())
