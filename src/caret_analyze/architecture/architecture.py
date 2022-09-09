@@ -222,7 +222,7 @@ class NamedPathManager():
 
     @property
     def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return tuple(v.top_value() for v in self._named_paths.values())
+        return tuple(v.to_value() for v in self._named_paths.values())
 
     def get_named_path(self, path_name: str) -> PathStructValue:
         if path_name not in self._named_paths.keys():
