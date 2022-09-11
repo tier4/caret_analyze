@@ -156,6 +156,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         else:
             save(p, export_path, title='callback time-line', resources=CDN)
 
+        return p
+
     def _get_callback_lines(
         self,
         callback: CallbackBase,
