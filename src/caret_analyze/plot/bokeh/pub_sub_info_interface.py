@@ -45,7 +45,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None,
-        interactive: bool = True
+        interactive: bool = False
     ) -> Union[List[Figure], None]:
         validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
