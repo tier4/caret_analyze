@@ -51,6 +51,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
                     """,
                     point_policy='follow_mouse'
                 )
+        # TODO: self._communication is not defined.
         frame_min, frame_max = get_range(self._communications)
         source_df = self._to_dataframe_core(xaxis_type)
         y_axis_label = source_df.columns.get_level_values(1).to_list()[1]
