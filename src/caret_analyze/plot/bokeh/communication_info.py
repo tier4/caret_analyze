@@ -39,9 +39,25 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
     ) -> pd.DataFrame:
         concat_latency_df = pd.DataFrame()
         for comm in self._communications:
-            latency_df = self._create_latency_df(xaxis_type, comm)
-            concat_latency_df = pd.concat([concat_latency_df, latency_df],
-                                          axis=1)
+            try:
+                latency_df = self._create_latency_df(xaxis_type, comm)
+                concat_latency_df = pd.concat([concat_latency_df, latency_df],
+                                              axis=1)
+            except IndexError:
+                if len(comm.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'latency', comm)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'rclcpp_publish_timestamp [ns]', 'latency [ms]'])
+                    empty_df = add_top_level_column(empty_df,
+                                                    self._get_comm_name(comm))
+                    concat_latency_df = pd.concat([
+                        concat_latency_df, empty_df], axis=1)
+            finally:
+                if len(latency_df) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'latency', self._get_comm_name(comm))
 
         return concat_latency_df
 
@@ -51,12 +67,6 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
         communication: Communication
     ) -> pd.DataFrame:
         df = communication.to_dataframe()
-        if len(df) == 0:
-            logger.warning(
-                'Since no timestamp is recorded, '
-                'the latency cannot be calculated. '
-                f'communication_name: {self._get_comm_name(communication)}'
-            )
         if xaxis_type == 'sim_time':
             convert_df_to_sim_time(self._get_converter(), df)
 
@@ -84,9 +94,25 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
     ) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
         for comm in self._communications:
-            latency_df = self._create_period_df(xaxis_type, comm)
-            concat_period_df = pd.concat([concat_period_df, latency_df],
-                                         axis=1)
+            try:
+                period_df = self._create_period_df(xaxis_type, comm)
+                concat_period_df = pd.concat([concat_period_df, period_df],
+                                             axis=1)
+            except IndexError:
+                if len(comm.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'period', comm)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'rclcpp_publish_timestamp [ns]', 'period [ms]'])
+                    empty_df = add_top_level_column(empty_df,
+                                                    self._get_comm_name(comm))
+                    concat_period_df = pd.concat([
+                        concat_period_df, empty_df], axis=1)
+            finally:
+                if len(period_df) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'period', self._get_comm_name(comm))
 
         return concat_period_df
 
@@ -103,14 +129,7 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
             'rclcpp_publish_timestamp [ns]': df.iloc[:, 0],
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
-        if len(period_df) == 0:
-            logger.warning(
-                'Since no timestamp is recorded, '
-                'the period cannot be calculated. '
-                f'communication_name: {self._get_comm_name(communication)}'
-            )
-        else:
-            period_df = period_df.drop(period_df.index[0])
+        period_df = period_df.drop(period_df.index[0])
         period_df = add_top_level_column(period_df,
                                          self._get_comm_name(communication))
 
@@ -130,12 +149,28 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         xaxis_type: str
     ) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
-        for cb in self._communications:
-            frequency_df = self._create_frequency_df(xaxis_type, cb)
-            concat_frequency_df = pd.concat(
-                [concat_frequency_df, frequency_df],
-                axis=1
-            )
+        for comm in self._communications:
+            try:
+                frequency_df = self._create_frequency_df(xaxis_type, comm)
+                concat_frequency_df = pd.concat(
+                    [concat_frequency_df, frequency_df],
+                    axis=1
+                )
+            except IndexError:
+                if len(comm.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'frequency', comm)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'rclcpp_publish_timestamp [ns]', 'frequency [Hz]'])
+                    empty_df = add_top_level_column(empty_df,
+                                                    self._get_comm_name(comm))
+                    concat_frequency_df = pd.concat([
+                        concat_frequency_df, empty_df], axis=1)
+            finally:
+                if len(frequency_df) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'frequency', comm)
 
         return concat_frequency_df
 
@@ -167,11 +202,6 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         for comm in self._communications:
             df = comm.to_dataframe()
             if len(df) == 0:
-                logger.warning(
-                    'Since no timestamp is recorded, '
-                    'the frequency cannot be calculated. '
-                    f'communication_name: {self._get_comm_name(comm)}'
-                )
                 continue
             first_timestamps.append(df.iloc[0, 0])
 

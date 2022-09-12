@@ -46,9 +46,22 @@ class CallbackLatencyPlot(TimeSeriesPlot):
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_latency_df = pd.DataFrame()
         for cb in self._callbacks:
-            latency_df = self._create_latency_df(xaxis_type, cb)
-            concat_latency_df = pd.concat([concat_latency_df, latency_df],
-                                          axis=1)
+            try:
+                latency_df = self._create_latency_df(xaxis_type, cb)
+                concat_latency_df = pd.concat([concat_latency_df, latency_df],
+                                              axis=1)
+            except IndexError:
+                if len(cb.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(logger, 'latency', cb)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'callback_start_timestamp [ns]', 'latency [ms]'])
+                    empty_df = add_top_level_column(empty_df, cb.callback_name)
+                    concat_latency_df = pd.concat([
+                        concat_latency_df, empty_df], axis=1)
+            finally:
+                if len(latency_df) == 0:
+                    self._output_table_size_zero_warn(logger, 'latency', cb)
 
         return concat_latency_df
 
@@ -58,10 +71,6 @@ class CallbackLatencyPlot(TimeSeriesPlot):
         callback: CallbackBase
     ) -> pd.DataFrame:
         df = callback.to_dataframe()
-        if len(df) == 0:
-            logger.warning('Since no timestamp is recorded, '
-                           'the latency cannot be calculated. '
-                           f'callback_name: {callback.callback_name}')
         if xaxis_type == 'sim_time':
             convert_df_to_sim_time(self._get_converter(), df)
 
@@ -91,9 +100,22 @@ class CallbackPeriodPlot(TimeSeriesPlot):
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
         for cb in self._callbacks:
-            period_df = self._create_period_df(xaxis_type, cb)
-            concat_period_df = pd.concat([concat_period_df, period_df],
-                                         axis=1)
+            try:
+                period_df = self._create_period_df(xaxis_type, cb)
+                concat_period_df = pd.concat([concat_period_df, period_df],
+                                             axis=1)
+            except IndexError:
+                if len(cb.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(logger, 'period', cb)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'callback_start_timestamp [ns]', 'period [ms]'])
+                    empty_df = add_top_level_column(empty_df, cb.callback_name)
+                    concat_period_df = pd.concat([
+                        concat_period_df, empty_df], axis=1)
+            finally:
+                if len(period_df) == 0:
+                    self._output_table_size_zero_warn(logger, 'period', cb)
 
         return concat_period_df
 
@@ -110,12 +132,7 @@ class CallbackPeriodPlot(TimeSeriesPlot):
             'callback_start_timestamp [ns]': df.iloc[:, 0],
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
-        if len(period_df) == 0:
-            logger.warning('Since no timestamp is recorded, '
-                           'the period cannot be calculated. '
-                           f'callback_name: {callback.callback_name}')
-        else:
-            period_df = period_df.drop(period_df.index[0])
+        period_df = period_df.drop(period_df.index[0])
         period_df = add_top_level_column(period_df, callback.callback_name)
 
         return period_df
@@ -142,11 +159,24 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
     ) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
         for cb in self._callbacks:
-            frequency_df = self._create_frequency_df(xaxis_type, cb)
-            concat_frequency_df = pd.concat(
-                [concat_frequency_df, frequency_df],
-                axis=1
-            )
+            try:
+                frequency_df = self._create_frequency_df(xaxis_type, cb)
+                concat_frequency_df = pd.concat(
+                    [concat_frequency_df, frequency_df],
+                    axis=1
+                )
+            except IndexError:
+                if len(cb.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(logger, 'frequency', cb)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'callback_start_timestamp [ns]', 'frequency [Hz]'])
+                    empty_df = add_top_level_column(empty_df, cb.callback_name)
+                    concat_frequency_df = pd.concat([
+                        concat_frequency_df, empty_df], axis=1)
+            finally:
+                if len(frequency_df) == 0:
+                    self._output_table_size_zero_warn(logger, 'frequency', cb)
 
         return concat_frequency_df
 
@@ -178,9 +208,6 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         for cb in self._callbacks:
             df = cb.to_dataframe()
             if len(df) == 0:
-                logger.warning('Since no timestamp is recorded, '
-                               'the frequency cannot be calculated. '
-                               f'callback_name: {cb.callback_name}')
                 continue
             first_timestamps.append(df.iloc[0, 0])
 

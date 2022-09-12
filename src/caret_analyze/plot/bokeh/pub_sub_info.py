@@ -36,9 +36,25 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
         for pub_sub in self._pub_subs:
-            period_df = self._create_period_df(xaxis_type, pub_sub)
-            concat_period_df = pd.concat([concat_period_df, period_df],
-                                         axis=1)
+            try:
+                period_df = self._create_period_df(xaxis_type, pub_sub)
+                concat_period_df = pd.concat([concat_period_df, period_df],
+                                             axis=1)
+            except IndexError:
+                if len(pub_sub.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'period', pub_sub)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        self._get_ts_column_name(pub_sub), 'period [ms]'])
+                    empty_df = add_top_level_column(
+                        empty_df, pub_sub.topic_name)
+                    concat_period_df = pd.concat([
+                        concat_period_df, empty_df], axis=1)
+            finally:
+                if len(period_df) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'period', pub_sub)
 
         return concat_period_df.sort_index(level=0, axis=1,
                                            sort_remaining=False)
@@ -56,14 +72,7 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
             self._get_ts_column_name(pub_sub): df.iloc[:, 0],
             'period [ms]': df.iloc[:, 0].diff() * 10**(-6)
         })
-        if len(period_df) == 0:
-            logger.warning(
-                'Since no timestamp is recorded, '
-                'the period cannot be calculated. '
-                f'pub_sub_summary: {pub_sub.summary}'
-            )
-        else:
-            period_df = period_df.drop(period_df.index[0])
+        period_df = period_df.drop(period_df.index[0])
         period_df = add_top_level_column(period_df, pub_sub.topic_name)
 
         return period_df
@@ -80,11 +89,27 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
         for pub_sub in self._pub_subs:
-            frequency_df = self._create_frequency_df(xaxis_type, pub_sub)
-            concat_frequency_df = pd.concat(
-                [concat_frequency_df, frequency_df],
-                axis=1
-            )
+            try:
+                frequency_df = self._create_frequency_df(xaxis_type, pub_sub)
+                concat_frequency_df = pd.concat(
+                    [concat_frequency_df, frequency_df],
+                    axis=1
+                )
+            except IndexError:
+                if len(pub_sub.to_dataframe()) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'frequency', pub_sub)
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        self._get_ts_column_name(pub_sub), 'frequency [Hz]'])
+                    empty_df = add_top_level_column(
+                        empty_df, pub_sub.topic_name)
+                    concat_frequency_df = pd.concat([
+                        concat_frequency_df, empty_df], axis=1)
+            finally:
+                if len(frequency_df) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'frequency', pub_sub)
 
         return concat_frequency_df.sort_index(level=0, axis=1,
                                               sort_remaining=False)
@@ -117,11 +142,6 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
         for pub_sub in self._pub_subs:
             df = pub_sub.to_dataframe()
             if len(df) == 0:
-                logger.warning(
-                    'Since no timestamp is recorded, '
-                    'the frequency cannot be calculated. '
-                    f'pub_sub_summary: {pub_sub.summary}'
-                )
                 continue
             first_timestamps.append(df.iloc[0, 0])
 
