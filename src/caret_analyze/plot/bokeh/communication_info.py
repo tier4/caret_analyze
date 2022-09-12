@@ -73,6 +73,7 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
         latency_df = pd.DataFrame(data={
             'rclcpp_publish_timestamp [ns]': df.iloc[:, 0],
             'latency [ms]': (df.iloc[:, 3] - df.iloc[:, 0]) * 10**(-6)
+            # TODO: modify 3 index to -1, since df index size may change.
         })
         latency_df = add_top_level_column(latency_df,
                                           self._get_comm_name(communication))

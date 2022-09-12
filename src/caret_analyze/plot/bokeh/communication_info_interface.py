@@ -17,7 +17,7 @@ from logging import getLogger, Logger
 from typing import Optional
 
 from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
 
 import pandas as pd
@@ -38,7 +38,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None
-    ) -> None:
+    ) -> Figure:
         validate_xaxis_type(xaxis_type)
         Hover = HoverTool(
                     tooltips="""
@@ -51,6 +51,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
                     """,
                     point_policy='follow_mouse'
                 )
+        # TODO: self._communication is not defined.
         frame_min, frame_max = get_range(self._communications)
         source_df = self._to_dataframe_core(xaxis_type)
         y_axis_label = source_df.columns.get_level_values(1).to_list()[1]
@@ -102,6 +103,8 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         else:
             save(p, export_path,
                  title='communication time-line', resources=CDN)
+
+        return p
 
     def _get_comm_lines(
         self,

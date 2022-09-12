@@ -14,10 +14,10 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger, Logger
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
 
 from ipywidgets import Dropdown, interact
@@ -45,26 +45,36 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None,
-    ) -> None:
+        interactive: bool = False
+    ) -> Union[List[Figure], None]:
         validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
         self._last_ywheel_zoom = ywheel_zoom
         self._last_full_legends = full_legends
         self._last_export_path = export_path
 
+        # TODO: self._pub_subs is not defined.
         all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
-        if len(all_topic_names) >= 2:
-            all_topic_names = ['All'] + all_topic_names
-
-        topic_dropdown = Dropdown(description='Topic:',
-                                  options=(all_topic_names))
-        interact(self._show_core,
-                 topic_name=topic_dropdown)
+        # not interactive
+        if self._last_export_path:
+            self._show_core('All')
+            return None
+        if len(all_topic_names) == 1:
+            return [self._show_core('All')]
+        elif not interactive:
+            return [self._show_core(topic_name) for
+                    topic_name in ['All'] + all_topic_names]
+        # interactive
+        else:
+            topic_dropdown = Dropdown(description='Topic:',
+                                      options=(['All'] + all_topic_names))
+            interact(self._show_core,
+                     topic_name=topic_dropdown)
 
     def _show_core(
         self,
         topic_name: str
-    ) -> None:
+    ) -> Figure:
         source_df = self._to_dataframe_core(self._last_xaxis_type)
         source_df_by_topic = self._get_source_df_by_topic(source_df)
         if topic_name == 'All':
@@ -142,6 +152,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             save(p, self._last_export_path,
                  title='PubSub time-line', resources=CDN)
 
+        return p
+
     def _get_pub_sub_lines(
         self,
         line_source_df: pd.DataFrame,
@@ -218,6 +230,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         pub_sub: Union[Publisher, Subscription]
     ) -> str:
         if isinstance(pub_sub, Publisher):
+            # TODO: fix here, since callback_names may take None as well.
             ts_column_name = (f'{pub_sub.callback_names[0]}'
                               '/rclcpp_publish_timestamp [ns]')
         else:
