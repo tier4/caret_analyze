@@ -45,8 +45,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None,
-        interactive: bool = False
-    ) -> Union[List[Figure], None]:
+        # interactive: bool = False
+    ) -> List[Figure]:
         validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
         self._last_ywheel_zoom = ywheel_zoom
@@ -55,21 +55,27 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
         # TODO: self._pub_subs is not defined.
         all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
-        # not interactive
-        if self._last_export_path:
-            self._show_core('All')
-            return None
-        if len(all_topic_names) == 1:
+        if self._last_export_path or len(all_topic_names) == 1:
             return [self._show_core('All')]
-        elif not interactive:
-            return [self._show_core(topic_name) for
-                    topic_name in ['All'] + all_topic_names]
-        # interactive
         else:
-            topic_dropdown = Dropdown(description='Topic:',
-                                      options=(['All'] + all_topic_names))
-            interact(self._show_core,
-                     topic_name=topic_dropdown)
+            [self._show_core(topic_name) for
+             topic_name in ['All']+all_topic_names]
+
+        # # not interactive
+        # if self._last_export_path:
+        #     self._show_core('All')
+        #     return None
+        # if len(all_topic_names) == 1:
+        #     return [self._show_core('All')]
+        # elif not interactive:
+        #     return [self._show_core(topic_name) for
+        #             topic_name in ['All'] + all_topic_names]
+        # # interactive
+        # else:
+        #     topic_dropdown = Dropdown(description='Topic:',
+        #                               options=(['All'] + all_topic_names))
+        #     interact(self._show_core,
+        #              topic_name=topic_dropdown)
 
     def _show_core(
         self,
