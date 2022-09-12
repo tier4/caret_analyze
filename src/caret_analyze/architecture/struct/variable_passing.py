@@ -90,4 +90,6 @@ class VariablePassingStruct(Summarizable):
         })
 
     def to_value(self) -> VariablePassingStructValue:
-        return VariablePassingStructValue(self.node_name, self.callback_write.to_value(), self.callback_read.to_value())
+        return VariablePassingStructValue(self.node_name,
+                                          self.callback_write.to_value(),
+                                          self.callback_read.to_value())
