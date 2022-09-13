@@ -230,8 +230,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
         return source_df_by_topic
 
+    @staticmethod
     def _get_ts_column_name(
-        self,
         pub_sub: Union[Publisher, Subscription]
     ) -> str:
         if isinstance(pub_sub, Publisher):
