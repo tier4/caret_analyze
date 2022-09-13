@@ -45,22 +45,22 @@ class CallbackLatencyPlot(TimeSeriesPlot):
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_latency_df = pd.DataFrame()
-        for cb in self._callbacks:
+        for i, cb in enumerate(self._callbacks, 1):
             try:
                 latency_df = self._create_latency_df(xaxis_type, cb)
                 concat_latency_df = pd.concat([concat_latency_df, latency_df],
                                               axis=1)
             except IndexError:
-                if len(cb.to_dataframe()) == 0:
-                    self._output_table_size_zero_warn(logger, 'latency', cb)
+                pass
+            finally:
+                if i*2 != len(concat_latency_df.columns):
                     # Concatenate empty DataFrame
                     empty_df = pd.DataFrame(columns=[
                         'callback_start_timestamp [ns]', 'latency [ms]'])
                     empty_df = add_top_level_column(empty_df, cb.callback_name)
                     concat_latency_df = pd.concat([
                         concat_latency_df, empty_df], axis=1)
-            else:
-                if len(latency_df) == 0:
+                if len(cb.to_dataframe()) == 0:
                     self._output_table_size_zero_warn(logger, 'latency', cb)
 
         return concat_latency_df
@@ -99,22 +99,22 @@ class CallbackPeriodPlot(TimeSeriesPlot):
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
-        for cb in self._callbacks:
+        for i, cb in enumerate(self._callbacks, 1):
             try:
                 period_df = self._create_period_df(xaxis_type, cb)
                 concat_period_df = pd.concat([concat_period_df, period_df],
                                              axis=1)
             except IndexError:
-                if len(cb.to_dataframe()) == 0:
-                    self._output_table_size_zero_warn(logger, 'period', cb)
+                pass
+            finally:
+                if i*2 != len(concat_period_df.columns):
                     # Concatenate empty DataFrame
                     empty_df = pd.DataFrame(columns=[
                         'callback_start_timestamp [ns]', 'period [ms]'])
                     empty_df = add_top_level_column(empty_df, cb.callback_name)
                     concat_period_df = pd.concat([
                         concat_period_df, empty_df], axis=1)
-            else:
-                if len(period_df) == 0:
+                if len(cb.to_dataframe()) == 0:
                     self._output_table_size_zero_warn(logger, 'period', cb)
 
         return concat_period_df
@@ -158,7 +158,7 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
         xaxis_type: str
     ) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
-        for cb in self._callbacks:
+        for i, cb in enumerate(self._callbacks, 1):
             try:
                 frequency_df = self._create_frequency_df(xaxis_type, cb)
                 concat_frequency_df = pd.concat(
@@ -166,16 +166,16 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
                     axis=1
                 )
             except IndexError:
-                if len(cb.to_dataframe()) == 0:
-                    self._output_table_size_zero_warn(logger, 'frequency', cb)
+                pass
+            finally:
+                if i*2 != len(concat_frequency_df.columns):
                     # Concatenate empty DataFrame
                     empty_df = pd.DataFrame(columns=[
                         'callback_start_timestamp [ns]', 'frequency [Hz]'])
                     empty_df = add_top_level_column(empty_df, cb.callback_name)
                     concat_frequency_df = pd.concat([
                         concat_frequency_df, empty_df], axis=1)
-            else:
-                if len(frequency_df) == 0:
+                if len(cb.to_dataframe()) == 0:
                     self._output_table_size_zero_warn(logger, 'frequency', cb)
 
         return concat_frequency_df

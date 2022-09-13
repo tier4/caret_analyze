@@ -35,15 +35,15 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
-        for pub_sub in self._pub_subs:
+        for i, pub_sub in enumerate(self._pub_subs, 1):
             try:
                 period_df = self._create_period_df(xaxis_type, pub_sub)
                 concat_period_df = pd.concat([concat_period_df, period_df],
                                              axis=1)
             except IndexError:
-                if len(pub_sub.to_dataframe()) == 0:
-                    self._output_table_size_zero_warn(
-                        logger, 'period', pub_sub)
+                pass
+            finally:
+                if i*2 != len(concat_period_df.columns):
                     # Concatenate empty DataFrame
                     empty_df = pd.DataFrame(columns=[
                         self._get_ts_column_name(pub_sub), 'period [ms]'])
@@ -51,8 +51,7 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
                         empty_df, pub_sub.topic_name)
                     concat_period_df = pd.concat([
                         concat_period_df, empty_df], axis=1)
-            else:
-                if len(period_df) == 0:
+                if len(pub_sub.to_dataframe()) == 0:
                     self._output_table_size_zero_warn(
                         logger, 'period', pub_sub)
 
@@ -88,7 +87,7 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
-        for pub_sub in self._pub_subs:
+        for i, pub_sub in enumerate(self._pub_subs, 1):
             try:
                 frequency_df = self._create_frequency_df(xaxis_type, pub_sub)
                 concat_frequency_df = pd.concat(
@@ -96,9 +95,9 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
                     axis=1
                 )
             except IndexError:
-                if len(pub_sub.to_dataframe()) == 0:
-                    self._output_table_size_zero_warn(
-                        logger, 'frequency', pub_sub)
+                pass
+            finally:
+                if i*2 != len(concat_frequency_df.columns):
                     # Concatenate empty DataFrame
                     empty_df = pd.DataFrame(columns=[
                         self._get_ts_column_name(pub_sub), 'frequency [Hz]'])
@@ -106,8 +105,7 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
                         empty_df, pub_sub.topic_name)
                     concat_frequency_df = pd.concat([
                         concat_frequency_df, empty_df], axis=1)
-            else:
-                if len(frequency_df) == 0:
+                if len(pub_sub.to_dataframe()) == 0:
                     self._output_table_size_zero_warn(
                         logger, 'frequency', pub_sub)
 
