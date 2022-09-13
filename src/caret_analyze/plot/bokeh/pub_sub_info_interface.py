@@ -39,6 +39,12 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
     _last_full_legends: bool = False
     _last_export_path: Optional[str] = None
 
+    def __init__(
+        self,
+        *pub_subs: Union[Publisher, Subscription]
+    ) -> None:
+        self._pub_subs = pub_subs
+
     def show(
         self,
         xaxis_type: str = 'system_time',
@@ -53,7 +59,6 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         self._last_full_legends = full_legends
         self._last_export_path = export_path
 
-        # TODO: self._pub_subs is not defined.
         all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
         # not interactive
         if self._last_export_path:
@@ -225,14 +230,16 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
         return source_df_by_topic
 
+    @staticmethod
     def _get_ts_column_name(
-        self,
         pub_sub: Union[Publisher, Subscription]
     ) -> str:
         if isinstance(pub_sub, Publisher):
-            # TODO: fix here, since callback_names may take None as well.
-            ts_column_name = (f'{pub_sub.callback_names[0]}'
-                              '/rclcpp_publish_timestamp [ns]')
+            if pub_sub.callback_names:
+                ts_column_name = (f'{pub_sub.callback_names[0]}'
+                                  '/rclcpp_publish_timestamp [ns]')
+            else:
+                ts_column_name = '/rclcpp_publish_timestamp [ns]'
         else:
             ts_column_name = f'{pub_sub.column_names[0]} [ns]'
 
