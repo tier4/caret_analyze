@@ -210,7 +210,7 @@ def sched_plot_cbg(
         for callback in callback_group.callbacks:
             callback_idx += 1
             rect_source = get_callback_rect_list(callback, clipper, rect_y,
-                                             rect_height, converter)
+                                                 rect_height, converter)
             bar_source = get_callback_bar(callback, rect_y,
                                           frame_max, frame_min)
             color = color_selector.get_color(
