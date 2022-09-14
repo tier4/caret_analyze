@@ -578,7 +578,7 @@ class RecordsInterface:
         sink_records : RecordsInterface
             sink-side records
         sink_stamp_key : str
-            keyname indicating time stamp for copy records
+            key_name indicating time stamp for copy records
         sink_from_key : str
             Key name indicating the address of the copy destination
         progress_label : str

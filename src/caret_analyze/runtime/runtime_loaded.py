@@ -96,7 +96,7 @@ class ExecutorsLoaded:
         executor_value: ExecutorStructValue,
         nodes_loaded: NodesLoaded
     ) -> Executor:
-        cbgs = [
+        callback_groups = [
             nodes_loaded.find_callback_group(group_name)
             for group_name
             in executor_value.callback_group_names
@@ -104,7 +104,7 @@ class ExecutorsLoaded:
 
         return Executor(
             executor_value,
-            cbgs,
+            callback_groups,
         )
 
     @property
@@ -142,9 +142,9 @@ class NodesLoaded:
         )
         timers = timers_loaded.data
 
-        cbgs: List[CallbackGroup] = []
+        callback_groups: List[CallbackGroup] = []
         if node_value.callback_groups is not None:
-            cbgs = CallbackGroupsLoaded(
+            callback_groups = CallbackGroupsLoaded(
                 node_value.callback_groups,
                 provider,
                 publishers_loaded,
@@ -152,7 +152,7 @@ class NodesLoaded:
                 timers_loaded
             ).data
 
-        callbacks = Util.flatten([_.callbacks for _ in cbgs])
+        callbacks = Util.flatten([_.callbacks for _ in callback_groups])
         node_paths: List[NodePath]
         node_paths = NodePathsLoaded(
             node_value.paths, provider, publishers_loaded, subscriptions_loaded, callbacks
@@ -169,17 +169,17 @@ class NodesLoaded:
             subscriptions,
             timers,
             node_paths,
-            cbgs,
+            callback_groups,
             variable_passings
         )
 
     @property
     def callback_groups(self) -> List[CallbackGroup]:
-        cbgs: List[CallbackGroup] = []
+        callback_groups: List[CallbackGroup] = []
         for node in self._nodes:
             if node.callback_groups is not None:
-                cbgs += node.callback_groups
-        return cbgs
+                callback_groups += node.callback_groups
+        return callback_groups
 
     @property
     def data(self) -> List[Node]:
@@ -198,13 +198,13 @@ class NodesLoaded:
         callback_group_name: str
     ) -> CallbackGroup:
         try:
-            cbgs = self.callback_groups
-            if cbgs is None:
+            callback_groups = self.callback_groups
+            if callback_groups is None:
                 raise ItemNotFoundError('')
 
             return Util.find_one(
                 lambda x: x.callback_group_name == callback_group_name,
-                cbgs
+                callback_groups
             )
         except ItemNotFoundError:
             raise ItemNotFoundError(

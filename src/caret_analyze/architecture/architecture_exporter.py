@@ -301,8 +301,8 @@ class ExecutorsDicts:
         if executor_value.executor_name is None:
             raise InvalidArgumentError('executor_value.executor_name is None')
 
-        cbgs = list(executor_value.callback_groups)
-        cbgs = sorted(cbgs, key=lambda x: x.callback_group_name)
+        callback_groups = list(executor_value.callback_groups)
+        callback_groups = sorted(callback_groups, key=lambda x: x.callback_group_name)
 
         obj = {
             'executor_type': executor_value.executor_type_name,
@@ -310,7 +310,7 @@ class ExecutorsDicts:
             'callback_group_names': [
                 cbg.callback_group_name
                 for cbg
-                in cbgs
+                in callback_groups
             ]
         }
         return obj

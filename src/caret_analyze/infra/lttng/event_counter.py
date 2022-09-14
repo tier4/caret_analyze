@@ -47,7 +47,7 @@ class EventCounter:
         count_df_recorded = count_df[count_df['size'] > 0]
         recorded_trace_points = list(count_df_recorded.index)
 
-        trace_points_added_byld_preload = {
+        trace_points_added_by_ld_preload = {
             'ros2_caret:add_callback_group',
             'ros2_caret:add_callback_group_static_executor',
             'ros2_caret:construct_executor',
@@ -75,7 +75,7 @@ class EventCounter:
             'ros2:dispatch_intra_process_subscription_callback',
         }
 
-        if len(set(recorded_trace_points) & trace_points_added_byld_preload) == 0:
+        if len(set(recorded_trace_points) & trace_points_added_by_ld_preload) == 0:
             raise InvalidTraceFormatError(
                 'Failed to found trace point added by LD_PRELOAD. '
                 'Measurement results will not be correct. '

@@ -511,13 +511,13 @@ class RecordsProviderLttng(RuntimeDataProvider):
     ) -> RecordsInterface:
         assert subscription.callback is not None
 
-        publisher_addrs = self._helper.get_tilde_publishers(publisher)
+        publisher_addresses = self._helper.get_tilde_publishers(publisher)
         subscription_addr = self._helper.get_tilde_subscription(subscription.callback)
 
-        assert len(publisher_addrs) > 0
+        assert len(publisher_addresses) > 0
         assert subscription_addr is not None
 
-        pub_records = self._source.tilde_publish_records(publisher_addrs)
+        pub_records = self._source.tilde_publish_records(publisher_addresses)
         sub_records = self._source.tilde_subscribe_records(subscription_addr)
 
         records = merge(

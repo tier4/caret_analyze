@@ -604,9 +604,9 @@ class TestTopicIgnoreReader:
         mocker.patch.object(reader_mock, 'get_subscription_callbacks',
                             return_value=[sub_cb, sub_cb_ignored])
 
-        cbgs = reader.get_callback_groups(node)
-        assert len(cbgs) == 1
-        cbg = cbgs[0]
+        callback_groups = reader.get_callback_groups(node)
+        assert len(callback_groups) == 1
+        cbg = callback_groups[0]
         assert len(cbg.callback_ids) == 1
         assert cbg.callback_ids[0] == callback_id[0]
 

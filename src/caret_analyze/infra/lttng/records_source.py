@@ -378,8 +378,8 @@ class RecordsSource():
         """
         class TimerEventsFactory(EventsFactory):
 
-            def __init__(self, ctrls: Sequence[TimerControl]) -> None:
-                self._ctrls = ctrls
+            def __init__(self, controls: Sequence[TimerControl]) -> None:
+                self._controls = controls
 
             def create(self, until_ns: int) -> RecordsInterface:
 
@@ -388,27 +388,27 @@ class RecordsSource():
                 ]
 
                 records = RecordsFactory.create_instance(None, columns)
-                for ctrl in self._ctrls:
+                for control in self._controls:
 
-                    if isinstance(ctrl, TimerInit):
-                        ctrl._timestamp
-                        timer_timestamp = ctrl._timestamp
+                    if isinstance(control, TimerInit):
+                        control._timestamp
+                        timer_timestamp = control._timestamp
                         while timer_timestamp < until_ns:
                             record_dict = {
                                             COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
                             }
                             record = RecordFactory.create_instance(record_dict)
                             records.append(record)
-                            timer_timestamp = timer_timestamp+ctrl.period_ns
+                            timer_timestamp = timer_timestamp+control.period_ns
 
                 return records
 
-        timer_ctrls = self._info.get_timer_controls()
+        timer_controls = self._info.get_timer_controls()
 
-        filtered_timer_ctrls = Util.filter_items(
-            lambda x: x.timer_handle == timer_callback.timer_handle, timer_ctrls)
+        filtered_timer_controls = Util.filter_items(
+            lambda x: x.timer_handle == timer_callback.timer_handle, timer_controls)
 
-        return TimerEventsFactory(filtered_timer_ctrls)
+        return TimerEventsFactory(filtered_timer_controls)
 
     @cached_property
     def tilde_publish_records(self) -> RecordsInterface:

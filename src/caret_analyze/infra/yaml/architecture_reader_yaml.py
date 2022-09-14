@@ -138,7 +138,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         if 'callback_groups' not in node_dict.keys():
             return []
 
-        cbgs: List[CallbackGroupValue] = []
+        callback_groups: List[CallbackGroupValue] = []
         cbg_dicts = self._get_value(node_dict, 'callback_groups')
         for cbg_dict in cbg_dicts:
             cbg_name = self._get_value(cbg_dict, 'callback_group_name')
@@ -150,9 +150,9 @@ class ArchitectureReaderYaml(ArchitectureReader):
                 callback_group_id=cbg_name,
                 callback_group_name=cbg_name
             )
-            cbgs.append(cbg)
+            callback_groups.append(cbg)
 
-        return cbgs
+        return callback_groups
 
     def get_paths(self) -> List[PathValue]:
         aliases_info = self._get_value(self._arch, 'named_paths')
