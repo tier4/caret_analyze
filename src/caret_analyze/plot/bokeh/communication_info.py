@@ -54,7 +54,7 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
                         empty_df, self._get_comm_name(comm))
                     concat_latency_df = pd.concat([
                         concat_latency_df, empty_df], axis=1)
-                if len(comm.to_dataframe()) == 0:
+                if len(concat_latency_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(logger, 'latency', comm)
 
         return concat_latency_df
@@ -107,7 +107,7 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
                         empty_df, self._get_comm_name(comm))
                     concat_period_df = pd.concat([
                         concat_period_df, empty_df], axis=1)
-                if len(comm.to_dataframe()) == 0:
+                if len(concat_period_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(logger, 'period', comm)
 
         return concat_period_df
@@ -163,7 +163,7 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
                         empty_df, self._get_comm_name(comm))
                     concat_frequency_df = pd.concat([
                         concat_frequency_df, empty_df], axis=1)
-                if len(comm.to_dataframe()) == 0:
+                if len(concat_frequency_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(
                         logger, 'frequency', comm)
 

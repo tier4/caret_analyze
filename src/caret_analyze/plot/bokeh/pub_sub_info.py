@@ -51,7 +51,7 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
                         empty_df, pub_sub.topic_name)
                     concat_period_df = pd.concat([
                         concat_period_df, empty_df], axis=1)
-                if len(pub_sub.to_dataframe()) == 0:
+                if len(concat_period_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(
                         logger, 'period', pub_sub)
 
@@ -105,7 +105,7 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
                         empty_df, pub_sub.topic_name)
                     concat_frequency_df = pd.concat([
                         concat_frequency_df, empty_df], axis=1)
-                if len(pub_sub.to_dataframe()) == 0:
+                if len(concat_frequency_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(
                         logger, 'frequency', pub_sub)
 

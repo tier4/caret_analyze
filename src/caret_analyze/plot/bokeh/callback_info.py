@@ -60,7 +60,7 @@ class CallbackLatencyPlot(TimeSeriesPlot):
                     empty_df = add_top_level_column(empty_df, cb.callback_name)
                     concat_latency_df = pd.concat([
                         concat_latency_df, empty_df], axis=1)
-                if len(cb.to_dataframe()) == 0:
+                if len(concat_latency_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(logger, 'latency', cb)
 
         return concat_latency_df
@@ -114,7 +114,7 @@ class CallbackPeriodPlot(TimeSeriesPlot):
                     empty_df = add_top_level_column(empty_df, cb.callback_name)
                     concat_period_df = pd.concat([
                         concat_period_df, empty_df], axis=1)
-                if len(cb.to_dataframe()) == 0:
+                if len(concat_period_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(logger, 'period', cb)
 
         return concat_period_df
@@ -175,7 +175,7 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
                     empty_df = add_top_level_column(empty_df, cb.callback_name)
                     concat_frequency_df = pd.concat([
                         concat_frequency_df, empty_df], axis=1)
-                if len(cb.to_dataframe()) == 0:
+                if len(concat_frequency_df.iloc[:, -1]) == 0:
                     self._output_table_size_zero_warn(logger, 'frequency', cb)
 
         return concat_frequency_df
