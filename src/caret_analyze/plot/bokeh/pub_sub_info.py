@@ -31,7 +31,7 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
         self,
         *pub_subs: Union[Publisher, Subscription]
     ) -> None:
-        self._pub_subs = pub_subs
+        super().__init__(*pub_subs)
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
@@ -83,7 +83,7 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
         self,
         *pub_subs: Union[Publisher, Subscription]
     ) -> None:
-        self._pub_subs = pub_subs
+        super().__init__(*pub_subs)
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
