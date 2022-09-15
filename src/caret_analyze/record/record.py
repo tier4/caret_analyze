@@ -464,7 +464,7 @@ class Records(RecordsInterface):
 
         return merged_records
 
-    def merge_sequencial(
+    def merge_sequential(
         self,
         right_records: RecordsInterface,
         left_stamp_key: str,
@@ -630,7 +630,7 @@ class Records(RecordsInterface):
 
         return merged_records
 
-    def merge_sequencial_for_addr_track(
+    def merge_sequential_for_addr_track(
         self,
         source_stamp_key: str,
         source_key: str,
@@ -779,7 +779,7 @@ def merge(
     )
 
 
-def merge_sequencial(
+def merge_sequential(
     left_records: RecordsInterface,
     right_records: RecordsInterface,
     left_stamp_key: str,
@@ -793,7 +793,7 @@ def merge_sequencial(
 ) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
-    return left_records.merge_sequencial(
+    return left_records.merge_sequential(
         right_records,
         left_stamp_key,
         right_stamp_key,
@@ -811,7 +811,7 @@ class RecordType(IntEnum):
     SINK = 2
 
 
-def merge_sequencial_for_addr_track(
+def merge_sequential_for_addr_track(
     source_records: RecordsInterface,
     source_stamp_key: str,
     source_key: str,
@@ -829,7 +829,7 @@ def merge_sequencial_for_addr_track(
     assert type(source_records) == type(copy_records) and type(
         copy_records) == type(sink_records)
 
-    return source_records.merge_sequencial_for_addr_track(
+    return source_records.merge_sequential_for_addr_track(
         source_stamp_key,
         source_key,
         copy_records,

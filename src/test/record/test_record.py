@@ -1498,7 +1498,7 @@ class TestRecords:
             ),
         ],
     )
-    def test_merge_sequencial_with_key(self, how, expect_records_py):
+    def test_merge_sequential_with_key(self, how, expect_records_py):
         left_records_py: Records = Records(
             [
                 Record({'key_left': 1, 'stamp': 0}),
@@ -1527,7 +1527,7 @@ class TestRecords:
             if left_records is None and not CppImplEnabled:
                 continue
 
-            merged_records = left_records.merge_sequencial(
+            merged_records = left_records.merge_sequential(
                 right_records=right_records,
                 left_stamp_key='stamp',
                 right_stamp_key='sub_stamp',
@@ -1606,7 +1606,7 @@ class TestRecords:
             ),
         ],
     )
-    def test_merge_sequencial_with_same_key(self, how, expect_records_py):
+    def test_merge_sequential_with_same_key(self, how, expect_records_py):
         left_records_py: Records = Records(
             [
                 Record({'key': 1, 'stamp': 0}),
@@ -1635,7 +1635,7 @@ class TestRecords:
             if left_records is None and not CppImplEnabled:
                 continue
 
-            merged_records = left_records.merge_sequencial(
+            merged_records = left_records.merge_sequential(
                 right_records=right_records,
                 left_stamp_key='stamp',
                 right_stamp_key='sub_stamp',
@@ -1714,7 +1714,7 @@ class TestRecords:
             ),
         ],
     )
-    def test_merge_sequencial_without_key(self, how, expect_records_py):
+    def test_merge_sequential_without_key(self, how, expect_records_py):
         left_records_py: Records = Records(
             [
                 Record({'stamp': 0}),
@@ -1743,7 +1743,7 @@ class TestRecords:
             if left_records is None and not CppImplEnabled:
                 continue
 
-            merged = left_records.merge_sequencial(
+            merged = left_records.merge_sequential(
                 right_records=right_records,
                 left_stamp_key='stamp',
                 right_stamp_key='sub_stamp',
@@ -1849,7 +1849,7 @@ class TestRecords:
             ),
         ],
     )
-    def test_merge_sequencial_with_drop(self, how, expect_records_py):
+    def test_merge_sequential_with_drop(self, how, expect_records_py):
         left_records_py: Records = Records(
             [
                 Record({'key_left': 1, 'stamp': 0}),
@@ -1878,7 +1878,7 @@ class TestRecords:
             if left_records is None and not CppImplEnabled:
                 continue
 
-            merged = left_records.merge_sequencial(
+            merged = left_records.merge_sequential(
                 right_records=right_records,
                 left_stamp_key='stamp',
                 right_stamp_key='sub_stamp',
@@ -2057,7 +2057,7 @@ class TestRecords:
             ),
         ],
     )
-    def test_merge_sequencial_with_loss(self, how, expect_records_py):
+    def test_merge_sequential_with_loss(self, how, expect_records_py):
         left_records_py = Records(
             [
                 Record({'other_stamp': 4, 'stamp': 1, 'value_left': 1}),
@@ -2086,7 +2086,7 @@ class TestRecords:
             if left_records is None and not CppImplEnabled:
                 continue
 
-            merged = left_records.merge_sequencial(
+            merged = left_records.merge_sequential(
                 right_records=right_records,
                 left_stamp_key='stamp',
                 right_stamp_key='stamp_',
@@ -2099,7 +2099,7 @@ class TestRecords:
 
             assert merged.equals(expect_records) is True
 
-    def test_merge_sequencial_for_addr_track(self):
+    def test_merge_sequential_for_addr_track(self):
         source_records: Records = Records(
             [
                 Record({'source_addr': 1, 'source_stamp': 0}),
@@ -2165,7 +2165,7 @@ class TestRecords:
             if source_records is None and not CppImplEnabled:
                 continue
 
-            merged = source_records.merge_sequencial_for_addr_track(
+            merged = source_records.merge_sequential_for_addr_track(
                 source_stamp_key='source_stamp',
                 source_key='source_addr',
                 copy_records=copy_records,

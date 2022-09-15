@@ -479,7 +479,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def merge_sequencial(
+    def merge_sequential(
         self,
         right_records: RecordsInterface,
         left_stamp_key: str,
@@ -533,7 +533,7 @@ class RecordsInterface:
             Record({'join_key': 1, 'left_stamp_key': 0, 'right_stamp_key': 6}),
             Record({'join_key': 2, 'left_stamp_key': 3, 'right_stamp_key': 5}),
         ])
-        >>> left_records.merge_sequencial(
+        >>> left_records.merge_sequential(
             right_records, 'left_stamp_key', 'right_stamp_key', 'join_key', 'inner'
         ).equals(expected)
         True
@@ -543,7 +543,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def merge_sequencial_for_addr_track(
+    def merge_sequential_for_addr_track(
         self,
         source_stamp_key: str,
         source_key: str,
@@ -605,7 +605,7 @@ class RecordsInterface:
             Record({'source_stamp':0, 'sink_stamp':3, 'source_key':1}),
             Record({'source_stamp':0, 'sink_stamp':2, 'source_key':1}),
         ])
-        >>> source_records.merge_sequencial_for_addr_track(
+        >>> source_records.merge_sequential_for_addr_track(
             'source_stamp', 'source_key', copy_records, 'copy_stamp_key', 'copy_from_key',
             'copy_to_key', sink_records, 'sink_stamp', 'sink_from_key'
         ).equals(expected)
