@@ -14,13 +14,11 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
-
-from ipywidgets import Dropdown, interact
 
 import pandas as pd
 
@@ -52,19 +50,14 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         full_legends: bool = False,
         export_path: Optional[str] = None,
         # interactive: bool = False
-    ) -> List[Figure]:
+    ) -> Figure:
         validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
         self._last_ywheel_zoom = ywheel_zoom
         self._last_full_legends = full_legends
         self._last_export_path = export_path
 
-        all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
-        if self._last_export_path or len(all_topic_names) == 1:
-            return [self._show_core('All')]
-        else:
-            [self._show_core(topic_name) for
-             topic_name in ['All']+all_topic_names]
+        return self._show_core('All')
 
         # # not interactive
         # if self._last_export_path:
