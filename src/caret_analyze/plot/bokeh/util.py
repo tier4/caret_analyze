@@ -119,7 +119,13 @@ def get_range(
 
     po_dfs = [po.to_dataframe(remove_dropped=True) for po in plot_objects]
     po_dfs_valid = [po_df for po_df in po_dfs if len(po_df) > 0]
-    po_min = min(min(df.min()) for df in po_dfs_valid)
-    po_max = max(max(df.max()) for df in po_dfs_valid)
+
+    # NOTE:
+    # The first column is system time for now.
+    # The other columns could be other than system time.
+    # Only the system time is picked out here.
+    base_series = [df.iloc[:, 0] for df in po_dfs_valid]
+    po_min = min(series.min() for series in base_series)
+    po_max = max(series.max() for series in base_series)
 
     return po_min, po_max
