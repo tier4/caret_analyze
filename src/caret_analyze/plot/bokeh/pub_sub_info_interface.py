@@ -168,12 +168,22 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         def get_node_name(
             line_source_df: pd.DataFrame
         ) -> str:
-            return line_source_df.columns.to_list()[0].split('/')[1]
+            ts_column_name_splitted = \
+                line_source_df.columns.to_list()[0].split('/')
+            if len(ts_column_name_splitted) == 1:
+                return ''
+            else:
+                return ts_column_name_splitted[1]
 
         def get_callback_name(
             line_source_df: pd.DataFrame
         ) -> str:
-            return line_source_df.columns.to_list()[0].split('/')[2]
+            ts_column_name_splitted = \
+                line_source_df.columns.to_list()[0].split('/')
+            if len(ts_column_name_splitted) == 1:
+                return ''
+            else:
+                return ts_column_name_splitted[2]
 
         if xaxis_type == 'system_time':
             x_item = ((line_source_df.iloc[:, 0] - frame_min)
@@ -239,7 +249,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                 ts_column_name = (f'{pub_sub.callback_names[0]}'
                                   '/rclcpp_publish_timestamp [ns]')
             else:
-                ts_column_name = '/rclcpp_publish_timestamp [ns]'
+                ts_column_name = 'rclcpp_publish_timestamp [ns]'
         else:
             ts_column_name = f'{pub_sub.column_names[0]} [ns]'
 
