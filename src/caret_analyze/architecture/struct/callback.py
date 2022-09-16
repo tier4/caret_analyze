@@ -72,7 +72,7 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
         """
         Get callback name.
 
-        Returns
+        Returnsthe backslash is redundant between brackets
         -------
         str
             callback name
@@ -112,10 +112,11 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
         pass
 
     def to_value(self) -> CallbackStructValue:
-        return CallbackStructValue(self.node_name, self.symbol,
-                                   self.subscribe_topic_name,
-                                   self.publish_topic_names,
-                                   self.callback_name)
+        return CallbackStructValue(
+            self.node_name, self.symbol,
+            None if self.subscribe_topic_name is None else self.subscribe_topic_name,
+            None if self.subscribe_topic_name is None else self.publish_topic_names,
+            self.callback_name)
 
 
 class TimerCallbackStruct(CallbackStruct):
@@ -154,9 +155,10 @@ class TimerCallbackStruct(CallbackStruct):
         })
 
     def to_value(self) -> TimerCallbackStructValue:
-        return TimerCallbackStructValue(self.node_name, self.symbol,
-                                        self.period_ns, self.publish_topic_names,
-                                        self.callback_name)
+        return TimerCallbackStructValue(
+            self.node_name, self.symbol, self.period_ns,
+            None if self.subscribe_topic_name is None else self.publish_topic_names,
+            self.callback_name)
 
 
 class SubscriptionCallbackStruct(CallbackStruct):
@@ -186,7 +188,8 @@ class SubscriptionCallbackStruct(CallbackStruct):
         })
 
     def to_value(self) -> SubscriptionCallbackStructValue:
-        return SubscriptionCallbackStructValue(self.node_name, self.symbol,
-                                               self.subscribe_topic_name,
-                                               self.publish_topic_names,
-                                               self.callback_name)
+        return SubscriptionCallbackStructValue(
+            self.node_name, self.symbol,
+            self.subscribe_topic_name,
+            None if self.publish_topic_names is None else self.publish_topic_names,
+            self.callback_name)

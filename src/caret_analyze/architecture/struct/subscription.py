@@ -70,4 +70,5 @@ class SubscriptionStruct(Summarizable):
         return self._callback_value
 
     def to_value(self) -> SubscriptionStructValue:
-        return SubscriptionStructValue(self.node_name, self.topic_name, self.callback.to_value())
+        return SubscriptionStructValue(self.node_name, self.topic_name,
+                                       None if self.callback is None else self.callback.to_value())

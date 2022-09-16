@@ -108,9 +108,12 @@ class CommunicationStruct(Summarizable):
         })
 
     def to_value(self) -> CommunicationStructValue:
-        return CommunicationStructValue(self.publish_node.to_value(),
-                                        self.subscribe_node.to_value(),
-                                        self.publisher.to_value(),
-                                        self.subscription.to_value(),
-                                        tuple(v.to_value() for v in self.publish_callbacks),
-                                        tuple(v.to_value() for v in self.subscribe_callback))
+        return CommunicationStructValue(
+            self.publish_node.to_value(),
+            self.subscribe_node.to_value(),
+            self.publisher.to_value(),
+            self.subscription.to_value(),
+            None if self.publish_callbacks is None
+            else tuple(v.to_value() for v in self.publish_callbacks),
+            None if self.subscribe_callback is None
+            else tuple(v.to_value() for v in self.subscribe_callback))
