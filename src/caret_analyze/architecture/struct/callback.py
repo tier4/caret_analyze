@@ -190,6 +190,6 @@ class SubscriptionCallbackStruct(CallbackStruct):
     def to_value(self) -> SubscriptionCallbackStructValue:
         return SubscriptionCallbackStructValue(
             self.node_name, self.symbol,
-            self.subscribe_topic_name,
+            '' if self.subscribe_topic_name is None else self.subscribe_topic_name,
             None if self.publish_topic_names is None else self.publish_topic_names,
             self.callback_name)

@@ -18,6 +18,8 @@ from itertools import product
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
+from caret_analyze.architecture.struct.message_context import CallbackChainStruct
+
 
 from .reader_interface import ArchitectureReader, UNDEFINED_STR
 from .struct import (CallbackGroupStruct, CallbackStruct,
@@ -33,8 +35,7 @@ from ..common import Progress, Util
 from ..exceptions import (Error, InvalidArgumentError, InvalidReaderError,
                           InvalidYamlFormatError, ItemNotFoundError,
                           MultipleItemFoundError, UnsupportedTypeError)
-from ..value_objects import (CallbackChain,
-                             CallbackGroupValue,
+from ..value_objects import (CallbackGroupValue,
                              CallbackValue,
                              ExecutorValue,
                              NodePathValue, NodeValue,
@@ -604,7 +605,7 @@ class MessageContextsLoaded:
         for path in node_paths:
             if path.callbacks is not None:
                 chains.append(
-                    CallbackChain(
+                    CallbackChainStruct(
                         path.node_name,
                         {},
                         path.subscription,

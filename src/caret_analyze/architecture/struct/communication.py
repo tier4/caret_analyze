@@ -116,4 +116,4 @@ class CommunicationStruct(Summarizable):
             None if self.publish_callbacks is None
             else tuple(v.to_value() for v in self.publish_callbacks),
             None if self.subscribe_callback is None
-            else tuple(v.to_value() for v in self.subscribe_callback))
+            else self.subscribe_callback.to_value())
