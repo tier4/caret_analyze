@@ -391,6 +391,7 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
     def summary(self) -> Summary:
         return Summary({
             'name': self.callback_name,
+            'node': self.node_name,
             'type': self.callback_type_name,
             'topic': self.subscribe_topic_name
         })

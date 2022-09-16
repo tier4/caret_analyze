@@ -82,6 +82,7 @@ class TimerStructValue(ValueObject, Summarizable):
     @property
     def summary(self) -> Summary:
         return Summary({
+            'node': self.node_name,
             'period_ns': self.period_ns,
             'callback': self.callback_name
         })
