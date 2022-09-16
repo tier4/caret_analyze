@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from logging import getLogger
+from logging import getLogger, Logger
 from typing import Dict, Optional, Union
 
 from bokeh.models import HoverTool, Legend
@@ -260,3 +260,15 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         converter = self._pub_subs[0]._provider.get_sim_time_converter()
 
         return converter
+
+    def _output_table_size_zero_warn(
+        self,
+        logger: Logger,
+        metrics: str,
+        pub_sub: Union[Publisher, Subscription]
+    ) -> None:
+        logger.warning(
+            'Since no timestamp is recorded, '
+            f'the {metrics} cannot be calculated. '
+            f'pub_sub_summary: {pub_sub.summary}'
+        )

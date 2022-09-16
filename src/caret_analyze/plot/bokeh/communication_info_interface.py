@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from logging import getLogger
+from logging import getLogger, Logger
 from typing import Optional
 
 from bokeh.models import HoverTool, Legend
@@ -180,3 +180,15 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         return (f'{comm.summary["publish_node"]}|'
                 f'{comm.summary["topic_name"]}|'
                 f'{comm.summary["subscribe_node"]}')
+
+    def _output_table_size_zero_warn(
+        self,
+        logger: Logger,
+        metrics: str,
+        comm: Communication,
+    ) -> None:
+        logger.warning(
+            'Since no timestamp is recorded, '
+            f'the {metrics} cannot be calculated. '
+            f'communication_name: {self._get_comm_name(comm)}'
+        )
