@@ -14,7 +14,7 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger, Logger
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
