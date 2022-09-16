@@ -20,8 +20,6 @@ from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
 
-from ipywidgets import Dropdown, interact
-
 import pandas as pd
 
 from .plot_util import get_fig_args, PlotColorSelector, validate_xaxis_type
@@ -51,30 +49,31 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None,
-        interactive: bool = False
-    ) -> Union[List[Figure], None]:
+        # interactive: bool = False
+    ) -> Figure:
         validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
         self._last_ywheel_zoom = ywheel_zoom
         self._last_full_legends = full_legends
         self._last_export_path = export_path
 
-        all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
-        # not interactive
-        if self._last_export_path:
-            self._show_core('All')
-            return None
-        if len(all_topic_names) == 1:
-            return [self._show_core('All')]
-        elif not interactive:
-            return [self._show_core(topic_name) for
-                    topic_name in ['All'] + all_topic_names]
-        # interactive
-        else:
-            topic_dropdown = Dropdown(description='Topic:',
-                                      options=(['All'] + all_topic_names))
-            interact(self._show_core,
-                     topic_name=topic_dropdown)
+        return self._show_core('All')
+
+        # # not interactive
+        # if self._last_export_path:
+        #     self._show_core('All')
+        #     return None
+        # if len(all_topic_names) == 1:
+        #     return [self._show_core('All')]
+        # elif not interactive:
+        #     return [self._show_core(topic_name) for
+        #             topic_name in ['All'] + all_topic_names]
+        # # interactive
+        # else:
+        #     topic_dropdown = Dropdown(description='Topic:',
+        #                               options=(['All'] + all_topic_names))
+        #     interact(self._show_core,
+        #              topic_name=topic_dropdown)
 
     def _show_core(
         self,
