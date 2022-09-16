@@ -25,6 +25,8 @@ from caret_analyze.architecture.struct import (CallbackStruct,
                                                PublisherStruct, SubscriptionStruct,
                                                VariablePassingStruct)
 from caret_analyze.exceptions import ItemNotFoundError
+from caret_analyze.value_objects import (CommunicationStructValue,
+                                         NodePathStructValue)
 
 
 import pytest
@@ -509,10 +511,14 @@ class TestNodePathSearcher:
         mocker.patch.object(node_path_mock, 'publish_topic_name', topic_name)
         mocker.patch.object(node_path_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(node_path_mock, 'node_name', node_name)
+        node_path_value_mock = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock, 'to_value', return_value=node_path_value_mock)
 
         mocker.patch.object(comm_mock, 'publish_node_name', node_name)
         mocker.patch.object(comm_mock, 'subscribe_node_name', node_name)
         mocker.patch.object(comm_mock, 'topic_name', topic_name)
+        comm_value_mock = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_mock, 'to_value', return_value=comm_value_mock)
 
         mocker.patch.object(node_mock, 'paths', [node_path_mock])
 
@@ -561,11 +567,15 @@ class TestNodePathSearcher:
         mocker.patch.object(node_path_mock, 'publish_topic_name', topic_name)
         mocker.patch.object(node_path_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(node_path_mock, 'node_name', node_name)
+        node_path_value_mock = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock, 'to_value', return_value=node_path_value_mock)
 
         comm_mock = mocker.Mock(spec=CommunicationStruct)
         mocker.patch.object(comm_mock, 'topic_name', topic_name)
         mocker.patch.object(comm_mock, 'publish_node_name', node_name)
         mocker.patch.object(comm_mock, 'subscribe_node_name', node_name)
+        comm_value_mock = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_mock, 'to_value', return_value=comm_value_mock)
 
         mocker.patch.object(
             NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock)

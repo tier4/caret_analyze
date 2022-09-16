@@ -26,6 +26,7 @@ from caret_analyze.architecture.struct import (CommunicationStruct,
                                                NodeStruct, PathStruct,
                                                TimerCallbackStruct)
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
+from caret_analyze.value_objects import (NodeStructValue)
 
 import pytest
 
@@ -73,7 +74,9 @@ class TestArchitecture:
                      return_value=loaded_mock)
 
         node_mock = mocker.Mock(spec=NodeStruct)
-        mocker.patch.object(node_mock, 'node_name', 'node_name')
+        node_struct_mock = mocker.Mock(spec=NodeStructValue)
+        mocker.patch.object(node_struct_mock, 'node_name', 'node_name')
+        mocker.patch.object(node_mock, 'to_value', return_value=node_struct_mock)
         mocker.patch.object(node_mock, 'callbacks', [])
 
         mocker.patch.object(loaded_mock, 'paths', ())
@@ -86,7 +89,7 @@ class TestArchitecture:
 
         arch = Architecture('file_type', 'file_path')
         node = arch.get_node('node_name')
-        assert node == node_mock
+        assert node == node_mock.to_value()
 
         with pytest.raises(ItemNotFoundError):
             arch.get_node('node_not_exist')
