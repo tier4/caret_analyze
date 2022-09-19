@@ -81,10 +81,6 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
     ) -> Figure:
         source_df = self._to_dataframe_core(self._last_xaxis_type)
         source_df_by_topic = self._get_source_df_by_topic(source_df)
-        # if topic_name == 'All':
-        #     source_df.columns = source_df.columns.droplevel(0)
-        # else:
-        #     source_df = source_df_by_topic[topic_name]
 
         Hover = HoverTool(
                     tooltips="""
@@ -122,7 +118,6 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                 frame_min,
                 self._last_xaxis_type
             )
-
             if isinstance(pub_sub, Publisher):
                 legend_label = f'publisher{pub_count}'
                 pub_count += 1
