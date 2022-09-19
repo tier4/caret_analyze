@@ -81,23 +81,23 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
     ) -> Figure:
         source_df = self._to_dataframe_core(self._last_xaxis_type)
         source_df_by_topic = self._get_source_df_by_topic(source_df)
-        if topic_name == 'All':
-            source_df.columns = source_df.columns.droplevel(0)
-        else:
-            source_df = source_df_by_topic[topic_name]
+        # if topic_name == 'All':
+        #     source_df.columns = source_df.columns.droplevel(0)
+        # else:
+        #     source_df = source_df_by_topic[topic_name]
 
         Hover = HoverTool(
                     tooltips="""
                     <div style="width:400px; word-wrap: break-word;">
                     <br>
                     node_name = @node_name <br>
-                    callback_name = @callback_name <br>
+                    topic_name = @topic_name <br>
                     </div>
                     """,
                     point_policy='follow_mouse'
                 )
         frame_min, frame_max = get_range(self._pub_subs)
-        y_axis_label = source_df.columns.to_list()[1]
+        y_axis_label = source_df.columns.get_level_values(1).to_list()[1]
         fig_args = get_fig_args(
             xaxis_type=self._last_xaxis_type,
             title=f'Time-line of publishes/subscribes {y_axis_label}',
@@ -114,17 +114,16 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         legend_items = []
         pub_count = 0
         sub_count = 0
-        for i in range(0, len(source_df.columns), 2):
-            line_source_df = source_df.iloc[:, i:i+2].dropna()
-            pub_sub_name = line_source_df.columns.to_list()[0]
-            color = color_selector.get_color(pub_sub_name)
+        for i, pub_sub in enumerate(self._pub_subs):
+            color = color_selector.get_color(str(i))
             line_source = self._get_pub_sub_lines(
-                line_source_df,
+                pub_sub,
+                source_df_by_topic,
                 frame_min,
                 self._last_xaxis_type
             )
 
-            if 'rclcpp_publish_timestamp' in pub_sub_name:
+            if isinstance(pub_sub, Publisher):
                 legend_label = f'publisher{pub_count}'
                 pub_count += 1
             else:
@@ -160,55 +159,41 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
     def _get_pub_sub_lines(
         self,
-        line_source_df: pd.DataFrame,
+        pub_sub: Union[Publisher, Subscription],
+        source_df_by_topic: Dict[str, pd.DataFrame],
         frame_min: int,
         xaxis_type: str
     ) -> ColumnDataSource:
-        def get_node_name(
-            line_source_df: pd.DataFrame
-        ) -> str:
-            ts_column_name_splitted = \
-                line_source_df.columns.to_list()[0].split('/')
-            if len(ts_column_name_splitted) == 1:
-                return ''
-            else:
-                return ts_column_name_splitted[1]
-
-        def get_callback_name(
-            line_source_df: pd.DataFrame
-        ) -> str:
-            ts_column_name_splitted = \
-                line_source_df.columns.to_list()[0].split('/')
-            if len(ts_column_name_splitted) == 1:
-                return ''
-            else:
-                return ts_column_name_splitted[2]
+        source_df = source_df_by_topic[pub_sub.topic_name].dropna()
+        ts_column_idx = source_df.columns.to_list().index(
+            self._get_ts_column_name(pub_sub))
+        single_pub_sub_df = source_df.iloc[:, ts_column_idx:ts_column_idx+2]
 
         if xaxis_type == 'system_time':
-            x_item = ((line_source_df.iloc[:, 0] - frame_min)
+            x_item = ((single_pub_sub_df.iloc[:, 0] - frame_min)
                       * 10**(-9)).to_list()
-            y_item = line_source_df.iloc[:, 1].to_list()
+            y_item = single_pub_sub_df.iloc[:, 1].to_list()
         elif xaxis_type == 'index':
-            x_item = line_source_df.index
-            y_item = line_source_df.iloc[:, 1].to_list()
+            x_item = single_pub_sub_df.index
+            y_item = single_pub_sub_df.iloc[:, 1].to_list()
         elif xaxis_type == 'sim_time':
-            x_item = line_source_df.iloc[:, 0].to_list()
-            y_item = line_source_df.iloc[:, 1].to_list()
+            x_item = single_pub_sub_df.iloc[:, 0].to_list()
+            y_item = single_pub_sub_df.iloc[:, 1].to_list()
 
         line_source = ColumnDataSource(
             data={
                 'x': [],
                 'y': [],
                 'node_name': [],
-                'callback_name': [],
+                'topic_name': [],
             }
         )
         for x, y in zip(x_item, y_item):
             new_data = {
                 'x': [x],
                 'y': [y],
-                'node_name': [get_node_name(line_source_df)],
-                'callback_name': [get_callback_name(line_source_df)],
+                'node_name': [pub_sub.node_name],
+                'topic_name': [pub_sub.topic_name],
             }
             line_source.stream(new_data)
 
