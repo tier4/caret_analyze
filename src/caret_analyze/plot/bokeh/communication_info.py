@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
+
 import pandas as pd
 
 from .communication_info_interface import CommunicationTimeSeriesPlot
@@ -19,6 +21,8 @@ from .plot_util import (add_top_level_column,
                         convert_df_to_sim_time,
                         get_freq_with_timestamp)
 from ...runtime import Communication
+
+logger = getLogger(__name__)
 
 
 class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
@@ -34,10 +38,24 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
         xaxis_type: str
     ) -> pd.DataFrame:
         concat_latency_df = pd.DataFrame()
-        for comm in self._communications:
-            latency_df = self._create_latency_df(xaxis_type, comm)
-            concat_latency_df = pd.concat([concat_latency_df, latency_df],
-                                          axis=1)
+        for i, comm in enumerate(self._communications, 1):
+            try:
+                latency_df = self._create_latency_df(xaxis_type, comm)
+                concat_latency_df = pd.concat([concat_latency_df, latency_df],
+                                              axis=1)
+            except IndexError:
+                pass
+            finally:
+                if i*2 != len(concat_latency_df.columns):
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'rclcpp_publish_timestamp [ns]', 'latency [ms]'])
+                    empty_df = add_top_level_column(
+                        empty_df, self._get_comm_name(comm))
+                    concat_latency_df = pd.concat([
+                        concat_latency_df, empty_df], axis=1)
+                if len(concat_latency_df.iloc[:, -1]) == 0:
+                    self._output_table_size_zero_warn(logger, 'latency', comm)
 
         return concat_latency_df
 
@@ -73,10 +91,24 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
         xaxis_type: str
     ) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
-        for comm in self._communications:
-            latency_df = self._create_period_df(xaxis_type, comm)
-            concat_period_df = pd.concat([concat_period_df, latency_df],
-                                         axis=1)
+        for i, comm in enumerate(self._communications, 1):
+            try:
+                period_df = self._create_period_df(xaxis_type, comm)
+                concat_period_df = pd.concat([concat_period_df, period_df],
+                                             axis=1)
+            except IndexError:
+                pass
+            finally:
+                if i*2 != len(concat_period_df.columns):
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'rclcpp_publish_timestamp [ns]', 'period [ms]'])
+                    empty_df = add_top_level_column(
+                        empty_df, self._get_comm_name(comm))
+                    concat_period_df = pd.concat([
+                        concat_period_df, empty_df], axis=1)
+                if len(concat_period_df.iloc[:, -1]) == 0:
+                    self._output_table_size_zero_warn(logger, 'period', comm)
 
         return concat_period_df
 
@@ -113,12 +145,27 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         xaxis_type: str
     ) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
-        for cb in self._communications:
-            frequency_df = self._create_frequency_df(xaxis_type, cb)
-            concat_frequency_df = pd.concat(
-                [concat_frequency_df, frequency_df],
-                axis=1
-            )
+        for i, comm in enumerate(self._communications, 1):
+            try:
+                frequency_df = self._create_frequency_df(xaxis_type, comm)
+                concat_frequency_df = pd.concat(
+                    [concat_frequency_df, frequency_df],
+                    axis=1
+                )
+            except IndexError:
+                pass
+            finally:
+                if i*2 != len(concat_frequency_df.columns):
+                    # Concatenate empty DataFrame
+                    empty_df = pd.DataFrame(columns=[
+                        'rclcpp_publish_timestamp [ns]', 'frequency [Hz]'])
+                    empty_df = add_top_level_column(
+                        empty_df, self._get_comm_name(comm))
+                    concat_frequency_df = pd.concat([
+                        concat_frequency_df, empty_df], axis=1)
+                if len(concat_frequency_df.iloc[:, -1]) == 0:
+                    self._output_table_size_zero_warn(
+                        logger, 'frequency', comm)
 
         return concat_frequency_df
 
@@ -147,10 +194,9 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         self
     ) -> int:
         first_timestamps = []
-        for cb in self._communications:
-            df = cb.to_dataframe()
+        for comm in self._communications:
+            df = comm.to_dataframe()
             if len(df) == 0:
-                # TODO: Emit an exception when latency_table size is 0.
                 continue
             first_timestamps.append(df.iloc[0, 0])
 

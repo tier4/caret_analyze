@@ -23,7 +23,7 @@ class TestPubSubTimeSeriesPlot:
         mocker.patch.object(pub_mock, 'callback_names', [])
 
         assert (PubSubTimeSeriesPlot._get_ts_column_name(pub_mock)
-                == '/rclcpp_publish_timestamp [ns]')
+                == 'rclcpp_publish_timestamp [ns]')
 
     def test_get_ts_column_name_normal_case(self, mocker):
         pub_mock = mocker.Mock(spec=Publisher)
