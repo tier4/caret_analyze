@@ -117,6 +117,9 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                              if pub_sub.topic_name == topic_name]
         for i, pub_sub in enumerate(drawn_pub_sub):
             color = color_selector.get_color(str(i))
+            # TODO: 
+            # remove source_df_by_topic argument from _get_pub_sub_lines.
+            # source_df_by_topic is a redundant argument since pub_sub has its data
             line_source = self._get_pub_sub_lines(
                 pub_sub,
                 source_df_by_topic,
