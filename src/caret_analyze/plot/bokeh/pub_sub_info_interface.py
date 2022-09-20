@@ -110,7 +110,12 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         legend_items = []
         pub_count = 0
         sub_count = 0
-        for i, pub_sub in enumerate(self._pub_subs):
+        if topic_name == 'All':
+            drawn_pub_sub = self._pub_subs
+        else:
+            drawn_pub_sub = [pub_sub for pub_sub in self._pub_subs
+                             if pub_sub.topic_name == topic_name]
+        for i, pub_sub in enumerate(drawn_pub_sub):
             color = color_selector.get_color(str(i))
             line_source = self._get_pub_sub_lines(
                 pub_sub,
