@@ -252,23 +252,7 @@ class CallbackChainStruct(MessageContextStruct):
         return d
 
     def verify(self) -> bool:
-        is_valid = True
-        if self.callbacks is None or len(self.callbacks) == 0:
-            is_valid = False
-
-            # Check binding between callback and publisher
-            if not self._pub.summary['callbacks']:
-                logger.warning(
-                    'callback-chain is empty. '
-                    'The callback is not associated with the publisher. '
-                    f'publisher topic name: {self.publisher_topic_name}'
-                )
-            else:
-                logger.warning(
-                    'callback-chain is empty. variable_passings are not set. '
-                    f'node name: {self.node_name}')
-
-        return is_valid
+        return True
 
     def to_value(self) -> CallbackChain:
         return CallbackChain(
