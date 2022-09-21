@@ -25,7 +25,7 @@ from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
 from ..record import Columns
 from ..record.record import merge, merge_sequencial, RecordsInterface
-from ..value_objects import (CallbackChain, PathStructValue)
+from ..value_objects import CallbackChain, PathStructValue
 
 logger = getLogger(__name__)
 

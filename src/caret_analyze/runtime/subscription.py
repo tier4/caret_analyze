@@ -18,7 +18,7 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import (Qos, SubscriptionStructValue)
+from ..value_objects import Qos, SubscriptionStructValue
 
 
 class Subscription(PathBase, Summarizable):

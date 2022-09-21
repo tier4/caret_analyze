@@ -18,7 +18,7 @@ from .path_base import PathBase
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider, RuntimeDataProvider
 from ..record import RecordsInterface
-from ..value_objects import (PublisherStructValue, Qos)
+from ..value_objects import PublisherStructValue, Qos
 
 
 class Publisher(PathBase, Summarizable):

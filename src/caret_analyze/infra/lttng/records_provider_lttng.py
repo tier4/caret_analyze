@@ -16,8 +16,7 @@ from functools import cached_property
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
-from caret_analyze.value_objects.message_context import (
-    MessageContext, MessageContextType)
+from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
 
 from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
@@ -31,15 +30,18 @@ from ...infra.interface import RuntimeDataProvider
 from ...infra.lttng.column_names import COLUMN_NAME
 from ...record import (merge, merge_sequencial, RecordsFactory, RecordsInterface)
 from ...record.column import Columns, ColumnValue
-from ...value_objects import (CallbackChain, CallbackStructValue,
+from ...value_objects import (CallbackChain,
+                              CallbackStructValue,
                               CommunicationStructValue,
                               InheritUniqueStamp,
                               NodePathStructValue,
                               PublisherStructValue,
                               Qos,
-                              SubscriptionCallbackStructValue, SubscriptionStructValue,
+                              SubscriptionCallbackStructValue,
+                              SubscriptionStructValue,
                               Tilde,
-                              TimerCallbackStructValue, TimerStructValue,
+                              TimerCallbackStructValue,
+                              TimerStructValue,
                               UseLatestMessage,
                               VariablePassingStructValue)
 

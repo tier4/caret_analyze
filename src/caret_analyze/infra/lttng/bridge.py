@@ -20,8 +20,7 @@ from .value_objects import (PublisherValueLttng,
                             TimerCallbackValueLttng)
 from ...common import Util
 from ...exceptions import ItemNotFoundError, MultipleItemFoundError
-from ...value_objects import (NodeValue,
-                              PublisherStructValue, PublisherValue,
+from ...value_objects import (NodeValue, PublisherStructValue, PublisherValue,
                               SubscriptionCallbackStructValue,
                               SubscriptionCallbackValue,
                               TimerCallbackStructValue, TimerCallbackValue)
@@ -251,7 +250,7 @@ class SubscriptionCallbackBindCondition:
         # publish_topic_names obtained from yaml are different.
         # pub_match = True
         # # if value.publish_topic_names is not None:
-        # #     pub_match = value.publish_topic_names == StructValue_value.publish_topic_names
+        # #     pub_match = value.publish_topic_names == struct_value.publish_topic_names
 
         return value.node_name == struct_value.node_name and \
             value.callback_type == struct_value.callback_type and \

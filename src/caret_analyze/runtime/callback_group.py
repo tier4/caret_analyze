@@ -16,10 +16,8 @@ from __future__ import annotations
 
 from typing import List, Tuple
 
-from caret_analyze.value_objects import (
-    CallbackGroupStructValue,
-    CallbackGroupType
-)
+from caret_analyze.value_objects import (CallbackGroupStructValue,
+                                         CallbackGroupType)
 
 from .callback import CallbackBase
 from ..common import Summarizable, Summary, Util

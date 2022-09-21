@@ -21,8 +21,7 @@ from .subscription import Subscription
 from ..common import Summarizable, Summary
 from ..infra import RecordsProvider
 from ..record import RecordsFactory, RecordsInterface
-from ..value_objects import MessageContext
-from ..value_objects import NodePathStructValue
+from ..value_objects import MessageContext, NodePathStructValue
 
 
 class NodePath(PathBase, Summarizable):

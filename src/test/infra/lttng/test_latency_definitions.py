@@ -27,19 +27,17 @@ from caret_analyze.record import RecordFactory, RecordsFactory, RecordsInterface
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.value_objects import (
     CallbackChain,
-    MessageContextType,
-    Tilde,
-    UseLatestMessage,
-)
-from caret_analyze.value_objects import (
     CallbackStructValue,
     CommunicationStructValue,
+    MessageContextType,
     NodePathStructValue,
     PublisherStructValue,
     SubscriptionCallbackStructValue,
     SubscriptionStructValue,
+    Tilde,
     TimerCallbackStructValue,
     TimerStructValue,
+    UseLatestMessage,
     VariablePassingStructValue,
 )
 
