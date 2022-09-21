@@ -164,7 +164,8 @@ class Architecture(Summarizable):
 
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
-        return path_searcher.search(*node_names, max_node_depth=max_node_depth)
+        return [
+            v.to_value() for v in path_searcher.search(*node_names, max_node_depth=max_node_depth)]
 
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
@@ -195,6 +196,7 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
+
 """
     def rename_callback(src: str, dest: str):
         raise NotImplementedError('')
@@ -211,6 +213,7 @@ class Architecture(Summarizable):
     def rename_topic(src: str, dest: str):
         raise NotImplementedError('')
 """
+
 
 class NamedPathManager():
 
