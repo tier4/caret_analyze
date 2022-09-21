@@ -243,7 +243,7 @@ class NodeValuesLoaded():
     @staticmethod
     def _remove_duplicated(nodes: Sequence[NodeValueWithId]) -> Sequence[NodeValueWithId]:
         nodes_: List[NodeValueWithId] = []
-        node_names = set()
+        node_names: Set[str] = set()
         for node in nodes:
             if node.node_name not in node_names:
                 node_names.add(node.node_name)
