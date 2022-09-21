@@ -18,7 +18,7 @@ from typing import List, Union
 from .callback_info import (CallbackFrequencyPlot,
                             CallbackLatencyPlot,
                             CallbackPeriodPlot)
-from .callback_info_interface import TimeSeriesPlot
+from .callback_info_interface import CallbackTimeSeriesPlot
 from .communication_info import (CommunicationFrequencyPlot,
                                  CommunicationLatencyPlot,
                                  CommunicationPeriodPlot)
@@ -41,7 +41,7 @@ class Plot:
     @staticmethod
     def create_callback_frequency_plot(
         callbacks: CallbacksType
-    ) -> TimeSeriesPlot:
+    ) -> CallbackTimeSeriesPlot:
         """
         Get CallbackFrequencyPlot instance.
 
@@ -67,7 +67,7 @@ class Plot:
     @staticmethod
     def create_callback_jitter_plot(
         callbacks: CallbacksType
-    ) -> TimeSeriesPlot:
+    ) -> CallbackTimeSeriesPlot:
         logger.warning('create_callback_jitter_plot is deprecated.'
                        'Use create_callback_period_plot')
         return Plot.create_callback_period_plot(callbacks)
@@ -75,7 +75,7 @@ class Plot:
     @staticmethod
     def create_callback_period_plot(
         callbacks: CallbacksType
-    ) -> TimeSeriesPlot:
+    ) -> CallbackTimeSeriesPlot:
         """
         Get CallbackPeriodPlot instance.
 
@@ -101,7 +101,7 @@ class Plot:
     @staticmethod
     def create_callback_latency_plot(
         callbacks: CallbacksType
-    ) -> TimeSeriesPlot:
+    ) -> CallbackTimeSeriesPlot:
         """
         Get CallbackLatencyPlot instance.
 

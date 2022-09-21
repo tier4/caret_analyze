@@ -17,7 +17,7 @@ from typing import List, Union
 
 import pandas as pd
 
-from .callback_info_interface import TimeSeriesPlot
+from .callback_info_interface import CallbackTimeSeriesPlot
 from .plot_util import (add_top_level_column, convert_df_to_sim_time,
                         get_freq_with_timestamp)
 from ...runtime import (Application, CallbackBase, CallbackGroup,
@@ -29,7 +29,7 @@ CallbacksType = Union[Application, Path, Executor, Node,
                       CallbackGroup, CallbackBase, List[CallbackBase]]
 
 
-class CallbackLatencyPlot(TimeSeriesPlot):
+class CallbackLatencyPlot(CallbackTimeSeriesPlot):
     """
     Class that provides API for callback latency.
 
@@ -83,7 +83,7 @@ class CallbackLatencyPlot(TimeSeriesPlot):
         return latency_df
 
 
-class CallbackPeriodPlot(TimeSeriesPlot):
+class CallbackPeriodPlot(CallbackTimeSeriesPlot):
     """
     Class that provides API for callback period.
 
@@ -138,7 +138,7 @@ class CallbackPeriodPlot(TimeSeriesPlot):
         return period_df
 
 
-class CallbackFrequencyPlot(TimeSeriesPlot):
+class CallbackFrequencyPlot(CallbackTimeSeriesPlot):
     """
     Class that provides API for callback execution frequency.
 

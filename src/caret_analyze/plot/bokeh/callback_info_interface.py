@@ -37,7 +37,7 @@ CallbacksType = Union[Application, Path, Executor, Node,
                       CallbackGroup, CallbackBase, List[CallbackBase]]
 
 
-class TimeSeriesPlot(metaclass=ABCMeta):
+class CallbackTimeSeriesPlot(metaclass=ABCMeta):
     def __init__(
         self,
         target: CallbacksType
