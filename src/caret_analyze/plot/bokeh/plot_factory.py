@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from logging import getLogger
-from typing import List, Union
+from typing import Collection, Union
 
 from .callback_info import (CallbackFrequencyPlot,
                             CallbackLatencyPlot,
@@ -25,13 +25,7 @@ from .communication_info import (CommunicationFrequencyPlot,
 from .communication_info_interface import CommunicationTimeSeriesPlot
 from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
-from ...runtime import (Application, CallbackBase, CallbackGroup,
-                        Communication, Executor, Node,
-                        Path, Publisher, Subscription)
-
-
-CallbacksType = Union[Application, Path, Executor, Node,
-                      CallbackGroup, CallbackBase, List[CallbackBase]]
+from ...runtime import (CallbackBase, Communication, Publisher, Subscription)
 
 logger = getLogger(__name__)
 
@@ -40,22 +34,14 @@ class Plot:
 
     @staticmethod
     def create_callback_frequency_plot(
-        callbacks: CallbacksType
+        callbacks: Collection[CallbackBase]
     ) -> TimeSeriesPlot:
         """
         Get CallbackFrequencyPlot instance.
 
         Parameters
         ----------
-        callbacks : CallbacksType
-            CallbacksType = Union[Application,
-                                  Path,
-                                  Executor,
-                                  Node,
-                                  CallbackGroup,
-                                  CallbackBase
-                                  List[CallbackBase]].
-            Instances that have callbacks or a list of callbacks.
+        callbacks : Collection[CallbackBase]
 
         Returns
         -------
@@ -66,7 +52,7 @@ class Plot:
 
     @staticmethod
     def create_callback_jitter_plot(
-        callbacks: CallbacksType
+        callbacks: Collection[CallbackBase]
     ) -> TimeSeriesPlot:
         logger.warning('create_callback_jitter_plot is deprecated.'
                        'Use create_callback_period_plot')
@@ -74,22 +60,14 @@ class Plot:
 
     @staticmethod
     def create_callback_period_plot(
-        callbacks: CallbacksType
+        callbacks: Collection[CallbackBase]
     ) -> TimeSeriesPlot:
         """
         Get CallbackPeriodPlot instance.
 
         Parameters
         ----------
-        callbacks : CallbacksType
-            CallbacksType = Union[Application,
-                                  Path,
-                                  Executor,
-                                  Node,
-                                  CallbackGroup,
-                                  CallbackBase
-                                  List[CallbackBase]].
-            Instances that have callbacks or a list of callbacks.
+        callbacks: Collection[CallbackBase]
 
         Returns
         -------
@@ -100,22 +78,14 @@ class Plot:
 
     @staticmethod
     def create_callback_latency_plot(
-        callbacks: CallbacksType
+        callbacks: Collection[CallbackBase]
     ) -> TimeSeriesPlot:
         """
         Get CallbackLatencyPlot instance.
 
         Parameters
         ----------
-        callbacks : CallbacksType
-            CallbacksType = Union[Application,
-                                  Path,
-                                  Executor,
-                                  Node,
-                                  CallbackGroup,
-                                  CallbackBase
-                                  List[CallbackBase]].
-            Instances that have callbacks or a list of callbacks.
+        callbacks: Collection[CallbackBase]
 
         Returns
         -------
@@ -126,30 +96,30 @@ class Plot:
 
     @staticmethod
     def create_publish_subscription_period_plot(
-        *pub_subs: Union[Publisher, Subscription]
+        pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> PubSubTimeSeriesPlot:
-        return PubSubPeriodPlot(*pub_subs)
+        return PubSubPeriodPlot(pub_subs)
 
     @staticmethod
     def create_publish_subscription_frequency_plot(
-        *pub_subs: Union[Publisher, Subscription]
+        pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> PubSubTimeSeriesPlot:
-        return PubSubFrequencyPlot(*pub_subs)
+        return PubSubFrequencyPlot(pub_subs)
 
     @staticmethod
     def create_communication_latency_plot(
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> CommunicationTimeSeriesPlot:
-        return CommunicationLatencyPlot(*communications)
+        return CommunicationLatencyPlot(communications)
 
     @staticmethod
     def create_communication_frequency_plot(
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> CommunicationTimeSeriesPlot:
-        return CommunicationFrequencyPlot(*communications)
+        return CommunicationFrequencyPlot(communications)
 
     @staticmethod
     def create_communication_period_plot(
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> CommunicationTimeSeriesPlot:
-        return CommunicationPeriodPlot(*communications)
+        return CommunicationPeriodPlot(communications)

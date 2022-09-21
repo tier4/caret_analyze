@@ -14,7 +14,7 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger, Logger
-from typing import Dict, Optional, Union
+from typing import Collection, Dict, Optional, Union
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
@@ -39,7 +39,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
     def __init__(
         self,
-        *pub_subs: Union[Publisher, Subscription]
+        pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> None:
         self._pub_subs = pub_subs
 

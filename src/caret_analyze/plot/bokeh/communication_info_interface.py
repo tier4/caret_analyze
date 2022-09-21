@@ -14,7 +14,7 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger, Logger
-from typing import Optional
+from typing import Collection, Optional
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
@@ -34,7 +34,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
 
     def __init__(
         self,
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> None:
         self._communications = communications
 
