@@ -19,9 +19,9 @@ from abc import abstractmethod
 from logging import getLogger
 from typing import Dict, Optional, Tuple
 
-from caret_analyze.value_objects.message_context import (CallbackChain,
+from caret_analyze.value_objects.message_context import (CallbackChain, InheritUniqueStamp,
                                                          MessageContext, MessageContextType,
-                                                         Tilde)
+                                                         Tilde, UseLatestMessage)
 
 from .callback import CallbackStruct
 from .publisher import PublisherStruct
@@ -152,12 +152,9 @@ class MessageContextStruct(Summarizable):
         raise UnsupportedTypeError(f'Failed to load message context. \
                                    message_context={context_type_name}')
 
+    @abstractmethod
     def to_value(self) -> MessageContext:
-        return MessageContext(
-            self.node_name, self.message_context_dict,
-            None if self._sub is None else self._sub.to_value(),
-            None if self._pub is None else self._pub.to_value(),
-            tuple([v.to_value() for v in self.callbacks]))
+        pass
 
 
 class UseLatestMessageStruct(MessageContextStruct):
@@ -171,6 +168,13 @@ class UseLatestMessageStruct(MessageContextStruct):
     @property
     def context_type(self) -> MessageContextType:
         return MessageContextType.USE_LATEST_MESSAGE
+
+    def to_value(self) -> UseLatestMessage:
+        return UseLatestMessage(
+            self.node_name, self.message_context_dict,
+            None if self._sub is None else self._sub.to_value(),
+            None if self._pub is None else self._pub.to_value(),
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
 
 
 class InheritUniqueStampStruct(MessageContextStruct):
@@ -189,6 +193,13 @@ class InheritUniqueStampStruct(MessageContextStruct):
 
     def verify(self) -> bool:
         pass
+
+    def to_value(self) -> InheritUniqueStamp:
+        return InheritUniqueStamp(
+            self.node_name, self.message_context_dict,
+            None if self._sub is None else self._sub.to_value(),
+            None if self._pub is None else self._pub.to_value(),
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
 
 
 class CallbackChainStruct(MessageContextStruct):
@@ -264,7 +275,7 @@ class CallbackChainStruct(MessageContextStruct):
             self.node_name, self.message_context_dict,
             None if self._sub is None else self._sub.to_value(),
             None if self._pub is None else self._pub.to_value(),
-            tuple([v.to_value() for v in self.callbacks]))
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
 
 
 class TildeStruct(MessageContextStruct):
@@ -313,4 +324,4 @@ class TildeStruct(MessageContextStruct):
             self.node_name, self.message_context_dict,
             None if self._sub is None else self._sub.to_value(),
             None if self._pub is None else self._pub.to_value(),
-            tuple([v.to_value() for v in self.callbacks]))
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))

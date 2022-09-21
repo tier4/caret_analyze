@@ -72,7 +72,7 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
         """
         Get callback name.
 
-        Returnsthe backslash is redundant between brackets
+        Returns the backslash is redundant between brackets
         -------
         str
             callback name
@@ -111,12 +111,9 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
     def summary(self) -> Summary:
         pass
 
+    @abstractmethod
     def to_value(self) -> CallbackStructValue:
-        return CallbackStructValue(
-            self.node_name, self.symbol,
-            None if self.subscribe_topic_name is None else self.subscribe_topic_name,
-            None if self.subscribe_topic_name is None else self.publish_topic_names,
-            self.callback_name)
+        pass
 
 
 class TimerCallbackStruct(CallbackStruct):
