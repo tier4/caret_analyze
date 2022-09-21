@@ -18,6 +18,7 @@ from typing import Tuple
 from .architecture import Architecture
 from .architecture_loaded import NodeValuesLoaded
 from .architecture_reader_factory import ArchitectureReaderFactory
+from ..common import Util
 from ..value_objects import NodePathStructValue
 
 
@@ -35,9 +36,9 @@ def check_procedure(
     root_logger.addHandler(handler)
 
     reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
-    node = app_arch.get_node(node_name)
+    node = Util.find_one(lambda x: x.node_name == node_name, app_arch._nodes)
 
     paths = NodeValuesLoaded._search_node_paths(node, reader)
 
     root_logger.removeHandler(handler)
-    return paths
+    return tuple(v.to_value() for v in paths)
