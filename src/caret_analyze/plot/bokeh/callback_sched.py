@@ -86,15 +86,15 @@ def callback_sched(
     """
     assert coloring_rule in ['callback', 'callback_group', 'node']
 
-    cbgs, target_name = get_cbg_and_name(target)
-    callbacks = Util.flatten([cbg.callbacks for cbg in cbgs])
+    callback_groups, target_name = get_cbg_and_name(target)
+    callbacks = Util.flatten([cbg.callbacks for cbg in callback_groups])
     frame_min, frame_max = get_range(callbacks)
     clip_min = int(frame_min + lstrip_s*1.0e9)
     clip_max = int(frame_max - rstrip_s*1.0e9)
     clip = Clip(clip_min, clip_max)
 
     color_selector = ColorSelector.create_instance(coloring_rule)
-    figure = sched_plot_cbg(target_name, cbgs, color_selector,
+    figure = sched_plot_cbg(target_name, callback_groups, color_selector,
                             clip, use_sim_time, export_path)
     return figure
 
@@ -129,13 +129,13 @@ def get_cbg_and_name(
         return target.callback_groups, target.executor_name
 
     elif (isinstance(target, Path)):
-        cbgs = UniqueList()
+        callback_groups = UniqueList()
         for comm in target.communications:
             for cbg in comm.publish_node.callback_groups:
-                cbgs.append(cbg)
+                callback_groups.append(cbg)
         for cbg in target.communications[-1].subscribe_node.callback_groups:
-            cbgs.append(cbg)
-        return cbgs.as_list(), target.path_name
+            callback_groups.append(cbg)
+        return callback_groups.as_list(), target.path_name
 
     elif (isinstance(target, Node)):
         if target.callback_groups is None:
@@ -151,7 +151,7 @@ def get_cbg_and_name(
 
 def sched_plot_cbg(
     target_name: str,
-    cbgs: Sequence[CallbackGroup],
+    callback_groups: Sequence[CallbackGroup],
     color_selector: ColorSelector,
     clipper: Clip,
     use_sim_time: bool,
@@ -163,7 +163,7 @@ def sched_plot_cbg(
     Parameters
     ----------
     target_name : str
-    cbgs : Sequence[CallbackGroup]
+    callback_groups : Sequence[CallbackGroup]
     color_selector : ColorSelector
     clipper : Clip
         Values outside the range are replaced by the minimum or maximum value
@@ -191,7 +191,7 @@ def sched_plot_cbg(
     converter: Optional[ClockConverter] = None
     if use_sim_time:
         cbs: List[CallbackBase] = Util.flatten(
-            cbg.callbacks for cbg in cbgs if len(cbg.callbacks) > 0)
+            cbg.callbacks for cbg in callback_groups if len(cbg.callbacks) > 0)
         # TODO(hsgwa): refactor
         converter = cbs[0]._provider.get_sim_time_converter()
         frame_min = converter.convert(clipper.min_ns)
@@ -206,11 +206,11 @@ def sched_plot_cbg(
     rect_y_step = -1.5
     callback_idx = 0
 
-    for callback_group in cbgs:
+    for callback_group in callback_groups:
         for callback in callback_group.callbacks:
             callback_idx += 1
-            rect_source = get_callback_rects(callback, clipper, rect_y,
-                                             rect_height, converter)
+            rect_source = get_callback_rect_list(callback, clipper, rect_y,
+                                                 rect_height, converter)
             bar_source = get_callback_bar(callback, rect_y,
                                           frame_max, frame_min)
             color = color_selector.get_color(
@@ -286,10 +286,10 @@ def sched_plot_cbg(
                 timer = callback.timer
                 df = timer.to_dataframe()
                 for item in df.itertuples():
-                    timerstamp = item._1
+                    timer_stamp = item._1
                     callback_start = item._2
                     # callback_end = item._3
-                    res = callback_start-timerstamp
+                    res = callback_start-timer_stamp
                     # The callback is considered delayed
                     # if this value is exceeded.
                     delayed_th = 500000
@@ -299,9 +299,9 @@ def sched_plot_cbg(
                                 Arrow(end=NormalHead(fill_color='red',
                                                      line_width=1,
                                                      size=10),
-                                      x_start=(timerstamp-frame_min)*1.0e-9,
+                                      x_start=(timer_stamp-frame_min)*1.0e-9,
                                       y_start=y_start,
-                                      x_end=(timerstamp-frame_min)*1.0e-9,
+                                      x_end=(timer_stamp-frame_min)*1.0e-9,
                                       y_end=y_end
                                       )
                             )
@@ -310,9 +310,9 @@ def sched_plot_cbg(
                                 Arrow(end=NormalHead(fill_color='white',
                                                      line_width=1,
                                                      size=10),
-                                      x_start=(timerstamp-frame_min)*1.0e-9,
+                                      x_start=(timer_stamp-frame_min)*1.0e-9,
                                       y_start=y_start,
-                                      x_end=(timerstamp-frame_min)*1.0e-9,
+                                      x_end=(timer_stamp-frame_min)*1.0e-9,
                                       y_end=y_end
                                       )
                             )
@@ -333,7 +333,7 @@ def sched_plot_cbg(
     return p
 
 
-def get_callback_rects(
+def get_callback_rect_list(
     callback: CallbackBase,
     clip: Clip,
     y,

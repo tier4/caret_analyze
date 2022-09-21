@@ -235,12 +235,12 @@ class Application(Summarizable):
             All callback groups defined in the architecture.
 
         """
-        cbgs: List[CallbackGroup] = []
+        callback_groups: List[CallbackGroup] = []
         for node in self.nodes:
             if node.callback_groups is None:
                 continue
-            cbgs += node.callback_groups
-        return sorted(cbgs, key=lambda x: x.callback_group_name)
+            callback_groups += node.callback_groups
+        return sorted(callback_groups, key=lambda x: x.callback_group_name)
 
     def get_callback_group(
         self,

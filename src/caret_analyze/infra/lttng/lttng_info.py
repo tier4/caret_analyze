@@ -432,7 +432,7 @@ class LttngInfo:
             concat_df = merge(
                 concat_df, self._formatted.callback_groups_df, 'callback_group_addr')
 
-            cbgs = []
+            callback_groups = []
             for _, group_df in concat_df.groupby(['callback_group_addr']):
                 row = group_df.iloc[0, :]
                 node_id_ = row['node_id']
@@ -442,7 +442,7 @@ class LttngInfo:
                 callback_ids = tuple(group_df['callback_id'].values)
                 callback_ids = tuple(Util.filter_items(self._is_user_made_callback, callback_ids))
 
-                cbgs.append(
+                callback_groups.append(
                     CallbackGroupValueLttng(
                         callback_group_type_name=row['group_type_name'],
                         node_name=row['node_name'],
@@ -454,7 +454,7 @@ class LttngInfo:
                     )
                 )
 
-            return cbgs
+            return callback_groups
         except KeyError:
             return []
 
@@ -563,16 +563,16 @@ class LttngInfo:
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
         df = self._formatted.timer_controls_df
-        ctrls: List[TimerControl] = []
+        controls: List[TimerControl] = []
         for _, row in df.iterrows():
             if row['type'] == 'init':
                 params = row['params']
-                ctrl = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
-                ctrls.append(ctrl)
+                control = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
+                controls.append(control)
             else:
                 raise NotImplementedError('Unsupported timer control type.')
 
-        return ctrls
+        return controls
 
 
 # class PublisherBinder:
@@ -603,8 +603,8 @@ class LttngInfo:
 #         # Disable it until the speedup is complete.
 #         return False
 
-#         cbgs: Sequence[CallbackGroupValueLttng]
-#         cbgs = self._info.get_callback_groups(node)
+#         callback_groups: Sequence[CallbackGroupValueLttng]
+#         callback_groups = self._info.get_callback_groups(node)
 
 #         # TODO: ignore /parameter_events, /clock
 #         # Ignore callback groups that have no callbacks added,
@@ -613,11 +613,11 @@ class LttngInfo:
 #         #     self._ignored_callback_groups.add(row['callback_group_id'])
 #         #     continue
 
-#         if len(cbgs) != 1:
+#         if len(callback_groups) != 1:
 #             print('false')
 #             return False
 
-#         cbg = cbgs[0]
+#         cbg = callback_groups[0]
 #         if cbg.callback_group_type is CallbackGroupType.REENTRANT:
 #             print('false')
 #             return False

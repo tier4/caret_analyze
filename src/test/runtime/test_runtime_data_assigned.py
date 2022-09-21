@@ -617,9 +617,9 @@ class TestCallbackGroupsLoaded:
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
         timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
-        cbgs = CallbackGroupsLoaded(
+        callback_groups = CallbackGroupsLoaded(
             (), provider_mock, publisher_loaded_mock, sub_loaded_mock, timer_loaded_mock).data
-        assert cbgs == []
+        assert callback_groups == []
 
     def test_to_runtime(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
