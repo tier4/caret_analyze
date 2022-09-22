@@ -24,6 +24,9 @@ class TestDataModelService:
 
     def test_get_node_name_not_exist(self):
         data = Ros2DataModel()
+        data.callback_group_add_timer(-1, -1, -1)
+        data.callback_group_add_subscription(-1, -1, -1)
+        data.callback_group_add_service(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
@@ -39,6 +42,8 @@ class TestDataModelService:
         data.add_node(0, node_handle, 0, 0, 'name', 'ns')
         data.add_timer_node_link(timer_handle, 0, node_handle)
         data.callback_group_add_timer(cbg_addr, 0, timer_handle)
+        data.callback_group_add_subscription(-1, -1, -1)
+        data.callback_group_add_service(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
@@ -47,13 +52,14 @@ class TestDataModelService:
 
     def test_get_node_name_exist_rcl_node_init_sub(self):
         data = Ros2DataModel()
-        data.callback_group_add_subscription()
         cbg_addr = 1
         sub_handle = 2
         node_handle = 3
         data.add_node(0, node_handle, 0, 0, 'name', 'ns')
         data.add_rcl_subscription(sub_handle, 0, node_handle, 0, 'topic', 0)
         data.callback_group_add_subscription(cbg_addr, 0, sub_handle)
+        data.callback_group_add_timer(-1, -1, -1)
+        data.callback_group_add_service(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
@@ -62,13 +68,14 @@ class TestDataModelService:
 
     def test_get_node_name_exist_get_parameters_srv(self):
         data = Ros2DataModel()
-        data.callback_group_add_subscription()
         cbg_addr = 1
         srv_handle = 2
         node_handle = 3
         data.add_node(0, node_handle, 0, 0, 'name', 'ns')
         data.add_service(srv_handle, 0, node_handle, 0, 'srv')
         data.callback_group_add_service(cbg_addr, 0, srv_handle)
+        data.callback_group_add_timer(-1, -1, -1)
+        data.callback_group_add_subscription(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
