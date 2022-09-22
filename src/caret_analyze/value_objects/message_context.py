@@ -259,7 +259,7 @@ class CallbackChain(MessageContext):
             is_valid = False
 
             # Check binding between callback and publisher
-            if not self._pub.summary['callbacks']:
+            if self._pub and not self._pub.summary['callbacks']:
                 logger.warning(
                     'callback-chain is empty. '
                     'The callback is not associated with the publisher. '

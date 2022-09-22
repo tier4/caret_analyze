@@ -15,6 +15,7 @@
 
 """Module for ROS 2 data model."""
 
+from typing import Dict, List
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 
@@ -31,35 +32,35 @@ class Ros2DataModel():
     def __init__(self) -> None:
         """Create a Ros2DataModel."""
         # Objects (one-time events, usually when something is created)
-        self._contexts = []
-        self._nodes = []
-        self._publishers = []
-        self._subscriptions = []
-        self._subscription_objects = []
-        self._services = []
-        self._clients = []
-        self._timers = []
-        self._timer_node_links = []
-        self._callback_objects = []
-        self._callback_symbols = []
-        self._lifecycle_state_machines = []
-        self._executors = []
-        self._executors_static = []
-        self._callback_groups = []
-        self._callback_groups_static = []
-        self._callback_group_timer = []
-        self._callback_group_subscription = []
-        self._callback_group_service = []
-        self._callback_group_client = []
-        self._rmw_impl = []
+        self._contexts: List[Dict] = []
+        self._nodes: List[Dict] = []
+        self._publishers: List[Dict] = []
+        self._subscriptions: List[Dict] = []
+        self._subscription_objects: List[Dict] = []
+        self._services: List[Dict] = []
+        self._clients: List[Dict] = []
+        self._timers: List[Dict] = []
+        self._timer_node_links: List[Dict] = []
+        self._callback_objects: List[Dict] = []
+        self._callback_symbols: List[Dict] = []
+        self._lifecycle_state_machines: List[Dict] = []
+        self._executors: List[Dict] = []
+        self._executors_static: List[Dict] = []
+        self._callback_groups: List[Dict] = []
+        self._callback_groups_static: List[Dict] = []
+        self._callback_group_timer: List[Dict] = []
+        self._callback_group_subscription: List[Dict] = []
+        self._callback_group_service: List[Dict] = []
+        self._callback_group_client: List[Dict] = []
+        self._rmw_impl: List[Dict] = []
 
-        self._tilde_subscriptions = []
-        self._tilde_publishers = []
-        self._tilde_subscribe_added = []
+        self._tilde_subscriptions: List[Dict] = []
+        self._tilde_publishers: List[Dict] = []
+        self._tilde_subscribe_added: List[Dict] = []
 
         # Events (multiple instances, may not have a meaningful index)
         # string argument
-        self._lifecycle_transitions = []
+        self._lifecycle_transitions: List[Dict] = []
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
