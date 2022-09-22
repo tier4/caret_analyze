@@ -43,7 +43,7 @@ class TestDataModelService:
 
         data_model_srv = DataModelService(data)
         node_name = data_model_srv.get_node_name(cbg_addr)
-        assert node_name == 'name'
+        assert node_name == 'ns/name'
 
     def test_get_node_name_exist_rcl_node_init_sub(self):
         data = Ros2DataModel()
@@ -58,7 +58,7 @@ class TestDataModelService:
 
         data_model_srv = DataModelService(data)
         node_name = data_model_srv.get_node_name(cbg_addr)
-        assert node_name == 'name'
+        assert node_name == 'ns/name'
 
     def test_get_node_name_exist_get_parameters_srv(self):
         data = Ros2DataModel()
@@ -73,4 +73,4 @@ class TestDataModelService:
 
         data_model_srv = DataModelService(data)
         node_name = data_model_srv.get_node_name(cbg_addr)
-        assert node_name == 'name'
+        assert node_name == 'ns/name'
