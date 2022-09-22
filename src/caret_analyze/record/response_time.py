@@ -501,8 +501,8 @@ class ResponseRecords:
 
         """
         columns = [
-            f'{self._input_column}',
-            self._response_map.output_column,
+            ColumnValue(f'{self._input_column}'),
+            ColumnValue(self._response_map.output_column),
         ]
 
         records = self._create_empty_records(columns)
@@ -536,8 +536,8 @@ class ResponseRecords:
 
         """
         columns = [
-            f'{self._input_column}',
-            self._response_map.output_column,
+            ColumnValue(f'{self._input_column}'),
+            ColumnValue(self._response_map.output_column),
         ]
 
         records = self._create_empty_records(columns)
