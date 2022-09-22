@@ -16,6 +16,7 @@
 """Module for ROS 2 data model."""
 
 from typing import Dict, List
+
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 

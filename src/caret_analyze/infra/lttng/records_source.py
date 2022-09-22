@@ -14,7 +14,7 @@
 
 from functools import cached_property
 
-from typing import Dict, List, Sequence, Optional
+from typing import Dict, List, Optional, Sequence
 
 from .column_names import COLUMN_NAME
 from .events_factory import EventsFactory
