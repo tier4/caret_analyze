@@ -36,13 +36,13 @@ class Clip(DataFrameShaper):
 
         first_column = df.columns[0]
 
-        df_clippped = df[
+        df_clipped = df[
             (df[first_column] >= self._ltrim_ns) &
             (df[first_column] <= self._rtrim_ns)
         ]
 
-        df_clippped.reset_index(inplace=True, drop=True)
-        return df_clippped
+        df_clipped.reset_index(inplace=True, drop=True)
+        return df_clipped
 
     @property
     def min_ns(self) -> int:

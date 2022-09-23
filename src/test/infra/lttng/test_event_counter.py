@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from logging import getLogger
+from logging import getLogger, WARNING
 
 from caret_analyze.exceptions import InvalidTraceFormatError
 from caret_analyze.infra.lttng.event_counter import EventCounter
@@ -87,7 +87,8 @@ class TestEventCounter:
         mocker,
     ):
         data = Ros2DataModel()
-        data.add_dds_write_instance(0, 0, 0)
+        # pass rclcpp-check
+        data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
         data.finalize()
 
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
@@ -98,17 +99,18 @@ class TestEventCounter:
 
     def test_validation_without_forked_rclcpp(
         self,
-        mocker,
+        caplog,
     ):
         data = Ros2DataModel()
-        data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.finalize()
 
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
         logger.propagate = True
 
-        with pytest.raises(InvalidTraceFormatError):
+        with caplog.at_level(WARNING):
             EventCounter(data)
+            assert 'caret-rclcpp' in caplog.messages[0]
 
     def test_validation_valid_case(
         self,

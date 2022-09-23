@@ -44,7 +44,7 @@ class Executor(Summarizable):
 
         """
         self._val = executor_value
-        self._cbgs: List[CallbackGroup] = callback_groups
+        self._callback_groups: List[CallbackGroup] = callback_groups
 
     @property
     def executor_type(self) -> ExecutorType:
@@ -83,7 +83,7 @@ class Executor(Summarizable):
             Callbacks added to the executor.
 
         """
-        cbs = Util.flatten([cbg.callbacks for cbg in self._cbgs])
+        cbs = Util.flatten([cbg.callbacks for cbg in self._callback_groups])
         return sorted(cbs, key=lambda x: x.callback_name)
 
     def get_callback_group(
@@ -192,7 +192,7 @@ class Executor(Summarizable):
             Callback groups added to the executor.
 
         """
-        return sorted(self._cbgs, key=lambda x: x.callback_group_name)
+        return sorted(self._callback_groups, key=lambda x: x.callback_group_name)
 
     @property
     def callback_group_names(self) -> List[str]:

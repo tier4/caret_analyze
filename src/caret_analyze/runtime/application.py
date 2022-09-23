@@ -26,6 +26,8 @@ from .communication import Communication
 from .executor import Executor
 from .node import Node
 from .path import Path
+from .publisher import Publisher
+from .subscription import Subscription
 from ..architecture import Architecture
 from ..common import Summarizable, Summary, Util
 from ..exceptions import Error, InvalidArgumentError, UnsupportedTypeError
@@ -233,12 +235,12 @@ class Application(Summarizable):
             All callback groups defined in the architecture.
 
         """
-        cbgs: List[CallbackGroup] = []
+        callback_groups: List[CallbackGroup] = []
         for node in self.nodes:
             if node.callback_groups is None:
                 continue
-            cbgs += node.callback_groups
-        return sorted(cbgs, key=lambda x: x.callback_group_name)
+            callback_groups += node.callback_groups
+        return sorted(callback_groups, key=lambda x: x.callback_group_name)
 
     def get_callback_group(
         self,
@@ -482,6 +484,72 @@ class Application(Summarizable):
                                   lambda x: x.topic_name)
 
         return sorted(comms, key=lambda x: x.topic_name)
+
+    def get_publishers(
+        self,
+        topic_name: str
+    ) -> List[Publisher]:
+        """
+        Get publishers that match the condition.
+
+        Parameters
+        ----------
+        topic_name : str
+            topic name to get.
+
+        Returns
+        -------
+        List[Publisher]
+            publishers that match the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        comms = self.get_communications(topic_name)
+        pubs = [comm.publisher for comm in comms]
+
+        return sorted(pubs, key=lambda x: x.topic_name)
+
+    def get_subscriptions(
+        self,
+        topic_name: str
+    ) -> List[Subscription]:
+        """
+        Get subscriptions that match the condition.
+
+        Parameters
+        ----------
+        topic_name : str
+            topic name to get.
+
+        Returns
+        -------
+        List[Publisher]
+            subscriptions that match the condition.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when the given argument type is invalid.
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
+        if not isinstance(topic_name, str):
+            raise InvalidArgumentError('Argument type is invalid.')
+
+        comms = self.get_communications(topic_name)
+        subs = [comm.subscription for comm in comms]
+
+        return sorted(subs, key=lambda x: x.topic_name)
 
     def get_node_paths(
         self,

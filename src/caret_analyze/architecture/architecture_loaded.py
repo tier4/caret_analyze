@@ -575,7 +575,7 @@ class MessageContextsLoaded:
             except Error as e:
                 logger.warning(e)
 
-        for context in self._create_callack_chain(node_paths):
+        for context in self._create_callback_chain(node_paths):
             pub_sub_pair = (context.publisher_topic_name, context.subscription_topic_name)
             if context not in data and pub_sub_pair not in pub_sub_pairs:
                 data.append(context)
@@ -598,7 +598,7 @@ class MessageContextsLoaded:
         return self._data
 
     @staticmethod
-    def _create_callack_chain(
+    def _create_callback_chain(
         node_paths: Sequence[NodePathStruct]
     ) -> List[MessageContextStruct]:
         chains: List[MessageContextStruct] = []
@@ -1129,7 +1129,7 @@ class PathValuesLoaded():
     def data(self) -> Tuple[PathStruct, ...]:
         return self._data
 
-    # serviceはactioに対応していないので、おかしな結果になってしまう。
+    # serviceはactionに対応していないので、おかしな結果になってしまう。
     # def _insert_publishers_to_callbacks(
     #     self,
     #     publishers: List[PublisherInfo],

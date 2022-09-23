@@ -192,7 +192,7 @@ class TestLttngInfo:
         info = LttngInfo(data)
 
         timer_cbs_info = info.get_timer_callbacks(NodeValue('/node1', 'node_id'))
-        timer_cb_info_expct = TimerCallbackValueLttng(
+        timer_cb_info_expect = TimerCallbackValueLttng(
             'timer_callback_0',
             'node_id',
             '/node1',
@@ -203,7 +203,7 @@ class TestLttngInfo:
             callback_object=callback_object
         )
 
-        assert timer_cbs_info == [timer_cb_info_expct]
+        assert timer_cbs_info == [timer_cb_info_expect]
 
         assert info.get_timer_callbacks(NodeValue('/', 'id')) == []
 
@@ -814,6 +814,20 @@ class TestDataFrameFormatted:
         assert formatted.services_df == srv_mock
         assert formatted.publishers_df == pub_mock
 
+    def test_tilde_subscription(self, mocker):
+        data = Ros2DataModel()
+        data.finalize()
+        formatted = DataFrameFormatted(data)
+
+        df = formatted.tilde_subscriptions_df
+        columns = [
+            'tilde_subscription',
+            'node_name',
+            'topic_name',
+        ]
+        df_expect = pd.DataFrame(columns=columns, dtype='Int64')
+        assert df.equals(df_expect)
+
     # def test_build_subscription_callbacks_df(self):
 
     #     data = Ros2DataModel()
@@ -864,7 +878,7 @@ class TestDataFrameFormatted:
 
     #     data.finalize()
 
-    #     df = formated.timer_callbacks_df
+    #     df = formatted.timer_callbacks_df
     #     expect = pd.DataFrame.from_dict(
     #         [
     #             {
@@ -945,9 +959,9 @@ class TestDataFrameFormatted:
 
     #     data.finalize()
 
-    #     formated = DataFrameFormatted(data)
+    #     formatted = DataFrameFormatted(data)
 
-    #     df = formated.timer_callbacks_df
+    #     df = formatted.timer_callbacks_df
     #     expect = pd.DataFrame.from_dict(
     #         [
     #             {
@@ -1014,9 +1028,9 @@ class TestDataFrameFormatted:
 
     #     data.finalize()
 
-    #     formated = DataFrameFormatted(data)
+    #     formatted = DataFrameFormatted(data)
 
-    #     df = formated.timer_callbacks_df
+    #     df = formatted.timer_callbacks_df
     #     expect = pd.DataFrame.from_dict(
     #         [
     #             {

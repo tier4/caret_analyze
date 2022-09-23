@@ -37,7 +37,7 @@ class PathBase(metaclass=ABCMeta):
         Returns
         -------
         RecordsInterface
-            Information for each delay.
+            Execution time of each operation.
 
         """
         return self.__records.clone()
@@ -50,7 +50,7 @@ class PathBase(metaclass=ABCMeta):
         Returns
         -------
         RecordsInterface
-            Information for each delay.
+            Execution time of each operation.
 
         """
 
@@ -103,7 +103,7 @@ class PathBase(metaclass=ABCMeta):
         Returns
         -------
         pandas.DataFrame
-            Information for each delay.
+            Execution time of each operation.
 
         """
         records = self.to_records()
@@ -147,20 +147,21 @@ class PathBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        remove_dropped : bool
-            If true, eliminate the records that caused the drop.
-        treat_drop_as_delay : bool
+        remove_dropped : Optional[bool]
+            If true, eliminate the records that caused the drop. default: False.
+        treat_drop_as_delay : Optional[bool]
             Convert dropped records as a delay.
-            Valid only when remove_dropped=false.
+            Valid only when remove_dropped=false. default: False.
         lstrip: Optional[float]
-            Remove from beginning. [s]
+            Remove from beginning. [s] default: 0
         rstrip: Optional[float]
-            Remove from end [s]
+            Remove from end [s] default: 0
 
         Returns
         -------
-        pandas.DataFrame
-            Information for each delay.
+        Tuple[np.ndarray, np.ndarray]
+            time[ns], latency[ns]
+            len(time) == len(latency)
 
         """
         df = self.to_dataframe(
@@ -210,8 +211,10 @@ class PathBase(metaclass=ABCMeta):
 
         Returns
         -------
-        pandas.DataFrame
-            Information for each delay.
+        Tuple[np.ndarray, np.ndarray]
+            frequency, latency[ns]
+            len(frequency)+1 == len(latency)
+            See: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         """
         import math
