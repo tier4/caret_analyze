@@ -154,7 +154,7 @@ class TimerCallbackStruct(CallbackStruct):
     def to_value(self) -> TimerCallbackStructValue:
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
-            None if self.subscribe_topic_name is None else self.publish_topic_names,
+            None if self.publish_topic_names is None else self.publish_topic_names,
             self.callback_name)
 
 
@@ -171,10 +171,15 @@ class SubscriptionCallbackStruct(CallbackStruct):
     ) -> None:
         super().__init__(node_name, symbol, subscribe_topic_name,
                          publish_topic_names, callback_name)
+        self.__subscribe_topic_name = subscribe_topic_name
 
     @property
     def callback_type(self) -> CallbackType:
         return CallbackType.SUBSCRIPTION
+
+    @property
+    def subscribe_topic_name(self) -> str:
+        return self.__subscribe_topic_name
 
     @property
     def summary(self) -> Summary:
