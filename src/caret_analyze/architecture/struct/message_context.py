@@ -112,10 +112,6 @@ class MessageContextStruct(Summarizable):
             'type': str(self.type_name)
         })
 
-    @abstractmethod
-    def verify(self) -> bool:
-        pass
-
     @staticmethod
     def create_instance(
         context_type_name: str,
@@ -191,9 +187,6 @@ class InheritUniqueStampStruct(MessageContextStruct):
     def context_type(self) -> MessageContextType:
         return MessageContextType.INHERIT_UNIQUE_STAMP
 
-    def verify(self) -> bool:
-        pass
-
     def to_value(self) -> InheritUniqueStamp:
         return InheritUniqueStamp(
             self.node_name, self.message_context_dict,
@@ -251,9 +244,6 @@ class CallbackChainStruct(MessageContextStruct):
             d['callbacks'] = [_.callback_name for _ in self.callbacks]
         return d
 
-    def verify(self) -> bool:
-        return True
-
     def to_value(self) -> CallbackChain:
         return CallbackChain(
             self.node_name, self.message_context_dict,
@@ -298,9 +288,6 @@ class TildeStruct(MessageContextStruct):
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
-        return True
-
-    def verify(self) -> bool:
         return True
 
     def to_value(self) -> Tilde:

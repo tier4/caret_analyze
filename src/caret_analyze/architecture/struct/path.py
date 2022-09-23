@@ -115,25 +115,6 @@ class PathStruct(Summarizable):
             msg = 'NodePath and Communication should be alternated.'
             raise InvalidArgumentError(msg)
 
-    def verify(self) -> bool:
-        is_valid = True
-
-        for child in self.node_paths[1:-1]:
-            if child.message_context is None:
-                is_valid = False
-                msg = 'Detected "message_context is None". Correct these node_path definitions. \n'
-                msg += 'To see node definition and procedure,'
-                msg += f'execute :\n' \
-                    f">> check_procedure('yaml', '/path/to/yaml', arch, '{child.node_name}') \n"
-                msg += str(child.summary)
-                logger.warning(msg)
-                continue
-
-            if child.message_context.verify() is False:
-                is_valid = False
-
-        return is_valid
-
     def to_value(self) -> PathStructValue:
         return PathStructValue(None if self.path_name is None else self.path_name,
                                tuple(v.to_value() for v in self.child))
