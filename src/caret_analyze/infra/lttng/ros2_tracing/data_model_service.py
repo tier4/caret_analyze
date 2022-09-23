@@ -50,7 +50,6 @@ class DataModelService:
         return None
 
     def _get_node_name_from_cbg_timer(self, cbg_addr: int) -> Optional[str]:
-        print('a')
         match_cbg_timer = self._data.callback_group_timer.query(
             f'callback_group_addr == {cbg_addr}'
         )
