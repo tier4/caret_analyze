@@ -49,7 +49,7 @@ class Architecture(Summarizable):
         self._nodes: Tuple[NodeStruct, ...] = loaded.nodes
         self._communications: Tuple[CommunicationStruct, ...] = loaded.communications
         self._executors: Tuple[ExecutorStruct, ...] = loaded.executors
-        self._path_manager = NamedPathManager(loaded.paths)
+        self._path_manager = NamedPathManager(tuple(v.to_value() for v in loaded.paths))
         self._verify(self._nodes)
 
     def get_node(self, node_name: str) -> NodeStructValue:
@@ -92,7 +92,7 @@ class Architecture(Summarizable):
         subscription_node_name: str,
         topic_name: str
     ) -> CommunicationStructValue:
-        def is_target_comm(comm: CommunicationStruct):
+        def is_target_comm(comm: CommunicationStructValue):
             return comm.publish_node_name == publisher_node_name and \
                 comm.subscribe_node_name == subscription_node_name and \
                 comm.topic_name == topic_name
@@ -102,13 +102,13 @@ class Architecture(Summarizable):
     def get_path(self, path_name: str) -> PathStructValue:
         return self._path_manager.get_named_path(path_name)
 
-    def add_path(self, path_name: str, path_info: PathStruct) -> None:
+    def add_path(self, path_name: str, path_info: PathStructValue) -> None:
         self._path_manager.add_named_path(path_name, path_info)
 
     def remove_path(self, path_name: str) -> None:
         self._path_manager.remove_named_path(path_name)
 
-    def update_path(self, path_name: str, path: PathStruct) -> None:
+    def update_path(self, path_name: str, path: PathStructValue) -> None:
         self._path_manager.update_named_path(path_name, path)
 
     @property
@@ -217,8 +217,8 @@ class Architecture(Summarizable):
 
 class NamedPathManager():
 
-    def __init__(self, paths: Tuple[PathStruct, ...]) -> None:
-        self._named_paths: Dict[str, PathStruct] = {}
+    def __init__(self, paths: Tuple[PathStructValue, ...]) -> None:
+        self._named_paths: Dict[str, PathStructValue] = {}
         for path in paths:
             if path.path_name is None:
                 continue
@@ -233,7 +233,7 @@ class NamedPathManager():
             raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
         return self._named_paths[path_name].to_value()
 
-    def add_named_path(self, path_name: str, path_info: PathStruct):
+    def add_named_path(self, path_name: str, path_info: PathStructValue):
         if path_name in self._named_paths.keys():
             raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
         named_path_info = PathStruct(path_name, path_info.child)
@@ -244,7 +244,7 @@ class NamedPathManager():
             raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
         del self._named_paths[path_name]
 
-    def update_named_path(self, path_name: str, path_info: PathStruct):
+    def update_named_path(self, path_name: str, path_info: PathStructValue):
         if path_info.path_name is None:
             raise InvalidArgumentError('path_info.path_name is None')
 
