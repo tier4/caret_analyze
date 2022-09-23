@@ -21,7 +21,7 @@ from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
-                     NodeStruct, PathStruct)
+                     NodeStruct)
 from .struct.callback import TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
@@ -226,17 +226,17 @@ class NamedPathManager():
 
     @property
     def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return tuple(v.to_value() for v in self._named_paths.values())
+        return tuple(v for v in self._named_paths.values())
 
     def get_named_path(self, path_name: str) -> PathStructValue:
         if path_name not in self._named_paths.keys():
             raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
-        return self._named_paths[path_name].to_value()
+        return self._named_paths[path_name]
 
     def add_named_path(self, path_name: str, path_info: PathStructValue):
         if path_name in self._named_paths.keys():
             raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
-        named_path_info = PathStruct(path_name, path_info.child)
+        named_path_info = PathStructValue(path_name, path_info.child)
         self._named_paths[path_name] = named_path_info
 
     def remove_named_path(self, path_name: str):

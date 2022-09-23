@@ -31,6 +31,7 @@ class SubscriptionStruct(Summarizable):
         self._node_name: str = node_name
         self._topic_name: str = topic_name
         self._callback_value = callback_info
+
     @property
     def node_name(self) -> str:
         return self._node_name
