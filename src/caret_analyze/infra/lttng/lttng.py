@@ -252,7 +252,7 @@ class CtfEventCollection(IterableEvents):
 
         assert begin_msg is not None
         assert end_msg is not None
-        # NOTE: Begin_time and end_time should be the same time as the PicleEventCollection.
+        # NOTE: Begin_time and end_time should be the same time as the PickleEventCollection.
         self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
         self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
         self._size = event_count
