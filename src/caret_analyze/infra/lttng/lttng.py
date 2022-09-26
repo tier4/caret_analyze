@@ -247,8 +247,8 @@ class CtfEventCollection(IterableEvents):
 
             if type(msg) is bt2._EventMessageConst:
                 if not begin_msg:
-                    begin_msg = msg
-                end_msg = msg
+                    begin_msg = msg  # store first one
+                end_msg = msg  # store last one
 
         assert begin_msg is not None
         assert end_msg is not None
