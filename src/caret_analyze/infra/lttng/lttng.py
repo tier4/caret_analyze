@@ -229,28 +229,32 @@ class CtfEventCollection(IterableEvents):
 
     def __init__(self, events_path: str) -> None:
         event_count = 0
-        begin_time: Optional[int] = None
-        end_time: int
+        begin_msg: Any = None
+        end_msg: Any = None
 
         for msg in bt2.TraceCollectionMessageIterator(events_path):
             if type(msg) is bt2._EventMessageConst:
                 event_count += 1
 
-            if not begin_time and type(msg) is bt2._PacketBeginningMessageConst:
-                begin_time = msg.default_clock_snapshot.ns_from_origin
-            elif type(msg) is bt2._PacketEndMessageConst:
-                end_time = msg.default_clock_snapshot.ns_from_origin
             # Check for traces lost
-            elif(type(msg) is bt2._DiscardedEventsMessageConst):
+            if(type(msg) is bt2._DiscardedEventsMessageConst):
                 msg = ('Tracer discarded '
                        f'{msg.count} events between '
                        f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
                        f'{msg.end_default_clock_snapshot.ns_from_origin}.')
                 logger.warning(msg)
+                continue
 
-        assert begin_time is not None
-        self._begin_time: int = begin_time
-        self._end_time: int = end_time
+            if type(msg) is bt2._EventMessageConst:
+                if not begin_msg:
+                    begin_msg = msg  # store first one
+                end_msg = msg  # store last one
+
+        assert begin_msg is not None
+        assert end_msg is not None
+        # NOTE: Begin_time and end_time should be the same time as the PickleEventCollection.
+        self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
+        self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
         self._size = event_count
         self._events = self._to_dicts(events_path, event_count)
 
