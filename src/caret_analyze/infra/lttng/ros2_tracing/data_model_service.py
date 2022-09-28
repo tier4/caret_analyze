@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import List, Set
+
+import pandas as pd
 
 from .data_model import Ros2DataModel
 from ....exceptions import InvalidCtfDataError
@@ -48,27 +50,28 @@ class DataModelService:
         this API returns a list of all possible node names.
 
         """
+        node_names: Set[str] = set()
         try:
-            node_names = self._get_node_names_from_cbg_timer(cbg_addr)
+            node_names |= set(self._get_node_names_from_cbg_timer(cbg_addr))
         except KeyError:
             pass
-        else:
-            return node_names
 
         try:
-            node_names = self._get_node_names_from_cbg_sub(cbg_addr)
+            node_names |= set(self._get_node_names_from_cbg_sub(cbg_addr))
         except KeyError:
             pass
-        else:
-            return node_names
 
         try:
-            node_names = self._get_node_names_from_get_parameters_srv(cbg_addr)
+            node_names |= set(
+                self._get_node_names_from_get_parameters_srv(cbg_addr))
         except KeyError:
+            pass
+
+        if node_names:
+            return sorted(list(node_names))
+        else:
             raise InvalidCtfDataError(
                 'Failed to identify node name from callback group address.')
-        else:
-            return node_names
 
     def _get_node_names_from_cbg_timer(
         self,
@@ -126,8 +129,17 @@ class DataModelService:
         self,
         node_handles: List[int]
     ) -> List[str]:
+        def ns_and_node_name(row: pd.Series) -> str:
+            ns: str = row['namespace']
+            name: str = row['name']
+
+            if ns[-1] == '/':
+                return ns + name
+            else:
+                return ns + '/' + name
+
         match_nodes = self._data.nodes.loc[node_handles, :]
 
-        node_names = [row.namespace + '/' + row.name
-                      for row in match_nodes.itertuples()]
+        node_names = [ns_and_node_name(row)
+                      for _, row in match_nodes.iterrows()]
         return node_names

@@ -24,9 +24,6 @@ class TestDataModelService:
 
     def test_get_node_names_not_exist(self):
         data = Ros2DataModel()
-        data.callback_group_add_timer(-1, -1, -1)
-        data.callback_group_add_subscription(-1, -1, -1)
-        data.callback_group_add_service(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
@@ -42,8 +39,6 @@ class TestDataModelService:
         data.add_node(0, node_handle, 0, 0, 'name', 'ns')
         data.add_timer_node_link(timer_handle, 0, node_handle)
         data.callback_group_add_timer(cbg_addr, 0, timer_handle)
-        data.callback_group_add_subscription(-1, -1, -1)
-        data.callback_group_add_service(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
@@ -58,8 +53,6 @@ class TestDataModelService:
         data.add_node(0, node_handle, 0, 0, 'name', 'ns')
         data.add_rcl_subscription(sub_handle, 0, node_handle, 0, 'topic', 0)
         data.callback_group_add_subscription(cbg_addr, 0, sub_handle)
-        data.callback_group_add_timer(-1, -1, -1)
-        data.callback_group_add_service(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
@@ -74,8 +67,6 @@ class TestDataModelService:
         data.add_node(0, node_handle, 0, 0, 'name', 'ns')
         data.add_service(srv_handle, 0, node_handle, 0, 'srv')
         data.callback_group_add_service(cbg_addr, 0, srv_handle)
-        data.callback_group_add_timer(-1, -1, -1)
-        data.callback_group_add_subscription(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
@@ -95,8 +86,6 @@ class TestDataModelService:
         data.add_timer_node_link(timer_handle2, 0, node_handle2)
         data.callback_group_add_timer(duplicated_cbg_addr, 0, timer_handle1)
         data.callback_group_add_timer(duplicated_cbg_addr, 0, timer_handle2)
-        data.callback_group_add_subscription(-1, -1, -1)
-        data.callback_group_add_service(-1, -1, -1)
         data.finalize()
 
         data_model_srv = DataModelService(data)
