@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import List, Optional
 
 from .data_model import Ros2DataModel
 from ....exceptions import InvalidCtfDataError
@@ -23,115 +23,105 @@ class DataModelService:
     def __init__(self, data: Ros2DataModel) -> None:
         self._data = data
 
-    def get_node_name(self, cbg_addr: int) -> str:
-        node_name = self._get_node_name_from_rcl_node_init(cbg_addr)
-        if node_name:
-            return node_name
+    def get_node_names(self, cbg_addr: int) -> List[str]:
+        """
+        Get node names from callback group address.
 
-        node_name = self._get_node_name_from_get_parameters_srv(cbg_addr)
-        if node_name:
-            return node_name
+        Parameters
+        ----------
+        cbg_addr : int
+            callback group address.
 
-        raise InvalidCtfDataError(
-            'Failed to identify node name from callback group address.')
+        Returns
+        -------
+        List[str]
 
-    def _get_node_name_from_rcl_node_init(
+        Raises
+        ------
+        InvalidCtfDataError
+            Occurs when there is no node name associated with
+            the given callback group address.
+
+        Notes
+        -----
+        Since there may be duplicate addresses in the trace data,
+        this API returns a list of all possible node names.
+
+        """
+        try:
+            node_names = self._get_node_names_from_cbg_timer(cbg_addr)
+        except KeyError:
+            pass
+        else:
+            return node_names
+
+        try:
+            node_names = self._get_node_names_from_cbg_sub(cbg_addr)
+        except KeyError:
+            pass
+        else:
+            return node_names
+
+        try:
+            node_names = self._get_node_names_from_get_parameters_srv(cbg_addr)
+        except KeyError:
+            raise InvalidCtfDataError(
+                'Failed to identify node name from callback group address.')
+        else:
+            return node_names
+
+    def _get_node_names_from_cbg_timer(
         self,
         cbg_addr: int
-    ) -> Optional[str]:
-        node_name = self._get_node_name_from_cbg_timer(cbg_addr)
-        if node_name:
-            return node_name
+    ) -> Optional[List[str]]:
+        match_cbg_timer = self._data.callback_group_timer.loc[[cbg_addr], :]
 
-        node_name = self._get_node_name_from_cbg_sub(cbg_addr)
-        if node_name:
-            return node_name
+        match_timer_handles = match_cbg_timer.loc[:, 'timer_handle'].to_list()
+        match_timer_node_links = self._data.timer_node_links.loc[
+            match_timer_handles, :
+        ]
 
-        return None
+        match_node_handles = \
+            match_timer_node_links.loc[:, 'node_handle'].to_list()
+        return self._get_node_names_from_node_handles(match_node_handles)
 
-    def _get_node_name_from_cbg_timer(self, cbg_addr: int) -> Optional[str]:
-        match_cbg_timer = self._data.callback_group_timer.query(
-            f'callback_group_addr == {cbg_addr}'
-        )
-        if match_cbg_timer.empty:
-            return None
-
-        assert len(match_cbg_timer) == 1
-        timer_handle = match_cbg_timer.iloc[0]['timer_handle']
-        match_timer_node_links = self._data.timer_node_links.query(
-            f'timer_handle == {timer_handle}'
-        )
-        if match_timer_node_links.empty:
-            return None
-
-        assert len(match_timer_node_links) == 1
-        node_handle = match_timer_node_links.iloc[0]['node_handle']
-        match_nodes = self._data.nodes.query(
-            f'node_handle == {node_handle}'
-        )
-        if match_nodes.empty:
-            return None
-
-        assert len(match_nodes) == 1
-        node_name = (match_nodes.iloc[0]['namespace']
-                     + '/' + match_nodes.iloc[0]['name'])
-        return node_name
-
-    def _get_node_name_from_cbg_sub(self, cbg_addr: int) -> Optional[str]:
-        match_cbg_sub = self._data.callback_group_subscription.query(
-            f'callback_group_addr == {cbg_addr}'
-        )
-        if match_cbg_sub.empty:
-            return None
-
-        assert len(match_cbg_sub) == 1
-        subscription_handle = match_cbg_sub.iloc[0]['subscription_handle']
-        match_subscriptions = self._data.subscriptions.query(
-            f'subscription_handle == {subscription_handle}'
-        )
-        if match_subscriptions.empty:
-            return None
-
-        assert len(match_subscriptions) == 1
-        node_handle = match_subscriptions.iloc[0]['node_handle']
-        match_nodes = self._data.nodes.query(
-            f'node_handle == {node_handle}'
-        )
-        if match_nodes.empty:
-            return None
-
-        assert len(match_nodes) == 1
-        node_name = (match_nodes.iloc[0]['namespace']
-                     + '/' + match_nodes.iloc[0]['name'])
-        return node_name
-
-    def _get_node_name_from_get_parameters_srv(
+    def _get_node_names_from_cbg_sub(
         self,
         cbg_addr: int
-    ) -> Optional[str]:
-        match_cbg_srv = self._data.callback_group_service.query(
-            f'callback_group_addr == {cbg_addr}'
-        )
-        if match_cbg_srv.empty:
-            return None
+    ) -> Optional[List[str]]:
+        match_cbg_sub = \
+            self._data.callback_group_subscription.loc[[cbg_addr], :]
 
-        assert len(match_cbg_srv) == 1
-        service_handle = match_cbg_srv.iloc[0]['service_handle']
-        match_services = self._data.services.query(
-            f'service_handle == {service_handle}'
-        )
-        if match_services.empty:
-            return None
+        match_sub_handles = \
+            match_cbg_sub.loc[:, 'subscription_handle'].to_list()
+        match_subscriptions = self._data.subscriptions.loc[
+            match_sub_handles, :
+        ]
 
-        assert len(match_services) == 1
-        node_handle = match_services.iloc[0]['node_handle']
-        match_nodes = self._data.nodes.query(
-            f'node_handle == {node_handle}'
-        )
-        if match_nodes.empty:
-            return None
+        match_node_handles = \
+            match_subscriptions.loc[:, 'node_handle'].to_list()
+        return self._get_node_names_from_node_handles(match_node_handles)
 
-        assert len(match_nodes) == 1
-        node_name = (match_nodes.iloc[0]['namespace']
-                     + '/' + match_nodes.iloc[0]['name'])
-        return node_name
+    def _get_node_names_from_get_parameters_srv(
+        self,
+        cbg_addr: int
+    ) -> Optional[List[str]]:
+        match_cbg_srv = self._data.callback_group_service.loc[[cbg_addr], :]
+
+        match_srv_handles = match_cbg_srv.loc[:, 'service_handle'].to_list()
+        match_services = self._data.services.loc[
+            match_srv_handles, :
+        ]
+
+        match_node_handles = match_services.loc[:, 'node_handle'].to_list()
+        return self._get_node_names_from_node_handles(match_node_handles)
+
+    def _get_node_names_from_node_handles(
+        self,
+        node_handles: List[int]
+    ) -> List[str]:
+        match_nodes = self._data.nodes.loc[node_handles, :]
+
+        node_names = [row.namespace + '/' + row.name
+                      for row in match_nodes.itertuples()]
+        return node_names

@@ -22,7 +22,7 @@ import pytest
 
 class TestDataModelService:
 
-    def test_get_node_name_not_exist(self):
+    def test_get_node_names_not_exist(self):
         data = Ros2DataModel()
         data.callback_group_add_timer(-1, -1, -1)
         data.callback_group_add_subscription(-1, -1, -1)
@@ -31,10 +31,10 @@ class TestDataModelService:
 
         data_model_srv = DataModelService(data)
         with pytest.raises(InvalidCtfDataError) as e:
-            data_model_srv.get_node_name(0)
+            data_model_srv.get_node_names(0)
         assert 'Failed' in str(e.value)
 
-    def test_get_node_name_exist_rcl_node_init_timer(self):
+    def test_get_node_names_exist_rcl_node_init_timer(self):
         data = Ros2DataModel()
         cbg_addr = 1
         timer_handle = 2
@@ -47,10 +47,10 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_name = data_model_srv.get_node_name(cbg_addr)
-        assert node_name == 'ns/name'
+        node_names = data_model_srv.get_node_names(cbg_addr)
+        assert node_names == ['ns/name']
 
-    def test_get_node_name_exist_rcl_node_init_sub(self):
+    def test_get_node_names_exist_rcl_node_init_sub(self):
         data = Ros2DataModel()
         cbg_addr = 1
         sub_handle = 2
@@ -63,10 +63,10 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_name = data_model_srv.get_node_name(cbg_addr)
-        assert node_name == 'ns/name'
+        node_names = data_model_srv.get_node_names(cbg_addr)
+        assert node_names == ['ns/name']
 
-    def test_get_node_name_exist_get_parameters_srv(self):
+    def test_get_node_names_exist_get_parameters_srv(self):
         data = Ros2DataModel()
         cbg_addr = 1
         srv_handle = 2
@@ -79,5 +79,27 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_name = data_model_srv.get_node_name(cbg_addr)
-        assert node_name == 'ns/name'
+        node_names = data_model_srv.get_node_names(cbg_addr)
+        assert node_names == ['ns/name']
+
+    def test_get_node_names_multiple_exist(self):
+        data = Ros2DataModel()
+        duplicated_cbg_addr = 1
+        timer_handle1 = 2
+        timer_handle2 = 3
+        node_handle1 = 4
+        node_handle2 = 5
+        data.add_node(0, node_handle1, 0, 0, 'name1', 'ns')
+        data.add_node(0, node_handle2, 0, 0, 'name2', 'ns')
+        data.add_timer_node_link(timer_handle1, 0, node_handle1)
+        data.add_timer_node_link(timer_handle2, 0, node_handle2)
+        data.callback_group_add_timer(duplicated_cbg_addr, 0, timer_handle1)
+        data.callback_group_add_timer(duplicated_cbg_addr, 0, timer_handle2)
+        data.callback_group_add_timer(-1, -1, -1)
+        data.callback_group_add_subscription(-1, -1, -1)
+        data.callback_group_add_service(-1, -1, -1)
+        data.finalize()
+
+        data_model_srv = DataModelService(data)
+        node_names = data_model_srv.get_node_names(duplicated_cbg_addr)
+        assert node_names == ['ns/name1', 'ns/name2']
