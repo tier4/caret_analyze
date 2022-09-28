@@ -95,7 +95,6 @@ class TestDataModelService:
         data.add_timer_node_link(timer_handle2, 0, node_handle2)
         data.callback_group_add_timer(duplicated_cbg_addr, 0, timer_handle1)
         data.callback_group_add_timer(duplicated_cbg_addr, 0, timer_handle2)
-        data.callback_group_add_timer(-1, -1, -1)
         data.callback_group_add_subscription(-1, -1, -1)
         data.callback_group_add_service(-1, -1, -1)
         data.finalize()
