@@ -90,7 +90,8 @@ class MessageContextStruct(Summarizable):
         publisher: Optional[PublisherStruct],
         callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
-        return self._sub == subscription and self._pub == publisher
+        return self._sub.to_value() == subscription.to_value() \
+            and self._pub.to_value() == publisher.to_value()
 
     @property
     def publisher_topic_name(self) -> Optional[str]:
@@ -236,7 +237,7 @@ class CallbackChainStruct(MessageContextStruct):
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
-        return self.callbacks == callbacks
+        return [v.to_value() for v in self.callbacks] == [v.to_value() for v in callbacks]
 
     def to_dict(self) -> Dict:
         d = super().to_dict()
