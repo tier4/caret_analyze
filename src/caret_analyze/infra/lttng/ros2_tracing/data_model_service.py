@@ -68,7 +68,7 @@ class DataModelService:
             pass
 
         if node_names:
-            return sorted(list(node_names))
+            return sorted(node_names)
         else:
             raise InvalidCtfDataError(
                 'Failed to identify node name from callback group address.')
