@@ -73,7 +73,7 @@ class DataModelService:
     def _get_node_names_from_cbg_timer(
         self,
         cbg_addr: int
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         match_cbg_timer = self._data.callback_group_timer.loc[[cbg_addr], :]
 
         match_timer_handles = match_cbg_timer.loc[:, 'timer_handle'].to_list()
@@ -88,7 +88,7 @@ class DataModelService:
     def _get_node_names_from_cbg_sub(
         self,
         cbg_addr: int
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         match_cbg_sub = \
             self._data.callback_group_subscription.loc[[cbg_addr], :]
 
@@ -105,7 +105,7 @@ class DataModelService:
     def _get_node_names_from_get_parameters_srv(
         self,
         cbg_addr: int
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         match_cbg_srv = self._data.callback_group_service.loc[[cbg_addr], :]
 
         match_srv_handles = match_cbg_srv.loc[:, 'service_handle'].to_list()
