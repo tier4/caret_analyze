@@ -264,7 +264,7 @@ class CallbackChain(MessageContext):
                     'callback-chain is empty. '
                     'The callback is not associated with the publisher. '
                 )
-            elif not self._pub.callbacks:
+            elif not self._pub.summary['callbacks']:
                 logger.warning(
                     'callback-chain is empty. '
                     'The callback is not associated with the publisher. '
