@@ -633,7 +633,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns
+            Columns
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -653,7 +654,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -672,7 +674,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_start_timestamp
             - callback_end_timestamp
             - is_intra_process
