@@ -73,13 +73,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-<<<<<<< HEAD
         comm_info : CommunicationStructValue
-            communicadtion info.
-=======
-        comm_info : CommunicationStructInfo
             communication info.
->>>>>>> main
 
         Returns
         -------
