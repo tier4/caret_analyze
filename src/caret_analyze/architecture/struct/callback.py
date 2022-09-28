@@ -72,7 +72,7 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
         """
         Get callback name.
 
-        Returns the backslash is redundant between brackets
+        Returns
         -------
         str
             callback name
@@ -192,6 +192,6 @@ class SubscriptionCallbackStruct(CallbackStruct):
     def to_value(self) -> SubscriptionCallbackStructValue:
         return SubscriptionCallbackStructValue(
             self.node_name, self.symbol,
-            '' if self.subscribe_topic_name is None else self.subscribe_topic_name,
-            None if self.publish_topic_names is None else self.publish_topic_names,
+            self.subscribe_topic_name,
+            self.publish_topic_names,
             self.callback_name)

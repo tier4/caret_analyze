@@ -30,7 +30,7 @@ class CallbackGroupStruct(Summarizable):
         self,
         callback_group_type: CallbackGroupType,
         node_name: str,
-        callback_values: Tuple[CallbackStruct, ...],
+        callbacks: Tuple[CallbackStruct, ...],
         callback_group_name: str
     ) -> None:
         """
@@ -44,7 +44,7 @@ class CallbackGroupStruct(Summarizable):
         """
         self._callback_group_type = callback_group_type
         self._node_name = node_name
-        self._callback_values = callback_values
+        self._callbacks = callbacks
         self._callback_group_name = callback_group_name
 
     @property
@@ -90,11 +90,11 @@ class CallbackGroupStruct(Summarizable):
 
     @property
     def callbacks(self) -> Tuple[CallbackStruct, ...]:
-        return self._callback_values
+        return self._callbacks
 
     @property
     def callback_names(self) -> Tuple[str, ...]:
-        return tuple(i.callback_name for i in self._callback_values)
+        return tuple(i.callback_name for i in self._callbacks)
 
     @property
     def summary(self) -> Summary:
