@@ -90,8 +90,10 @@ class MessageContextStruct(Summarizable):
         publisher: Optional[PublisherStruct],
         callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
-        return self._sub.to_value() == subscription.to_value() \
-            and self._pub.to_value() == publisher.to_value()
+        def _to_value(struct):
+            return None if struct is None else struct.to_value()
+        return _to_value(self._sub) == _to_value(subscription) \
+            and _to_value(self._pub) == _to_value(publisher)
 
     @property
     def publisher_topic_name(self) -> Optional[str]:
