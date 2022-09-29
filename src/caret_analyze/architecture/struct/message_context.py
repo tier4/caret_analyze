@@ -159,7 +159,7 @@ class MessageContextStruct(Summarizable):
 class UseLatestMessageStruct(MessageContextStruct):
     TYPE_NAME = 'use_latest_message'
 
-    """Use messsage context"""
+    """Use message context"""
 
     @property
     def context_type(self) -> MessageContextType:
