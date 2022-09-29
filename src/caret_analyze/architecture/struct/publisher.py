@@ -15,11 +15,10 @@
 from typing import Optional, Tuple
 
 from .callback import CallbackStruct
-from ...common import Summarizable, Summary
 from ...value_objects import PublisherStructValue
 
 
-class PublisherStruct(Summarizable):
+class PublisherStruct():
     """Structured publisher value."""
 
     def __init__(

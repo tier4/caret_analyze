@@ -15,11 +15,10 @@
 from typing import Optional
 
 from .callback import TimerCallbackStruct
-from ...common import Summarizable, Summary
 from ...value_objects import TimerStructValue
 
 
-class TimerStruct(Summarizable):
+class TimerStruct():
     """Timer info."""
 
     def __init__(

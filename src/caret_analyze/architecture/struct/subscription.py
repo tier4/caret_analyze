@@ -15,11 +15,10 @@
 from typing import Optional
 
 from .callback import SubscriptionCallbackStruct
-from ...common import Summarizable, Summary
 from ...value_objects import SubscriptionStructValue
 
 
-class SubscriptionStruct(Summarizable):
+class SubscriptionStruct():
     """Subscription info."""
 
     def __init__(

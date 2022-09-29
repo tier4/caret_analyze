@@ -17,14 +17,12 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple
 
-from ...common import Summarizable, Summary
-
 from ...value_objects import (CallbackStructValue, CallbackType,
                               SubscriptionCallbackStructValue,
                               TimerCallbackStructValue)
 
 
-class CallbackStruct(Summarizable, metaclass=ABCMeta):
+class CallbackStruct(metaclass=ABCMeta):
     """Callback value base class."""
 
     def __init__(

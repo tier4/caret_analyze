@@ -26,7 +26,6 @@ from caret_analyze.value_objects.message_context import (CallbackChain, InheritU
 from .callback import CallbackStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
-from ...common import Summarizable, Summary
 from ...exceptions import UnsupportedTypeError
 
 logger = getLogger(__name__)
@@ -39,7 +38,7 @@ MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
 MessageContextType.TILDE = MessageContextType('tilde')
 
 
-class MessageContextStruct(Summarizable):
+class MessageContextStruct():
     """Structured message context value."""
 
     def __init__(

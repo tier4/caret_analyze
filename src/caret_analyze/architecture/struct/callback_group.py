@@ -18,12 +18,11 @@ from __future__ import annotations
 from typing import Tuple
 
 from .callback import CallbackStruct
-from ...common import Summarizable, Summary
 
 from ...value_objects.callback_group import CallbackGroupStructValue, CallbackGroupType
 
 
-class CallbackGroupStruct(Summarizable):
+class CallbackGroupStruct():
     """Callback group value object."""
 
     def __init__(

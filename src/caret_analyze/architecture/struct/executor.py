@@ -19,12 +19,12 @@ from typing import Tuple
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
-from ...common import Summarizable, Summary, Util
+from ...common import Util
 
 from ...value_objects import ExecutorStructValue, ExecutorType
 
 
-class ExecutorStruct(Summarizable):
+class ExecutorStruct():
     """Executor info for architecture."""
 
     def __init__(

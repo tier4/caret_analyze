@@ -20,14 +20,14 @@ from typing import Optional, Tuple, Union
 
 from .communication import CommunicationStruct
 from .node_path import NodePathStruct
-from ...common import Summarizable, Summary, Util
+from ...common import Util
 from ...exceptions import InvalidArgumentError
 from ...value_objects import PathStructValue
 
 logger = getLogger(__name__)
 
 
-class PathStruct(Summarizable):
+class PathStruct():
     def __init__(
         self,
         path_name: Optional[str],

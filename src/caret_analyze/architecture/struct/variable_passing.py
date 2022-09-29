@@ -15,11 +15,10 @@
 
 
 from .callback import CallbackStruct
-from ...common import Summarizable, Summary
 from ...value_objects import VariablePassingStructValue
 
 
-class VariablePassingStruct(Summarizable):
+class VariablePassingStruct():
     """variable passing info."""
 
     def __init__(

@@ -21,12 +21,12 @@ from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
-from ...common import Summarizable, Summary, Util
+from ...common import Util
 from ...exceptions import ItemNotFoundError
 from ...value_objects import NodeStructValue
 
 
-class NodeStruct(Summarizable):
+class NodeStruct():
     """Executor info for architecture."""
 
     def __init__(

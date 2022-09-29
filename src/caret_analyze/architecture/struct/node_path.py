@@ -22,14 +22,14 @@ from .message_context import MessageContextStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
 from .variable_passing import VariablePassingStruct
-from ...common import Summarizable, Summary, Util
+from ...common import Util
 from ...value_objects import NodePathStructValue
 from ...value_objects.message_context import MessageContextType
 
 logger = getLogger(__name__)
 
 
-class NodePathStruct(Summarizable):
+class NodePathStruct():
     def __init__(
         self,
         node_name: str,

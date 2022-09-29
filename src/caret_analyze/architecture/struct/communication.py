@@ -18,11 +18,11 @@ from .callback import CallbackStruct
 from .node import NodeStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
-from ...common import Summarizable, Summary, Util
+from ...common import Util
 from ...value_objects import CommunicationStructValue
 
 
-class CommunicationStruct(Summarizable):
+class CommunicationStruct():
 
     def __init__(
         self,
