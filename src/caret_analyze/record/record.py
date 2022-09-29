@@ -316,7 +316,7 @@ class Records(RecordsInterface):
 
         df = pd.DataFrame(df_dict, dtype='Int64')
 
-        missing_columns = set(columns) - set(df.columns)
+        missing_columns = list(set(columns) - set(df.columns))
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
         return df[columns]
