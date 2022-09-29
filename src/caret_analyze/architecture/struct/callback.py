@@ -154,7 +154,7 @@ class TimerCallbackStruct(CallbackStruct):
     def to_value(self) -> TimerCallbackStructValue:
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
-            None if self.publish_topic_names is None else self.publish_topic_names,
+            self.publish_topic_names,
             self.callback_name)
 
 

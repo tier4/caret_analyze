@@ -161,9 +161,6 @@ class UseLatestMessageStruct(MessageContextStruct):
 
     """Use messsage context"""
 
-    def verify(self) -> bool:
-        return True
-
     @property
     def context_type(self) -> MessageContextType:
         return MessageContextType.USE_LATEST_MESSAGE
