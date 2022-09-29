@@ -152,24 +152,6 @@ class NodeStruct(Summarizable):
             msg += f'timer_period: {timer_period}'
             raise ItemNotFoundError(msg)
 
-    @property
-    def summary(self) -> Summary:
-        # node = app.get_node('')
-        # node ?何ノード？コールバックは？
-        # node.summary <-  辞書型で要約情報を取得
-        d: Summary = Summary()
-        d['node'] = self.node_name
-        d['callbacks'] = self.callback_names
-        d['callback_groups'] = self.callback_group_names
-        d['publishers'] = [_.summary for _ in self.publishers]
-        d['subscriptions'] = [_.summary for _ in self.subscriptions]
-        d['variable_passings'] = []
-        if self.variable_passings is not None:
-            d['variable_passings'] = [_.summary for _ in self.variable_passings]
-        d['paths'] = [_.summary for _ in self.paths]
-
-        return d
-
     def to_value(self) -> NodeStructValue:
         return NodeStructValue(
             self.node_name,

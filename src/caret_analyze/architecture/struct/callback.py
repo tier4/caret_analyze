@@ -106,11 +106,6 @@ class CallbackStruct(Summarizable, metaclass=ABCMeta):
     def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
         return self._publish_topic_names
 
-    @property
-    @abstractmethod
-    def summary(self) -> Summary:
-        pass
-
     @abstractmethod
     def to_value(self) -> CallbackStructValue:
         pass
@@ -143,14 +138,6 @@ class TimerCallbackStruct(CallbackStruct):
     def period_ns(self) -> int:
         return self._period_ns
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'name': self.callback_name,
-            'type': self.callback_type_name,
-            'period_ns': self.period_ns
-        })
-
     def to_value(self) -> TimerCallbackStructValue:
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
@@ -180,14 +167,6 @@ class SubscriptionCallbackStruct(CallbackStruct):
     @property
     def subscribe_topic_name(self) -> str:
         return self.__subscribe_topic_name
-
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'name': self.callback_name,
-            'type': self.callback_type_name,
-            'topic': self.subscribe_topic_name
-        })
 
     def to_value(self) -> SubscriptionCallbackStructValue:
         return SubscriptionCallbackStructValue(

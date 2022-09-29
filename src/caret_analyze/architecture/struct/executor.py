@@ -66,14 +66,6 @@ class ExecutorStruct(Summarizable):
         cbg_names = [cbg.callback_group_name for cbg in self._cbg_values]
         return tuple(cbg_names)
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'name': self.executor_name,
-            'type': self.executor_type_name,
-            'callback_groups': [_.summary for _ in self.callback_groups]
-        })
-
     def to_value(self) -> ExecutorStructValue:
         return ExecutorStructValue(self.executor_type,
                                    tuple(v.to_value() for v in self.callback_groups),

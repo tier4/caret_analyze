@@ -107,14 +107,6 @@ class MessageContextStruct(Summarizable):
             return None
         return self._sub.topic_name
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name,
-            'type': str(self.type_name)
-        })
-
     @staticmethod
     def create_instance(
         context_type_name: str,

@@ -99,14 +99,6 @@ class CommunicationStruct(Summarizable):
     def publish_node_name(self) -> str:
         return self._node_pub.node_name
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'topic_name': self.topic_name,
-            'publish_node': self.publish_node_name,
-            'subscribe_node': self.subscribe_node_name,
-        })
-
     def to_value(self) -> CommunicationStructValue:
         return CommunicationStructValue(
             self.publish_node.to_value(),

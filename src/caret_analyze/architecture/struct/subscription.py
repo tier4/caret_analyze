@@ -48,13 +48,6 @@ class SubscriptionStruct(Summarizable):
         return self._callback_value.callback_name
 
     @property
-    def summary(self) -> Summary:
-        return Summary({
-            'topic_name': self.topic_name,
-            'callback': self.callback_name
-        })
-
-    @property
     def callback(self) -> Optional[SubscriptionCallbackStruct]:
         return self._callback_value
 

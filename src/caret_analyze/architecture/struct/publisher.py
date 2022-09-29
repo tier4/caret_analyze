@@ -56,13 +56,6 @@ class PublisherStruct(Summarizable):
             return None
         return tuple(c.callback_name for c in self._callbacks)
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'topic_name': self.topic_name,
-            'callbacks': self.callback_names
-        })
-
     def to_value(self) -> PublisherStructValue:
         return PublisherStructValue(
             self.node_name, self.topic_name,

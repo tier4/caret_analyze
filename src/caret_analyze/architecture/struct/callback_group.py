@@ -96,15 +96,6 @@ class CallbackGroupStruct(Summarizable):
     def callback_names(self) -> Tuple[str, ...]:
         return tuple(i.callback_name for i in self._callbacks)
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'name': self.callback_group_name,
-            'type': self.callback_group_type_name,
-            'node': self.node_name,
-            'callbacks': [_.summary for _ in self.callbacks]
-        })
-
     def to_value(self) -> CallbackGroupStructValue:
         return CallbackGroupStructValue(self.callback_group_type, self.node_name,
                                         tuple(v.to_value() for v in self.callbacks),

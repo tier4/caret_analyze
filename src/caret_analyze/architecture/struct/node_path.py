@@ -60,18 +60,6 @@ class NodePathStruct(Summarizable):
         return tuple(cb_values)
 
     @property
-    def summary(self) -> Summary:
-        context = None
-        if self.message_context is not None:
-            context = self.message_context.summary
-        return Summary({
-            'node': self.node_name,
-            'message_context': context,
-            'subscribe_topic_name': self.subscribe_topic_name,
-            'publish_topic_name': self.publish_topic_name,
-        })
-
-    @property
     def callback_names(self) -> Optional[Tuple[str, ...]]:
         if self.callbacks is None:
             return None

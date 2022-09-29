@@ -81,14 +81,6 @@ class VariablePassingStruct(Summarizable):
     def callback_read(self) -> CallbackStruct:
         return self._cb_read
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'node': self.node_name,
-            'write': self.callback_name_write,
-            'read': self.callback_name_read,
-        })
-
     def to_value(self) -> VariablePassingStructValue:
         return VariablePassingStructValue(self.node_name,
                                           self.callback_write.to_value(),

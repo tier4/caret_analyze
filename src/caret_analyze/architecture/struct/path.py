@@ -74,25 +74,6 @@ class PathStruct(Summarizable):
         return tuple(comm_paths)
 
     @property
-    def summary(self) -> Summary:
-        d: Summary = Summary()
-        d['path'] = []
-        for child in self.child:
-            if isinstance(child, NodePathStruct):
-                context = None
-                if child.message_context is not None:
-                    context = child.message_context.summary
-
-                d['path'].append({
-                    'node': child.node_name,
-                    'message_context': context
-                })
-            if isinstance(child, CommunicationStruct):
-                d['path'].append({'topic': child.topic_name})
-
-        return d
-
-    @property
     def child(self) -> Tuple[Union[NodePathStruct, CommunicationStruct], ...]:
         return self._child
 

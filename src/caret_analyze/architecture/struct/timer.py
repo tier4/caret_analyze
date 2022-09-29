@@ -48,13 +48,6 @@ class TimerStruct(Summarizable):
         return self._callback_value.callback_name
 
     @property
-    def summary(self) -> Summary:
-        return Summary({
-            'period_ns': self.period_ns,
-            'callback': self.callback_name
-        })
-
-    @property
     def callback(self) -> Optional[TimerCallbackStruct]:
         return self._callback_value
 
