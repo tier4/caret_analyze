@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://tier4.github.io/CARET_analyze/main/record/">
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.5.3">
+      <meta name="generator" content="mkdocs-1.4.0, mkdocs-material-8.5.3">
     
     
       
@@ -680,19 +680,6 @@
     merge()
   </a>
   
-    <nav class="md-nav" aria-label="merge()">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.interface.RecordsInterface.merge--example" class="md-nav__link">
-    Example
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
           <li class="md-nav__item">
@@ -706,13 +693,6 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.record.interface.RecordsInterface.merge_sequential--records" class="md-nav__link">
     Records
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.interface.RecordsInterface.merge_sequential--example" class="md-nav__link">
-    Example
   </a>
   
 </li>
@@ -1057,19 +1037,6 @@
     merge()
   </a>
   
-    <nav class="md-nav" aria-label="merge()">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.interface.RecordsInterface.merge--example" class="md-nav__link">
-    Example
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
           <li class="md-nav__item">
@@ -1083,13 +1050,6 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.record.interface.RecordsInterface.merge_sequential--records" class="md-nav__link">
     Records
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.interface.RecordsInterface.merge_sequential--example" class="md-nav__link">
-    Example
   </a>
   
 </li>
@@ -1406,8 +1366,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -1447,8 +1407,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -1967,8 +1927,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2072,8 +2032,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -2392,27 +2352,23 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
         </tr>
     </tbody>
   </table>
-      <h5 id="caret_analyze.record.interface.RecordsInterface.merge--example">Example<a class="headerlink" href="#caret_analyze.record.interface.RecordsInterface.merge--example" title="Permanent link">#</a></h5>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>left_records = Records([
-    Record({'join_key': 1, 'left_other': 1}),
-    Record({'join_key': 2, 'left_other': 2}),
-])
-right_records = Records([
-    Record({'join_key': 2, 'right_other': 3}),
-    Record({'join_key': 1, 'right_other': 4}),
-])
-expected = Records([
-    Record({'join_key': 1, 'left_other': 1, 'right_other': 4}),
-    Record({'join_key': 2, 'left_other': 2, 'right_other': 3}),
-])
-left_records.merge(right_records, 'join_key').equals(expected)
-True</p>
-</blockquote>
-</blockquote>
-</blockquote>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">left_records</span> <span class="o">=</span> <span class="n">Records</span><span class="p">([</span>
+<span class="go">    Record({&#39;join_key&#39;: 1, &#39;left_other&#39;: 1}),</span>
+<span class="go">    Record({&#39;join_key&#39;: 2, &#39;left_other&#39;: 2}),</span>
+<span class="go">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">right_records</span> <span class="o">=</span> <span class="n">Records</span><span class="p">([</span>
+<span class="go">    Record({&#39;join_key&#39;: 2, &#39;right_other&#39;: 3}),</span>
+<span class="go">    Record({&#39;join_key&#39;: 1, &#39;right_other&#39;: 4}),</span>
+<span class="go">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expected</span> <span class="o">=</span> <span class="n">Records</span><span class="p">([</span>
+<span class="go">    Record({&#39;join_key&#39;: 1, &#39;left_other&#39;: 1, &#39;right_other&#39;: 4}),</span>
+<span class="go">    Record({&#39;join_key&#39;: 2, &#39;left_other&#39;: 2, &#39;right_other&#39;: 3}),</span>
+<span class="go">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">left_records</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">right_records</span><span class="p">,</span> <span class="s1">&#39;join_key&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">expected</span><span class="p">)</span>
+<span class="go">True</span>
+</code></pre></div>
 
   </div>
 
@@ -2515,29 +2471,25 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
       <h5 id="caret_analyze.record.interface.RecordsInterface.merge_sequential--records">Records<a class="headerlink" href="#caret_analyze.record.interface.RecordsInterface.merge_sequential--records" title="Permanent link">#</a></h5>
 <p>RecordsInterface
     Merged records.</p>
-<h5 id="caret_analyze.record.interface.RecordsInterface.merge_sequential--example">Example<a class="headerlink" href="#caret_analyze.record.interface.RecordsInterface.merge_sequential--example" title="Permanent link">#</a></h5>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>left_records = Records([
-    Record({'join_key': 1, 'left_stamp_key': 0}),
-    Record({'join_key': 2, 'left_stamp_key': 3})
-])
-right_records = Records([
-    Record({'join_key': 2, 'right_stamp_key': 5}),
-    Record({'join_key': 1, 'right_stamp_key': 6})
-])
-expected = Records([
-    Record({'join_key': 1, 'left_stamp_key': 0, 'right_stamp_key': 6}),
-    Record({'join_key': 2, 'left_stamp_key': 3, 'right_stamp_key': 5}),
-])
-left_records.merge_sequential(
-    right_records, 'left_stamp_key', 'right_stamp_key', 'join_key', 'inner'
-).equals(expected)
-True</p>
-</blockquote>
-</blockquote>
-</blockquote>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">left_records</span> <span class="o">=</span> <span class="n">Records</span><span class="p">([</span>
+<span class="go">    Record({&#39;join_key&#39;: 1, &#39;left_stamp_key&#39;: 0}),</span>
+<span class="go">    Record({&#39;join_key&#39;: 2, &#39;left_stamp_key&#39;: 3})</span>
+<span class="go">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">right_records</span> <span class="o">=</span> <span class="n">Records</span><span class="p">([</span>
+<span class="go">    Record({&#39;join_key&#39;: 2, &#39;right_stamp_key&#39;: 5}),</span>
+<span class="go">    Record({&#39;join_key&#39;: 1, &#39;right_stamp_key&#39;: 6})</span>
+<span class="go">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expected</span> <span class="o">=</span> <span class="n">Records</span><span class="p">([</span>
+<span class="go">    Record({&#39;join_key&#39;: 1, &#39;left_stamp_key&#39;: 0, &#39;right_stamp_key&#39;: 6}),</span>
+<span class="go">    Record({&#39;join_key&#39;: 2, &#39;left_stamp_key&#39;: 3, &#39;right_stamp_key&#39;: 5}),</span>
+<span class="go">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">left_records</span><span class="o">.</span><span class="n">merge_sequential</span><span class="p">(</span>
+<span class="go">    right_records, &#39;left_stamp_key&#39;, &#39;right_stamp_key&#39;, &#39;join_key&#39;, &#39;inner&#39;</span>
+<span class="go">).equals(expected)</span>
+<span class="go">True</span>
+</code></pre></div>
 
   </div>
 
