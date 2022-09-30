@@ -93,6 +93,7 @@ class SubscriptionStructValue(ValueObject, Summarizable):
     @property
     def summary(self) -> Summary:
         return Summary({
+            'node': self.node_name,
             'topic_name': self.topic_name,
             'callback': self.callback_name
         })

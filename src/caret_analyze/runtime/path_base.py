@@ -213,8 +213,12 @@ class PathBase(metaclass=ABCMeta):
         -------
         Tuple[np.ndarray, np.ndarray]
             frequency, latency[ns]
+
             len(frequency)+1 == len(latency)
-            See: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
+
+        See Also
+        --------
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         """
         import math
