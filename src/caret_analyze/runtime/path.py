@@ -300,9 +300,9 @@ class Path(PathBase, Summarizable):
         return self._value.summary
 
     @property
-    def callbacks(self) -> Optional[List[CallbackBase]]:
+    def callback_chain(self) -> Optional[List[CallbackBase]]:
         """
-        Get callbacks.
+        Get callback chain.
 
         Returns
         -------
