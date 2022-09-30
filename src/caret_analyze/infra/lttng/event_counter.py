@@ -77,7 +77,7 @@ class EventCounter:
 
         if len(set(recorded_trace_points) & trace_points_added_by_ld_preload) == 0:
             raise InvalidTraceFormatError(
-                'Failed to found trace point added by LD_PRELOAD. '
+                'Failed to find trace point added by LD_PRELOAD. '
                 'Measurement results will not be correct. '
                 'The measurement may have been performed without setting LD_PRELOAD.')
 

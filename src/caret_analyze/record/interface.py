@@ -458,8 +458,8 @@ class RecordsInterface:
         -------
         RecordsInterface
 
-        Example
-        -------
+        Examples
+        --------
         >>> left_records = Records([
             Record({'join_key': 1, 'left_other': 1}),
             Record({'join_key': 2, 'left_other': 2}),
@@ -519,8 +519,8 @@ class RecordsInterface:
         RecordsInterface
             Merged records.
 
-        Example
-        -------
+        Examples
+        --------
         >>> left_records = Records([
             Record({'join_key': 1, 'left_stamp_key': 0}),
             Record({'join_key': 2, 'left_stamp_key': 3})
