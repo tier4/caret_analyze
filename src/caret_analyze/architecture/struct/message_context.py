@@ -225,10 +225,14 @@ class CallbackChainStruct(MessageContextStruct):
         publisher: Optional[PublisherStruct],
         callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
+        def _to_values(structs):
+            if structs is None:
+                return None
+            else:
+                [v.to_value() for v in structs]
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
-        return (None if self.callbacks is None else [v.to_value() for v in self.callbacks]) ==\
-            (None if callbacks is None else [v.to_value() for v in callbacks])
+        return _to_values(self.callbacks) == _to_values(callbacks)
 
     def to_dict(self) -> Dict:
         d = super().to_dict()
