@@ -76,9 +76,9 @@ def message_flow(
 
     converter: Optional[ClockConverter] = None
     if use_sim_time:
-        assert path.callbacks is not None and len(path.callbacks) > 0
-        cb = path.callbacks[0]
-        converter = cb._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
+        assert len(path.child) > 0
+        child = path.child[0]
+        converter = child._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
 
     strip = Strip(lstrip_s, rstrip_s)
     clip = strip.to_clip(df)
@@ -184,7 +184,7 @@ def get_callback_rect_list(
         'height': []
     })
 
-    if path.callbacks is None:
+    if path.callback_chain is None:
         return rect_source
 
     x = []
@@ -197,7 +197,7 @@ def get_callback_rect_list(
     latency = []
     height = []
 
-    for callback in path.callbacks:
+    for callback in path.callback_chain:
         if granularity == 'raw':
             search_name = callback.callback_name
         elif granularity == 'node':
