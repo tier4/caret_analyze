@@ -60,11 +60,7 @@ class DataModelService:
         except KeyError:
             pass
 
-        if node_names:
-            return sorted(node_names)
-        else:
-            # Failed to identify node name from callback group address.
-            return []
+        return sorted(node_names)
 
     def _get_node_names_from_cbg_timer(
         self,
