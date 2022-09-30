@@ -79,7 +79,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         Returns
         -------
         RecordsInterface
-            Columns:
+            Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_publish_timestamp (Optional)
@@ -137,6 +138,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [callback_name]/callback_end_timestamp
 
@@ -170,6 +172,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
@@ -205,6 +208,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
@@ -257,6 +261,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
@@ -332,6 +337,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
@@ -372,6 +378,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rclcpp_intra_publish_timestamp (Optional)
             - [topic_name]/rclcpp_inter_publish_timestamp (Optional)
@@ -406,6 +413,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rclcpp_intra_publish_timestamp
             - [topic_name]/rclcpp_inter_publish_timestamp
@@ -467,6 +475,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/timer_event
             - [callback_name]/callback_start
             - [callback_name]/callback_end
@@ -511,13 +520,13 @@ class RecordsProviderLttng(RuntimeDataProvider):
     ) -> RecordsInterface:
         assert subscription.callback is not None
 
-        publisher_addrs = self._helper.get_tilde_publishers(publisher)
+        publisher_addresses = self._helper.get_tilde_publishers(publisher)
         subscription_addr = self._helper.get_tilde_subscription(subscription.callback)
 
-        assert len(publisher_addrs) > 0
+        assert len(publisher_addresses) > 0
         assert subscription_addr is not None
 
-        pub_records = self._source.tilde_publish_records(publisher_addrs)
+        pub_records = self._source.tilde_publish_records(publisher_addresses)
         sub_records = self._source.tilde_subscribe_records(subscription_addr)
 
         records = merge(
@@ -586,6 +595,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_end_timestamp
             - [callback_name]/callback_start_timestamp
 
@@ -688,6 +698,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [callback_name]/callback_start_timestamp
 
@@ -730,6 +741,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
@@ -1492,6 +1504,7 @@ class FilteredRecordsSource:
             )
 
         Columns
+
         - rclcpp_publish_timestamp
         - rcl_publish_timestamp (Optional)
         - dds_write_timestamp (Optional)

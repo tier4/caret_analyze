@@ -97,6 +97,7 @@ class PublisherStructValue(ValueObject, Summarizable):
     @property
     def summary(self) -> Summary:
         return Summary({
+            'node': self.node_name,
             'topic_name': self.topic_name,
             'callbacks': self.callback_names
         })

@@ -142,16 +142,16 @@ nodes:
             read_data=architecture_text))
         reader = ArchitectureReaderYaml('file_name')
 
-        cbgs = reader.get_callback_groups(NodeValue('/listener', None))
-        assert len(cbgs) == 1
-        cbg = cbgs[0]
+        callback_groups = reader.get_callback_groups(NodeValue('/listener', None))
+        assert len(callback_groups) == 1
+        cbg = callback_groups[0]
         assert cbg.node_name == '/listener'
         assert cbg.callback_group_type == CallbackGroupType.REENTRANT
         assert cbg.callback_ids == ('/listener/timer_callback_0',)
 
-        cbgs = reader.get_callback_groups(NodeValue('/talker', None))
-        assert len(cbgs) == 1
-        cbg = cbgs[0]
+        callback_groups = reader.get_callback_groups(NodeValue('/talker', None))
+        assert len(callback_groups) == 1
+        cbg = callback_groups[0]
         assert cbg.node_name == '/talker'
         assert cbg.callback_group_type == CallbackGroupType.MUTUALLY_EXCLUSIVE
         assert cbg.callback_ids == ('/talker/timer_callback_1',)

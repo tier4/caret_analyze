@@ -316,7 +316,7 @@ class Records(RecordsInterface):
 
         df = pd.DataFrame(df_dict, dtype='Int64')
 
-        missing_columns = set(columns) - set(df.columns)
+        missing_columns = list(set(columns) - set(df.columns))
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
         return df[columns]
@@ -719,16 +719,16 @@ class Records(RecordsInterface):
                     break
 
             elif record.get(column_type) == RecordType.SOURCE:
-                merged_addrs = []
+                merged_addresses = []
                 for processing_record in filter(
                     lambda x: record.get(source_key) in x.data[sink_from_keys],  # type: ignore
                     processing_records.values(),
                 ):
                     addr = processing_record.get(sink_from_key)
-                    merged_addrs.append(addr)
+                    merged_addresses.append(addr)
                     processing_record.merge(record)
                     merged_records.append(processing_record)
-                for addr in merged_addrs:
+                for addr in merged_addresses:
                     if addr in processing_records:
                         processing_records.pop(addr)
 
