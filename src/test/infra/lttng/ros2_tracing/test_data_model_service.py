@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.exceptions import InvalidCtfDataError
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.ros2_tracing.data_model_service \
     import DataModelService
-
-import pytest
 
 
 class TestDataModelService:
@@ -27,9 +24,8 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        with pytest.raises(InvalidCtfDataError) as e:
-            data_model_srv.get_node_names(0)
-        assert 'Failed' in str(e.value)
+        node_names = data_model_srv.get_node_names(0)
+        assert node_names == []
 
     def test_get_node_names_exist_rcl_node_init_timer(self):
         data = Ros2DataModel()

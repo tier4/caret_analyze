@@ -17,7 +17,6 @@ from typing import List, Set
 import pandas as pd
 
 from .data_model import Ros2DataModel
-from ....exceptions import InvalidCtfDataError
 
 
 class DataModelService:
@@ -37,12 +36,6 @@ class DataModelService:
         Returns
         -------
         List[str]
-
-        Raises
-        ------
-        InvalidCtfDataError
-            Occurs when there is no node name associated with
-            the given callback group address.
 
         Notes
         -----
@@ -70,8 +63,8 @@ class DataModelService:
         if node_names:
             return sorted(node_names)
         else:
-            raise InvalidCtfDataError(
-                'Failed to identify node name from callback group address.')
+            # Failed to identify node name from callback group address.
+            return []
 
     def _get_node_names_from_cbg_timer(
         self,

@@ -86,10 +86,3 @@ class UnsupportedNodeRecordsError(Error):
 
     def __init__(self, message: str) -> None:
         self.message = message
-
-
-class InvalidCtfDataError(Error):
-    """Given CTF data is invalid."""
-
-    def __init__(self, message: str) -> None:
-        self.message = message
