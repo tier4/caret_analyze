@@ -227,7 +227,8 @@ class CallbackChainStruct(MessageContextStruct):
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
-        return [v.to_value() for v in self.callbacks] == [v.to_value() for v in callbacks]
+        return (None if self.callbacks is None else [v.to_value() for v in self.callbacks]) ==\
+            (None if callbacks is None else [v.to_value() for v in callbacks])
 
     def to_dict(self) -> Dict:
         d = super().to_dict()
