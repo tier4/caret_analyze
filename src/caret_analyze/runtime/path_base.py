@@ -151,7 +151,7 @@ class PathBase(metaclass=ABCMeta):
             If true, eliminate the records that caused the drop. default: False.
         treat_drop_as_delay : Optional[bool]
             Convert dropped records as a delay.
-            Valid only when remove_dropped=false. default: Flase.
+            Valid only when remove_dropped=false. default: False.
         lstrip: Optional[float]
             Remove from beginning. [s] default: 0
         rstrip: Optional[float]
@@ -213,8 +213,12 @@ class PathBase(metaclass=ABCMeta):
         -------
         Tuple[np.ndarray, np.ndarray]
             frequency, latency[ns]
+
             len(frequency)+1 == len(latency)
-            See: https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
+
+        See Also
+        --------
+            https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
         """
         import math

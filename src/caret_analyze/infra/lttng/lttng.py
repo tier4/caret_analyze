@@ -14,22 +14,20 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 from datetime import datetime
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+import os
+import pickle
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Sized, Tuple, Union
 
 import bt2
-
-from caret_analyze.value_objects.timer import TimerValue
-
 import pandas as pd
-
-from tracetools_analysis.loading import load_file
+from tqdm import tqdm
 
 from .events_factory import EventsFactory
-from .ros2_tracing.data_model import DataModel
-from .ros2_tracing.processor import Ros2Handler
+from .ros2_tracing.data_model import Ros2DataModel
+from .ros2_tracing.processor import get_field, Ros2Handler
 from .value_objects import (PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
@@ -37,7 +35,8 @@ from ..infra_base import InfraBase
 from ...common import ClockConverter
 from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
-from ...value_objects import CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos
+from ...value_objects import  \
+    CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos, TimerValue
 
 Event = Dict[str, int]
 
@@ -48,8 +47,9 @@ class LttngEventFilter(metaclass=ABCMeta):
     NAME = '_name'
     TIMESTAMP = '_timestamp'
     CPU_ID = '_cpuid'
-    VPID = 'vpid'
-    VTID = 'vtid'
+    VPID = '_vpid'
+    VTID = '_vtid'
+    PROCNAME = '_procname'
 
     class Common:
         start_time: int
@@ -152,6 +152,158 @@ class EventDurationFilter(LttngEventFilter):
         return self._offset <= elapsed_s and elapsed_s < (self._offset + self._duration)
 
 
+class EventCollection(Iterable, Sized):
+
+    def __init__(self, trace_dir: str, force_conversion: bool) -> None:
+        self._iterable_events: IterableEvents
+        cache_path = self._cache_path(trace_dir)
+
+        if os.path.exists(cache_path) and not force_conversion:
+            logger.info('Found converted file.')
+            self._iterable_events = PickleEventCollection(cache_path)
+        else:
+            self._iterable_events = CtfEventCollection(trace_dir)
+            self._store_cache(self._iterable_events, cache_path)
+            logger.info(f'Converted to {cache_path}')
+
+    @staticmethod
+    def _store_cache(iterable_events: IterableEvents, path) -> None:
+        with open(path, mode='wb') as f:
+            pickle.dump(iterable_events.events, f)
+
+    def __len__(self) -> int:
+        return len(self._iterable_events)
+
+    def __iter__(self) -> Iterator[Dict]:
+        return iter(self._iterable_events)
+
+    def time_range(self) -> Tuple[int, int]:
+        return self._iterable_events.time_range()
+
+    def _cache_path(self, events_path: str) -> str:
+        return os.path.join(events_path, 'caret_converted')
+
+
+class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[Dict]:
+        pass
+
+    @abstractmethod
+    def __len__(self) -> int:
+        pass
+
+    @abstractproperty
+    def events(self) -> List[Dict]:
+        pass
+
+    @abstractmethod
+    def time_range(self) -> Tuple[int, int]:
+        pass
+
+
+class PickleEventCollection(IterableEvents):
+
+    def __init__(self, events_path: str) -> None:
+        with open(events_path, mode='rb') as f:
+            self._events = pickle.load(f)
+
+    def __iter__(self) -> Iterator[Dict]:
+        return iter(self._events)
+
+    def __len__(self) -> int:
+        return len(self._events)
+
+    @property
+    def events(self) -> List[Dict]:
+        return self._events
+
+    def time_range(self) -> Tuple[int, int]:
+        begin_time = self._events[0][LttngEventFilter.TIMESTAMP]
+        end_time = self._events[-1][LttngEventFilter.TIMESTAMP]
+        return begin_time, end_time
+
+
+class CtfEventCollection(IterableEvents):
+
+    def __init__(self, events_path: str) -> None:
+        event_count = 0
+        begin_msg: Any = None
+        end_msg: Any = None
+
+        for msg in bt2.TraceCollectionMessageIterator(events_path):
+            if type(msg) is bt2._EventMessageConst:
+                event_count += 1
+
+            # Check for traces lost
+            if(type(msg) is bt2._DiscardedEventsMessageConst):
+                msg = ('Tracer discarded '
+                       f'{msg.count} events between '
+                       f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
+                       f'{msg.end_default_clock_snapshot.ns_from_origin}.')
+                logger.warning(msg)
+                continue
+
+            if type(msg) is bt2._EventMessageConst:
+                if not begin_msg:
+                    begin_msg = msg  # store first one
+                end_msg = msg  # store last one
+
+        assert begin_msg is not None
+        assert end_msg is not None
+        # NOTE: Begin_time and end_time should be the same time as the PickleEventCollection.
+        self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
+        self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
+        self._size = event_count
+        self._events = self._to_dicts(events_path, event_count)
+
+    def __iter__(self) -> Iterator[Dict]:
+        return iter(self._events)
+
+    def __len__(self) -> int:
+        return self._size
+
+    @staticmethod
+    def _to_event(msg: Any) -> Dict[str, Any]:
+        event: Dict[str, Any] = {}
+        event[LttngEventFilter.NAME] = msg.event.name
+        event['timestamp'] = msg.default_clock_snapshot.ns_from_origin
+        event.update(msg.event.payload_field)
+        event.update(msg.event.common_context_field)
+        return event
+
+    @property
+    def events(self) -> List[Dict]:
+        return self._events
+
+    def time_range(self) -> Tuple[int, int]:
+        return self._begin_time, self._end_time
+
+    @staticmethod
+    def _to_dicts(trace_dir: str, count: int) -> List[Dict]:
+        msg_it = bt2.TraceCollectionMessageIterator(trace_dir)
+        events = []
+        acceptable_tracepoints = set(Ros2Handler.get_trace_points())
+        for msg in tqdm(msg_it, total=count, desc='converting'):
+            if type(msg) is not bt2._EventMessageConst:
+                continue
+            if msg.event.name not in acceptable_tracepoints:
+                continue
+
+            event = CtfEventCollection._to_event(msg)
+            event[LttngEventFilter.TIMESTAMP] = event.pop('timestamp')
+            event[LttngEventFilter.VTID] = event.pop('vtid')
+            event[LttngEventFilter.VPID] = event.pop('vpid')
+            event[LttngEventFilter.PROCNAME] = event.pop('procname')
+            event_dict = {
+                k: get_field(event, k) for k in event
+            }
+            events.append(event_dict)
+
+        return events
+
+
 class Lttng(InfraBase):
     """
     Lttng data container class.
@@ -161,11 +313,6 @@ class Lttng(InfraBase):
 
     """
 
-    _last_load_dir: Optional[str] = None
-    _last_filters: Optional[List[LttngEventFilter]] = None
-    _last_trace_begin_time: Optional[int] = None
-    _last_trace_end_time: Optional[int] = None
-
     def __init__(
         self,
         trace_dir_or_events: Union[str, Dict],
@@ -173,74 +320,95 @@ class Lttng(InfraBase):
         *,
         event_filters: Optional[List[LttngEventFilter]] = None,
         store_events: bool = False,
-        validate: bool = True  # TODO(hsgwa): change validate function to public "verify".
+        # TODO(hsgwa): change validate function to public "verify".
+        validate: bool = True
     ) -> None:
         from .lttng_info import LttngInfo
         from .records_source import RecordsSource
         from .event_counter import EventCounter
 
-        data, events = self._parse_lttng_data(
+        data, events, begin, end = self._parse_lttng_data(
             trace_dir_or_events,
             force_conversion,
-            event_filters or []
+            event_filters or [],
+            store_events
         )
+        self.data = data
         self._info = LttngInfo(data)
         self._source: RecordsSource = RecordsSource(data, self._info)
         self._counter = EventCounter(data, validate=validate)
-        self.events = events if store_events else None
+        self.events = events
+        self._begin = begin
+        self._end = end
 
     @staticmethod
     def _parse_lttng_data(
         trace_dir_or_events: Union[str, Dict],
         force_conversion: bool,
-        event_filters: List[LttngEventFilter]
-    ) -> Tuple[DataModel, Dict]:
+        event_filters: List[LttngEventFilter],
+        store_events: bool,
+
+    ) -> Tuple[Any, Dict, int, int]:
+
+        data = Ros2DataModel()
+        handler = Ros2Handler(data)
+        events = []
+        begin: int
+        end: int
+
         if isinstance(trace_dir_or_events, str):
-            Lttng._last_trace_begin_time = None
-            for msg in bt2.TraceCollectionMessageIterator(trace_dir_or_events):
-                if (not Lttng._last_trace_begin_time
-                        and type(msg) is bt2._PacketBeginningMessageConst):
-                    Lttng._last_trace_begin_time = msg.default_clock_snapshot.ns_from_origin
-                elif type(msg) is bt2._PacketEndMessageConst:
-                    Lttng._last_trace_end_time = msg.default_clock_snapshot.ns_from_origin
-                # Check for traces lost
-                elif(type(msg) is bt2._DiscardedEventsMessageConst):
-                    msg = ('Tracer discarded '
-                           f'{msg.count} events between '
-                           f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
-                           f'{msg.end_default_clock_snapshot.ns_from_origin}.')
-                    logger.warning(msg)
+            event_collection = EventCollection(
+                trace_dir_or_events, force_conversion)
+            print('{} events found.'.format(len(event_collection)))
 
-            Lttng._last_load_dir = trace_dir_or_events
-            Lttng._last_filters = event_filters
-            events = load_file(trace_dir_or_events, force_conversion=force_conversion)
-            print('{} events found.'.format(len(events)))
+            common = LttngEventFilter.Common()
+            begin, end = event_collection.time_range()
+            common.start_time, common.end_time = begin, end
+
+            filtered_event_count = 0
+            for event in tqdm(
+                    iter(event_collection),
+                    total=len(event_collection),
+                    desc='loading'):
+                if len(event_filters) > 0 and \
+                        any(not f.accept(event, common) for f in event_filters):
+                    continue
+                if store_events:
+                    event_dict = {
+                        k: get_field(event, k) for k in event
+                    }
+                    events.append(event_dict)
+                filtered_event_count += 1
+                event_name = event[LttngEventFilter.NAME]
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
+
+            data.finalize()
+            if len(event_filters) > 0:
+                print('filtered to {} events.'.format(filtered_event_count))
         else:
+            # Note: giving events as arguments is used only for debugging.
+            filtered_event_count = 0
             events = trace_dir_or_events
+            begin = events[0][LttngEventFilter.TIMESTAMP]
+            end = events[-1][LttngEventFilter.TIMESTAMP]
 
-        if len(event_filters) > 0:
-            events = Lttng._filter_events(events, event_filters)
-            print('filtered to {} events.'.format(len(events)))
+            for event in events:
+                if len(event_filters) > 0 and \
+                        any(not f.accept(event, common) for f in event_filters):
+                    continue
+                if store_events:
+                    events.append(event)
+                filtered_event_count += 1
+                event_name = event[LttngEventFilter.NAME]
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
+            data.finalize()
+            if len(event_filters) > 0:
+                print('filtered to {} events.'.format(filtered_event_count))
 
-        handler = Ros2Handler.process(events)
-        return handler.data, events
-
-    @staticmethod
-    def _filter_events(events: List[Event], filters: List[LttngEventFilter]):
-        if len(events) == 0:
-            return []
-
-        common = LttngEventFilter.Common()
-        common.start_time = events[0][LttngEventFilter.TIMESTAMP]
-        common.end_time = events[-1][LttngEventFilter.TIMESTAMP]
-
-        filtered = []
-        from tqdm import tqdm
-        for event in tqdm(events):
-            if all(event_filter.accept(event, common) for event_filter in filters):
-                filtered.append(event)
-
-        return filtered
+        events_ = None if len(events) == 0 else events
+        return data, events_, begin, end
 
     def get_nodes(
         self
@@ -354,7 +522,7 @@ class Lttng(InfraBase):
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValueLttng]:
         """
-        Get subscription callbacks infomation.
+        Get subscription callbacks information.
 
         Parameters
         ----------
@@ -439,8 +607,8 @@ class Lttng(InfraBase):
             Trace begin time and trace end time.
 
         """
-        return (datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9),
-                datetime.fromtimestamp(Lttng._last_trace_end_time * 1.0e-9))
+        return (datetime.fromtimestamp(self._begin * 1.0e-9),
+                datetime.fromtimestamp(self._end * 1.0e-9))
 
     def get_trace_creation_datetime(
         self
@@ -454,7 +622,7 @@ class Lttng(InfraBase):
             Date and time the trace data was created.
 
         """
-        return datetime.fromtimestamp(Lttng._last_trace_begin_time * 1.0e-9)
+        return datetime.fromtimestamp(self._begin * 1.0e-9)
 
     def compose_inter_proc_comm_records(
         self,
@@ -465,7 +633,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns
+            Columns
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -485,7 +654,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -504,7 +674,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_start_timestamp
             - callback_end_timestamp
             - is_intra_process

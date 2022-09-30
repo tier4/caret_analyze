@@ -65,7 +65,7 @@ def create_lttng(
 ):
     def _lttng(data: Ros2DataModel):
         mocker.patch.object(Lttng, '_parse_lttng_data',
-                            return_value=(data, None))
+                            return_value=(data, None, 0, 1))
         lttng = Lttng('', validate=False)
         # mocker.patch.object(lttng, '_bridge',  bridge_mock)
         return lttng
@@ -226,9 +226,9 @@ def setup_bridge_get_publisher(
 
     def _setup(
         publisher: PublisherStructValue,
-        publisher_lttngs: Sequence[PublisherValueLttng]
+        publisher_lttng_list: Sequence[PublisherValueLttng]
     ):
-        pub_map[publisher] = publisher_lttngs
+        pub_map[publisher] = publisher_lttng_list
 
         mocker.patch.object(
             bridge_mock,
@@ -1347,14 +1347,14 @@ class TestVarPassRecords:
         data.finalize()
 
         var_pass = mocker.Mock(spec=VariablePassingStructValue)
-        callback_read_strct = create_callback_struct('callback_read')
-        callback_write_strct = create_callback_struct('callback_write')
+        callback_read_struct = create_callback_struct('callback_read')
+        callback_write_struct = create_callback_struct('callback_write')
 
         mocker.patch.object(
-            var_pass, 'callback_read', callback_read_strct
+            var_pass, 'callback_read', callback_read_struct
         )
         mocker.patch.object(
-            var_pass, 'callback_write', callback_write_strct
+            var_pass, 'callback_write', callback_write_struct
         )
         callback_write = create_callback_lttng(callback_obj)
         callback_read = create_callback_lttng(callback_obj_)
@@ -1362,8 +1362,8 @@ class TestVarPassRecords:
         lttng = create_lttng(data)
         provider = RecordsProviderLttng(lttng)
 
-        bridge_setup_get_callback(callback_write_strct, callback_write)
-        bridge_setup_get_callback(callback_read_strct, callback_read)
+        bridge_setup_get_callback(callback_write_struct, callback_write)
+        bridge_setup_get_callback(callback_read_struct, callback_read)
 
         records = provider.variable_passing_records(var_pass)
         df = records.to_dataframe()

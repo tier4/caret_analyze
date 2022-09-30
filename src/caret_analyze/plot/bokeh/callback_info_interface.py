@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from logging import getLogger
+from logging import getLogger, Logger
 from typing import List, Optional, Union
 
 from bokeh.models import HoverTool, Legend
@@ -156,6 +156,8 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         else:
             save(p, export_path, title='callback time-line', resources=CDN)
 
+        return p
+
     def _get_callback_lines(
         self,
         callback: CallbackBase,
@@ -234,3 +236,15 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         converter = self._callbacks[0]._provider.get_sim_time_converter()
 
         return converter
+
+    def _output_table_size_zero_warn(
+        self,
+        logger: Logger,
+        metrics: str,
+        callback: CallbackBase,
+    ) -> None:
+        logger.warning(
+            'Since no timestamp is recorded, '
+            f'the {metrics} cannot be calculated. '
+            f'callback_name: {callback.callback_name}'
+        )

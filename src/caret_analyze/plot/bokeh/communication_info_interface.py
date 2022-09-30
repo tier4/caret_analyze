@@ -13,11 +13,11 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from logging import getLogger
+from logging import getLogger, Logger
 from typing import Optional
 
 from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
 
 import pandas as pd
@@ -32,13 +32,19 @@ logger = getLogger(__name__)
 
 class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
 
+    def __init__(
+        self,
+        *communications: Communication
+    ) -> None:
+        self._communications = communications
+
     def show(
         self,
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None
-    ) -> None:
+    ) -> Figure:
         validate_xaxis_type(xaxis_type)
         Hover = HoverTool(
                     tooltips="""
@@ -102,6 +108,8 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         else:
             save(p, export_path,
                  title='communication time-line', resources=CDN)
+
+        return p
 
     def _get_comm_lines(
         self,
@@ -172,3 +180,15 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         return (f'{comm.summary["publish_node"]}|'
                 f'{comm.summary["topic_name"]}|'
                 f'{comm.summary["subscribe_node"]}')
+
+    def _output_table_size_zero_warn(
+        self,
+        logger: Logger,
+        metrics: str,
+        comm: Communication,
+    ) -> None:
+        logger.warning(
+            'Since no timestamp is recorded, '
+            f'the {metrics} cannot be calculated. '
+            f'communication_name: {self._get_comm_name(comm)}'
+        )

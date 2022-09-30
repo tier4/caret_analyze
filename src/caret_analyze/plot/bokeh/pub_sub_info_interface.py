@@ -13,14 +13,12 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from logging import getLogger
+from logging import getLogger, Logger
 from typing import Dict, Optional, Union
 
 from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, figure, save, show
+from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
 from bokeh.resources import CDN
-
-from ipywidgets import Dropdown, interact
 
 import pandas as pd
 
@@ -39,51 +37,63 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
     _last_full_legends: bool = False
     _last_export_path: Optional[str] = None
 
+    def __init__(
+        self,
+        *pub_subs: Union[Publisher, Subscription]
+    ) -> None:
+        self._pub_subs = pub_subs
+
     def show(
         self,
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         export_path: Optional[str] = None,
-    ) -> None:
+        # interactive: bool = False
+    ) -> Figure:
         validate_xaxis_type(xaxis_type)
         self._last_xaxis_type = xaxis_type
         self._last_ywheel_zoom = ywheel_zoom
         self._last_full_legends = full_legends
         self._last_export_path = export_path
 
-        all_topic_names = sorted({ps.topic_name for ps in self._pub_subs})
-        if len(all_topic_names) >= 2:
-            all_topic_names = ['All'] + all_topic_names
+        return self._show_core('All')
 
-        topic_dropdown = Dropdown(description='Topic:',
-                                  options=(all_topic_names))
-        interact(self._show_core,
-                 topic_name=topic_dropdown)
+        # # not interactive
+        # if self._last_export_path:
+        #     self._show_core('All')
+        #     return None
+        # if len(all_topic_names) == 1:
+        #     return [self._show_core('All')]
+        # elif not interactive:
+        #     return [self._show_core(topic_name) for
+        #             topic_name in ['All'] + all_topic_names]
+        # # interactive
+        # else:
+        #     topic_dropdown = Dropdown(description='Topic:',
+        #                               options=(['All'] + all_topic_names))
+        #     interact(self._show_core,
+        #              topic_name=topic_dropdown)
 
     def _show_core(
         self,
         topic_name: str
-    ) -> None:
+    ) -> Figure:
         source_df = self._to_dataframe_core(self._last_xaxis_type)
         source_df_by_topic = self._get_source_df_by_topic(source_df)
-        if topic_name == 'All':
-            source_df.columns = source_df.columns.droplevel(0)
-        else:
-            source_df = source_df_by_topic[topic_name]
 
         Hover = HoverTool(
                     tooltips="""
                     <div style="width:400px; word-wrap: break-word;">
                     <br>
                     node_name = @node_name <br>
-                    callback_name = @callback_name <br>
+                    topic_name = @topic_name <br>
                     </div>
                     """,
                     point_policy='follow_mouse'
                 )
         frame_min, frame_max = get_range(self._pub_subs)
-        y_axis_label = source_df.columns.to_list()[1]
+        y_axis_label = source_df.columns.get_level_values(1).to_list()[1]
         fig_args = get_fig_args(
             xaxis_type=self._last_xaxis_type,
             title=f'Time-line of publishes/subscribes {y_axis_label}',
@@ -100,17 +110,23 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         legend_items = []
         pub_count = 0
         sub_count = 0
-        for i in range(0, len(source_df.columns), 2):
-            line_source_df = source_df.iloc[:, i:i+2].dropna()
-            pub_sub_name = line_source_df.columns.to_list()[0]
-            color = color_selector.get_color(pub_sub_name)
+        if topic_name == 'All':
+            drawn_pub_sub = self._pub_subs
+        else:
+            drawn_pub_sub = [pub_sub for pub_sub in self._pub_subs
+                             if pub_sub.topic_name == topic_name]
+        for i, pub_sub in enumerate(drawn_pub_sub):
+            color = color_selector.get_color(str(i))
+            # TODO:
+            # remove source_df_by_topic argument from _get_pub_sub_lines.
+            # source_df_by_topic is a redundant argument since pub_sub has its data
             line_source = self._get_pub_sub_lines(
-                line_source_df,
+                pub_sub,
+                source_df_by_topic,
                 frame_min,
                 self._last_xaxis_type
             )
-
-            if 'rclcpp_publish_timestamp' in pub_sub_name:
+            if isinstance(pub_sub, Publisher):
                 legend_label = f'publisher{pub_count}'
                 pub_count += 1
             else:
@@ -142,47 +158,45 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
             save(p, self._last_export_path,
                  title='PubSub time-line', resources=CDN)
 
+        return p
+
     def _get_pub_sub_lines(
         self,
-        line_source_df: pd.DataFrame,
+        pub_sub: Union[Publisher, Subscription],
+        source_df_by_topic: Dict[str, pd.DataFrame],
         frame_min: int,
         xaxis_type: str
     ) -> ColumnDataSource:
-        def get_node_name(
-            line_source_df: pd.DataFrame
-        ) -> str:
-            return line_source_df.columns.to_list()[0].split('/')[1]
-
-        def get_callback_name(
-            line_source_df: pd.DataFrame
-        ) -> str:
-            return line_source_df.columns.to_list()[0].split('/')[2]
+        source_df = source_df_by_topic[pub_sub.topic_name].dropna()
+        ts_column_idx = source_df.columns.to_list().index(
+            self._get_ts_column_name(pub_sub))
+        single_pub_sub_df = source_df.iloc[:, ts_column_idx:ts_column_idx+2]
 
         if xaxis_type == 'system_time':
-            x_item = ((line_source_df.iloc[:, 0] - frame_min)
+            x_item = ((single_pub_sub_df.iloc[:, 0] - frame_min)
                       * 10**(-9)).to_list()
-            y_item = line_source_df.iloc[:, 1].to_list()
+            y_item = single_pub_sub_df.iloc[:, 1].to_list()
         elif xaxis_type == 'index':
-            x_item = line_source_df.index
-            y_item = line_source_df.iloc[:, 1].to_list()
+            x_item = single_pub_sub_df.index
+            y_item = single_pub_sub_df.iloc[:, 1].to_list()
         elif xaxis_type == 'sim_time':
-            x_item = line_source_df.iloc[:, 0].to_list()
-            y_item = line_source_df.iloc[:, 1].to_list()
+            x_item = single_pub_sub_df.iloc[:, 0].to_list()
+            y_item = single_pub_sub_df.iloc[:, 1].to_list()
 
         line_source = ColumnDataSource(
             data={
                 'x': [],
                 'y': [],
                 'node_name': [],
-                'callback_name': [],
+                'topic_name': [],
             }
         )
         for x, y in zip(x_item, y_item):
             new_data = {
                 'x': [x],
                 'y': [y],
-                'node_name': [get_node_name(line_source_df)],
-                'callback_name': [get_callback_name(line_source_df)],
+                'node_name': [pub_sub.node_name],
+                'topic_name': [pub_sub.topic_name],
             }
             line_source.stream(new_data)
 
@@ -213,13 +227,16 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
         return source_df_by_topic
 
+    @staticmethod
     def _get_ts_column_name(
-        self,
         pub_sub: Union[Publisher, Subscription]
     ) -> str:
         if isinstance(pub_sub, Publisher):
-            ts_column_name = (f'{pub_sub.callback_names[0]}'
-                              '/rclcpp_publish_timestamp [ns]')
+            if pub_sub.callback_names:
+                ts_column_name = (f'{pub_sub.callback_names[0]}'
+                                  '/rclcpp_publish_timestamp [ns]')
+            else:
+                ts_column_name = 'rclcpp_publish_timestamp [ns]'
         else:
             ts_column_name = f'{pub_sub.column_names[0]} [ns]'
 
@@ -231,3 +248,15 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         converter = self._pub_subs[0]._provider.get_sim_time_converter()
 
         return converter
+
+    def _output_table_size_zero_warn(
+        self,
+        logger: Logger,
+        metrics: str,
+        pub_sub: Union[Publisher, Subscription]
+    ) -> None:
+        logger.warning(
+            'Since no timestamp is recorded, '
+            f'the {metrics} cannot be calculated. '
+            f'pub_sub_summary: {pub_sub.summary}'
+        )

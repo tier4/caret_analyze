@@ -222,7 +222,7 @@ class TestNodesLoaded:
         assert node.paths == [node_path_mock]
 
 
-class TestPublishsersLoaded:
+class TestPublishersLoaded:
 
     def test_empty(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
@@ -612,17 +612,17 @@ class TestCallbacksLoaded:
 class TestCallbackGroupsLoaded:
 
     def test_empty(self, mocker):
-        provider_mock = mocker.Mock(spedc=RecordsProvider)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
         publisher_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)
         timer_loaded_mock = mocker.Mock(spec=TimersLoaded)
 
-        cbgs = CallbackGroupsLoaded(
+        callback_groups = CallbackGroupsLoaded(
             (), provider_mock, publisher_loaded_mock, sub_loaded_mock, timer_loaded_mock).data
-        assert cbgs == []
+        assert callback_groups == []
 
     def test_to_runtime(self, mocker):
-        provider_mock = mocker.Mock(spedc=RecordsProvider)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
         cbg_info_mock = mocker.Mock(spec=CallbackGroupStructValue)
         pub_loaded_mock = mocker.Mock(spec=PublishersLoaded)
         sub_loaded_mock = mocker.Mock(spec=SubscriptionsLoaded)

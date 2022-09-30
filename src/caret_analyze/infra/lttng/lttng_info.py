@@ -262,7 +262,7 @@ class LttngInfo:
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValueLttng]:
         """
-        Get subscription callbacks infomation.
+        Get subscription callbacks information.
 
         Parameters
         ----------
@@ -417,22 +417,22 @@ class LttngInfo:
         self,
         node_id: str
     ) -> List[CallbackGroupValueLttng]:
-        concate_target_dfs = []
-        concate_target_dfs.append(self._formatted.timer_callbacks_df)
-        concate_target_dfs.append(self._formatted.subscription_callbacks_df)
+        concat_target_dfs = []
+        concat_target_dfs.append(self._formatted.timer_callbacks_df)
+        concat_target_dfs.append(self._formatted.subscription_callbacks_df)
 
         try:
             column_names = [
                 'callback_group_addr', 'callback_id', 'node_handle'
             ]
-            concat_df = concat(column_names, concate_target_dfs)
+            concat_df = concat(column_names, concat_target_dfs)
 
             concat_df = merge(
                 concat_df, self._formatted.nodes_df, 'node_handle')
             concat_df = merge(
                 concat_df, self._formatted.callback_groups_df, 'callback_group_addr')
 
-            cbgs = []
+            callback_groups = []
             for _, group_df in concat_df.groupby(['callback_group_addr']):
                 row = group_df.iloc[0, :]
                 node_id_ = row['node_id']
@@ -442,7 +442,7 @@ class LttngInfo:
                 callback_ids = tuple(group_df['callback_id'].values)
                 callback_ids = tuple(Util.filter_items(self._is_user_made_callback, callback_ids))
 
-                cbgs.append(
+                callback_groups.append(
                     CallbackGroupValueLttng(
                         callback_group_type_name=row['group_type_name'],
                         node_name=row['node_name'],
@@ -454,7 +454,7 @@ class LttngInfo:
                     )
                 )
 
-            return cbgs
+            return callback_groups
         except KeyError:
             return []
 
@@ -563,16 +563,16 @@ class LttngInfo:
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
         df = self._formatted.timer_controls_df
-        ctrls: List[TimerControl] = []
+        controls: List[TimerControl] = []
         for _, row in df.iterrows():
             if row['type'] == 'init':
                 params = row['params']
-                ctrl = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
-                ctrls.append(ctrl)
+                control = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
+                controls.append(control)
             else:
                 raise NotImplementedError('Unsupported timer control type.')
 
-        return ctrls
+        return controls
 
 
 # class PublisherBinder:
@@ -603,8 +603,8 @@ class LttngInfo:
 #         # Disable it until the speedup is complete.
 #         return False
 
-#         cbgs: Sequence[CallbackGroupValueLttng]
-#         cbgs = self._info.get_callback_groups(node)
+#         callback_groups: Sequence[CallbackGroupValueLttng]
+#         callback_groups = self._info.get_callback_groups(node)
 
 #         # TODO: ignore /parameter_events, /clock
 #         # Ignore callback groups that have no callbacks added,
@@ -613,11 +613,11 @@ class LttngInfo:
 #         #     self._ignored_callback_groups.add(row['callback_group_id'])
 #         #     continue
 
-#         if len(cbgs) != 1:
+#         if len(callback_groups) != 1:
 #             print('false')
 #             return False
 
-#         cbg = cbgs[0]
+#         cbg = callback_groups[0]
 #         if cbg.callback_group_type is CallbackGroupType.REENTRANT:
 #             print('false')
 #             return False
@@ -631,7 +631,7 @@ class LttngInfo:
 #         callbacks: Sequence[TimerCallbackValueLttng],
 #     ) -> List[TimerCallbackValueLttng]:
 #         """
-#         Return publisher binded callback values.
+#         Return publisher bound callback values.
 
 #         Note:
 #         This function call takes a long time because binding uses records.
@@ -644,7 +644,7 @@ class LttngInfo:
 #         Returns
 #         -------
 #         List[TimerCallbackValueLttng]
-#             publisher binded callback values.
+#             publisher bound callback values.
 
 #         """
 #         callback_list: List[TimerCallbackValueLttng]
@@ -685,7 +685,7 @@ class LttngInfo:
 #         callbacks_info: Sequence[SubscriptionCallbackValueLttng],
 #     ) -> List[SubscriptionCallbackValueLttng]:
 #         """
-#         Return publisher binded callback values.
+#         Return publisher bound callback values.
 
 #         Note:
 #         This function call takes a long time because binding uses records.
@@ -698,7 +698,7 @@ class LttngInfo:
 #         Returns
 #         -------
 #         List[SubscriptionCallbackValueLttng]
-#             publisher binded callback values.
+#             publisher bound callback values.
 
 #         """
 #         system_topics = ['/parameter_events', '/rosout', '/clock']
@@ -739,7 +739,7 @@ class LttngInfo:
 #         def select_record_index(records: RecordsInterface) -> int:
 #             # Select publish after the initialization is complete.
 #             # To reduce the search time from the beginning. The smaller the index, the better.
-#             # Note: intra_porocess cyclic demo is manually publishing the first message.
+#             # Note: intra_process cyclic demo is manually publishing the first message.
 #             return min(len(publisher_records.data)-1, self.TARGET_RECORD_MAX_INDEX)
 
 #         publisher_handle = publisher_info.publisher_handle

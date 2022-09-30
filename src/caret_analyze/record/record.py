@@ -114,10 +114,10 @@ class Records(RecordsInterface):
 
         columns_set = set(columns)
         for record in init:
-            unkown_column = set(record.columns) - columns_set
-            if len(unkown_column) > 0:
+            unknown_column = set(record.columns) - columns_set
+            if len(unknown_column) > 0:
                 msg = 'Contains an unknown columns. '
-                msg += f'{unkown_column}'
+                msg += f'{unknown_column}'
                 raise InvalidArgumentError(msg)
 
         if len(set(columns)) != len(columns):
@@ -259,7 +259,7 @@ class Records(RecordsInterface):
             if r.equals(r_) is False:
                 return False
 
-        # TODO(hsgwa): fix protected variagble acceccing.
+        # TODO(hsgwa): fix protected variable accessing.
         if self._columns.to_value() != records._columns.to_value():
             return False
 
@@ -316,7 +316,7 @@ class Records(RecordsInterface):
 
         df = pd.DataFrame(df_dict, dtype='Int64')
 
-        missing_columns = set(columns) - set(df.columns)
+        missing_columns = list(set(columns) - set(df.columns))
         df_miss = pd.DataFrame(columns=missing_columns)
         df = pd.concat([df, df_miss])
         return df[columns]
@@ -453,18 +453,18 @@ class Records(RecordsInterface):
             elif side == MergeSide.RIGHT and merge_right:
                 merged_records.append(record)
 
-        temporay_columns = [column_side, column_merge_stamp, column_join_key,
-                            column_has_valid_join_key, column_found_right_record]
+        temporary_columns = [column_side, column_merge_stamp, column_join_key,
+                             column_has_valid_join_key, column_found_right_record]
 
-        merged_records.drop_columns(temporay_columns)
-        left_records.drop_columns(temporay_columns)
-        right_records.drop_columns(temporay_columns)
+        merged_records.drop_columns(temporary_columns)
+        left_records.drop_columns(temporary_columns)
+        right_records.drop_columns(temporary_columns)
 
         merged_records.reindex(columns)
 
         return merged_records
 
-    def merge_sequencial(
+    def merge_sequential(
         self,
         right_records: RecordsInterface,
         left_stamp_key: str,
@@ -615,22 +615,22 @@ class Records(RecordsInterface):
                 added.add(current_record)
                 added.add(sub_record)
 
-        temporay_columns = [
+        temporary_columns = [
             column_side,
             column_merge_stamp,
             column_has_merge_stamp,
             column_has_valid_join_key,
             column_sub_records,
         ]
-        merged_records.drop_columns(temporay_columns)
-        left_records.drop_columns(temporay_columns)
-        right_records.drop_columns(temporay_columns)
+        merged_records.drop_columns(temporary_columns)
+        left_records.drop_columns(temporary_columns)
+        right_records.drop_columns(temporary_columns)
 
         merged_records.reindex(columns)
 
         return merged_records
 
-    def merge_sequencial_for_addr_track(
+    def merge_sequential_for_addr_track(
         self,
         source_stamp_key: str,
         source_key: str,
@@ -692,10 +692,10 @@ class Records(RecordsInterface):
                 processing_records.values(),
             ):
                 processing_record_keys = processing_record.get(sink_from_keys)
-                coresponding_record_keys = processing_record_.get(
+                corresponding_record_keys = processing_record_.get(
                     sink_from_keys)
 
-                merged_set = processing_record_keys | coresponding_record_keys
+                merged_set = processing_record_keys | corresponding_record_keys
                 processing_record.data[sink_from_keys] = merged_set
                 processing_record_.data[sink_from_keys] = merged_set
 
@@ -719,16 +719,16 @@ class Records(RecordsInterface):
                     break
 
             elif record.get(column_type) == RecordType.SOURCE:
-                merged_addrs = []
+                merged_addresses = []
                 for processing_record in filter(
                     lambda x: record.get(source_key) in x.data[sink_from_keys],  # type: ignore
                     processing_records.values(),
                 ):
                     addr = processing_record.get(sink_from_key)
-                    merged_addrs.append(addr)
+                    merged_addresses.append(addr)
                     processing_record.merge(record)
                     merged_records.append(processing_record)
-                for addr in merged_addrs:
+                for addr in merged_addresses:
                     if addr in processing_records:
                         processing_records.pop(addr)
 
@@ -779,7 +779,7 @@ def merge(
     )
 
 
-def merge_sequencial(
+def merge_sequential(
     left_records: RecordsInterface,
     right_records: RecordsInterface,
     left_stamp_key: str,
@@ -793,7 +793,7 @@ def merge_sequencial(
 ) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
-    return left_records.merge_sequencial(
+    return left_records.merge_sequential(
         right_records,
         left_stamp_key,
         right_stamp_key,
@@ -811,7 +811,7 @@ class RecordType(IntEnum):
     SINK = 2
 
 
-def merge_sequencial_for_addr_track(
+def merge_sequential_for_addr_track(
     source_records: RecordsInterface,
     source_stamp_key: str,
     source_key: str,
@@ -829,7 +829,7 @@ def merge_sequencial_for_addr_track(
     assert type(source_records) == type(copy_records) and type(
         copy_records) == type(sink_records)
 
-    return source_records.merge_sequencial_for_addr_track(
+    return source_records.merge_sequential_for_addr_track(
         source_stamp_key,
         source_key,
         copy_records,

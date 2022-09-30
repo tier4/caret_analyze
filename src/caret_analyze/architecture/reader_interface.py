@@ -198,7 +198,7 @@ class ArchitectureReader(metaclass=ABCMeta):
         Returns
         -------
         Sequence[VariablePassingvalue]
-            variable pssing values
+            variable passing values
 
         """
         pass

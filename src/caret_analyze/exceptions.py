@@ -17,7 +17,7 @@ class Error(Exception):
     """Base class for exception in this module."""
 
 
-class TraceResultAanalyzeError(Error):
+class TraceResultAnalyzeError(Error):
     """Failed to parse trace results."""
 
     def __init__(self, *args: object) -> None:
@@ -40,7 +40,7 @@ class InvalidTraceFormatError(Error):
 
 
 class InvalidReaderError(Error):
-    """Failed to load architecutre."""
+    """Failed to load architecture."""
 
     def __init__(self, message: str) -> None:
         self.message = message

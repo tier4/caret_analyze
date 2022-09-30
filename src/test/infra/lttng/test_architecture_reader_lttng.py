@@ -159,5 +159,5 @@ class TestArchitectureReaderLttng:
             'get_callback_groups',
             return_value=[cbg])
 
-        cbgs = reader.get_callback_groups(node_)
-        assert cbgs == [cbg]
+        callback_groups = reader.get_callback_groups(node_)
+        assert callback_groups == [cbg]

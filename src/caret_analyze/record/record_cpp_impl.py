@@ -233,7 +233,7 @@ class RecordsCppImpl(RecordsInterface):
         """
         return self._records.data
 
-    def merge_sequencial(
+    def merge_sequential(
         self,
         right_records: RecordsInterface,
         left_stamp_key: str,
@@ -247,7 +247,7 @@ class RecordsCppImpl(RecordsInterface):
     ) -> RecordsInterface:
         progress_label = progress_label or ''
         assert isinstance(right_records, RecordsCppImpl)
-        merged_cpp_base = self._records.merge_sequencial(
+        merged_cpp_base = self._records.merge_sequential(
             right_records._records,
             left_stamp_key,
             right_stamp_key,
@@ -263,7 +263,7 @@ class RecordsCppImpl(RecordsInterface):
         merged._insert_records(merged_cpp_base)
         return merged
 
-    def merge_sequencial_for_addr_track(
+    def merge_sequential_for_addr_track(
         self,
         source_stamp_key: str,
         source_key: str,
@@ -282,7 +282,7 @@ class RecordsCppImpl(RecordsInterface):
         assert isinstance(sink_records, RecordsCppImpl)
 
         progress_label = progress_label or ''
-        merged_cpp_base = self._records.merge_sequencial_for_addr_track(
+        merged_cpp_base = self._records.merge_sequential_for_addr_track(
             source_stamp_key,
             source_key,
             copy_records._records,

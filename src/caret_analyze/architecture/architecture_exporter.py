@@ -174,8 +174,8 @@ class VarPassDicts:
 
 class PubDicts:
 
-    def __init__(self, pubisher_values: Tuple[PublisherStructValue, ...]) -> None:
-        dicts = [self._to_dict(p) for p in pubisher_values]
+    def __init__(self, publisher_values: Tuple[PublisherStructValue, ...]) -> None:
+        dicts = [self._to_dict(p) for p in publisher_values]
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
     def _to_dict(self, publisher_value: PublisherStructValue):
@@ -301,8 +301,8 @@ class ExecutorsDicts:
         if executor_value.executor_name is None:
             raise InvalidArgumentError('executor_value.executor_name is None')
 
-        cbgs = list(executor_value.callback_groups)
-        cbgs = sorted(cbgs, key=lambda x: x.callback_group_name)
+        callback_groups = list(executor_value.callback_groups)
+        callback_groups = sorted(callback_groups, key=lambda x: x.callback_group_name)
 
         obj = {
             'executor_type': executor_value.executor_type_name,
@@ -310,7 +310,7 @@ class ExecutorsDicts:
             'callback_group_names': [
                 cbg.callback_group_name
                 for cbg
-                in cbgs
+                in callback_groups
             ]
         }
         return obj

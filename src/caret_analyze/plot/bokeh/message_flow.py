@@ -105,7 +105,7 @@ def message_flow(
     fig.yaxis.ticker = yaxis_property.values
     fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
-    rect_source = get_callback_rects(path, yaxis_values, granularity, clip, converter, offset)
+    rect_source = get_callback_rect_list(path, yaxis_values, granularity, clip, converter, offset)
     fig.rect(
         'x',
         'y',
@@ -164,7 +164,7 @@ def to_format_str(ns: int) -> str:
     return '{:.3f}'.format(s)
 
 
-def get_callback_rects(
+def get_callback_rect_list(
     path: Path,
     y_axi_values: YAxisValues,
     granularity: str,
@@ -203,12 +203,12 @@ def get_callback_rects(
         elif granularity == 'node':
             search_name = callback.node_name
 
-        y_maxs = np.array(y_axi_values.get_start_indexes(search_name))
-        y_mins = y_maxs - 1
+        y_max_list = np.array(y_axi_values.get_start_indexes(search_name))
+        y_mins = y_max_list - 1
 
         callback_desc = get_callback_param_desc(callback)
 
-        for y_min, y_max in zip(y_mins, y_maxs):
+        for y_min, y_max in zip(y_mins, y_max_list):
             df = callback.to_dataframe(shaper=clip)
             for _, row in df.iterrows():
                 callback_start = row.to_list()[0]
@@ -427,8 +427,11 @@ class NodeLevelFormatter(DataFrameFormatter):
             parsed_before = DataFrameColumnNameParsed(self._path, column_name_)
             parsed = DataFrameColumnNameParsed(self._path, column_name)
 
+            # Exclude all columns except the first column of the node and
+            # the last publish column of the node.
             if parsed_before.node_name is not None and parsed.node_name is not None and \
-                    parsed_before.node_name == parsed.node_name:
+                    parsed_before.node_name == parsed.node_name and \
+                    'rclcpp_publish' not in parsed.tracepoint_name:
                 drop_columns.append(column_name)
 
             if parsed_before.topic_name is not None and parsed.topic_name is not None and \
