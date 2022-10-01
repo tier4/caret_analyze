@@ -310,9 +310,12 @@ class Path(PathBase, Summarizable):
             callbacks in all nodes that comprise the node path.
 
         """
-        callbacks = [comm.publish_node.callbacks
-                     for comm in self.communications]
-        callbacks.extend(self.communications[-1].subscribe_node.callbacks)
+        callbacks = Util.flatten(
+            comm.publish_node.callbacks for comm in self.communications
+            if comm.publish_node.callbacks
+        )
+        if self.communications[-1].subscribe_node.callbacks is not None:
+            callbacks.extend(self.communications[-1].subscribe_node.callbacks)
 
         return callbacks
 
