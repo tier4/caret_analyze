@@ -52,7 +52,7 @@ class MessageContextStruct():
         # Since it is used as a value object,
         # mutable types such as dict should not be used.
         self._node_name = node_name
-        self.message_context_dict = message_context_dict
+        self._message_context_dict = message_context_dict
         self._sub = subscription
         self._pub = publisher
         self._callbacks = child
@@ -158,7 +158,7 @@ class UseLatestMessageStruct(MessageContextStruct):
 
     def to_value(self) -> UseLatestMessage:
         return UseLatestMessage(
-            self.node_name, self.message_context_dict,
+            self.node_name, self._message_context_dict,
             None if self._sub is None else self._sub.to_value(),
             None if self._pub is None else self._pub.to_value(),
             None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
@@ -180,7 +180,7 @@ class InheritUniqueStampStruct(MessageContextStruct):
 
     def to_value(self) -> InheritUniqueStamp:
         return InheritUniqueStamp(
-            self.node_name, self.message_context_dict,
+            self.node_name, self._message_context_dict,
             None if self._sub is None else self._sub.to_value(),
             None if self._pub is None else self._pub.to_value(),
             None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
@@ -229,7 +229,7 @@ class CallbackChainStruct(MessageContextStruct):
             if structs is None:
                 return None
             else:
-                [v.to_value() for v in structs]
+                return [v.to_value() for v in structs]
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
         return _to_values(self.callbacks) == _to_values(callbacks)
@@ -242,7 +242,7 @@ class CallbackChainStruct(MessageContextStruct):
 
     def to_value(self) -> CallbackChain:
         return CallbackChain(
-            self.node_name, self.message_context_dict,
+            self.node_name, self._message_context_dict,
             None if self._sub is None else self._sub.to_value(),
             None if self._pub is None else self._pub.to_value(),
             None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
@@ -288,7 +288,7 @@ class TildeStruct(MessageContextStruct):
 
     def to_value(self) -> Tilde:
         return Tilde(
-            self.node_name, self.message_context_dict,
+            self.node_name, self._message_context_dict,
             None if self._sub is None else self._sub.to_value(),
             None if self._pub is None else self._pub.to_value(),
             None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
