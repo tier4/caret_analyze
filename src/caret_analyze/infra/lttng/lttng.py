@@ -207,7 +207,7 @@ class Lttng(InfraBase):
 
     def __init__(
         self,
-        trace_dir_or_events: Union[str, Dict],
+        trace_dir_or_events: Union[str, List[Dict]],
         force_conversion: bool = False,
         *,
         event_filters: Optional[List[LttngEventFilter]] = None,
@@ -235,12 +235,12 @@ class Lttng(InfraBase):
 
     @staticmethod
     def _parse_lttng_data(
-        trace_dir_or_events: Union[str, Dict],
+        trace_dir_or_events: Union[str, List[Dict]],
         force_conversion: bool,
         event_filters: List[LttngEventFilter],
         store_events: bool,
 
-    ) -> Tuple[Any, Dict, int, int]:
+    ) -> Tuple[Ros2DataModel, Optional[List[Dict]], int, int]:
 
         data = Ros2DataModel()
         handler = Ros2Handler(data)
@@ -280,6 +280,7 @@ class Lttng(InfraBase):
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
             # Note: giving events as arguments is used only for debugging.
+            assert isinstance(trace_dir_or_events, List)
             filtered_event_count = 0
             events = trace_dir_or_events
             begin = events[0][LttngEventFilter.TIMESTAMP]
