@@ -76,9 +76,9 @@ def message_flow(
 
     converter: Optional[ClockConverter] = None
     if use_sim_time:
-        assert path.callback_chain is not None and len(path.callback_chain) > 0
-        cb = path.callback_chain[0]
-        converter = cb._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
+        assert len(path.child) > 0
+        child = path.child[0]
+        converter = child._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
 
     strip = Strip(lstrip_s, rstrip_s)
     clip = strip.to_clip(df)
@@ -351,7 +351,7 @@ class YAxisValues:
     def __init__(self, column_names) -> None:
         self._column_names = column_names
 
-    def _search_values(self, search_name) -> np.array:
+    def _search_values(self, search_name) -> np.ndarray:
         indexes = np.array([], dtype=int)
         for i, column_name in enumerate(self._column_names):
             if 'callback_end' in column_name:

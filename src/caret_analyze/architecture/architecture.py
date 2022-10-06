@@ -17,10 +17,12 @@ from __future__ import annotations
 import logging
 from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 
-from caret_analyze.value_objects.callback import TimerCallbackStructValue
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
+from .struct import (CommunicationStruct, ExecutorStruct,
+                     NodeStruct)
+from .struct.callback import TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
@@ -44,10 +46,10 @@ class Architecture(Summarizable):
             file_type, file_path)
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
-        self._nodes: Tuple[NodeStructValue, ...] = loaded.nodes
-        self._communications: Tuple[CommunicationStructValue, ...] = loaded.communications
-        self._executors: Tuple[ExecutorStructValue, ...] = loaded.executors
-        self._path_manager = NamedPathManager(loaded.paths)
+        self._nodes: Tuple[NodeStruct, ...] = loaded.nodes
+        self._communications: Tuple[CommunicationStruct, ...] = loaded.communications
+        self._executors: Tuple[ExecutorStruct, ...] = loaded.executors
+        self._path_manager = NamedPathManager(tuple(v.to_value() for v in loaded.paths))
         self._verify(self._nodes)
 
     def get_node(self, node_name: str) -> NodeStructValue:
@@ -62,15 +64,15 @@ class Architecture(Summarizable):
         return Util.find_one(lambda x: x.executor_name == executor_name, self.executors)
 
     def get_callback_group(self, callback_group_name: str) -> CallbackGroupStructValue:
-        return Util.find_one(
-            lambda x: x.callback_group_name == callback_group_name, self.callback_groups)
+        return Util.find_one(lambda x: x.callback_group_name == callback_group_name,
+                             self.callback_groups)
 
     @property
     def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
         return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
 
     @property
-    def callback_group_names(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def callback_group_names(self) -> Tuple[str, ...]:
         return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
 
     @property
@@ -111,7 +113,7 @@ class Architecture(Summarizable):
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
-        return self._nodes
+        return tuple([v.to_value() for v in self._nodes])
 
     @property
     def node_names(self) -> Tuple[str, ...]:
@@ -119,10 +121,10 @@ class Architecture(Summarizable):
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
-        return self._executors
+        return tuple([v.to_value() for v in self._executors])
 
     @property
-    def executor_names(self) -> Tuple[ExecutorStructValue, ...]:
+    def executor_names(self) -> Tuple[str, ...]:
         return tuple(sorted(_.executor_name for _ in self._executors))
 
     @property
@@ -135,7 +137,7 @@ class Architecture(Summarizable):
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
-        return self._communications
+        return tuple([v.to_value() for v in self._communications])
 
     @property
     def summary(self) -> Summary:
@@ -162,10 +164,11 @@ class Architecture(Summarizable):
 
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
-        return path_searcher.search(*node_names, max_node_depth=max_node_depth)
+        return [
+            v.to_value() for v in path_searcher.search(*node_names, max_node_depth=max_node_depth)]
 
     @staticmethod
-    def _verify(nodes: Collection[NodeStructValue]) -> None:
+    def _verify(nodes: Collection[NodeStruct]) -> None:
         from collections import Counter
 
         # verify callback parameter uniqueness
@@ -178,7 +181,7 @@ class Architecture(Summarizable):
             for callback in callbacks:
                 cb_type = callback.callback_type_name
                 cb_param: Union[str, int]
-                if isinstance(callback, TimerCallbackStructValue):
+                if isinstance(callback, TimerCallbackStruct):
                     cb_param = callback.period_ns
                 else:
                     continue
@@ -192,6 +195,24 @@ class Architecture(Summarizable):
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
+
+
+"""
+    def rename_callback(src: str, dest: str):
+        raise NotImplementedError('')
+
+    def rename_node(src: str, dest: str):
+        raise NotImplementedError('')
+
+    def rename_path(src: str, dest: str):
+        raise NotImplementedError('')
+
+    def rename_executor(src: str, dest: str):
+        raise NotImplementedError('')
+
+    def rename_topic(src: str, dest: str):
+        raise NotImplementedError('')
+"""
 
 
 class NamedPathManager():

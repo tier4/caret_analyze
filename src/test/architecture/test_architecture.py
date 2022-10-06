@@ -21,11 +21,13 @@ from caret_analyze.architecture.architecture_reader_factory import \
     ArchitectureReaderFactory
 from caret_analyze.architecture.graph_search import NodePathSearcher
 from caret_analyze.architecture.reader_interface import ArchitectureReader
+from caret_analyze.architecture.struct import (CommunicationStruct,
+                                               ExecutorStruct, NodePathStruct,
+                                               NodeStruct, PathStruct,
+                                               TimerCallbackStruct)
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
-from caret_analyze.value_objects import (CommunicationStructValue,
-                                         ExecutorStructValue, NodePathStructValue,
-                                         NodeStructValue, PathStructValue,
-                                         TimerCallbackStructValue)
+from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
+                                         NodeStructValue, PathStructValue)
 
 import pytest
 
@@ -72,8 +74,10 @@ class TestArchitecture:
         mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
                      return_value=loaded_mock)
 
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock, 'node_name', 'node_name')
+        node_mock = mocker.Mock(spec=NodeStruct)
+        node_struct_mock = mocker.Mock(spec=NodeStructValue)
+        mocker.patch.object(node_struct_mock, 'node_name', 'node_name')
+        mocker.patch.object(node_mock, 'to_value', return_value=node_struct_mock)
         mocker.patch.object(node_mock, 'callbacks', [])
 
         mocker.patch.object(loaded_mock, 'paths', ())
@@ -86,7 +90,7 @@ class TestArchitecture:
 
         arch = Architecture('file_type', 'file_path')
         node = arch.get_node('node_name')
-        assert node == node_mock
+        assert node == node_mock.to_value()
 
         with pytest.raises(ItemNotFoundError):
             arch.get_node('node_not_exist')
@@ -95,10 +99,10 @@ class TestArchitecture:
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        executor_mock = mocker.Mock(spec=ExecutorStructValue)
-        path_mock = mocker.Mock(spec=PathStructValue)
-        comm_mock = mocker.Mock(spec=CommunicationStructValue)
+        node_mock = mocker.Mock(spec=NodeStruct)
+        executor_mock = mocker.Mock(spec=ExecutorStruct)
+        path_mock = mocker.Mock(spec=PathStruct)
+        comm_mock = mocker.Mock(spec=CommunicationStruct)
 
         mocker.patch.object(node_mock, 'callbacks', [])
         mocker.patch.object(loaded_mock, 'nodes', [node_mock])
@@ -120,22 +124,22 @@ class TestArchitecture:
         arch = Architecture('file_type', 'file_path')
 
         assert len(arch.nodes) == 1
-        assert arch.nodes[0] == node_mock
+        assert arch.nodes[0] == node_mock.to_value()
 
         assert len(arch.executors) == 1
-        assert arch.executors[0] == executor_mock
+        assert arch.executors[0] == executor_mock.to_value()
 
         assert len(arch.paths) == 1
-        assert arch.paths[0] == path_mock
+        assert arch.paths[0] == path_mock.to_value()
 
         assert len(arch.communications) == 1
-        assert arch.communications[0] == comm_mock
+        assert arch.communications[0] == comm_mock.to_value()
 
     def test_path(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
-        path = PathStructValue('path0', ())
+        path = PathStruct('path0', ())
 
         mocker.patch.object(loaded_mock, 'nodes', [])
         mocker.patch.object(loaded_mock, 'paths', [path])
@@ -178,8 +182,8 @@ class TestArchitecture:
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
-        start_node_mock = mocker.Mock(spec=NodeStructValue)
-        end_node_mock = mocker.Mock(spec=NodeStructValue)
+        start_node_mock = mocker.Mock(spec=NodeStruct)
+        end_node_mock = mocker.Mock(spec=NodeStruct)
 
         mocker.patch.object(start_node_mock, 'node_name', 'start_node')
         mocker.patch.object(end_node_mock, 'node_name', 'end_node')
@@ -199,7 +203,9 @@ class TestArchitecture:
         searcher_mock = mocker.Mock(spec=NodePathSearcher)
         mocker.patch('caret_analyze.architecture.graph_search.NodePathSearcher',
                      return_value=searcher_mock)
-        path_mock = mocker.Mock(spec=PathStructValue)
+        path_mock = mocker.Mock(spec=PathStruct)
+        path_struct_mock = mocker.Mock(spec=PathStructValue)
+        mocker.patch.object(path_mock, 'to_value', return_value=path_struct_mock)
         mocker.patch.object(searcher_mock, 'search', return_value=[path_mock])
 
         arch = Architecture('file_type', 'file_path')
@@ -208,15 +214,15 @@ class TestArchitecture:
             arch.search_paths('not_exist', 'not_exist')
 
         path = arch.search_paths('start_node', 'end_node')
-        assert path == [path_mock]
+        assert path == [path_mock.to_value()]
 
     def test_search_paths_three_nodes(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
 
-        node_mock_0 = mocker.Mock(spec=NodeStructValue)
-        node_mock_1 = mocker.Mock(spec=NodeStructValue)
-        node_mock_2 = mocker.Mock(spec=NodeStructValue)
+        node_mock_0 = mocker.Mock(spec=NodeStruct)
+        node_mock_1 = mocker.Mock(spec=NodeStruct)
+        node_mock_2 = mocker.Mock(spec=NodeStruct)
 
         mocker.patch.object(node_mock_0, 'node_name', '0')
         mocker.patch.object(node_mock_1, 'node_name', '1')
@@ -226,33 +232,43 @@ class TestArchitecture:
         mocker.patch.object(node_mock_1, 'callbacks', [])
         mocker.patch.object(node_mock_2, 'callbacks', [])
 
-        node_path_mock_0 = mocker.Mock(spec=NodePathStructValue)
+        node_path_mock_0 = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path_mock_0, 'subscribe_topic_name', None)
         mocker.patch.object(node_path_mock_0, 'node_name', '0')
         mocker.patch.object(node_path_mock_0, 'publish_topic_name', '0->1')
-        node_path_mock_1 = mocker.Mock(spec=NodePathStructValue)
+        node_path_struct_mock_0 = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock_0, 'to_value', return_value=node_path_struct_mock_0)
+        node_path_mock_1 = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
         mocker.patch.object(node_path_mock_1, 'node_name', '1')
         mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
-        node_path_mock_2 = mocker.Mock(spec=NodePathStructValue)
+        node_path_struct_mock_1 = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock_1, 'to_value', return_value=node_path_struct_mock_1)
+        node_path_mock_2 = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path_mock_2, 'subscribe_topic_name', '1->2')
         mocker.patch.object(node_path_mock_2, 'node_name', '2')
         mocker.patch.object(node_path_mock_2, 'publish_topic_name', None)
+        node_path_struct_mock_2 = mocker.Mock(spec=NodePathStructValue)
+        mocker.patch.object(node_path_mock_2, 'to_value', return_value=node_path_struct_mock_2)
 
         mocker.patch.object(node_mock_0, 'paths', [node_path_mock_0])
         mocker.patch.object(node_mock_1, 'paths', [node_path_mock_1])
         mocker.patch.object(node_mock_2, 'paths', [node_path_mock_2])
 
-        comm_mock_0 = mocker.Mock(spec=CommunicationStructValue)
-        comm_mock_1 = mocker.Mock(spec=CommunicationStructValue)
+        comm_mock_0 = mocker.Mock(spec=CommunicationStruct)
+        comm_mock_1 = mocker.Mock(spec=CommunicationStruct)
 
         mocker.patch.object(comm_mock_0, 'publish_node_name', '0')
         mocker.patch.object(comm_mock_0, 'subscribe_node_name', '1')
         mocker.patch.object(comm_mock_0, 'topic_name', '0->1')
+        comm_mock_struct_0 = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_mock_0, 'to_value', return_value=comm_mock_struct_0)
 
         mocker.patch.object(comm_mock_1, 'publish_node_name', '1')
         mocker.patch.object(comm_mock_1, 'subscribe_node_name', '2')
         mocker.patch.object(comm_mock_1, 'topic_name', '1->2')
+        comm_mock_struct_1 = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_mock_1, 'to_value', return_value=comm_mock_struct_1)
 
         mocker.patch.object(loaded_mock, 'nodes', [node_mock_0, node_mock_1, node_mock_2])
         mocker.patch.object(loaded_mock, 'paths', [])
@@ -274,8 +290,8 @@ class TestArchitecture:
         assert len(paths) == 1
 
     def test_verify_callback_uniqueness(self, mocker, caplog):
-        node_mock = mocker.Mock(spec=NodeStructValue)
-        callback_mock = mocker.Mock(spec=TimerCallbackStructValue)
+        node_mock = mocker.Mock(spec=NodeStruct)
+        callback_mock = mocker.Mock(spec=TimerCallbackStruct)
         mocker.patch.object(callback_mock, 'period_ns', 100)
         mocker.patch.object(
             callback_mock, 'callback_type_name', 'type')
