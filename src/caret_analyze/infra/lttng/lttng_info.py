@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 
 from .ros2_tracing.data_model import Ros2DataModel
+from .ros2_tracing.data_model_service import DataModelService
 from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
                             PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
@@ -1155,7 +1156,13 @@ class DataFrameFormatted:
                 msg = ('Multiple executors using the same callback group were detected.'
                        'The last executor will be used. ')
                 exec_addr = list(group['executor_addr'].values)
-                msg += f'executor address: {exec_addr}'
+                msg += f'executor address: {exec_addr}. '
+                data_model_srv = DataModelService(data)
+                cbg_addr = list(group['callback_group_addr'].values)
+                node_names = Util.flatten(data_model_srv.get_node_names(addr)
+                                          for addr in cbg_addr)
+                if node_names:
+                    msg += f'node name: {sorted(set(node_names))}.'
                 logger.warn(msg)
                 executor_duplicated_indexes += list(group.index)[:-1]
 
