@@ -26,6 +26,7 @@ from caret_analyze.architecture.struct import (CommunicationStruct,
                                                NodeStruct, PathStruct,
                                                TimerCallbackStruct)
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
+from caret_analyze.infra.yaml.architecture_reader_yaml import ArchitectureReaderYaml
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
                                          NodeStructValue, PathStructValue)
 
@@ -314,4 +315,36 @@ class TestArchitecture:
         assert len(caplog.record_tuples) == 1
 
     def test_rename_function(self, mocker):
-        pass
+        # define test case
+        architecture_text = """
+named_paths: []
+path_name_aliases: []
+executors: []
+nodes:
+- node_name: /node_0
+  callback_groups: []
+  publishes:
+  - topic_name: topic_0
+    callback_names:
+    - UNDEFINED
+- node_name: /node_1
+  callback_groups: []
+  publishes:
+  - topic_name: topic_0
+    callback_names:
+    - UNDEFINED
+        """
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        # test rename_node()
+        node_names = arch.node_names
+        expect_node_names = ['/node_0', '/node_1']
+        assert set(node_names) == set(expect_node_names)
+
+        arch.rename_node('node_0', 'changed_node')
+
+        node_names = arch.node_names
+        expect_node_names = ['/node_0', '/changed_node']
+        assert set(node_names) == set(expect_node_names)
