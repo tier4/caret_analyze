@@ -23,6 +23,7 @@ from .communication_info import (CommunicationFrequencyPlot,
                                  CommunicationLatencyPlot,
                                  CommunicationPeriodPlot)
 from .communication_info_interface import CommunicationTimeSeriesPlot
+from .histogram import ResponseTimePlot
 from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
 from ...runtime import (Application, CallbackBase, CallbackGroup,
@@ -153,3 +154,8 @@ class Plot:
         *communications: Communication
     ) -> CommunicationTimeSeriesPlot:
         return CommunicationPeriodPlot(*communications)
+
+    @staticmethod
+    def create_response_time_histogram_plot(
+        *response_time):
+        return ResponseTimePlot(*response_time)
