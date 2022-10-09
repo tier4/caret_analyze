@@ -23,11 +23,11 @@ class ResponseTimePlot(HistPlot):
 			hist, bins = self._target.to_best_case_histogram(binsize_ns=10000000)
 		elif self._case == 'worst':
 			hist, bins = self._target.to_worst_case_histogram(binsize_ns=10000000)
-		
-		p = figure(plot_width=600, 
+
+		p = figure(plot_width=600,
 				   plot_height=400,
 				   active_scroll='wheel_zoom',
-				   x_axis_label='Response Time [ms] (period: 10ms)', 
+				   x_axis_label='Response Time [ms] (period: 10ms)',
 				   y_axis_label='Probability')
 		hist = hist / sum(hist)
 
