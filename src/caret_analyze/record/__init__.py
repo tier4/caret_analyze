@@ -14,6 +14,7 @@
 
 from .column import Column, Columns, ColumnValue
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
+from .frequency import Frequency
 from .record import (merge,
                      merge_sequential,
                      merge_sequential_for_addr_track,
@@ -31,6 +32,7 @@ __all__ = [
     'Columns',
     'ColumnValue',
     'DataFrameShaper',
+    'Frequency',
     'Record',
     'RecordFactory',
     'RecordInterface',

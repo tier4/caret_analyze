@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 from typing import List, Optional, Tuple
 
 from .column import ColumnValue
@@ -63,18 +62,17 @@ class Frequency:
         interval_ns: int,
         base_timestamp: int
     ) -> Tuple[List[int], List[int]]:
-        timestamp_list: List[int] = []
-        frequency_list: List[int] = []
-        diff_base = -sys.maxsize
+        timestamp_list: List[int] = [base_timestamp]
+        frequency_list: List[int] = [0]
+        diff_base = base_timestamp
 
         for timestamp in self._target_series:
-            diff = timestamp - base_timestamp
-            if diff - diff_base < interval_ns:
+            if timestamp - diff_base < interval_ns:
                 frequency_list[-1] += 1
             else:
                 timestamp_list.append(base_timestamp +
                                       len(timestamp_list) * interval_ns)
                 frequency_list.append(1)
-                diff_base = diff
+                diff_base += interval_ns
 
         return timestamp_list, frequency_list
