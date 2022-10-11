@@ -196,19 +196,23 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    def rename_callback(src: str, dest: str):
+    def rename_callback(self, src: str, dst: str):
         raise NotImplementedError('')
 
-    def rename_node(src: str, dest: str):
+    def rename_node(self, src: str, dst: str):
+        n: NodeStruct = Util.find_one(lambda x: x.node_name == src, self._nodes)
+        if n is None:
+            raise InvalidArgumentError(f'Failed to rename node. {n} not exist.')
+        else:
+            n.node_name = dst
+
+    def rename_path(self, src: str, dst: str):
         raise NotImplementedError('')
 
-    def rename_path(src: str, dest: str):
+    def rename_executor(self, src: str, dst: str):
         raise NotImplementedError('')
 
-    def rename_executor(src: str, dest: str):
-        raise NotImplementedError('')
-
-    def rename_topic(src: str, dest: str):
+    def rename_topic(self, src: str, dst: str):
         raise NotImplementedError('')
 
 

@@ -51,6 +51,10 @@ class NodeStruct():
     def node_name(self) -> str:
         return self._node_name
 
+    @node_name.setter
+    def node_name(self, n: str):
+        self._node_name = n
+
     @property
     def publishers(self) -> Tuple[PublisherStruct, ...]:
         return self._publishers
