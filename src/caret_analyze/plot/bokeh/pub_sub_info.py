@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from logging import getLogger
-from typing import Union
+from typing import Collection, Union
 
 import pandas as pd
 
@@ -29,9 +29,9 @@ class PubSubPeriodPlot(PubSubTimeSeriesPlot):
 
     def __init__(
         self,
-        *pub_subs: Union[Publisher, Subscription]
+        pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> None:
-        super().__init__(*pub_subs)
+        super().__init__(pub_subs)
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_period_df = pd.DataFrame()
@@ -81,9 +81,9 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
 
     def __init__(
         self,
-        *pub_subs: Union[Publisher, Subscription]
+        pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> None:
-        super().__init__(*pub_subs)
+        super().__init__(pub_subs)
 
     def _to_dataframe_core(self, xaxis_type: str) -> pd.DataFrame:
         concat_frequency_df = pd.DataFrame()
