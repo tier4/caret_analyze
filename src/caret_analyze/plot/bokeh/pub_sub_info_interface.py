@@ -32,11 +32,6 @@ logger = getLogger(__name__)
 
 class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
-    _last_xaxis_type: str = ''
-    _last_ywheel_zoom: bool = True
-    _last_full_legends: bool = False
-    _last_export_path: Optional[str] = None
-
     def __init__(
         self,
         pub_subs: Collection[Union[Publisher, Subscription]]
@@ -52,12 +47,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         # interactive: bool = False
     ) -> Figure:
         validate_xaxis_type(xaxis_type)
-        self._last_xaxis_type = xaxis_type
-        self._last_ywheel_zoom = ywheel_zoom
-        self._last_full_legends = full_legends
-        self._last_export_path = export_path
 
-        return self._show_core('All')
+        return self._show_core('All', xaxis_type, ywheel_zoom, full_legends, export_path)
 
         # # not interactive
         # if self._last_export_path:
@@ -77,9 +68,13 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
     def _show_core(
         self,
-        topic_name: str
+        topic_name: str,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+        export_path: Optional[str]
     ) -> Figure:
-        source_df = self._to_dataframe_core(self._last_xaxis_type)
+        source_df = self._to_dataframe_core(xaxis_type)
         source_df_by_topic = self._get_source_df_by_topic(source_df)
 
         Hover = HoverTool(
@@ -95,13 +90,13 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         frame_min, frame_max = get_range(self._pub_subs)
         y_axis_label = source_df.columns.get_level_values(1).to_list()[1]
         fig_args = get_fig_args(
-            xaxis_type=self._last_xaxis_type,
+            xaxis_type=xaxis_type,
             title=f'Time-line of publishes/subscribes {y_axis_label}',
             y_axis_label=y_axis_label,
-            ywheel_zoom=self._last_ywheel_zoom
+            ywheel_zoom=ywheel_zoom
         )
         p = figure(**fig_args)
-        if self._last_xaxis_type == 'system_time':
+        if xaxis_type == 'system_time':
             apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
         p.add_tools(Hover)
 
@@ -124,7 +119,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                 pub_sub,
                 source_df_by_topic,
                 frame_min,
-                self._last_xaxis_type
+                xaxis_type
             )
             if isinstance(pub_sub, Publisher):
                 legend_label = f'publisher{pub_count}'
@@ -140,7 +135,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         # Add legends by ten
         num_legend_threshold = 20
         for i in range(0, len(legend_items)+10, 10):
-            if not self._last_full_legends and i >= num_legend_threshold:
+            if not full_legends and i >= num_legend_threshold:
                 logger.warning(
                     'The maximum number of legends drawn '
                     f'by default is {num_legend_threshold}. '
@@ -152,10 +147,10 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         p.legend.click_policy = 'hide'
 
         # Output
-        if self._last_export_path is None:
+        if export_path is None:
             show(p)
         else:
-            save(p, self._last_export_path,
+            save(p, export_path,
                  title='PubSub time-line', resources=CDN)
 
         return p
