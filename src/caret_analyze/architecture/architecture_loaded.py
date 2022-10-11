@@ -215,6 +215,7 @@ class NodeValuesLoaded():
         self,
         reader: ArchitectureReader,
     ) -> None:
+        self._reader = reader
         nodes_struct: List[NodeStruct] = []
         self._cb_loaded: List[CallbacksLoaded] = []
         self._cbg_loaded: List[CallbackGroupsLoaded] = []
@@ -327,7 +328,10 @@ class NodeValuesLoaded():
             except ItemNotFoundError:
                 pass
 
-        msg = f'Failed to find callback group. callback_group_id={callback_group_id}'
+        msg = f'Failed to find callback group. callback_group_id: {callback_group_id}. '
+        node_names = self._reader.get_node_names(callback_group_id)
+        if node_names:
+            msg += f'node_name: {node_names}.'
         raise ItemNotFoundError(msg)
 
     def find_callback(
@@ -1283,6 +1287,9 @@ class TopicIgnoredReader(ArchitectureReader):
 
     def get_paths(self) -> Sequence[PathValue]:
         return self._reader.get_paths()
+
+    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
+        return self._reader.get_node_names(callback_group_id)
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._reader.get_nodes()
