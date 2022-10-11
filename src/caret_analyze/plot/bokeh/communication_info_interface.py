@@ -36,7 +36,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         self,
         communications: Collection[Communication]
     ) -> None:
-        self._communications = communications
+        self._communications = list(communications)
 
     def show(
         self,
@@ -167,8 +167,10 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
     def _get_converter(
         self
     ) -> ClockConverter:
-        converter_cb = \
-            self._communications[0]._callback_subscription[0]
+        for comm in self._communications:
+            if comm._callback_subscription:
+                converter_cb = comm._callback_subscription
+                break
         converter = converter_cb._provider.get_sim_time_converter()
 
         return converter

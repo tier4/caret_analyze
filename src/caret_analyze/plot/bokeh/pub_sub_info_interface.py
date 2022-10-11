@@ -32,7 +32,7 @@ logger = getLogger(__name__)
 
 class PubSubTimeSeriesPlot(metaclass=ABCMeta):
 
-    _last_xaxis_type: Optional[str] = None
+    _last_xaxis_type: str = ''
     _last_ywheel_zoom: bool = True
     _last_full_legends: bool = False
     _last_export_path: Optional[str] = None
@@ -41,7 +41,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         self,
         pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> None:
-        self._pub_subs = pub_subs
+        self._pub_subs = list(pub_subs)
 
     def show(
         self,

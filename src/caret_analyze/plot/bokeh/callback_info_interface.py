@@ -14,7 +14,7 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger, Logger
-from typing import Collection, Optional
+from typing import Collection, List, Optional
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
@@ -40,19 +40,15 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         target: Collection[CallbackBase]
     ) -> None:
         super().__init__()
-        if (isinstance(target,
-                       (Application, Executor, Node, CallbackGroup, Path))):
-            self._callbacks = target.callbacks
+        target = list(target)
+        self._callbacks: List[CallbackBase] = []
+        if (len(target) == 1 and
+                (isinstance(target[0], (Application, Executor, Node, CallbackGroup, Path)))):
+            self._callbacks = target[0].callbacks
             logger.warning(
                 'This way to input `target` argument is deprecated. '
                 'The argument type was changed to Collection[CallbackBase]. '
                 'This can be obtained by the callbacks property.'
-            )
-        elif isinstance(target, CallbackBase):
-            self._callbacks = [target]
-            logger.warning(
-                'This way to input `target` argument is deprecated. '
-                'The argument type was changed to Collection[CallbackBase].'
             )
         else:
             self._callbacks = target
