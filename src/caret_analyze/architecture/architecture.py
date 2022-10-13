@@ -200,7 +200,7 @@ class Architecture(Summarizable):
         raise NotImplementedError('')
 
     def rename_node(self, src: str, dst: str):
-        n: NodeStruct = Util.find_one(lambda x: x.node_name == src, self._nodes)
+        n: NodeStruct = Util.find_similar_one(src, self._nodes, lambda x: x.node_name)
         if n is None:
             raise InvalidArgumentError(f'Failed to rename node. {n} not exist.')
         else:
