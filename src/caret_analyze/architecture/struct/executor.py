@@ -57,6 +57,10 @@ class ExecutorStruct():
     def executor_name(self) -> str:
         return self._executor_name
 
+    @executor_name.setter
+    def executor_name(self, n: str):
+        self._executor_name = n
+
     @property
     def callback_groups(self) -> Tuple[CallbackGroupStruct, ...]:
         return self._cbg_values

@@ -207,7 +207,8 @@ class Architecture(Summarizable):
         raise NotImplementedError('')
 
     def rename_executor(self, src: str, dst: str):
-        raise NotImplementedError('')
+        n: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
+        n.executor_name = dst
 
     def rename_topic(self, src: str, dst: str):
         raise NotImplementedError('')

@@ -41,6 +41,10 @@ class PathStruct():
     def path_name(self) -> Optional[str]:
         return self._path_name
 
+    @path_name.setter
+    def path_name(self, n: str):
+        self._path_name = n
+
     @property
     def node_names(self) -> Tuple[str, ...]:
         return tuple(_.node_name for _ in self.node_paths)

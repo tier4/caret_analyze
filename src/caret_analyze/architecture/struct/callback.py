@@ -78,6 +78,10 @@ class CallbackStruct(metaclass=ABCMeta):
         """
         return self._callback_name
 
+    @callback_name.setter
+    def callback_name(self, n: str):
+        self._callback_name = n
+
     @property
     @abstractmethod
     def callback_type(self) -> CallbackType:

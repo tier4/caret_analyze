@@ -316,9 +316,24 @@ class TestArchitecture:
     def test_rename_function(self, mocker):
         # define test case
         architecture_text = """
-named_paths: []
-path_name_aliases: []
-executors: []
+named_paths:
+- path_name: target_path
+  node_chain:
+  - node_name: /talker
+    publish_topic_name: /chatter
+  - node_name: /listener
+    subscribe_topic_name: /chatter
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /talker/callback_group_0
+  - /listener/callback_group_0
+- executor_type: single_threaded_executor
+  executor_name: executor_1
+  callback_group_names:
+  - /talker/callback_group_1
+  - /listener/callback_group_1
 nodes:
 - node_name: /node_0
   callback_groups: []
@@ -347,3 +362,15 @@ nodes:
         node_names = arch.node_names
         expect_node_names = ['/node_0', '/changed_node']
         assert set(node_names) == set(expect_node_names)
+
+
+        # test rename_executor()
+        executor_names = arch.executor_names
+        expect_executor_names = ['executor_0', 'executor_1']
+        assert set(executor_names) == set(expect_executor_names)
+
+        arch.rename_executor('executor_1', 'changed_executor')
+
+        executor_names = arch.executor_names
+        expect_executor_names = ['executor_0', 'changed_executor']
+        assert set(executor_names) == set(expect_executor_names)
