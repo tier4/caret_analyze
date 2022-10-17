@@ -17,7 +17,6 @@ from __future__ import annotations
 import logging
 from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 
-
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
@@ -202,6 +201,17 @@ class Architecture(Summarizable):
     def rename_node(self, src: str, dst: str):
         n: NodeStruct = Util.find_similar_one(src, self._nodes, lambda x: x.node_name)
         n.node_name = dst
+
+        """
+        cb_groups: List[CallbackGroupStruct] \
+            = Util.flatten([e.callback_groups for e in self._executors])
+        for cb_group in Util.filter_items(lambda x: x.node_name == src, cb_groups):
+            cb_group.node_name = dst
+
+        for cb in Util.filter_items(lambda x: x.node_name == src,
+            Util.flatten([cb_group.callbacks for cb_group in cb_groups])):
+            cb.node_name = dst
+        """
 
     def rename_path(self, src: str, dst: str):
         raise NotImplementedError('')

@@ -363,7 +363,6 @@ nodes:
         expect_node_names = ['/node_0', '/changed_node']
         assert set(node_names) == set(expect_node_names)
 
-
         # test rename_executor()
         executor_names = arch.executor_names
         expect_executor_names = ['executor_0', 'executor_1']
