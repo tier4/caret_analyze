@@ -21,7 +21,7 @@ from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodeStruct)
-from .struct.callback import TimerCallbackStruct
+from .struct.callback import CallbackStruct, TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
@@ -196,7 +196,10 @@ class Architecture(Summarizable):
                      f'period_ns: {uniqueness_violated[1]}'))
 
     def rename_callback(self, src: str, dst: str):
-        raise NotImplementedError('')
+        cb_s = Util.flatten(cb_g.callbacks for cb_g in
+                            Util.flatten([e.callback_groups for e in self._executors]))
+        c: CallbackStruct = Util.find_similar_one(src, cb_s, lambda x: x.callback_name)
+        c.callback_name = dst
 
     def rename_node(self, src: str, dst: str):
         n: NodeStruct = Util.find_similar_one(src, self._nodes, lambda x: x.node_name)
@@ -217,8 +220,8 @@ class Architecture(Summarizable):
         raise NotImplementedError('')
 
     def rename_executor(self, src: str, dst: str):
-        n: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
-        n.executor_name = dst
+        e: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
+        e.executor_name = dst
 
     def rename_topic(self, src: str, dst: str):
         raise NotImplementedError('')

@@ -373,3 +373,15 @@ nodes:
         executor_names = arch.executor_names
         expect_executor_names = ['executor_0', 'changed_executor']
         assert set(executor_names) == set(expect_executor_names)
+
+        """# test rename_callback()
+        callback_names = [c.callback_name for c in arch.callbacks]
+        expect_callback_names = ['callback_0', 'callback_1']
+        assert set(callback_names) == set(expect_callback_names)
+
+        arch.rename_callback('callback_1', 'changed_callback')
+
+        callback_names = [c.callback_name for c in arch.callbacks]
+        expect_callback_names = ['callback_0', 'changed_callback']
+        assert set(callback_names) == set(expect_callback_names)
+        """
