@@ -15,6 +15,8 @@
 from logging import getLogger
 from typing import Collection, Union
 
+from matplotlib.path import Path
+
 from multimethod import multimethod as singledispatchmethod
 
 from .callback_info import (CallbackFrequencyPlot,
@@ -25,6 +27,7 @@ from .communication_info import (CommunicationFrequencyPlot,
                                  CommunicationLatencyPlot,
                                  CommunicationPeriodPlot)
 from .communication_info_interface import CommunicationTimeSeriesPlot
+from .histogram import ResponseTimePlot
 from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
 from ...exceptions import InvalidArgumentError
@@ -242,3 +245,35 @@ class Plot:
         *communications: Communication
     ) -> CommunicationTimeSeriesPlot:
         return CommunicationPeriodPlot(communications)
+
+    @singledispatchmethod
+    def create_response_time_histogram_plot(arg) -> TimeSeriesPlot:
+        """
+        Get ResponseTimePlot instance.
+
+        Parameters
+        ----------
+        path : Collection[Path]
+            Target path.
+            This also accepts multiple path inputs by unpacking.
+
+        Returns
+        -------
+        ResponseTimePlot
+
+        """
+        raise InvalidArgumentError(f'Unknown argument type: {arg}')
+
+    @staticmethod
+    @create_response_time_histogram_plot.register
+    def _create_response_time_histogram_plot(
+        paths: Collection[Path]
+    ) -> ResponseTimePlot:
+        return ResponseTimePlot(paths)
+
+    @staticmethod
+    @create_response_time_histogram_plot.register
+    def _create_response_time_histogram_plot_tuple(
+        *paths: Path
+    ) -> ResponseTimePlot:
+        return ResponseTimePlot(paths)
