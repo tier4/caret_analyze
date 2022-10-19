@@ -300,9 +300,29 @@ class Path(PathBase, Summarizable):
         return self._value.summary
 
     @property
-    def callbacks(self) -> Optional[List[CallbackBase]]:
+    def callbacks(self) -> List[CallbackBase]:
         """
         Get callbacks.
+
+        Returns
+        -------
+        List[CallbackBase]
+            callbacks in all nodes that comprise the node path.
+
+        """
+        callbacks = Util.flatten(
+            comm.publish_node.callbacks for comm in self.communications
+            if comm.publish_node.callbacks
+        )
+        if self.communications[-1].subscribe_node.callbacks is not None:
+            callbacks.extend(self.communications[-1].subscribe_node.callbacks)
+
+        return callbacks
+
+    @property
+    def callback_chain(self) -> Optional[List[CallbackBase]]:
+        """
+        Get callback chain.
 
         Returns
         -------

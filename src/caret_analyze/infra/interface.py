@@ -40,7 +40,7 @@ class RecordsProvider(metaclass=ABCMeta):
 
         Parameters
         ----------
-        callback_info : CallbackStructInfo
+        callback_info : CallbackStructValue
             [description]
 
         Returns
@@ -64,7 +64,7 @@ class RecordsProvider(metaclass=ABCMeta):
 
         Parameters
         ----------
-        variable_passing_info : VariablePassingStructInfo
+        variable_passing_info : VariablePassingStructValue
 
         Returns
         -------

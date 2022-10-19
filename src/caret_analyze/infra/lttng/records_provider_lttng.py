@@ -73,7 +73,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        comm_info : CommunicationStructInfo
+        comm_info : CommunicationStructValue
             communication info.
 
         Returns
@@ -588,7 +588,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        variable_passing_info : VariablePassingStructInfo
+        variable_passing_info : VariablePassingStructValue
             target variable passing info.
 
         Returns
@@ -691,7 +691,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        comm_info : CommunicationStructInfo
+        comm_info : CommunicationStructValue
             Target communication info.
 
         Returns

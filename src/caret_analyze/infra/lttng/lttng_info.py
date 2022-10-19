@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 
 from .ros2_tracing.data_model import Ros2DataModel
+from .ros2_tracing.data_model_service import DataModelService
 from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
                             PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
@@ -1081,7 +1082,7 @@ class DataFrameFormatted:
 
         df = DataFrameFormatted._add_column(df, 'publisher_id', to_publisher_id)
         df = DataFrameFormatted._ensure_columns(df, columns)
-        return df[columns]
+        return df[columns].convert_dtypes()
 
     @staticmethod
     def _build_timer_control_df(
@@ -1092,7 +1093,7 @@ class DataFrameFormatted:
         df['type'] = 'init'
         df['params'] = [{'period': row['period']} for (_, row) in df.iterrows()]
         df = DataFrameFormatted._ensure_columns(df, columns)
-        return df[columns]
+        return df[columns].convert_dtypes()
 
     @staticmethod
     def _build_executor_df(
@@ -1120,7 +1121,7 @@ class DataFrameFormatted:
         # Remove duplicates to make it unique.
         df.drop_duplicates(inplace=True)
 
-        return df[columns]
+        return df[columns].convert_dtypes()
 
     @staticmethod
     def _build_cbg_df(
@@ -1155,7 +1156,13 @@ class DataFrameFormatted:
                 msg = ('Multiple executors using the same callback group were detected.'
                        'The last executor will be used. ')
                 exec_addr = list(group['executor_addr'].values)
-                msg += f'executor address: {exec_addr}'
+                msg += f'executor address: {exec_addr}. '
+                data_model_srv = DataModelService(data)
+                cbg_addr = list(group['callback_group_addr'].values)
+                node_names = Util.flatten(data_model_srv.get_node_names(addr)
+                                          for addr in cbg_addr)
+                if node_names:
+                    msg += f'node name: {sorted(set(node_names))}.'
                 logger.warn(msg)
                 executor_duplicated_indexes += list(group.index)[:-1]
 
@@ -1163,7 +1170,7 @@ class DataFrameFormatted:
             df.drop(index=executor_duplicated_indexes, inplace=True)
 
         df.reset_index(drop=True, inplace=True)
-        return df
+        return df.convert_dtypes()
 
     @staticmethod
     def _build_timer_callbacks_df(
@@ -1199,9 +1206,9 @@ class DataFrameFormatted:
 
             df = DataFrameFormatted._ensure_columns(df, columns)
 
-            return df[columns]
+            return df[columns].convert_dtypes()
         except KeyError:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=columns).convert_dtypes()
 
     @staticmethod
     def _build_sub_callbacks_df(
@@ -1269,7 +1276,7 @@ class DataFrameFormatted:
 
             return df[columns].convert_dtypes()
         except KeyError:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=columns).convert_dtypes()
 
     @staticmethod
     def _build_tilde_subscription_df(
@@ -1285,7 +1292,7 @@ class DataFrameFormatted:
 
             return df[columns].convert_dtypes()
         except KeyError:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=columns).convert_dtypes()
 
     @staticmethod
     def _build_tilde_publisher_df(
@@ -1301,7 +1308,7 @@ class DataFrameFormatted:
 
             return df[columns].convert_dtypes()
         except KeyError:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=columns).convert_dtypes()
 
     @staticmethod
     def _build_tilde_sub_id_df(
@@ -1317,7 +1324,7 @@ class DataFrameFormatted:
 
             return df[columns].convert_dtypes()
         except KeyError:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=columns).convert_dtypes()
 
     @staticmethod
     def _build_tilde_sub(
@@ -1352,7 +1359,7 @@ class DataFrameFormatted:
 
             return df[columns].convert_dtypes()
         except KeyError:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=columns).convert_dtypes()
 
     @staticmethod
     def _is_ignored_subscription(
@@ -1430,7 +1437,7 @@ class DataFrameFormatted:
                     f'callback_objects = {cb_objs}')
             dicts.append(record)
         df = pd.DataFrame.from_dict(dicts, dtype='Int64')
-        return df
+        return df.convert_dtypes()
 
     @staticmethod
     def _add_column(
@@ -1478,9 +1485,9 @@ class DataFrameFormatted:
             node_df.drop(['namespace', 'name'], inplace=True, axis=1)
 
             node_df.reset_index(drop=True, inplace=True)
-            return node_df[columns]
+            return node_df[columns].convert_dtypes()
         except KeyError:
-            return pd.DataFrame(columns=columns)
+            return pd.DataFrame(columns=columns).convert_dtypes()
 
 
 def merge(

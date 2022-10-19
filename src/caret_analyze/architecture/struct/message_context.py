@@ -1,4 +1,3 @@
-
 # Copyright 2021 Research Institute of Systems Planning, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,37 +19,16 @@ from abc import abstractmethod
 from logging import getLogger
 from typing import Dict, Optional, Tuple
 
-from .callback import CallbackStructValue
-from .publisher import PublisherStructValue
-from .subscription import SubscriptionStructValue
-from .value_object import ValueObject
-from ..common import Summarizable, Summary
-from ..exceptions import UnsupportedTypeError
+from caret_analyze.value_objects.message_context import (CallbackChain, InheritUniqueStamp,
+                                                         MessageContext, MessageContextType,
+                                                         Tilde, UseLatestMessage)
+
+from .callback import CallbackStruct
+from .publisher import PublisherStruct
+from .subscription import SubscriptionStruct
+from ...exceptions import UnsupportedTypeError
 
 logger = getLogger(__name__)
-
-
-class MessageContextType(ValueObject):
-    """Message context type."""
-
-    USE_LATEST_MESSAGE: MessageContextType
-    CALLBACK_CHAIN: MessageContextType
-    INHERIT_UNIQUE_STAMP:  MessageContextType
-    TILDE:  MessageContextType
-
-    def __init__(
-        self,
-        type_name: str
-    ) -> None:
-        self._type_name = type_name
-
-    @property
-    def type_name(self) -> str:
-        return self._type_name
-
-    def __str__(self) -> str:
-        return self.type_name
-
 
 MessageContextType.USE_LATEST_MESSAGE = \
         MessageContextType('use_latest_message')
@@ -60,20 +38,21 @@ MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
 MessageContextType.TILDE = MessageContextType('tilde')
 
 
-class MessageContext(ValueObject, Summarizable):
+class MessageContextStruct():
     """Structured message context value."""
 
     def __init__(
         self,
         node_name: str,
         message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        child: Optional[Tuple[CallbackStructValue, ...]],
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        child: Optional[Tuple[CallbackStruct, ...]],
     ) -> None:
         # Since it is used as a value object,
         # mutable types such as dict should not be used.
         self._node_name = node_name
+        self._message_context_dict = message_context_dict
         self._sub = subscription
         self._pub = publisher
         self._callbacks = child
@@ -94,7 +73,7 @@ class MessageContext(ValueObject, Summarizable):
     @property
     def callbacks(
         self
-    ) -> Optional[Tuple[CallbackStructValue, ...]]:
+    ) -> Optional[Tuple[CallbackStruct, ...]]:
         return self._callbacks
 
     def to_dict(self) -> Dict:
@@ -106,11 +85,14 @@ class MessageContext(ValueObject, Summarizable):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
-        return self._sub == subscription and self._pub == publisher
+        def _to_value(struct):
+            return None if struct is None else struct.to_value()
+        return _to_value(self._sub) == _to_value(subscription) \
+            and _to_value(self._pub) == _to_value(publisher)
 
     @property
     def publisher_topic_name(self) -> Optional[str]:
@@ -124,69 +106,65 @@ class MessageContext(ValueObject, Summarizable):
             return None
         return self._sub.topic_name
 
-    @property
-    def summary(self) -> Summary:
-        return Summary({
-            'subscription_topic_name': self.subscription_topic_name,
-            'publisher_topic_name': self.publisher_topic_name,
-            'type': str(self.type_name)
-        })
-
-    @abstractmethod
-    def verify(self) -> bool:
-        pass
-
     @staticmethod
     def create_instance(
         context_type_name: str,
         context_dict: Dict,
         node_name: str,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        child: Optional[Tuple[CallbackStructValue, ...]]
-    ) -> MessageContext:
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        child: Optional[Tuple[CallbackStruct, ...]]
+    ) -> MessageContextStruct:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
-            return CallbackChain(node_name,
-                                 context_dict,
-                                 subscription,
-                                 publisher, child)
+            return CallbackChainStruct(node_name,
+                                       context_dict,
+                                       subscription,
+                                       publisher, child)
         if context_type_name == str(MessageContextType.INHERIT_UNIQUE_STAMP):
-            return InheritUniqueStamp(node_name,
-                                      context_dict,
-                                      subscription,
-                                      publisher,
-                                      child)
+            return InheritUniqueStampStruct(node_name,
+                                            context_dict,
+                                            subscription,
+                                            publisher,
+                                            child)
         if context_type_name == str(MessageContextType.USE_LATEST_MESSAGE):
-            return UseLatestMessage(node_name,
-                                    context_dict,
-                                    subscription,
-                                    publisher,
-                                    child)
+            return UseLatestMessageStruct(node_name,
+                                          context_dict,
+                                          subscription,
+                                          publisher,
+                                          child)
         if context_type_name == str(MessageContextType.TILDE):
-            return Tilde(node_name,
-                         context_dict,
-                         subscription,
-                         publisher,
-                         child)
+            return TildeStruct(node_name,
+                               context_dict,
+                               subscription,
+                               publisher,
+                               child)
 
         raise UnsupportedTypeError(f'Failed to load message context. \
                                    message_context={context_type_name}')
 
+    @abstractmethod
+    def to_value(self) -> MessageContext:
+        pass
 
-class UseLatestMessage(MessageContext):
+
+class UseLatestMessageStruct(MessageContextStruct):
     TYPE_NAME = 'use_latest_message'
 
     """Use message context"""
-
-    def verify(self) -> bool:
-        return True
 
     @property
     def context_type(self) -> MessageContextType:
         return MessageContextType.USE_LATEST_MESSAGE
 
+    def to_value(self) -> UseLatestMessage:
+        return UseLatestMessage(
+            self.node_name, self._message_context_dict,
+            None if self._sub is None else self._sub.to_value(),
+            None if self._pub is None else self._pub.to_value(),
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
 
-class InheritUniqueStamp(MessageContext):
+
+class InheritUniqueStampStruct(MessageContextStruct):
     TYPE_NAME = 'inherit_unique_stamp'
 
     """
@@ -200,11 +178,15 @@ class InheritUniqueStamp(MessageContext):
     def context_type(self) -> MessageContextType:
         return MessageContextType.INHERIT_UNIQUE_STAMP
 
-    def verify(self) -> bool:
-        pass
+    def to_value(self) -> InheritUniqueStamp:
+        return InheritUniqueStamp(
+            self.node_name, self._message_context_dict,
+            None if self._sub is None else self._sub.to_value(),
+            None if self._pub is None else self._pub.to_value(),
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
 
 
-class CallbackChain(MessageContext):
+class CallbackChainStruct(MessageContextStruct):
     TYPE_NAME = 'callback_chain'
 
     """
@@ -223,9 +205,9 @@ class CallbackChain(MessageContext):
         self,
         node_name: str,
         message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -239,13 +221,18 @@ class CallbackChain(MessageContext):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
+        def _to_values(structs):
+            if structs is None:
+                return None
+            else:
+                return [v.to_value() for v in structs]
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
-        return self.callbacks == callbacks
+        return _to_values(self.callbacks) == _to_values(callbacks)
 
     def to_dict(self) -> Dict:
         d = super().to_dict()
@@ -253,32 +240,15 @@ class CallbackChain(MessageContext):
             d['callbacks'] = [_.callback_name for _ in self.callbacks]
         return d
 
-    def verify(self) -> bool:
-        is_valid = True
-        if self.callbacks is None or len(self.callbacks) == 0:
-            is_valid = False
-
-            # Check binding between callback and publisher
-            if not self._pub:
-                logger.warning(
-                    'callback-chain is empty. '
-                    'The callback is not associated with the publisher. '
-                )
-            elif not self._pub.summary['callbacks']:
-                logger.warning(
-                    'callback-chain is empty. '
-                    'The callback is not associated with the publisher. '
-                    f'publisher topic name: {self.publisher_topic_name}'
-                )
-            else:
-                logger.warning(
-                    'callback-chain is empty. variable_passings are not set. '
-                    f'node name: {self.node_name}')
-
-        return is_valid
+    def to_value(self) -> CallbackChain:
+        return CallbackChain(
+            self.node_name, self._message_context_dict,
+            None if self._sub is None else self._sub.to_value(),
+            None if self._pub is None else self._pub.to_value(),
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))
 
 
-class Tilde(MessageContext):
+class TildeStruct(MessageContextStruct):
     TYPE_NAME = 'tilde'
 
     """
@@ -292,9 +262,9 @@ class Tilde(MessageContext):
         self,
         node_name: str,
         message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -308,13 +278,17 @@ class Tilde(MessageContext):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct],
+        callbacks: Optional[Tuple[CallbackStruct, ...]]
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
         return True
 
-    def verify(self) -> bool:
-        return True
+    def to_value(self) -> Tilde:
+        return Tilde(
+            self.node_name, self._message_context_dict,
+            None if self._sub is None else self._sub.to_value(),
+            None if self._pub is None else self._pub.to_value(),
+            None if self.callbacks is None else tuple([v.to_value() for v in self.callbacks]))

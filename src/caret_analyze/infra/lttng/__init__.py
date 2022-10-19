@@ -13,9 +13,11 @@
 # limitations under the License.
 
 from .lttng import Lttng
+from .lttng_event_filter import LttngEventFilter
 from .records_provider_lttng import RecordsProviderLttng
 
 __all__ = [
     'Lttng',
+    'LttngEventFilter',
     'RecordsProviderLttng'
 ]

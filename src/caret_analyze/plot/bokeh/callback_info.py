@@ -13,20 +13,16 @@
 # limitations under the License.
 
 from logging import getLogger
-from typing import List, Union
+from typing import Collection
 
 import pandas as pd
 
 from .callback_info_interface import TimeSeriesPlot
 from .plot_util import (add_top_level_column, convert_df_to_sim_time,
                         get_freq_with_timestamp)
-from ...runtime import (Application, CallbackBase, CallbackGroup,
-                        Executor, Node, Path)
+from ...runtime import CallbackBase
 
 logger = getLogger(__name__)
-
-CallbacksType = Union[Application, Path, Executor, Node,
-                      CallbackGroup, CallbackBase, List[CallbackBase]]
 
 
 class CallbackLatencyPlot(TimeSeriesPlot):
@@ -39,7 +35,7 @@ class CallbackLatencyPlot(TimeSeriesPlot):
 
     def __init__(
         self,
-        target: CallbacksType
+        target: Collection[CallbackBase]
     ) -> None:
         super().__init__(target)
 
@@ -93,7 +89,7 @@ class CallbackPeriodPlot(TimeSeriesPlot):
 
     def __init__(
         self,
-        target: CallbacksType
+        target: Collection[CallbackBase]
     ) -> None:
         super().__init__(target)
 
@@ -149,7 +145,7 @@ class CallbackFrequencyPlot(TimeSeriesPlot):
 
     def __init__(
         self,
-        target: CallbacksType
+        target: Collection[CallbackBase]
     ) -> None:
         super().__init__(target)
 
