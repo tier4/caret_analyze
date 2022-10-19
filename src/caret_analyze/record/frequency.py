@@ -58,7 +58,7 @@ class Frequency:
             Interval used for frequency calculation, by default 1000000000 [ns].
             The number of timestamps that exist in this time interval is counted.
         base_timestamp : Optional[int], optional
-            First timestamp used for frequency calculation, by default None.
+            Initial timestamp used for frequency calculation, by default None.
             If None, earliest timestamp is used.
 
         Returns
