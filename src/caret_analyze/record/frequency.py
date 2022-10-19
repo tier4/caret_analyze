@@ -116,8 +116,8 @@ class Frequency:
                 frequency_list[-1] += 1
             else:
                 while not is_in_current_interval(timestamp):
-                    timestamp_list.append(base_timestamp +
-                                          len(timestamp_list) * interval_ns)
+                    next_interval_start_time = base_timestamp + len(timestamp_list) * interval_ns
+                    timestamp_list.append(next_interval_start_time)
                     frequency_list.append(0)
                     diff_base += interval_ns
                 frequency_list[-1] += 1
