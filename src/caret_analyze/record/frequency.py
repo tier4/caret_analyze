@@ -74,7 +74,7 @@ class Frequency:
         if not self._target_timestamps:
             return records
 
-        timestamp_list, frequency_list = self._get_freq_with_timestamp(
+        timestamp_list, frequency_list = self._get_frequency_with_timestamp(
             interval_ns,
             base_timestamp or self._target_timestamps[0]
         )
@@ -92,7 +92,7 @@ class Frequency:
             ColumnValue(self._target_column), ColumnValue('frequency')
         ])
 
-    def _get_freq_with_timestamp(
+    def _get_frequency_with_timestamp(
         self,
         interval_ns: int,
         base_timestamp: int
