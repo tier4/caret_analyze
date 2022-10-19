@@ -207,3 +207,23 @@ class TestFrequencyRecords:
         ]
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
+
+    def test_base_ts_greater_than_min_ts_case(self):
+        records_raw = [
+            {'timestamp': 0},
+            {'timestamp': 1},
+            {'timestamp': 11},
+            {'timestamp': 12},
+            {'timestamp': 24},
+        ]
+        columns = [ColumnValue('timestamp')]
+        records = create_records(records_raw, columns)
+
+        frequency = Frequency(records)
+
+        expect_raw = [
+            {'timestamp': 10, 'frequency': 2},
+            {'timestamp': 20, 'frequency': 1}
+        ]
+        result = to_dict(frequency.to_records(interval_ns=10, base_timestamp=10))
+        assert result == expect_raw

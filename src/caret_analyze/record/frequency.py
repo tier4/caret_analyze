@@ -106,12 +106,14 @@ class Frequency:
         diff_base = base_timestamp
 
         def is_in_current_interval(timestamp: int) -> bool:
-            if timestamp - diff_base < interval_ns:
+            if diff_base <= timestamp < diff_base + interval_ns:
                 return True
             else:
                 return False
 
         for timestamp in self._target_timestamps:
+            if timestamp < base_timestamp:
+                continue
             if is_in_current_interval(timestamp):
                 frequency_list[-1] += 1
             else:
