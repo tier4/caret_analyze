@@ -167,3 +167,22 @@ class TestFrequencyRecords:
         ]
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
+
+    def test_one_interval_contains_all_timestamps_case(self):
+        records_raw = [
+            {'timestamp': 0},
+            {'timestamp': 1},
+            {'timestamp': 2},
+            {'timestamp': 3},
+            {'timestamp': 4},
+        ]
+        columns = [ColumnValue('timestamp')]
+        records = create_records(records_raw, columns)
+
+        frequency = Frequency(records)
+
+        expect_raw = [
+            {'timestamp': 0, 'frequency': 5}
+        ]
+        result = to_dict(frequency.to_records(interval_ns=10))
+        assert result == expect_raw
