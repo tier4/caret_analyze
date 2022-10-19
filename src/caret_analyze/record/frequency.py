@@ -26,6 +26,18 @@ class Frequency:
         records: RecordsInterface,
         target_column: Optional[str] = None
     ) -> None:
+        """
+        Constructor.
+
+        Parameters
+        ----------
+        records : RecordsInterface
+            records to calculate frequency.
+        target_column : Optional[str], optional
+            Column name of timestamps used in the calculation, by default None
+            If None, the first column of records is selected.
+
+        """
         self._target_column = target_column or records.columns[0]
         self._target_series = [ts for ts in records.get_column_series(
                                self._target_column) if ts is not None]
@@ -35,6 +47,27 @@ class Frequency:
         interval_ns: int = 1000000000,
         base_timestamp: Optional[int] = None
     ) -> RecordsInterface:
+        """
+        Calculate frequency records.
+
+        Parameters
+        ----------
+        interval_ns: int, optional
+            Interval used for frequency calculation, by default 1000000000 [ns].
+            The number of timestamps that exist in this time interval is counted.
+        base_timestamp : Optional[int], optional
+            First timestamp used for frequency calculation, by default None.
+            If None, earliest timestamp is used.
+
+        Returns
+        -------
+        RecordsInterface
+            frequency records.
+            Columns
+            - {timestamp_column}
+            - {frequency_column}
+
+        """
         records = self._create_empty_records()
         if not self._target_series:
             return records
