@@ -39,8 +39,10 @@ class Frequency:
 
         """
         self._target_column = target_column or records.columns[0]
-        self._target_series = [ts for ts in records.get_column_series(
-                               self._target_column) if ts is not None]
+        self._target_timestamps = [
+            ts for record in records
+            if (ts := record.get(self._target_column)) is not None
+        ]
 
     def to_records(
         self,
@@ -69,12 +71,12 @@ class Frequency:
 
         """
         records = self._create_empty_records()
-        if not self._target_series:
+        if not self._target_timestamps:
             return records
 
         timestamp_list, frequency_list = self._get_freq_with_timestamp(
             interval_ns,
-            base_timestamp or self._target_series[0]
+            base_timestamp or self._target_timestamps[0]
         )
         for ts, freq in zip(timestamp_list, frequency_list):
             records.append(RecordFactory.create_instance(
@@ -99,7 +101,7 @@ class Frequency:
         frequency_list: List[int] = [0]
         diff_base = base_timestamp
 
-        for timestamp in self._target_series:
+        for timestamp in self._target_timestamps:
             if timestamp - diff_base < interval_ns:
                 frequency_list[-1] += 1
             else:
