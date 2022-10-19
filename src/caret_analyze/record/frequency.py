@@ -43,7 +43,7 @@ class Frequency:
         for record in records:
             try:
                 timestamp = record.get(self._target_column)
-            except IndexError:
+            except (IndexError, KeyError):
                 continue
             if timestamp is not None:
                 self._target_timestamps.append(timestamp)
