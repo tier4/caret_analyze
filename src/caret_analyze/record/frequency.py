@@ -105,13 +105,21 @@ class Frequency:
         frequency_list: List[int] = [0]
         diff_base = base_timestamp
 
-        for timestamp in self._target_timestamps:
+        def is_in_current_interval(timestamp: int) -> bool:
             if timestamp - diff_base < interval_ns:
+                return True
+            else:
+                return False
+
+        for timestamp in self._target_timestamps:
+            if is_in_current_interval(timestamp):
                 frequency_list[-1] += 1
             else:
-                timestamp_list.append(base_timestamp +
-                                      len(timestamp_list) * interval_ns)
-                frequency_list.append(1)
-                diff_base += interval_ns
+                while not is_in_current_interval(timestamp):
+                    timestamp_list.append(base_timestamp +
+                                          len(timestamp_list) * interval_ns)
+                    frequency_list.append(0)
+                    diff_base += interval_ns
+                frequency_list[-1] += 1
 
         return timestamp_list, frequency_list

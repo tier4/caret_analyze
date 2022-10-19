@@ -186,3 +186,24 @@ class TestFrequencyRecords:
         ]
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
+
+    def test_exist_zero_frequency_case(self):
+        records_raw = [
+            {'timestamp': 0},
+            {'timestamp': 1},
+            {'timestamp': 21},
+            {'timestamp': 22},
+            {'timestamp': 24},
+        ]
+        columns = [ColumnValue('timestamp')]
+        records = create_records(records_raw, columns)
+
+        frequency = Frequency(records)
+
+        expect_raw = [
+            {'timestamp': 0, 'frequency': 2},
+            {'timestamp': 10, 'frequency': 0},
+            {'timestamp': 20, 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(interval_ns=10))
+        assert result == expect_raw
