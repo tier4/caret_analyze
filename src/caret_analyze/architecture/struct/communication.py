@@ -109,3 +109,13 @@ class CommunicationStruct():
             else tuple(v.to_value() for v in self.publish_callbacks),
             None if self.subscribe_callback is None
             else self.subscribe_callback.to_value())
+
+    def rename_node(self, src: str, dst: str):
+        self._node_pub.rename_node(src, dst)
+        self._node_sub.rename_node(src, dst)
+        self._publisher_value.rename_node(src, dst)
+        self._subscription_value.rename_node(src, dst)
+        for p in self._publish_callbacks_value:
+            p.rename_node(src, dst)
+        if self._subscription_callback_value is not None:
+            self._subscription_callback_value.rename_node(src, dst)

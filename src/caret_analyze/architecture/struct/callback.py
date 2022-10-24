@@ -112,6 +112,10 @@ class CallbackStruct(metaclass=ABCMeta):
     def to_value(self) -> CallbackStructValue:
         pass
 
+    def rename_node(self, src: str, dst: str):
+        if self.node_name == src:
+            self._node_name = dst
+
 
 class TimerCallbackStruct(CallbackStruct):
     """Structured timer callback value."""

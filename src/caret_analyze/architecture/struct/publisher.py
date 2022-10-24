@@ -59,3 +59,10 @@ class PublisherStruct():
         return PublisherStructValue(
             self.node_name, self.topic_name,
             None if self.callbacks is None else tuple(v.to_value() for v in self.callbacks))
+
+    def rename_node(self, src: str, dst: str):
+        if self.node_name == src:
+            self._node_name = dst
+
+        for c in self._callbacks:
+            c.rename_node(src, dst)

@@ -103,3 +103,10 @@ class PathStruct():
     def to_value(self) -> PathStructValue:
         return PathStructValue(None if self.path_name is None else self.path_name,
                                tuple(v.to_value() for v in self.child))
+
+    def rename_node(self, src: str, dst: str):
+        for n in self.node_paths:
+            n.rename(src, dst)
+
+        for c in self.communications:
+            c.rename(src, dst)

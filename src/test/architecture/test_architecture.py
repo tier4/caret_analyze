@@ -336,17 +336,23 @@ executors:
   - /listener/callback_group_1
 nodes:
 - node_name: /node_0
-  callback_groups: []
-  publishes:
-  - topic_name: topic_0
-    callback_names:
-    - UNDEFINED
 - node_name: /node_1
-  callback_groups: []
+  callbacks:
+  - callback_name: timer_callback_0
+    callback_type: timer_callback
+    period_ns: 1
+    symbol: timer_symbol
+  - callback_name: subscription_callback_0
+    callback_type: subscription_callback
+    topic_name: /chatter
+    symbol: sub_symbol
   publishes:
-  - topic_name: topic_0
+  - topic_name: /chatter
     callback_names:
-    - UNDEFINED
+    - timer_callback_0
+  subscribes:
+  - topic_name: /chatter
+    callback_name: subscription_callback_0
         """
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
@@ -374,14 +380,13 @@ nodes:
         expect_executor_names = ['executor_0', 'changed_executor']
         assert set(executor_names) == set(expect_executor_names)
 
-        """# test rename_callback()
+        # test rename_callback()
         callback_names = [c.callback_name for c in arch.callbacks]
-        expect_callback_names = ['callback_0', 'callback_1']
+        expect_callback_names = ['/callback_0', '/callback_1']
         assert set(callback_names) == set(expect_callback_names)
 
-        arch.rename_callback('callback_1', 'changed_callback')
+        arch.rename_callback('/callback_1', '/changed_callback')
 
         callback_names = [c.callback_name for c in arch.callbacks]
-        expect_callback_names = ['callback_0', 'changed_callback']
+        expect_callback_names = ['/callback_0', '/changed_callback']
         assert set(callback_names) == set(expect_callback_names)
-        """

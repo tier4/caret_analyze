@@ -146,6 +146,20 @@ class MessageContextStruct():
     def to_value(self) -> MessageContext:
         pass
 
+    def rename_node(self, src: str, dst: str):
+        if self.node_name == src:
+            self._node_name = dst
+
+        if self._pub is not None:
+            self._pub.rename_node(src, dst)
+
+        if self._sub is not None:
+            self._pub.rename_node(src, dst)
+
+        if self._callbacks is not None:
+            for c in self._callbacks:
+                c.rename_node(src, dst)
+
 
 class UseLatestMessageStruct(MessageContextStruct):
     TYPE_NAME = 'use_latest_message'

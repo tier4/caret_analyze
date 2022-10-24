@@ -196,25 +196,21 @@ class Architecture(Summarizable):
                      f'period_ns: {uniqueness_violated[1]}'))
 
     def rename_callback(self, src: str, dst: str):
-        cb_s = Util.flatten(cb_g.callbacks for cb_g in
-                            Util.flatten([e.callback_groups for e in self._executors]))
+        cb_s: List[CallbackStruct] =\
+            Util.flatten(cb_g.callbacks for cb_g in
+                         Util.flatten([e.callback_groups for e in self._executors]))
         c: CallbackStruct = Util.find_similar_one(src, cb_s, lambda x: x.callback_name)
         c.callback_name = dst
 
     def rename_node(self, src: str, dst: str):
-        n: NodeStruct = Util.find_similar_one(src, self._nodes, lambda x: x.node_name)
-        n.node_name = dst
+        for n in self._nodes:
+            n.rename_node(src, dst)
 
-        """
-        cb_groups: List[CallbackGroupStruct] \
-            = Util.flatten([e.callback_groups for e in self._executors])
-        for cb_group in Util.filter_items(lambda x: x.node_name == src, cb_groups):
-            cb_group.node_name = dst
+        for e in self._executors:
+            e.rename_node(src, dst)
 
-        for cb in Util.filter_items(lambda x: x.node_name == src,
-            Util.flatten([cb_group.callbacks for cb_group in cb_groups])):
-            cb.node_name = dst
-        """
+        for c in self._communications:
+            c.rename_node(src, dst)
 
     def rename_path(self, src: str, dst: str):
         raise NotImplementedError('')

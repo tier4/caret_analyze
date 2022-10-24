@@ -74,3 +74,7 @@ class ExecutorStruct():
         return ExecutorStructValue(self.executor_type,
                                    tuple(v.to_value() for v in self.callback_groups),
                                    self.executor_name)
+
+    def rename_node(self, src: str, dst: str):
+        for c in self._cbg_values:
+            c.rename_node(src, dst)

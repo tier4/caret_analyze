@@ -99,3 +99,10 @@ class CallbackGroupStruct():
         return CallbackGroupStructValue(self.callback_group_type, self.node_name,
                                         tuple(v.to_value() for v in self.callbacks),
                                         self.callback_group_name)
+
+    def rename_node(self, src: str, dst: str):
+        if self.node_name == src:
+            self._node_name = dst
+
+        for c in self._callbacks:
+            c.rename_node(src, dst)

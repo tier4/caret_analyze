@@ -51,10 +51,6 @@ class NodeStruct():
     def node_name(self) -> str:
         return self._node_name
 
-    @node_name.setter
-    def node_name(self, n: str):
-        self._node_name = n
-
     @property
     def publishers(self) -> Tuple[PublisherStruct, ...]:
         return self._publishers
@@ -167,3 +163,25 @@ class NodeStruct():
             else tuple(v.to_value() for v in self.callback_groups),
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
+
+    def rename_node(self, src: str, dst: str):
+        if self.node_name == src:
+            self._node_name = dst
+
+        for p in self._publishers:
+            p.rename_node(src, dst)
+
+        for s in self._subscriptions:
+            s.rename_node(src, dst)
+
+        for t in self._timers:
+            t.rename_node(src, dst)
+
+        for c in self._callback_groups:
+            c.rename_node(src, dst)
+
+        for n in self._node_paths:
+            n.rename_node(src, dst)
+
+        for v in self._variable_passings_info:
+            v.rename_node(src, dst)
