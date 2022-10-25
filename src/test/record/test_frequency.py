@@ -132,7 +132,7 @@ class TestFrequencyRecords:
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3, 'timestamp2': 4},
-            {'timestamp1': 11, 'timestamp2': 12},
+            {'timestamp1': 5, 'timestamp2': 12},
             {'timestamp1': 13, 'timestamp2': 14},
             {'timestamp1': 15, 'timestamp2': 16},
         ]
