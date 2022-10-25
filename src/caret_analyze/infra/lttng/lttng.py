@@ -30,7 +30,8 @@ from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.data_model import Ros2DataModel
 from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
-from .value_objects import (PublisherValueLttng,
+from .value_objects import (CallbackGroupId,
+                            PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -315,7 +316,7 @@ class Lttng(InfraBase):
 
         """
         data_model_srv = DataModelService(self.data)
-        cbg_addr = int(callback_group_id.replace('callback_group_', ''))
+        cbg_addr = CallbackGroupId(callback_group_id).group_addr
 
         return data_model_srv.get_node_names(cbg_addr)
 
