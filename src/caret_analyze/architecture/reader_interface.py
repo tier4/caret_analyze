@@ -35,7 +35,7 @@ class ArchitectureReader(metaclass=ABCMeta):
         callback_group_id: str
     ) -> Sequence[str]:
         """
-        Get node names from callback group address.
+        Get node names from callback group id.
 
         Returns
         -------

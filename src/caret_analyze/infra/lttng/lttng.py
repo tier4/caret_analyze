@@ -307,7 +307,7 @@ class Lttng(InfraBase):
 
     def get_node_names(self, callback_group_id: str) -> Sequence[str]:
         """
-        Get node names from callback group address.
+        Get node names from callback group id.
 
         Returns
         -------
