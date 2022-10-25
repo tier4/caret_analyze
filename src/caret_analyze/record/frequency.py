@@ -41,11 +41,8 @@ class Frequency:
         self._target_column = target_column or records.columns[0]
         self._target_timestamps: List[int] = []
         for record in records:
-            try:
+            if self._target_column in record.columns:
                 timestamp = record.get(self._target_column)
-            except (IndexError, KeyError):
-                continue
-            if timestamp is not None:
                 self._target_timestamps.append(timestamp)
 
     def to_records(
