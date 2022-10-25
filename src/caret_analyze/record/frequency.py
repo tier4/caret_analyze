@@ -103,25 +103,16 @@ class Frequency:
     ) -> Tuple[List[int], List[int]]:
         timestamp_list: List[int] = [base_timestamp]
         frequency_list: List[int] = [0]
-        diff_base = base_timestamp
-
-        def is_in_current_interval(timestamp: int) -> bool:
-            if diff_base <= timestamp < diff_base + interval_ns:
-                return True
-            else:
-                return False
+        interval_start_time = base_timestamp
 
         for timestamp in self._target_timestamps:
             if timestamp < base_timestamp:
                 continue
-            if is_in_current_interval(timestamp):
-                frequency_list[-1] += 1
-            else:
-                while not is_in_current_interval(timestamp):
-                    next_interval_start_time = diff_base + interval_ns
-                    timestamp_list.append(next_interval_start_time)
-                    frequency_list.append(0)
-                    diff_base = next_interval_start_time
-                frequency_list[-1] += 1
+            while not (interval_start_time <= timestamp < interval_start_time + interval_ns):
+                next_interval_start_time = interval_start_time + interval_ns
+                timestamp_list.append(next_interval_start_time)
+                frequency_list.append(0)
+                interval_start_time = next_interval_start_time
+            frequency_list[-1] += 1
 
         return timestamp_list, frequency_list
