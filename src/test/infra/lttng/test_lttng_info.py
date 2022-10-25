@@ -486,7 +486,7 @@ class TestDataFrameFormatted:
                     'symbol': symbol,
                 },
             ]
-        )
+        ).convert_dtypes()
         assert timer_df.equals(expect)
 
     def test_build_timer_control_df(self):
@@ -512,7 +512,7 @@ class TestDataFrameFormatted:
                     'params': params,
                 },
             ]
-        )
+        ).convert_dtypes()
         assert timer_df.equals(expect)
 
     def test_build_subscription_callbacks_df(self, mocker):
@@ -607,7 +607,7 @@ class TestDataFrameFormatted:
                 'executor_type_name': exec_type,
             }
         ]
-        expect_df = pd.DataFrame.from_dict(expect)
+        expect_df = pd.DataFrame.from_dict(expect).convert_dtypes()
 
         assert exec_df.equals(expect_df)
 
@@ -629,7 +629,7 @@ class TestDataFrameFormatted:
                 'executor_type_name': exec_type,
             }
         ]
-        expect_df = pd.DataFrame.from_dict(expect)
+        expect_df = pd.DataFrame.from_dict(expect).convert_dtypes()
 
         assert exec_df.equals(expect_df)
 
@@ -695,7 +695,7 @@ class TestDataFrameFormatted:
                 'node_handle': node_handle,
                 'node_name': '/node1',
             }]
-        )
+        ).convert_dtypes()
         assert nodes_df.equals(expect)
 
     def test_build_callback_groups_df(self):
@@ -716,7 +716,7 @@ class TestDataFrameFormatted:
                 'group_type_name': group_type,
                 'executor_addr': exec_addr,
             }]
-        )
+        ).convert_dtypes()
         assert cbg_df.equals(expect)
 
     def test_build_callback_groups_static_df(self):
@@ -739,7 +739,7 @@ class TestDataFrameFormatted:
                 'group_type_name': group_type,
                 'executor_addr': exec_addr,
             }]
-        )
+        ).convert_dtypes()
         assert cbg_df.equals(expect)
 
     def test_build_publisher_df(self):
@@ -764,7 +764,7 @@ class TestDataFrameFormatted:
                 'topic_name': topic_name,
                 'depth': depth
             }]
-        )
+        ).convert_dtypes()
         assert pub_df.equals(expect)
 
     def test_init(self, mocker):
