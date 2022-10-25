@@ -14,6 +14,7 @@
 
 from .column import Column, Columns, ColumnValue
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
+from .frequency import Frequency
 from .period import Period
 from .record import (merge,
                      merge_sequential,
@@ -32,6 +33,7 @@ __all__ = [
     'Columns',
     'ColumnValue',
     'DataFrameShaper',
+    'Frequency',
     'Period',
     'Record',
     'RecordFactory',
