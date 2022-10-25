@@ -70,8 +70,6 @@ class Latency:
 
         """
         records = self._create_empty_records()
-        if not self._start_timestamps or not self._end_timestamps:
-            return records
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
             records.append(RecordFactory.create_instance(
