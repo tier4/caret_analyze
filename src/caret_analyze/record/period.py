@@ -48,7 +48,7 @@ class Period:
     def to_records(self) -> RecordsInterface:
         """
         Calculate period records.
-~
+
         Returns
         -------
         RecordsInterface
