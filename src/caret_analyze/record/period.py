@@ -59,8 +59,6 @@ class Period:
 
         """
         records = self._create_empty_records()
-        if not self._target_timestamps:
-            return records
 
         for i in range(1, len(self._target_timestamps)):
             records.append(RecordFactory.create_instance(
