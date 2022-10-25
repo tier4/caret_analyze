@@ -48,7 +48,7 @@ class Period:
     def to_records(self) -> RecordsInterface:
         """
         Calculate period records.
-
+~
         Returns
         -------
         RecordsInterface
@@ -62,7 +62,7 @@ class Period:
 
         for i in range(1, len(self._target_timestamps)):
             records.append(RecordFactory.create_instance(
-                {self._target_column: self._target_timestamps[i],
+                {self._target_column: self._target_timestamps[i-1],
                  'period': self._target_timestamps[i] - self._target_timestamps[i-1]}
             ))
 

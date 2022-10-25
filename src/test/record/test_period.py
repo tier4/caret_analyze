@@ -60,9 +60,9 @@ class TestPeriodRecords:
         period = Period(records)
 
         expect_raw = [
-            {'timestamp': 1, 'period': 1},
-            {'timestamp': 11, 'period': 10},
-            {'timestamp': 12, 'period': 1}
+            {'timestamp': 0, 'period': 1},
+            {'timestamp': 1, 'period': 10},
+            {'timestamp': 11, 'period': 1}
         ]
         result = to_dict(period.to_records())
         assert result == expect_raw
@@ -80,9 +80,9 @@ class TestPeriodRecords:
         period = Period(records)
 
         expect_raw = [
-            {'timestamp1': 3, 'period': 3},
-            {'timestamp1': 11, 'period': 8},
-            {'timestamp1': 13, 'period': 2}
+            {'timestamp1': 0, 'period': 3},
+            {'timestamp1': 3, 'period': 8},
+            {'timestamp1': 11, 'period': 2}
         ]
         result = to_dict(period.to_records())
         assert result == expect_raw
@@ -100,9 +100,9 @@ class TestPeriodRecords:
         period = Period(records, target_column='timestamp2')
 
         expect_raw = [
-            {'timestamp2': 4, 'period': 2},
-            {'timestamp2': 12, 'period': 8},
-            {'timestamp2': 14, 'period': 2}
+            {'timestamp2': 2, 'period': 2},
+            {'timestamp2': 4, 'period': 8},
+            {'timestamp2': 12, 'period': 2}
         ]
         result = to_dict(period.to_records())
         assert result == expect_raw
@@ -120,8 +120,8 @@ class TestPeriodRecords:
         period = Period(records)
 
         expect_raw = [
-            {'timestamp1': 11, 'period': 11},
-            {'timestamp1': 13, 'period': 2}
+            {'timestamp1': 0, 'period': 11},
+            {'timestamp1': 11, 'period': 2}
         ]
         result = to_dict(period.to_records())
         assert result == expect_raw
