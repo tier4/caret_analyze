@@ -26,7 +26,9 @@ import pandas as pd
 
 from .ros2_tracing.data_model import Ros2DataModel
 from .ros2_tracing.data_model_service import DataModelService
-from .value_objects import (CallbackGroupValueLttng, NodeValueLttng,
+from .value_objects import (CallbackGroupAddr,
+                            CallbackGroupValueLttng,
+                            NodeValueLttng,
                             PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng,
@@ -1140,7 +1142,7 @@ class DataFrameFormatted:
 
         def to_callback_group_id(row: pd.Series) -> str:
             addr = row['callback_group_addr']
-            return f'callback_group_{addr}'
+            return CallbackGroupAddr(addr).group_id
 
         df = DataFrameFormatted._add_column(df, 'callback_group_id', to_callback_group_id)
         df = DataFrameFormatted._ensure_columns(df, columns)

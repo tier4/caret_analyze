@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from .callback import SubscriptionCallbackValueLttng, TimerCallbackValueLttng
-from .callback_group import CallbackGroupValueLttng
+from .callback_group import CallbackGroupAddr, CallbackGroupId, CallbackGroupValueLttng
 from .node import NodeValueLttng
 from .publisher import PublisherValueLttng
 from .timer_control import TimerControl, TimerInit
 
 __all__ = [
+    'CallbackGroupAddr',
+    'CallbackGroupId',
     'CallbackGroupValueLttng',
     'NodeValueLttng',
     'PublisherValueLttng',
