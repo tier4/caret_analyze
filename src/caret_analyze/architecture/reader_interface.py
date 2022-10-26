@@ -30,6 +30,22 @@ class ArchitectureReader(metaclass=ABCMeta):
     """Architecture reader base class."""
 
     @abstractmethod
+    def get_node_names(
+        self,
+        callback_group_id: str
+    ) -> Sequence[str]:
+        """
+        Get node names from callback group id.
+
+        Returns
+        -------
+        Sequence[str]
+            node names.
+
+        """
+        pass
+
+    @abstractmethod
     def get_nodes(
         self
     ) -> Sequence[NodeValueWithId]:

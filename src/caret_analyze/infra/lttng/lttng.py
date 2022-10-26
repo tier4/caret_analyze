@@ -28,8 +28,10 @@ from tqdm import tqdm
 from .events_factory import EventsFactory
 from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.data_model import Ros2DataModel
+from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
-from .value_objects import (PublisherValueLttng,
+from .value_objects import (CallbackGroupId,
+                            PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -302,6 +304,21 @@ class Lttng(InfraBase):
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
+
+    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
+        """
+        Get node names from callback group id.
+
+        Returns
+        -------
+        Sequence[str]
+            node names.
+
+        """
+        data_model_srv = DataModelService(self.data)
+        cbg_addr = CallbackGroupId(callback_group_id).group_addr
+
+        return data_model_srv.get_node_names(cbg_addr)
 
     def get_nodes(
         self
