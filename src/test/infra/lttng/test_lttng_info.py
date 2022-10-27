@@ -487,6 +487,7 @@ class TestDataFrameFormatted:
                 },
             ]
         )
+        expect = expect.convert_dtypes()
         assert timer_df.equals(expect)
 
     def test_build_timer_control_df(self):
@@ -513,6 +514,7 @@ class TestDataFrameFormatted:
                 },
             ]
         )
+        expect = expect.convert_dtypes()
         assert timer_df.equals(expect)
 
     def test_build_subscription_callbacks_df(self, mocker):
@@ -608,7 +610,7 @@ class TestDataFrameFormatted:
             }
         ]
         expect_df = pd.DataFrame.from_dict(expect)
-
+        expect_df = expect_df.convert_dtypes()
         assert exec_df.equals(expect_df)
 
     def test_executor_static_df(self):
@@ -630,7 +632,7 @@ class TestDataFrameFormatted:
             }
         ]
         expect_df = pd.DataFrame.from_dict(expect)
-
+        expect_df = expect_df.convert_dtypes()
         assert exec_df.equals(expect_df)
 
     def test_format_subscription_callback_object(self, mocker):
@@ -696,6 +698,7 @@ class TestDataFrameFormatted:
                 'node_name': '/node1',
             }]
         )
+        expect = expect.convert_dtypes()
         assert nodes_df.equals(expect)
 
     def test_build_callback_groups_df(self):
@@ -717,6 +720,7 @@ class TestDataFrameFormatted:
                 'executor_addr': exec_addr,
             }]
         )
+        expect = expect.convert_dtypes()
         assert cbg_df.equals(expect)
 
     def test_build_callback_groups_static_df(self):
@@ -740,6 +744,7 @@ class TestDataFrameFormatted:
                 'executor_addr': exec_addr,
             }]
         )
+        expect = expect.convert_dtypes()
         assert cbg_df.equals(expect)
 
     def test_build_publisher_df(self):
@@ -765,6 +770,7 @@ class TestDataFrameFormatted:
                 'depth': depth
             }]
         )
+        expect = expect.convert_dtypes()
         assert pub_df.equals(expect)
 
     def test_init(self, mocker):
