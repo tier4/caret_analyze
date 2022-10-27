@@ -41,7 +41,7 @@ class NodePath(PathBase, Summarizable):
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
         """
-        Constructor.
+        Set a constructor.
 
         Parameters
         ----------

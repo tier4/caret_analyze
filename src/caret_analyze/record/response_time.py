@@ -33,7 +33,7 @@ class TimeRange:
         max_value: int
     ) -> None:
         """
-        Constructor.
+        Set a constructor.
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class ResponseMap():
         output_column: str
     ):
         """
-        Constructor.
+        Set a constructor.
 
         Parameters
         ----------
@@ -247,7 +247,7 @@ class ResponseTime:
         output_column: Optional[str] = None
     ) -> None:
         """
-        Constructor.
+        Set a constructor.
 
         Parameters
         ----------
@@ -409,7 +409,7 @@ class ResponseRecords:
         response_map: ResponseMap,
     ) -> None:
         """
-        Constructor.
+        Set a constructor.
 
         Parameters
         ----------
@@ -694,7 +694,7 @@ class ResponseHistogram:
         response_timeseries: ResponseTimeseries
     ) -> None:
         """
-        Constructor.
+        Set a constructor.
 
         Parameters
         ----------

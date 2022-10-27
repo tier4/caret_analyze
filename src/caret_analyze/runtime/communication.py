@@ -42,7 +42,7 @@ class Communication(PathBase, Summarizable):
         callback_subscription: Optional[CallbackBase],
     ) -> None:
         """
-        Constructor.
+        Set a constructor.
 
         Parameters
         ----------
