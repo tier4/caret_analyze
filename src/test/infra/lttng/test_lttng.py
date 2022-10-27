@@ -27,8 +27,17 @@ from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue
 from caret_analyze.value_objects.node import NodeValue
 
+import pytest
+
 
 class TestLttng:
+
+    def test_file_exists_error(self, mocker):
+        with mocker.patch('os.path.exists', return_value=True):
+            Lttng('')
+        with mocker.patch('os.path.exists', return_value=False):
+            with pytest.raises(FileExistsError):
+                Lttng('')
 
     def test_get_nodes(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)

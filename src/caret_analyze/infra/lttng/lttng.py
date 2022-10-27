@@ -52,6 +52,9 @@ class EventCollection(Iterable, Sized):
         self._iterable_events: IterableEvents
         cache_path = self._cache_path(trace_dir)
 
+        if not os.path.exists(trace_dir):
+            raise FileNotFoundError(f'Failed to found {trace_dir}')
+
         if os.path.exists(cache_path) and not force_conversion:
             logger.info('Found converted file.')
             self._iterable_events = PickleEventCollection(cache_path)
