@@ -16,6 +16,7 @@ from .column import Column, Columns, ColumnValue
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
 from .frequency import Frequency
 from .latency import Latency
+from .period import Period
 from .record import (merge,
                      merge_sequential,
                      merge_sequential_for_addr_track,
@@ -35,6 +36,7 @@ __all__ = [
     'DataFrameShaper',
     'Frequency',
     'Latency',
+    'Period',
     'Record',
     'RecordFactory',
     'RecordInterface',

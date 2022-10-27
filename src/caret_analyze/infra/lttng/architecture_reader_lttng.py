@@ -41,6 +41,9 @@ class ArchitectureReaderLttng(ArchitectureReader):
             trace_dir, event_filters=[LttngEventFilter.init_pass_filter()],
             validate=False)
 
+    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
+        return self._lttng.get_node_names(callback_group_id)
+
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._lttng.get_nodes()
 

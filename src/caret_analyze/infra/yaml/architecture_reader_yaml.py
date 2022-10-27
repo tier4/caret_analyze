@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import Any, Dict, List, Sequence
 
 import yaml
@@ -25,6 +26,8 @@ from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               SubscriptionCallbackValue, SubscriptionValue,
                               TimerCallbackValue, TimerValue, VariablePassingValue)
 
+logger = getLogger(__name__)
+
 
 class ArchitectureReaderYaml(ArchitectureReader):
 
@@ -35,6 +38,10 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         if self._arch is None:
             raise InvalidYamlFormatError('Failed to parse yaml.')
+
+    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
+        logger.warning('get_node_names method is not implemented in ArchitectureReaderYaml class.')
+        return []
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         nodes_dict = self._get_value(self._arch, 'nodes')
