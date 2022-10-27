@@ -30,7 +30,7 @@ class Publisher(PathBase, Summarizable):
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

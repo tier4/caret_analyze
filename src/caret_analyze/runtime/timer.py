@@ -31,7 +31,7 @@ class Timer(PathBase, Summarizable):
         data_provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

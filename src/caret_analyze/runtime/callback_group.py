@@ -33,7 +33,7 @@ class CallbackGroup(Summarizable):
         callbacks: List[CallbackBase],
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

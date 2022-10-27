@@ -212,7 +212,7 @@ class Path(PathBase, Summarizable):
         callbacks: Optional[List[CallbackBase]]
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

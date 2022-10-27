@@ -33,7 +33,7 @@ class Executor(Summarizable):
         callback_groups: List[CallbackGroup],
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

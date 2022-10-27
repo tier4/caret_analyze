@@ -28,7 +28,7 @@ class Latency:
         end_column: Optional[str] = None
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

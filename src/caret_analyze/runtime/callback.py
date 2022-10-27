@@ -41,7 +41,7 @@ class CallbackBase(PathBase, Summarizable):
         timer: Optional[Timer]
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------
@@ -227,7 +227,7 @@ class TimerCallback(CallbackBase):
         timer: Timer
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------
@@ -269,7 +269,7 @@ class SubscriptionCallback(CallbackBase):
         publishers: Optional[List[Publisher]] = None,
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

@@ -29,7 +29,7 @@ class VariablePassing(PathBase, Summarizable):
         records_provider: RecordsProvider,
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------

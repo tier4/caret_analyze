@@ -27,7 +27,7 @@ class Frequency:
         target_column: Optional[str] = None
     ) -> None:
         """
-        Set a constructor.
+        Construct an instance.
 
         Parameters
         ----------
