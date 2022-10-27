@@ -15,8 +15,6 @@
 from logging import getLogger
 from typing import Collection, Union
 
-from matplotlib.path import Path
-
 from multimethod import multimethod as singledispatchmethod
 
 from .callback_info import (CallbackFrequencyPlot,
@@ -31,7 +29,7 @@ from .histogram import ResponseTimePlot
 from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
 from ...exceptions import InvalidArgumentError
-from ...runtime import (CallbackBase, Communication, Publisher, Subscription)
+from ...runtime import (CallbackBase, Communication, Path, Publisher, Subscription)
 
 logger = getLogger(__name__)
 
@@ -267,13 +265,17 @@ class Plot:
     @staticmethod
     @create_response_time_histogram_plot.register
     def _create_response_time_histogram_plot(
-        paths: Collection[Path]
+        paths: Collection[Path],
+        case: str,
+        binsize_ns: int
     ) -> ResponseTimePlot:
-        return ResponseTimePlot(paths)
+        return ResponseTimePlot(paths, case, binsize_ns)
 
     @staticmethod
     @create_response_time_histogram_plot.register
     def _create_response_time_histogram_plot_tuple(
-        *paths: Path
+        *paths: Path,
+        case: str,
+        binsize_ns: int
     ) -> ResponseTimePlot:
-        return ResponseTimePlot(paths)
+        return ResponseTimePlot(paths, case, binsize_ns)

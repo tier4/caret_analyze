@@ -28,15 +28,17 @@ class ResponseTimePlot(HistPlot):
     def __init__(
         self,
         target,
-        case='default'
+        case='best-to-worst',
+        binsize_ns=10000000
     ):
-        if case not in ['default', 'best', 'worst']:
+        if case not in ['best-to-worst', 'best', 'worst']:
             raise UnsupportedTypeError(
                 f'Unsupported "case". case = {case}.'
-                'supported "case": [default/best/worst]'
+                'supported "case": [best-to-worst/best/worst]'
             )
         super().__init__(target)
         self._case = case
+        self._binsize_ns = binsize_ns
 
     def _show_core(self):
         p = figure(plot_width=600,
@@ -49,12 +51,12 @@ class ResponseTimePlot(HistPlot):
             records = path.to_records()
             response = ResponseTime(records)
 
-            if self._case == 'default':
-                hist, bins = response.to_histogram(binsize_ns=10000000)
+            if self._case == 'best-to-worst':
+                hist, bins = response.to_histogram(self._binsize_ns)
             elif self._case == 'best':
-                hist, bins = response.to_best_case_histogram(binsize_ns=10000000)
+                hist, bins = response.to_best_case_histogram(self._binsize_ns)
             elif self._case == 'worst':
-                hist, bins = response.to_worst_case_histogram(binsize_ns=10000000)
+                hist, bins = response.to_worst_case_histogram(self._binsize_ns)
 
             hist = hist / sum(hist)
 
