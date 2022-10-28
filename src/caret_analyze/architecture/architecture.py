@@ -20,7 +20,7 @@ from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
-                     NodeStruct)
+                     NodeStruct, PathStruct)
 from .struct.callback import CallbackStruct, TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
@@ -48,7 +48,7 @@ class Architecture(Summarizable):
         self._nodes: Tuple[NodeStruct, ...] = loaded.nodes
         self._communications: Tuple[CommunicationStruct, ...] = loaded.communications
         self._executors: Tuple[ExecutorStruct, ...] = loaded.executors
-        self._path_manager = NamedPathManager(tuple(v.to_value() for v in loaded.paths))
+        self._paths = list(loaded.paths)
         self._verify(self._nodes)
 
     def get_node(self, node_name: str) -> NodeStructValue:
@@ -99,16 +99,36 @@ class Architecture(Summarizable):
         return Util.find_one(is_target_comm, self.communications)
 
     def get_path(self, path_name: str) -> PathStructValue:
-        return self._path_manager.get_named_path(path_name)
+        if path_name not in self.path_names:
+            raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
 
-    def add_path(self, path_name: str, path_info: PathStructValue) -> None:
-        self._path_manager.add_named_path(path_name, path_info)
+        named_path: PathStruct = Util.find_one(lambda x: x._path_name == path_name, self._paths)
+        return named_path.to_value()
+
+    def add_path(self, path_name: str, path_info: PathStruct) -> None:
+        if path_name in self.path_names:
+            raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
+        named_path_info = PathStruct(path_name, path_info.child)
+        self._paths.append(named_path_info)
 
     def remove_path(self, path_name: str) -> None:
-        self._path_manager.remove_named_path(path_name)
+        if path_name not in self.path_names:
+            raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
 
-    def update_path(self, path_name: str, path: PathStructValue) -> None:
-        self._path_manager.update_named_path(path_name, path)
+        idx=None
+        for i, p in enumerate(self._paths):
+            if p.path_name == path_name:
+                idx = i
+
+        if idx is not None:
+            self._paths.pop(idx)
+
+    def update_path(self, path_name: str, path: PathStruct) -> None:
+        if path.path_name is None:
+            raise InvalidArgumentError('path_info.path_name is None')
+
+        self.remove_path(path.path_name)
+        self.add_path(path_name, path)
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
@@ -128,11 +148,11 @@ class Architecture(Summarizable):
 
     @property
     def paths(self) -> Tuple[PathStructValue, ...]:
-        return self._path_manager.named_paths
+        return tuple([v.to_value() for v in self._paths])
 
     @property
     def path_names(self) -> Tuple[str, ...]:
-        return tuple(sorted(_.path_name for _ in self._path_manager.named_paths))
+        return tuple(sorted(v.path_name for v in self._paths if v.path_name is not None))
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
