@@ -266,8 +266,8 @@ class Plot:
     @create_response_time_histogram_plot.register
     def _create_response_time_histogram_plot(
         paths: Collection[Path],
-        case: str,
-        binsize_ns: int
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
     ) -> ResponseTimePlot:
         return ResponseTimePlot(paths, case, binsize_ns)
 
@@ -275,7 +275,7 @@ class Plot:
     @create_response_time_histogram_plot.register
     def _create_response_time_histogram_plot_tuple(
         *paths: Path,
-        case: str,
-        binsize_ns: int
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
     ) -> ResponseTimePlot:
         return ResponseTimePlot(paths, case, binsize_ns)
