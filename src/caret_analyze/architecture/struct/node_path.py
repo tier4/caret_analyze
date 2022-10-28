@@ -151,3 +151,21 @@ class NodePathStruct():
         if self.variable_passings is not None:
             for v in self.variable_passings:
                 v.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str):
+        if self._publisher is not None:
+            self._publisher.rename_topic(src, dst)
+
+        if self._subscription is not None:
+            self._subscription.rename_topic(src, dst)
+
+        if self._context is not None:
+            self._context.rename_topic(src, dst)
+
+        if self.callbacks is not None:
+            for c in self.callbacks:
+                c.rename_topic(src, dst)
+
+        if self.variable_passings is not None:
+            for v in self.variable_passings:
+                v.rename_topic(src, dst)

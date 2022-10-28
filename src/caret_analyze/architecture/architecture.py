@@ -220,7 +220,14 @@ class Architecture(Summarizable):
         e.executor_name = dst
 
     def rename_topic(self, src: str, dst: str):
-        raise NotImplementedError('')
+        for n in self._nodes:
+            n.rename_topic(src, dst)
+
+        for e in self._executors:
+            e.rename_topic(src, dst)
+
+        for c in self._communications:
+            c.rename_topic(src, dst)
 
 
 class NamedPathManager():

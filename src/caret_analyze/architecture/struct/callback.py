@@ -116,6 +116,16 @@ class CallbackStruct(metaclass=ABCMeta):
         if self.node_name == src:
             self._node_name = dst
 
+    def rename_topic(self, src: str, dst: str):
+        if self.publish_topic_names is not None:
+            for p in self._publish_topic_names:
+                if p == src:
+                    p = dst
+
+        if self.subscribe_topic_name is not None:
+            if self.subscribe_topic_name == src:
+                self._subscribe_topic_name = dst
+
 
 class TimerCallbackStruct(CallbackStruct):
     """Structured timer callback value."""
@@ -180,3 +190,13 @@ class SubscriptionCallbackStruct(CallbackStruct):
             self.subscribe_topic_name,
             self.publish_topic_names,
             self.callback_name)
+
+    def rename_topic(self, src: str, dst: str):
+        if self.publish_topic_names is not None:
+            for p in self._publish_topic_names:
+                if p == src:
+                    p = dst
+
+        if self.subscribe_topic_name == src:
+            self._subscribe_topic_name = dst
+            self.__subscribe_topic_name = dst

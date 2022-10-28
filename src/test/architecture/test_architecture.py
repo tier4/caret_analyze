@@ -320,9 +320,9 @@ named_paths:
 - path_name: target_path
   node_chain:
   - node_name: /talker
-    publish_topic_name: /chatter
+    publish_topic_name: /topic_0
   - node_name: /listener
-    subscribe_topic_name: /chatter
+    subscribe_topic_name: /topic_1
 executors:
 - executor_type: single_threaded_executor
   executor_name: executor_0
@@ -344,14 +344,14 @@ nodes:
     symbol: timer_symbol
   - callback_name: subscription_callback_0
     callback_type: subscription_callback
-    topic_name: /chatter
+    topic_name: /topic_0
     symbol: sub_symbol
   publishes:
-  - topic_name: /chatter
+  - topic_name: /topic_0
     callback_names:
     - timer_callback_0
   subscribes:
-  - topic_name: /chatter
+  - topic_name: /topic_1
     callback_name: subscription_callback_0
         """
 
@@ -380,6 +380,18 @@ nodes:
         expect_executor_names = ['executor_0', 'changed_executor']
         assert set(executor_names) == set(expect_executor_names)
 
+        # test rename_topic()
+        topic_names = arch.topic_names
+        expect_topic_names = ['/topic_0', '/topic_1']
+        # assert set(topic_names) == set(expect_topic_names)
+
+        arch.rename_topic('/topic_1', '/changed_topic')
+
+        topic_names = arch.topic_names
+        expect_topic_names = ['/topic_0', '/changed_topic']
+        assert set(topic_names) == set(expect_topic_names)
+
+        """
         # test rename_callback()
         callback_names = [c.callback_name for c in arch.callbacks]
         expect_callback_names = ['/callback_0', '/callback_1']
@@ -390,3 +402,4 @@ nodes:
         callback_names = [c.callback_name for c in arch.callbacks]
         expect_callback_names = ['/callback_0', '/changed_callback']
         assert set(callback_names) == set(expect_callback_names)
+        """

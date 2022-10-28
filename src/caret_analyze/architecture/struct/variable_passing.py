@@ -91,3 +91,7 @@ class VariablePassingStruct():
 
         self._cb_read.rename_node(src, dst)
         self._cb_write.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str):
+        self._cb_read.rename_topic(src, dst)
+        self._cb_write.rename_topic(src, dst)

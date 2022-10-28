@@ -78,3 +78,7 @@ class ExecutorStruct():
     def rename_node(self, src: str, dst: str):
         for c in self._cbg_values:
             c.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str):
+        for c in self._cbg_values:
+            c.rename_topic(src, dst)

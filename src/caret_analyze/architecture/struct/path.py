@@ -106,7 +106,14 @@ class PathStruct():
 
     def rename_node(self, src: str, dst: str):
         for n in self.node_paths:
-            n.rename(src, dst)
+            n.rename_node(src, dst)
 
         for c in self.communications:
-            c.rename(src, dst)
+            c.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str):
+        for n in self.node_paths:
+            n.rename_topic(src, dst)
+
+        for c in self.communications:
+            c.rename_topic(src, dst)

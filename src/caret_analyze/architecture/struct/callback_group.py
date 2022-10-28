@@ -106,3 +106,7 @@ class CallbackGroupStruct():
 
         for c in self._callbacks:
             c.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str):
+        for c in self._callbacks:
+            c.rename_topic(src, dst)

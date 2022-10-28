@@ -185,3 +185,22 @@ class NodeStruct():
 
         for v in self._variable_passings_info:
             v.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str):
+        for p in self._publishers:
+            p.rename_topic(src, dst)
+
+        for s in self._subscriptions:
+            s.rename_topic(src, dst)
+
+        for t in self._timers:
+            t.rename_topic(src, dst)
+
+        for c in self._callback_groups:
+            c.rename_topic(src, dst)
+
+        for n in self._node_paths:
+            n.rename_topic(src, dst)
+
+        for v in self._variable_passings_info:
+            v.rename_topic(src, dst)

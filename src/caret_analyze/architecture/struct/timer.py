@@ -60,3 +60,7 @@ class TimerStruct():
 
         if self._callback_value is not None:
             self._callback_value.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str):
+        if self._callback_value is not None:
+            self._callback_value.rename_topic(src, dst)
