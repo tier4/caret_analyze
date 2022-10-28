@@ -49,7 +49,7 @@ class Application(Summarizable):
         infra: InfraBase,
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
