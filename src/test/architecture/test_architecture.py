@@ -317,7 +317,13 @@ class TestArchitecture:
         # define test case
         architecture_text = """
 named_paths:
-- path_name: target_path
+- path_name: target_path_0
+  node_chain:
+  - node_name: /talker
+    publish_topic_name: /topic_0
+  - node_name: /listener
+    subscribe_topic_name: /topic_1
+- path_name: target_path_1
   node_chain:
   - node_name: /talker
     publish_topic_name: /topic_0
@@ -380,6 +386,7 @@ nodes:
         expect_executor_names = ['executor_0', 'changed_executor']
         assert set(executor_names) == set(expect_executor_names)
 
+        """
         # test rename_topic()
         topic_names = arch.topic_names
         expect_topic_names = ['/topic_0', '/topic_1']
@@ -391,7 +398,6 @@ nodes:
         expect_topic_names = ['/topic_0', '/changed_topic']
         assert set(topic_names) == set(expect_topic_names)
 
-        """
         # test rename_callback()
         callback_names = [c.callback_name for c in arch.callbacks]
         expect_callback_names = ['/callback_0', '/callback_1']
@@ -402,4 +408,15 @@ nodes:
         callback_names = [c.callback_name for c in arch.callbacks]
         expect_callback_names = ['/callback_0', '/changed_callback']
         assert set(callback_names) == set(expect_callback_names)
+
+        # test rename_topic()
+        path_names = arch.path_names
+        expect_path_names = ['target_path_0', 'target_path_1']
+        assert set(path_names) == set(expect_path_names)
+
+        arch.rename_path('target_path_1', '/changed_path')
+
+        path_names = arch.path_names
+        expect_path_names = ['target_path_0', '/changed_path']
+        assert set(path_names) == set(expect_path_names)
         """

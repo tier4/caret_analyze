@@ -233,7 +233,8 @@ class Architecture(Summarizable):
             c.rename_node(src, dst)
 
     def rename_path(self, src: str, dst: str):
-        raise NotImplementedError('')
+        p: PathStruct = Util.find_similar_one(src, self._paths, lambda x: x.path_name)
+        p.path_name = dst
 
     def rename_executor(self, src: str, dst: str):
         e: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
