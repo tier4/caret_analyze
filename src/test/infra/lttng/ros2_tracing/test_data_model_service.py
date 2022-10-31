@@ -24,7 +24,8 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(0)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(0)
         assert node_names_and_cb_symbols == []
 
     def test_get_node_names_and_cb_symbols_exist_rcl_node_init_timer(self):
@@ -41,7 +42,8 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
         assert node_names_and_cb_symbols == [('ns/name', 'cb')]
 
     def test_get_node_names_and_cb_symbols_exist_rcl_node_init_sub(self):
@@ -58,7 +60,8 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
         assert node_names_and_cb_symbols == [('ns/name', 'cb')]
 
     def test_get_node_names_and_cb_symbols_exist_get_parameters_srv(self):
@@ -75,7 +78,8 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
         assert node_names_and_cb_symbols == [('ns/name', 'cb')]
 
     def test_get_node_names_and_cb_symbols_multiple_exist(self):
@@ -100,7 +104,8 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(duplicated_cbg_addr)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(duplicated_cbg_addr)
         assert node_names_and_cb_symbols == [('ns/name1', 'cb1'), ('ns/name2', 'cb2')]
 
     def test_get_node_names_and_cb_symbols_drop_node_name(self):
@@ -114,7 +119,8 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
         assert node_names_and_cb_symbols == [(None, 'cb')]
 
     def test_get_node_names_and_cb_symbols_drop_callback_symbol(self):
@@ -128,5 +134,6 @@ class TestDataModelService:
         data.finalize()
 
         data_model_srv = DataModelService(data)
-        node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
         assert node_names_and_cb_symbols == [('ns/name', None)]
