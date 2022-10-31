@@ -27,7 +27,7 @@
               - "**/*.py"' \
         {source}
         sd -- \
-        '          latest: (.*)'\
+        '          latest: (.*)' \
         '          latest: $1
           mkdocs-requirements-txt: ./mkdocs-requirements.txt' \
         {source}
