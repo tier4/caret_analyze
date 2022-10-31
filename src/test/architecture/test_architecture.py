@@ -25,6 +25,7 @@ from caret_analyze.architecture.struct import (CommunicationStruct,
                                                ExecutorStruct, NodePathStruct,
                                                NodeStruct, PathStruct,
                                                TimerCallbackStruct)
+from caret_analyze.common import Util
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
                                          NodeStructValue, PathStructValue)
@@ -386,7 +387,6 @@ nodes:
         expect_executor_names = ['executor_0', 'changed_executor']
         assert set(executor_names) == set(expect_executor_names)
 
-        """
         # test rename_topic()
         topic_names = arch.topic_names
         expect_topic_names = ['/topic_0', '/topic_1']
@@ -409,7 +409,8 @@ nodes:
         expect_callback_names = ['/callback_0', '/changed_callback']
         assert set(callback_names) == set(expect_callback_names)
 
-        # test rename_topic()
+        """
+        # test rename_path()
         path_names = arch.path_names
         expect_path_names = ['target_path_0', 'target_path_1']
         assert set(path_names) == set(expect_path_names)
