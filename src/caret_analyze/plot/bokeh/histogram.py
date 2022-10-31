@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Collection
+
 from bokeh.plotting import figure, show
 
 from caret_analyze.exceptions import UnsupportedTypeError
@@ -22,14 +24,16 @@ from .histogram_interface import HistPlot
 
 from .plot_util import PlotColorSelector
 
+from ...runtime import Path
+
 
 class ResponseTimePlot(HistPlot):
 
     def __init__(
         self,
-        target,
-        case='best-to-worst',
-        binsize_ns=10000000
+        target: Collection[Path],
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
     ):
         if case not in ['best-to-worst', 'best', 'worst']:
             raise UnsupportedTypeError(

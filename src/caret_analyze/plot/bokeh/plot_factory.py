@@ -269,7 +269,7 @@ class Plot:
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
     ) -> ResponseTimePlot:
-        return ResponseTimePlot(paths, case, binsize_ns)
+        return ResponseTimePlot(paths, case, int(binsize_ns))
 
     @staticmethod
     @create_response_time_histogram_plot.register
@@ -278,4 +278,4 @@ class Plot:
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
     ) -> ResponseTimePlot:
-        return ResponseTimePlot(paths, case, binsize_ns)
+        return ResponseTimePlot(paths, case, int(binsize_ns))
