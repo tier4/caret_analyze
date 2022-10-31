@@ -32,12 +32,10 @@ import pytest
 
 class TestLttng:
 
-    def test_file_exists_error(self, mocker):
-        with mocker.patch('os.path.exists', return_value=True):
-            Lttng('')
+    def test_file_not_found_error(self, mocker):
         with mocker.patch('os.path.exists', return_value=False):
-            with pytest.raises(FileExistsError):
-                Lttng('')
+            with pytest.raises(FileNotFoundError):
+                Lttng('', force_conversion=True)
 
     def test_get_nodes(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
