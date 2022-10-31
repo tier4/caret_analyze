@@ -309,10 +309,19 @@ class Records(RecordsInterface):
         # so here uses a dictionary type.
         df_dict: Dict[str, List[Optional[int]]]
         df_dict = {c: [None]*len(df_list) for c in columns}
+
+        int64_max = 2**63-1
+
         for i, df_row in enumerate(df_list):
             for c in columns:
                 if c in df_row:
-                    df_dict[c][i] = df_row[c]
+                    # uint64 to int64 conversion.
+                    # This is workaround to fix some uint64 trace points.
+                    if df_row[c] <= int64_max:
+                        df_dict[c][i] = df_row[c]
+                    else:
+                        # convert uint64 to int64
+                        df_dict[c][i] = ~(df_row[c] & int64_max)
 
         df = pd.DataFrame(df_dict, dtype='Int64')
 

@@ -26,6 +26,11 @@
         '      - "**/*.jpg"
               - "**/*.py"' \
         {source}
+        sd -- \
+        '          latest: (.*)'\
+        '          latest: $1
+          mkdocs-requirements-txt: ./mkdocs-requirements.txt' \
+        {source}
     - source: .github/workflows/delete-closed-pr-docs.yaml
 
 - repository: tier4/caret_common

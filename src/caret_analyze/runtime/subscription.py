@@ -30,7 +30,7 @@ class Subscription(PathBase, Summarizable):
         data_provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------

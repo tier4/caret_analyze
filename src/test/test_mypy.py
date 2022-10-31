@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+from pathlib import Path
 
 from ament_mypy.main import main
 
@@ -26,5 +27,7 @@ reason = '[mypy test is to be officially supported in v0.4 or later.]'
 @pytest.mark.mypy
 @pytest.mark.linter
 def test_mypy():
-    rc = main()
+    # ref. https://canonical.com/blog/linting-ros-2-packages-with-mypy
+    config_path = Path(__file__).parent.parent.parent / 'mypy.ini'
+    rc = main(argv=['--config', str(config_path.resolve())])
     assert rc == 0, 'Found code style errors / warnings'

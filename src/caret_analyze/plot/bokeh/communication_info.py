@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from logging import getLogger
+from typing import Collection
 
 import pandas as pd
 
@@ -29,9 +30,9 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
 
     def __init__(
         self,
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> None:
-        super().__init__(*communications)
+        super().__init__(communications)
 
     def _to_dataframe_core(
         self,
@@ -82,9 +83,9 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
 
     def __init__(
         self,
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> None:
-        super().__init__(*communications)
+        super().__init__(communications)
 
     def _to_dataframe_core(
         self,
@@ -136,9 +137,9 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
 
     def __init__(
         self,
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> None:
-        super().__init__(*communications)
+        super().__init__(communications)
 
     def _to_dataframe_core(
         self,
