@@ -27,7 +27,8 @@ from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
-                             NodeStructValue, PathStructValue)
+                             NodeStructValue, PathStructValue, PublisherStructValue,
+                             SubscriptionStructValue)
 
 
 class Architecture(Summarizable):
@@ -138,6 +139,16 @@ class Architecture(Summarizable):
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
         return tuple([v.to_value() for v in self._communications])
+
+    @property
+    def publishers(self) -> Tuple[PublisherStructValue, ...]:
+        publishers = Util.flatten(_.publishers for _ in self.nodes)
+        return tuple(sorted(publishers, key=lambda x: x.topic_name))
+
+    @property
+    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
+        subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
+        return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
 
     @property
     def summary(self) -> Summary:
