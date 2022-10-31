@@ -473,6 +473,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_response_time_histogram_plot" class="md-nav__link">
+    create_response_time_histogram_plot()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -729,6 +736,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_callback_period_plot" class="md-nav__link">
     create_callback_period_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_response_time_histogram_plot" class="md-nav__link">
+    create_response_time_histogram_plot()
   </a>
   
 </li>
@@ -1152,6 +1166,67 @@ This also accepts multiple CallbackBase inputs by unpacking.</p></td>
         <tr>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.bokeh.callback_info.CallbackPeriodPlot" href="#caret_analyze.plot.CallbackPeriodPlot">CallbackPeriodPlot</a></code>
+          </td>
+          <td></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.plot.bokeh.plot_factory.Plot.create_response_time_histogram_plot" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">create_response_time_histogram_plot</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_response_time_histogram_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get ResponseTimePlot instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>path</code></td>
+          <td>
+                <code><span title="typing.Collection">Collection</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.Path" href="../runtime/#caret_analyze.runtime.Path">Path</a>]</code>
+          </td>
+          <td><p>Target path.
+This also accepts multiple path inputs by unpacking.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="caret_analyze.plot.bokeh.histogram.ResponseTimePlot">ResponseTimePlot</span></code>
           </td>
           <td></td>
         </tr>
