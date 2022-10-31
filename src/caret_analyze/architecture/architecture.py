@@ -115,7 +115,7 @@ class Architecture(Summarizable):
         if path_name not in self.path_names:
             raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
 
-        idx=None
+        idx = None
         for i, p in enumerate(self._paths):
             if p.path_name == path_name:
                 idx = i

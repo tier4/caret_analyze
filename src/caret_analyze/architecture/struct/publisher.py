@@ -64,12 +64,14 @@ class PublisherStruct():
         if self.node_name == src:
             self._node_name = dst
 
-        for c in self._callbacks:
-            c.rename_node(src, dst)
+        if self._callbacks is not None:
+            for c in self._callbacks:
+                c.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str):
         if self.topic_name == src:
             self._topic_name = dst
 
-        for c in self._callbacks:
-            c.rename_topic(src, dst)
+        if self._callbacks is not None:
+            for c in self._callbacks:
+                c.rename_topic(src, dst)

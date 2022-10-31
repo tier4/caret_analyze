@@ -115,8 +115,9 @@ class CommunicationStruct():
         self._node_sub.rename_node(src, dst)
         self._publisher_value.rename_node(src, dst)
         self._subscription_value.rename_node(src, dst)
-        for p in self._publish_callbacks_value:
-            p.rename_node(src, dst)
+        if self._publish_callbacks_value:
+            for p in self._publish_callbacks_value:
+                p.rename_node(src, dst)
         if self._subscription_callback_value is not None:
             self._subscription_callback_value.rename_node(src, dst)
 
@@ -128,7 +129,8 @@ class CommunicationStruct():
         self._node_sub.rename_topic(src, dst)
         self._publisher_value.rename_topic(src, dst)
         self._subscription_value.rename_topic(src, dst)
-        for p in self._publish_callbacks_value:
-            p.rename_topic(src, dst)
+        if self._publish_callbacks_value:
+            for p in self._publish_callbacks_value:
+                p.rename_topic(src, dst)
         if self._subscription_callback_value is not None:
             self._subscription_callback_value.rename_topic(src, dst)

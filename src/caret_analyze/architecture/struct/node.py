@@ -177,14 +177,16 @@ class NodeStruct():
         for t in self._timers:
             t.rename_node(src, dst)
 
-        for c in self._callback_groups:
-            c.rename_node(src, dst)
+        if self._callback_groups is not None:
+            for c in self._callback_groups:
+                c.rename_node(src, dst)
 
         for n in self._node_paths:
             n.rename_node(src, dst)
 
-        for v in self._variable_passings_info:
-            v.rename_node(src, dst)
+        if self._variable_passings_info is not None:
+            for v in self._variable_passings_info:
+                v.rename_node(src, dst)
 
     def rename_topic(self, src: str, dst: str):
         for p in self._publishers:
@@ -196,11 +198,13 @@ class NodeStruct():
         for t in self._timers:
             t.rename_topic(src, dst)
 
-        for c in self._callback_groups:
-            c.rename_topic(src, dst)
+        if self._callback_groups is not None:
+            for c in self._callback_groups:
+                c.rename_topic(src, dst)
 
         for n in self._node_paths:
             n.rename_topic(src, dst)
 
-        for v in self._variable_passings_info:
-            v.rename_topic(src, dst)
+        if self._variable_passings_info is not None:
+            for v in self._variable_passings_info:
+                v.rename_topic(src, dst)

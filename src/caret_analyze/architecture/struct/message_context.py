@@ -154,7 +154,7 @@ class MessageContextStruct():
             self._pub.rename_node(src, dst)
 
         if self._sub is not None:
-            self._pub.rename_node(src, dst)
+            self._sub.rename_node(src, dst)
 
         if self._callbacks is not None:
             for c in self._callbacks:
@@ -165,7 +165,7 @@ class MessageContextStruct():
             self._pub.rename_topic(src, dst)
 
         if self._sub is not None:
-            self._pub.rename_topic(src, dst)
+            self._sub.rename_topic(src, dst)
 
         if self._callbacks is not None:
             for c in self._callbacks:
