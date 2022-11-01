@@ -78,8 +78,7 @@ class Architecture(Summarizable):
 
     @property
     def topic_names(self) -> Tuple[str, ...]:
-        topic_names: Set[str]
-        topic_names |= {_.topic_name for _ in self.publishers}
+        topic_names = {_.topic_name for _ in self.publishers}
         topic_names |= {_.topic_name for _ in self.subscriptions}
         return tuple(sorted(topic_names))
 

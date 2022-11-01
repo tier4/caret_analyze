@@ -18,7 +18,7 @@ import fnmatch
 
 from logging import getLogger
 
-from typing import List, Optional, Set, Union
+from typing import List, Optional, Union
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -369,8 +369,7 @@ class Application(Summarizable):
             All topic names defined in architecture.
 
         """
-        topic_names: Set[str]
-        topic_names |= {_.topic_name for _ in self.publishers}
+        topic_names = {_.topic_name for _ in self.publishers}
         topic_names |= {_.topic_name for _ in self.subscriptions}
         return sorted(topic_names)
 
