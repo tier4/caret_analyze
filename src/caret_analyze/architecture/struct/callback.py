@@ -121,11 +121,11 @@ class TimerCallbackStruct(CallbackStruct):
         callback_name: str,
     ) -> None:
         super().__init__(
-            node_name,
-            symbol,
-            None,
-            publish_topic_names,
-            callback_name)
+            node_name = node_name,
+            symbol = symbol,
+            subscribe_topic_name = None,
+            publish_topic_names = publish_topic_names,
+            callback_name = callback_name)
         self._period_ns = period_ns
 
     @property
@@ -154,8 +154,12 @@ class SubscriptionCallbackStruct(CallbackStruct):
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_name: str,
     ) -> None:
-        super().__init__(node_name, symbol, subscribe_topic_name,
-                         publish_topic_names, callback_name)
+        super().__init__(
+            node_name = node_name, 
+            symbol = symbol, 
+            subscribe_topic_name = subscribe_topic_name,
+            publish_topic_names = publish_topic_names, 
+            callback_name = callback_name)
         self.__subscribe_topic_name = subscribe_topic_name
 
     @property
