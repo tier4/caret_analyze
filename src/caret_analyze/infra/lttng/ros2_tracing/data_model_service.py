@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 from typing import List, Optional, Set, Tuple, Union
 
 import pandas as pd
@@ -83,9 +85,10 @@ class DataModelService:
         node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
         for handle in timer_handles:
             node_name = self._get_node_name_from_handle(handle, self._data.timer_node_links)
-            callback_symbol = self._get_callback_symbol_from_handle(handle)
-            if node_name or callback_symbol:
-                node_names_and_cb_symbols.append((node_name, callback_symbol))
+            callback_symbol = self._get_callback_symbols_from_handle(handle)
+            if node_name or callback_symbol != [None]:
+                node_names_and_cb_symbols.extend(
+                    list(itertools.product([node_name], callback_symbol)))
 
         return node_names_and_cb_symbols
 
@@ -100,9 +103,10 @@ class DataModelService:
         node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
         for handle in sub_handles:
             node_name = self._get_node_name_from_handle(handle, self._data.subscriptions)
-            callback_symbol = self._get_callback_symbol_from_handle(handle)
-            if node_name or callback_symbol:
-                node_names_and_cb_symbols.append((node_name, callback_symbol))
+            callback_symbol = self._get_callback_symbols_from_handle(handle)
+            if node_name or callback_symbol != [None]:
+                node_names_and_cb_symbols.extend(
+                    list(itertools.product([node_name], callback_symbol)))
 
         return node_names_and_cb_symbols
 
@@ -117,9 +121,10 @@ class DataModelService:
         node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
         for handle in srv_handles:
             node_name = self._get_node_name_from_handle(handle, self._data.services)
-            callback_symbol = self._get_callback_symbol_from_handle(handle)
-            if node_name or callback_symbol:
-                node_names_and_cb_symbols.append((node_name, callback_symbol))
+            callback_symbol = self._get_callback_symbols_from_handle(handle)
+            if node_name or callback_symbol != [None]:
+                node_names_and_cb_symbols.extend(
+                    list(itertools.product([node_name], callback_symbol)))
 
         return node_names_and_cb_symbols
 
@@ -146,19 +151,18 @@ class DataModelService:
         except KeyError:
             return None
 
-    def _get_callback_symbol_from_handle(
+    def _get_callback_symbols_from_handle(
         self,
         handle: int
-    ) -> Optional[str]:
+    ) -> List[Optional[str]]:
         try:
             match_callback_objects = self._ensure_dataframe(
                 self._data.callback_objects.loc[handle, :])
             callback_objects = match_callback_objects.loc[:, 'callback_object'].to_list()
             match_callback_symbols = self._data.callback_symbols.loc[callback_objects, :]
-            assert len(match_callback_symbols) == 1
-            return match_callback_symbols.iloc[0]['symbol']
+            return [t.symbol for t in match_callback_symbols.itertuples()]
         except KeyError:
-            return None
+            return [None]
 
     @staticmethod
     def _ensure_dataframe(

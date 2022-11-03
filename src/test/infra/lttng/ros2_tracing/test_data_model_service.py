@@ -108,6 +108,27 @@ class TestDataModelService:
             data_model_srv.get_node_names_and_cb_symbols(duplicated_cbg_addr)
         assert node_names_and_cb_symbols == [('ns/name1', 'cb1'), ('ns/name2', 'cb2')]
 
+    def test_get_node_names_and_cb_symbols_multiple_symbols_for_one_handle(self):
+        data = Ros2DataModel()
+        cbg_addr = 1
+        duplicated_timer_handle = 2
+        node_handle = 3
+        cb_object1 = 4
+        cb_object2 = 5
+        data.add_node(0, node_handle, 0, 0, 'name', 'ns')
+        data.add_timer_node_link(duplicated_timer_handle, 0, node_handle)
+        data.callback_group_add_timer(cbg_addr, 0, duplicated_timer_handle)
+        data.add_callback_object(duplicated_timer_handle, 0, cb_object1)
+        data.add_callback_object(duplicated_timer_handle, 0, cb_object2)
+        data.add_callback_symbol(cb_object1, 0, 'cb1')
+        data.add_callback_symbol(cb_object2, 0, 'cb2')
+        data.finalize()
+
+        data_model_srv = DataModelService(data)
+        node_names_and_cb_symbols = \
+            data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
+        assert node_names_and_cb_symbols == [('ns/name', 'cb1'), ('ns/name', 'cb2')]
+
     def test_get_node_names_and_cb_symbols_drop_node_name(self):
         data = Ros2DataModel()
         cbg_addr = 1
