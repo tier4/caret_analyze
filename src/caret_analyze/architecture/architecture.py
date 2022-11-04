@@ -70,7 +70,7 @@ class Architecture(Summarizable):
 
     @property
     def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
-        return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
+        return tuple(Util.flatten(_.callback_groups for _ in self.executors))
 
     @property
     def callback_group_names(self) -> Tuple[str, ...]:
@@ -78,14 +78,14 @@ class Architecture(Summarizable):
 
     @property
     def topic_names(self) -> Tuple[str, ...]:
-        return tuple(sorted({_.topic_name for _ in self.communications}))
+        return tuple(sorted(_.topic_name for _ in self.communications))
 
     def get_callback(self, callback_name: str) -> CallbackStructValue:
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
-        return tuple(Util.flatten([_.callbacks for _ in self.callback_groups]))
+        return tuple(Util.flatten(_.callbacks for _ in self.callback_groups))
 
     def get_communication(
         self,
@@ -114,7 +114,7 @@ class Architecture(Summarizable):
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
-        return tuple([v.to_value() for v in self._nodes])
+        return tuple(v.to_value() for v in self._nodes)
 
     @property
     def node_names(self) -> Tuple[str, ...]:
@@ -122,7 +122,7 @@ class Architecture(Summarizable):
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
-        return tuple([v.to_value() for v in self._executors])
+        return tuple(v.to_value() for v in self._executors)
 
     @property
     def executor_names(self) -> Tuple[str, ...]:
@@ -138,7 +138,7 @@ class Architecture(Summarizable):
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
-        return tuple([v.to_value() for v in self._communications])
+        return tuple(v.to_value() for v in self._communications)
 
     @property
     def publishers(self) -> Tuple[PublisherStructValue, ...]:
