@@ -85,7 +85,7 @@ class Architecture(Summarizable):
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
-        return tuple(_.callbacks for _ in self.callback_groups)
+        return tuple(Util.flatten([_.callbacks for _ in self.callback_groups]))
 
     def get_communication(
         self,
