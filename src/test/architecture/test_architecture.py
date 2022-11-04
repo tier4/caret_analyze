@@ -14,6 +14,7 @@
 
 
 from logging import WARNING
+from re import A
 
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
@@ -315,51 +316,88 @@ class TestArchitecture:
         assert len(caplog.record_tuples) == 1
 
     def test_rename_function(self, mocker):
-        # define test case
+        # define test case: path
         architecture_text = """
 named_paths:
 - path_name: target_path_0
   node_chain:
-  - node_name: /talker
+  - node_name: /node_0
     publish_topic_name: /topic_0
-  - node_name: /listener
+  - node_name: /node_1
     subscribe_topic_name: /topic_1
 - path_name: target_path_1
   node_chain:
-  - node_name: /talker
+  - node_name: /node_2
     publish_topic_name: /topic_0
-  - node_name: /listener
-    subscribe_topic_name: /topic_1
+  - node_name: /node_3
+    subscribe_topic_name: /topic_1"""
+
+        # define test case: exec
+        architecture_text += """
 executors:
 - executor_type: single_threaded_executor
   executor_name: executor_0
   callback_group_names:
-  - /talker/callback_group_0
-  - /listener/callback_group_0
+  - /callback_group_0
+  - /callback_group_1
 - executor_type: single_threaded_executor
   executor_name: executor_1
   callback_group_names:
-  - /talker/callback_group_1
-  - /listener/callback_group_1
+  - /callback_group_0
+  - /callback_group_1"""
+
+        # define test case: node, callback, topic
+        architecture_text += """
 nodes:
 - node_name: /node_0
-- node_name: /node_1
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_1
+    callback_names:
+    - /callback_2
+    - /callback_3
   callbacks:
-  - callback_name: timer_callback_0
+  - callback_name: /callback_2
     callback_type: timer_callback
-    period_ns: 1
-    symbol: timer_symbol
-  - callback_name: subscription_callback_0
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_3
     callback_type: subscription_callback
     topic_name: /topic_0
-    symbol: sub_symbol
+    symbol: sub
+  publishes:
+  - topic_name: /topic_1
+    callback_names:
+    - /callback_2
+  subscribes:
+  - topic_name: /topic_0
+    callback_name: /callback_3"""
+
+        # define test case: node, callback, topic
+        architecture_text += """
+- node_name: /node_1
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - /callback_0
+    - /callback_1
+  callbacks:
+  - callback_name: /callback_0
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_1
+    callback_type: subscription_callback
+    topic_name: /topic_1
+    symbol: sub
   publishes:
   - topic_name: /topic_0
     callback_names:
-    - timer_callback_0
+    - /callback_0
   subscribes:
   - topic_name: /topic_1
-    callback_name: subscription_callback_0
+    callback_name: /callback_1
         """
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
@@ -400,13 +438,13 @@ nodes:
 
         # test rename_callback()
         callback_names = [c.callback_name for c in arch.callbacks]
-        expect_callback_names = ['/callback_0', '/callback_1']
+        expect_callback_names = ['/callback_0', '/callback_1', '/callback_2', '/callback_3']
         assert set(callback_names) == set(expect_callback_names)
 
         arch.rename_callback('/callback_1', '/changed_callback')
 
         callback_names = [c.callback_name for c in arch.callbacks]
-        expect_callback_names = ['/callback_0', '/changed_callback']
+        expect_callback_names = ['/callback_0', '/changed_callback', '/callback_2', '/callback_3']
         assert set(callback_names) == set(expect_callback_names)
 
         """
