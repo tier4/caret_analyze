@@ -27,9 +27,9 @@
               - "**/*.py"' \
         {source}
         sd -- \
-        '          latest: (.*)'\
+        '          latest: (.*)' \
         '          latest: $1
-          mkdocs-requirements-txt: ./mkdocs-requirements.txt' \
+                  mkdocs-requirements-txt: ./mkdocs-requirements.txt' \
         {source}
     - source: .github/workflows/delete-closed-pr-docs.yaml
 
