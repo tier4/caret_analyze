@@ -49,6 +49,9 @@ logger = getLogger(__name__)
 class EventCollection(Iterable, Sized):
 
     def __init__(self, trace_dir: str, force_conversion: bool) -> None:
+        if not os.path.exists(trace_dir):
+            raise FileNotFoundError(f'Failed to found {trace_dir}')
+
         self._iterable_events: IterableEvents
         cache_path = self._cache_path(trace_dir)
 
