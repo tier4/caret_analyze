@@ -320,15 +320,15 @@ named_paths:
 - path_name: target_path_0
   node_chain:
   - node_name: /node_0
-    publish_topic_name: /topic_1
+    publish_topic_name: /topic_0
   - node_name: /node_1
-    subscribe_topic_name: /topic_1
+    subscribe_topic_name: /topic_0
 - path_name: target_path_1
   node_chain:
   - node_name: /node_1
-    publish_topic_name: /topic_0
+    publish_topic_name: /topic_1
   - node_name: /node_0
-    subscribe_topic_name: /topic_0"""
+    subscribe_topic_name: /topic_1"""
 
         # define test case: exec
         architecture_text += """
@@ -352,32 +352,6 @@ nodes:
   - callback_group_type: mutually_exclusive
     callback_group_name: /callback_group_1
     callback_names:
-    - /callback_2
-    - /callback_3
-  callbacks:
-  - callback_name: /callback_2
-    callback_type: timer_callback
-    period_ns: 200000000
-    symbol: timer
-  - callback_name: /callback_3
-    callback_type: subscription_callback
-    topic_name: /topic_0
-    symbol: sub
-  publishes:
-  - topic_name: /topic_1
-    callback_names:
-    - /callback_2
-  subscribes:
-  - topic_name: /topic_0
-    callback_name: /callback_3"""
-
-        # define test case: node, callback, topic
-        architecture_text += """
-- node_name: /node_1
-  callback_groups:
-  - callback_group_type: mutually_exclusive
-    callback_group_name: /callback_group_0
-    callback_names:
     - /callback_0
     - /callback_1
   callbacks:
@@ -395,7 +369,33 @@ nodes:
     - /callback_0
   subscribes:
   - topic_name: /topic_1
-    callback_name: /callback_1
+    callback_name: /callback_1"""
+
+        # define test case: node, callback, topic
+        architecture_text += """
+- node_name: /node_1
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - /callback_2
+    - /callback_3
+  callbacks:
+  - callback_name: /callback_2
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_3
+    callback_type: subscription_callback
+    topic_name: /topic_0
+    symbol: sub
+  publishes:
+  - topic_name: /topic_1
+    callback_names:
+    - /callback_2
+  subscribes:
+  - topic_name: /topic_0
+    callback_name: /callback_3
         """
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
