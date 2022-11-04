@@ -14,7 +14,6 @@
 
 
 from logging import WARNING
-from re import A
 
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
@@ -26,7 +25,6 @@ from caret_analyze.architecture.struct import (CommunicationStruct,
                                                ExecutorStruct, NodePathStruct,
                                                NodeStruct, PathStruct,
                                                TimerCallbackStruct)
-from caret_analyze.common import Util
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
                                          NodeStructValue, PathStructValue)
@@ -322,15 +320,15 @@ named_paths:
 - path_name: target_path_0
   node_chain:
   - node_name: /node_0
-    publish_topic_name: /topic_0
+    publish_topic_name: /topic_1
   - node_name: /node_1
     subscribe_topic_name: /topic_1
 - path_name: target_path_1
   node_chain:
-  - node_name: /node_2
+  - node_name: /node_1
     publish_topic_name: /topic_0
-  - node_name: /node_3
-    subscribe_topic_name: /topic_1"""
+  - node_name: /node_0
+    subscribe_topic_name: /topic_0"""
 
         # define test case: exec
         architecture_text += """
@@ -447,7 +445,6 @@ nodes:
         expect_callback_names = ['/callback_0', '/changed_callback', '/callback_2', '/callback_3']
         assert set(callback_names) == set(expect_callback_names)
 
-        """
         # test rename_path()
         path_names = arch.path_names
         expect_path_names = ['target_path_0', 'target_path_1']
@@ -458,4 +455,3 @@ nodes:
         path_names = arch.path_names
         expect_path_names = ['target_path_0', '/changed_path']
         assert set(path_names) == set(expect_path_names)
-        """
