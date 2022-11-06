@@ -308,20 +308,24 @@ class Lttng(InfraBase):
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
 
-    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
+    def get_node_names_and_cb_symbols(
+        self,
+        callback_group_id: str
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
         """
-        Get node names from callback group id.
+        Get node names and callback symbols from callback group id.
 
         Returns
         -------
-        Sequence[str]
-            node names.
+        Sequence[Tuple[Optional[str], Optional[str]]]
+            node names and callback symbols.
+            tuple structure: (node_name, callback_symbol)
 
         """
         data_model_srv = DataModelService(self.data)
         cbg_addr = CallbackGroupId(callback_group_id).group_addr
 
-        return data_model_srv.get_node_names(cbg_addr)
+        return data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
 
     def get_nodes(
         self
