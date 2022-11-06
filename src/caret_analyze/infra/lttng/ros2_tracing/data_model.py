@@ -15,12 +15,25 @@
 
 """Module for ROS 2 data model."""
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 
 import pandas as pd
+
+
+class LttngClockConverter:
+
+    def __init__(
+        self,
+        system_time: int,
+        lttng_clock_time: int
+    ) -> None:
+        self._offset = system_time - lttng_clock_time
+
+    def to_system_time(self, lttng_clock_time: int) -> int:
+        return lttng_clock_time + self._offset
 
 
 class Ros2DataModel():
@@ -41,6 +54,8 @@ class Ros2DataModel():
         self._services: List[Dict] = []
         self._clients: List[Dict] = []
         self._timers: List[Dict] = []
+        self._timers_caret: List[Dict] = []
+        self._caret_init: List[Dict] = []
         self._timer_node_links: List[Dict] = []
         self._callback_objects: List[Dict] = []
         self._callback_symbols: List[Dict] = []
@@ -267,6 +282,16 @@ class Ros2DataModel():
             'tid': tid,
         }
         self._timers.append(record)
+
+    def add_timer_caret(self, tid, handle, timestamp, period, init_timestamp) -> None:
+        record = {
+            'timer_handle': handle,
+            'timestamp': timestamp,
+            'period': period,
+            'tid': tid,
+            'init_timestamp': init_timestamp,
+        }
+        self._timers_caret.append(record)
 
     def add_tilde_subscribe_added(
         self, subscription_id, node_name, topic_name, timestamp
@@ -683,6 +708,17 @@ class Ros2DataModel():
         }
         self._callback_group_client.append(record)
 
+    def caret_init(
+        self,
+        clock_offset: int,
+        timestamp: int
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'clock_offset': clock_offset,
+        }
+        self._caret_init.append(record)
+
     def finalize(self) -> None:
         self.contexts = pd.DataFrame.from_dict(self._contexts)
         if self._contexts:
@@ -709,8 +745,25 @@ class Ros2DataModel():
         self.clients = pd.DataFrame.from_dict(self._clients)
         if self._clients:
             self.clients.set_index('client_handle', inplace=True, drop=True)
-        self.timers = pd.DataFrame.from_dict(self._timers)
-        if self._timers:
+
+        self.caret_init = pd.DataFrame.from_dict(self._caret_init)
+        timers_dict_caret = []
+        self.timers_caret = pd.DataFrame.from_dict(self._timers_caret)
+        if self._timers_caret:
+            self.timers_caret.set_index('timer_handle', inplace=True, drop=True)
+
+            assert len(self._caret_init) > 0
+            lttng_clock_converter = LttngClockConverter(
+                self._caret_init[0]['timestamp'], self._caret_init[0]['clock_offset'])
+
+            for timer_caret in self._timers_caret:
+                timer_caret['timestamp'] = \
+                    lttng_clock_converter.to_system_time(timer_caret.pop('init_timestamp'))
+                timers_dict_caret.append(timer_caret)
+        #  Integrate with conventional trace points for compatibility.
+        timers_dict = timers_dict_caret + self._timers
+        self.timers = pd.DataFrame.from_dict(timers_dict)
+        if timers_dict:
             self.timers.set_index('timer_handle', inplace=True, drop=True)
         self.timer_node_links = pd.DataFrame.from_dict(self._timer_node_links)
         if self._timer_node_links:

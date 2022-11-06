@@ -28,6 +28,8 @@ class TestLttngInfo:
         data.add_service(0, 0, 0, 0, 'service_name')
         data.add_client(0, 0, 0, 0, 'service_name')
         data.add_timer(0, 0, 0, 0)
+        data.add_timer_caret(0, 0, 0, 0, 0)
+        data.caret_init(0, 0)
         data.add_timer_node_link(0, 0, 0)
         data.add_callback_object(0, 0, 0)
         data.add_callback_symbol(0, 0, 'symbol')

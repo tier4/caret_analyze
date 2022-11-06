@@ -111,6 +111,8 @@ class Ros2Handler():
             self._handle_tilde_subscribe_added
         handler_map['ros2_caret:sim_time'] = \
             self._handle_sim_time
+        handler_map['ros2_caret:rcl_timer_init'] = self._handle_rcl_timer_init_caret
+        handler_map['ros2_caret:caret_init'] = self._handle_caret_init
 
         self.handler_map = handler_map
 
@@ -131,6 +133,7 @@ class Ros2Handler():
             'ros2:rclcpp_service_callback_added',
             'ros2:rcl_client_init',
             'ros2:rcl_timer_init',
+            'ros2_caret:rcl_timer_init',
             'ros2:rclcpp_timer_callback_added',
             'ros2:rclcpp_timer_link_node',
             'ros2:rclcpp_callback_register',
@@ -145,6 +148,7 @@ class Ros2Handler():
             'ros2:dispatch_intra_process_subscription_callback',
             'ros2_caret:on_data_available',
             'ros2:rcl_publish',
+            'ros2_caret:caret_init',
             'ros2_caret:dds_write',
             'ros2_caret:dds_bind_addr_to_stamp',
             'ros2_caret:dds_bind_addr_to_addr',
@@ -291,6 +295,25 @@ class Ros2Handler():
         period = get_field(event, 'period')
         tid = get_field(event, '_vtid')
         self.data.add_timer(tid, handle, timestamp, period)
+
+    def _handle_rcl_timer_init_caret(
+        self,
+        event: Dict,
+    ) -> None:
+        handle = get_field(event, 'timer_handle')
+        timestamp = get_field(event, '_timestamp')
+        period = get_field(event, 'period')
+        tid = get_field(event, '_vtid')
+        init_timestamp = get_field(event, 'init_timestamp')
+        self.data.add_timer_caret(tid, handle, timestamp, period, init_timestamp)
+
+    def _handle_caret_init(
+        self,
+        event: Dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        clock_offset = get_field(event, 'clock_offset')
+        self.data.caret_init(clock_offset, timestamp)
 
     def _handle_rclcpp_timer_callback_added(
         self,

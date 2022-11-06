@@ -70,6 +70,8 @@ class InitEventPassFilter(LttngEventFilter):
             'ros2:rclcpp_callback_register',
             'ros2:rcl_lifecycle_state_machine_init',
             'ros2:rcl_lifecycle_transition',
+            'ros2_caret:caret_init',
+            'ros2_caret:rcl_timer_init',
             'ros2_caret:rmw_implementation',
             'ros2_caret:add_callback_group',
             'ros2_caret:add_callback_group_static_executor',
