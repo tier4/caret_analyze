@@ -460,8 +460,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_node_names" class="md-nav__link">
-    get_node_names()
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_node_names_and_cb_symbols" class="md-nav__link">
+    get_node_names_and_cb_symbols()
   </a>
   
 </li>
@@ -846,8 +846,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_node_names" class="md-nav__link">
-    get_node_names()
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_node_names_and_cb_symbols" class="md-nav__link">
+    get_node_names_and_cb_symbols()
   </a>
   
 </li>
@@ -1309,15 +1309,15 @@ The main processing is done by LttngInfo and RecordsSource.</p>
 
 
 
-<h3 id="caret_analyze.infra.lttng.lttng.Lttng.get_node_names" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_node_names</span><span class="p">(</span><span class="n">callback_group_id</span><span class="p">)</span></code>
+<h3 id="caret_analyze.infra.lttng.lttng.Lttng.get_node_names_and_cb_symbols" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_node_names_and_cb_symbols</span><span class="p">(</span><span class="n">callback_group_id</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.infra.lttng.lttng.Lttng.get_node_names" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.infra.lttng.lttng.Lttng.get_node_names_and_cb_symbols" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
-      <p>Get node names from callback group id.</p>
+      <p>Get node names and callback symbols from callback group id.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -1330,9 +1330,10 @@ The main processing is done by LttngInfo and RecordsSource.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Sequence">Sequence</span>[str]</code>
+                <code><span title="typing.Sequence">Sequence</span>[<span title="typing.Tuple">Tuple</span>[<span title="typing.Optional">Optional</span>[str], <span title="typing.Optional">Optional</span>[str]]]</code>
           </td>
-          <td><p>node names.</p></td>
+          <td><p>node names and callback symbols.
+tuple structure: (node_name, callback_symbol)</p></td>
         </tr>
     </tbody>
   </table>
