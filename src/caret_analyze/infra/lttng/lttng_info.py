@@ -436,7 +436,7 @@ class LttngInfo:
                 concat_df, self._formatted.callback_groups_df, 'callback_group_addr')
 
             callback_groups = []
-            for _, group_df in concat_df.groupby(['callback_group_addr']):
+            for _, group_df in concat_df.groupby('callback_group_addr'):
                 row = group_df.iloc[0, :]
                 node_id_ = row['node_id']
                 if node_id != node_id_:
