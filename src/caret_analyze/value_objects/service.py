@@ -64,17 +64,6 @@ class ServiceStructValue(ValueObject, Summarizable):
         self._service_name: str = service_name
         self._callback_value = callback_info
 
-    def __eq__(self, other) -> bool:
-        # It is not necessary because __eq__ is defined in ValueObject type,
-        # but for speed, only necessary items are compared.
-
-        if isinstance(other, ServiceStructValue):
-            return self.node_name == other.node_name and self.service_name == other.service_name
-        return False
-
-    def __hash__(self):
-        return super().__hash__()
-
     @property
     def node_name(self) -> str:
         return self._node_name
