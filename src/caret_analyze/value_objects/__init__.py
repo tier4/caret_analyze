@@ -17,7 +17,10 @@ from .callback import (CallbackStructValue,
                        CallbackValue,
                        SubscriptionCallbackStructValue,
                        SubscriptionCallbackValue,
-                       TimerCallbackStructValue, TimerCallbackValue)
+                       ServiceCallbackStructValue,
+                       ServiceCallbackValue,
+                       TimerCallbackStructValue,
+                       TimerCallbackValue)
 from .callback_group import CallbackGroupStructValue, CallbackGroupType, CallbackGroupValue
 from .communication import CommunicationStructValue
 from .executor import ExecutorStructValue, ExecutorType, ExecutorValue
@@ -33,6 +36,7 @@ from .path import PathStructValue, PathValue
 from .publisher import PublisherStructValue, PublisherValue
 from .qos import Qos
 from .subscription import SubscriptionStructValue, SubscriptionValue
+from .service import ServiceStructValue, ServiceValue
 from .timer import TimerStructValue, TimerValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue, VariablePassingValue
@@ -67,6 +71,10 @@ __all__ = [
     'SubscriptionCallbackValue',
     'SubscriptionStructValue',
     'SubscriptionValue',
+    'ServiceCallbackStructValue',
+    'ServiceCallbackValue',
+    'ServiceStructValue',
+    'ServiceValue',
     'Tilde',
     'TimerValue',
     'TimerStructValue',
