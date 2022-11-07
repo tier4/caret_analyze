@@ -331,10 +331,11 @@ class NodeValuesLoaded():
             except ItemNotFoundError:
                 pass
 
-        msg = f'Failed to find callback group. callback_group_id: {callback_group_id}. '
-        node_names = self._reader.get_node_names(callback_group_id)
-        if node_names:
-            msg += f'node_name: {node_names}.'
+        msg = f'Failed to find callback group. callback_group_id: {callback_group_id}.\n'
+        node_names_and_cb_symbols = self._reader.get_node_names_and_cb_symbols(callback_group_id)
+        for i, node_name_and_cb_symbol in enumerate(node_names_and_cb_symbols):
+            msg += f'\t|node name {i}| {node_name_and_cb_symbol[0]}.\n'
+            msg += f'\t|callback symbol {i}| {node_name_and_cb_symbol[1]}.\n'
         raise ItemNotFoundError(msg)
 
     def find_callback(
@@ -1307,8 +1308,11 @@ class TopicIgnoredReader(ArchitectureReader):
     def get_paths(self) -> Sequence[PathValue]:
         return self._reader.get_paths()
 
-    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
-        return self._reader.get_node_names(callback_group_id)
+    def get_node_names_and_cb_symbols(
+        self,
+        callback_group_id: str
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+        return self._reader.get_node_names_and_cb_symbols(callback_group_id)
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._reader.get_nodes()

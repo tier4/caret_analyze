@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Sequence
+from typing import Dict, Optional, Sequence, Tuple
 
 from ..value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
                              NodeValueWithId, PathValue, PublisherValue,
@@ -31,17 +31,18 @@ class ArchitectureReader(metaclass=ABCMeta):
     """Architecture reader base class."""
 
     @abstractmethod
-    def get_node_names(
+    def get_node_names_and_cb_symbols(
         self,
         callback_group_id: str
-    ) -> Sequence[str]:
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
         """
-        Get node names from callback group id.
+        Get node names and callback symbols from callback group id.
 
         Returns
         -------
-        Sequence[str]
-            node names.
+        Sequence[Tuple[Optional[str], Optional[str]]]
+            node names and callback symbols.
+            tuple structure: (node_name, callback_symbol)
 
         """
         pass

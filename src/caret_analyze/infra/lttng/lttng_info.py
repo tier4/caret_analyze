@@ -540,7 +540,7 @@ class LttngInfo:
                 concat_df, self._formatted.callback_groups_df, 'callback_group_addr')
 
             callback_groups = []
-            for _, group_df in concat_df.groupby(['callback_group_addr']):
+            for _, group_df in concat_df.groupby('callback_group_addr'):
                 row = group_df.iloc[0, :]
                 node_id_ = row['node_id']
                 if node_id != node_id_:
@@ -1261,16 +1261,18 @@ class DataFrameFormatted:
         executor_duplicated_indexes = []
         for _, group in df.groupby('callback_group_addr'):
             if len(group) >= 2:
-                msg = ('Multiple executors using the same callback group were detected.'
+                msg = ('Multiple executors using the same callback group were detected. '
                        'The last executor will be used. ')
                 exec_addr = list(group['executor_addr'].values)
                 msg += f'executor address: {exec_addr}. '
                 data_model_srv = DataModelService(data)
-                cbg_addr = list(group['callback_group_addr'].values)
-                node_names = Util.flatten(data_model_srv.get_node_names(addr)
-                                          for addr in cbg_addr)
-                if node_names:
-                    msg += f'node name: {sorted(set(node_names))}.'
+                cbg_addr = set(group['callback_group_addr'].values)
+                for addr in cbg_addr:
+                    node_names_and_cb_symbols = data_model_srv.get_node_names_and_cb_symbols(addr)
+                    msg += f'callback_group_addr: {addr}.\n'
+                    for i, node_name_and_cb_symbol in enumerate(node_names_and_cb_symbols):
+                        msg += f'\t|node name {i}| {node_name_and_cb_symbol[0]}.\n'
+                        msg += f'\t|callback symbol {i}| {node_name_and_cb_symbol[1]}.\n'
                 logger.warn(msg)
                 executor_duplicated_indexes += list(group.index)[:-1]
 
