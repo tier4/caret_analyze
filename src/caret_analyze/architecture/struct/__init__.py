@@ -14,6 +14,7 @@
 
 from .callback import (CallbackStruct,
                        SubscriptionCallbackStruct,
+                       ServiceCallbackStruct,
                        TimerCallbackStruct)
 from .callback_group import CallbackGroupStruct
 from .communication import CommunicationStruct
@@ -28,6 +29,7 @@ from .node_path import NodePathStruct
 from .path import PathStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
+from .service import ServiceStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 
@@ -46,6 +48,8 @@ __all__ = [
     'PublisherStruct',
     'SubscriptionCallbackStruct',
     'SubscriptionStruct',
+    'ServiceCallbackStruct',
+    'ServiceStruct',
     'TildeStruct',
     'TimerStruct',
     'TimerCallbackStruct',
