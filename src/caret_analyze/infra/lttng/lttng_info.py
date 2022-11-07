@@ -58,7 +58,7 @@ class LttngInfo:
         self._id_to_topic: Dict[str, str] = {}
         self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
         self._sub_cb_cache_without_pub = None
-
+        
         self._timer_cb_cache_without_pub: Optional[Dict[str, List[TimerCallbackValueLttng]]]
         self._timer_cb_cache_without_pub = None
 
@@ -996,6 +996,8 @@ class DataFrameFormatted:
             Columns
             - callback_id
             - callback_object
+            - callback_object_intra
+            - callback_group_addr
             - node_handle
             - service_handle
             - service_name
@@ -1252,8 +1254,8 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = [
-            'callback_id', 'callback_object', 'node_handle',
-            'service_handle', 'service_name', 'symbol'
+            'callback_id', 'callback_object', 'node_handle', 'callback_object_intra',
+            'service_handle', 'callback_group_addr', 'service_name', 'symbol'
         ]
 
         def callback_id(row: pd.Series) -> str:
@@ -1270,6 +1272,9 @@ class DataFrameFormatted:
             symbols_df = data.callback_symbols.reset_index()
             df = merge(df, symbols_df, 'callback_object')
 
+            cbg = data.callback_group_service.reset_index()
+            df = merge(df, cbg, 'service_handle')
+            
             df = DataFrameFormatted._add_column(
                 df, 'callback_id', callback_id
             )
