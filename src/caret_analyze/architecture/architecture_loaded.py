@@ -1321,6 +1321,14 @@ class TopicIgnoredReader(ArchitectureReader):
             subscriptions.append(subscription)
         return subscriptions
     
+    def get_services(self, node: NodeValue) -> List[ServiceValue]:
+        services: List[ServiceValue] = []
+        for service in self._reader.get_services(node):
+            if service.service_name in self._ignore_topics:
+                continue
+            services.append(service)
+        return services
+
     def get_variable_passings(
         self,
         node: NodeValue
@@ -1342,4 +1350,15 @@ class TopicIgnoredReader(ArchitectureReader):
             if subscription_callback.subscribe_topic_name in self._ignore_topics:
                 continue
             callbacks.append(subscription_callback)
+        return callbacks
+    
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValue]:
+        callbacks: List[ServiceCallbackValue] = []
+        for service_callback in self._reader.get_service_callbacks(node):
+            if service_callback.service_name in self._ignore_topics:
+                continue
+            callbacks.append(service_callback)
         return callbacks
