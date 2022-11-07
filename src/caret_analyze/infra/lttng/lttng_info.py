@@ -1100,8 +1100,7 @@ class DataFrameFormatted:
             Columns
             - callback_id
             - callback_object
-            - callback_object_intra
-            - callback_group_addr
+            - callback_group_addrs
             - node_handle
             - service_handle
             - service_name
@@ -1360,7 +1359,7 @@ class DataFrameFormatted:
         data: Ros2DataModel,
     ) -> pd.DataFrame:
         columns = [
-            'callback_id', 'callback_object', 'node_handle', 'callback_object_intra',
+            'callback_id', 'callback_object', 'node_handle',
             'service_handle', 'callback_group_addr', 'service_name', 'symbol'
         ]
 
