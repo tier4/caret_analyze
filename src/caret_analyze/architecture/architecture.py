@@ -78,7 +78,7 @@ class Architecture(Summarizable):
 
     @property
     def topic_names(self) -> Tuple[str, ...]:
-        return tuple(sorted(_.topic_name for _ in self.communications))
+        return tuple(sorted({_.topic_name for _ in self.communications}))
 
     def get_callback(self, callback_name: str) -> CallbackStructValue:
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
