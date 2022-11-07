@@ -29,6 +29,7 @@ from .struct import (CallbackGroupStruct, CallbackStruct,
                      NodePathStruct, NodeStruct, PathStruct,
                      PublisherStruct,
                      SubscriptionCallbackStruct, SubscriptionStruct,
+                     ServiceCallbackStruct,
                      TimerCallbackStruct, TimerStruct,
                      VariablePassingStruct)
 from ..common import Progress, Util
@@ -43,6 +44,8 @@ from ..value_objects import (CallbackGroupValue,
                              PublisherValue,
                              SubscriptionCallbackValue,
                              SubscriptionValue,
+                             ServiceCallbackValue,
+                             ServiceValue,
                              TimerCallbackValue,
                              TimerValue, VariablePassingValue,
                              )
@@ -881,6 +884,7 @@ class CallbacksLoaded():
         callbacks: List[CallbackValue] = []
         callbacks += reader.get_timer_callbacks(node)
         callbacks += reader.get_subscription_callbacks(node)
+        callbacks += reader.get_service_callbacks(node)
 
         self._validate(callbacks)
         self._callbacks = callbacks
@@ -916,7 +920,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
-
+            
             return TimerCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
@@ -936,6 +940,21 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 subscribe_topic_name=callback.subscribe_topic_name,
+                publish_topic_names=callback.publish_topic_names,
+                callback_name=callback_name,
+            )
+        if isinstance(callback, ServiceCallbackValue):
+            assert callback.service_name is not None
+            self._callback_count[callback] = self._callback_count.get(
+                callback, len(self._callback_count))
+            callback_count = self._callback_count[callback]
+            indexed = indexed_name(
+                f'{self.node_name}/callback', callback_count, callback_num)
+            callback_name = callback.callback_name or indexed
+            return ServiceCallbackStruct(
+                node_name=callback.node_name,
+                symbol=callback.symbol,
+                service_name=callback.service_name,
                 publish_topic_names=callback.publish_topic_names,
                 callback_name=callback_name,
             )
@@ -1301,7 +1320,7 @@ class TopicIgnoredReader(ArchitectureReader):
                 continue
             subscriptions.append(subscription)
         return subscriptions
-
+    
     def get_variable_passings(
         self,
         node: NodeValue
