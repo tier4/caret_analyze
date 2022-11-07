@@ -31,6 +31,7 @@ from .value_objects import (CallbackGroupAddr,
                             NodeValueLttng,
                             PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
+                            ServiceCallbackValueLttng,
                             TimerCallbackValueLttng,
                             TimerControl)
 from ...common import Util
@@ -52,13 +53,18 @@ class LttngInfo:
 
         self._timer_cb_cache: Dict[str, Sequence[TimerCallbackValueLttng]] = {}
         self._sub_cb_cache: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
+        self._srv_cb_cache: Dict[str, List[ServiceCallbackValueLttng]] = {}
         self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
         self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
 
         self._id_to_topic: Dict[str, str] = {}
+        self._id_to_service: Dict[str, str] = {}
         self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
         self._sub_cb_cache_without_pub = None
         
+        self._srv_cb_cache_without_pub: Optional[Dict[str, List[ServiceCallbackValueLttng]]]
+        self._srv_cb_cache_without_pub = None
+
         self._timer_cb_cache_without_pub: Optional[Dict[str, List[TimerCallbackValueLttng]]]
         self._timer_cb_cache_without_pub = None
 
@@ -79,6 +85,15 @@ class LttngInfo:
             return []
 
         return self._sub_cb_cache_without_pub[node_id]
+    
+    def _get_srv_cbs_without_pub(self, node_id: str) -> List[ServiceCallbackValueLttng]:
+        if self._srv_cb_cache_without_pub is None:
+            self._srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
+
+        if node_id not in self._srv_cb_cache_without_pub:
+            return []
+
+        return self._srv_cb_cache_without_pub[node_id]
 
     def get_rmw_impl(self) -> str:
         """
@@ -296,6 +311,89 @@ class LttngInfo:
     @property
     def tilde_sub_id_map(self) -> Dict[int, int]:
         return self._formatted.tilde_sub_id_map
+    
+    def _load_srv_cbs_without_pub(
+        self
+    ) -> Dict[str, List[ServiceCallbackValueLttng]]:
+        srv_cbs_info: Dict[str, List[ServiceCallbackValueLttng]] = {}
+
+        for node in self.get_nodes():
+            srv_cbs_info[node.node_id] = []
+
+        srv_df = self._formatted.services_df
+        srv_df = merge(srv_df, self._formatted.nodes_df, 'node_handle')
+
+        for _, row in srv_df.iterrows():
+            node_name = row['node_name']
+            node_id = row['node_id']
+
+            # Since callback_object_intra contains nan, it is of type np.float.
+            record_callback_object_intra = row['callback_object_intra']
+            if record_callback_object_intra is pd.NA:
+                callback_object_intra = None
+            else:
+                callback_object_intra = int(record_callback_object_intra)
+            self._id_to_service[row['callback_id']] = row['service_name']
+
+            srv_cbs_info[node_id].append(
+                ServiceCallbackValueLttng(
+                    callback_id=row['callback_id'],
+                    node_id=node_id,
+                    node_name=node_name,
+                    symbol=row['symbol'],
+                    service_name=row['service_name'],
+                    service_handle=row['service_handle'],
+                    publish_topic_names=None,
+                    callback_object=row['callback_object'],
+                    callback_object_intra=callback_object_intra,
+                )
+            )
+        return srv_cbs_info
+
+    def _get_service_callback_values(
+        self,
+        node: NodeValue
+    ) -> List[ServiceCallbackValueLttng]:
+        node_id = node.node_id
+        assert node_id is not None
+
+        srv_cbs_info: List[ServiceCallbackValueLttng]
+        srv_cbs_info = self._get_srv_cbs_without_pub(node_id)
+
+        return srv_cbs_info
+
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValueLttng]:
+        """
+        Get service callbacks information.
+
+        Parameters
+        ----------
+        node_name : str
+            target node name.
+
+        Returns
+        -------
+        Sequence[ServiceCallbackInfo]
+
+        """
+        def get_srv_cb_local(node: NodeValueLttng):
+            node_id = node.node_id
+            if node_id not in self._srv_cb_cache.keys():
+                self._srv_cb_cache[node_id] = self._get_service_callback_values(node)
+            return self._srv_cb_cache[node_id]
+
+        if node.node_id is None:
+            return Util.flatten([
+                get_srv_cb_local(node)
+                for node
+                in self._get_nodes(node.node_name)
+            ])
+
+        node_lttng = NodeValueLttng(node.node_name, node.node_id)
+        return get_srv_cb_local(node_lttng)
 
     def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
         node_id = node.node_id
@@ -406,6 +504,7 @@ class LttngInfo:
 
         return pubs_info
 
+    # 仮実装
     def _is_user_made_callback(
         self,
         callback_id: str
@@ -413,7 +512,11 @@ class LttngInfo:
         is_subscription = callback_id in self._id_to_topic.keys()
         if not is_subscription:
             return True
+        is_service = callback_id in self._id_to_service.keys()
+        if not is_service:
+            return True
         topic_name = self._id_to_topic[callback_id]
+        # serviceの扱いは要相談
         return topic_name not in ['/clock', '/parameter_events']
 
     def _get_callback_groups(
@@ -423,6 +526,7 @@ class LttngInfo:
         concat_target_dfs = []
         concat_target_dfs.append(self._formatted.timer_callbacks_df)
         concat_target_dfs.append(self._formatted.subscription_callbacks_df)
+        concat_target_dfs.append(self._formatted.services_df)
 
         try:
             column_names = [
