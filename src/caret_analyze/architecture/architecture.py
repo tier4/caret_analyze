@@ -69,7 +69,7 @@ class Architecture(Summarizable):
 
     @property
     def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
-        return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
+        return tuple(Util.flatten(_.callback_groups for _ in self.executors))
 
     @property
     def callback_group_names(self) -> Tuple[str, ...]:
@@ -84,7 +84,7 @@ class Architecture(Summarizable):
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
-        return tuple(_.callbacks for _ in self.callback_groups)
+        return tuple(Util.flatten(_.callbacks for _ in self.callback_groups))
 
     def get_communication(
         self,
@@ -133,7 +133,7 @@ class Architecture(Summarizable):
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
-        return tuple([v.to_value() for v in self._nodes])
+        return tuple(v.to_value() for v in self._nodes)
 
     @property
     def node_names(self) -> Tuple[str, ...]:
@@ -141,7 +141,7 @@ class Architecture(Summarizable):
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
-        return tuple([v.to_value() for v in self._executors])
+        return tuple(v.to_value() for v in self._executors)
 
     @property
     def executor_names(self) -> Tuple[str, ...]:
@@ -157,7 +157,7 @@ class Architecture(Summarizable):
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
-        return tuple([v.to_value() for v in self._communications])
+        return tuple(v.to_value() for v in self._communications)
 
     @property
     def publishers(self) -> Tuple[PublisherStructValue, ...]:
