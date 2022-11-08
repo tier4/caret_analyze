@@ -124,7 +124,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         """
         pass
-    
+
     @abstractmethod
     def get_publishers(
         self,
@@ -187,7 +187,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         """
         pass
-    
+
     @abstractmethod
     def get_services(
         self,

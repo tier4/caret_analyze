@@ -163,7 +163,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
     @property
     def subscribe_topic_name(self) -> Optional[str]:
         return self._subscribe_topic_name
-    
+
     @property
     def service_name(self) -> Optional[str]:
         return self._service_name
@@ -368,7 +368,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
     @property
     def subscribe_topic_name(self) -> Optional[str]:
         return self._subscribe_topic_name
-    
+
     @property
     def service_name(self) -> Optional[str]:
         return self._service_name

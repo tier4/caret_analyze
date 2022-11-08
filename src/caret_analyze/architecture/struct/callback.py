@@ -102,7 +102,7 @@ class CallbackStruct(metaclass=ABCMeta):
     @property
     def subscribe_topic_name(self) -> Optional[str]:
         return self._subscribe_topic_name
-    
+
     @property
     def service_name(self) -> Optional[str]:
         return self._service_name
@@ -216,7 +216,7 @@ class ServiceCallbackStruct(CallbackStruct):
 
     def to_value(self) -> ServiceCallbackStructValue:
         return ServiceCallbackStructValue(
-            self.node_name, 
+            self.node_name,
             self.symbol,
             self.service_name,
             self.publish_topic_names,

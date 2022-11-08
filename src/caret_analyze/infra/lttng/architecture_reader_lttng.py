@@ -80,7 +80,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValue]:
         return self._lttng.get_subscription_callbacks(node)
-    
+
     def get_service_callbacks(
         self,
         node: NodeValue

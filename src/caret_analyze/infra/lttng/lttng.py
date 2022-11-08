@@ -453,7 +453,7 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_subscription_callbacks(node)
-    
+
     def get_service_callbacks(
         self,
         node: NodeValue

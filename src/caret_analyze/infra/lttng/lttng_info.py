@@ -61,7 +61,7 @@ class LttngInfo:
         self._id_to_service: Dict[str, str] = {}
         self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
         self._sub_cb_cache_without_pub = None
-        
+
         self._srv_cb_cache_without_pub: Optional[Dict[str, List[ServiceCallbackValueLttng]]]
         self._srv_cb_cache_without_pub = None
 
@@ -85,7 +85,7 @@ class LttngInfo:
             return []
 
         return self._sub_cb_cache_without_pub[node_id]
-    
+
     def _get_srv_cbs_without_pub(self, node_id: str) -> List[ServiceCallbackValueLttng]:
         if self._srv_cb_cache_without_pub is None:
             self._srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
@@ -311,7 +311,7 @@ class LttngInfo:
     @property
     def tilde_sub_id_map(self) -> Dict[int, int]:
         return self._formatted.tilde_sub_id_map
-    
+
     def _load_srv_cbs_without_pub(
         self
     ) -> Dict[str, List[ServiceCallbackValueLttng]]:
@@ -1379,7 +1379,7 @@ class DataFrameFormatted:
 
             cbg = data.callback_group_service.reset_index()
             df = merge(df, cbg, 'service_handle')
-            
+
             df = DataFrameFormatted._add_column(
                 df, 'callback_id', callback_id
             )

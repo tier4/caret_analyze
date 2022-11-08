@@ -921,7 +921,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
-            
+
             return TimerCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
@@ -1324,7 +1324,7 @@ class TopicIgnoredReader(ArchitectureReader):
                 continue
             subscriptions.append(subscription)
         return subscriptions
-    
+
     def get_services(self, node: NodeValue) -> List[ServiceValue]:
         services: List[ServiceValue] = []
         for service in self._reader.get_services(node):
@@ -1355,7 +1355,7 @@ class TopicIgnoredReader(ArchitectureReader):
                 continue
             callbacks.append(subscription_callback)
         return callbacks
-    
+
     def get_service_callbacks(
         self,
         node: NodeValue
