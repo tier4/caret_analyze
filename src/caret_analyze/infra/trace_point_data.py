@@ -363,7 +363,7 @@ class TracePointData:
         self._df = df[columns]
 
     def drop_duplicate(self) -> None:
-        """Remoe duplicated rows."""
+        """Remove duplicated rows."""
         self._df.drop_duplicates(inplace=True)
 
     def drop_row(self, index: Sequence[int]) -> None:
