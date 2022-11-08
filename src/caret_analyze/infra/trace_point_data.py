@@ -34,6 +34,7 @@ class TracePointIntermediateData:
         ----------
         columns : Sequence[str]
             column names
+
         """
         self._data: Dict[str, Any] = {column: [] for column in columns}
         self._columns = list(columns)
@@ -49,6 +50,7 @@ class TracePointIntermediateData:
         ----------
         series_data : Dict[str, Any]
             row values.
+
         """
         for k, v in series_data.items():
             self._data[k].append(v)
@@ -89,6 +91,7 @@ class TracePointIntermediateData:
         -------
         List[str]
             column names.
+
         """
         return list(self._columns)
 
@@ -103,6 +106,7 @@ class TracePointData:
         ----------
         df : pd.DataFrame
             internal data.
+
         """
         self._df: pd.DataFrame = deepcopy(df)
 
@@ -125,6 +129,7 @@ class TracePointData:
         -------
         TracePointData
             concatenated data.
+
         """
         concat_targets = []
 
@@ -148,6 +153,7 @@ class TracePointData:
         -------
         List[str]
             column names.
+
         """
         return list(self._df.columns)
 
@@ -166,6 +172,7 @@ class TracePointData:
         -------
         Any
             selected value.
+
         """
         return self._df.iat[row, column]
 
@@ -184,6 +191,7 @@ class TracePointData:
         -------
         Any
             selected value.
+
         """
         return self._df.at[row, column]
 
@@ -201,6 +209,7 @@ class TracePointData:
             column name to be used.
         value : Any
             value for match.
+
         """
         if column == 'index':
             filtered = self._df[self._df.index == value]
@@ -219,6 +228,7 @@ class TracePointData:
             column name to be renamed.
         new : str
             new column name.
+
         """
         self._df.rename(columns={old: new}, inplace=True)
 
@@ -269,6 +279,7 @@ class TracePointData:
             merge method, by default 'inner'
         drop_columns : Optional[List[str]], optional
             column names to be dropped, by default None
+
         """
 
         def drop(df: pd.DataFrame, drop_columns: List[str]) -> pd.DataFrame:
@@ -313,6 +324,7 @@ class TracePointData:
             column name to be added.
         f : Callable[[pd.Series], Any]
             column value for each row.
+
         """
         df = deepcopy(self._df)
 
@@ -339,6 +351,7 @@ class TracePointData:
             column name to be added.
         value : Any
             value.
+
         """
         self._df[column] = value
 
@@ -356,6 +369,7 @@ class TracePointData:
         ----------
         columns : List[str]
             column names.
+
         """
         df = self._df.copy()
         for missing_column in set(columns) - set(self._df.columns):
@@ -374,6 +388,7 @@ class TracePointData:
         ----------
         index : Sequence[int]
             index value to be dropped.
+
         """
         self._df.drop(index=index, inplace=True)
 
@@ -385,6 +400,7 @@ class TracePointData:
         -------
         TracePointData
             deep copied instance.
+
         """
         return deepcopy(self)
 
@@ -393,6 +409,7 @@ class TracePointData:
         Reset index.
 
         Old index are set as a new column.
+
         """
         df = self._df.reset_index()
         self._df = df.convert_dtypes()
@@ -406,6 +423,7 @@ class TracePointData:
         -------
         pd.DataFrame
             data
+
         """
         return self._ensure_df(self._df.convert_dtypes())
 
