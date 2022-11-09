@@ -1100,7 +1100,7 @@ class DataFrameFormatted:
             Columns
             - callback_id
             - callback_object
-            - callback_group_addrs
+            - callback_group_addr
             - node_handle
             - service_handle
             - service_name
