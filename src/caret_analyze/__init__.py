@@ -14,6 +14,9 @@
 
 from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
 
+"""
+Define classes and functions used by CARET users.
+"""
 from .architecture import Architecture, check_procedure
 from .common import Progress
 from .infra.lttng import Lttng, LttngEventFilter
@@ -29,6 +32,15 @@ __all__ = [
 ]
 
 
+"""
+Configure root logger settings.
+
+Note
+----
+Since the logs of all modules are displayed uniformly,
+it is preferable to be able to configure them in detail in an external log configuration file.
+
+"""
 handler = StreamHandler()
 handler.setLevel(WARN)
 

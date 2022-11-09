@@ -38,6 +38,20 @@ class Summary(UserDict):
 
     @staticmethod
     def _convert_safe(obj) -> Union[List, Dict]:
+        """
+        Recursively convert objects to yaml.dumpable.
+
+        Parameters
+        ----------
+        obj : _type_
+            Object to convert.
+
+        Returns
+        -------
+        Union[List, Dict]
+            converted object.
+
+        """
         if isinstance(obj, tuple) or isinstance(obj, list):
             return [Summary._convert_safe(_) for _ in obj]
 

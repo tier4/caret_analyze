@@ -56,12 +56,28 @@ def indexed_name(base_name: str, i: int, num_digit: int):
 
 
 class ArchitectureLoaded():
+    """
+    Class for loading architectural data.
+
+    Create a StructValue from a Value class that can be read from an ArchitectureReader.
+    """
+
     def __init__(
         self,
         reader: ArchitectureReader,
         ignore_topics: List[str]
     ) -> None:
+        """
+        Construct an instance.
 
+        Parameters
+        ----------
+        reader : ArchitectureReader
+            Architecture reader instance.
+        ignore_topics : List[str]
+            topic name to ignore.
+
+        """
         topic_ignored_reader = TopicIgnoredReader(reader, ignore_topics)
 
         self._nodes: Tuple[NodeStruct, ...]
@@ -86,27 +102,77 @@ class ArchitectureLoaded():
 
     @property
     def paths(self) -> Tuple[PathStruct, ...]:
+        """
+        Get paths.
+
+        Returns
+        -------
+        Tuple[PathStruct, ...]
+            Paths defined in ArchitectureReader.
+
+        """
         return self._paths
 
     @property
     def executors(self) -> Tuple[ExecutorStruct, ...]:
+        """
+        Get executors.
+
+        Returns
+        -------
+        Tuple[ExecutorStruct, ...]
+            Executors defined in ArchitectureReader.
+
+        """
         return self._executors
 
     @property
     def nodes(self) -> Tuple[NodeStruct, ...]:
+        """
+        Get nodes.
+
+        Returns
+        -------
+        Tuple[NodeStruct, ...]
+            Nodes defined in ArchitectureReader.
+
+        """
         return self._nodes
 
     @property
     def communications(self) -> Tuple[CommunicationStruct, ...]:
+        """
+        Get communications.
+
+        Returns
+        -------
+        Tuple[CommunicationStruct, ...]
+            Communications defined in ArchitectureReader.
+
+        """
         return self._communications
 
 
 class CommValuesLoaded():
+    """
+    Class for loading communication data.
+
+    Create a StructValue from a Value class that can be read from an ArchitectureReader.
+    """
 
     def __init__(
         self,
         nodes_loaded: NodeValuesLoaded
     ) -> None:
+        """
+        Constuct an instance.
+
+        Parameters
+        ----------
+        nodes_loaded : NodeValuesLoaded
+            loaded node information.
+
+        """
         node_values = nodes_loaded.data
 
         data: List[CommunicationStruct] = []
@@ -164,6 +230,15 @@ class CommValuesLoaded():
 
     @property
     def data(self) -> Tuple[CommunicationStruct, ...]:
+        """
+        Get loaded data.
+
+        Returns
+        -------
+        Tuple[CommunicationStruct, ...]
+            Loaded communications information.
+
+        """
         return self._data
 
     def find_communication(
@@ -172,6 +247,29 @@ class CommValuesLoaded():
         publish_node_name: str,
         subscribe_node_name: str,
     ) -> CommunicationStruct:
+        """
+        Get communication instance that matches the condition.
+
+        Parameters
+        ----------
+        topic_name : str
+            topic name.
+        publish_node_name : str
+            node name which publishes the topic.
+        subscribe_node_name : str
+            node name which subscribes the topic.
+
+        Returns
+        -------
+        CommunicationStruct
+            Communication that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
         from ..common import Util
 
         def is_target(comm: CommunicationStruct):
@@ -189,32 +287,100 @@ class CommValuesLoaded():
             raise ItemNotFoundError(msg)
 
     class IsTargetPubCallback:
+        """A callable class for linking the associated Publisher and Callback."""
 
         def __init__(self, publish: PublisherStruct):
+            """
+            Construct an instance.
+
+            Parameters
+            ----------
+            publish : PublisherStruct
+                Publisher to bind.
+            """
             self._publish = publish
 
         def __call__(self, callback: CallbackStruct) -> bool:
+            """
+            Check whether given callback is related.
+
+            Parameters
+            ----------
+            callback : CallbackStruct
+                callback to check.
+
+            Returns
+            -------
+            bool
+                True if callback is related, false otherwise.
+
+            """
             if callback.publish_topic_names is None:
                 return False
             return self._publish.topic_name in callback.publish_topic_names
 
     class IsTargetSubCallback:
+        """A callable class for linking the associated Subscription and Callback."""
 
         def __init__(self, subscription: SubscriptionStruct):
+            """
+            Construct an instance.
+
+            Parameters
+            ----------
+            subscription : SubscriptionStruct
+                Subscription to bind.
+
+            """
             self._subscription = subscription
 
         def __call__(self, callback: CallbackStruct) -> bool:
+            """
+            Check whether given callback is related.
+
+            Parameters
+            ----------
+            callback : CallbackStruct
+                callback to check.
+
+            Returns
+            -------
+            bool
+                True if callback is related, false otherwise.
+
+            """
             if callback.subscribe_topic_name is None:
                 return False
             return self._subscription.topic_name == callback.subscribe_topic_name
 
 
 class NodeValuesLoaded():
+    """
+    Class for loading node data.
+
+    Create a StructValue from a Value class that can be read from an ArchitectureReader.
+
+    Notes
+    -----
+    This class is used to search from other classes when they are created.
+    Some functions have duplicated names because of the history of adding necessary functions each time.
+    Needs to refactor.
+
+    """
 
     def __init__(
         self,
         reader: ArchitectureReader,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        reader : ArchitectureReader
+            Architecture reader instance.
+
+        """
         self._reader = reader
         nodes_struct: List[NodeStruct] = []
         self._cb_loaded: List[CallbacksLoaded] = []
@@ -266,12 +432,40 @@ class NodeValuesLoaded():
 
     @property
     def data(self) -> Tuple[NodeStruct, ...]:
+        """
+        Get loaded data.
+
+        Returns
+        -------
+        Tuple[NodeStruct, ...]
+            Loaded nodes information.
+
+        """
         return self._data
 
     def get_callbacks(
         self,
         node_name: str
     ) -> Tuple[CallbackStruct, ...]:
+        """
+        Get callbacks that matches condition.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name containing the callback to be returned.
+
+        Returns
+        -------
+        Tuple[CallbackStruct, ...]
+            Callbacks that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
         from ..common import Util
         try:
             cb_loaded: CallbacksLoaded
@@ -283,6 +477,25 @@ class NodeValuesLoaded():
             raise ItemNotFoundError(msg)
 
     def find_node(self, node_name: str) -> NodeStruct:
+        """
+        Get NodeStruct that matches condition.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name to get.
+
+        Returns
+        -------
+        NodeStruct
+            NodeStruct instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the condition.
+
+        """
         from ..common import Util
         try:
             return Util.find_one(lambda x: x.node_name == node_name, self.data)

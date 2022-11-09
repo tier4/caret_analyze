@@ -27,6 +27,7 @@ from ..value_objects import (CallbackStructValue, ExecutorStructValue,
 
 
 class ArchitectureExporter():
+    """Class for saving architecture files in yaml format."""
 
     def __init__(
         self,
@@ -35,22 +36,64 @@ class ArchitectureExporter():
         named_path_values: Tuple[PathStructValue, ...],
         force: bool = False
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_values : Tuple[NodeStructValue, ...]
+            Node info to export.
+        executor_values : Tuple[ExecutorStructValue, ...]
+            executor info to export.
+        named_path_values : Tuple[PathStructValue, ...]
+            path info to export.
+        force : bool, optional
+            If True, overwriting is allowed, by default False.
+
+        """
         self._named_path_values = named_path_values
         self._executor_values = executor_values
         self._node_values = node_values
         self._force = force
 
     def execute(self, file_path: str) -> None:
+        """
+        Execute the exporting of the architecture file.
+
+        Parameters
+        ----------
+        file_path : str
+            Target file path.
+
+        """
         mode = 'w' if self._force else 'x'
         with open(file_path, mode=mode) as f:
             f.write(str(self))
 
     def __str__(self) -> str:
+        """
+        Get string.
+
+        Returns
+        -------
+        str
+            Architecture expressed in strings.
+
+        """
         import yaml
         obj = self.to_dict()
         return yaml.dump(obj, indent=2, default_flow_style=False, sort_keys=False)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
+        """
+        Convert to dictionary.
+
+        Returns
+        -------
+        Dict
+            Dictionary data of architecture.
+
+        """
         named_path_dicts = NamedPathsDicts(self._named_path_values)
         executor_dicts = ExecutorsDicts(self._executor_values)
         nodes_dicts = NodesDicts(self._node_values)
@@ -62,14 +105,34 @@ class ArchitectureExporter():
 
 
 class NamedPathsDicts:
+    """Class for converting PathStructValue to dictionary type."""
+
     def __init__(
         self,
         named_path_values: List[PathStructValue]
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        named_path_values : List[PathStructValue]
+            path values to convert.
+
+        """
         self._data = [self._to_dict(p) for p in named_path_values]
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Path definitions.
+
+        """
         return self._data
 
     def _to_dict(self, path_value: PathStructValue):
@@ -89,10 +152,21 @@ class NamedPathsDicts:
 
 
 class CallbackDicts:
+    """Class for converting CallbackStructValue to dictionary type."""
+
     def __init__(
         self,
         callback_values: Tuple[CallbackStructValue, ...]
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        callback_values : Tuple[CallbackStructValue, ...]
+            callback values to convert.
+
+        """
         callbacks_dicts = [self._cb_to_dict(c) for c in callback_values]
         self._data = sorted(callbacks_dicts, key=lambda x: x['callback_name'])
 
@@ -132,14 +206,34 @@ class CallbackDicts:
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Callback definitions.
+
+        """
         return self._data
 
 
 class VarPassDicts:
+    """Class for converting VariablePassingStructValue to dictionary type."""
+
     def __init__(
         self,
         var_pass_values: Optional[Tuple[VariablePassingStructValue, ...]]
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        var_pass_values : Optional[Tuple[VariablePassingStructValue, ...]]
+            variable passing values to convert.
+
+        """
         self._data: List[Dict] = []
 
         if var_pass_values is None:
@@ -169,12 +263,31 @@ class VarPassDicts:
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Variable passing definitions.
+
+        """
         return self._data
 
 
 class PubDicts:
+    """Class for converting PublisherStructValue to dictionary type."""
 
     def __init__(self, publisher_values: Tuple[PublisherStructValue, ...]) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        publisher_values : Tuple[PublisherStructValue, ...]
+            publisher values to convert.
+
+        """
         dicts = [self._to_dict(p) for p in publisher_values]
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
@@ -192,12 +305,30 @@ class PubDicts:
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Publisher definitions.
+        """
         return self._data
 
 
 class SubDicts:
+    """Class for converting SubscriptionStructValue to dictionary type."""
 
     def __init__(self, subscription_values: Tuple[SubscriptionStructValue, ...]) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        subscription_values : Tuple[SubscriptionStructValue, ...]
+            subscription values to convert.
+
+        """
         dicts = [self._to_dict(s) for s in subscription_values]
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
@@ -209,20 +340,46 @@ class SubDicts:
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Subscription definitions.
+        """
         return self._data
 
 
 class NodesDicts:
+    """Class for converting NodeStructValue to dictionary type."""
 
     def __init__(
         self,
         node_values: List[NodeStructValue],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_values : List[NodeStructValue]
+            Node values to convert.
+        """
         nodes_dicts = [self._to_dict(n) for n in node_values]
         self._data = sorted(nodes_dicts, key=lambda x: x['node_name'])
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Node definitions.
+
+        """
         return self._data
 
     def _to_dict(
@@ -259,10 +416,21 @@ class NodesDicts:
 
 
 class MessageContextDicts:
+    """Class for converting MessageContext to dictionary type."""
+
     def __init__(
         self,
         paths: Tuple[NodePathStructValue, ...],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        paths : Tuple[NodePathStructValue, ...]
+            node values to convert.
+
+        """
         self._data = []
         for path in paths:
             if path.publish_topic_name is None or path.subscribe_topic_name is None:
@@ -281,19 +449,47 @@ class MessageContextDicts:
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Message context definitions.
+        """
         return self._data
 
 
 class ExecutorsDicts:
+    """Class for converting ExecutorStructValue to dictionary type."""
+
     def __init__(
         self,
         executor_values: List[ExecutorStructValue],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        executor_values : List[ExecutorStructValue]
+            executor values to convert.
+
+        """
         exec_dicts = [self._to_dict(e) for e in executor_values]
         self._data = sorted(exec_dicts, key=lambda x: x['executor_name'])
 
     @property
     def data(self) -> List[Dict]:
+        """
+        Get converted data.
+
+        Returns
+        -------
+        List[Dict]
+            Executor definitions.
+
+        """
         return self._data
 
     @staticmethod

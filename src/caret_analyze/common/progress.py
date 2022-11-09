@@ -16,16 +16,50 @@ from tqdm import tqdm
 
 
 class Progress:
+    """Class that manages the progress bar.
+
+    Progres.enable = True if progress bar is to be displayed.
+    """
+
     enable = False
 
     @classmethod
     def tqdm(cls, it, *args):
+        """
+        Progress bar for python iterators.
+
+        Parameters
+        ----------
+        it : _type_
+            iterator
+
+        Returns
+        -------
+        _type_
+            iterator.
+            progress bar is enabled if Progress.enable == True, disabled otherwise.
+        """
         if cls.enable:
             return tqdm(it, *args)
         return it
 
     @classmethod
     def records_label(cls, label: str) -> str:
+        """
+        Progress bar for the iterator in Records.
+
+        Parameters
+        ----------
+        label : str
+            operation label.
+
+        Returns
+        -------
+        str
+            '' if Progress.enables == True, label otherwise.
+            progress bar is enabled if Progress.enable == True, disabled otherwise.
+
+        """
         if cls.enable:
             return label
         return ''

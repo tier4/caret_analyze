@@ -34,24 +34,68 @@ logger = getLogger(__name__)
 
 
 class GraphEdgeCore(ValueObject):
+    """Edge class of the graph."""
 
     def __init__(self, i_from: int, i_to: int, label: Optional[str] = None):
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        i_from : int
+            Starting node number of the edge.
+        i_to : int
+            Edge endpoint node number.
+        label : Optional[str], optional
+            Edge name or topic name, by default None
+        """
         self.i_from = i_from
         self.i_to = i_to
         self.label = label or ''
 
 
 class GraphPathCore(UserList):
+    """
+    Path class of the graph.
+
+    A path is represented as a list of GraphEdgeCore.
+    """
 
     def __init__(self, init: List[GraphEdgeCore] = None):
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        init : List[GraphEdgeCore], optional
+            A list of the edges that compose the path., by default None
+
+        """
         init = init or []
         super().__init__(init)
 
     @property
     def path(self) -> Tuple[GraphEdgeCore, ...]:
+        """
+        Get path.
+
+        Returns
+        -------
+        Tuple[GraphEdgeCore, ...]
+            GraphEdgeCore that compose a path
+        """
         return tuple(self.data)
 
     def to_graph_node_indices(self) -> List[int]:
+        """
+        Get graph node indices.
+
+        Returns
+        -------
+        List[int]
+            A list of node numbers that compose the path.
+
+        """
         if len(self) == 0:
             return []
 
@@ -68,14 +112,28 @@ class GraphPathCore(UserList):
 
 
 class GraphCore:
+    """A class that represents a graph."""
 
     def __init__(self):
+        """Construct an instance."""
         self._v = 0
         # default dictionary to store graph
         self._graph: DefaultDict[int, List[GraphEdgeCore]]
         self._graph = defaultdict(list)
 
     def add_edge(self, u: int, v: int, label: Optional[str] = None):
+        """
+        Add new edge.
+
+        Parameters
+        ----------
+        u : int
+            Starting node number of the edge.
+        v : int
+            Edge endpoint node number.
+        label : Optional[str], optional
+            Edge name or topic name, by default None
+        """
         self._v = max(self._v, u + 1, v + 1)
         self._graph[u].append(GraphEdgeCore(u, v, label))
 
@@ -88,7 +146,30 @@ class GraphCore:
         path: GraphPathCore,
         paths: List[GraphPathCore],
     ) -> None:
+        """
+        Search paths. This function is implemented by recursive execution.
 
+        Parameters
+        ----------
+        u : int
+            Starting node number.
+        d : int
+            Endpoint node number.
+        edge : Optional[GraphEdgeCore]
+            Edge currently being searched.
+        visited : Dict[Tuple[int, int], bool]
+            Visited flag.
+        path : GraphPathCore
+            Paths in the process of being searched and constructed.
+        paths : List[GraphPathCore]
+            Searched paths.
+
+        Note
+        ----
+            This function is left because the algorithm is easy to understand,
+            but if speed is important, use _search_paths.
+
+        """
         if edge is not None:
             path.append(edge)
 
