@@ -367,6 +367,22 @@ class TestLttngInfo:
         mocker.patch.object(
             formatted_mock, 'subscription_callbacks_df', sub_df)
 
+        srv_df = pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object,
+                    'node_handle': node_handle,
+                    'service_handle': 0,
+                    'callback_group_addr': cbg_addr,
+                    'service_name': 'service',
+                    'symbol': 'symbol',
+                    'callback_id': 'service_callback_0'
+                },
+            ]
+        )
+        mocker.patch.object(
+            formatted_mock, 'services_df', srv_df)
+
         node_df = pd.DataFrame.from_dict(
             [
                 {
@@ -399,7 +415,7 @@ class TestLttngInfo:
             CallbackGroupType.REENTRANT.type_name,
             '/node1',
             'node_id',
-            ('timer_callback_0', 'subscription_callback_0'),
+            ('timer_callback_0', 'subscription_callback_0', 'service_callback_0'),
             'callback_group_id',
             callback_group_addr=cbg_addr,
             executor_addr=exec_addr,
