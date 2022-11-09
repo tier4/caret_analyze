@@ -22,6 +22,7 @@ from caret_analyze.infra.lttng.records_source import RecordsSource
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
                                                      SubscriptionCallbackValueLttng,
+                                                     ServiceCallbackValueLttng,
                                                      TimerCallbackValueLttng)
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue
@@ -144,6 +145,28 @@ class TestLttng:
         mocker.patch.object(lttng_info_mock, 'get_subscription_callbacks',
                             return_value=[sub_cb_mock])
         assert lttng.get_subscription_callbacks(NodeValue('node', None)) == [sub_cb_mock]
+
+    def test_get_service_callbacks(self, mocker):
+        data_mock = mocker.Mock(spec=Ros2DataModel)
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
+
+        lttng_info_mock = mocker.Mock(spec=LttngInfo)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+                     return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
+        counter_mock = mocker.Mock(spec=EventCounter)
+        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+                     return_value=counter_mock)
+
+        lttng = Lttng('trace_dir')
+
+        srv_cb_mock = mocker.Mock(spec=ServiceCallbackValueLttng)
+        mocker.patch.object(lttng_info_mock, 'get_service_callbacks',
+                            return_value=[srv_cb_mock])
+        assert lttng.get_service_callbacks(NodeValue('node', None)) == [srv_cb_mock]
 
     def test_get_executors(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
