@@ -15,6 +15,15 @@
 from .architecture import Architecture
 from .util import check_procedure
 
+"""
+CARET architecture package.
+
+This package provides a set of classes with static (e.g., node names)).
+It has a ROS-friendly class structure that allows application developers
+to obtain the information they need for evaluation.
+
+"""
+
 __all__ = [
     'Architecture',
     'check_procedure'

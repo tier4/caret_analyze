@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Package defining the value object class.
+
+Defined classes are used as an interface across multiple packages: architecture, infra, and runtime.
+Value objects are used to eliminate the possibility of values being unexpectedly overwritten
+and to simplify comparison of equal values.
+
+"""
+
 from .callback import (CallbackStructValue,
                        CallbackType,
                        CallbackValue,

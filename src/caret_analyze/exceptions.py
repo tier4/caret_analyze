@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Define of exceptions raised by CARET."""
+
 
 class Error(Exception):
     """

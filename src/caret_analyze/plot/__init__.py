@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+CARET plot package.
+
+This package provides visualization capabilities.
+Many visualization APIs are provided by the Plot class, which has a role as a facade.
+
+"""
+
 from .bokeh.callback_info import (CallbackFrequencyPlot,
                                   CallbackLatencyPlot,
                                   CallbackPeriodPlot)

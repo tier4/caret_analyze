@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+CARET infra package.
+
+This package defines classes that serve as contact points with external files.
+It implements the defined interfaces, keeping each implementation
+separate from the main business logic of CARET.
+
+"""
+
 from .infra_base import InfraBase
 from .interface import RecordsProvider, RuntimeDataProvider
 from .lttng import Lttng, RecordsProviderLttng

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Defines common, generic processes and classes used by other packages."""
+
 from .clock_converter import ClockConverter
 from .progress import Progress
 from .singleton import Singleton

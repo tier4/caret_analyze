@@ -15,7 +15,7 @@
 from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
 
 """
-Define classes and functions used by CARET users.
+Import classes and functions used by CARET users.
 """
 from .architecture import Architecture, check_procedure
 from .common import Progress
