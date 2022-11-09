@@ -207,6 +207,15 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
+    def assign_message_context(self, node, context_type, sub_topic_name, pub_topic_name):
+        raise NotImplementedError('')
+
+    def assign_publisher(self, node_name, pub_topic_name, callback_function):
+        raise NotImplementedError('')
+
+    def assign_message_passings(self, node_name, source_callback_name, destination_callback_name):
+        raise NotImplementedError('')
+
 
 """
     def rename_callback(src: str, dest: str):

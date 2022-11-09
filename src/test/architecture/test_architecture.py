@@ -312,3 +312,6 @@ class TestArchitecture:
         caplog.clear()
         Architecture._verify([node_mock])
         assert len(caplog.record_tuples) == 1
+
+    def test_assign_function(self, mocker):
+        raise NotImplementedError('')
