@@ -90,10 +90,46 @@ class EventCollection(Iterable, Sized):
 
     @staticmethod
     def _trace_dir_exists(path: str) -> bool:
+        """
+        Check whether trace dir exists.
+
+        Parameters
+        ----------
+        path : str
+            path to trace dir.
+
+        Returns
+        -------
+        bool
+            True if trace dir exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
         return os.path.exists(path)
 
     @staticmethod
     def _cache_exists(path: str) -> bool:
+        """
+        Check whether cache exists.
+
+        Parameters
+        ----------
+        path : str
+            Path to cache.
+
+        Returns
+        -------
+        bool
+            True if cache exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
         return os.path.exists(path)
 
 
