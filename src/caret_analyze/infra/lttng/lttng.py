@@ -468,7 +468,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[ServicenCallbackInfoLttng]
+        Sequence[ServiceCallbackInfoLttng]
 
         """
         return self._info.get_service_callbacks(node)
