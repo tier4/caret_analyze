@@ -1364,6 +1364,26 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.path_base.PathBase.clear_cache" class="md-nav__link">
+    clear_cache()
+  </a>
+  
+    <nav class="md-nav" aria-label="clear_cache()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.path_base.PathBase.clear_cache--note" class="md-nav__link">
+    Note
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.path_base.PathBase.column_names" class="md-nav__link">
     column_names()
   </a>
@@ -2738,6 +2758,26 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.path_base.PathBase.clear_cache" class="md-nav__link">
+    clear_cache()
+  </a>
+  
+    <nav class="md-nav" aria-label="clear_cache()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.path_base.PathBase.clear_cache--note" class="md-nav__link">
+    Note
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.path_base.PathBase.column_names" class="md-nav__link">
     column_names()
   </a>
@@ -3075,7 +3115,7 @@
 <p>This package provides a set of classes with static (e.g., node names)
 and dynamic information (e.g., execution times).
 It has a ROS-friendly class structure that allows application developers
-to obtain the information they need for evaluation.</p>
+to obtain the information need for evaluation.</p>
 
   
 
@@ -6023,7 +6063,7 @@ None except for timer callback.</p></td>
         <tr>
           <td><code>records_provider</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <span title="caret_analyze.infra.RuntimeDataProvider">RuntimeDataProvider</span>, None]</code>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <a class="autorefs autorefs-internal" title="caret_analyze.infra.RuntimeDataProvider" href="../infra/#caret_analyze.infra.RuntimeDataProvider">RuntimeDataProvider</a>, None]</code>
           </td>
           <td><p>provider to be evaluated.</p></td>
           <td>
@@ -9394,7 +9434,8 @@ node paths and communications are alternately contained.</p></td>
   <div class="doc doc-contents ">
 
   
-      <p>Base class for Latency.</p>
+      <p>Base class of classes from which records can be calculated.</p>
+<p>Define APIs such as to_records and to_dataframe, used for Callback, Path, etc.</p>
 
 
 
@@ -9409,6 +9450,26 @@ node paths and communications are alternately contained.</p></td>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.runtime.path_base.PathBase.clear_cache" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_cache</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.runtime.path_base.PathBase.clear_cache" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Clear records cache.</p>
+<h5 id="caret_analyze.runtime.path_base.PathBase.clear_cache--note">Note<a class="headerlink" href="#caret_analyze.runtime.path_base.PathBase.clear_cache--note" title="Permanent link">#</a></h5>
+<p>It's prefered to use functools.lru_cache instead.</p>
+
+  </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
@@ -9833,7 +9894,7 @@ len(time) == len(latency)</p></td>
         <tr>
           <td><code>provider</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <span title="caret_analyze.infra.RuntimeDataProvider">RuntimeDataProvider</span>]</code>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <a class="autorefs autorefs-internal" title="caret_analyze.infra.RuntimeDataProvider" href="../infra/#caret_analyze.infra.RuntimeDataProvider">RuntimeDataProvider</a>]</code>
           </td>
           <td><p>provider to be evaluated.</p></td>
           <td>
@@ -10125,7 +10186,7 @@ len(time) == len(latency)</p></td>
         <tr>
           <td><code>data_provider</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.interface.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <span title="caret_analyze.infra.interface.RuntimeDataProvider">RuntimeDataProvider</span>]</code>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.interface.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <a class="autorefs autorefs-internal" title="caret_analyze.infra.interface.RuntimeDataProvider" href="../infra/#caret_analyze.infra.RuntimeDataProvider">RuntimeDataProvider</a>]</code>
           </td>
           <td><p>provider to be evaluated.</p></td>
           <td>
@@ -10529,7 +10590,7 @@ len(time) == len(latency)</p></td>
         <tr>
           <td><code>data_provider</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.interface.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <span title="caret_analyze.infra.interface.RuntimeDataProvider">RuntimeDataProvider</span>]</code>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.infra.interface.RecordsProvider" href="../infra/#caret_analyze.infra.RecordsProvider">RecordsProvider</a>, <a class="autorefs autorefs-internal" title="caret_analyze.infra.interface.RuntimeDataProvider" href="../infra/#caret_analyze.infra.RuntimeDataProvider">RuntimeDataProvider</a>]</code>
           </td>
           <td><p>provider to be evaluated.</p></td>
           <td>

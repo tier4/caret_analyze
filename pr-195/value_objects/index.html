@@ -1188,6 +1188,53 @@
     ValueObject
   </a>
   
+    <nav class="md-nav" aria-label="ValueObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ValueObject--note" class="md-nav__link">
+    Note
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__eq__" class="md-nav__link">
+    __eq__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+    <nav class="md-nav" aria-label="__hash__()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__--references" class="md-nav__link">
+    References
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__str__" class="md-nav__link">
+    __str__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1954,6 +2001,53 @@
   <a href="#caret_analyze.value_objects.ValueObject" class="md-nav__link">
     ValueObject
   </a>
+  
+    <nav class="md-nav" aria-label="ValueObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ValueObject--note" class="md-nav__link">
+    Note
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__eq__" class="md-nav__link">
+    __eq__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+    <nav class="md-nav" aria-label="__hash__()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__--references" class="md-nav__link">
+    References
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__str__" class="md-nav__link">
+    __str__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3048,8 +3142,8 @@ a value that can be identified when retrieved from the Architecture reader.</p><
 <code class="highlight language-python"><span class="n">callback_type</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
@@ -3512,8 +3606,8 @@ If any properties is different, it should be a different callback id.</p>
 <code class="highlight language-python"><span class="n">callback_type</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
@@ -5143,6 +5237,12 @@ and used as the return value of ArchitectureReader.</p>
 
   
       <p>Value object base class.</p>
+<p>Classes that inherit from this class will become immutable ValueObjects,
+and <strong>eq</strong> and <strong>hash</strong> will be calculated based on public properties.</p>
+<h4 id="caret_analyze.value_objects.ValueObject--note">Note<a class="headerlink" href="#caret_analyze.value_objects.ValueObject--note" title="Permanent link">#</a></h4>
+<p>Since the hash value is immutable,
+inherited classes can be used as a dictionary type key, for example.
+It is also suitable for cache use and does not unintentionally change properties.</p>
 
 
 
@@ -5157,6 +5257,143 @@ and used as the return value of ArchitectureReader.</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.value_object.ValueObject.__eq__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__eq__</span><span class="p">(</span><span class="n">right</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.value_object.ValueObject.__eq__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check whether self equals to given instance [override].</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>right</code></td>
+          <td>
+                <code>_type_</code>
+          </td>
+          <td><p>Comparison target.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Recursively compares the values of the published properties and
+returns True only if they all match. False otherwise.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.value_object.ValueObject.__hash__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__hash__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculate hash value.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>A hash value calculated from all of the publicly available
+property values by recursively referencing them.</p></td>
+        </tr>
+    </tbody>
+  </table>
+      <h5 id="caret_analyze.value_objects.value_object.ValueObject.__hash__--references">References<a class="headerlink" href="#caret_analyze.value_objects.value_object.ValueObject.__hash__--references" title="Permanent link">#</a></h5>
+<div class="codehilite"><pre><span></span><code>https://www.baeldung.com/java-hashcode
+</code></pre></div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.value_object.ValueObject.__str__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__str__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.value_objects.value_object.ValueObject.__str__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert to string.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Yaml format strings created by recursively access properties.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 
