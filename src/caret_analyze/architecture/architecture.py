@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
+from typing import Callable, Collection, List, Optional, Tuple, Union
 
 from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
@@ -260,40 +260,3 @@ class Architecture(Summarizable):
 
         for c in self._communications:
             c.rename_topic(src, dst)
-
-
-class NamedPathManager():
-
-    def __init__(self, paths: Tuple[PathStructValue, ...]) -> None:
-        self._named_paths: Dict[str, PathStructValue] = {}
-        for path in paths:
-            if path.path_name is None:
-                continue
-            self._named_paths[path.path_name] = path
-
-    @property
-    def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return tuple(self._named_paths.values())
-
-    def get_named_path(self, path_name: str) -> PathStructValue:
-        if path_name not in self._named_paths.keys():
-            raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
-        return self._named_paths[path_name]
-
-    def add_named_path(self, path_name: str, path_info: PathStructValue):
-        if path_name in self._named_paths.keys():
-            raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
-        named_path_info = PathStructValue(path_name, path_info.child)
-        self._named_paths[path_name] = named_path_info
-
-    def remove_named_path(self, path_name: str):
-        if path_name not in self._named_paths.keys():
-            raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
-        del self._named_paths[path_name]
-
-    def update_named_path(self, path_name: str, path_info: PathStructValue):
-        if path_info.path_name is None:
-            raise InvalidArgumentError('path_info.path_name is None')
-
-        self.remove_named_path(path_info.path_name)
-        self.add_named_path(path_name, path_info)
