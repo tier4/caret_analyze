@@ -15,10 +15,10 @@
 from .callback import (CallbackStructValue,
                        CallbackType,
                        CallbackValue,
-                       SubscriptionCallbackStructValue,
-                       SubscriptionCallbackValue,
                        ServiceCallbackStructValue,
                        ServiceCallbackValue,
+                       SubscriptionCallbackStructValue,
+                       SubscriptionCallbackValue,
                        TimerCallbackStructValue,
                        TimerCallbackValue)
 from .callback_group import CallbackGroupStructValue, CallbackGroupType, CallbackGroupValue
@@ -35,8 +35,8 @@ from .node_path import NodePathStructValue, NodePathValue
 from .path import PathStructValue, PathValue
 from .publisher import PublisherStructValue, PublisherValue
 from .qos import Qos
-from .subscription import SubscriptionStructValue, SubscriptionValue
 from .service import ServiceStructValue, ServiceValue
+from .subscription import SubscriptionStructValue, SubscriptionValue
 from .timer import TimerStructValue, TimerValue
 from .value_object import ValueObject
 from .variable_passing import VariablePassingStructValue, VariablePassingValue
