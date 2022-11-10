@@ -314,4 +314,62 @@ class TestArchitecture:
         assert len(caplog.record_tuples) == 1
 
     def test_assign_function(self, mocker):
-        raise NotImplementedError('')
+        architecture_text = """
+named_paths: []
+executors: []
+nodes:
+- node_name: /pong_node
+  callbacks:
+    - callback_name: subscription_callback_0
+      callback_type: subscription_callback
+      topic_name: /pong
+      symbol: sub_symbol
+    - callback_name: timer_callback_1
+      callback_type: timer_callback
+      period_ns: 1
+      symbol: timer_symbol
+  subscribes:
+    - topic_name: /pong
+      callback_name: subscription_callback_0
+"""
+
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+        node = arch.get_node("/pong_node")
+
+        architecture_text_expected = """
+named_paths: []
+executors: []
+nodes:
+- node_name: /pong_node
+  callbacks:
+    - callback_name: subscription_callback_0
+      callback_type: subscription_callback
+      topic_name: /pong
+      symbol: sub_symbol
+    - callback_name: timer_callback_1
+      callback_type: timer_callback
+      period_ns: 1
+      symbol: timer_symbol
+  variable_passings:
+    - callback_name_write: subscription_callback_0
+      callback_name_read: timer_callback_1
+  publishes:
+    - topic_name: /ping
+      callback_names:
+        - timer_callback_1
+  subscribes:
+    - topic_name: /pong
+      callback_name: subscription_callback_0
+  message_contexts:
+    - context_type: callback_chain
+      subscription_topic_name: /pong
+      publisher_topic_name: /ping
+"""
+
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch = Architecture('yaml', 'architecture.yaml')
+        node_expected = arch.get_node("/pong_node")
+
+        assert len(node.variable_passings) == len(node_expected.variable_passings)
+        assert len(node.publishers) == len(node_expected.publishers)
