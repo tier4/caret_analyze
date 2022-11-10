@@ -280,7 +280,6 @@ class TracePointData:
             column names to be dropped, by default None
 
         """
-
         def drop(df: pd.DataFrame, drop_columns: List[str]) -> pd.DataFrame:
             columns = list(set(df) & set(drop_columns))
             if len(columns) == 0:
