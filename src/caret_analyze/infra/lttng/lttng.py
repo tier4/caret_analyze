@@ -32,8 +32,8 @@ from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
 from .value_objects import (CallbackGroupId,
                             PublisherValueLttng,
-                            SubscriptionCallbackValueLttng,
                             ServiceCallbackValueLttng,
+                            SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
 from ...common import ClockConverter
@@ -457,7 +457,7 @@ class Lttng(InfraBase):
     def get_service_callbacks(
         self,
         node: NodeValue
-        ) -> Sequence[ServiceCallbackValueLttng]:
+    ) -> Sequence[ServiceCallbackValueLttng]:
         """
         Get service callbacks information.
 

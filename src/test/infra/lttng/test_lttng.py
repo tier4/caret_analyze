@@ -21,8 +21,8 @@ from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.records_source import RecordsSource
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.value_objects import (PublisherValueLttng,
-                                                     SubscriptionCallbackValueLttng,
                                                      ServiceCallbackValueLttng,
+                                                     SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
 from caret_analyze.record.interface import RecordsInterface
 from caret_analyze.value_objects import ExecutorValue

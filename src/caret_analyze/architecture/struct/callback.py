@@ -18,8 +18,8 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple
 
 from ...value_objects import (CallbackStructValue, CallbackType,
-                              SubscriptionCallbackStructValue,
                               ServiceCallbackStructValue,
+                              SubscriptionCallbackStructValue,
                               TimerCallbackStructValue)
 
 
@@ -185,6 +185,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
             self.subscribe_topic_name,
             self.publish_topic_names,
             self.callback_name)
+
 
 class ServiceCallbackStruct(CallbackStruct):
     """Structured service callback value."""

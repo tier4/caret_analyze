@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback import SubscriptionCallbackValueLttng, ServiceCallbackValueLttng, TimerCallbackValueLttng
+from .callback import (ServiceCallbackValueLttng,
+                       SubscriptionCallbackValueLttng,
+                       TimerCallbackValueLttng)
 from .callback_group import CallbackGroupAddr, CallbackGroupId, CallbackGroupValueLttng
 from .node import NodeValueLttng
 from .publisher import PublisherValueLttng

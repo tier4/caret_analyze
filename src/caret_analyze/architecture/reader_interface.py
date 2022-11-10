@@ -19,8 +19,8 @@ from typing import Dict, Optional, Sequence, Tuple
 
 from ..value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
                              NodeValueWithId, PathValue, PublisherValue,
-                             SubscriptionCallbackValue, SubscriptionValue,
                              ServiceCallbackValue, ServiceValue,
+                             SubscriptionCallbackValue, SubscriptionValue,
                              TimerCallbackValue, TimerValue, VariablePassingValue)
 
 UNDEFINED_STR = 'UNDEFINED'

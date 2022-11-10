@@ -30,8 +30,8 @@ from .value_objects import (CallbackGroupAddr,
                             CallbackGroupValueLttng,
                             NodeValueLttng,
                             PublisherValueLttng,
-                            SubscriptionCallbackValueLttng,
                             ServiceCallbackValueLttng,
+                            SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng,
                             TimerControl)
 from ...common import Util

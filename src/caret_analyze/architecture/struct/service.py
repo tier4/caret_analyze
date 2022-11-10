@@ -17,6 +17,7 @@ from typing import Optional
 from .callback import ServiceCallbackStruct
 from ...value_objects import ServiceStructValue
 
+
 class ServiceStruct():
     """Service info."""
 

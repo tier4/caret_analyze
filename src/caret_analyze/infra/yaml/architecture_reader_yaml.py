@@ -23,8 +23,8 @@ from ...exceptions import InvalidYamlFormatError
 from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               NodePathValue, NodeValue, NodeValueWithId,
                               PathValue, PublisherValue,
-                              SubscriptionCallbackValue, SubscriptionValue,
                               ServiceCallbackValue, ServiceValue,
+                              SubscriptionCallbackValue, SubscriptionValue,
                               TimerCallbackValue, TimerValue, VariablePassingValue)
 
 logger = getLogger(__name__)

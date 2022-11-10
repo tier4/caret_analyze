@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from .callback import (CallbackStruct,
-                       SubscriptionCallbackStruct,
                        ServiceCallbackStruct,
+                       SubscriptionCallbackStruct,
                        TimerCallbackStruct)
 from .callback_group import CallbackGroupStruct
 from .communication import CommunicationStruct
@@ -28,8 +28,8 @@ from .node import NodeStruct
 from .node_path import NodePathStruct
 from .path import PathStruct
 from .publisher import PublisherStruct
-from .subscription import SubscriptionStruct
 from .service import ServiceStruct
+from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 

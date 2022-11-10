@@ -34,7 +34,6 @@ from caret_analyze.architecture.struct import (CallbackGroupStruct, CallbackStru
                                                NodePathStruct, NodeStruct, PathStruct,
                                                PublisherStruct,
                                                SubscriptionCallbackStruct, SubscriptionStruct,
-                                               ServiceCallbackStruct, ServiceStruct,
                                                TimerStruct,
                                                VariablePassingStruct)
 from caret_analyze.common import Util
@@ -45,8 +44,8 @@ from caret_analyze.value_objects import (CallbackGroupType, CallbackGroupValue,
                                          ExecutorType, ExecutorValue,
                                          NodePathValue, NodeValue,
                                          PathValue, PublisherValue,
+                                         ServiceCallbackValue,
                                          SubscriptionCallbackValue, SubscriptionValue,
-                                         ServiceCallbackValue, ServiceValue,
                                          TimerCallbackValue,
                                          VariablePassingValue)
 

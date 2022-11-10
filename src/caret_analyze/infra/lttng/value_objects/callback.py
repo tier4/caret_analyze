@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from ....value_objects import SubscriptionCallbackValue, TimerCallbackValue, ServiceCallbackValue
+from ....value_objects import ServiceCallbackValue, SubscriptionCallbackValue, TimerCallbackValue
 
 
 class TimerCallbackValueLttng(TimerCallbackValue):
