@@ -102,6 +102,8 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
             Topic name which the callback subscribes.
         publish_topic_names : Optional[Tuple[str, ...]]
             Topic name which the callback publishes.
+        callback_name: Optional[str]
+            Callback name, by default None. This argument is used by ArchitectureReaderYaml.
 
         """
         self._callback_id = callback_id
@@ -178,8 +180,8 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         str
             Callback name.
 
-        Note
-        ----
+        Note:
+        -----
         Different architecture_readers may return different values.
 
         """
@@ -195,8 +197,8 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Optional[str]
             Topic name which the callback subscribes.
 
-        Note
-        ----
+        Note:
+        -----
         Only one subscription callback have a single subscribe topic name.
 
         """
@@ -205,15 +207,15 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
     @property
     def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
         """
-        Get publisher topic names>
+        Get publisher topic names.
 
         Returns
         -------
         Optional[Tuple[str, ...]]
             Topic names which the callback publishes.
 
-        Note
-        ----
+        Note:
+        -----
         Since callback publishes multiple topics,
         there are multiple publish topic names.
 

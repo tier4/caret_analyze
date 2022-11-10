@@ -29,7 +29,7 @@ class EventCounter:
     """
     Class for counting trace data.
 
-    Note
+    Note:
     ----
     Refactoring is preferred because there are duplicate process with latency calculation.
 

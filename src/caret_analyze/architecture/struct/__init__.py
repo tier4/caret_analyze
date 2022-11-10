@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Struct packgage.
+
+This package defines mutable Struct classes.
+It is internally stored in the Architecture class and
+supports rewriting and conversion to StructValue.
+"""
+
 from .callback import (CallbackStruct,
                        SubscriptionCallbackStruct,
                        TimerCallbackStruct)

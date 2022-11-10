@@ -1,3 +1,11 @@
+"""
+Lttng package.
+
+This package implements the ArchitectureReader class
+and RuntimeDataProvider for lttng saved data.
+It also defines Lttng, a class that stores trace data.
+"""
+
 # Copyright 2021 Research Institute of Systems Planning, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

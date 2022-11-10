@@ -73,6 +73,7 @@ class UniqueList(UserList):
             The types do not match.
             Generating a duplicate UniqueList may cause a bug.
             It might be better to have this function Duplicate.
+
         """
         return self.data + other
 
@@ -89,6 +90,7 @@ class UniqueList(UserList):
         -------
         UniqueList
             List with data added.
+
         """
         for i in other:
             self.append(i)

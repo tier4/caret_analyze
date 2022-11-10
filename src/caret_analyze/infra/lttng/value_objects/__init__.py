@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Lttng Value Objects package.
+
+This package defines value objects used by Lttng package.
+
+"""
+
 from .callback import SubscriptionCallbackValueLttng, TimerCallbackValueLttng
 from .callback_group import CallbackGroupAddr, CallbackGroupId, CallbackGroupValueLttng
 from .node import NodeValueLttng

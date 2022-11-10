@@ -85,7 +85,7 @@ class ColumnValue(ValueObject):
     """
     Immutable column class.
 
-    Note
+    Note:
     ----
     Add properties such as node and topic names as well as column names for future refactoring.
     It's prefered to refacto that also adds attributes such as whether
@@ -120,7 +120,7 @@ class Column():
     """
     Mutable column class.
 
-    Note
+    Note:
     ----
     It can be renamed, etc., and is used in the Columns class.
 
@@ -157,7 +157,7 @@ class Columns(UserList):
     """
     List class for columns.
 
-    Note
+    Note:
     ----
     Used with instances of Records objects.
 
@@ -205,7 +205,7 @@ class Columns(UserList):
         ValueError
             Occurs when a column name is not specified.
 
-        Note
+        Note:
         ----
         Exceptions should be unified one way or the other.
 

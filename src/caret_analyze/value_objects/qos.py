@@ -20,7 +20,7 @@ class Qos(ValueObject, Summarizable):
     """
     Qos info.
 
-    Note
+    Note:
     ----
     Currently, only DEPTH is supported, but it is desirable to support
     other QoS by adding trace points.

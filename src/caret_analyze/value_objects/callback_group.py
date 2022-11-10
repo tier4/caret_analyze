@@ -148,6 +148,7 @@ class CallbackGroupValue(ValueObject):
         -------
         str
             Node id.
+
         """
         return self._node_id
 
@@ -274,6 +275,7 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         -------
         Tuple[CallbackStructValue, ...]
             Callbacks which are added to the callback group.
+
         """
         return self._callback_values
 

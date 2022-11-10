@@ -21,7 +21,7 @@ class Summary(UserDict):
     """
     Summary info about for value objects and runtime data objects.
 
-    Note
+    Note:
     ----
     The class is used to get an overview of the instance and
     has no effect on __eq__, __hash__, etc.

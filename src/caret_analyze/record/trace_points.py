@@ -19,8 +19,8 @@ class TracePoint(NamedTuple):
     """
     Column name used for measurement results.
 
-    Note
-    ----
+    Note:
+    -----
     Refactoring is necessary because column name information exists in multiple locations.
 
     """

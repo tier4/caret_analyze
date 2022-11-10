@@ -62,7 +62,7 @@ class PathBase(metaclass=ABCMeta):
         """
         Clear records cache.
 
-        Note
+        Note:
         ----
         It's prefered to use functools.lru_cache instead.
 

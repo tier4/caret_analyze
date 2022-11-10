@@ -1,3 +1,7 @@
+"""
+Import classes and functions used by CARET users.
+"""
+
 # Copyright 2021 Research Institute of Systems Planning, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +18,6 @@
 
 from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
 
-"""
-Import classes and functions used by CARET users.
-"""
 
 from .architecture import Architecture, check_procedure
 from .common import Progress

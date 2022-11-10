@@ -25,7 +25,7 @@ class Error(Exception):
 
     Use this class when catching CARET-related errors.
 
-    Note
+    Note:
     ----
     The inherited class defines a constructor unnecessarily.
     Refactoring is needed.

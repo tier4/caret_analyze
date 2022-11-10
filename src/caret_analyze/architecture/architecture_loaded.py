@@ -363,7 +363,8 @@ class NodeValuesLoaded():
     Notes
     -----
     This class is used to search from other classes when they are created.
-    Some functions have duplicated names because of the history of adding necessary functions each time.
+    Some functions have duplicated names because of the history
+    of adding necessary functions each time.
     Needs to refactor.
 
     """

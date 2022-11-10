@@ -1,3 +1,12 @@
+"""
+Architecture package.
+
+This package provides a set of classes with static (e.g., node names).
+It has a ROS-friendly class structure that allows application developers
+to obtain the information need for evaluation.
+
+"""
+
 # Copyright 2021 Research Institute of Systems Planning, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,15 +20,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""
-Architecture package.
-
-This package provides a set of classes with static (e.g., node names).
-It has a ROS-friendly class structure that allows application developers
-to obtain the information need for evaluation.
-
-"""
 
 from .architecture import Architecture
 from .util import check_procedure

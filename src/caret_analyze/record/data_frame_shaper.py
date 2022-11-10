@@ -34,6 +34,7 @@ class DataFrameShaper(metaclass=ABCMeta):
         -------
         pd.DataFrame
             Formatted data frame.
+
         """
         pass
 

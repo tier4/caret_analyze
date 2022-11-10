@@ -66,6 +66,7 @@ class ClockConverter():
         ------
         InvalidArgumentError
             Occurs when calculation is impossible by the least-squares method.
+
         """
         import numpy as np
         if len(times_from) < 2:

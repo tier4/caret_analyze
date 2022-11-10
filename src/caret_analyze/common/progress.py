@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Iterable
+
 from tqdm import tqdm
 
 
@@ -24,7 +26,7 @@ class Progress:
     enable = False
 
     @classmethod
-    def tqdm(cls, it, *args):
+    def tqdm(cls, it, *args) -> Iterable[Any]:
         """
         Progress bar for python iterators.
 
@@ -35,9 +37,10 @@ class Progress:
 
         Returns
         -------
-        _type_
+        Iterable[Any]
             iterator.
             progress bar is enabled if Progress.enable == True, disabled otherwise.
+
         """
         if cls.enable:
             return tqdm(it, *args)

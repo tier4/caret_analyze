@@ -263,7 +263,6 @@ class RuntimeDataProvider(RecordsProvider):
             True if given communication is intra process communication, false othewise.
 
         """
-
         pass
 
     @abstractmethod

@@ -24,7 +24,7 @@ class ValueObject():
     Classes that inherit from this class will become immutable ValueObjects,
     and __eq__ and __hash__ will be calculated based on public properties.
 
-    Note
+    Note:
     ----
     Since the hash value is immutable,
     inherited classes can be used as a dictionary type key, for example.
@@ -46,6 +46,7 @@ class ValueObject():
         bool
             Recursively compares the values of the published properties and
             returns True only if they all match. False otherwise.
+
         """
         if type(self) != type(right):
             return False
@@ -96,7 +97,7 @@ class ValueObject():
         d = self._to_dict()
         return dump(d)
 
-    def _to_dict(self) -> Dict:
+    def _to_dict(self) -> Dict[Any, Any]:
         """
         Convert to dictionary.
 
@@ -104,6 +105,7 @@ class ValueObject():
         -------
         Dict
             Dictionary created by recursively access properties.
+
         """
         d: Dict[Any, Any] = {}
         for attr in self.__generate_public_attrs():

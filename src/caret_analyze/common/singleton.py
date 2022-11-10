@@ -20,7 +20,7 @@ class Singleton(object):
 
     Inherited classes become singleton.
 
-    Note
+    Note:
     ----
     The use of Singleton should be avoided and instance sharing is preferred.
 
