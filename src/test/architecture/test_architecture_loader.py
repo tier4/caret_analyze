@@ -458,9 +458,11 @@ class TestNodesInfoLoaded():
 
         mocker.patch.object(reader_mock, 'get_timer_callbacks', return_value=[])
         mocker.patch.object(reader_mock, 'get_subscription_callbacks', return_value=[])
+        mocker.patch.object(reader_mock, 'get_service_callbacks', return_value=[])
         mocker.patch.object(reader_mock, 'get_publishers', return_value=[])
         mocker.patch.object(reader_mock, 'get_timers', return_value=[])
         mocker.patch.object(reader_mock, 'get_subscriptions', return_value=[])
+        mocker.patch.object(reader_mock, 'get_services', return_value=[])
         mocker.patch.object(reader_mock, 'get_callback_groups', return_value=[])
         mocker.patch.object(reader_mock, 'get_variable_passings', return_value=[])
         mocker.patch.object(reader_mock, 'get_message_contexts', return_value=[])
