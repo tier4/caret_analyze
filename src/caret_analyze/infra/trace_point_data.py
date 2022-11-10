@@ -19,7 +19,6 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 from multimethod import multimethod as singledispatchmethod
 
-import numpy as np
 import pandas as pd
 
 
@@ -373,7 +372,7 @@ class TracePointData:
         """
         df = self._df.copy()
         for missing_column in set(columns) - set(self._df.columns):
-            df[missing_column] = np.nan
+            df[missing_column] = pd.NA
         self._df = df[columns]
 
     def drop_duplicate(self) -> None:
