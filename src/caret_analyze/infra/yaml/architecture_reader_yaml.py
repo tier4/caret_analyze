@@ -33,6 +33,20 @@ class ArchitectureReaderYaml(ArchitectureReader):
     """Yaml implemented version of ArchitectureReader."""
 
     def __init__(self, file_path: str):
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        file_path : str
+            File path to yaml.
+
+        Raises
+        ------
+        InvalidYamlFormatError
+            Occours when loaded yaml is invalid.
+
+        """
         with open(file_path, 'r') as f:
             yaml_str = f.read()
         self._arch = yaml.safe_load(yaml_str)

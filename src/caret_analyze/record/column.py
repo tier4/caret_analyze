@@ -37,6 +37,22 @@ def validate_rename_rule(
     rename_rule: Dict[str, str],
     old_columns: List[str]
 ) -> None:
+    """
+    Validate renaming rules.
+
+    Parameters
+    ----------
+    rename_rule : Dict[str, str]
+        Rename rule. Dict[from, to].
+    old_columns : List[str]
+        Existing column names.
+
+    Raises
+    ------
+    InvalidArgumentError
+        Occurs when renaming is not possible.
+
+    """
     already_exist = set(old_columns) & set(rename_rule.values())
     if len(already_exist) > 0:
         raise InvalidArgumentError(
@@ -194,7 +210,6 @@ class Columns(UserList):
         Exceptions should be unified one way or the other.
 
         """
-
         err_columns = set(self.column_names) ^ set(columns)
         if len(err_columns) > 0:
             msg = 'Column names do not match. '

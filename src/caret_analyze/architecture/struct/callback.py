@@ -33,6 +33,24 @@ class CallbackStruct(metaclass=ABCMeta):
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_name: str,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        symbol : str
+            Callback symbol name.
+        subscribe_topic_name : Optional[str]
+            Topic name the callback subscribes.
+            None if the callback is not subscription callback.
+        publish_topic_names : Optional[Tuple[str, ...]]
+            Topic names the callback publishes.
+        callback_name : str
+            Callback name.
+
+        """
         self._node_name = node_name
         self._callback_name = callback_name
         self._symbol = symbol
@@ -94,14 +112,41 @@ class CallbackStruct(metaclass=ABCMeta):
 
     @property
     def callback_type_name(self) -> str:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        str
+            Callback type name.
+
+        """
         return str(self.callback_type)
 
     @property
     def subscribe_topic_name(self) -> Optional[str]:
+        """
+        Get subscribe topic name.
+
+        Returns
+        -------
+        Optional[str]
+            Topic name if callback is subscription callback, None otherwise.
+
+        """
         return self._subscribe_topic_name
 
     @property
     def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
+        """
+        Get publish topic names.
+
+        Returns
+        -------
+        Optional[Tuple[str, ...]]
+            Topic names the callback publishes.
+
+        """
         return self._publish_topic_names
 
     @abstractmethod

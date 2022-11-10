@@ -25,7 +25,11 @@ from ..record.data_frame_shaper import DataFrameShaper, Strip
 
 
 class PathBase(metaclass=ABCMeta):
-    """Base class for Latency."""
+    """
+    Base class of classes from which records can be calculated.
+
+    Define APIs such as to_records and to_dataframe, used for Callback, Path, etc.
+    """
 
     def __init__(self) -> None:
         self.__records_cache: Optional[RecordsInterface] = None
@@ -55,6 +59,14 @@ class PathBase(metaclass=ABCMeta):
         """
 
     def clear_cache(self) -> None:
+        """
+        Clear records cache.
+
+        Note
+        ----
+        It's prefered to use functools.lru_cache instead.
+
+        """
         self.__records_cache = None
 
     @property
