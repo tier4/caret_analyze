@@ -32,6 +32,8 @@ from ...value_objects import (
 
 
 class ArchitectureReaderLttng(ArchitectureReader):
+    """Lttng implemented version of ArchitectureReader."""
+
     def __init__(
         self,
         trace_dir: str

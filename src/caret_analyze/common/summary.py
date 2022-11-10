@@ -18,7 +18,16 @@ from typing import Any, Dict, List, Union
 
 
 class Summary(UserDict):
-    """Summary info about for value objects and runtime data objects."""
+    """
+    Summary info about for value objects and runtime data objects.
+
+    Note
+    ----
+    The class is used to get an overview of the instance and
+    has no effect on __eq__, __hash__, etc.
+    Users can get an overview in dictionary form or check the overview in the standard output.
+
+    """
 
     def pprint(self):
         print((self))

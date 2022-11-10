@@ -30,6 +30,7 @@ logger = getLogger(__name__)
 
 
 class ArchitectureReaderYaml(ArchitectureReader):
+    """Yaml implemented version of ArchitectureReader."""
 
     def __init__(self, file_path: str):
         with open(file_path, 'r') as f:

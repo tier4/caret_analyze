@@ -23,7 +23,15 @@ from ..common import Summarizable, Summary
 
 
 class CallbackGroupType(ValueObject):
-    """callback group type class."""
+    """
+    Callback group type class.
+
+    The types of callback groups are as follows:
+
+    - MUTUALLY_EXCLUSIVE
+    - REENTRANT
+
+    """
 
     MUTUALLY_EXCLUSIVE: CallbackGroupType
     REENTRANT: CallbackGroupType

@@ -14,4 +14,8 @@
 
 
 class InfraBase():
-    """infrastructure base class."""
+    """
+    Infrastructure base class.
+
+    This class is used in a role as an interface to the Application class.
+    """

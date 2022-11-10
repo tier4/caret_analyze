@@ -26,6 +26,14 @@ logger = getLogger(__name__)
 
 
 class EventCounter:
+    """
+    Class for counting trace data.
+
+    Note
+    ----
+    Refactoring is preferred because there are duplicate process with latency calculation.
+
+    """
 
     def __init__(self, data: Ros2DataModel, *, validate=True):
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}

@@ -196,6 +196,12 @@ class ArchitectureReader(metaclass=ABCMeta):
         -------
         Sequence[Dict]
 
+        Note
+        ----
+        Various information may be added to the message context in the future.
+        The intent is to unify the context with the value object if possible,
+        but to make the context a dictionary type for general purpose use.
+
         """
         pass
 

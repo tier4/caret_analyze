@@ -19,6 +19,11 @@ class Singleton(object):
     Singleton class.
 
     Inherited classes become singleton.
+
+    Note
+    ----
+    The use of Singleton should be avoided and instance sharing is preferred.
+
     """
 
     def __new__(cls, *args, **kwargs):

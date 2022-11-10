@@ -66,11 +66,30 @@ def validate_rename_rule(
 
 
 class ColumnValue(ValueObject):
+    """
+    Immutable column class.
+
+    Note
+    ----
+    Add properties such as node and topic names as well as column names for future refactoring.
+    It's prefered to refacto that also adds attributes such as whether
+    it is an initialization-related trace point or a measurement-related trace point.
+
+    """
 
     def __init__(
         self,
         column_name: str,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        column_name : str
+            column name.
+
+        """
         self._column_name = column_name
 
     def __str__(self) -> str:
@@ -82,6 +101,14 @@ class ColumnValue(ValueObject):
 
 
 class Column():
+    """
+    Mutable column class.
+
+    Note
+    ----
+    It can be renamed, etc., and is used in the Columns class.
+
+    """
 
     def __init__(
         self,
@@ -111,6 +138,14 @@ class Column():
 
 
 class Columns(UserList):
+    """
+    List class for columns.
+
+    Note
+    ----
+    Used with instances of Records objects.
+
+    """
 
     def __init__(
         self,
@@ -139,6 +174,26 @@ class Columns(UserList):
         ]
 
     def reindex(self, columns: Sequence[str]) -> None:
+        """
+        Rearrange the order of columns.
+
+        Parameters
+        ----------
+        columns : Sequence[str]
+            Column name after change
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when a nonexistent column name is specified.
+        ValueError
+            Occurs when a column name is not specified.
+
+        Note
+        ----
+        Exceptions should be unified one way or the other.
+
+        """
 
         err_columns = set(self.column_names) ^ set(columns)
         if len(err_columns) > 0:
