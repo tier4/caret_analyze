@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .architecture import Architecture
-from .util import check_procedure
-
 """
 Architecture package.
 
@@ -23,6 +20,9 @@ It has a ROS-friendly class structure that allows application developers
 to obtain the information they need for evaluation.
 
 """
+
+from .architecture import Architecture
+from .util import check_procedure
 
 __all__ = [
     'Architecture',

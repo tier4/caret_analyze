@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-CARET plot package.
+Plot package.
 
 This package provides visualization capabilities.
 Many visualization APIs are provided by the Plot class, which has a role as a facade.
