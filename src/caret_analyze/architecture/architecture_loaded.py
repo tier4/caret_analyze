@@ -28,7 +28,7 @@ from .struct import (CallbackGroupStruct, CallbackStruct,
                      MessageContextStruct,
                      NodePathStruct, NodeStruct, PathStruct,
                      PublisherStruct,
-                     ServiceCallbackStruct,
+                     ServiceCallbackStruct, ServiceStruct,
                      SubscriptionCallbackStruct, SubscriptionStruct,
                      TimerCallbackStruct, TimerStruct,
                      VariablePassingStruct)
@@ -375,6 +375,9 @@ class NodeValuesLoaded():
 
         subscriptions: Tuple[SubscriptionStruct, ...]
         subscriptions = SubscriptionsLoaded(reader, callbacks_loaded, node).data
+
+        services: Tuple[ServiceStruct, ...]
+        services = ServicesLoaded(reader, callbacks_loaded, node).data
 
         timers: Tuple[TimerStruct, ...]
         timers = TimersLoaded(reader, callbacks_loaded, node).data
@@ -755,6 +758,41 @@ class SubscriptionsLoaded:
 
     @property
     def data(self) -> Tuple[SubscriptionStruct, ...]:
+        return self._data
+
+
+class ServicesLoaded:
+    def __init__(
+        self,
+        reader: ArchitectureReader,
+        callbacks_loaded: CallbacksLoaded,
+        node: NodeValue
+    ) -> None:
+        services_values = reader.get_services(node)
+        self._data = tuple(self._to_struct(callbacks_loaded, srv)
+                           for srv in services_values)
+
+    def _to_struct(
+        self,
+        callbacks_loaded: CallbacksLoaded,
+        service_value: ServiceValue
+    ) -> ServiceStruct:
+        srv_callback: Optional[CallbackStruct] = None
+
+        if service_value.callback_id is not None:
+            srv_callback = callbacks_loaded.find_callback(
+                service_value.callback_id)
+
+        assert isinstance(srv_callback, ServiceCallbackStruct)
+
+        return ServiceStruct(
+            service_value.node_name,
+            service_value.service_name,
+            srv_callback
+        )
+
+    @property
+    def data(self) -> Tuple[ServiceStruct, ...]:
         return self._data
 
 
