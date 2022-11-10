@@ -164,11 +164,11 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
-    def assign_message_context(self, context_type, sub_topic_name, pub_topic_name):
+    def assign_message_context(self, context_type, sub_topic_name: str, pub_topic_name: str):
         raise NotImplementedError('')
 
-    def assign_publisher(self, pub_topic_name, callback_function):
+    def assign_publisher(self, pub_topic_name: str, callback_function):
         raise NotImplementedError('')
 
-    def assign_message_passings(self, source_callback_name, destination_callback_name):
+    def assign_message_passings(self, source_callback_name: str, destination_callback_name: str):
         raise NotImplementedError('')

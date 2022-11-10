@@ -207,14 +207,32 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    def assign_message_context(self, node, context_type, sub_topic_name, pub_topic_name):
-        raise NotImplementedError('')
+    def assign_message_context(self, node_name: str, context_type, sub_topic_name: str, pub_topic_name: str):
+        try:
+            node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+            node.assign_message_context(context_type, sub_topic_name, pub_topic_name)
+        except ItemNotFoundError:
+            msg = 'Failed to find node. '
+            msg += f'node_name: {node_name}'
+            raise ItemNotFoundError(msg)
 
-    def assign_publisher(self, node_name, pub_topic_name, callback_function):
-        raise NotImplementedError('')
+    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function):
+        try:
+            node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+            node.assign_publisher(pub_topic_name, callback_function)
+        except ItemNotFoundError:
+            msg = 'Failed to find node. '
+            msg += f'node_name: {node_name}'
+            raise ItemNotFoundError(msg)
 
-    def assign_message_passings(self, node_name, source_callback_name, destination_callback_name):
-        raise NotImplementedError('')
+    def assign_message_passings(self, node_name: str, source_callback_name: str, destination_callback_name: str):
+        try:
+            node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+            node.assign_message_passings(source_callback_name, destination_callback_name)
+        except ItemNotFoundError:
+            msg = 'Failed to find node. '
+            msg += f'node_name: {node_name}'
+            raise ItemNotFoundError(msg)
 
 
 """
