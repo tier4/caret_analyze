@@ -96,7 +96,7 @@ class EventCollection(Iterable, Sized):
         Parameters
         ----------
         path : str
-            path to trace dir.
+            Path to trace dir.
 
         Returns
         -------
