@@ -34,6 +34,7 @@ from caret_analyze.architecture.struct import (CallbackGroupStruct, CallbackStru
                                                NodePathStruct, NodeStruct, PathStruct,
                                                PublisherStruct,
                                                SubscriptionCallbackStruct, SubscriptionStruct,
+                                               ServiceCallbackStruct, ServiceStruct,
                                                TimerStruct,
                                                VariablePassingStruct)
 from caret_analyze.common import Util
@@ -45,6 +46,7 @@ from caret_analyze.value_objects import (CallbackGroupType, CallbackGroupValue,
                                          NodePathValue, NodeValue,
                                          PathValue, PublisherValue,
                                          SubscriptionCallbackValue, SubscriptionValue,
+                                         ServiceCallbackValue, ServiceValue,
                                          TimerCallbackValue,
                                          VariablePassingValue)
 
@@ -743,6 +745,8 @@ class TestCallbacksLoaded:
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[])
         mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[])
+        mocker.patch.object(
             reader_mock, 'get_timer_callbacks', return_value=[])
         mocker.patch.object(
             reader_mock, 'get_publishers', return_value=[])
@@ -768,6 +772,8 @@ class TestCallbacksLoaded:
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[])
         mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[])
+        mocker.patch.object(
             reader_mock, 'get_timer_callbacks', return_value=[callback_mock, callback_mock])
 
         with pytest.raises(InvalidReaderError):
@@ -791,6 +797,8 @@ class TestCallbacksLoaded:
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[])
         mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[])
+        mocker.patch.object(
             reader_mock, 'get_timer_callbacks', return_value=[callback_mock, callback_mock])
 
         with pytest.raises(InvalidReaderError):
@@ -798,11 +806,12 @@ class TestCallbacksLoaded:
 
     def test_find_callback(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
-        callback_name = ['callback_name0', 'callback_name1']
+        callback_name = ['callback_name0', 'callback_name1', 'callback_name2']
         period_ns = 4
         topic_name = '/topic_name'
-        symbol = ['symbol0', 'symbol1']
-        callback_id = ['5', '6', '7']
+        service_name = '/service_name'
+        symbol = ['symbol0', 'symbol1', 'symbol2']
+        callback_id = ['5', '6', '7', '8']
         node = NodeValueWithId('/node_name', '/node_name')
 
         timer_cb = TimerCallbackValue(
@@ -813,15 +822,21 @@ class TestCallbacksLoaded:
             callback_id[1], node.node_name, node.node_id, symbol[1],
             topic_name, None, callback_name=callback_name[1])
 
+        srv_cb = ServiceCallbackValue(
+            callback_id[2], node.node_name, node.node_id, symbol[2],
+            service_name, None, callback_name=callback_name[2])
+
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[sub_cb])
+        mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[srv_cb])
         mocker.patch.object(
             reader_mock, 'get_timer_callbacks', return_value=[timer_cb])
 
         loaded = CallbacksLoaded(reader_mock, node)
 
         with pytest.raises(ItemNotFoundError):
-            loaded.find_callback(callback_id[2])
+            loaded.find_callback(callback_id[3])
 
         cb = loaded.find_callback(callback_id[0])
         assert isinstance(cb, CallbackStruct)
@@ -842,12 +857,17 @@ class TestCallbacksLoaded:
     def test_not_implemented_callback_type(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
-        callback_mock = mocker.Mock(spec=CallbackValue)
+        callback_mock1 = mocker.Mock(spec=CallbackValue)
+        callback_mock2 = mocker.Mock(spec=CallbackValue)
         node = NodeValue('node_name', 'node_name')
-        mocker.patch.object(callback_mock, 'node_name', node.node_name)
-        mocker.patch.object(callback_mock, 'node_id', node.node_id)
+        mocker.patch.object(callback_mock1, 'node_name', node.node_name)
+        mocker.patch.object(callback_mock1, 'node_id', node.node_id)
+        mocker.patch.object(callback_mock2, 'node_name', node.node_name)
+        mocker.patch.object(callback_mock2, 'node_id', node.node_id)
         mocker.patch.object(
-            reader_mock, 'get_subscription_callbacks', return_value=[callback_mock])
+            reader_mock, 'get_subscription_callbacks', return_value=[callback_mock1])
+        mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[callback_mock2])
         mocker.patch.object(
             reader_mock, 'get_timer_callbacks', return_value=[])
 
@@ -859,8 +879,9 @@ class TestCallbacksLoaded:
         node = NodeValueWithId('/node_name', '/node_name')
         period_ns = 4
         topic_name = '/topic_name'
-        symbol = ['symbol0', 'symbol1', 'symbol2', 'symbol3']
-        callback_id = ['5', '6', '7', '8']
+        service_name = '/service_name'
+        symbol = ['symbol0', 'symbol1', 'symbol2', 'symbol3', 'symbol4', 'symbol5']
+        callback_id = ['5', '6', '7', '8', '9', '10']
 
         timer_cb_0 = TimerCallbackValue(
             callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, ())
@@ -870,9 +891,15 @@ class TestCallbacksLoaded:
             callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, None)
         sub_cb_1 = SubscriptionCallbackValue(
             callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, None)
+        srv_cb_0 = SubscriptionCallbackValue(
+            callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None)
+        srv_cb_1 = SubscriptionCallbackValue(
+            callback_id[5], node.node_name, node.node_id, symbol[5], service_name, None)
 
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[sub_cb_0, sub_cb_1])
+        mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[srv_cb_0, srv_cb_1])
         mocker.patch.object(
             reader_mock, 'get_timer_callbacks', return_value=[timer_cb_0, timer_cb_1])
 
