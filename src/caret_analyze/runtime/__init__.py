@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-CARET runtime package.
+Runtime package.
 
 This package provides a set of classes with static (e.g., node names)
 and dynamic information (e.g., execution times).

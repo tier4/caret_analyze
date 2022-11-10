@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-CARET infra package.
+Infra package.
 
 This package defines classes that serve as contact points with external files.
 It implements the defined interfaces, keeping each implementation

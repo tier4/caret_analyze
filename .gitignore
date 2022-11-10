@@ -131,3 +131,4 @@ dmypy.json
 # Visual Studio Code
 .vscode/
 log/
+docs_doxygen/

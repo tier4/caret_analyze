@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Record package.
+
+This package defines record classes that performs latency calculation as table processing.
+The Records object has a Python implementation that can be used to test caret_analyze on its own,
+and a C++ implementation that can execute with high performance.
+"""
+
 from .column import Column, Columns, ColumnValue
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
 from .frequency import Frequency

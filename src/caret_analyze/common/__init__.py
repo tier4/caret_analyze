@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines common, generic processes and classes used by other packages."""
+"""
+Common package.
+
+This package defines common, generic functions and classes used by other packages.
+Common functions should be placed under the Util class.
+However, to avoid the Util class from becoming too large, consider using ValueObject.
+"""
 
 from .clock_converter import ClockConverter
 from .progress import Progress
