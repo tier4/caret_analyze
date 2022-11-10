@@ -18,19 +18,60 @@ from typing import Any, Dict
 
 
 class ValueObject():
-    """Value object base class."""
+    """
+    Value object base class.
 
-    def __eq__(self, right):
+    Classes that inherit from this class will become immutable ValueObjects,
+    and __eq__ and __hash__ will be calculated based on public properties.
+
+    Note
+    ----
+    Since the hash value is immutable,
+    inherited classes can be used as a dictionary type key, for example.
+    It is also suitable for cache use and does not unintentionally change properties.
+
+    """
+
+    def __eq__(self, right) -> bool:
+        """
+        Check whether self equals to given instance [override].
+
+        Parameters
+        ----------
+        right : _type_
+            Comparison target.
+
+        Returns
+        -------
+        bool
+            Recursively compares the values of the published properties and
+            returns True only if they all match. False otherwise.
+        """
         if type(self) != type(right):
             return False
 
         for attr in self.__generate_public_attrs():
+            # Uncomment this when investigating why equals is false during test execution.
             # assert getattr(self,  attr) == getattr(right, attr)
             if getattr(self,  attr) != getattr(right, attr):
                 return False
         return True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """
+        Calculate hash value.
+
+        Returns
+        -------
+        int
+            A hash value calculated from all of the publicly available
+            property values by recursively referencing them.
+
+        References
+        ----------
+            https://www.baeldung.com/java-hashcode
+
+        """
         hash_value = 17
 
         hash_value += hash_value * 31 + hash(self.__class__)
@@ -42,11 +83,28 @@ class ValueObject():
         return hash_value
 
     def __str__(self) -> str:
+        """
+        Convert to string.
+
+        Returns
+        -------
+        str
+            Yaml format strings created by recursively access properties.
+
+        """
         from yaml import dump
         d = self._to_dict()
         return dump(d)
 
     def _to_dict(self) -> Dict:
+        """
+        Convert to dictionary.
+
+        Returns
+        -------
+        Dict
+            Dictionary created by recursively access properties.
+        """
         d: Dict[Any, Any] = {}
         for attr in self.__generate_public_attrs():
             value = getattr(self, attr)

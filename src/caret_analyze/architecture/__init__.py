@@ -15,9 +15,9 @@
 """
 Architecture package.
 
-This package provides a set of classes with static (e.g., node names)).
+This package provides a set of classes with static (e.g., node names).
 It has a ROS-friendly class structure that allows application developers
-to obtain the information they need for evaluation.
+to obtain the information need for evaluation.
 
 """
 
