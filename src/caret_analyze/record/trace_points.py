@@ -16,6 +16,15 @@ from typing import NamedTuple
 
 
 class TracePoint(NamedTuple):
+    """
+    Column name used for measurement results.
+
+    Note
+    ----
+    Refactoring is necessary because column name information exists in multiple locations.
+
+    """
+
     CALLBACK_START_TIMESTAMP: str = 'callback_start_timestamp'
     CALLBACK_END_TIMESTAMP: str = 'callback_end_timestamp'
     RCLCPP_PUBLISH_TIMESTAMP: str = 'rclcpp_publish_timestamp'

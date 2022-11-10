@@ -29,13 +29,39 @@ except ModuleNotFoundError:
 
 
 class RecordFactory:
+    """Factory class to create an instance of Record."""
 
     @classmethod
     def is_cpp_impl_valid(cls) -> bool:
+        """
+        Check whether cpp implementation is valid.
+
+        Returns
+        -------
+        bool
+            True if cpp implementation is valid, false otherwise.
+
+        """
         return use_cpp_impl
 
     @classmethod
     def create_instance(cls, init: Optional[Dict] = None) -> RecordInterface:
+        """
+        Create record instance.
+
+        Cpp implementations are used whenever possible.
+
+        Parameters
+        ----------
+        init : Optional[Dict], optional
+            Dictionary type data to be assigned as the content of record, by default None
+
+        Returns
+        -------
+        RecordInterface
+            Record instance.
+
+        """
         if use_cpp_impl:
             return cls._create_cpp_instance(init)
         else:
@@ -43,6 +69,7 @@ class RecordFactory:
 
     @classmethod
     def _create_cpp_instance(cls, init: Optional[Dict] = None) -> RecordInterface:
+        # This function seems redundant.
         if init is None:
             return cpp_impl.RecordCppImpl()
         else:
@@ -50,9 +77,19 @@ class RecordFactory:
 
 
 class RecordsFactory:
+    """Factory class to create an instance of Records."""
 
     @staticmethod
     def is_cpp_impl_valid() -> bool:
+        """
+        Check whether cpp implementation is valid.
+
+        Returns
+        -------
+        bool
+            True if cpp implementation is valid, false otherwise.
+
+        """
         return use_cpp_impl
 
     @staticmethod
@@ -60,6 +97,22 @@ class RecordsFactory:
         init: Optional[Sequence[RecordInterface]] = None,
         columns: Optional[Sequence[ColumnValue]] = None
     ) -> RecordsInterface:
+        """
+        Create records instance.
+
+        Parameters
+        ----------
+        init : Optional[Sequence[RecordInterface]], optional
+            Initial records data, by default None
+        columns : Optional[Sequence[ColumnValue]], optional
+            Column info of the records, by default None
+
+        Returns
+        -------
+        RecordsInterface
+            Records instance.
+
+        """
         if use_cpp_impl:
             return RecordsFactory._create_cpp_instance(init, columns)
         else:
@@ -70,4 +123,5 @@ class RecordsFactory:
         init: Optional[Sequence[RecordInterface]] = None,
         columns: Optional[Sequence[ColumnValue]] = None,
     ) -> RecordsInterface:
+        # This function seems redundant.
         return cpp_impl.RecordsCppImpl(init or [], columns or [])

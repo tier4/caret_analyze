@@ -29,12 +29,34 @@ logger = getLogger(__name__)
 
 
 class NodePathValue(ValueObject):
+    """
+    Value object class for representing a node path.
+
+    This class has minimal information and no structure,
+    and used as the return value of ArchitectureReader.
+    In CARET, the node path is defined as from subscribe to publish.
+    Therefore, NodePath requires a pair of subscribe and publish.
+    """
+
     def __init__(
         self,
         node_name: str,
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        subscribe_topic_name : Optional[str]
+            Topic name which the node-path subscribes.
+        publish_topic_name : Optional[str]
+            Topic name which the node-path publishes.
+
+        """
         self._node_name = node_name
         self._publish_topic_name = publish_topic_name
         self._subscribe_topic_name = subscribe_topic_name
@@ -53,6 +75,15 @@ class NodePathValue(ValueObject):
 
 
 class NodePathStructValue(ValueObject, Summarizable):
+    """
+    StructValue object class for representing a node path.
+
+    This class is a structure that includes other related StructValue classes, such as callbacks,
+    and used as the return value of Architecture object.
+    In CARET, the node path is defined as from subscribe to publish.
+    Therefore, NodePath requires a pair of subscribe and publish.
+    """
+
     def __init__(
         self,
         node_name: str,
@@ -61,6 +92,24 @@ class NodePathStructValue(ValueObject, Summarizable):
         child: Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]],
         message_context: Optional[MessageContext],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name
+        subscription : Optional[SubscriptionStructValue]
+            Subscription which the node path subscribes.
+        publisher : Optional[PublisherStructValue]
+            Publisher which the node path publishes.
+        child : Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]]
+            Child elements of a node path.
+            Required only when message_context is callback_chain.
+        message_context : Optional[MessageContext]
+            Message Context. Used to define node latency.
+
+        """
         self._node_name = node_name
         self._child = child
         self._subscription = subscription
