@@ -27,7 +27,8 @@ from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
-                             NodeStructValue, PathStructValue)
+                             NodeStructValue, PathStructValue, PublisherStructValue,
+                             SubscriptionStructValue)
 
 
 class Architecture(Summarizable):
@@ -69,7 +70,7 @@ class Architecture(Summarizable):
 
     @property
     def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
-        return tuple(Util.flatten([_.callback_groups for _ in self.executors]))
+        return tuple(Util.flatten(_.callback_groups for _ in self.executors))
 
     @property
     def callback_group_names(self) -> Tuple[str, ...]:
@@ -84,7 +85,7 @@ class Architecture(Summarizable):
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
-        return tuple(_.callbacks for _ in self.callback_groups)
+        return tuple(Util.flatten(_.callbacks for _ in self.callback_groups))
 
     def get_communication(
         self,
@@ -113,7 +114,7 @@ class Architecture(Summarizable):
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
-        return tuple([v.to_value() for v in self._nodes])
+        return tuple(v.to_value() for v in self._nodes)
 
     @property
     def node_names(self) -> Tuple[str, ...]:
@@ -121,7 +122,7 @@ class Architecture(Summarizable):
 
     @property
     def executors(self) -> Tuple[ExecutorStructValue, ...]:
-        return tuple([v.to_value() for v in self._executors])
+        return tuple(v.to_value() for v in self._executors)
 
     @property
     def executor_names(self) -> Tuple[str, ...]:
@@ -137,7 +138,17 @@ class Architecture(Summarizable):
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
-        return tuple([v.to_value() for v in self._communications])
+        return tuple(v.to_value() for v in self._communications)
+
+    @property
+    def publishers(self) -> Tuple[PublisherStructValue, ...]:
+        publishers = Util.flatten(_.publishers for _ in self.nodes)
+        return tuple(sorted(publishers, key=lambda x: x.topic_name))
+
+    @property
+    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
+        subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
+        return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
 
     @property
     def summary(self) -> Summary:

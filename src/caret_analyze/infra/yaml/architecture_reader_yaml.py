@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from logging import getLogger
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import yaml
 
@@ -39,8 +39,12 @@ class ArchitectureReaderYaml(ArchitectureReader):
         if self._arch is None:
             raise InvalidYamlFormatError('Failed to parse yaml.')
 
-    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
-        logger.warning('get_node_names method is not implemented in ArchitectureReaderYaml class.')
+    def get_node_names_and_cb_symbols(
+        self,
+        callback_group_id: str
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+        logger.warning('get_node_names_and_cb_symbols method is not implemented '
+                       'in ArchitectureReaderYaml class.')
         return []
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
