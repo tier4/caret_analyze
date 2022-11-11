@@ -5,6 +5,24 @@ This package provides a set of classes with static (e.g., node names).
 It has a ROS-friendly class structure that allows application developers
 to obtain the information need for evaluation.
 
+This package exposes the following to the public:
+
+- Architecture: xxx
+- check_precedure: xxx
+
+[Modules]
+- architecture_exporter
+
+- architecture_loaded
+- architecture_reader_factory
+- architecture
+- graph_search
+- reader_interface
+- util
+
+[Subpackages]
+- struct
+
 """
 
 # Copyright 2021 Research Institute of Systems Planning, Inc.
