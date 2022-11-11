@@ -391,7 +391,7 @@ class NodeValuesLoaded():
             reader, callbacks_loaded, node).data
 
         node_struct = NodeStruct(
-            node.node_name, publishers, subscriptions, timers, (),
+            node.node_name, publishers, subscriptions, services, timers, (),
             callback_groups, variable_passings
         )
 
@@ -400,6 +400,7 @@ class NodeValuesLoaded():
             node_path_added = NodeStruct(
                 node_struct.node_name, node_struct.publishers,
                 node_struct.subscriptions,
+                node_struct.services,
                 node_struct.timers,
                 tuple(node_paths), node_struct.callback_groups,
                 node_struct.variable_passings

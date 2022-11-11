@@ -19,6 +19,7 @@ from .callback import CallbackStructValue
 from .callback_group import CallbackGroupStructValue
 from .node_path import NodePathStructValue
 from .publisher import PublisherStructValue
+from .service import ServiceStructValue
 from .subscription import SubscriptionStructValue
 from .timer import TimerStructValue
 from .value_object import ValueObject
@@ -67,6 +68,7 @@ class NodeStructValue(ValueObject, Summarizable):
         node_name: str,
         publishers: Tuple[PublisherStructValue, ...],
         subscriptions_info: Tuple[SubscriptionStructValue, ...],
+        services_info: Tuple[ServiceStructValue, ...],
         timers: Tuple[TimerStructValue, ...],
         node_paths: Tuple[NodePathStructValue, ...],
         callback_groups: Optional[Tuple[CallbackGroupStructValue, ...]],
@@ -75,6 +77,7 @@ class NodeStructValue(ValueObject, Summarizable):
         self._node_name = node_name
         self._publishers = publishers
         self._subscriptions = subscriptions_info
+        self._services = services_info
         self._timers = timers
         self._callback_groups = callback_groups
         self._node_paths = node_paths
@@ -99,6 +102,14 @@ class NodeStructValue(ValueObject, Summarizable):
     @property
     def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
         return self._subscriptions
+
+    @property
+    def service_names(self) -> Tuple[str, ...]:
+        return tuple(s.service_name for s in self._services)
+
+    @property
+    def services(self) -> Tuple[ServiceStructValue, ...]:
+        return self._services
 
     @property
     def timers(self) -> Tuple[TimerStructValue, ...]:
@@ -159,6 +170,20 @@ class NodeStructValue(ValueObject, Summarizable):
             msg += f'topic_name: {subscribe_topic_name}'
             raise ItemNotFoundError(msg)
 
+    def get_service(
+        self,
+        service_name: str
+    ) -> ServiceStructValue:
+
+        try:
+            return Util.find_one(
+                lambda x: x.service_name == service_name,
+                self._services)
+        except ItemNotFoundError:
+            msg = 'Failed to find subscription info. '
+            msg += f'service_name: {service_name}'
+            raise ItemNotFoundError(msg)
+
     def get_publisher(
         self,
         publish_topic_name: str
@@ -193,6 +218,7 @@ class NodeStructValue(ValueObject, Summarizable):
         d['callback_groups'] = self.callback_group_names
         d['publishers'] = [_.summary for _ in self.publishers]
         d['subscriptions'] = [_.summary for _ in self.subscriptions]
+        d['services'] = [_.summary for _ in self.services]
         d['variable_passings'] = []
         if self.variable_passings is not None:
             d['variable_passings'] = [_.summary for _ in self.variable_passings]

@@ -22,6 +22,7 @@ from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
                                                             NodeValuesLoaded,
                                                             PathValuesLoaded,
                                                             PublishersLoaded,
+                                                            ServicesLoaded,
                                                             SubscriptionsLoaded,
                                                             TimersLoaded,
                                                             TopicIgnoredReader,
@@ -33,6 +34,7 @@ from caret_analyze.architecture.struct import (CallbackGroupStruct, CallbackStru
                                                ExecutorStruct,
                                                NodePathStruct, NodeStruct, PathStruct,
                                                PublisherStruct,
+                                               ServiceStruct,
                                                SubscriptionCallbackStruct, SubscriptionStruct,
                                                TimerStruct,
                                                VariablePassingStruct)
@@ -212,6 +214,8 @@ class TestNodesInfoLoaded():
         mocker.patch.object(
             reader_mock, 'get_subscriptions', return_value=[])
         mocker.patch.object(
+            reader_mock, 'get_services', return_value=[])
+        mocker.patch.object(
             reader_mock, 'get_publishers', return_value=[])
         mocker.patch.object(
             reader_mock, 'get_timers', return_value=[])
@@ -254,6 +258,7 @@ class TestNodesInfoLoaded():
         cbg = mocker.Mock(spec=CallbackGroupStruct)
         callback = mocker.Mock(spec=CallbackStruct)
         subscription = mocker.Mock(spec=SubscriptionStruct)
+        service = mocker.Mock(spec=ServiceStruct)
         timer = mocker.Mock(spec=TimerStruct)
         publisher = mocker.Mock(spec=PublisherStruct)
         var_pass = mocker.Mock(spec=VariablePassingStruct)
@@ -263,6 +268,7 @@ class TestNodesInfoLoaded():
             'context_type': MessageContextType.CALLBACK_CHAIN.type_name,
             'publisher_topic_name': 'UNDEFINED',
             'subscription_topic_name': 'UNDEFINED',
+            'service_name': 'UNDEFINED',
         }
 
         mocker.patch.object(cbg, 'callbacks', (callback,))
@@ -271,6 +277,8 @@ class TestNodesInfoLoaded():
                      return_value=reader_mock)
         mocker.patch.object(
             reader_mock, 'get_subscriptions', return_value=[subscription])
+        mocker.patch.object(
+            reader_mock, 'get_services', return_value=[service])
         mocker.patch.object(
             reader_mock, 'get_publishers', return_value=[publisher])
         mocker.patch.object(
@@ -313,6 +321,12 @@ class TestNodesInfoLoaded():
         mocker.patch('caret_analyze.architecture.architecture_loaded.SubscriptionsLoaded',
                      return_value=subscriptions_loaded)
         mocker.patch.object(subscriptions_loaded, 'data', (subscription,))
+
+        services_loaded = mocker.Mock(spec=ServicesLoaded)
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ServicesLoaded',
+                     return_value=services_loaded)
+        mocker.patch.object(services_loaded, 'data', (service,))
+
         timers_loaded = mocker.Mock(spec=TimersLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.TimersLoaded',
                      return_value=timers_loaded)
