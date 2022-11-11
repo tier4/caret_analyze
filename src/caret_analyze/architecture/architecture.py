@@ -22,7 +22,7 @@ from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodeStruct)
-from .struct.callback import TimerCallbackStruct
+from .struct.callback import TimerCallbackStruct, CallbackStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
@@ -216,7 +216,7 @@ class Architecture(Summarizable):
             msg += f'node_name: {node_name}'
             raise ItemNotFoundError(msg)
 
-    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function):
+    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function: Optional[CallbackStruct]):
         try:
             node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
             node.assign_publisher(pub_topic_name, callback_function)
@@ -228,7 +228,11 @@ class Architecture(Summarizable):
     def assign_message_passings(self, node_name: str, source_callback_name: str, destination_callback_name: str):
         try:
             node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-            node.assign_message_passings(source_callback_name, destination_callback_name)
+
+            source_callback = Util.find_one(lambda x: x.callback_name == source_callback_name, node.callbacks)
+            destination_callback = Util.find_one(lambda x: x.callback_name == destination_callback_name, node.callbacks)
+
+            node.assign_message_passings(source_callback, destination_callback)
         except ItemNotFoundError:
             msg = 'Failed to find node. '
             msg += f'node_name: {node_name}'

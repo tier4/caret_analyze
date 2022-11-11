@@ -167,8 +167,14 @@ class NodeStruct():
     def assign_message_context(self, context_type, sub_topic_name: str, pub_topic_name: str):
         raise NotImplementedError('')
 
-    def assign_publisher(self, pub_topic_name: str, callback_function):
-        raise NotImplementedError('')
+    def assign_publisher(self, pub_topic_name: str, callback_function: Optional[CallbackStruct]):
+        publisher = PublisherStruct(self.node_name, pub_topic_name, callback_function)
+        publisher_list = list(self.publishers)
+        publisher_list.append(publisher)
+        self._publishers = Tuple(publisher_list)
 
-    def assign_message_passings(self, source_callback_name: str, destination_callback_name: str):
-        raise NotImplementedError('')
+    def assign_message_passings(self, source_callback: CallbackStruct, destination_callback: CallbackStruct):
+        passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
+        passing_list = list(self.variable_passings)
+        passing_list.append(passing)
+        self._variable_passings_info = passing_list

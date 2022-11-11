@@ -337,6 +337,10 @@ nodes:
         arch = Architecture('yaml', 'architecture.yaml')
         node = arch.get_node("/pong_node")
 
+        arch.assign_message_passings("/pong_node", "timer_callback_1", "subscription_callback_0")
+
+        node = arch.get_node("/pong_node")
+
         architecture_text_expected = """
 named_paths: []
 executors: []
