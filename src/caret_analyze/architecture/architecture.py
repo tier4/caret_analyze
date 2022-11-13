@@ -207,7 +207,7 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    def assign_message_context(self, node_name: str, context_type, sub_topic_name: str, pub_topic_name: str):
+    def assign_message_context(self, node_name: str, context_type: str, sub_topic_name: str, pub_topic_name: str):
         try:
             node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
             node.assign_message_context(context_type, sub_topic_name, pub_topic_name)
@@ -216,7 +216,7 @@ class Architecture(Summarizable):
             msg += f'node_name: {node_name}'
             raise ItemNotFoundError(msg)
 
-    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function: Optional[CallbackStruct]):
+    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function: Optional(str)):
         try:
             node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
             node.assign_publisher(pub_topic_name, callback_function)
