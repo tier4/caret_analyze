@@ -313,9 +313,8 @@ class TestArchitecture:
         Architecture._verify([node_mock])
         assert len(caplog.record_tuples) == 1
 
-    def test_rename_function(self, mocker):
-        # define test case: path
-        architecture_text = """
+    # define test case: path
+    renaming_architecture_text = """
 named_paths:
 - path_name: target_path_0
   node_chain:
@@ -330,8 +329,8 @@ named_paths:
   - node_name: /node_0
     subscribe_topic_name: /topic_1"""
 
-        # define test case: exec
-        architecture_text += """
+    # define test case: exec
+    renaming_architecture_text += """
 executors:
 - executor_type: single_threaded_executor
   executor_name: executor_0
@@ -344,8 +343,8 @@ executors:
   - /callback_group_0
   - /callback_group_1"""
 
-        # define test case: node, callback, topic
-        architecture_text += """
+    # define test case: node, callback, topic
+    renaming_architecture_text += """
 nodes:
 - node_name: /node_0
   callback_groups:
@@ -371,8 +370,8 @@ nodes:
   - topic_name: /topic_1
     callback_name: /callback_1"""
 
-        # define test case: node, callback, topic
-        architecture_text += """
+    # define test case: node, callback, topic
+    renaming_architecture_text += """
 - node_name: /node_1
   callback_groups:
   - callback_group_type: mutually_exclusive
@@ -395,10 +394,11 @@ nodes:
     - /callback_2
   subscribes:
   - topic_name: /topic_0
-    callback_name: /callback_3
-        """
+    callback_name: /callback_3"""
 
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+
+    def test_rename_node(self, mocker):
+        mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
         # test rename_node()
@@ -412,6 +412,10 @@ nodes:
         expect_node_names = ['/node_0', '/changed_node']
         assert set(node_names) == set(expect_node_names)
 
+    def test_rename_executor(self, mocker):
+        mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
         # test rename_executor()
         executor_names = arch.executor_names
         expect_executor_names = ['executor_0', 'executor_1']
@@ -422,6 +426,10 @@ nodes:
         executor_names = arch.executor_names
         expect_executor_names = ['executor_0', 'changed_executor']
         assert set(executor_names) == set(expect_executor_names)
+
+    def test_rename_topic(self, mocker):
+        mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
 
         # test rename_topic()
         topic_names = arch.topic_names
@@ -434,6 +442,10 @@ nodes:
         expect_topic_names = ['/topic_0', '/changed_topic']
         assert set(topic_names) == set(expect_topic_names)
 
+    def test_rename_callback(self, mocker):
+        mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
         # test rename_callback()
         callback_names = [c.callback_name for c in arch.callbacks]
         expect_callback_names = ['/callback_0', '/callback_1', '/callback_2', '/callback_3']
@@ -444,6 +456,10 @@ nodes:
         callback_names = [c.callback_name for c in arch.callbacks]
         expect_callback_names = ['/callback_0', '/changed_callback', '/callback_2', '/callback_3']
         assert set(callback_names) == set(expect_callback_names)
+
+    def test_rename_path(self, mocker):
+        mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
 
         # test rename_path()
         path_names = arch.path_names
