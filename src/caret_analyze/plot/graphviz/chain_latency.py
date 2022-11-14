@@ -31,7 +31,7 @@ def chain_latency(
     treat_drop_as_delay=False,
     lstrip_s=0,
     rstrip_s=0,
-) -> Optional[Source]:
+) -> Optional[Digraph]:
     granularity = granularity or 'node'
     if granularity not in ['node', 'end-to-end']:
         raise InvalidArgumentError('granularity must be [ node / end-to-end ]')
