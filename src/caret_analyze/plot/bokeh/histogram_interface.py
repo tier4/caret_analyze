@@ -16,11 +16,14 @@ from abc import ABCMeta, abstractmethod
 from typing import Collection
 
 from ...exceptions import InvalidArgumentError
+from ...common import type_check_decorator
 from ...runtime import Path
 from ...value_objects import PathStructValue
 
 
 class HistPlot(metaclass=ABCMeta):
+
+    @type_check_decorator
     def __init__(
         self,
         target: Collection[Path]
