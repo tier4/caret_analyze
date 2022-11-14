@@ -314,7 +314,7 @@ class TestArchitecture:
         Architecture._verify([node_mock])
         assert len(caplog.record_tuples) == 1
 
-    # define test case: path
+    # define original case of rename function
     renaming_architecture_text = """
 named_paths:
 - path_name: target_path_0
@@ -328,10 +328,7 @@ named_paths:
   - node_name: /node_1
     publish_topic_name: /topic_1
   - node_name: /node_0
-    subscribe_topic_name: /topic_1"""
-
-    # define test case: exec
-    renaming_architecture_text += """
+    subscribe_topic_name: /topic_1
 executors:
 - executor_type: single_threaded_executor
   executor_name: executor_0
@@ -342,10 +339,7 @@ executors:
   executor_name: executor_1
   callback_group_names:
   - /callback_group_0
-  - /callback_group_1"""
-
-    # define test case: node, callback, topic
-    renaming_architecture_text += """
+  - /callback_group_1
 nodes:
 - node_name: /node_0
   callback_groups:
@@ -369,10 +363,7 @@ nodes:
     - /callback_0
   subscribes:
   - topic_name: /topic_1
-    callback_name: /callback_1"""
-
-    # define test case: node, callback, topic
-    renaming_architecture_text += """
+    callback_name: /callback_1
 - node_name: /node_1
   callback_groups:
   - callback_group_type: mutually_exclusive
@@ -398,76 +389,480 @@ nodes:
     callback_name: /callback_3"""
 
     def test_rename_node(self, mocker):
+        # define case of node rename function
+        renamed_architecture_text = """
+named_paths:
+- path_name: target_path_0
+  node_chain:
+  - node_name: /node_0
+    publish_topic_name: /topic_0
+  - node_name: /changed_node
+    subscribe_topic_name: /topic_0
+- path_name: target_path_1
+  node_chain:
+  - node_name: /changed_node
+    publish_topic_name: /topic_1
+  - node_name: /node_0
+    subscribe_topic_name: /topic_1
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+- executor_type: single_threaded_executor
+  executor_name: executor_1
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+nodes:
+- node_name: /node_0
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_1
+    callback_names:
+    - /callback_0
+    - /callback_1
+  callbacks:
+  - callback_name: /callback_0
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_1
+    callback_type: subscription_callback
+    topic_name: /topic_1
+    symbol: sub
+  publishes:
+  - topic_name: /topic_0
+    callback_names:
+    - /callback_0
+  subscribes:
+  - topic_name: /topic_1
+    callback_name: /callback_1
+- node_name: /changed_node
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - /callback_2
+    - /callback_3
+  callbacks:
+  - callback_name: /callback_2
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_3
+    callback_type: subscription_callback
+    topic_name: /topic_0
+    symbol: sub
+  publishes:
+  - topic_name: /topic_1
+    callback_names:
+    - /callback_2
+  subscribes:
+  - topic_name: /topic_0
+    callback_name: /callback_3"""
+
         mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
-
-        # test rename_node()
-        node_names = arch.node_names
-        expect_node_names = ['/node_0', '/node_1']
-        assert set(node_names) == set(expect_node_names)
+        assert arch.get_node('/node_0')
+        assert arch.get_node('/node_1')
+        # assert arch.get_node('/changed_node') is False
 
         arch.rename_node('/node_1', '/changed_node')
+        assert arch.get_node('/node_0')
+        # assert arch.get_node('/node_1') is False
+        assert arch.get_node('/changed_node')
 
-        node_names = arch.node_names
-        expect_node_names = ['/node_0', '/changed_node']
-        assert set(node_names) == set(expect_node_names)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch_expected.node_names) == set(arch.node_names)
+
+        # check this
+        # - path_name: target_path_0
+        #   node_chain:
+        #   - node_name: /node_0
+        #   - node_name: /changed_node
+        assert set(arch_expected.get_path('target_path_0').node_names) == set(arch.get_path('target_path_0').node_names)
 
     def test_rename_executor(self, mocker):
+        # define original case of rename function
+        renamed_architecture_text = """
+named_paths:
+- path_name: target_path_0
+  node_chain:
+  - node_name: /node_0
+    publish_topic_name: /topic_0
+  - node_name: /node_1
+    subscribe_topic_name: /topic_0
+- path_name: target_path_1
+  node_chain:
+  - node_name: /node_1
+    publish_topic_name: /topic_1
+  - node_name: /node_0
+    subscribe_topic_name: /topic_1
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+- executor_type: single_threaded_executor
+  executor_name: changed_executor
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+nodes:
+- node_name: /node_0
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_1
+    callback_names:
+    - /callback_0
+    - /callback_1
+  callbacks:
+  - callback_name: /callback_0
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_1
+    callback_type: subscription_callback
+    topic_name: /topic_1
+    symbol: sub
+  publishes:
+  - topic_name: /topic_0
+    callback_names:
+    - /callback_0
+  subscribes:
+  - topic_name: /topic_1
+    callback_name: /callback_1
+- node_name: /node_1
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - /callback_2
+    - /callback_3
+  callbacks:
+  - callback_name: /callback_2
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_3
+    callback_type: subscription_callback
+    topic_name: /topic_0
+    symbol: sub
+  publishes:
+  - topic_name: /topic_1
+    callback_names:
+    - /callback_2
+  subscribes:
+  - topic_name: /topic_0
+    callback_name: /callback_3"""
+
         mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
-
-        # test rename_executor()
-        executor_names = arch.executor_names
-        expect_executor_names = ['executor_0', 'executor_1']
-        assert set(executor_names) == set(expect_executor_names)
+        assert arch.get_executor('executor_0')
+        assert arch.get_executor('executor_1')
+        # assert arch.get_executor('changed_executor') is False
 
         arch.rename_executor('executor_1', 'changed_executor')
+        assert arch.get_executor('executor_0')
+        # assert arch.get_executor('executor_1') is False
+        assert arch.get_executor('changed_executor')
 
-        executor_names = arch.executor_names
-        expect_executor_names = ['executor_0', 'changed_executor']
-        assert set(executor_names) == set(expect_executor_names)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch_expected.executor_names) == set(arch.executor_names)
 
     def test_rename_topic(self, mocker):
+            # define case of topic rename function
+        renamed_architecture_text = """
+named_paths:
+- path_name: target_path_0
+  node_chain:
+  - node_name: /node_0
+    publish_topic_name: /topic_0
+  - node_name: /node_1
+    subscribe_topic_name: /topic_0
+- path_name: target_path_1
+  node_chain:
+  - node_name: /node_1
+    publish_topic_name: /changed_topic
+  - node_name: /node_0
+    subscribe_topic_name: /changed_topic
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+- executor_type: single_threaded_executor
+  executor_name: executor_1
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+nodes:
+- node_name: /node_0
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_1
+    callback_names:
+    - /callback_0
+    - /callback_1
+  callbacks:
+  - callback_name: /callback_0
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_1
+    callback_type: subscription_callback
+    topic_name: /changed_topic
+    symbol: sub
+  publishes:
+  - topic_name: /topic_0
+    callback_names:
+    - /callback_0
+  subscribes:
+  - topic_name: /changed_topic
+    callback_name: /callback_1
+- node_name: /node_1
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - /callback_2
+    - /callback_3
+  callbacks:
+  - callback_name: /callback_2
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_3
+    callback_type: subscription_callback
+    topic_name: /topic_0
+    symbol: sub
+  publishes:
+  - topic_name: /changed_topic
+    callback_names:
+    - /callback_2
+  subscribes:
+  - topic_name: /topic_0
+    callback_name: /callback_3"""
+
         mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
-
-        # test rename_topic()
-        topic_names = arch.topic_names
-        expect_topic_names = ['/topic_0', '/topic_1']
-        # assert set(topic_names) == set(expect_topic_names)
 
         arch.rename_topic('/topic_1', '/changed_topic')
 
-        topic_names = arch.topic_names
-        expect_topic_names = ['/topic_0', '/changed_topic']
-        assert set(topic_names) == set(expect_topic_names)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch_expected.topic_names) == set(arch.topic_names)
+
+        # check this
+        # publishes:
+        # - topic_name: /topic_0
+        #   callback_names:
+        #   - /callback_0
+        # subscribes:
+        # - topic_name: /changed_topic
+        #   callback_name: /callback_1
+        assert arch_expected.get_node('/node_0').get_publisher('/topic_0').topic_name == arch.get_node('/node_0').get_publisher('/topic_0').topic_name
+        assert arch_expected.get_node('/node_1').get_publisher('/changed_topic').topic_name == arch.get_node('/node_1').get_publisher('/changed_topic').topic_name
+
+        # check this
+        # publishes:
+        # - topic_name: /changed_topic
+        #   callback_names:
+        #   - /callback_2
+        # subscribes:
+        # - topic_name: /topic_0
+        #   callback_name: /callback_3"""
+        assert arch_expected.get_node('/node_0').get_subscription('/changed_topic').topic_name == arch.get_node('/node_0').get_subscription('/changed_topic').topic_name
+        assert arch_expected.get_node('/node_1').get_subscription('/topic_0').topic_name == arch.get_node('/node_1').get_subscription('/topic_0').topic_name
 
     def test_rename_callback(self, mocker):
+        # define case of callback rename function
+        renamed_architecture_text = """
+named_paths:
+- path_name: target_path_0
+  node_chain:
+  - node_name: /node_0
+    publish_topic_name: /topic_0
+  - node_name: /node_1
+    subscribe_topic_name: /topic_0
+- path_name: target_path_1
+  node_chain:
+  - node_name: /node_1
+    publish_topic_name: /topic_1
+  - node_name: /node_0
+    subscribe_topic_name: /topic_1
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+- executor_type: single_threaded_executor
+  executor_name: executor_1
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+nodes:
+- node_name: /node_0
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_1
+    callback_names:
+    - /callback_0
+    - /changed_callback
+  callbacks:
+  - callback_name: /callback_0
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /changed_callback
+    callback_type: subscription_callback
+    topic_name: /topic_1
+    symbol: sub
+  publishes:
+  - topic_name: /topic_0
+    callback_names:
+    - /callback_0
+  subscribes:
+  - topic_name: /topic_1
+    callback_name: /changed_callback
+- node_name: /node_1
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - /callback_2
+    - /callback_3
+  callbacks:
+  - callback_name: /callback_2
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_3
+    callback_type: subscription_callback
+    topic_name: /topic_0
+    symbol: sub
+  publishes:
+  - topic_name: /topic_1
+    callback_names:
+    - /callback_2
+  subscribes:
+  - topic_name: /topic_0
+    callback_name: /callback_3"""
+
         mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
-
-        # test rename_callback()
-        callback_names = [c.callback_name for c in arch.callbacks]
-        expect_callback_names = ['/callback_0', '/callback_1', '/callback_2', '/callback_3']
-        assert set(callback_names) == set(expect_callback_names)
+        assert arch.get_callback('/callback_0')
+        assert arch.get_callback('/callback_1')
+        # assert arch.get_callback('/changed_callback') is False
 
         arch.rename_callback('/callback_1', '/changed_callback')
+        assert arch.get_callback('/callback_0')
+        # assert arch.get_callback('/callback_1') is False
+        assert arch.get_callback('/changed_callback')
 
-        callback_names = [c.callback_name for c in arch.callbacks]
-        expect_callback_names = ['/callback_0', '/changed_callback', '/callback_2', '/callback_3']
-        assert set(callback_names) == set(expect_callback_names)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        # assert arch.get_node('/node_0').callback_names == arch_expected.get_node('/node_0').callback_names
+        # assert arch.get_node('/node_0').get_publisher('/topic_0').callback_names == arch_expected.get_node('/node_0').get_publisher('/topic_0').callback_names
+        # assert arch.get_node('/node_0').get_publisher('/changed_topic').callback_names == arch_expected.get_node('/node_0').get_publisher('/changed_topic').callback_names
 
     def test_rename_path(self, mocker):
+        # define original case of rename function
+        renamed_architecture_text = """
+named_paths:
+- path_name: target_path_0
+  node_chain:
+  - node_name: /node_0
+    publish_topic_name: /topic_0
+  - node_name: /node_1
+    subscribe_topic_name: /topic_0
+- path_name: changed_path
+  node_chain:
+  - node_name: /node_1
+    publish_topic_name: /topic_1
+  - node_name: /node_0
+    subscribe_topic_name: /topic_1
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+- executor_type: single_threaded_executor
+  executor_name: executor_1
+  callback_group_names:
+  - /callback_group_0
+  - /callback_group_1
+nodes:
+- node_name: /node_0
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_1
+    callback_names:
+    - /callback_0
+    - /callback_1
+  callbacks:
+  - callback_name: /callback_0
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_1
+    callback_type: subscription_callback
+    topic_name: /topic_1
+    symbol: sub
+  publishes:
+  - topic_name: /topic_0
+    callback_names:
+    - /callback_0
+  subscribes:
+  - topic_name: /topic_1
+    callback_name: /callback_1
+- node_name: /node_1
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - /callback_2
+    - /callback_3
+  callbacks:
+  - callback_name: /callback_2
+    callback_type: timer_callback
+    period_ns: 200000000
+    symbol: timer
+  - callback_name: /callback_3
+    callback_type: subscription_callback
+    topic_name: /topic_0
+    symbol: sub
+  publishes:
+  - topic_name: /topic_1
+    callback_names:
+    - /callback_2
+  subscribes:
+  - topic_name: /topic_0
+    callback_name: /callback_3"""
+
         mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
+        assert arch.get_path('target_path_0')
+        assert arch.get_path('target_path_1')
+        # assert arch.get_path('changed_path') is False
 
-        # test rename_path()
-        path_names = arch.path_names
-        expect_path_names = ['target_path_0', 'target_path_1']
-        assert set(path_names) == set(expect_path_names)
+        arch.rename_path('target_path_1', 'changed_path')
+        assert arch.get_path('target_path_0')
+        # assert arch.get_path('target_path_1') is False
+        assert arch.get_path('changed_path')
 
-        arch.rename_path('target_path_1', '/changed_path')
-
-        path_names = arch.path_names
-        expect_path_names = ['target_path_0', '/changed_path']
-        assert set(path_names) == set(expect_path_names)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+        assert set(arch_expected.path_names) == set(arch.path_names)
