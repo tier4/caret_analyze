@@ -1,9 +1,9 @@
 try:
-    from pytypes import typechecked
-    type_check_decorator = typechecked
+    from pydantic import validate_arguments
+    type_check_decorator = validate_arguments(config=dict(arbitrary_types_allowed=True))
 except ModuleNotFoundError:
-    def empty_decorator(f):
+    def empty_decorator(func):
         def _wrapper(*args, **kargs):
-            return f(*args, **kargs)
+            return func(*args, **kargs)
         return _wrapper
     type_check_decorator = empty_decorator
