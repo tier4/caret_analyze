@@ -180,7 +180,7 @@ class NodeStructValue(ValueObject, Summarizable):
                 lambda x: x.service_name == service_name,
                 self._services)
         except ItemNotFoundError:
-            msg = 'Failed to find subscription info. '
+            msg = 'Failed to find service info. '
             msg += f'service_name: {service_name}'
             raise ItemNotFoundError(msg)
 

@@ -140,7 +140,7 @@ class NodeStruct():
 
         try:
             return Util.find_one(
-                lambda x: x.topic_name == service_name,
+                lambda x: x.service_name == service_name,
                 self._services)
         except ItemNotFoundError:
             msg = 'Failed to find service info. '
