@@ -917,8 +917,7 @@ class TestCallbacksLoaded:
         assert cb.callback_type == srv_cb.callback_type
         assert cb.publish_topic_names is None
         assert cb.subscribe_topic_name is None
-        assert cb.service_name ==srv_cb.service_name
-
+        assert cb.service_name == srv_cb.service_name
 
     def test_not_implemented_callback_type(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
