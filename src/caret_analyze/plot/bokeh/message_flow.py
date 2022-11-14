@@ -32,7 +32,6 @@ from ...common import ClockConverter, type_check_decorator
 from ...exceptions import InvalidArgumentError
 from ...record.data_frame_shaper import Clip, Strip
 from ...runtime.path import Path
-from ...value_objects import PathStructValue
 
 
 @type_check_decorator
@@ -45,9 +44,6 @@ def message_flow(
     rstrip_s: float = 0,
     use_sim_time: bool = False
 ) -> Figure:
-    if isinstance(path, PathStructValue):
-        raise InvalidArgumentError(
-            'The input path must be that of the application, not the architecture.')
     granularity = granularity or 'raw'
     if granularity not in ['raw', 'node']:
         raise InvalidArgumentError('granularity must be [ raw / node ]')

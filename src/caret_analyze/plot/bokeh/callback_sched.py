@@ -37,7 +37,6 @@ from ...exceptions import InvalidArgumentError
 from ...record import Clip
 from ...runtime import (Application, CallbackBase, CallbackGroup,
                         Executor, Node, Path)
-from ...value_objects import PathStructValue
 
 logger = getLogger(__name__)
 
@@ -87,9 +86,6 @@ def callback_sched(
 
     """
     assert coloring_rule in ['callback', 'callback_group', 'node']
-    if isinstance(target, PathStructValue):
-        raise InvalidArgumentError(
-            'The input path must be that of the application, not the architecture.')
 
     callback_groups, target_name = get_cbg_and_name(target)
     callbacks = Util.flatten([cbg.callbacks for cbg in callback_groups])

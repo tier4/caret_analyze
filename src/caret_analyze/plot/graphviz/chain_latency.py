@@ -21,7 +21,6 @@ import pandas as pd
 from ...common import type_check_decorator
 from ...exceptions import InvalidArgumentError
 from ...runtime.path import Path
-from ...value_objects import PathStructValue
 
 
 @type_check_decorator
@@ -33,9 +32,6 @@ def chain_latency(
     lstrip_s=0,
     rstrip_s=0,
 ) -> Optional[Source]:
-    if isinstance(path, PathStructValue):
-        raise InvalidArgumentError(
-            'The input path must be that of the application, not the architecture.')
     granularity = granularity or 'node'
     if granularity not in ['node', 'end-to-end']:
         raise InvalidArgumentError('granularity must be [ node / end-to-end ]')

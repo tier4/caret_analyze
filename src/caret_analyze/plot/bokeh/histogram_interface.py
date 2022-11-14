@@ -15,10 +15,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import Collection
 
-from ...exceptions import InvalidArgumentError
 from ...common import type_check_decorator
 from ...runtime import Path
-from ...value_objects import PathStructValue
 
 
 class HistPlot(metaclass=ABCMeta):
@@ -28,11 +26,6 @@ class HistPlot(metaclass=ABCMeta):
         self,
         target: Collection[Path]
     ) -> None:
-        for path in target:
-            if isinstance(path, PathStructValue):
-                raise InvalidArgumentError(
-                    'The input path must be that of the application, not the architecture.')
-
         self._target = list(target)
 
     def show(
