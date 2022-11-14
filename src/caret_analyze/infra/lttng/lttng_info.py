@@ -327,12 +327,6 @@ class LttngInfo:
             node_name = row['node_name']
             node_id = row['node_id']
 
-            # Since callback_object_intra contains nan, it is of type np.float.
-            record_callback_object_intra = row['callback_object_intra']
-            if record_callback_object_intra is pd.NA:
-                callback_object_intra = None
-            else:
-                callback_object_intra = int(record_callback_object_intra)
             self._id_to_service[row['callback_id']] = row['service_name']
 
             srv_cbs_info[node_id].append(
@@ -345,7 +339,6 @@ class LttngInfo:
                     service_handle=row['service_handle'],
                     publish_topic_names=None,
                     callback_object=row['callback_object'],
-                    callback_object_intra=callback_object_intra,
                 )
             )
         return srv_cbs_info

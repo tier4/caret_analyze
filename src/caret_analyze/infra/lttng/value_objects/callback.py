@@ -107,7 +107,6 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
         service_handle: int,
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
-        callback_object_intra: Optional[int],
     ) -> None:
         super().__init__(
             callback_id=callback_id,
@@ -118,16 +117,11 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
             publish_topic_names=publish_topic_names)
 
         self._callback_object = callback_object
-        self._callback_object_intra = callback_object_intra
         self._service_handle = service_handle
 
     @property
     def callback_object(self) -> int:
         return self._callback_object
-
-    @property
-    def callback_object_intra(self) -> Optional[int]:
-        return self._callback_object_intra
 
     @property
     def service_handle(self) -> int:
