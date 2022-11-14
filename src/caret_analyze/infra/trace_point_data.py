@@ -25,18 +25,28 @@ import pandas as pd
 class TracePointIntermediateData:
     """Intermediate data for reading trace points."""
 
-    def __init__(self, columns: Sequence[str]) -> None:
+    def __init__(
+        self,
+        columns: Sequence[str],
+        dtypes: Optional[Dict[str, str]] = None
+    ) -> None:
         """
         Construct an instance.
 
         Parameters
         ----------
         columns : Sequence[str]
-            column names
+            Column names.
+        dtypes : Sequence[str]
+            Type given to pandas dtypes. ['Int64', 'object'].
+            This argument is used to manually determine which columns may be None.
+            For columns that do not contain None,
+            pandas.DataFrame.convert_dtypes will automatically determine it.
 
         """
         self._data: Dict[str, Any] = {column: [] for column in columns}
         self._columns = list(columns)
+        self._dtypes = dtypes
 
     def __len__(self) -> int:
         return len(self._data)
@@ -75,11 +85,13 @@ class TracePointIntermediateData:
 
         """
         df = pd.DataFrame(self._data, columns=self._columns)
+        if self._dtypes:
+            df = df.astype(self._dtypes)  # type: ignore
 
         if index_column:
             df.set_index(index_column, inplace=True, drop=True)
 
-        return TracePointData(df.convert_dtypes())
+        return TracePointData(df)
 
     @property
     def columns(self) -> List[str]:
@@ -96,6 +108,12 @@ class TracePointIntermediateData:
 
 
 class TracePointData:
+    """
+    Class to store TracepointData.
+
+    DataFrame.convert_dtypes() internally and store it as
+    nullable Int64 or object type.
+    """
 
     def __init__(self, df: pd.DataFrame) -> None:
         """
@@ -106,8 +124,13 @@ class TracePointData:
         df : pd.DataFrame
             internal data.
 
+        Note:
+        ----
+        Note that even in cases where you want the data to be recognized as Int64,
+        if all data is None, it will be converted as an object.
+
         """
-        self._df: pd.DataFrame = deepcopy(df)
+        self._df: pd.DataFrame = df.convert_dtypes()
 
     @staticmethod
     def concat(

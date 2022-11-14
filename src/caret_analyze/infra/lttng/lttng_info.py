@@ -1412,7 +1412,9 @@ class DataFrameFormatted:
         merge(subscription_objects, callback_objects, 'subscription')
 
         ret_data = TracePointIntermediateData(
-            ['subscription_handle', 'callback_object', 'callback_object_intra'])
+            ['subscription_handle', 'callback_object', 'callback_object_intra'],
+            {'callback_object_intra': 'Int64'}
+        )
         for key, group in subscription_objects.df.groupby('subscription_handle'):
             group.reset_index(drop=True, inplace=True)
 
