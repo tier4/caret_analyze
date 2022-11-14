@@ -209,7 +209,7 @@ class ServiceCallbackStruct(CallbackStruct):
 
     @property
     def callback_type(self) -> CallbackType:
-        return CallbackType.SUBSCRIPTION
+        return CallbackType.SERVICE
 
     @property
     def service_name(self) -> str:
