@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from typing import Collection
+from typing import Sequence
 
 from ...common import type_check_decorator
 from ...runtime import Path
@@ -24,7 +24,7 @@ class HistPlot(metaclass=ABCMeta):
     @type_check_decorator
     def __init__(
         self,
-        target: Collection[Path]
+        target: Sequence[Path]
     ) -> None:
         self._target = list(target)
 
