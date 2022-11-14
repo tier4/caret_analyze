@@ -46,10 +46,11 @@ class Architecture(Summarizable):
             file_type, file_path)
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
-        self._nodes: Tuple[NodeStruct, ...] = loaded.nodes
-        self._communications: Tuple[CommunicationStruct, ...] = loaded.communications
-        self._executors: Tuple[ExecutorStruct, ...] = loaded.executors
-        self._paths = list(loaded.paths)
+        self._nodes: List[NodeStruct] = loaded.nodes
+        self._communications: List[CommunicationStruct] = loaded.communications
+        self._executors: List[ExecutorStruct] = loaded.executors
+        assert isinstance(self._nodes, List)
+        self._paths = loaded.paths
         self._verify(self._nodes)
 
     def get_node(self, node_name: str) -> NodeStructValue:

@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Tuple
+from typing import List, Optional
 
 from ...value_objects import (CallbackStructValue, CallbackType,
                               SubscriptionCallbackStructValue,
@@ -30,7 +30,7 @@ class CallbackStruct(metaclass=ABCMeta):
         node_name: str,
         symbol: str,
         subscribe_topic_name: Optional[str],
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: Optional[List[str]],
         callback_name: str,
     ) -> None:
         self._node_name = node_name
@@ -105,7 +105,7 @@ class CallbackStruct(metaclass=ABCMeta):
         return self._subscribe_topic_name
 
     @property
-    def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
+    def publish_topic_names(self) -> Optional[List[str]]:
         return self._publish_topic_names
 
     @abstractmethod
@@ -135,7 +135,7 @@ class TimerCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         period_ns: int,
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: Optional[List[str]],
         callback_name: str,
     ) -> None:
         super().__init__(
@@ -169,7 +169,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: Optional[List[str]],
         callback_name: str,
     ) -> None:
         super().__init__(

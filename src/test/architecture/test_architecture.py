@@ -80,9 +80,10 @@ class TestArchitecture:
         mocker.patch.object(node_mock, 'to_value', return_value=node_struct_mock)
         mocker.patch.object(node_mock, 'callbacks', [])
 
-        mocker.patch.object(loaded_mock, 'paths', ())
-        mocker.patch.object(loaded_mock, 'nodes', (node_mock,))
-        mocker.patch.object(loaded_mock, 'communications', ())
+        mocker.patch.object(loaded_mock, 'paths', [])
+        mocker.patch.object(loaded_mock, 'nodes', [node_mock])
+        mocker.patch.object(loaded_mock, 'communications', [])
+        mocker.patch.object(loaded_mock, 'executors', [])
 
         searcher_mock = mocker.Mock(spec=NodePathSearcher)
         mocker.patch('caret_analyze.architecture.graph_search.NodePathSearcher',
@@ -395,7 +396,6 @@ nodes:
   subscribes:
   - topic_name: /topic_0
     callback_name: /callback_3"""
-
 
     def test_rename_node(self, mocker):
         mocker.patch('builtins.open', mocker.mock_open(read_data=self.renaming_architecture_text))

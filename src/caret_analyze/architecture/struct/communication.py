@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from typing import List, Optional
 
 from .callback import CallbackStruct
 from .node import NodeStruct
@@ -30,7 +30,7 @@ class CommunicationStruct():
         node_subscription: NodeStruct,
         publisher_value: PublisherStruct,
         subscription_value: SubscriptionStruct,
-        publish_callback_values: Optional[Tuple[CallbackStruct, ...]],
+        publish_callback_values: Optional[List[CallbackStruct]],
         subscription_callback_value: Optional[CallbackStruct],
     ) -> None:
         self._publisher_value = publisher_value
@@ -64,10 +64,10 @@ class CommunicationStruct():
         return self._topic_name
 
     @property
-    def publish_callback_names(self) -> Optional[Tuple[str, ...]]:
+    def publish_callback_names(self) -> Optional[List[str]]:
         if self._publish_callbacks_value is None:
             return None
-        return tuple(p.callback_name for p in self._publish_callbacks_value)
+        return [p.callback_name for p in self._publish_callbacks_value]
 
     @property
     def subscribe_callback_name(self) -> Optional[str]:
@@ -84,7 +84,7 @@ class CommunicationStruct():
         return self._subscription_value
 
     @property
-    def publish_callbacks(self) -> Optional[Tuple[CallbackStruct, ...]]:
+    def publish_callbacks(self) -> Optional[List[CallbackStruct]]:
         return self._publish_callbacks_value
 
     @property

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from logging import getLogger
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional
 
 from caret_analyze.value_objects.message_context import (CallbackChain, InheritUniqueStamp,
                                                          MessageContext, MessageContextType,
@@ -47,7 +47,7 @@ class MessageContextStruct():
         message_context_dict: Dict,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        child: Optional[Tuple[CallbackStruct, ...]],
+        child: Optional[List[CallbackStruct]],
     ) -> None:
         # Since it is used as a value object,
         # mutable types such as dict should not be used.
@@ -73,7 +73,7 @@ class MessageContextStruct():
     @property
     def callbacks(
         self
-    ) -> Optional[Tuple[CallbackStruct, ...]]:
+    ) -> Optional[List[CallbackStruct]]:
         return self._callbacks
 
     def to_dict(self) -> Dict:
@@ -87,7 +87,7 @@ class MessageContextStruct():
         self,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        callbacks: Optional[Tuple[CallbackStruct, ...]]
+        callbacks: Optional[List[CallbackStruct]]
     ) -> bool:
         def _to_value(struct):
             return None if struct is None else struct.to_value()
@@ -113,7 +113,7 @@ class MessageContextStruct():
         node_name: str,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        child: Optional[Tuple[CallbackStruct, ...]]
+        child: Optional[List[CallbackStruct]]
     ) -> MessageContextStruct:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
             return CallbackChainStruct(node_name,
@@ -232,7 +232,7 @@ class CallbackChainStruct(MessageContextStruct):
         message_context_dict: Dict,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        callbacks: Optional[Tuple[CallbackStruct, ...]]
+        callbacks: Optional[List[CallbackStruct]]
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -248,7 +248,7 @@ class CallbackChainStruct(MessageContextStruct):
         self,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        callbacks: Optional[Tuple[CallbackStruct, ...]]
+        callbacks: Optional[List[CallbackStruct]]
     ) -> bool:
         def _to_values(structs):
             if structs is None:
@@ -289,7 +289,7 @@ class TildeStruct(MessageContextStruct):
         message_context_dict: Dict,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        callbacks: Optional[Tuple[CallbackStruct, ...]]
+        callbacks: Optional[List[CallbackStruct]]
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -305,7 +305,7 @@ class TildeStruct(MessageContextStruct):
         self,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        callbacks: Optional[Tuple[CallbackStruct, ...]]
+        callbacks: Optional[List[CallbackStruct]]
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False

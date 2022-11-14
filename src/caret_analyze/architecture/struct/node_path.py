@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from .callback import CallbackStruct, SubscriptionCallbackStruct
 from .message_context import MessageContextStruct
@@ -35,7 +35,7 @@ class NodePathStruct():
         node_name: str,
         subscription: Optional[SubscriptionStruct],
         publisher: Optional[PublisherStruct],
-        child: Optional[Tuple[Union[CallbackStruct, VariablePassingStruct], ...]],
+        child: Optional[List[Union[CallbackStruct, VariablePassingStruct]]],
         message_context: Optional[MessageContextStruct],
     ) -> None:
         self._node_name = node_name
@@ -49,33 +49,33 @@ class NodePathStruct():
         return self._node_name
 
     @property
-    def callbacks(self) -> Optional[Tuple[CallbackStruct, ...]]:
+    def callbacks(self) -> Optional[List[CallbackStruct]]:
         if self._child is None:
             return None
 
-        cb_values = Util.filter_items(
+        cb_values: List[CallbackStruct] = Util.filter_items(
             lambda x: isinstance(x, CallbackStruct),
             self._child
         )
-        return tuple(cb_values)
+        return cb_values
 
     @property
-    def callback_names(self) -> Optional[Tuple[str, ...]]:
+    def callback_names(self) -> Optional[List[str]]:
         if self.callbacks is None:
             return None
 
-        return tuple(_.callback_name for _ in self.callbacks)
+        return [_.callback_name for _ in self.callbacks]
 
     @property
-    def variable_passings(self) -> Optional[Tuple[VariablePassingStruct, ...]]:
+    def variable_passings(self) -> Optional[List[VariablePassingStruct]]:
         if self._child is None:
             return None
 
-        cbs_info = Util.filter_items(
+        cbs_info: List[VariablePassingStruct] = Util.filter_items(
             lambda x: isinstance(x, VariablePassingStruct),
             self._child
         )
-        return tuple(cbs_info)
+        return cbs_info
 
     @property
     def message_context(self) -> Optional[MessageContextStruct]:
@@ -91,11 +91,11 @@ class NodePathStruct():
     @property
     def child(
         self,
-    ) -> Optional[Tuple[Union[CallbackStruct, VariablePassingStruct], ...]]:
+    ) -> Optional[List[Union[CallbackStruct, VariablePassingStruct]]]:
         if self._child is None:
             return None
 
-        return tuple(self._child)
+        return self._child
 
     @property
     def publisher(self) -> Optional[PublisherStruct]:

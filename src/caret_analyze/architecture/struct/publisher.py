@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from typing import List, Optional
 
 from .callback import CallbackStruct
 from ...value_objects import PublisherStructValue
@@ -25,7 +25,7 @@ class PublisherStruct():
         self,
         node_name: str,
         topic_name: str,
-        callback_values: Optional[Tuple[CallbackStruct, ...]],
+        callback_values: Optional[List[CallbackStruct]],
     ) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
@@ -46,14 +46,14 @@ class PublisherStruct():
         return self._topic_name
 
     @property
-    def callbacks(self) -> Optional[Tuple[CallbackStruct, ...]]:
+    def callbacks(self) -> Optional[List[CallbackStruct]]:
         return self._callbacks
 
     @property
-    def callback_names(self) -> Optional[Tuple[str, ...]]:
+    def callback_names(self) -> Optional[List[str]]:
         if self._callbacks is None:
             return None
-        return tuple(c.callback_name for c in self._callbacks)
+        return [c.callback_name for c in self._callbacks]
 
     def to_value(self) -> PublisherStructValue:
         return PublisherStructValue(
