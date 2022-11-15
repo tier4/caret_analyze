@@ -352,7 +352,7 @@ class TestLttngInfo:
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        srv_df = pd.DataFrame.from_dict(
+        srv = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'callback_object': callback_object[0],
@@ -373,11 +373,11 @@ class TestLttngInfo:
                     'callback_id': 'service_callback_1',
                 }
             ]
-        ).convert_dtypes()
+        ).convert_dtypes())
         mocker.patch.object(
-            formatted_mock, 'service_callbacks_df', srv_df)
+            formatted_mock, 'service_callbacks', srv)
 
-        node_df = pd.DataFrame.from_dict(
+        node = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'node_id': 'node_id',
@@ -390,8 +390,8 @@ class TestLttngInfo:
                     'node_name': node_name[1]
                 }
             ]
-        ).convert_dtypes()
-        mocker.patch.object(formatted_mock, 'nodes_df', node_df)
+        ).convert_dtypes())
+        mocker.patch.object(formatted_mock, 'nodes', node)
 
         data = Ros2DataModel()
         data.finalize()
@@ -470,7 +470,7 @@ class TestLttngInfo:
         mocker.patch.object(
             formatted_mock, 'subscription_callbacks', sub)
 
-        srv_df = pd.DataFrame.from_dict(
+        srv = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'callback_object': callback_object,
@@ -482,9 +482,9 @@ class TestLttngInfo:
                     'callback_id': 'service_callback_0'
                 },
             ]
-        )
+        ))
         mocker.patch.object(
-            formatted_mock, 'service_callbacks_df', srv_df)
+            formatted_mock, 'service_callbacks', srv)
 
         node = TracePointData(pd.DataFrame.from_dict(
             [
@@ -742,7 +742,7 @@ class TestDataFrameFormatted:
 
         data.finalize()
 
-        srv_df = DataFrameFormatted._build_srv_callbacks_df(data)
+        srv = DataFrameFormatted._build_srv_callbacks(data)
 
         expect = pd.DataFrame.from_dict(
             [
@@ -766,7 +766,7 @@ class TestDataFrameFormatted:
                 },
             ]
         ).convert_dtypes()
-        assert srv_df.equals(expect)
+        assert srv.df.equals(expect)
 
     def test_executor_df(self):
         data = Ros2DataModel()

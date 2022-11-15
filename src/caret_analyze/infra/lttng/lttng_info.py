@@ -322,10 +322,11 @@ class LttngInfo:
         for node in self.get_nodes():
             srv_cbs_info[node.node_id] = []
 
-        srv_df = self._formatted.service_callbacks_df
-        srv_df = merge(srv_df, self._formatted.nodes_df, 'node_handle')
+        srv = self._formatted.service_callbacks.clone()
+        nodes = self._formatted.nodes.clone()
+        merge(srv, nodes, 'node_handle')
 
-        for _, row in srv_df.iterrows():
+        for _, row in srv.df.iterrows():
             node_name = row['node_name']
             node_id = row['node_id']
 
@@ -521,7 +522,7 @@ class LttngInfo:
         concat_target_dfs = []
         concat_target_dfs.append(self._formatted.timer_callbacks.clone())
         concat_target_dfs.append(self._formatted.subscription_callbacks.clone())
-        concat_target_dfs.append(self._formatted.service_callbacks_df)
+        concat_target_dfs.append(self._formatted.service_callbacks.clone())
 
         try:
             column_names = [
@@ -1039,6 +1040,30 @@ class DataFrameFormatted:
         return self._sub_callbacks
 
     @property
+    def service_callbacks(self) -> TracePointData:
+        """
+        Build service callback table.
+
+        Parameters
+        ----------
+        data : Ros2DataModel
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - callback_id
+            - callback_object
+            - callback_group_addr
+            - node_handle
+            - service_handle
+            - service_name
+            - symbol
+
+        """
+        return self._srv_callbacks
+
+    @property
     def nodes(self) -> TracePointData:
         """
         Build node table.
@@ -1073,26 +1098,6 @@ class DataFrameFormatted:
 
         """
         return self._pub
-
-    @property
-    def services_df(self) -> pd.DataFrame:
-        """
-        Get service info table.
-
-        Returns
-        -------
-        pd.DataFrame
-            Columns
-            - callback_id
-            - callback_object
-            - callback_group_addr
-            - node_handle
-            - service_handle
-            - service_name
-            - symbol
-
-        """
-        return self._srv_callbacks
 
     @property
     def executor(self) -> TracePointData:
@@ -1374,6 +1379,10 @@ class DataFrameFormatted:
         symbols = data.callback_symbols.clone()
         symbols.reset_index()
         merge(services, symbols, 'callback_object')
+
+        callback_group_service = data.callback_group_service.clone()
+        callback_group_service.reset_index()
+        merge(services, callback_group_service, 'service_handle')
 
         services.add_column('callback_id', callback_id)
 
