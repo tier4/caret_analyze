@@ -606,6 +606,69 @@ class TestDataFrameFormatted:
         ).convert_dtypes()
         assert sub_df.equals(expect)
 
+    def test_build_service_callbacks_df(self, mocker):
+        data = Ros2DataModel()
+
+        node_handle = [0, 1]
+        rmw_handle = [2, 3]
+        service_handle = [4, 5]
+        callback_object_inter = [8, 9]
+        symbol = ['symbol_', 'symbol__']
+        node_name = ['node1', 'node2']
+        service_name = ['service1', 'service2']
+        callback_group_addr = [15, 16]
+
+        data.add_node(0, node_handle[0], 0, rmw_handle, node_name[0], '/')
+        data.add_node(0, node_handle[1], 0, rmw_handle, node_name[1], '/')
+
+        data.add_service(
+            service_handle[0], 0, node_handle[0], rmw_handle[0], service_name[0])
+        data.add_service(
+            service_handle[1], 0, node_handle[1], rmw_handle[1], service_name[1])
+
+        #data.add_callback_object(srv_ptr[0], 0, callback_object_inter[0])
+        #data.add_callback_object(srv_ptr[1], 0, callback_object_inter[1])
+        data.add_callback_object(service_handle[0], 0, callback_object_inter[0])
+        data.add_callback_object(service_handle[1], 0, callback_object_inter[1])
+
+        data.add_callback_symbol(callback_object_inter[0], 0, symbol[0])
+        data.add_callback_symbol(callback_object_inter[1], 0, symbol[1])
+
+        data.callback_group_add_service(
+            callback_group_addr[0], 0, service_handle[0]
+        )
+        data.callback_group_add_service(
+            callback_group_addr[1], 0, service_handle[1]
+        )
+
+        data.finalize()
+
+        srv_df = DataFrameFormatted._build_srv_callbacks_df(data)
+
+        expect = pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_id': f'service_callback_{callback_object_inter[0]}',
+                    'callback_object': callback_object_inter[0],
+                    'node_handle': node_handle[0],
+                    'service_handle': service_handle[0],
+                    'callback_group_addr': callback_group_addr[0],
+                    'service_name': service_name[0],
+                    'symbol': symbol[0],
+                },
+                {
+                    'callback_id': f'service_callback_{callback_object_inter[1]}',
+                    'callback_object': callback_object_inter[1],
+                    'node_handle': node_handle[1],
+                    'service_handle': service_handle[1],
+                    'callback_group_addr': callback_group_addr[1],
+                    'service_name': service_name[1],
+                    'symbol': symbol[1],
+                },
+            ]
+        ).convert_dtypes()
+        assert srv_df.equals(expect)
+
     def test_executor_df(self):
         data = Ros2DataModel()
         exec_addr = 3
