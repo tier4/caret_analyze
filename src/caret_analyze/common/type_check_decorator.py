@@ -1,7 +1,7 @@
 try:
     from pydantic import validate_arguments
     type_check_decorator = validate_arguments(config={'arbitrary_types_allowed': True})
-except ModuleNotFoundError:
+except ImportError:
     def empty_decorator(func):
         def _wrapper(*args, **kargs):
             return func(*args, **kargs)
