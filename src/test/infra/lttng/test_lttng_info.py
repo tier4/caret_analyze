@@ -19,6 +19,7 @@ from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
                                                      NodeValueLttng,
                                                      PublisherValueLttng,
+                                                     ServiceCallbackValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
 from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
@@ -322,6 +323,95 @@ class TestLttngInfo:
 
         sub_cbs_info = info.get_subscription_callbacks(NodeValue('/', '/'))
         assert sub_cbs_info == []
+
+    def test_get_service_callbacks_info(self, mocker):
+        callback_object = [2, 3]
+        callback_object_intra = [4]
+        node_handle = [7, 8]
+
+        service_name = ['/service1', '/service2']
+        node_name = ['/node1', '/node2']
+        symbol = ['symbol0', 'symbol1']
+        service_handle = [11, 12]
+        cbg_addr = [13, 14]
+
+        formatted_mock = mocker.Mock(spec=DataFrameFormatted)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
+                     return_value=formatted_mock)
+
+        srv_df = pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object[0],
+                    'node_handle': node_handle[0],
+                    'service_handle': service_handle[0],
+                    'callback_group_addr': cbg_addr[0],
+                    'service_name': service_name[0],
+                    'symbol': symbol[0],
+                    'callback_id': 'service_callback_0',
+                },
+                {
+                    'callback_object': callback_object[1],
+                    'node_handle': node_handle[1],
+                    'service_handle': service_handle[1],
+                    'callback_group_addr': cbg_addr[1],
+                    'service_name': service_name[1],
+                    'symbol': symbol[1],
+                    'callback_id': 'service_callback_1',
+                }
+            ]
+        ).convert_dtypes()
+        mocker.patch.object(
+            formatted_mock, 'service_callbacks_df', srv_df)
+
+        node_df = pd.DataFrame.from_dict(
+            [
+                {
+                    'node_id': 'node_id',
+                    'node_handle': node_handle[0],
+                    'node_name': node_name[0]
+                },
+                {
+                    'node_id': 'node_id_2',
+                    'node_handle': node_handle[1],
+                    'node_name': node_name[1]
+                }
+            ]
+        ).convert_dtypes()
+        mocker.patch.object(formatted_mock, 'nodes_df', node_df)
+
+        data = Ros2DataModel()
+        data.finalize()
+        info = LttngInfo(data)
+
+        srv_cbs_info = info.get_service_callbacks(NodeValue('/node1', 'node_id'))
+        srv_cb_info_expect = ServiceCallbackValueLttng(
+            'service_callback_0',
+            'node_id',
+            node_name[0],
+            symbol[0],
+            service_name[0],
+            service_handle[0],
+            None,
+            callback_object=callback_object[0],
+        )
+        assert srv_cbs_info == [srv_cb_info_expect]
+
+        srv_cbs_info = info.get_service_callbacks(NodeValue('/node2', 'node_id_2'))
+        srv_cb_info_expect = ServiceCallbackValueLttng(
+            'service_callback_1',
+            'node_id_2',
+            node_name[1],
+            symbol[1],
+            service_name[1],
+            service_handle[1],
+            None,
+            callback_object[1],
+        )
+        assert srv_cbs_info == [srv_cb_info_expect]
+
+        srv_cbs_info = info.get_service_callbacks(NodeValue('/', '/'))
+        assert srv_cbs_info == []
 
     def test_get_callback_groups_info(self, mocker):
         node_handle = 3
