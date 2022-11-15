@@ -497,7 +497,6 @@ class LttngInfo:
 
         return pubs_info
 
-    # 仮実装
     def _is_user_made_callback(
         self,
         callback_id: str
@@ -509,7 +508,7 @@ class LttngInfo:
         if not is_service:
             return True
         topic_name = self._id_to_topic[callback_id]
-        # serviceの扱いは要相談
+
         return topic_name not in ['/clock', '/parameter_events']
 
     def _get_callback_groups(
