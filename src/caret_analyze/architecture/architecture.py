@@ -185,10 +185,42 @@ class Architecture(Summarizable):
             if node_name not in self.node_names:
                 raise ItemNotFoundError(f'Failed to find node. {node_name}')
 
+        default_depth = 15  # When the depth is 15, the process takes only a few seconds.
+        max_node_depth = max_node_depth or default_depth
+
+        # Print message before search
+        msg_recommend_intermediate = (
+            'If the paths you want to measure cannot be found, '
+            'consider specifying intermediate nodes. '
+        )
+        msg_detail_page = (
+            'For details, '
+            'see https://tier4.github.io/CARET_doc/latest/configuration/inter_node_data_path/'
+        )
+        if max_node_depth > default_depth:
+            msg = (
+                f'`max_node_depth` greater than {default_depth} is not recommended '
+                'because it significantly increases the search time '
+                'and the number of returned paths. '
+            )
+            msg += msg_recommend_intermediate
+            msg += msg_detail_page
+            print(msg)
+
+        # Search
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
-        return [
-            v.to_value() for v in path_searcher.search(*node_names, max_node_depth=max_node_depth)]
+        paths = [v.to_value() for v in
+                 path_searcher.search(*node_names, max_node_depth=max_node_depth)]
+
+        # Print message after search
+        msg = f'A search up to depth {max_node_depth} has been completed. '
+        msg += msg_recommend_intermediate
+        msg += 'Also, if the number of paths is too large, consider filtering node/topic names. '
+        msg += msg_detail_page
+        print(msg)
+
+        return paths
 
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
