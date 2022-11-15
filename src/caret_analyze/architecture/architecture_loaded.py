@@ -828,9 +828,24 @@ class CallbackGroupsLoaded():
         node: NodeValue
     ) -> None:
         self._data: Dict[str, CallbackGroupStruct] = {}
-        for i, cbg in enumerate(reader.get_callback_groups(node)):
+        callback_groups = reader.get_callback_groups(node)
+
+        # TODO(hsgwa): Checking for unique constraints on id and name
+
+        name_index = 0
+        for cbg in callback_groups:
             self._validate(cbg, node)
-            cbg_name = cbg.callback_group_name or f'{node.node_name}/callback_group_{i}'
+
+            cbg_name: str
+            if cbg.callback_group_name is None:
+                # TODO(hsgwa): Considering renaming feature,
+                # naming the node here complicates the process. This should be changed here.
+                # However, be careful with the change,
+                # because it will affect the format of the architecture file.
+                cbg_name = f'{node.node_name}/callback_group_{name_index}'
+                name_index += 1
+            else:
+                cbg_name = cbg.callback_group_name
 
             cbg_struct = CallbackGroupStruct(
                 cbg.callback_group_type,
@@ -1025,9 +1040,16 @@ class ExecutorValuesLoaded():
 
         exec_vals = reader.get_executors()
         num_digit = Util.num_digit(len(exec_vals))
+        name_index = 0
 
-        for i, executor in enumerate(exec_vals):
-            executor_name = indexed_name('executor', i, num_digit)
+        for executor in exec_vals:
+            executor_name: str
+            if executor.executor_name is None:
+                executor_name = indexed_name('executor', name_index, num_digit)
+                name_index += 1
+            else:
+                executor_name = executor.executor_name
+
             try:
                 execs.append(
                     self._to_struct(executor_name, executor, nodes_loaded)
