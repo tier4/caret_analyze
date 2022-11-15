@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 from datetime import datetime
+from functools import cached_property
 from logging import getLogger
 import os
 import pickle
@@ -49,19 +50,26 @@ logger = getLogger(__name__)
 
 class EventCollection(Iterable, Sized):
 
-    def __init__(self, trace_dir: str, force_conversion: bool) -> None:
-        if not os.path.exists(trace_dir):
+    def __init__(self, trace_dir: str, force_conversion: bool, *, store_cache=True) -> None:
+        if not self._trace_dir_exists(trace_dir):
             raise FileNotFoundError(f'Failed to found {trace_dir}')
 
         self._iterable_events: IterableEvents
         cache_path = self._cache_path(trace_dir)
+        use_cache = False
 
-        if os.path.exists(cache_path) and not force_conversion:
+        if self._cache_exists(cache_path) and not force_conversion:
+            cache_start_time, _ = PickleEventCollection(cache_path).time_range()
+            ctf_start_time, _ = CtfEventCollection(trace_dir).time_range()
+            use_cache = cache_start_time == ctf_start_time
+
+        if use_cache:
             logger.info('Found converted file.')
             self._iterable_events = PickleEventCollection(cache_path)
         else:
             self._iterable_events = CtfEventCollection(trace_dir)
-            self._store_cache(self._iterable_events, cache_path)
+            if store_cache:
+                self._store_cache(self._iterable_events, cache_path)
             logger.info(f'Converted to {cache_path}')
 
     @staticmethod
@@ -80,6 +88,50 @@ class EventCollection(Iterable, Sized):
 
     def _cache_path(self, events_path: str) -> str:
         return os.path.join(events_path, 'caret_converted')
+
+    @staticmethod
+    def _trace_dir_exists(path: str) -> bool:
+        """
+        Check whether trace dir exists.
+
+        Parameters
+        ----------
+        path : str
+            Path to trace dir.
+
+        Returns
+        -------
+        bool
+            True if trace dir exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
+        return os.path.exists(path)
+
+    @staticmethod
+    def _cache_exists(path: str) -> bool:
+        """
+        Check whether cache exists.
+
+        Parameters
+        ----------
+        path : str
+            Path to cache.
+
+        Returns
+        -------
+        bool
+            True if cache exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
+        return os.path.exists(path)
 
 
 class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
@@ -154,10 +206,10 @@ class CtfEventCollection(IterableEvents):
         self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
         self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
         self._size = event_count
-        self._events = self._to_dicts(events_path, event_count)
+        self._events_path = events_path
 
     def __iter__(self) -> Iterator[Dict]:
-        return iter(self._events)
+        return iter(self.events)
 
     def __len__(self) -> int:
         return self._size
@@ -171,9 +223,9 @@ class CtfEventCollection(IterableEvents):
         event.update(msg.event.common_context_field)
         return event
 
-    @property
+    @cached_property
     def events(self) -> List[Dict]:
-        return self._events
+        return self._to_dicts(self._events_path, self._size)
 
     def time_range(self) -> Tuple[int, int]:
         return self._begin_time, self._end_time

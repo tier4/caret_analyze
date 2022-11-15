@@ -22,11 +22,25 @@ from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
                                                      ServiceCallbackValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
+from caret_analyze.infra.trace_point_data import TracePointData
 from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
                                          ExecutorValue)
+
 from caret_analyze.value_objects.node import NodeValue
 
+
 import pandas as pd
+
+import pytest
+
+
+@pytest.fixture
+def create_trace_point_data(mocker):
+    def _create_trace_point_data() -> TracePointData:
+        data = mocker.Mock(spec=TracePointData)
+        mocker.patch.object(data, 'clone', return_value=data)
+        return data
+    return _create_trace_point_data
 
 
 class TestLttngInfo:
@@ -55,7 +69,7 @@ class TestLttngInfo:
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        nodes_df = pd.DataFrame.from_dict(
+        nodes = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'node_id': 'node_id',
@@ -63,8 +77,8 @@ class TestLttngInfo:
                     'node_name': '/node',
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'nodes_df', nodes_df)
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', nodes)
 
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
         mocker.patch.object(LttngInfo, '_get_timer_cbs_without_pub', return_value={})
@@ -90,7 +104,7 @@ class TestLttngInfo:
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        pub_df = pd.DataFrame.from_dict(
+        pub = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'publisher_handle': publisher_handle,
@@ -99,10 +113,10 @@ class TestLttngInfo:
                     'depth': depth
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'publishers_df', pub_df)
+        ))
+        mocker.patch.object(formatted_mock, 'publishers', pub)
 
-        tilde_pub_df = pd.DataFrame.from_dict(
+        tilde_pub = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'tilde_publisher': tilde_publisher,
@@ -110,10 +124,10 @@ class TestLttngInfo:
                     'topic_name': '/topic_name',
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'tilde_publishers_df', tilde_pub_df)
+        ))
+        mocker.patch.object(formatted_mock, 'tilde_publishers', tilde_pub)
 
-        node_df = pd.DataFrame.from_dict(
+        node = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'node_id': 'node_id',
@@ -121,8 +135,8 @@ class TestLttngInfo:
                     'node_name': '/node',
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'nodes_df', node_df)
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', node)
 
         pub_info_expect = PublisherValueLttng(
             node_name='/node',
@@ -159,7 +173,7 @@ class TestLttngInfo:
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        timer_df = pd.DataFrame.from_dict(
+        timer = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'callback_object': callback_object,
@@ -171,10 +185,10 @@ class TestLttngInfo:
                     'callback_id': 'timer_callback_0'
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'timer_callbacks_df', timer_df)
+        ))
+        mocker.patch.object(formatted_mock, 'timer_callbacks', timer)
 
-        node_df = pd.DataFrame.from_dict(
+        nodes = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'node_id': 'node_id',
@@ -182,8 +196,8 @@ class TestLttngInfo:
                     'node_name': '/node1'
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'nodes_df', node_df)
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', nodes)
         data = Ros2DataModel()
 
         mocker.patch.object(LttngInfo, '_get_sub_cbs_without_pub', return_value={})
@@ -226,7 +240,7 @@ class TestLttngInfo:
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        sub_df = pd.DataFrame.from_dict(
+        sub = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'callback_object': callback_object[0],
@@ -250,11 +264,11 @@ class TestLttngInfo:
                     'depth': depth[1]
                 }
             ]
-        ).convert_dtypes()
+        ).convert_dtypes())
         mocker.patch.object(
-            formatted_mock, 'subscription_callbacks_df', sub_df)
+            formatted_mock, 'subscription_callbacks', sub)
 
-        tilde_sub_df = pd.DataFrame.from_dict(
+        tilde_sub = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'tilde_subscription': tilde_subscription[0],
@@ -267,11 +281,11 @@ class TestLttngInfo:
                     'topic_name': topic_name[1],
                 }
             ]
-        ).convert_dtypes()
+        ).convert_dtypes())
         mocker.patch.object(
-            formatted_mock, 'tilde_subscriptions_df', tilde_sub_df)
+            formatted_mock, 'tilde_subscriptions', tilde_sub)
 
-        node_df = pd.DataFrame.from_dict(
+        node = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'node_id': 'node_id',
@@ -284,8 +298,8 @@ class TestLttngInfo:
                     'node_name': node_name[1]
                 }
             ]
-        ).convert_dtypes()
-        mocker.patch.object(formatted_mock, 'nodes_df', node_df)
+        ).convert_dtypes())
+        mocker.patch.object(formatted_mock, 'nodes', node)
 
         data = Ros2DataModel()
         data.finalize()
@@ -423,7 +437,7 @@ class TestLttngInfo:
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        timer_df = pd.DataFrame.from_dict(
+        timer = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'callback_object': callback_object,
@@ -435,10 +449,10 @@ class TestLttngInfo:
                     'callback_id': 'timer_callback_0'
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'timer_callbacks_df', timer_df)
+        ))
+        mocker.patch.object(formatted_mock, 'timer_callbacks', timer)
 
-        sub_df = pd.DataFrame.from_dict(
+        sub = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'callback_object': callback_object,
@@ -452,9 +466,9 @@ class TestLttngInfo:
                     'depth': 0
                 },
             ]
-        )
+        ))
         mocker.patch.object(
-            formatted_mock, 'subscription_callbacks_df', sub_df)
+            formatted_mock, 'subscription_callbacks', sub)
 
         srv_df = pd.DataFrame.from_dict(
             [
@@ -472,7 +486,7 @@ class TestLttngInfo:
         mocker.patch.object(
             formatted_mock, 'service_callbacks_df', srv_df)
 
-        node_df = pd.DataFrame.from_dict(
+        node = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'node_id': 'node_id',
@@ -480,10 +494,10 @@ class TestLttngInfo:
                     'node_name': node_name
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'nodes_df', node_df)
+        ))
+        mocker.patch.object(formatted_mock, 'nodes', node)
 
-        cbg_df = pd.DataFrame.from_dict(
+        cbg = TracePointData(pd.DataFrame.from_dict(
             [
                 {
                     'callback_group_id': 'callback_group_id',
@@ -492,8 +506,8 @@ class TestLttngInfo:
                     'group_type_name': CallbackGroupType.REENTRANT.type_name,
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'callback_groups_df', cbg_df)
+        ))
+        mocker.patch.object(formatted_mock, 'callback_groups', cbg)
 
         data = Ros2DataModel()
         data.finalize()
@@ -513,30 +527,28 @@ class TestLttngInfo:
 
     def test_get_executors_info(self, mocker):
         cbg_addr = 13
-        executor = 15
+        executor_addr = 15
 
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
                      return_value=formatted_mock)
 
-        exec_df = pd.DataFrame.from_dict(
-            [
+        executor = TracePointData(pd.DataFrame.from_dict([
                 {
-                    'executor_addr': executor,
+                    'executor_addr': executor_addr,
                     'executor_type_name': ExecutorType.SINGLE_THREADED_EXECUTOR.type_name,
                 }
             ]
-        )
-        mocker.patch.object(formatted_mock, 'executor_df', exec_df)
-        cbg_df = pd.DataFrame.from_dict([
-            {
+        ).convert_dtypes())
+        mocker.patch.object(formatted_mock, 'executor', executor)
+        cbg = TracePointData(pd.DataFrame.from_dict([{
                 'callback_group_id': 'callback_group_id',
                 'callback_group_addr': cbg_addr,
-                'executor_addr': executor,
+                'executor_addr': executor_addr,
                 'group_type_name': CallbackGroupType.REENTRANT.type_name,
             }
-        ])
-        mocker.patch.object(formatted_mock, 'callback_groups_df', cbg_df)
+        ]).convert_dtypes())
+        mocker.patch.object(formatted_mock, 'callback_groups', cbg)
 
         data = Ros2DataModel()
         data.finalize()
@@ -577,7 +589,7 @@ class TestDataFrameFormatted:
         )
         data.finalize()
 
-        timer_df = DataFrameFormatted._build_timer_callbacks_df(data)
+        timer = DataFrameFormatted._build_timer_callbacks(data)
 
         expect = pd.DataFrame.from_dict(
             [
@@ -592,7 +604,7 @@ class TestDataFrameFormatted:
                 },
             ]
         ).convert_dtypes()
-        assert timer_df.equals(expect)
+        assert timer.df.equals(expect)
 
     def test_build_timer_control_df(self):
         data = Ros2DataModel()
@@ -606,7 +618,7 @@ class TestDataFrameFormatted:
 
         data.finalize()
 
-        timer_df = DataFrameFormatted._build_timer_control_df(data)
+        timer = DataFrameFormatted._build_timer_control(data)
 
         expect = pd.DataFrame.from_dict(
             [
@@ -618,7 +630,7 @@ class TestDataFrameFormatted:
                 },
             ]
         ).convert_dtypes()
-        assert timer_df.equals(expect)
+        assert timer.df.equals(expect)
 
     def test_build_subscription_callbacks_df(self, mocker):
         data = Ros2DataModel()
@@ -666,7 +678,7 @@ class TestDataFrameFormatted:
 
         mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
 
-        sub_df = DataFrameFormatted._build_sub_callbacks_df(data)
+        sub = DataFrameFormatted._build_sub_callbacks(data)
 
         expect = pd.DataFrame.from_dict(
             [
@@ -693,7 +705,7 @@ class TestDataFrameFormatted:
                 },
             ]
         ).convert_dtypes()
-        assert sub_df.equals(expect)
+        assert sub.df.equals(expect)
 
     def test_build_service_callbacks_df(self, mocker):
         data = Ros2DataModel()
@@ -764,7 +776,7 @@ class TestDataFrameFormatted:
         data.add_executor(exec_addr, 0, exec_type)
         data.finalize()
 
-        exec_df = DataFrameFormatted._build_executor_df(data)
+        executor = DataFrameFormatted._build_executor(data)
 
         expect = [
             {
@@ -775,7 +787,7 @@ class TestDataFrameFormatted:
         ]
         expect_df = pd.DataFrame.from_dict(expect).convert_dtypes()
 
-        assert exec_df.equals(expect_df)
+        assert executor.df.equals(expect_df)
 
     def test_executor_static_df(self):
         data = Ros2DataModel()
@@ -786,7 +798,7 @@ class TestDataFrameFormatted:
         data.add_executor_static(exec_addr, collector_addr, 0, exec_type)
         data.finalize()
 
-        exec_df = DataFrameFormatted._build_executor_df(data)
+        executor = DataFrameFormatted._build_executor(data)
 
         expect = [
             {
@@ -797,7 +809,7 @@ class TestDataFrameFormatted:
         ]
         expect_df = pd.DataFrame.from_dict(expect).convert_dtypes()
 
-        assert exec_df.equals(expect_df)
+        assert executor.df.equals(expect_df)
 
     def test_format_subscription_callback_object(self, mocker):
         data = Ros2DataModel()
@@ -823,7 +835,7 @@ class TestDataFrameFormatted:
 
         mocker.patch.object(DataFrameFormatted, '_is_ignored_subscription', return_value=False)
 
-        sub_df = DataFrameFormatted._format_subscription_callback_object(data)
+        sub = DataFrameFormatted._format_subscription_callback_object(data)
 
         expect = pd.DataFrame.from_dict(
             [
@@ -838,7 +850,7 @@ class TestDataFrameFormatted:
                 },
             ]
         ).convert_dtypes()
-        assert sub_df.equals(expect)
+        assert sub.df.equals(expect)
 
     def test_build_nodes_df(self):
         data = Ros2DataModel()
@@ -853,7 +865,7 @@ class TestDataFrameFormatted:
             name='node1',
             namespace='/')
         data.finalize()
-        nodes_df = DataFrameFormatted._build_nodes_df(data)
+        nodes = DataFrameFormatted._build_nodes(data)
 
         expect = pd.DataFrame.from_dict(
             [{
@@ -862,7 +874,7 @@ class TestDataFrameFormatted:
                 'node_name': '/node1',
             }]
         ).convert_dtypes()
-        assert nodes_df.equals(expect)
+        assert nodes.df.equals(expect)
 
     def test_build_callback_groups_df(self):
         exec_addr = 2
@@ -873,7 +885,7 @@ class TestDataFrameFormatted:
         data.add_callback_group(exec_addr, 0, callback_group_addr, group_type)
         data.finalize()
 
-        cbg_df = DataFrameFormatted._build_cbg_df(data)
+        cbg = DataFrameFormatted._build_cbg(data)
 
         expect = pd.DataFrame.from_dict(
             [{
@@ -883,7 +895,7 @@ class TestDataFrameFormatted:
                 'executor_addr': exec_addr,
             }]
         ).convert_dtypes()
-        assert cbg_df.equals(expect)
+        assert cbg.df.equals(expect)
 
     def test_build_callback_groups_static_df(self):
         group_type = 'reentrant'
@@ -896,7 +908,7 @@ class TestDataFrameFormatted:
         data.add_executor_static(exec_addr, collector_addr, 0, 'exec_type')
         data.finalize()
 
-        cbg_df = DataFrameFormatted._build_cbg_df(data)
+        cbg = DataFrameFormatted._build_cbg(data)
 
         expect = pd.DataFrame.from_dict(
             [{
@@ -906,7 +918,7 @@ class TestDataFrameFormatted:
                 'executor_addr': exec_addr,
             }]
         ).convert_dtypes()
-        assert cbg_df.equals(expect)
+        assert cbg.df.equals(expect)
 
     def test_build_publisher_df(self):
         pub_handle = 1
@@ -920,7 +932,7 @@ class TestDataFrameFormatted:
                            rmw_handle, topic_name, depth)
         data.finalize()
 
-        pub_df = DataFrameFormatted._build_publisher_df(data)
+        pub = DataFrameFormatted._build_publisher(data)
 
         expect = pd.DataFrame.from_dict(
             [{
@@ -931,68 +943,68 @@ class TestDataFrameFormatted:
                 'depth': depth
             }]
         ).convert_dtypes()
-        assert pub_df.equals(expect)
+        assert pub.df.equals(expect)
 
-    def test_init(self, mocker):
-        exec_mock = mocker.Mock(spec=pd.DataFrame)
-        node_mock = mocker.Mock(spec=pd.DataFrame)
-        timer_mock = mocker.Mock(spec=pd.DataFrame)
-        timer_control_mock = mocker.Mock(spec=pd.DataFrame)
-        sub_mock = mocker.Mock(spec=pd.DataFrame)
-        srv_mock = mocker.Mock(spec=pd.DataFrame)
-        cbg_mock = mocker.Mock(spec=pd.DataFrame)
-        pub_mock = mocker.Mock(spec=pd.DataFrame)
-        tilde_sub_mock = mocker.Mock(spec=pd.DataFrame)
-        tilde_pub_mock = mocker.Mock(spec=pd.DataFrame)
-        tilde_sub_id_mock = mocker.Mock(spec=pd.DataFrame)
+    def test_init(self, mocker, create_trace_point_data):
+        exec_mock = create_trace_point_data()
+        node_mock = create_trace_point_data()
+        timer_mock = create_trace_point_data()
+        timer_control_mock = create_trace_point_data()
+        sub_mock = create_trace_point_data()
+        srv_mock = create_trace_point_data()
+        cbg_mock = create_trace_point_data()
+        pub_mock = create_trace_point_data()
+        tilde_sub_mock = create_trace_point_data()
+        tilde_pub_mock = create_trace_point_data()
+        tilde_sub_id_mock = create_trace_point_data()
 
         mocker.patch.object(
-            DataFrameFormatted, '_build_executor_df', return_value=exec_mock)
+            DataFrameFormatted, '_build_executor', return_value=exec_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_nodes_df', return_value=node_mock)
+            DataFrameFormatted, '_build_nodes', return_value=node_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_timer_callbacks_df', return_value=timer_mock)
+            DataFrameFormatted, '_build_timer_callbacks', return_value=timer_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_timer_control_df', return_value=timer_control_mock)
+            DataFrameFormatted, '_build_timer_control', return_value=timer_control_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_sub_callbacks_df', return_value=sub_mock)
+            DataFrameFormatted, '_build_sub_callbacks', return_value=sub_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_srv_callbacks_df', return_value=srv_mock)
+            DataFrameFormatted, '_build_srv_callbacks', return_value=srv_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_cbg_df', return_value=cbg_mock)
+            DataFrameFormatted, '_build_cbg', return_value=cbg_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_publisher_df', return_value=pub_mock)
+            DataFrameFormatted, '_build_publisher', return_value=pub_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_tilde_subscription_df', return_value=tilde_sub_mock)
+            DataFrameFormatted, '_build_tilde_subscription', return_value=tilde_sub_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_tilde_publisher_df', return_value=tilde_pub_mock)
+            DataFrameFormatted, '_build_tilde_publisher', return_value=tilde_pub_mock)
         mocker.patch.object(
-            DataFrameFormatted, '_build_tilde_sub_id_df', return_value=tilde_sub_id_mock)
+            DataFrameFormatted, '_build_tilde_sub_id', return_value=tilde_sub_id_mock)
         data_mock = mocker.Mock(spec=Ros2DataModel)
         formatted = DataFrameFormatted(data_mock)
 
-        assert formatted.executor_df == exec_mock
-        assert formatted.nodes_df == node_mock
-        assert formatted.timer_callbacks_df == timer_mock
-        assert formatted.timer_controls_df == timer_control_mock
-        assert formatted.subscription_callbacks_df == sub_mock
-        assert formatted.callback_groups_df == cbg_mock
-        assert formatted.service_callbacks_df == srv_mock
-        assert formatted.publishers_df == pub_mock
+        assert formatted.executor == exec_mock
+        assert formatted.nodes == node_mock
+        assert formatted.timer_callbacks == timer_mock
+        assert formatted.timer_controls == timer_control_mock
+        assert formatted.subscription_callbacks == sub_mock
+        assert formatted.callback_groups == cbg_mock
+        assert formatted.service_callbacks == srv_mock
+        assert formatted.publishers == pub_mock
 
     def test_tilde_subscription(self, mocker):
         data = Ros2DataModel()
         data.finalize()
         formatted = DataFrameFormatted(data)
 
-        df = formatted.tilde_subscriptions_df
+        data = formatted.tilde_subscriptions
         columns = [
             'tilde_subscription',
             'node_name',
             'topic_name',
         ]
         df_expect = pd.DataFrame(columns=columns, dtype='Int64')
-        assert df.equals(df_expect)
+        assert data.df.equals(df_expect)
 
     # def test_build_subscription_callbacks_df(self):
 

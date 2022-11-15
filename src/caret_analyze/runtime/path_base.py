@@ -116,6 +116,7 @@ class PathBase(metaclass=ABCMeta):
         for column in column_names:
             if column in df.columns:
                 continue
+            # TODO(hsgwa): For pandas Int64, pd.NA should be used for missing values.
             df[column] = np.nan
         df = df[column_names]
 
@@ -129,6 +130,7 @@ class PathBase(metaclass=ABCMeta):
             df.dropna(inplace=True)
 
         for missing_column in set(column_names) - set(df.columns):
+            # TODO(hsgwa): For pandas Int64, pd.NA should be used for missing values.
             df[missing_column] = np.nan
 
         return df
