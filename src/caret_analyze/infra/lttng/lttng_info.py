@@ -320,7 +320,7 @@ class LttngInfo:
         for node in self.get_nodes():
             srv_cbs_info[node.node_id] = []
 
-        srv_df = self._formatted.services_df
+        srv_df = self._formatted.service_callbacks_df
         srv_df = merge(srv_df, self._formatted.nodes_df, 'node_handle')
 
         for _, row in srv_df.iterrows():
@@ -518,7 +518,7 @@ class LttngInfo:
         concat_target_dfs = []
         concat_target_dfs.append(self._formatted.timer_callbacks_df)
         concat_target_dfs.append(self._formatted.subscription_callbacks_df)
-        concat_target_dfs.append(self._formatted.services_df)
+        concat_target_dfs.append(self._formatted.service_callbacks_df)
 
         try:
             column_names = [
@@ -1082,7 +1082,7 @@ class DataFrameFormatted:
         return self._pub_df
 
     @property
-    def services_df(self) -> pd.DataFrame:
+    def service_callbacks_df(self) -> pd.DataFrame:
         """
         Get service info table.
 

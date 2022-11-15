@@ -381,7 +381,7 @@ class TestLttngInfo:
             ]
         )
         mocker.patch.object(
-            formatted_mock, 'services_df', srv_df)
+            formatted_mock, 'service_callbacks_df', srv_df)
 
         node_df = pd.DataFrame.from_dict(
             [
@@ -827,7 +827,7 @@ class TestDataFrameFormatted:
         assert formatted.timer_controls_df == timer_control_mock
         assert formatted.subscription_callbacks_df == sub_mock
         assert formatted.callback_groups_df == cbg_mock
-        assert formatted.services_df == srv_mock
+        assert formatted.service_callbacks_df == srv_mock
         assert formatted.publishers_df == pub_mock
 
     def test_tilde_subscription(self, mocker):
