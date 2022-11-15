@@ -956,9 +956,9 @@ class TestCallbacksLoaded:
             callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, None)
         sub_cb_1 = SubscriptionCallbackValue(
             callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, None)
-        srv_cb_0 = SubscriptionCallbackValue(
+        srv_cb_0 = ServiceCallbackValue(
             callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None)
-        srv_cb_1 = SubscriptionCallbackValue(
+        srv_cb_1 = ServiceCallbackValue(
             callback_id[5], node.node_name, node.node_id, symbol[5], service_name, None)
 
         mocker.patch.object(
