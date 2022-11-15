@@ -326,7 +326,6 @@ class TestLttngInfo:
 
     def test_get_service_callbacks_info(self, mocker):
         callback_object = [2, 3]
-        callback_object_intra = [4]
         node_handle = [7, 8]
 
         service_name = ['/service1', '/service2']
@@ -716,8 +715,6 @@ class TestDataFrameFormatted:
         data.add_service(
             service_handle[1], 0, node_handle[1], rmw_handle[1], service_name[1])
 
-        #data.add_callback_object(srv_ptr[0], 0, callback_object_inter[0])
-        #data.add_callback_object(srv_ptr[1], 0, callback_object_inter[1])
         data.add_callback_object(service_handle[0], 0, callback_object_inter[0])
         data.add_callback_object(service_handle[1], 0, callback_object_inter[1])
 
