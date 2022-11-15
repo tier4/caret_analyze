@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# flake8: noqa: F811
+# This line is a workaround for the following warning that seems to be a problem with flake8.
+# F811 redefinition of unused 'publishers'
+# F811 redefinition of unused 'subscriptions'
+
 from __future__ import annotations
 
 import logging
