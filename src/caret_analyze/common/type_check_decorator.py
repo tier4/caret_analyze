@@ -26,7 +26,7 @@ try:
 
         def _custom_wrapper(*args, **kargs):
             try:
-                validate_arguments_wrapper(*args, **kargs)
+                return validate_arguments_wrapper(*args, **kargs)
             except ValidationError as e:
                 expected_types: List[str] = []
                 for error in e.errors():
