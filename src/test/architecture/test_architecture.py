@@ -334,11 +334,9 @@ executors:
   executor_name: executor_0
   callback_group_names:
   - /callback_group_0
-  - /callback_group_1
 - executor_type: single_threaded_executor
   executor_name: executor_1
   callback_group_names:
-  - /callback_group_0
   - /callback_group_1
 nodes:
 - node_name: /node_0
@@ -409,11 +407,9 @@ executors:
   executor_name: executor_0
   callback_group_names:
   - /callback_group_0
-  - /callback_group_1
 - executor_type: single_threaded_executor
   executor_name: executor_1
   callback_group_names:
-  - /callback_group_0
   - /callback_group_1
 nodes:
 - node_name: /node_0
@@ -507,11 +503,9 @@ executors:
   executor_name: executor_0
   callback_group_names:
   - /callback_group_0
-  - /callback_group_1
 - executor_type: single_threaded_executor
   executor_name: changed_executor
   callback_group_names:
-  - /callback_group_0
   - /callback_group_1
 nodes:
 - node_name: /node_0
@@ -598,11 +592,9 @@ executors:
   executor_name: executor_0
   callback_group_names:
   - /callback_group_0
-  - /callback_group_1
 - executor_type: single_threaded_executor
   executor_name: executor_1
   callback_group_names:
-  - /callback_group_0
   - /callback_group_1
 nodes:
 - node_name: /node_0
@@ -705,11 +697,9 @@ executors:
   executor_name: executor_0
   callback_group_names:
   - /callback_group_0
-  - /callback_group_1
 - executor_type: single_threaded_executor
   executor_name: executor_1
   callback_group_names:
-  - /callback_group_0
   - /callback_group_1
 nodes:
 - node_name: /node_0
@@ -798,11 +788,9 @@ executors:
   executor_name: executor_0
   callback_group_names:
   - /callback_group_0
-  - /callback_group_1
 - executor_type: single_threaded_executor
   executor_name: executor_1
   callback_group_names:
-  - /callback_group_0
   - /callback_group_1
 nodes:
 - node_name: /node_0
