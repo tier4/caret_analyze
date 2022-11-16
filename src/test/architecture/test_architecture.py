@@ -480,7 +480,8 @@ nodes:
         #   node_chain:
         #   - node_name: /node_0
         #   - node_name: /changed_node
-        assert set(arch_expected.get_path('target_path_0').node_names) == set(arch.get_path('target_path_0').node_names)
+        assert set(arch_expected.get_path('target_path_0').node_names) \
+            == set(arch.get_path('target_path_0').node_names)
 
     def test_rename_executor(self, mocker):
         # define original case of rename function
@@ -572,7 +573,7 @@ nodes:
         assert set(arch_expected.executor_names) == set(arch.executor_names)
 
     def test_rename_topic(self, mocker):
-            # define case of topic rename function
+        # define case of topic rename function
         renamed_architecture_text = """
 named_paths:
 - path_name: target_path_0
@@ -662,8 +663,10 @@ nodes:
         # subscribes:
         # - topic_name: /changed_topic
         #   callback_name: /callback_1
-        assert arch_expected.get_node('/node_0').get_publisher('/topic_0').topic_name == arch.get_node('/node_0').get_publisher('/topic_0').topic_name
-        assert arch_expected.get_node('/node_1').get_publisher('/changed_topic').topic_name == arch.get_node('/node_1').get_publisher('/changed_topic').topic_name
+        assert arch_expected.get_node('/node_0').get_publisher('/topic_0').topic_name \
+            == arch.get_node('/node_0').get_publisher('/topic_0').topic_name
+        assert arch_expected.get_node('/node_1').get_publisher('/changed_topic').topic_name \
+            == arch.get_node('/node_1').get_publisher('/changed_topic').topic_name
 
         # check this
         # publishes:
@@ -673,8 +676,10 @@ nodes:
         # subscribes:
         # - topic_name: /topic_0
         #   callback_name: /callback_3"""
-        assert arch_expected.get_node('/node_0').get_subscription('/changed_topic').topic_name == arch.get_node('/node_0').get_subscription('/changed_topic').topic_name
-        assert arch_expected.get_node('/node_1').get_subscription('/topic_0').topic_name == arch.get_node('/node_1').get_subscription('/topic_0').topic_name
+        assert arch_expected.get_node('/node_0').get_subscription('/changed_topic').topic_name \
+            == arch.get_node('/node_0').get_subscription('/changed_topic').topic_name
+        assert arch_expected.get_node('/node_1').get_subscription('/topic_0').topic_name \
+            == arch.get_node('/node_1').get_subscription('/topic_0').topic_name
 
     def test_rename_callback(self, mocker):
         # define case of callback rename function
@@ -764,18 +769,22 @@ nodes:
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.get_node('/node_0').callback_names) == set(arch_expected.get_node('/node_0').callback_names)
-        assert set(arch.get_node('/node_1').callback_names) == set(arch_expected.get_node('/node_1').callback_names)
+        assert set(arch.get_node('/node_0').callback_names) \
+            == set(arch_expected.get_node('/node_0').callback_names)
+        assert set(arch.get_node('/node_1').callback_names) \
+            == set(arch_expected.get_node('/node_1').callback_names)
 
         # publishes:
         # - topic_name: /topic_1
         #   callback_names:
         #   - /changed_callback_1
-        assert set(arch.get_node('/node_1').get_publisher('/topic_1').callback_names) == set(arch_expected.get_node('/node_1').get_publisher('/topic_1').callback_names)
+        assert set(arch.get_node('/node_1').get_publisher('/topic_1').callback_names) \
+            == set(arch_expected.get_node('/node_1').get_publisher('/topic_1').callback_names)
         # subscribes:
         # - topic_name: /topic_1
         #   callback_name: /changed_callback_0
-        assert arch.get_node('/node_0').get_subscription('/topic_1').callback_name == arch_expected.get_node('/node_0').get_subscription('/topic_1').callback_name
+        assert arch.get_node('/node_0').get_subscription('/topic_1').callback_name \
+            == arch_expected.get_node('/node_0').get_subscription('/topic_1').callback_name
 
     def test_rename_path(self, mocker):
         # define original case of rename function
