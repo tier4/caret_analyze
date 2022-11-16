@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, Sequence
 
 from bokeh.colors import Color, RGB
 
