@@ -92,6 +92,7 @@ class EventCounter:
 
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
+        # TODO(hsgwa): Definitions on tracepoint types are scattered. Refactor required.
         trace_point_and_df = {
             'ros2:rcl_init': data.contexts,
             'ros2:rcl_node_init': data.nodes,
@@ -138,7 +139,6 @@ class EventCounter:
             'ros2_caret:tilde_subscribe': data.tilde_subscribe.to_dataframe(),
             'ros2_caret:sim_time': data.sim_time.to_dataframe(),
             'ros2_caret:on_data_available': data.on_data_available_instances.to_dataframe(),
-            'ros2_caret:rcl_timer_init': data.timers_caret,
             'ros2_caret:caret_init': data.caret_init,
         }
         #  'ros2_caret:rmw_implementation': ,

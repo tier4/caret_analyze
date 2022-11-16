@@ -282,16 +282,6 @@ class Ros2DataModel():
         }
         self._timers.append(record)
 
-    def add_timer_caret(self, tid, handle, timestamp, period, init_timestamp) -> None:
-        record = {
-            'timer_handle': handle,
-            'timestamp': timestamp,
-            'period': period,
-            'tid': tid,
-            'init_timestamp': init_timestamp,
-        }
-        self._timers_caret.append(record)
-
     def add_tilde_subscribe_added(
         self, subscription_id, node_name, topic_name, timestamp
     ) -> None:
@@ -707,7 +697,7 @@ class Ros2DataModel():
         }
         self._callback_group_client.append(record)
 
-    def caret_init(
+    def add_caret_init(
         self,
         clock_offset: int,
         timestamp: int
@@ -744,25 +734,9 @@ class Ros2DataModel():
         self.clients = pd.DataFrame.from_dict(self._clients)
         if self._clients:
             self.clients.set_index('client_handle', inplace=True, drop=True)
-
         self.caret_init = pd.DataFrame.from_dict(self._caret_init)
-        timers_dict_caret = []
-        self.timers_caret = pd.DataFrame.from_dict(self._timers_caret)
-        if self._timers_caret:
-            self.timers_caret.set_index('timer_handle', inplace=True, drop=True)
-
-            assert len(self._caret_init) > 0
-            lttng_clock_converter = LttngClockConverter(
-                self._caret_init[0]['timestamp'], self._caret_init[0]['clock_offset'])
-
-            for timer_caret in self._timers_caret:
-                timer_caret['timestamp'] = \
-                    lttng_clock_converter.to_system_time(timer_caret.pop('init_timestamp'))
-                timers_dict_caret.append(timer_caret)
-        #  Integrate with conventional trace points for compatibility.
-        timers_dict = timers_dict_caret + self._timers
-        self.timers = pd.DataFrame.from_dict(timers_dict)
-        if timers_dict:
+        self.timers = pd.DataFrame.from_dict(self._timers)
+        if self._timers:
             self.timers.set_index('timer_handle', inplace=True, drop=True)
         self.timer_node_links = pd.DataFrame.from_dict(self._timer_node_links)
         if self._timer_node_links:
