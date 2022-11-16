@@ -20,7 +20,7 @@ class TestLttngInfo:
 
     def test_add_tracepoints(self):
         data = Ros2DataModel()
-        data.add_context(0, 0, 0, 'version')
+        data.add_context(0, 0, 0)
         data.add_node(0, 0, 0, 0, 'name', 'ns')
         data.add_publisher(0, 0, 0, 0, 'topic_name', 0)
         data.add_rcl_subscription(0, 0, 0, 0, 'topic_name', 0)

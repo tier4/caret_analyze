@@ -31,12 +31,13 @@ class TestEventCounter:
 
         df = EventCounter._build_count_df(data)
         assert set(df.columns) == {'size', 'node_name', 'trace_point', 'topic_name'}
-        assert set(df['trace_point'].values) == set(Ros2Handler.get_trace_points())
+        assert set(df['trace_point'].values) == \
+            set(Ros2Handler.get_trace_points(include_wrapped_tracepoints=False))
         assert list(df['size']) == [0] * len(df)
 
-    def test_build_count_df_increment_count(self, mocker):
+    def test_build_count_df_increment_count(self):
         data = Ros2DataModel()
-        data.add_context(0, 0, 0, 0)
+        data.add_context(0, 0, 0)
         data.add_node(0, 0, 0, 0, 'name', '/')
         data.add_publisher(0, 0, 0, 0, 0, 0)
         data.add_rcl_subscription(0, 0, 0, 0, 0, 0)
