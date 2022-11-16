@@ -1059,7 +1059,7 @@ class TestExecutorInfoLoaded:
         exec_1 = ExecutorValue(
             ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, ())
         mocker.patch.object(reader_mock, 'get_executors',
-            return_value=[exec_0, exec_named, exec_1])
+                            return_value=[exec_0, exec_named, exec_1])
 
         nodes_loaded = mocker.Mock(NodeValuesLoaded)
         loaded = ExecutorValuesLoaded(reader_mock, nodes_loaded)
