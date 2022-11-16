@@ -77,27 +77,6 @@ def get_fig_args(
     return fig_args
 
 
-def get_freq_with_timestamp(
-    source_ts_series: pd.Series,
-    initial_timestamp: int
-) -> Tuple[pd.Series, pd.Series]:
-    timestamp_list: List[float] = []
-    frequency_list: List[int] = []
-    diff_base = -1
-
-    for timestamp in source_ts_series.dropna():
-        diff = timestamp - initial_timestamp
-        if int(diff*10**(-9)) == diff_base:
-            frequency_list[-1] += 1
-        else:
-            timestamp_list.append(initial_timestamp
-                                  + len(timestamp_list)*10**(9))
-            frequency_list.append(1)
-            diff_base = int(diff*10**(-9))
-
-    return pd.Series(timestamp_list), pd.Series(frequency_list)
-
-
 class PlotColorSelector:
 
     def __init__(self) -> None:
