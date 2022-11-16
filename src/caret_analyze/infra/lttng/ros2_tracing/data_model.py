@@ -200,12 +200,11 @@ class Ros2DataModel():
             ]
         )
 
-    def add_context(self, pid, context_handle, timestamp, version) -> None:
+    def add_context(self, pid, context_handle, timestamp) -> None:
         record = {
             'context_handle': context_handle,
             'timestamp': timestamp,
             'pid': pid,
-            'version': version,  # Comment out to align with Dict[str: int64_t]
         }
         self._contexts.append(record)
 

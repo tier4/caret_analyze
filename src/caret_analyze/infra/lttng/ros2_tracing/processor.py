@@ -186,8 +186,10 @@ class Ros2Handler():
         context_handle = get_field(event, 'context_handle')
         timestamp = get_field(event, '_timestamp')
         pid = get_field(event, '_vpid')
-        version = get_field(event, 'version')
-        self.data.add_context(pid, context_handle, timestamp, version)
+        # version is defined within tracetools.
+        # It is ignored because CARET does not plan to use it.
+        # version = get_field(event, 'version')
+        self.data.add_context(pid, context_handle, timestamp)
 
     def _handle_rcl_node_init(
         self,
