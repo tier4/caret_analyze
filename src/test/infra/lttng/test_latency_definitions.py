@@ -23,7 +23,7 @@ from caret_analyze.infra.lttng.value_objects import (
     SubscriptionCallbackValueLttng,
     TimerCallbackValueLttng,
 )
-from caret_analyze.record import RecordFactory, RecordsFactory, RecordsInterface
+from caret_analyze.record import RecordsFactory, RecordsInterface
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.value_objects import (
     CallbackChain,
@@ -863,12 +863,10 @@ class TestNodeRecords:
             if callback_arg == callback:
                 return RecordsFactory.create_instance(
                     [
-                        RecordFactory.create_instance(
-                            {
-                                f'{callback.callback_name}/callback_start_timestamp': 1,
-                                f'{callback.callback_name}/callback_end_timestamp': 2,
-                            },
-                        )
+                        {
+                            f'{callback.callback_name}/callback_start_timestamp': 1,
+                            f'{callback.callback_name}/callback_end_timestamp': 2,
+                        }
                     ],
                     [
                         ColumnValue(f'{callback.callback_name}/callback_start_timestamp'),
@@ -877,12 +875,10 @@ class TestNodeRecords:
                 )
             return RecordsFactory.create_instance(
                 [
-                    RecordFactory.create_instance(
-                        {
-                            f'{callback_.callback_name}/callback_start_timestamp': 3,
-                            f'{callback_.callback_name}/callback_end_timestamp': 4,
-                        },
-                    )
+                    {
+                        f'{callback_.callback_name}/callback_start_timestamp': 3,
+                        f'{callback_.callback_name}/callback_end_timestamp': 4,
+                    }
                 ],
                 [
                     ColumnValue(f'{callback_.callback_name}/callback_start_timestamp'),
@@ -895,12 +891,10 @@ class TestNodeRecords:
         def variable_passing_records(var_pass_args) -> RecordsInterface:
             return RecordsFactory.create_instance(
                 [
-                    RecordFactory.create_instance(
-                        {
-                            f'{callback.callback_name}/callback_end_timestamp': 2,
-                            f'{callback_.callback_name}/callback_start_timestamp': 3,
-                        },
-                    )
+                    {
+                        f'{callback.callback_name}/callback_end_timestamp': 2,
+                        f'{callback_.callback_name}/callback_start_timestamp': 3,
+                    }
                 ],
                 [
                     ColumnValue(f'{callback.callback_name}/callback_end_timestamp'),

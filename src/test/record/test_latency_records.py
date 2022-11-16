@@ -14,7 +14,7 @@
 
 from caret_analyze.record import ColumnValue
 from caret_analyze.record.latency import Latency
-from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
+from caret_analyze.record.record_factory import RecordsFactory
 
 
 def create_records(records_raw, columns):
@@ -23,8 +23,7 @@ def create_records(records_raw, columns):
         records.append_column(column, [])
 
     for record_raw in records_raw:
-        record = RecordFactory.create_instance(record_raw)
-        records.append(record)
+        records.append(record_raw)
     return records
 
 

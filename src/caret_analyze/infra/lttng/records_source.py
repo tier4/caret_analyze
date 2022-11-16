@@ -24,7 +24,6 @@ from .value_objects import TimerCallbackValueLttng, TimerControl, TimerInit
 from ...common import Util
 from ...record import (merge, merge_sequential,
                        merge_sequential_for_addr_track,
-                       RecordFactory,
                        RecordsFactory,
                        RecordsInterface)
 from ...record.column import Columns, ColumnValue
@@ -394,10 +393,9 @@ class RecordsSource():
                         control._timestamp
                         timer_timestamp = control._timestamp
                         while timer_timestamp < until_ns:
-                            record_dict = {
-                                            COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
+                            record = {
+                                COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
                             }
-                            record = RecordFactory.create_instance(record_dict)
                             records.append(record)
                             timer_timestamp = timer_timestamp+control.period_ns
 

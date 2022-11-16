@@ -16,7 +16,7 @@ from typing import List, Optional
 
 from .column import ColumnValue
 from .interface import RecordsInterface
-from .record_factory import RecordFactory, RecordsFactory
+from .record_factory import RecordsFactory
 
 
 class Period:
@@ -61,10 +61,10 @@ class Period:
         records = self._create_empty_records()
 
         for i in range(1, len(self._target_timestamps)):
-            records.append(RecordFactory.create_instance(
-                {self._target_column: self._target_timestamps[i-1],
-                 'period': self._target_timestamps[i] - self._target_timestamps[i-1]}
-            ))
+            records.append({
+                self._target_column: self._target_timestamps[i-1],
+                'period': self._target_timestamps[i] - self._target_timestamps[i-1]
+            })
 
         return records
 
