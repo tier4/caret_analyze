@@ -828,7 +828,7 @@ class TestCallbacksLoaded:
         assert cb.node_name == timer_cb.node_id
         assert cb.callback_name == timer_cb.callback_name
         assert cb.callback_type == timer_cb.callback_type
-        assert cb.publish_topic_names == (topic_name,)
+        assert cb.publish_topic_names == [topic_name]
         assert cb.subscribe_topic_name is None
 
         cb = loaded.find_callback(callback_id[1])

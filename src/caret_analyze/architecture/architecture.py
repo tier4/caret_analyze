@@ -194,7 +194,7 @@ class Architecture(Summarizable):
                 raise ItemNotFoundError(f'Failed to find node. {node_name}')
 
         path_searcher = NodePathSearcher(
-            self._nodes, self._communications, node_filter, communication_filter)
+            tuple(self._nodes), tuple(self._communications), node_filter, communication_filter)
         return [
             v.to_value() for v in path_searcher.search(*node_names, max_node_depth=max_node_depth)]
 

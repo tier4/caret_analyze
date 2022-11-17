@@ -157,7 +157,7 @@ class TimerCallbackStruct(CallbackStruct):
     def to_value(self) -> TimerCallbackStructValue:
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
-            self.publish_topic_names,
+            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
             self.callback_name)
 
 
@@ -192,7 +192,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
         return SubscriptionCallbackStructValue(
             self.node_name, self.symbol,
             self.subscribe_topic_name,
-            self.publish_topic_names,
+            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
             self.callback_name)
 
     def rename_topic(self, src: str, dst: str):

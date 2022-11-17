@@ -922,7 +922,8 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 period_ns=callback.period_ns,
-                publish_topic_names=callback.publish_topic_names,
+                publish_topic_names=None if callback.publish_topic_names is None
+                else list(callback.publish_topic_names),
                 callback_name=callback_name,
             )
         if isinstance(callback, SubscriptionCallbackValue):
@@ -937,7 +938,8 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 subscribe_topic_name=callback.subscribe_topic_name,
-                publish_topic_names=callback.publish_topic_names,
+                publish_topic_names=None if callback.publish_topic_names is None
+                else list(callback.publish_topic_names),
                 callback_name=callback_name,
             )
         raise UnsupportedTypeError('Unsupported callback type')
@@ -1101,7 +1103,7 @@ class PathValuesLoaded():
         comms_loaded: CommValuesLoaded,
     ) -> PathStruct:
         node_paths_info = PathValuesLoaded._to_node_path_struct(
-            path_info.node_path_values, nodes_loaded)
+            list(path_info.node_path_values), nodes_loaded)
 
         child: List[Union[NodePathStruct, CommunicationStruct]] = []
         child.append(node_paths_info[0])
@@ -1236,7 +1238,7 @@ class TopicIgnoredReader(ArchitectureReader):
                 cbg.callback_group_type.type_name,
                 cbg.node_name,
                 cbg.node_id,
-                list(set(cbg.callback_ids) - self._ignore_callback_ids),
+                tuple(set(cbg.callback_ids) - self._ignore_callback_ids),
                 cbg.callback_group_id,
                 callback_group_name=cbg.callback_group_name
             )
