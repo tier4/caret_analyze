@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from .lttng import LttngEventFilter
 from ...architecture.reader_interface import ArchitectureReader
@@ -41,8 +41,11 @@ class ArchitectureReaderLttng(ArchitectureReader):
             trace_dir, event_filters=[LttngEventFilter.init_pass_filter()],
             validate=False)
 
-    def get_node_names(self, callback_group_id: str) -> Sequence[str]:
-        return self._lttng.get_node_names(callback_group_id)
+    def get_node_names_and_cb_symbols(
+        self,
+        callback_group_id: str
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+        return self._lttng.get_node_names_and_cb_symbols(callback_group_id)
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._lttng.get_nodes()

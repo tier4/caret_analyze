@@ -17,6 +17,7 @@ from datetime import datetime
 
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.event_counter import EventCounter
+from caret_analyze.infra.lttng.lttng import EventCollection, IterableEvents
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.records_source import RecordsSource
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -264,3 +265,110 @@ class TestLttng:
         assert lttng.events == events
         assert lttng_.events == events_
         assert lttng.events != lttng_.events
+
+
+@pytest.fixture
+def set_pickle_collection_time_range(mocker):
+    def _set_pickle_collection_time_range(time_min: int, time_max: int):
+        pickle_collection_mock = mocker.Mock(spec=IterableEvents)
+        mocker.patch('caret_analyze.infra.lttng.lttng.PickleEventCollection',
+                     return_value=pickle_collection_mock)
+
+        mocker.patch.object(
+            pickle_collection_mock, 'time_range', return_value=(time_min, time_max))
+    return _set_pickle_collection_time_range
+
+
+@pytest.fixture
+def set_ctf_collection_time_range(mocker):
+    def _set_ctf_collection_time_range(time_min: int, time_max: int):
+        ctf_collection_mock = mocker.Mock(spec=IterableEvents)
+        mocker.patch('caret_analyze.infra.lttng.lttng.CtfEventCollection',
+                     return_value=ctf_collection_mock)
+
+        mocker.patch.object(
+            ctf_collection_mock, 'time_range', return_value=(time_min, time_max))
+    return _set_ctf_collection_time_range
+
+
+@pytest.fixture
+def set_trace_dir_exists(mocker):
+    def _set_trace_dir_exists(exists: bool):
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCollection._trace_dir_exists',
+                     return_value=exists)
+    return _set_trace_dir_exists
+
+
+@pytest.fixture
+def set_cache_exists(mocker):
+    def _set_cache_exists(exists: bool):
+        mocker.patch('caret_analyze.infra.lttng.lttng.EventCollection._cache_exists',
+                     return_value=exists)
+    return _set_cache_exists
+
+
+class TestEventCollection:
+
+    def test_force_conversion_case(
+        self,
+        caplog,
+        set_pickle_collection_time_range,
+        set_ctf_collection_time_range,
+        set_trace_dir_exists,
+        set_cache_exists
+    ):
+        set_trace_dir_exists(True)
+        set_cache_exists(True)
+        set_pickle_collection_time_range(0, 1)
+        set_ctf_collection_time_range(0, 1)
+
+        EventCollection('', True, store_cache=False)
+        assert 'Converted to' in caplog.messages[0]
+
+    def test_cache_not_exists_case(
+        self,
+        caplog,
+        set_pickle_collection_time_range,
+        set_ctf_collection_time_range,
+        set_trace_dir_exists,
+        set_cache_exists
+    ):
+        set_trace_dir_exists(True)
+        set_cache_exists(False)
+        set_pickle_collection_time_range(0, 1)
+        set_ctf_collection_time_range(0, 1)
+
+        EventCollection('', True, store_cache=False)
+        assert 'Converted to' in caplog.messages[0]
+
+    def test_valid_cache_exists_case(
+        self,
+        caplog,
+        set_pickle_collection_time_range,
+        set_ctf_collection_time_range,
+        set_trace_dir_exists,
+        set_cache_exists
+    ):
+        set_trace_dir_exists(True)
+        set_cache_exists(True)
+        set_pickle_collection_time_range(0, 1)
+        set_ctf_collection_time_range(0, 1)
+
+        EventCollection('', False, store_cache=False)
+        assert 'Found converted file' in caplog.messages[0]
+
+    def test_invalid_cache_exists_case(
+        self,
+        caplog,
+        set_pickle_collection_time_range,
+        set_ctf_collection_time_range,
+        set_trace_dir_exists,
+        set_cache_exists
+    ):
+        set_trace_dir_exists(True)
+        set_cache_exists(True)
+        set_pickle_collection_time_range(1, 2)
+        set_ctf_collection_time_range(0, 1)
+
+        EventCollection('', False, store_cache=False)
+        assert 'Converted to' in caplog.messages[0]

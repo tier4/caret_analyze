@@ -94,33 +94,33 @@ class EventCounter:
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
         # TODO(hsgwa): Definitions on tracepoint types are scattered. Refactor required.
         trace_point_and_df = {
-            'ros2:rcl_init': data.contexts,
-            'ros2:rcl_node_init': data.nodes,
-            'ros2:rcl_publisher_init': data.publishers,
-            'ros2:rcl_subscription_init': data.subscriptions,
-            'ros2:rclcpp_subscription_init': data.subscription_objects,
-            'ros2:rclcpp_subscription_callback_added': data.callback_objects,
-            'ros2:rcl_service_init': data.services,
-            'ros2:rclcpp_service_callback_added': data.callback_objects,
-            'ros2:rcl_client_init': data.clients,
-            'ros2:rcl_timer_init': data.timers,
-            'ros2:rclcpp_timer_callback_added': data.callback_objects,
-            'ros2:rclcpp_timer_link_node': data.timer_node_links,
-            'ros2:rclcpp_callback_register': data.callback_symbols,
-            'ros2:rcl_lifecycle_state_machine_init': data.lifecycle_state_machines,
-            'ros2_caret:add_callback_group': data.callback_groups,
-            'ros2_caret:add_callback_group_static_executor': data.callback_groups_static,
-            'ros2_caret:construct_executor': data.executors,
-            'ros2_caret:construct_static_executor': data.executors_static,
-            'ros2_caret:callback_group_add_timer': data.callback_group_timer,
-            'ros2_caret:callback_group_add_subscription': data.callback_group_subscription,
-            'ros2_caret:callback_group_add_service': data.callback_group_service,
-            'ros2_caret:callback_group_add_client': data.callback_group_client,
-            'ros2_caret:tilde_subscription_init': data.tilde_subscriptions,
-            'ros2_caret:tilde_publisher_init': data.tilde_publishers,
-            'ros2_caret:tilde_subscribe_added': data.tilde_subscribe_added,
-            'ros2:rcl_lifecycle_transition': data.lifecycle_transitions,
-            'ros2_caret:rmw_implementation': data.rmw_impl,
+            'ros2:rcl_init': data.contexts.df,
+            'ros2:rcl_node_init': data.nodes.df,
+            'ros2:rcl_publisher_init': data.publishers.df,
+            'ros2:rcl_subscription_init': data.subscriptions.df,
+            'ros2:rclcpp_subscription_init': data.subscription_objects.df,
+            'ros2:rclcpp_subscription_callback_added': data.callback_objects.df,
+            'ros2:rcl_service_init': data.services.df,
+            'ros2:rclcpp_service_callback_added': data.callback_objects.df,
+            'ros2:rcl_client_init': data.clients.df,
+            'ros2:rcl_timer_init': data.timers.df,
+            'ros2:rclcpp_timer_callback_added': data.callback_objects.df,
+            'ros2:rclcpp_timer_link_node': data.timer_node_links.df,
+            'ros2:rclcpp_callback_register': data.callback_symbols.df,
+            'ros2:rcl_lifecycle_state_machine_init': data.lifecycle_state_machines.df,
+            'ros2_caret:add_callback_group': data.callback_groups.df,
+            'ros2_caret:add_callback_group_static_executor': data.callback_groups_static.df,
+            'ros2_caret:construct_executor': data.executors.df,
+            'ros2_caret:construct_static_executor': data.executors_static.df,
+            'ros2_caret:callback_group_add_timer': data.callback_group_timer.df,
+            'ros2_caret:callback_group_add_subscription': data.callback_group_subscription.df,
+            'ros2_caret:callback_group_add_service': data.callback_group_service.df,
+            'ros2_caret:callback_group_add_client': data.callback_group_client.df,
+            'ros2_caret:tilde_subscription_init': data.tilde_subscriptions.df,
+            'ros2_caret:tilde_publisher_init': data.tilde_publishers.df,
+            'ros2_caret:tilde_subscribe_added': data.tilde_subscribe_added.df,
+            'ros2:rcl_lifecycle_transition': data.lifecycle_transitions.df,
+            'ros2_caret:rmw_implementation': data.rmw_impl.df,
 
             'ros2:callback_start': data.callback_start_instances.to_dataframe(),
             'ros2:callback_end': data.callback_end_instances.to_dataframe(),
@@ -139,7 +139,7 @@ class EventCounter:
             'ros2_caret:tilde_subscribe': data.tilde_subscribe.to_dataframe(),
             'ros2_caret:sim_time': data.sim_time.to_dataframe(),
             'ros2_caret:on_data_available': data.on_data_available_instances.to_dataframe(),
-            'ros2_caret:caret_init': data.caret_init,
+            'ros2_caret:caret_init': data.caret_init.df,
         }
         #  'ros2_caret:rmw_implementation': ,
 
@@ -161,29 +161,29 @@ class EventCounter:
             else:
                 return ns + '/' + name
 
-        for handler, row in data.nodes.iterrows():
+        for handler, row in data.nodes.df.iterrows():
             node_handle_to_node_name[handler] = ns_and_node_name(row['namespace'], row['name'])
 
-        for handler, row in data.publishers.iterrows():
+        for handler, row in data.publishers.df.iterrows():
             pub_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
             pub_handle_to_topic_name[handler] = row['topic_name']
 
-        for handler, row in data.subscriptions.iterrows():
+        for handler, row in data.subscriptions.df.iterrows():
             sub_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
             sub_handle_to_topic_name[handler] = row['topic_name']
 
-        for handler, row in data.timer_node_links.iterrows():
+        for handler, row in data.timer_node_links.df.iterrows():
             timer_handle_to_node_name[handler] = \
                 node_handle_to_node_name.get(row['node_handle'], '-')
 
-        for sub, row in data.subscription_objects.iterrows():
+        for sub, row in data.subscription_objects.df.iterrows():
             sub_handle = row['subscription_handle']
             sub_to_topic_name[sub] = sub_handle_to_topic_name.get(sub_handle, '-')
             sub_to_node_name[sub] = sub_handle_to_node_name.get(sub_handle, '-')
 
-        for handler, row in data.callback_objects.iterrows():
+        for handler, row in data.callback_objects.df.iterrows():
             if handler in sub_to_topic_name:
                 sub_cb_to_node_name[row['callback_object']] = sub_to_node_name.get(handler, '-')
                 sub_cb_to_topic_name[row['callback_object']] = sub_to_topic_name.get(handler, '-')
@@ -193,13 +193,13 @@ class EventCounter:
 
         tilde_pub_to_topic_name: Dict[int, str] = {}
         tilde_pub_to_node_name: Dict[int, str] = {}
-        for handler, row in data.tilde_publishers.iterrows():
+        for handler, row in data.tilde_publishers.df.iterrows():
             tilde_pub_to_node_name[handler] = row['node_name']
             tilde_pub_to_topic_name[handler] = row['topic_name']
 
         tilde_sub_to_topic_name: Dict[int, str] = {}
         tilde_sub_to_node_name: Dict[int, str] = {}
-        for handler, row in data.tilde_subscriptions.iterrows():
+        for handler, row in data.tilde_subscriptions.df.iterrows():
             tilde_sub_to_node_name[handler] = row['node_name']
             tilde_sub_to_topic_name[handler] = row['topic_name']
 
