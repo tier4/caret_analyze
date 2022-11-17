@@ -91,7 +91,7 @@ class TestArchitectureLoaded:
     def test_get_data(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         path_mock = mocker.Mock(spec=PathStruct)
-        executor_mock = mocker.Mock(spec=ExecutorValue)
+        executor_mock = mocker.Mock(spec=ExecutorStruct)
         node_mock = mocker.Mock(spec=NodeStruct)
         comm_mock = mocker.Mock(spec=CommunicationStruct)
         pub_mock = mocker.Mock(spec=PublisherValue)
@@ -103,6 +103,8 @@ class TestArchitectureLoaded:
         mocker.patch.object(sub_mock_, 'topic_name', '/chatter2')
         mocker.patch.object(node_mock, 'publishers', [pub_mock])
         mocker.patch.object(node_mock, 'subscriptions', [sub_mock, sub_mock_])
+        mocker.patch.object(node_mock, 'node_name', 'node_name')
+        mocker.patch.object(executor_mock, 'callback_groups', [])
 
         mocker.patch.object(reader_mock, 'get_paths', return_value=[path_mock])
         mocker.patch.object(reader_mock, 'get_executors', return_value=[executor_mock])
