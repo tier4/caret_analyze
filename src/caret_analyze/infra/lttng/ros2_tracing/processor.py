@@ -49,7 +49,8 @@ class Ros2Handler():
 
     def __init__(
         self,
-        data: Ros2DataModel
+        data: Ros2DataModel,
+        monotonic_to_system_time_offset: Optional[int]
     ) -> None:
         """Create a Ros2Handler."""
         # Link a ROS trace event to its corresponding handling method
@@ -173,7 +174,7 @@ class Ros2Handler():
         handler_map['ros2_caret:rcl_lifecycle_state_machine_init'] = \
             self._create_handler(self._handle_rcl_lifecycle_state_machine_init)
 
-        self._monotonic_to_system_offset: Optional[int] = None
+        self._monotonic_to_system_offset: Optional[int] = monotonic_to_system_time_offset
         self.handler_map = handler_map
 
         # Temporary buffers
@@ -408,7 +409,15 @@ class Ros2Handler():
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         clock_offset = get_field(event, 'clock_offset')
-        self._monotonic_to_system_offset = timestamp - clock_offset  # type: ignore
+        self.data.add_caret_init(clock_offset, timestamp)  # type: ignore
+
+    @staticmethod
+    def get_monotonic_to_system_offset(
+        event: Dict,
+    ) -> int:
+        timestamp = get_field(event, '_timestamp')
+        clock_offset = get_field(event, 'clock_offset')
+        return timestamp - clock_offset  # type: ignore
 
     def _handle_rclcpp_timer_callback_added(
         self,
