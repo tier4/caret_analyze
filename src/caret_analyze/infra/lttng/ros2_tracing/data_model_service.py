@@ -79,12 +79,12 @@ class DataModelService:
         cbg_addr: int
     ) -> List[Tuple[Optional[str], Optional[str]]]:
         match_cbg_timer = self._ensure_dataframe(
-            self._data.callback_group_timer.loc[cbg_addr, :])
+            self._data.callback_group_timer.df.loc[cbg_addr, :])
         timer_handles = match_cbg_timer.loc[:, 'timer_handle'].to_list()
 
         node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
         for handle in timer_handles:
-            node_name = self._get_node_name_from_handle(handle, self._data.timer_node_links)
+            node_name = self._get_node_name_from_handle(handle, self._data.timer_node_links.df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
             if node_name or callback_symbol != [None]:
                 node_names_and_cb_symbols.extend(
@@ -97,12 +97,12 @@ class DataModelService:
         cbg_addr: int
     ) -> List[Tuple[Optional[str], Optional[str]]]:
         match_cbg_sub = self._ensure_dataframe(
-            self._data.callback_group_subscription.loc[cbg_addr, :])
+            self._data.callback_group_subscription.df.loc[cbg_addr, :])
         sub_handles = match_cbg_sub.loc[:, 'subscription_handle'].to_list()
 
         node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
         for handle in sub_handles:
-            node_name = self._get_node_name_from_handle(handle, self._data.subscriptions)
+            node_name = self._get_node_name_from_handle(handle, self._data.subscriptions.df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
             if node_name or callback_symbol != [None]:
                 node_names_and_cb_symbols.extend(
@@ -115,12 +115,12 @@ class DataModelService:
         cbg_addr: int
     ) -> List[Tuple[Optional[str], Optional[str]]]:
         match_cbg_srv = self._ensure_dataframe(
-            self._data.callback_group_service.loc[cbg_addr, :])
+            self._data.callback_group_service.df.loc[cbg_addr, :])
         srv_handles = match_cbg_srv.loc[:, 'service_handle'].to_list()
 
         node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
         for handle in srv_handles:
-            node_name = self._get_node_name_from_handle(handle, self._data.services)
+            node_name = self._get_node_name_from_handle(handle, self._data.services.df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
             if node_name or callback_symbol != [None]:
                 node_names_and_cb_symbols.extend(
@@ -145,7 +145,7 @@ class DataModelService:
         try:
             match_middle = self._ensure_dataframe(middle_df.loc[handle, :])
             node_handles = match_middle.loc[:, 'node_handle'].to_list()
-            match_nodes = self._data.nodes.loc[node_handles, :]
+            match_nodes = self._data.nodes.df.loc[node_handles, :]
             assert len(match_nodes) == 1
             return ns_and_node_name(match_nodes.iloc[0])
         except KeyError:
@@ -157,9 +157,9 @@ class DataModelService:
     ) -> List[Optional[str]]:
         try:
             match_callback_objects = self._ensure_dataframe(
-                self._data.callback_objects.loc[handle, :])
+                self._data.callback_objects.df.loc[handle, :])
             callback_objects = match_callback_objects.loc[:, 'callback_object'].to_list()
-            match_callback_symbols = self._data.callback_symbols.loc[callback_objects, :]
+            match_callback_symbols = self._data.callback_symbols.df.loc[callback_objects, :]
             return [t.symbol for t in match_callback_symbols.itertuples()]
         except KeyError:
             return [None]
