@@ -24,9 +24,9 @@ try:
         validate_arguments_wrapper = \
             validate_arguments(config={'arbitrary_types_allowed': True})(func)
 
-        def _custom_wrapper(*args, **kargs):
+        def _custom_wrapper(*args, **kwargs):
             try:
-                return validate_arguments_wrapper(*args, **kargs)
+                return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types: List[str] = []
                 for error in e.errors():
