@@ -189,21 +189,20 @@ class Architecture(Summarizable):
         max_node_depth = max_node_depth or default_depth
 
         # Print message before search
-        msg_recommend_intermediate = (
-            'If the paths you want to measure cannot be found, '
-            'consider specifying intermediate nodes. '
-        )
         msg_detail_page = (
             'For details, '
-            'see https://tier4.github.io/CARET_doc/latest/configuration/inter_node_data_path/'
+            'see https://tier4.github.io/CARET_doc/latest/configuration/inter_node_data_path/.'
         )
         if max_node_depth > default_depth:
             msg = (
-                f'`max_node_depth` greater than {default_depth} is not recommended '
+                f"Argument 'max_node_depth' greater than {default_depth} is not recommended "
                 'because it significantly increases the search time '
                 'and the number of returned paths. '
             )
-            msg += msg_recommend_intermediate
+            msg += (
+                f'If you are searching for paths that exceeds the depth {default_depth}, '
+                'consider specifying an intermediate node. '
+            )
             msg += msg_detail_page
             print(msg)
 
@@ -215,7 +214,10 @@ class Architecture(Summarizable):
 
         # Print message after search
         msg = f'A search up to depth {max_node_depth} has been completed. '
-        msg += msg_recommend_intermediate
+        msg += (
+            'If the paths you want to measure cannot be found, '
+            'consider specifying intermediate nodes. '
+        )
         msg += 'Also, if the number of paths is too large, consider filtering node/topic names. '
         msg += msg_detail_page
         print(msg)
