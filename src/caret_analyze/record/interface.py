@@ -635,7 +635,7 @@ class RecordsInterface:
             column
         values: List[int]
             values
-            
+
         """
 
     @abstractmethod

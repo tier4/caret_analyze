@@ -101,7 +101,7 @@ class PathBase(metaclass=ABCMeta):
             Remove from end [s]
         shaper: Optional[DataFrameShaper]
             shaper
-            
+
         Returns
         -------
         pandas.DataFrame
