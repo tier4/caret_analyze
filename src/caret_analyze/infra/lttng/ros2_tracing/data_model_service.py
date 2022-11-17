@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Set
+import itertools
+
+from typing import List, Optional, Set, Tuple, Union
 
 import pandas as pd
 
@@ -24,9 +26,12 @@ class DataModelService:
     def __init__(self, data: Ros2DataModel) -> None:
         self._data = data
 
-    def get_node_names(self, cbg_addr: int) -> List[str]:
+    def get_node_names_and_cb_symbols(
+        self,
+        cbg_addr: int
+    ) -> List[Tuple[Optional[str], Optional[str]]]:
         """
-        Get node names from callback group address.
+        Get node names and callback symbols from callback group address.
 
         Parameters
         ----------
@@ -35,89 +40,99 @@ class DataModelService:
 
         Returns
         -------
-        List[str]
+        List[Tuple[Optional[str], Optional[str]]]
+            node names and callback symbols.
+            tuple structure: (node_name, callback_symbol)
 
         Notes
         -----
         Since there may be duplicate addresses in the trace data,
-        this API returns a list of all possible node names.
+        this returns a list of all possible node names and callback symbols.
 
         """
-        node_names: Set[str] = set()
+        node_names_and_cb_symbols: Set[Tuple[Optional[str], Optional[str]]] = set()
         try:
-            node_names |= set(self._get_node_names_from_cbg_timer(cbg_addr))
+            node_names_and_cb_symbols |= \
+                set(self._get_node_names_and_cb_symbols_from_timer(cbg_addr))
         except KeyError:
             pass
 
         try:
-            node_names |= set(self._get_node_names_from_cbg_sub(cbg_addr))
+            node_names_and_cb_symbols |= \
+                set(self._get_node_names_and_cb_symbols_from_sub(cbg_addr))
         except KeyError:
             pass
 
         try:
-            node_names |= set(
-                self._get_node_names_from_get_parameters_srv(cbg_addr))
+            node_names_and_cb_symbols |= \
+                set(self._get_node_names_and_cb_symbols_from_srv(cbg_addr))
         except KeyError:
             pass
 
-        return sorted(node_names)
+        return sorted(
+            node_names_and_cb_symbols,
+            key=lambda x: (x[0] is None, x[1] is None, str(x[0]), str(x[1]))
+        )
 
-    def _get_node_names_from_cbg_timer(
+    def _get_node_names_and_cb_symbols_from_timer(
         self,
         cbg_addr: int
-    ) -> List[str]:
-        # `.loc[[cbg_addr], :]` is intended to make the return value DataFrame
-        # instead of Series.
-        match_cbg_timer = self._data.callback_group_timer.loc[[cbg_addr], :]
+    ) -> List[Tuple[Optional[str], Optional[str]]]:
+        match_cbg_timer = self._ensure_dataframe(
+            self._data.callback_group_timer.df.loc[cbg_addr, :])
+        timer_handles = match_cbg_timer.loc[:, 'timer_handle'].to_list()
 
-        match_timer_handles = match_cbg_timer.loc[:, 'timer_handle'].to_list()
-        match_timer_node_links = self._data.timer_node_links.loc[
-            match_timer_handles, :
-        ]
+        node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
+        for handle in timer_handles:
+            node_name = self._get_node_name_from_handle(handle, self._data.timer_node_links.df)
+            callback_symbol = self._get_callback_symbols_from_handle(handle)
+            if node_name or callback_symbol != [None]:
+                node_names_and_cb_symbols.extend(
+                    list(itertools.product([node_name], callback_symbol)))
 
-        match_node_handles = \
-            match_timer_node_links.loc[:, 'node_handle'].to_list()
-        return self._get_node_names_from_node_handles(match_node_handles)
+        return node_names_and_cb_symbols
 
-    def _get_node_names_from_cbg_sub(
+    def _get_node_names_and_cb_symbols_from_sub(
         self,
         cbg_addr: int
-    ) -> List[str]:
-        # `.loc[[cbg_addr], :]` is intended to make the return value DataFrame
-        # instead of Series.
-        match_cbg_sub = \
-            self._data.callback_group_subscription.loc[[cbg_addr], :]
+    ) -> List[Tuple[Optional[str], Optional[str]]]:
+        match_cbg_sub = self._ensure_dataframe(
+            self._data.callback_group_subscription.df.loc[cbg_addr, :])
+        sub_handles = match_cbg_sub.loc[:, 'subscription_handle'].to_list()
 
-        match_sub_handles = \
-            match_cbg_sub.loc[:, 'subscription_handle'].to_list()
-        match_subscriptions = self._data.subscriptions.loc[
-            match_sub_handles, :
-        ]
+        node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
+        for handle in sub_handles:
+            node_name = self._get_node_name_from_handle(handle, self._data.subscriptions.df)
+            callback_symbol = self._get_callback_symbols_from_handle(handle)
+            if node_name or callback_symbol != [None]:
+                node_names_and_cb_symbols.extend(
+                    list(itertools.product([node_name], callback_symbol)))
 
-        match_node_handles = \
-            match_subscriptions.loc[:, 'node_handle'].to_list()
-        return self._get_node_names_from_node_handles(match_node_handles)
+        return node_names_and_cb_symbols
 
-    def _get_node_names_from_get_parameters_srv(
+    def _get_node_names_and_cb_symbols_from_srv(
         self,
         cbg_addr: int
-    ) -> List[str]:
-        # `.loc[[cbg_addr], :]` is intended to make the return value DataFrame
-        # instead of Series.
-        match_cbg_srv = self._data.callback_group_service.loc[[cbg_addr], :]
+    ) -> List[Tuple[Optional[str], Optional[str]]]:
+        match_cbg_srv = self._ensure_dataframe(
+            self._data.callback_group_service.df.loc[cbg_addr, :])
+        srv_handles = match_cbg_srv.loc[:, 'service_handle'].to_list()
 
-        match_srv_handles = match_cbg_srv.loc[:, 'service_handle'].to_list()
-        match_services = self._data.services.loc[
-            match_srv_handles, :
-        ]
+        node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
+        for handle in srv_handles:
+            node_name = self._get_node_name_from_handle(handle, self._data.services.df)
+            callback_symbol = self._get_callback_symbols_from_handle(handle)
+            if node_name or callback_symbol != [None]:
+                node_names_and_cb_symbols.extend(
+                    list(itertools.product([node_name], callback_symbol)))
 
-        match_node_handles = match_services.loc[:, 'node_handle'].to_list()
-        return self._get_node_names_from_node_handles(match_node_handles)
+        return node_names_and_cb_symbols
 
-    def _get_node_names_from_node_handles(
+    def _get_node_name_from_handle(
         self,
-        node_handles: List[int]
-    ) -> List[str]:
+        handle: int,
+        middle_df: pd.DataFrame
+    ) -> Optional[str]:
         def ns_and_node_name(row: pd.Series) -> str:
             ns: str = row['namespace']
             name: str = row['name']
@@ -127,8 +142,46 @@ class DataModelService:
             else:
                 return ns + '/' + name
 
-        match_nodes = self._data.nodes.loc[node_handles, :]
+        try:
+            match_middle = self._ensure_dataframe(middle_df.loc[handle, :])
+            node_handles = match_middle.loc[:, 'node_handle'].to_list()
+            match_nodes = self._data.nodes.df.loc[node_handles, :]
+            assert len(match_nodes) == 1
+            return ns_and_node_name(match_nodes.iloc[0])
+        except KeyError:
+            return None
 
-        node_names = [ns_and_node_name(row)
-                      for _, row in match_nodes.iterrows()]
-        return node_names
+    def _get_callback_symbols_from_handle(
+        self,
+        handle: int
+    ) -> List[Optional[str]]:
+        try:
+            match_callback_objects = self._ensure_dataframe(
+                self._data.callback_objects.df.loc[handle, :])
+            callback_objects = match_callback_objects.loc[:, 'callback_object'].to_list()
+            match_callback_symbols = self._data.callback_symbols.df.loc[callback_objects, :]
+            return [t.symbol for t in match_callback_symbols.itertuples()]
+        except KeyError:
+            return [None]
+
+    @staticmethod
+    def _ensure_dataframe(
+        dataframe_or_series: Union[pd.DataFrame, pd.Series]
+    ) -> pd.DataFrame:
+        """
+        If input is Series, convert to DataFrame.
+
+        Note
+        ----
+        In the pandas specification,
+        when a conditional extraction is performed on DataFrame,
+        if there is only one matching row, it is converted to Series.
+        To address the above case, this converts Series to a one-row DataFrame.
+
+        """
+        if isinstance(dataframe_or_series, pd.Series):
+            df = pd.DataFrame([dataframe_or_series])
+        else:
+            df = dataframe_or_series
+
+        return df
