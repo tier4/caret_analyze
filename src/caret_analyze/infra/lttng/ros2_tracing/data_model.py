@@ -21,19 +21,6 @@ from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from ...trace_point_data import TracePointIntermediateData
 
 
-class LttngClockConverter:
-
-    def __init__(
-        self,
-        system_time: int,
-        lttng_clock_time: int
-    ) -> None:
-        self._offset = system_time - lttng_clock_time
-
-    def to_system_time(self, lttng_clock_time: int) -> int:
-        return lttng_clock_time + self._offset
-
-
 class Ros2DataModel():
     """
     Container to model pre-processed ROS 2 data for analysis.
@@ -735,7 +722,10 @@ class Ros2DataModel():
 
     def finalize(self) -> None:
         self.contexts = self._contexts.get_finalized('context_handle')
+        del self._contexts
+
         self.caret_init = self._caret_init.get_finalized()
+        del self._caret_init
 
         self.nodes = self._nodes.get_finalized('node_handle')
         del self._nodes
