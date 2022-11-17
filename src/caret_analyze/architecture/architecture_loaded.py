@@ -1029,7 +1029,7 @@ class ExecutorValuesLoaded():
         num_digit = Util.num_digit(len(exec_vals))
 
         for i, executor in enumerate(exec_vals):
-            executor_name = indexed_name('executor', i, num_digit)
+            executor_name = executor.executor_name or indexed_name('executor', i, num_digit)
             try:
                 execs.append(
                     self._to_struct(executor_name, executor, nodes_loaded)
