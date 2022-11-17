@@ -105,6 +105,7 @@ def get_range(
     Parameters
     ----------
     plot_objects: Sequence[Union[CallbackBase, Communication]]
+        plot objects
 
     Returns
     -------

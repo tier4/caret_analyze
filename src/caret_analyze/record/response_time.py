@@ -700,6 +700,8 @@ class ResponseHistogram:
         ----------
         response_records : ResponseRecords
             records for calculating histogram.
+        response_timeseries: ResponseTimeseries
+            response time series
 
         """
         self._response_records = response_records

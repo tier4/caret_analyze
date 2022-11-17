@@ -140,8 +140,8 @@ class LttngInfo:
 
         Parameters
         ----------
-        node_name : str
-            target node name.
+        node : NodeValue
+            target node.
 
         Returns
         -------
@@ -269,8 +269,8 @@ class LttngInfo:
 
         Parameters
         ----------
-        node_name : str
-            target node name.
+        node : NodeValue
+            target node.
 
         Returns
         -------
@@ -371,8 +371,8 @@ class LttngInfo:
 
         Parameters
         ----------
-        node_name : str
-            target node name.
+        node_id : str
+            node ID
 
         Returns
         -------
@@ -1396,6 +1396,7 @@ class DataFrameFormatted:
         Parameters
         ----------
         data : Ros2DataModel
+            data
 
         Returns
         -------

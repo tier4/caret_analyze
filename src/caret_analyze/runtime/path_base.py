@@ -95,11 +95,13 @@ class PathBase(metaclass=ABCMeta):
         treat_drop_as_delay: bool
             Convert dropped records as a delay.
             Valid only when remove_dropped=false.
-        lstrip: Optional[float]
+        lstrip_s: Optional[float]
             Remove from beginning. [s]
-        rstrip: Optional[float]
+        rstrip_s: Optional[float]
             Remove from end [s]
-
+        shaper: Optional[DataFrameShaper]
+            shaper
+            
         Returns
         -------
         pandas.DataFrame
@@ -152,10 +154,12 @@ class PathBase(metaclass=ABCMeta):
         treat_drop_as_delay : Optional[bool]
             Convert dropped records as a delay.
             Valid only when remove_dropped=false. default: False.
-        lstrip: Optional[float]
+        lstrip_s: Optional[float]
             Remove from beginning. [s] default: 0
-        rstrip: Optional[float]
+        rstrip_s: Optional[float]
             Remove from end [s] default: 0
+        shaper: Optional[DataFrameShaper]
+            shaper
 
         Returns
         -------
@@ -204,10 +208,12 @@ class PathBase(metaclass=ABCMeta):
             bin size for histogram. default 1ms.
         treat_drop_as_delay : bool
             Convert dropped records as a delay.
-        lstrip: Optional[float]
+        lstrip_s: Optional[float]
             Remove from beginning. [s]
-        rstrip: Optional[float]
+        rstrip_s: Optional[float]
             Remove from end [s]
+        shaper: Optional[DataFrameShaper]
+            shaper
 
         Returns
         -------

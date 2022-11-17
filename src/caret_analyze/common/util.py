@@ -61,8 +61,9 @@ class Util:
         Parameters
         ----------
         condition : Callable[[Any], bool]
+            condition
         items : Optional[Iterable[Any]]
-
+            items
         Returns
         -------
         Any
@@ -98,8 +99,14 @@ class Util:
 
         Parameters
         ----------
-        condition : Callable[[Any], str]
-        items : Collection[Any]
+        target_name: str
+            target_name
+        items: Collection[Any]
+            items
+        key: Callable[[Any], str]
+            key
+        th: float
+            threshold
 
         Returns
         -------
@@ -143,8 +150,14 @@ class Util:
 
         Parameters
         ----------
-        conditions : Callable[[Any], Dict[str, str]]
-        items : Collection[Any]
+        target_names: Dict[str, str]
+            target_names
+        items: Collection[Any]
+            items
+        keys: Callable[[Any], Dict@str, str]]
+            key
+        th: float
+            threshold
 
         Returns
         -------

@@ -73,8 +73,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        comm_info : CommunicationStructValue
-            communication info.
+        comm_val : CommunicationStructValue
+            communication value.
 
         Returns
         -------
@@ -131,7 +131,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        callback_val : CallbackStructValue
+        callback : CallbackStructValue
             target callback value.
 
         Returns
@@ -165,7 +165,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription : SubscriptionStructValue
             Target subscription value.
 
         Returns
@@ -201,7 +201,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription : SubscriptionStructValue
             Target subscription value.
 
         Returns
@@ -254,7 +254,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription : SubscriptionStructValue
             Target subscription value.
 
         Returns
@@ -330,7 +330,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publisher : PublisherStructValue
             target publisher
 
         Returns
@@ -371,7 +371,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publisher : PublisherStructValue
             target publisher
 
         Returns
@@ -406,7 +406,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publisher : PublisherStructValue
             target publisher
 
         Returns
@@ -1298,6 +1298,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         tilde_subscription : int
+            TILDA subscription
 
         Returns
         -------
@@ -1342,7 +1343,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         inter_callback_object : int
+            inter callback object
         intra_callback_object : Optional[int]
+            intra callback object
 
         Returns
         -------
@@ -1391,7 +1394,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         publisher_handles : List[int]
+            publisher handles
         callback_object : int
+            callback object
 
         Returns
         -------
@@ -1443,7 +1448,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         publisher_handles : List[int]
+            publisher handles
         intra_callback_object : Optional[int]
+            intra callback object
 
         Returns
         -------
@@ -1492,6 +1499,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         publisher_handles : List[int]
+            publisher handles
 
         Returns
         -------
@@ -1547,6 +1555,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         tilde_publishers : Sequence[int]
+            TILDA publishers
 
         Returns
         -------
@@ -1602,7 +1611,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         inter_callback_object : int
+            inter callback object
         intra_callback_object : Optional[int]
+            intra callback object
 
         Returns
         -------
