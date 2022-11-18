@@ -1028,7 +1028,7 @@
           <td>
                 <code><span title="typing.Callable">Callable</span>[[<span title="typing.Any">Any</span>], bool]</code>
           </td>
-          <td></td>
+          <td><p>condition</p></td>
           <td>
               <em>required</em>
           </td>
@@ -1038,7 +1038,7 @@
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Iterable">Iterable</span>[<span title="typing.Any">Any</span>]]</code>
           </td>
-          <td></td>
+          <td><p>Items to be searched.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -1122,11 +1122,11 @@
     </thead>
     <tbody>
         <tr>
-          <td><code>condition</code></td>
+          <td><code>target_name</code></td>
           <td>
-                <code><span title="typing.Callable">Callable</span>[[<span title="typing.Any">Any</span>], str]</code>
+                <code>str</code>
           </td>
-          <td></td>
+          <td><p>target_name</p></td>
           <td>
               <em>required</em>
           </td>
@@ -1136,9 +1136,30 @@
           <td>
                 <code><span title="typing.Collection">Collection</span>[<span title="typing.Any">Any</span>]</code>
           </td>
-          <td></td>
+          <td><p>Items to be searched.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>key</code></td>
+          <td>
+                <code><span title="typing.Callable">Callable</span>[[<span title="typing.Any">Any</span>], str]</code>
+          </td>
+          <td><p>key</p></td>
+          <td>
+                <code>lambda x: x</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>th</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Similarity judgment threshold.
+A candidate is mentioned only if it is higher than the threshold.</p></td>
+          <td>
+                <code>0.6</code>
           </td>
         </tr>
     </tbody>
@@ -1220,11 +1241,11 @@
     </thead>
     <tbody>
         <tr>
-          <td><code>conditions</code></td>
+          <td><code>target_names</code></td>
           <td>
-                <code><span title="typing.Callable">Callable</span>[[<span title="typing.Any">Any</span>], <span title="typing.Dict">Dict</span>[str, str]]</code>
+                <code><span title="typing.Dict">Dict</span>[str, str]</code>
           </td>
-          <td></td>
+          <td><p>target_names</p></td>
           <td>
               <em>required</em>
           </td>
@@ -1234,9 +1255,30 @@
           <td>
                 <code><span title="typing.Collection">Collection</span>[<span title="typing.Any">Any</span>]</code>
           </td>
-          <td></td>
+          <td><p>Items to be searched.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>keys</code></td>
+          <td>
+                <code><span title="typing.Callable">Callable</span>[[<span title="typing.Any">Any</span>], <span title="typing.Dict">Dict</span>[str, str]]</code>
+          </td>
+          <td><p>key</p></td>
+          <td>
+                <code>lambda x: x</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>th</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Similarity judgment threshold.
+A candidate is mentioned only if it is higher than the threshold.</p></td>
+          <td>
+                <code>0.6</code>
           </td>
         </tr>
     </tbody>
