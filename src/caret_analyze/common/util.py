@@ -64,7 +64,7 @@ class Util:
             condition
         items : Optional[Iterable[Any]]
             Items to be searched.
-            
+
         Returns
         -------
         Any
