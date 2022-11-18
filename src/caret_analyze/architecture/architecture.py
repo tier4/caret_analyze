@@ -14,8 +14,6 @@
 
 # flake8: noqa: F811
 # This line is a workaround for the following warning that seems to be a problem with flake8.
-# F811 redefinition of unused 'publishers'
-# F811 redefinition of unused 'subscriptions'
 
 from __future__ import annotations
 
@@ -146,16 +144,6 @@ class Architecture(Summarizable):
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
         return tuple(v.to_value() for v in self._communications)
-
-    @property
-    def publishers(self) -> Tuple[PublisherStructValue, ...]:
-        publishers = Util.flatten(_.publishers for _ in self.nodes)
-        return tuple(sorted(publishers, key=lambda x: x.topic_name))
-
-    @property
-    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
-        subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
-        return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
 
     @property
     def publishers(self) -> Tuple[PublisherStructValue, ...]:
