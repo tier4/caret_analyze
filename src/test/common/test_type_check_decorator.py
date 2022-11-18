@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from typing import Dict, List, Union
 
 from caret_analyze.common.type_check_decorator import type_check_decorator
 from caret_analyze.exceptions import UnsupportedTypeError
 
-import os
 import pytest
 
 
