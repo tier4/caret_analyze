@@ -14,7 +14,7 @@
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger, Logger
-from typing import Optional
+from typing import Collection, Optional
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure, figure, save, show
@@ -34,9 +34,9 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
 
     def __init__(
         self,
-        *communications: Communication
+        communications: Collection[Communication]
     ) -> None:
-        self._communications = communications
+        self._communications = list(communications)
 
     def show(
         self,
@@ -167,8 +167,10 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
     def _get_converter(
         self
     ) -> ClockConverter:
-        converter_cb = \
-            self._communications[0]._callback_subscription[0]
+        for comm in self._communications:
+            if comm._callback_subscription:
+                converter_cb = comm._callback_subscription
+                break
         converter = converter_cb._provider.get_sim_time_converter()
 
         return converter

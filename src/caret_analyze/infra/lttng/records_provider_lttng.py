@@ -73,13 +73,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        comm_info : CommunicationStructInfo
-            communication info.
+        comm_val : CommunicationStructValue
+            communication value.
 
         Returns
         -------
         RecordsInterface
-            Columns:
+            Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_publish_timestamp (Optional)
@@ -130,13 +131,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        callback_val : CallbackStructValue
+        callback : CallbackStructValue
             target callback value.
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [callback_name]/callback_end_timestamp
 
@@ -163,13 +165,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription : SubscriptionStructValue
             Target subscription value.
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
@@ -198,13 +201,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription : SubscriptionStructValue
             Target subscription value.
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
@@ -250,13 +254,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        subscription_value : SubscriptionStructValue
+        subscription : SubscriptionStructValue
             Target subscription value.
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_start_timestamp
             - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
@@ -325,13 +330,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publisher : PublisherStructValue
             target publisher
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
@@ -365,13 +371,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publisher : PublisherStructValue
             target publisher
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rclcpp_intra_publish_timestamp (Optional)
             - [topic_name]/rclcpp_inter_publish_timestamp (Optional)
@@ -399,13 +406,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        publish : PublisherStructValue
+        publisher : PublisherStructValue
             target publisher
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rclcpp_intra_publish_timestamp
             - [topic_name]/rclcpp_inter_publish_timestamp
@@ -467,6 +475,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/timer_event
             - [callback_name]/callback_start
             - [callback_name]/callback_end
@@ -579,13 +588,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        variable_passing_info : VariablePassingStructInfo
+        variable_passing_info : VariablePassingStructValue
             target variable passing info.
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [callback_name]/callback_end_timestamp
             - [callback_name]/callback_start_timestamp
 
@@ -681,13 +691,14 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        comm_info : CommunicationStructInfo
+        comm_info : CommunicationStructValue
             Target communication info.
 
         Returns
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [callback_name]/callback_start_timestamp
 
@@ -730,6 +741,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
+
             - [topic_name]/rclcpp_publish_timestamp
             - [topic_name]/rcl_publish_timestamp (Optional)
             - [topic_name]/dds_write_timestamp (Optional)
@@ -1286,6 +1298,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         tilde_subscription : int
+            TILDE subscription
 
         Returns
         -------
@@ -1330,7 +1343,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         inter_callback_object : int
+            inter callback object
         intra_callback_object : Optional[int]
+            intra callback object
 
         Returns
         -------
@@ -1379,7 +1394,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         publisher_handles : List[int]
+            publisher handles
         callback_object : int
+            callback object
 
         Returns
         -------
@@ -1431,7 +1448,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         publisher_handles : List[int]
+            publisher handles
         intra_callback_object : Optional[int]
+            intra callback object
 
         Returns
         -------
@@ -1480,6 +1499,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         publisher_handles : List[int]
+            publisher handles
 
         Returns
         -------
@@ -1492,6 +1512,7 @@ class FilteredRecordsSource:
             )
 
         Columns
+
         - rclcpp_publish_timestamp
         - rcl_publish_timestamp (Optional)
         - dds_write_timestamp (Optional)
@@ -1534,6 +1555,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         tilde_publishers : Sequence[int]
+            TILDE publishers
 
         Returns
         -------
@@ -1589,7 +1611,9 @@ class FilteredRecordsSource:
         Parameters
         ----------
         inter_callback_object : int
+            inter callback object
         intra_callback_object : Optional[int]
+            intra callback object
 
         Returns
         -------

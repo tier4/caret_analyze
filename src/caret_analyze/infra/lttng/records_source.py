@@ -14,7 +14,7 @@
 
 from functools import cached_property
 
-from typing import Dict, List, Sequence
+from typing import Dict, List, Optional, Sequence
 
 from .column_names import COLUMN_NAME
 from .events_factory import EventsFactory
@@ -162,14 +162,14 @@ class RecordsSource():
             ).column_names,
             how='right'
         )
-        rclcpp_publish = [None] * len(publish.data)
+        rclcpp_publish: List[Optional[int]] = [None] * len(publish.data)
         for i, record in enumerate(publish.data):
             if COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP in record.data:
                 rclcpp_publish[i] = record.data[COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP]
             else:
                 rclcpp_publish[i] = record.data[COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP]
         publish.append_column(
-            ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP), rclcpp_publish)
+            ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP), rclcpp_publish)  # type: ignore
         publish.drop_columns([
             COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP

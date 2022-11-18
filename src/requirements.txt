@@ -1,5 +1,6 @@
 setuptools
 colorcet
 pandas>=1.4.0
-bokeh
+bokeh<3
 graphviz
+types-pyyaml

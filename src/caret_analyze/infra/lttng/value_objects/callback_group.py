@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Tuple
 
-from ....value_objects import CallbackGroupValue
+from ....value_objects import CallbackGroupValue, ValueObject
 
 
 class CallbackGroupValueLttng(CallbackGroupValue):
@@ -46,3 +46,37 @@ class CallbackGroupValueLttng(CallbackGroupValue):
     @property
     def executor_addr(self) -> int:
         return self._executor_addr
+
+
+class CallbackGroupAddr(ValueObject):
+
+    def __init__(self, callback_group_addr: int) -> None:
+        self._callback_group_addr = callback_group_addr
+
+    def __str__(self) -> str:
+        return str(self._callback_group_addr)
+
+    @property
+    def group_id(self) -> str:
+        return self.to_id(self._callback_group_addr)
+
+    @staticmethod
+    def to_id(callback_group_addr: int) -> str:
+        return f'callback_group_{callback_group_addr}'
+
+
+class CallbackGroupId(ValueObject):
+
+    def __init__(self, callback_group_id: str) -> None:
+        self._callback_group_id = callback_group_id
+
+    def __str__(self) -> str:
+        return self._callback_group_id
+
+    @property
+    def group_addr(self) -> int:
+        return self.to_addr(self._callback_group_id)
+
+    @staticmethod
+    def to_addr(callback_group_id: str) -> int:
+        return int(callback_group_id.replace('callback_group_', ''))

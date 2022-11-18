@@ -16,7 +16,7 @@ from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
 
 from .architecture import Architecture, check_procedure
 from .common import Progress
-from .infra.lttng.lttng import Lttng, LttngEventFilter
+from .infra.lttng import Lttng, LttngEventFilter
 from .runtime.application import Application
 
 __all__ = [

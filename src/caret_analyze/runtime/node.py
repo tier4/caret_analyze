@@ -42,7 +42,7 @@ class Node(Summarizable):
         variable_passings: Optional[List[VariablePassing]],
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------

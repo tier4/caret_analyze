@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 from datetime import datetime
+from functools import cached_property
 from logging import getLogger
 import os
 import pickle
@@ -26,9 +27,12 @@ import pandas as pd
 from tqdm import tqdm
 
 from .events_factory import EventsFactory
+from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.data_model import Ros2DataModel
+from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
-from .value_objects import (PublisherValueLttng,
+from .value_objects import (CallbackGroupId,
+                            PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -43,127 +47,28 @@ Event = Dict[str, int]
 logger = getLogger(__name__)
 
 
-class LttngEventFilter(metaclass=ABCMeta):
-    NAME = '_name'
-    TIMESTAMP = '_timestamp'
-    CPU_ID = '_cpuid'
-    VPID = '_vpid'
-    VTID = '_vtid'
-    PROCNAME = '_procname'
-
-    class Common:
-        start_time: int
-        end_time: int
-
-    @staticmethod
-    def duration_filter(duration_s: float, offset_s: float) -> LttngEventFilter:
-        return EventDurationFilter(duration_s, offset_s)
-
-    @staticmethod
-    def strip_filter(lsplit_s: Optional[float], rsplit_s: Optional[float]) -> LttngEventFilter:
-        return EventStripFilter(lsplit_s, rsplit_s)
-
-    @staticmethod
-    def init_pass_filter() -> LttngEventFilter:
-        return InitEventPassFilter()
-
-    @abstractmethod
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        pass
-
-
-class InitEventPassFilter(LttngEventFilter):
-
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        init_events = {
-            'ros2:rcl_init',
-            'ros2:rcl_node_init',
-            'ros2:rcl_publisher_init',
-            'ros2:rcl_subscription_init',
-            'ros2:rclcpp_subscription_init',
-            'ros2:rclcpp_subscription_callback_added',
-            'ros2:rcl_service_init',
-            'ros2:rclcpp_service_callback_added',
-            'ros2:rcl_client_init',
-            'ros2:rcl_timer_init',
-            'ros2:rclcpp_timer_callback_added',
-            'ros2:rclcpp_timer_link_node',
-            'ros2:rclcpp_callback_register',
-            'ros2:rcl_lifecycle_state_machine_init',
-            'ros2:rcl_lifecycle_transition',
-            'ros2_caret:rmw_implementation',
-            'ros2_caret:add_callback_group',
-            'ros2_caret:add_callback_group_static_executor',
-            'ros2_caret:construct_executor',
-            'ros2_caret:construct_static_executor',
-            'ros2_caret:callback_group_add_timer',
-            'ros2_caret:callback_group_add_subscription',
-            'ros2_caret:callback_group_add_service',
-            'ros2_caret:callback_group_add_client',
-            'ros2_caret:tilde_subscription_init',
-            'ros2_caret:tilde_publisher_init',
-            'ros2_caret:tilde_subscribe_added',
-        }
-
-        return event[self.NAME] in init_events
-
-
-class EventStripFilter(LttngEventFilter):
-    def __init__(
-        self,
-        lstrip_s: Optional[float],
-        rstrip_s: Optional[float]
-    ) -> None:
-        self._lstrip = lstrip_s
-        self._rstrip = rstrip_s
-        self._init_events = InitEventPassFilter()
-
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        if self._init_events.accept(event, common):
-            return True
-
-        if self._lstrip:
-            diff_ns = event[self.TIMESTAMP] - common.start_time
-            diff_s = diff_ns * 1.0e-9
-            if diff_s < self._lstrip:
-                return False
-
-        if self._rstrip:
-            diff_ns = common.end_time - event[self.TIMESTAMP]
-            diff_s = diff_ns * 1.0e-9
-            if diff_s < self._rstrip:
-                return False
-        return True
-
-
-class EventDurationFilter(LttngEventFilter):
-
-    def __init__(self, duration_s: float, offset_s: float) -> None:
-        self._duration = duration_s
-        self._offset = offset_s
-        self._init_events = InitEventPassFilter()
-
-    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
-        if self._init_events.accept(event, common):
-            return True
-
-        elapsed_ns = event[self.TIMESTAMP] - common.start_time
-        elapsed_s = elapsed_ns * 1.0e-9
-        return self._offset <= elapsed_s and elapsed_s < (self._offset + self._duration)
-
-
 class EventCollection(Iterable, Sized):
 
-    def __init__(self, trace_dir: str, force_conversion: bool) -> None:
+    def __init__(self, trace_dir: str, force_conversion: bool, *, store_cache=True) -> None:
+        if not self._trace_dir_exists(trace_dir):
+            raise FileNotFoundError(f'Failed to found {trace_dir}')
+
         self._iterable_events: IterableEvents
         cache_path = self._cache_path(trace_dir)
+        use_cache = False
 
-        if os.path.exists(cache_path) and not force_conversion:
+        if self._cache_exists(cache_path) and not force_conversion:
+            cache_start_time, _ = PickleEventCollection(cache_path).time_range()
+            ctf_start_time, _ = CtfEventCollection(trace_dir).time_range()
+            use_cache = cache_start_time == ctf_start_time
+
+        if use_cache:
             logger.info('Found converted file.')
             self._iterable_events = PickleEventCollection(cache_path)
         else:
             self._iterable_events = CtfEventCollection(trace_dir)
-            self._store_cache(self._iterable_events, cache_path)
+            if store_cache:
+                self._store_cache(self._iterable_events, cache_path)
             logger.info(f'Converted to {cache_path}')
 
     @staticmethod
@@ -182,6 +87,50 @@ class EventCollection(Iterable, Sized):
 
     def _cache_path(self, events_path: str) -> str:
         return os.path.join(events_path, 'caret_converted')
+
+    @staticmethod
+    def _trace_dir_exists(path: str) -> bool:
+        """
+        Check whether trace dir exists.
+
+        Parameters
+        ----------
+        path : str
+            Path to trace dir.
+
+        Returns
+        -------
+        bool
+            True if trace dir exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
+        return os.path.exists(path)
+
+    @staticmethod
+    def _cache_exists(path: str) -> bool:
+        """
+        Check whether cache exists.
+
+        Parameters
+        ----------
+        path : str
+            Path to cache.
+
+        Returns
+        -------
+        bool
+            True if cache exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
+        return os.path.exists(path)
 
 
 class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
@@ -229,33 +178,37 @@ class CtfEventCollection(IterableEvents):
 
     def __init__(self, events_path: str) -> None:
         event_count = 0
-        begin_time: Optional[int] = None
-        end_time: int
+        begin_msg: Any = None
+        end_msg: Any = None
 
         for msg in bt2.TraceCollectionMessageIterator(events_path):
             if type(msg) is bt2._EventMessageConst:
                 event_count += 1
 
-            if not begin_time and type(msg) is bt2._PacketBeginningMessageConst:
-                begin_time = msg.default_clock_snapshot.ns_from_origin
-            elif type(msg) is bt2._PacketEndMessageConst:
-                end_time = msg.default_clock_snapshot.ns_from_origin
             # Check for traces lost
-            elif(type(msg) is bt2._DiscardedEventsMessageConst):
+            if(type(msg) is bt2._DiscardedEventsMessageConst):
                 msg = ('Tracer discarded '
                        f'{msg.count} events between '
                        f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
                        f'{msg.end_default_clock_snapshot.ns_from_origin}.')
                 logger.warning(msg)
+                continue
 
-        assert begin_time is not None
-        self._begin_time: int = begin_time
-        self._end_time: int = end_time
+            if type(msg) is bt2._EventMessageConst:
+                if not begin_msg:
+                    begin_msg = msg  # store first one
+                end_msg = msg  # store last one
+
+        assert begin_msg is not None
+        assert end_msg is not None
+        # NOTE: Begin_time and end_time should be the same time as the PickleEventCollection.
+        self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
+        self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
         self._size = event_count
-        self._events = self._to_dicts(events_path, event_count)
+        self._events_path = events_path
 
     def __iter__(self) -> Iterator[Dict]:
-        return iter(self._events)
+        return iter(self.events)
 
     def __len__(self) -> int:
         return self._size
@@ -269,9 +222,9 @@ class CtfEventCollection(IterableEvents):
         event.update(msg.event.common_context_field)
         return event
 
-    @property
+    @cached_property
     def events(self) -> List[Dict]:
-        return self._events
+        return self._to_dicts(self._events_path, self._size)
 
     def time_range(self) -> Tuple[int, int]:
         return self._begin_time, self._end_time
@@ -311,7 +264,7 @@ class Lttng(InfraBase):
 
     def __init__(
         self,
-        trace_dir_or_events: Union[str, Dict],
+        trace_dir_or_events: Union[str, List[Dict]],
         force_conversion: bool = False,
         *,
         event_filters: Optional[List[LttngEventFilter]] = None,
@@ -339,12 +292,12 @@ class Lttng(InfraBase):
 
     @staticmethod
     def _parse_lttng_data(
-        trace_dir_or_events: Union[str, Dict],
+        trace_dir_or_events: Union[str, List[Dict]],
         force_conversion: bool,
         event_filters: List[LttngEventFilter],
         store_events: bool,
 
-    ) -> Tuple[Any, Dict, int, int]:
+    ) -> Tuple[Ros2DataModel, Optional[List[Dict]], int, int]:
 
         data = Ros2DataModel()
         handler = Ros2Handler(data)
@@ -384,6 +337,7 @@ class Lttng(InfraBase):
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
             # Note: giving events as arguments is used only for debugging.
+            assert isinstance(trace_dir_or_events, List)
             filtered_event_count = 0
             events = trace_dir_or_events
             begin = events[0][LttngEventFilter.TIMESTAMP]
@@ -405,6 +359,25 @@ class Lttng(InfraBase):
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
+
+    def get_node_names_and_cb_symbols(
+        self,
+        callback_group_id: str
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+        """
+        Get node names and callback symbols from callback group id.
+
+        Returns
+        -------
+        Sequence[Tuple[Optional[str], Optional[str]]]
+            node names and callback symbols.
+            tuple structure: (node_name, callback_symbol)
+
+        """
+        data_model_srv = DataModelService(self.data)
+        cbg_addr = CallbackGroupId(callback_group_id).group_addr
+
+        return data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
 
     def get_nodes(
         self
@@ -629,7 +602,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns
+            Columns
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -649,7 +623,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -668,7 +643,8 @@ class Lttng(InfraBase):
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_start_timestamp
             - callback_end_timestamp
             - is_intra_process
