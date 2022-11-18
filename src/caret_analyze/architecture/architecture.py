@@ -50,7 +50,6 @@ class Architecture(Summarizable):
         self._nodes: List[NodeStruct] = loaded.nodes
         self._communications: List[CommunicationStruct] = loaded.communications
         self._executors: List[ExecutorStruct] = loaded.executors
-        assert isinstance(self._nodes, List)
         self._paths = loaded.paths
         self._verify(self._nodes)
 
@@ -119,20 +118,24 @@ class Architecture(Summarizable):
                 from .graph_search import NodePathSearcher
                 node_path_searcher: NodePathSearcher = \
                     NodePathSearcher(tuple(self._nodes), tuple(self._communications))
+
                 node_path: NodePathStruct = \
                     node_path_searcher._find_node_path('' if c.subscribe_topic_name is None
                                                        else c.subscribe_topic_name,
                                                        '' if c.publish_topic_name is None
                                                        else c.publish_topic_name, c.node_name)
                 child.append(node_path)
+
             elif isinstance(c, CommunicationStructValue):
                 def is_target_comm(comm: CommunicationStruct):
                     return comm.publish_node_name == c.publish_node_name and \
                         comm.subscribe_node_name == c.subscribe_node_name and \
                         comm.topic_name == c.topic_name
+
                 comm: CommunicationStruct = \
                     Util.find_one(is_target_comm, self._communications)
                 child.append(comm)
+
             else:
                 raise UnsupportedTypeError('')
 
