@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 from caret_analyze.common.type_check_decorator import type_check_decorator
 from caret_analyze.exceptions import InvalidArgumentError
+
+import pytest
 
 
 class TestTypeCheckDecorator:
@@ -33,6 +33,7 @@ class TestTypeCheckDecorator:
 
     def test_type_check_decorator_custom_type(self):
         class Custom:
+
             def __init__(self) -> None:
                 pass
 
