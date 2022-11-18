@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import wraps
 from typing import List
 
 from ..exceptions import UnsupportedTypeError
@@ -24,6 +25,7 @@ try:
         validate_arguments_wrapper = \
             validate_arguments(config={'arbitrary_types_allowed': True})(func)
 
+        @wraps(func)
         def _custom_wrapper(*args, **kwargs):
             try:
                 return validate_arguments_wrapper(*args, **kwargs)
@@ -73,6 +75,7 @@ try:
 
 except ImportError:
     def empty_decorator(func):
+        @wraps(func)
         def _wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         return _wrapper
