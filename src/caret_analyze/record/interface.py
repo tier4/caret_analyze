@@ -310,6 +310,7 @@ class RecordsInterface:
         ascending : bool
             ascending if True, descending if false.
         put_none_at_top : bool
+            put none at top
 
         """
         pass
@@ -366,6 +367,7 @@ class RecordsInterface:
         Parameters
         ----------
         columns : List[str]
+            columns
 
         """
         pass
@@ -449,6 +451,8 @@ class RecordsInterface:
             Key to use for matching.
         join_right_key : str
             Key to use for matching.
+        columns: List[str]
+            columns
         how : str
             merge type. [inner/right/left/outer]
         progress_label : str
@@ -507,10 +511,14 @@ class RecordsInterface:
             left records key name to use for comparison in time series merge.
         right_stamp_key : str
             right records key name to use for comparison in time series merge.
-        join_key : str
+        join_left_key : str
+            join key name to use equal condition.
+        join_right_key : str
             join key name to use equal condition.
         how : str
             merge type. [inner/right/left/outer]
+        columns : List[str]
+            columns
         progress_label : str
             label for progress bar. cpp impl only.
 
@@ -581,6 +589,8 @@ class RecordsInterface:
             key_name indicating time stamp for copy records
         sink_from_key : str
             Key name indicating the address of the copy destination
+        columns : List[str]
+            columns
         progress_label : str
             label for progress bar. cpp impl only.
 
@@ -622,7 +632,9 @@ class RecordsInterface:
         Parameters
         ----------
         column : ColumnValue
+            column
         values: List[int]
+            values
 
         """
 

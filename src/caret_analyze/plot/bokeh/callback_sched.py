@@ -163,8 +163,11 @@ def sched_plot_cbg(
     Parameters
     ----------
     target_name : str
+        target name
     callback_groups : Sequence[CallbackGroup]
+        callback group
     color_selector : ColorSelector
+        color selector
     clipper : Clip
         Values outside the range are replaced by the minimum or maximum value
     use_sim_time : bool
@@ -346,12 +349,15 @@ def get_callback_rect_list(
     Parameters
     ----------
     callback: CallbackBase
+        callback
     clip: Clip
+        clip
     y : int
         The start point of graph in y axis
     height : int
         The height of short rectangles
     converter : Optional[ClockConverter]
+        converter
 
     Returns
     -------
@@ -406,6 +412,9 @@ def get_callback_bar(
     Parameters
     ----------
     callback : CallbackBase
+        callback
+    y : double
+        y axis
     frame_max : int
         The end point of callback in x axis
     frame_min : int
