@@ -102,12 +102,13 @@ class Util:
         target_name: str
             target_name
         items: Collection[Any]
-            items
+            Items to be searched.
         key: Callable[[Any], str]
             key
         th: float
-            threshold
-
+            Similarity judgment threshold.
+            A candidate is mentioned only if it is higher than the threshold.
+            
         Returns
         -------
         Any
@@ -153,11 +154,12 @@ class Util:
         target_names: Dict[str, str]
             target_names
         items: Collection[Any]
-            items
+            Items to be searched.
         keys: Callable[[Any], Dict[str, str]]
             key
         th: float
-            threshold
+            Similarity judgment threshold.
+            A candidate is mentioned only if it is higher than the threshold.
 
         Returns
         -------
