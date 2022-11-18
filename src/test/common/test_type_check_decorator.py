@@ -65,10 +65,10 @@ class TestTypeCheckDecorator:
 
     def test_type_check_decorator_dict(self):
         @type_check_decorator
-        def key_arg(d: Dict[str, bool]):
+        def dict_arg(d: Dict[str, bool]):
             pass
 
         with pytest.raises(UnsupportedTypeError) as e:
-            key_arg({'key1': True,
-                     'key2': 10})
+            dict_arg({'key1': True,
+                      'key2': 10})
         assert "'d'[key2] must be 'bool'" in str(e.value)
