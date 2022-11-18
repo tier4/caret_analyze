@@ -28,25 +28,47 @@ try:
             try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
+                """Get expected types
+
+                (i) Build-in type case:
+                    {'type': 'type_error.[EXPECT_TYPE]', ...}
+
+                (ii) Custom class type case:
+                    {'type': 'type_error.arbitrary_type',
+                     'ctx': {'expected_arbitrary_type': '[EXPECT_TYPE]'}, ...}
+                """
                 expected_types: List[str] = []
                 for error in e.errors():
-                    if error['type'] == 'type_error.arbitrary_type':
+                    if error['type'] == 'type_error.arbitrary_type':  # Custom class type case
                         expected_types.append(error['ctx']['expected_arbitrary_type'])
                     else:
                         expected_types.append(error['type'].replace('type_error.', ''))
-                if len(expected_types) == 1:
-                    expected_types_str = f"'{expected_types[0]}'"
-                else:
+                if len(expected_types) > 1:  # Union case
                     expected_types_str = str(expected_types)
-
-                if len(error['loc']) == 2:  # (argument_name, index)
-                    loc_str = f'`{error["loc"][0]}`[{error["loc"][1]}]'
                 else:
-                    loc_str = f'`{error["loc"][0]}`'
+                    expected_types_str = f"'{expected_types[0]}'"
+
+                """Get invalid argument location
+
+                (i) Not iterable type case
+                    {'loc': ('[ARGUMENT_NAME],'), ...}
+
+                (ii) Iterable type except for dict case
+                    {'loc': ('[ARGUMENT_NAME]', '[INDEX]'), ...}
+
+                (ii) Dict case
+                    {'loc': ('[ARGUMENT_NAME]', '[KEY]'), ...}
+
+                """
+                if len(error['loc']) == 2:  # Iterable type case
+                    loc_str = f'\'{error["loc"][0]}\'[{error["loc"][1]}]'
+                else:
+                    loc_str = f'\'{error["loc"][0]}\''
 
                 msg = f'Type of argument {loc_str} must be {expected_types_str}\n'
                 raise InvalidArgumentError(msg) from None
         return _custom_wrapper
+
     type_check_decorator = decorator
 
 except ImportError:
