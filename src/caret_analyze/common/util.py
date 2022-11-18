@@ -63,7 +63,7 @@ class Util:
         condition : Callable[[Any], bool]
             condition
         items : Optional[Iterable[Any]]
-            items
+            Items to be searched.
         Returns
         -------
         Any
@@ -154,7 +154,7 @@ class Util:
             target_names
         items: Collection[Any]
             items
-        keys: Callable[[Any], Dict@str, str]]
+        keys: Callable[[Any], Dict[str, str]]
             key
         th: float
             threshold

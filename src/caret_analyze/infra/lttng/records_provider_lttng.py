@@ -1298,7 +1298,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         tilde_subscription : int
-            TILDA subscription
+            TILDE subscription
 
         Returns
         -------
@@ -1555,7 +1555,7 @@ class FilteredRecordsSource:
         Parameters
         ----------
         tilde_publishers : Sequence[int]
-            TILDA publishers
+            TILDE publishers
 
         Returns
         -------
