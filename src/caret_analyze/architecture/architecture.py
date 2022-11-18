@@ -216,10 +216,12 @@ class Architecture(Summarizable):
             msg += f'node_name: {node_name}'
             raise ItemNotFoundError(msg)
 
-    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function: Optional(str)):
+    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function_name: Optional[str]):
         try:
             node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-            node.assign_publisher(pub_topic_name, callback_function)
+            callback: CallbackStruct = Util.find_one(lambda x: x.callback_name == callback_function_name,\
+                Util.flatten(_.callbacks for _ in Util.flatten(_.callback_groups for _ in self._executors)))
+            node.assign_publisher(pub_topic_name, callback)
         except ItemNotFoundError:
             msg = 'Failed to find node. '
             msg += f'node_name: {node_name}'

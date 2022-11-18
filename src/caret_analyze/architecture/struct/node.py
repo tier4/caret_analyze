@@ -168,10 +168,10 @@ class NodeStruct():
         raise NotImplementedError('')
 
     def assign_publisher(self, pub_topic_name: str, callback_function: Optional[CallbackStruct]):
-        publisher = PublisherStruct(self.node_name, pub_topic_name, callback_function)
+        publisher = PublisherStruct(self.node_name, pub_topic_name, tuple([callback_function]))
         publisher_list = list(self.publishers)
         publisher_list.append(publisher)
-        self._publishers = Tuple(publisher_list)
+        self._publishers = tuple(publisher_list)
 
     def assign_message_passings(self, source_callback: CallbackStruct, destination_callback: CallbackStruct):
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)

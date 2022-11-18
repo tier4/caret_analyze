@@ -316,9 +316,19 @@ class TestArchitecture:
     def test_assign_function(self, mocker):
         architecture_text = """
 named_paths: []
-executors: []
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
 nodes:
 - node_name: /pong_node
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - subscription_callback_0
+    - timer_callback_1
   callbacks:
     - callback_name: subscription_callback_0
       callback_type: subscription_callback
@@ -338,14 +348,25 @@ nodes:
         node = arch.get_node("/pong_node")
 
         arch.assign_message_passings("/pong_node", "timer_callback_1", "subscription_callback_0")
+        arch.assign_publisher("/pong_node", "/ping", "timer_callback_1")
 
         node = arch.get_node("/pong_node")
 
         architecture_text_expected = """
 named_paths: []
-executors: []
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
 nodes:
 - node_name: /pong_node
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - subscription_callback_0
+    - timer_callback_1
   callbacks:
     - callback_name: subscription_callback_0
       callback_type: subscription_callback
