@@ -6035,7 +6035,7 @@ None except for timer callback.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]]</code>
           </td>
-          <td></td>
+          <td><p>callbacks publish</p></td>
           <td>
               <em>required</em>
           </td>
@@ -6045,7 +6045,7 @@ None except for timer callback.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.callback.CallbackBase" href="#caret_analyze.runtime.CallbackBase">CallbackBase</a>]</code>
           </td>
-          <td></td>
+          <td><p>callback subscription</p></td>
           <td>
               <em>required</em>
           </td>
@@ -9496,21 +9496,33 @@ Valid only when remove_dropped=false.</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>lstrip</code></td>
+          <td><code>lstrip_s</code></td>
           <td>
+                <code>float</code>
           </td>
           <td><p>Remove from beginning. [s]</p></td>
           <td>
-              <em>required</em>
+                <code>0</code>
           </td>
         </tr>
         <tr>
-          <td><code>rstrip</code></td>
+          <td><code>rstrip_s</code></td>
           <td>
+                <code>float</code>
           </td>
           <td><p>Remove from end [s]</p></td>
           <td>
-              <em>required</em>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>shaper</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="caret_analyze.record.data_frame_shaper.DataFrameShaper">DataFrameShaper</span>]</code>
+          </td>
+          <td><p>shaper</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -9584,21 +9596,33 @@ Valid only when remove_dropped=false.</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>lstrip</code></td>
+          <td><code>lstrip_s</code></td>
           <td>
+                <code>float</code>
           </td>
           <td><p>Remove from beginning. [s]</p></td>
           <td>
-              <em>required</em>
+                <code>0</code>
           </td>
         </tr>
         <tr>
-          <td><code>rstrip</code></td>
+          <td><code>rstrip_s</code></td>
           <td>
+                <code>float</code>
           </td>
           <td><p>Remove from end [s]</p></td>
           <td>
-              <em>required</em>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>shaper</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="caret_analyze.record.data_frame_shaper.DataFrameShaper">DataFrameShaper</span>]</code>
+          </td>
+          <td><p>shaper</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -9713,21 +9737,33 @@ Valid only when remove_dropped=false. default: False.</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>lstrip</code></td>
+          <td><code>lstrip_s</code></td>
           <td>
+                <code>float</code>
           </td>
           <td><p>Remove from beginning. [s] default: 0</p></td>
           <td>
-              <em>required</em>
+                <code>0</code>
           </td>
         </tr>
         <tr>
-          <td><code>rstrip</code></td>
+          <td><code>rstrip_s</code></td>
           <td>
+                <code>float</code>
           </td>
           <td><p>Remove from end [s] default: 0</p></td>
           <td>
-              <em>required</em>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>shaper</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="caret_analyze.record.data_frame_shaper.DataFrameShaper">DataFrameShaper</span>]</code>
+          </td>
+          <td><p>shaper</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
