@@ -18,16 +18,17 @@ import logging
 from typing import Callable, Collection, List, Optional, Tuple, Union
 
 from .architecture_exporter import ArchitectureExporter
+
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
-                     NodeStruct, PathStruct)
+                     NodePathStruct, NodeStruct, PathStruct)
 from .struct.callback import CallbackStruct, TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
+from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
-                             NodeStructValue, PathStructValue, PublisherStructValue,
-                             SubscriptionStructValue)
+                             NodePathStructValue, NodeStructValue, PathStructValue,
+                             PublisherStructValue, SubscriptionStructValue)
 
 
 class Architecture(Summarizable):
@@ -107,10 +108,35 @@ class Architecture(Summarizable):
         named_path: PathStruct = Util.find_one(lambda x: x._path_name == path_name, self._paths)
         return named_path.to_value()
 
-    def add_path(self, path_name: str, path_info: PathStruct) -> None:
+    def add_path(self, path_name: str, path_info: PathStructValue) -> None:
         if path_name in self.path_names:
             raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
-        named_path_info = PathStruct(path_name, path_info.child)
+
+        child: List[Union[NodePathStruct, CommunicationStruct]] = []
+
+        for c in path_info.child:
+            if isinstance(c, NodePathStructValue):
+                from .graph_search import NodePathSearcher
+                node_path_searcher: NodePathSearcher = \
+                    NodePathSearcher(tuple(self._nodes), tuple(self._communications))
+                node_path: NodePathStruct = \
+                    node_path_searcher._find_node_path('' if c.subscribe_topic_name is None
+                                                       else c.subscribe_topic_name,
+                                                       '' if c.publish_topic_name is None
+                                                       else c.publish_topic_name, c.node_name)
+                child.append(node_path)
+            elif isinstance(c, CommunicationStructValue):
+                def is_target_comm(comm: CommunicationStruct):
+                    return comm.publish_node_name == c.publish_node_name and \
+                        comm.subscribe_node_name == c.subscribe_node_name and \
+                        comm.topic_name == c.topic_name
+                comm: CommunicationStruct = \
+                    Util.find_one(is_target_comm, self._communications)
+                child.append(comm)
+            else:
+                raise UnsupportedTypeError('')
+
+        named_path_info = PathStruct(path_name, child)
         self._paths.append(named_path_info)
 
     def remove_path(self, path_name: str) -> None:
@@ -125,7 +151,7 @@ class Architecture(Summarizable):
         if idx is not None:
             self._paths.pop(idx)
 
-    def update_path(self, path_name: str, path: PathStruct) -> None:
+    def update_path(self, path_name: str, path: PathStructValue) -> None:
         if path.path_name is None:
             raise InvalidArgumentError('path_info.path_name is None')
 
