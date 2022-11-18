@@ -73,7 +73,7 @@ try:
 
 except ImportError:
     def empty_decorator(func):
-        def _wrapper(*args, **kargs):
-            return func(*args, **kargs)
+        def _wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
         return _wrapper
     type_check_decorator = empty_decorator
