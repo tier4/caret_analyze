@@ -15,7 +15,7 @@
 from typing import Dict, List, Union
 
 from caret_analyze.common.type_check_decorator import type_check_decorator
-from caret_analyze.exceptions import InvalidArgumentError
+from caret_analyze.exceptions import UnsupportedTypeError
 
 import pytest
 
@@ -27,7 +27,7 @@ class TestTypeCheckDecorator:
         def bool_arg(b: bool):
             pass
 
-        with pytest.raises(InvalidArgumentError) as e:
+        with pytest.raises(UnsupportedTypeError) as e:
             bool_arg(10)
         assert "'b' must be 'bool'" in str(e.value)
 
@@ -41,7 +41,7 @@ class TestTypeCheckDecorator:
         def custom_arg(c: Custom):
             pass
 
-        with pytest.raises(InvalidArgumentError) as e:
+        with pytest.raises(UnsupportedTypeError) as e:
             custom_arg(10)
         assert "'c' must be 'Custom'" in str(e.value)
 
@@ -50,7 +50,7 @@ class TestTypeCheckDecorator:
         def union_arg(u: Union[bool, set]):
             pass
 
-        with pytest.raises(InvalidArgumentError) as e:
+        with pytest.raises(UnsupportedTypeError) as e:
             union_arg(10)
         assert "'u' must be ['bool', 'set']" in str(e.value)
 
@@ -59,7 +59,7 @@ class TestTypeCheckDecorator:
         def iterable_arg(i: List[bool]):
             pass
 
-        with pytest.raises(InvalidArgumentError) as e:
+        with pytest.raises(UnsupportedTypeError) as e:
             iterable_arg([True, 10])
         assert "'i'[1] must be 'bool'" in str(e.value)
 
@@ -68,7 +68,7 @@ class TestTypeCheckDecorator:
         def key_arg(d: Dict[str, bool]):
             pass
 
-        with pytest.raises(InvalidArgumentError) as e:
+        with pytest.raises(UnsupportedTypeError) as e:
             key_arg({'key1': True,
                      'key2': 10})
         assert "'d'[key2] must be 'bool'" in str(e.value)

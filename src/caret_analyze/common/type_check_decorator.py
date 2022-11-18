@@ -14,7 +14,7 @@
 
 from typing import List
 
-from ..exceptions import InvalidArgumentError
+from ..exceptions import UnsupportedTypeError
 
 
 try:
@@ -66,7 +66,7 @@ try:
                     loc_str = f'\'{error["loc"][0]}\''
 
                 msg = f'Type of argument {loc_str} must be {expected_types_str}\n'
-                raise InvalidArgumentError(msg) from None
+                raise UnsupportedTypeError(msg) from None
         return _custom_wrapper
 
     type_check_decorator = decorator
