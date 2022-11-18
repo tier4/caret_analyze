@@ -59,7 +59,9 @@ class Communication(PathBase, Summarizable):
         records_provider : Union[RecordsProvider, RuntimeDataProvider, None]
             provider to be evaluated.
         callbacks_publish : Optional[List[CallbackBase]]
+            callbacks publish
         callback_subscription : Optional[CallbackBase]
+            callback subscription
 
         """
         super().__init__()

@@ -171,7 +171,7 @@ class DataModelService:
         """
         If input is Series, convert to DataFrame.
 
-        Note
+        Note:
         ----
         In the pandas specification,
         when a conditional extraction is performed on DataFrame,

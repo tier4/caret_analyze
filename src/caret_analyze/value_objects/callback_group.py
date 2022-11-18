@@ -83,7 +83,17 @@ class CallbackGroupValue(ValueObject):
         Parameters
         ----------
         callback_group_type_name : str
-        node_names : Tuple[str]
+            callback group type name
+        node_name : Tuple[str]
+            node name
+        node_id: str
+            node id
+        callback_ids: Tuple[str, ...]
+            callback ids
+        callback_group_id: str
+            callback group id
+        callback_group_name: Optional[str]
+            callback group name
 
         """
         self._callback_group_type = CallbackGroupType(callback_group_type_name)
@@ -150,8 +160,14 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
 
         Parameters
         ----------
-        callback_group_type_name : str
-        node_names : List[str]
+        callback_group_type : str
+            callback group type
+        node_name : List[str]
+            node name
+        callback_values: Tuple[CallbackStructValue, ...]
+            callback values
+        callback_group_name: str
+            callback group name
 
         """
         self._callback_group_type = callback_group_type
