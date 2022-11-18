@@ -39,6 +39,5 @@ formatter = Formatter(
 handler.setFormatter(formatter)
 
 logger = getLogger()
-
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
