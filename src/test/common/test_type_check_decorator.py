@@ -17,9 +17,11 @@ from typing import Dict, List, Union
 from caret_analyze.common.type_check_decorator import type_check_decorator
 from caret_analyze.exceptions import UnsupportedTypeError
 
+import os
 import pytest
 
 
+@pytest.mark.skipif('GITHUB_ACTION' in os.environ, reason='requires pydantic>=1.5')
 class TestTypeCheckDecorator:
 
     def test_type_check_decorator_built_in_type(self):
