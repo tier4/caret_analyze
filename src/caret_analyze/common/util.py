@@ -108,7 +108,7 @@ class Util:
         th: float
             Similarity judgment threshold.
             A candidate is mentioned only if it is higher than the threshold.
-            
+
         Returns
         -------
         Any
