@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# flake8: noqa: F811
+# This line is a workaround for the following warning that seems to be a problem with flake8.
+# F811 redefinition of unused 'publishers'
+# F811 redefinition of unused 'subscriptions'
+
 from __future__ import annotations
 
 import logging
@@ -78,7 +83,9 @@ class Architecture(Summarizable):
 
     @property
     def topic_names(self) -> Tuple[str, ...]:
-        return tuple(sorted({_.topic_name for _ in self.communications}))
+        topic_names = {_.topic_name for _ in self.publishers}
+        topic_names |= {_.topic_name for _ in self.subscriptions}
+        return tuple(sorted(topic_names))
 
     def get_callback(self, callback_name: str) -> CallbackStructValue:
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
@@ -139,6 +146,16 @@ class Architecture(Summarizable):
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
         return tuple(v.to_value() for v in self._communications)
+
+    @property
+    def publishers(self) -> Tuple[PublisherStructValue, ...]:
+        publishers = Util.flatten(_.publishers for _ in self.nodes)
+        return tuple(sorted(publishers, key=lambda x: x.topic_name))
+
+    @property
+    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
+        subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
+        return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
 
     @property
     def publishers(self) -> Tuple[PublisherStructValue, ...]:
