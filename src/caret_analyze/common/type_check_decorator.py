@@ -25,12 +25,17 @@ try:
     def _get_expected_types(e: ValidationError) -> str:
         """Get expected types.
 
-        (i) Build-in type case:
-            {'type': 'type_error.[EXPECT_TYPE]', ...}
+        Parameters
+        ----------
+        e: ValidationError
+            ValidationError instance has one or more ErrorDict instances.
+            Example of ErrorDict structure is as follows.
+            (i) Build-in type case:
+                {'type': 'type_error.[EXPECT_TYPE]', ...}
 
-        (ii) Custom class type case:
-            {'type': 'type_error.arbitrary_type',
-             'ctx': {'expected_arbitrary_type': '[EXPECT_TYPE]'}, ...}
+            (ii) Custom class type case:
+                {'type': 'type_error.arbitrary_type',
+                'ctx': {'expected_arbitrary_type': '[EXPECT_TYPE]'}, ...}
         """
         expected_types: List[str] = []
         for error in e.errors():
@@ -49,14 +54,17 @@ try:
     def _get_given_arg_loc(given_arg_loc: tuple) -> str:
         """Get given argument location.
 
-        (i) Not iterable type case
-            ('[ARGUMENT_NAME],')
+        Parameters
+        ----------
+        given_arg_loc: tuple
+            (i) Not iterable type case
+                ('[ARGUMENT_NAME],')
 
-        (ii) Iterable type except for dict case
-            ('[ARGUMENT_NAME]', '[INDEX]')
+            (ii) Iterable type except for dict case
+                ('[ARGUMENT_NAME]', '[INDEX]')
 
-        (ii) Dict case
-            ('[ARGUMENT_NAME]', '[KEY]')
+            (ii) Dict case
+                ('[ARGUMENT_NAME]', '[KEY]')
 
         """
         if len(given_arg_loc) == 2:  # Iterable type case
@@ -70,21 +78,24 @@ try:
         signature: Signature,
         args: Tuple[Any, ...],
         kwargs: Dict[str, Any],
-        loc: tuple
+        given_arg_loc: tuple
     ) -> str:
         """Get given argument type.
 
-        (i) Not iterable type case
-            ('[ARGUMENT_NAME],')
+        Parameters
+        ----------
+        given_arg_loc: tuple
+            (i) Not iterable type case
+                ('[ARGUMENT_NAME],')
 
-        (ii) Iterable type except for dict case
-            ('[ARGUMENT_NAME]', '[INDEX]')
+            (ii) Iterable type except for dict case
+                ('[ARGUMENT_NAME]', '[INDEX]')
 
-        (ii) Dict case
-            ('[ARGUMENT_NAME]', '[KEY]')
+            (ii) Dict case
+                ('[ARGUMENT_NAME]', '[KEY]')
 
         """
-        arg_name = loc[0]
+        arg_name = given_arg_loc[0]
         given_arg: Any = None
 
         # Check kwargs
@@ -98,11 +109,11 @@ try:
             given_arg_idx = list(signature.parameters.keys()).index(arg_name)
             given_arg = args[given_arg_idx]
 
-        if len(loc) == 2:  # Iterable type case
+        if len(given_arg_loc) == 2:  # Iterable type case
             if isinstance(given_arg, dict):
-                given_arg_type_str = f"'{given_arg[loc[1]].__class__.__name__}'"
+                given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
             else:
-                given_arg_type_str = f"'{given_arg[int(loc[1])].__class__.__name__}'"
+                given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
         else:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
