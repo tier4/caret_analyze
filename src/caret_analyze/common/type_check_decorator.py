@@ -13,13 +13,100 @@
 # limitations under the License.
 
 from functools import wraps
-from typing import List
+from inspect import Signature, signature
+from typing import Any, Dict, List, Tuple
 
 from ..exceptions import UnsupportedTypeError
 
 
 try:
     from pydantic import validate_arguments, ValidationError
+
+    def _get_expected_types(e: ValidationError) -> str:
+        """Get expected types.
+
+        (i) Build-in type case:
+            {'type': 'type_error.[EXPECT_TYPE]', ...}
+
+        (ii) Custom class type case:
+            {'type': 'type_error.arbitrary_type',
+             'ctx': {'expected_arbitrary_type': '[EXPECT_TYPE]'}, ...}
+        """
+        expected_types: List[str] = []
+        for error in e.errors():
+            if error['type'] == 'type_error.arbitrary_type':  # Custom class type case
+                expected_types.append(error['ctx']['expected_arbitrary_type'])
+            else:
+                expected_types.append(error['type'].replace('type_error.', ''))
+
+        if len(expected_types) > 1:  # Union case
+            expected_types_str = str(expected_types)
+        else:
+            expected_types_str = f"'{expected_types[0]}'"
+
+        return expected_types_str
+
+    def _get_given_arg_loc(given_arg_loc: tuple) -> str:
+        """Get given argument location.
+
+        (i) Not iterable type case
+            ('[ARGUMENT_NAME],')
+
+        (ii) Iterable type except for dict case
+            ('[ARGUMENT_NAME]', '[INDEX]')
+
+        (ii) Dict case
+            ('[ARGUMENT_NAME]', '[KEY]')
+
+        """
+        if len(given_arg_loc) == 2:  # Iterable type case
+            loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
+        else:
+            loc_str = f"'{given_arg_loc[0]}'"
+
+        return loc_str
+
+    def _get_given_arg_type(
+        signature: Signature,
+        args: Tuple[Any, ...],
+        kwargs: Dict[str, Any],
+        loc: tuple
+    ) -> str:
+        """Get given argument type.
+
+        (i) Not iterable type case
+            ('[ARGUMENT_NAME],')
+
+        (ii) Iterable type except for dict case
+            ('[ARGUMENT_NAME]', '[INDEX]')
+
+        (ii) Dict case
+            ('[ARGUMENT_NAME]', '[KEY]')
+
+        """
+        arg_name = loc[0]
+        given_arg: Any = None
+
+        # Check kwargs
+        for k, v in kwargs.items():
+            if k == arg_name:
+                given_arg = v
+                break
+
+        if given_arg is None:
+            # Check args
+            given_arg_idx = list(signature.parameters.keys()).index(arg_name)
+            given_arg = args[given_arg_idx]
+
+        if len(loc) == 2:  # Iterable type case
+            if isinstance(given_arg, dict):
+                given_arg_type_str = f"'{given_arg[loc[1]].__class__.__name__}'"
+            else:
+                given_arg_type_str = f"'{given_arg[int(loc[1])].__class__.__name__}'"
+        else:
+            given_arg_type_str = f"'{given_arg.__class__.__name__}'"
+
+        return given_arg_type_str
 
     def decorator(func):
         validate_arguments_wrapper = \
@@ -30,44 +117,13 @@ try:
             try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
-                """Get expected types
+                expected_types = _get_expected_types(e)
+                loc_tuple = e.errors()[0]['loc']
+                given_arg_loc = _get_given_arg_loc(loc_tuple)
+                given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple)
 
-                (i) Build-in type case:
-                    {'type': 'type_error.[EXPECT_TYPE]', ...}
-
-                (ii) Custom class type case:
-                    {'type': 'type_error.arbitrary_type',
-                     'ctx': {'expected_arbitrary_type': '[EXPECT_TYPE]'}, ...}
-                """
-                expected_types: List[str] = []
-                for error in e.errors():
-                    if error['type'] == 'type_error.arbitrary_type':  # Custom class type case
-                        expected_types.append(error['ctx']['expected_arbitrary_type'])
-                    else:
-                        expected_types.append(error['type'].replace('type_error.', ''))
-                if len(expected_types) > 1:  # Union case
-                    expected_types_str = str(expected_types)
-                else:
-                    expected_types_str = f"'{expected_types[0]}'"
-
-                """Get invalid argument location
-
-                (i) Not iterable type case
-                    {'loc': ('[ARGUMENT_NAME],'), ...}
-
-                (ii) Iterable type except for dict case
-                    {'loc': ('[ARGUMENT_NAME]', '[INDEX]'), ...}
-
-                (ii) Dict case
-                    {'loc': ('[ARGUMENT_NAME]', '[KEY]'), ...}
-
-                """
-                if len(error['loc']) == 2:  # Iterable type case
-                    loc_str = f'\'{error["loc"][0]}\'[{error["loc"][1]}]'
-                else:
-                    loc_str = f'\'{error["loc"][0]}\''
-
-                msg = f'Type of argument {loc_str} must be {expected_types_str}\n'
+                msg = f'Type of argument {given_arg_loc} must be {expected_types}. '
+                msg += f'The given argument type is {given_arg_type}.'
                 raise UnsupportedTypeError(msg) from None
         return _custom_wrapper
 
@@ -79,4 +135,5 @@ except ImportError:
         def _wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         return _wrapper
+
     type_check_decorator = empty_decorator

@@ -32,7 +32,7 @@ class TestTypeCheckDecorator:
 
         with pytest.raises(UnsupportedTypeError) as e:
             bool_arg(10)
-        assert "'b' must be 'bool'" in str(e.value)
+        assert "'b' must be 'bool'. The given argument type is 'int'" in str(e.value)
 
     def test_type_check_decorator_custom_type(self):
         class Custom:
@@ -46,7 +46,7 @@ class TestTypeCheckDecorator:
 
         with pytest.raises(UnsupportedTypeError) as e:
             custom_arg(10)
-        assert "'c' must be 'Custom'" in str(e.value)
+        assert "'c' must be 'Custom'. The given argument type is 'int'" in str(e.value)
 
     def test_type_check_decorator_union(self):
         @type_check_decorator
@@ -55,7 +55,7 @@ class TestTypeCheckDecorator:
 
         with pytest.raises(UnsupportedTypeError) as e:
             union_arg(10)
-        assert "'u' must be ['bool', 'set']" in str(e.value)
+        assert "'u' must be ['bool', 'set']. The given argument type is 'int'" in str(e.value)
 
     def test_type_check_decorator_iterable(self):
         @type_check_decorator
@@ -64,7 +64,7 @@ class TestTypeCheckDecorator:
 
         with pytest.raises(UnsupportedTypeError) as e:
             iterable_arg([True, 10])
-        assert "'i'[1] must be 'bool'" in str(e.value)
+        assert "'i'[1] must be 'bool'. The given argument type is 'int'" in str(e.value)
 
     def test_type_check_decorator_dict(self):
         @type_check_decorator
@@ -74,4 +74,13 @@ class TestTypeCheckDecorator:
         with pytest.raises(UnsupportedTypeError) as e:
             dict_arg({'key1': True,
                       'key2': 10})
-        assert "'d'[key2] must be 'bool'" in str(e.value)
+        assert "'d'[key2] must be 'bool'. The given argument type is 'int'" in str(e.value)
+
+    def test_type_check_decorator_kwargs(self):
+        @type_check_decorator
+        def kwarg(k: bool):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            kwarg(k=10)
+        assert "'k' must be 'bool'. The given argument type is 'int'" in str(e.value)
