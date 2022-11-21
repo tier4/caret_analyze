@@ -36,6 +36,7 @@ try:
             (ii) Custom class type case:
                 {'type': 'type_error.arbitrary_type',
                 'ctx': {'expected_arbitrary_type': '[EXPECT_TYPE]'}, ...}
+
         """
         expected_types: List[str] = []
         for error in e.errors():
@@ -84,6 +85,12 @@ try:
 
         Parameters
         ----------
+        signature: Signature
+            Signature of target function.
+        args: Tuple[Any, ...]
+            Arguments of target function.
+        kwargs: Dict[str, Any]
+            Keyword arguments of target function.
         given_arg_loc: tuple
             (i) Not iterable type case
                 ('[ARGUMENT_NAME],')
