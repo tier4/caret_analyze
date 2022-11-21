@@ -463,12 +463,16 @@ nodes:
         arch = Architecture('yaml', 'architecture.yaml')
         assert arch.get_node('/node_0')
         assert arch.get_node('/node_1')
-        # assert arch.get_node('/changed_node') is False
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/changed_node')
+        assert e
 
         arch.rename_node('/node_1', '/changed_node')
         assert arch.get_node('/node_0')
-        # assert arch.get_node('/node_1') is False
         assert arch.get_node('/changed_node')
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/node_1')
+        assert e
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -560,12 +564,16 @@ nodes:
         arch = Architecture('yaml', 'architecture.yaml')
         assert arch.get_executor('executor_0')
         assert arch.get_executor('executor_1')
-        # assert arch.get_executor('changed_executor') is False
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/changed_executor')
+        assert e
 
         arch.rename_executor('executor_1', 'changed_executor')
         assert arch.get_executor('executor_0')
-        # assert arch.get_executor('executor_1') is False
         assert arch.get_executor('changed_executor')
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/executor_1')
+        assert e
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -758,13 +766,17 @@ nodes:
         arch = Architecture('yaml', 'architecture.yaml')
         assert arch.get_callback('/callback_0')
         assert arch.get_callback('/callback_1')
-        # assert arch.get_callback('/changed_callback') is False
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/changed_callback')
+        assert e
 
         arch.rename_callback('/callback_1', '/changed_callback_0')
         arch.rename_callback('/callback_2', '/changed_callback_1')
         assert arch.get_callback('/callback_0')
-        # assert arch.get_callback('/callback_1') is False
         assert arch.get_callback('/changed_callback_0')
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/callback_1')
+        assert e
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -863,12 +875,16 @@ nodes:
         arch = Architecture('yaml', 'architecture.yaml')
         assert arch.get_path('target_path_0')
         assert arch.get_path('target_path_1')
-        # assert arch.get_path('changed_path') is False
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/changed_path')
+        assert e
 
         arch.rename_path('target_path_1', 'changed_path')
         assert arch.get_path('target_path_0')
-        # assert arch.get_path('target_path_1') is False
         assert arch.get_path('changed_path')
+        with pytest.raises(ItemNotFoundError) as e:
+            assert arch.get_node('/target_path_1')
+        assert e
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
