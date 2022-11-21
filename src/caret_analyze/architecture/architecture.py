@@ -22,7 +22,7 @@ from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodeStruct)
-from .struct.callback import TimerCallbackStruct, CallbackStruct
+from .struct.callback import CallbackStruct, TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
@@ -207,38 +207,31 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    def assign_message_context(self, node_name: str, context_type: str, sub_topic_name: str, pub_topic_name: str):
-        try:
-            node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-            node.assign_message_context(context_type, sub_topic_name, pub_topic_name)
-        except ItemNotFoundError:
-            msg = 'Failed to find node. '
-            msg += f'node_name: {node_name}'
-            raise ItemNotFoundError(msg)
+    def assign_message_context(self, node_name: str, context_type: str,
+                               sub_topic_name: str, pub_topic_name: str):
+        node: NodeStruct =\
+            Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+        node.assign_message_context(context_type, sub_topic_name, pub_topic_name)
 
-    def assign_publisher(self, node_name: str, pub_topic_name: str, callback_function_name: Optional[str]):
-        try:
-            node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-            callback: CallbackStruct = Util.find_one(lambda x: x.callback_name == callback_function_name,\
-                Util.flatten(_.callbacks for _ in Util.flatten(_.callback_groups for _ in self._executors)))
-            node.assign_publisher(pub_topic_name, callback)
-        except ItemNotFoundError:
-            msg = 'Failed to find node. '
-            msg += f'node_name: {node_name}'
-            raise ItemNotFoundError(msg)
+    def assign_publisher(self, node_name: str,
+                         pub_topic_name: str, callback_function_name: Optional[str]):
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+        callback: CallbackStruct =\
+            Util.find_one(lambda x: x.callback_name == callback_function_name,
+                          Util.flatten(_.callbacks for _ in
+                                       Util.flatten(_.callback_groups for _ in self._executors)))
+        node.assign_publisher(pub_topic_name, callback)
 
-    def assign_message_passings(self, node_name: str, source_callback_name: str, destination_callback_name: str):
-        try:
-            node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+    def assign_message_passings(self, node_name: str,
+                                source_callback_name: str, destination_callback_name: str):
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-            source_callback = Util.find_one(lambda x: x.callback_name == source_callback_name, node.callbacks)
-            destination_callback = Util.find_one(lambda x: x.callback_name == destination_callback_name, node.callbacks)
+        source_callback =\
+            Util.find_one(lambda x: x.callback_name == source_callback_name, node.callbacks)
+        destination_callback =\
+            Util.find_one(lambda x: x.callback_name == destination_callback_name, node.callbacks)
 
-            node.assign_message_passings(source_callback, destination_callback)
-        except ItemNotFoundError:
-            msg = 'Failed to find node. '
-            msg += f'node_name: {node_name}'
-            raise ItemNotFoundError(msg)
+        node.assign_message_passings(source_callback, destination_callback)
 
 
 """

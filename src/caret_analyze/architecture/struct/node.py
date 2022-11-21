@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
+from .message_context import MessageContextStruct
 from .node_path import NodePathStruct
 from .publisher import PublisherStruct
 from .subscription import SubscriptionStruct
@@ -165,16 +166,23 @@ class NodeStruct():
             else tuple(v.to_value() for v in self.variable_passings))
 
     def assign_message_context(self, context_type, sub_topic_name: str, pub_topic_name: str):
-        raise NotImplementedError('')
+        path = self.get_path(sub_topic_name, pub_topic_name)
+        path.message_context =\
+            MessageContextStruct.create_instance(context_type, Dict(),
+                                                 self.node_name, path.subscription,
+                                                 path.publisher, None)
 
-    def assign_publisher(self, pub_topic_name: str, callback_function: Optional[CallbackStruct]):
-        publisher = PublisherStruct(self.node_name, pub_topic_name, tuple([callback_function]))
+    def assign_publisher(self, pub_topic_name: str,
+                         callback_function: Optional[CallbackStruct]):
+        publisher = PublisherStruct(self.node_name, pub_topic_name,
+                                    () if callback_function is None else (callback_function,))
         publisher_list = list(self.publishers)
         publisher_list.append(publisher)
         self._publishers = tuple(publisher_list)
 
-    def assign_message_passings(self, source_callback: CallbackStruct, destination_callback: CallbackStruct):
+    def assign_message_passings(self, source_callback: CallbackStruct,
+                                destination_callback: CallbackStruct):
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
-        passing_list = list(self.variable_passings)
+        passing_list = [] if self.variable_passings is None else list(self.variable_passings)
         passing_list.append(passing)
-        self._variable_passings_info = passing_list
+        self._variable_passings_info = tuple(passing_list)

@@ -345,12 +345,13 @@ nodes:
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
-        node = arch.get_node("/pong_node")
+        node = arch.get_node('/pong_node')
 
-        arch.assign_message_passings("/pong_node", "timer_callback_1", "subscription_callback_0")
-        arch.assign_publisher("/pong_node", "/ping", "timer_callback_1")
+        arch.assign_message_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
+        arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
+        # arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
 
-        node = arch.get_node("/pong_node")
+        node = arch.get_node('/pong_node')
 
         architecture_text_expected = """
 named_paths: []
@@ -394,7 +395,23 @@ nodes:
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch = Architecture('yaml', 'architecture.yaml')
-        node_expected = arch.get_node("/pong_node")
+        node_expected = arch.get_node('/pong_node')
 
-        assert len(node.variable_passings) == len(node_expected.variable_passings)
-        assert len(node.publishers) == len(node_expected.publishers)
+        assert {p.callback_name_write for p in node.variable_passings}\
+            == {p.callback_name_write for p in node_expected.variable_passings}
+        assert {p.callback_name_read for p in node.variable_passings}\
+            == {p.callback_name_read for p in node_expected.variable_passings}
+
+        assert {p.topic_name for p in node.publishers}\
+            == {p.topic_name for p in node_expected.publishers}
+        assert {p.callback_names for p in node.publishers}\
+            == {p.callback_names for p in node_expected.publishers}
+
+        """
+        assert {n.message_context.context_type.type_name for n in node.paths}\
+            == {n.message_context.context_type.type_name for n in node_expected.paths}
+        assert {n.message_context.subscription_topic_name for n in node.paths}\
+            == {n.message_context.subscription_topic_name for n in node_expected.paths}
+        assert {n.message_context.publisher_topic_name for n in node.paths}\
+            == {n.message_context.publisher_topic_name for n in node_expected.paths}
+        """
