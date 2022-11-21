@@ -1087,7 +1087,7 @@ class DataFrameFormatted:
         columns = ['timestamp', 'timer_handle', 'type', 'params']
         timers = data.timers.clone()
         timers.reset_index()
-        timers.add_column('type', 'init')
+        timers.add_column('type', lambda _: 'init')
 
         def to_params(row: pd.Series):
             return {'period': row['period']}
