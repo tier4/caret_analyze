@@ -15,12 +15,10 @@
 
 """Module for ROS 2 data model."""
 
-from typing import Dict, List
-
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 
-import pandas as pd
+from ...trace_point_data import TracePointIntermediateData
 
 
 class Ros2DataModel():
@@ -33,35 +31,61 @@ class Ros2DataModel():
     def __init__(self) -> None:
         """Create a Ros2DataModel."""
         # Objects (one-time events, usually when something is created)
-        self._contexts: List[Dict] = []
-        self._nodes: List[Dict] = []
-        self._publishers: List[Dict] = []
-        self._subscriptions: List[Dict] = []
-        self._subscription_objects: List[Dict] = []
-        self._services: List[Dict] = []
-        self._clients: List[Dict] = []
-        self._timers: List[Dict] = []
-        self._timer_node_links: List[Dict] = []
-        self._callback_objects: List[Dict] = []
-        self._callback_symbols: List[Dict] = []
-        self._lifecycle_state_machines: List[Dict] = []
-        self._executors: List[Dict] = []
-        self._executors_static: List[Dict] = []
-        self._callback_groups: List[Dict] = []
-        self._callback_groups_static: List[Dict] = []
-        self._callback_group_timer: List[Dict] = []
-        self._callback_group_subscription: List[Dict] = []
-        self._callback_group_service: List[Dict] = []
-        self._callback_group_client: List[Dict] = []
-        self._rmw_impl: List[Dict] = []
+        self._contexts = TracePointIntermediateData(
+            ['context_handle', 'timestamp', 'pid', 'version'])
+        self._nodes = TracePointIntermediateData(
+            ['node_handle', 'timestamp', 'tid', 'rmw_handle', 'namespace', 'name'])
+        self._publishers = TracePointIntermediateData(
+            ['publisher_handle', 'timestamp', 'node_handle', 'rmw_handle', 'topic_name', 'depth'])
+        self._subscriptions = TracePointIntermediateData(
+            ['subscription_handle', 'timestamp', 'node_handle',
+             'rmw_handle', 'topic_name', 'depth'])
+        self._subscription_objects = TracePointIntermediateData(
+            ['subscription', 'timestamp', 'subscription_handle'])
+        self._services = TracePointIntermediateData(
+            ['service_handle', 'timestamp', 'node_handle', 'rmw_handle', 'service_name'])
+        self._clients = TracePointIntermediateData(
+            ['client_handle', 'timestamp', 'node_handle', 'rmw_handle', 'service_name'])
+        self._timers = TracePointIntermediateData(
+            ['timer_handle', 'timestamp', 'period', 'tid'])
+        self._timer_node_links = TracePointIntermediateData(
+            ['timer_handle', 'timestamp', 'node_handle'])
+        self._callback_objects = TracePointIntermediateData(
+            ['reference', 'timestamp', 'callback_object'])
+        self._callback_symbols = TracePointIntermediateData(
+            ['callback_object', 'timestamp', 'symbol'])
+        self._lifecycle_state_machines = TracePointIntermediateData(
+            ['state_machine_handle', 'node_handle'])
+        self._executors = TracePointIntermediateData(
+            ['timestamp', 'executor_addr', 'executor_type_name'])
+        self._executors_static = TracePointIntermediateData(
+            ['timestamp', 'executor_addr', 'entities_collector_addr', 'executor_type_name'])
+        self._callback_groups = TracePointIntermediateData(
+            ['timestamp', 'executor_addr', 'callback_group_addr', 'group_type_name'])
+        self._callback_groups_static = TracePointIntermediateData(
+            ['timestamp', 'entities_collector_addr', 'callback_group_addr', 'group_type_name'])
+        self._callback_group_timer = TracePointIntermediateData(
+            ['timestamp', 'callback_group_addr', 'timer_handle'])
+        self._callback_group_subscription = TracePointIntermediateData(
+            ['timestamp', 'callback_group_addr', 'subscription_handle'])
+        self._callback_group_service = TracePointIntermediateData(
+            ['timestamp', 'callback_group_addr', 'service_handle'])
+        self._callback_group_client = TracePointIntermediateData(
+            ['timestamp', 'callback_group_addr', 'client_handle'])
+        self._rmw_impl = TracePointIntermediateData(
+            ['rmw_impl'])
 
-        self._tilde_subscriptions: List[Dict] = []
-        self._tilde_publishers: List[Dict] = []
-        self._tilde_subscribe_added: List[Dict] = []
+        self._tilde_subscriptions = TracePointIntermediateData(
+            ['subscription', 'node_name', 'topic_name', 'timestamp'])
+        self._tilde_publishers = TracePointIntermediateData(
+            ['publisher', 'node_name', 'topic_name', 'timestamp'])
+        self._tilde_subscribe_added = TracePointIntermediateData(
+            ['subscription_id', 'node_name', 'topic_name', 'timestamp'])
 
         # Events (multiple instances, may not have a meaningful index)
         # string argument
-        self._lifecycle_transitions: List[Dict] = []
+        self._lifecycle_transitions = TracePointIntermediateData(
+            ['state_machine_handle', 'start_label', 'goal_label', 'timestamp'])
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
@@ -521,7 +545,8 @@ class Ros2DataModel():
         self.sim_time.append(record)
 
     def add_rmw_implementation(self, rmw_impl: str):
-        self._rmw_impl.append({'rmw_impl': rmw_impl})
+        record = {'rmw_impl': rmw_impl}
+        self._rmw_impl.append(record)
 
     def add_dispatch_intra_process_subscription_callback_instance(
         self,
@@ -684,154 +709,82 @@ class Ros2DataModel():
         self._callback_group_client.append(record)
 
     def finalize(self) -> None:
-        self.contexts = pd.DataFrame.from_dict(self._contexts)
-        if self._contexts:
-            self.contexts.set_index('context_handle', inplace=True, drop=True)
-        self.nodes = pd.DataFrame.from_dict(self._nodes)
-        if self._nodes:
-            self.nodes.set_index('node_handle', inplace=True, drop=True)
-        self.publishers = pd.DataFrame.from_dict(self._publishers)
-        if self._publishers:
-            self.publishers.set_index(
-                'publisher_handle', inplace=True, drop=True)
-        self.subscriptions = pd.DataFrame.from_dict(self._subscriptions)
-        if self._subscriptions:
-            self.subscriptions.set_index(
-                'subscription_handle', inplace=True, drop=True)
-        self.subscription_objects = pd.DataFrame.from_dict(
-            self._subscription_objects)
-        if self._subscription_objects:
-            self.subscription_objects.set_index(
-                'subscription', inplace=True, drop=True)
-        self.services = pd.DataFrame.from_dict(self._services)
-        if self._services:
-            self.services.set_index('service_handle', inplace=True, drop=True)
-        self.clients = pd.DataFrame.from_dict(self._clients)
-        if self._clients:
-            self.clients.set_index('client_handle', inplace=True, drop=True)
-        self.timers = pd.DataFrame.from_dict(self._timers)
-        if self._timers:
-            self.timers.set_index('timer_handle', inplace=True, drop=True)
-        self.timer_node_links = pd.DataFrame.from_dict(self._timer_node_links)
-        if self._timer_node_links:
-            self.timer_node_links.set_index(
-                'timer_handle', inplace=True, drop=True)
-        self.callback_objects = pd.DataFrame.from_dict(self._callback_objects)
-        if self._callback_objects:
-            self.callback_objects.set_index(
-                'reference', inplace=True, drop=True)
-        self.callback_symbols = pd.DataFrame.from_dict(self._callback_symbols)
-        if self._callback_symbols:
-            self.callback_symbols.set_index(
-                'callback_object', inplace=True, drop=True)
-        self.lifecycle_state_machines = pd.DataFrame.from_dict(
-            self._lifecycle_state_machines)
-        if self._lifecycle_state_machines:
-            self.lifecycle_state_machines.set_index(
-                'state_machine_handle', inplace=True, drop=True
-            )
-        self.lifecycle_transitions = pd.DataFrame.from_dict(
-            self._lifecycle_transitions)
-        self.executors = pd.DataFrame.from_dict(self._executors)
-        if self._executors:
-            self.executors.set_index(
-                'executor_addr', inplace=True, drop=True
-            )
-        self.executors_static = pd.DataFrame.from_dict(self._executors_static)
-        if self._executors_static:
-            self.executors_static.set_index(
-                'executor_addr', inplace=True, drop=True
-            )
-        self.callback_groups = pd.DataFrame.from_dict(self._callback_groups)
-        if self._callback_groups:
-            self.callback_groups.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
-        self.callback_groups_static = pd.DataFrame.from_dict(self._callback_groups_static)
-        if self._callback_groups_static:
-            self.callback_groups_static.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
-        self.callback_group_timer = pd.DataFrame.from_dict(self._callback_group_timer)
-        if self._callback_group_timer:
-            self.callback_group_timer.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
-        self.callback_group_subscription = pd.DataFrame.from_dict(
-            self._callback_group_subscription)
-        if self._callback_group_subscription:
-            self.callback_group_subscription.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
-        self.callback_group_service = pd.DataFrame.from_dict(self._callback_group_service)
-        if self._callback_group_service:
-            self.callback_group_service.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
-        self.callback_group_client = pd.DataFrame.from_dict(self._callback_group_client)
-        if self._callback_group_client:
-            self.callback_group_client.set_index(
-                'callback_group_addr', inplace=True, drop=True
-            )
-        self.tilde_subscriptions = pd.DataFrame.from_dict(self._tilde_subscriptions)
-        if self._tilde_subscriptions:
-            self.tilde_subscriptions.set_index(
-                'subscription', inplace=True, drop=True
-            )
-        self.tilde_publishers = pd.DataFrame.from_dict(self._tilde_publishers)
-        if self._tilde_publishers:
-            self.tilde_publishers.set_index(
-                'publisher', inplace=True, drop=True
-            )
-        self.tilde_subscribe_added = pd.DataFrame.from_dict(self._tilde_subscribe_added)
-        if self._tilde_subscribe_added:
-            self.tilde_subscribe_added.set_index(
-                'subscription_id', inplace=True, drop=True
-            )
+        self.contexts = self._contexts.get_finalized('context_handle')
+        del self._contexts
 
-        self.rmw_impl = pd.DataFrame.from_dict(self._rmw_impl)
+        self.nodes = self._nodes.get_finalized('node_handle')
+        del self._nodes
 
-    def print_data(self) -> None:
-        print('====================ROS 2 DATA MODEL===================')
-        print('Contexts:')
-        print(self.contexts.to_string())
-        print()
-        print('Nodes:')
-        print(self.nodes.to_string())
-        print()
-        print('Publishers:')
-        print(self.publishers.to_string())
-        print()
-        print('Subscriptions:')
-        print(self.subscriptions.to_string())
-        print()
-        print('Subscription objects:')
-        print(self.subscription_objects.to_string())
-        print()
-        print('Services:')
-        print(self.services.to_string())
-        print()
-        print('Clients:')
-        print(self.clients.to_string())
-        print()
-        print('Timers:')
-        print(self.timers.to_string())
-        print()
-        print('Timer-node links:')
-        print(self.timer_node_links.to_string())
-        print()
-        print('Callback objects:')
-        print(self.callback_objects.to_string())
-        print()
-        print('Callback symbols:')
-        print(self.callback_symbols.to_string())
-        print()
-        # print('Callback instances:')
-        # print(self.callback_instances.to_string())
-        # print()
-        print('Lifecycle state machines:')
-        print(self.lifecycle_state_machines.to_string())
-        print()
-        print('Lifecycle transitions:')
-        print(self.lifecycle_transitions.to_string())
-        print('==================================================')
+        self.publishers = self._publishers.get_finalized('publisher_handle')
+        del self._publishers
+
+        self.subscriptions = self._subscriptions.get_finalized('subscription_handle')
+        del self._subscriptions
+
+        self.subscription_objects = self._subscription_objects.get_finalized('subscription')
+        del self._subscription_objects
+
+        self.services = self._services.get_finalized('service_handle')
+        del self._services
+
+        self.clients = self._clients.get_finalized('client_handle')
+        del self._clients
+
+        self.timers = self._timers.get_finalized('timer_handle')
+        del self._timers
+
+        self.timer_node_links = self._timer_node_links.get_finalized('timer_handle')
+        del self._timer_node_links
+
+        self.callback_objects = self._callback_objects.get_finalized('reference')
+        del self._callback_objects
+
+        self.callback_symbols = self._callback_symbols.get_finalized('callback_object')
+        del self._callback_symbols
+
+        self.lifecycle_state_machines = \
+            self._lifecycle_state_machines.get_finalized('state_machine_handle')
+        del self._lifecycle_state_machines
+
+        self.lifecycle_transitions = self._lifecycle_transitions.get_finalized()
+        del self._lifecycle_transitions
+
+        self.executors = self._executors.get_finalized('executor_addr')
+        del self._executors
+
+        self.executors_static = self._executors_static.get_finalized('executor_addr')
+        del self._executors_static
+
+        self.callback_groups = self._callback_groups.get_finalized('callback_group_addr')
+        del self._callback_groups
+
+        self.callback_groups_static = \
+            self._callback_groups_static.get_finalized('callback_group_addr')
+        del self._callback_groups_static
+
+        self.callback_group_timer = self._callback_group_timer.get_finalized('callback_group_addr')
+        del self._callback_group_timer
+
+        self.callback_group_subscription = \
+            self._callback_group_subscription.get_finalized('callback_group_addr')
+        del self._callback_group_subscription
+
+        self.callback_group_service = \
+            self._callback_group_service.get_finalized('callback_group_addr')
+        del self._callback_group_service
+
+        self.callback_group_client = \
+            self._callback_group_client.get_finalized('callback_group_addr')
+        del self._callback_group_client
+
+        self.tilde_subscriptions = self._tilde_subscriptions.get_finalized('subscription')
+        del self._tilde_subscriptions
+
+        self.tilde_publishers = self._tilde_publishers.get_finalized('publisher')
+        del self._tilde_publishers
+
+        self.tilde_subscribe_added = self._tilde_subscribe_added.get_finalized('subscription_id')
+        del self._tilde_subscribe_added
+
+        self.rmw_impl = self._rmw_impl.get_finalized()
+        del self._rmw_impl

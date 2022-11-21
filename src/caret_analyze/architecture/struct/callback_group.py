@@ -37,8 +37,18 @@ class CallbackGroupStruct():
 
         Parameters
         ----------
-        callback_group_type_name : str
-        node_names : List[str]
+        callback_group_type : CallbackGroupType
+            callback group type
+        node_name: str
+            node name
+        callbacks: Tuple[CallbackStruct, ...]
+            callbacks
+        callback_group_name: str
+            callback group name
+
+        Returns
+        -------
+        None
 
         """
         self._callback_group_type = callback_group_type
