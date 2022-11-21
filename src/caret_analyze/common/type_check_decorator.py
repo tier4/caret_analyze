@@ -23,7 +23,8 @@ try:
     from pydantic import validate_arguments, ValidationError
 
     def _get_expected_types(e: ValidationError) -> str:
-        """Get expected types.
+        """
+        Get expected types.
 
         Parameters
         ----------
@@ -53,7 +54,8 @@ try:
         return expected_types_str
 
     def _get_given_arg_loc(given_arg_loc: tuple) -> str:
-        """Get given argument location.
+        """
+        Get given argument location.
 
         Parameters
         ----------
@@ -81,7 +83,8 @@ try:
         kwargs: Dict[str, Any],
         given_arg_loc: tuple
     ) -> str:
-        """Get given argument type.
+        """
+        Get given argument type.
 
         Parameters
         ----------
