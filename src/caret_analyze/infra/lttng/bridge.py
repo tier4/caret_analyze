@@ -136,8 +136,8 @@ class LttngBridge:
 
         Parameters
         ----------
-        node_name : str
-        topic_name : str
+        publisher_value : PublisherStructValue
+            publisher value
 
         Returns
         -------

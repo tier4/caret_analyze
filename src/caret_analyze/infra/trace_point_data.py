@@ -217,9 +217,31 @@ class TracePointData:
         """
         return self._df.at[row, column]
 
-    @singledispatchmethod
-    def add_column(self, arg) -> None:
-        raise NotImplementedError('')
+    def add_column(
+        self,
+        column: str,
+        f: Callable[[pd.Series], Any]
+    ) -> None:
+        """
+        Add column.
+
+        Parameters
+        ----------
+        column : str
+            column name to be added.
+        f : Callable[[pd.Series], Any]
+            column value for each row.
+
+        """
+        df = deepcopy(self._df)
+
+        data = []
+        for i in range(len(df)):
+            row = df.iloc[i, :]
+            data.append(f(row))
+        df[column] = data
+
+        self._df = df
 
     def filter_rows(self, column: str, value: Any) -> None:
         """
@@ -329,52 +351,6 @@ class TracePointData:
             right_on=on,
             how=how  # type: ignore
         )
-
-    @add_column.register
-    def _add_column_func(
-        self,
-        column: str,
-        f: Callable[[pd.Series], Any]
-    ) -> None:
-        """
-        Add column.
-
-        Parameters
-        ----------
-        column : str
-            column name to be added.
-        f : Callable[[pd.Series], Any]
-            column value for each row.
-
-        """
-        df = deepcopy(self._df)
-
-        data = []
-        for i in range(len(df)):
-            row = df.iloc[i, :]
-            data.append(f(row))
-        df[column] = data
-
-        self._df = df
-
-    @add_column.register
-    def _add_column_value(
-        self,
-        column: str,
-        value: Any
-    ) -> None:
-        """
-        Add column.
-
-        Parameters
-        ----------
-        column : str
-            column name to be added.
-        value : Any
-            value.
-
-        """
-        self._df[column] = value
 
     def set_columns(
         self,
