@@ -268,7 +268,6 @@ class TestNodesInfoLoaded():
             'context_type': MessageContextType.CALLBACK_CHAIN.type_name,
             'publisher_topic_name': 'UNDEFINED',
             'subscription_topic_name': 'UNDEFINED',
-            'service_name': 'UNDEFINED',
         }
 
         mocker.patch.object(cbg, 'callbacks', (callback,))
