@@ -1365,7 +1365,7 @@ class TopicIgnoredReader(ArchitectureReader):
         return subscriptions
 
     def get_services(self, node: NodeValue) -> List[ServiceValue]:
-        return self._reader.get_services(node)
+        return list(self._reader.get_services(node))
 
     def get_variable_passings(
         self,
