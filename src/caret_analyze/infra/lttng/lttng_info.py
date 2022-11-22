@@ -367,8 +367,8 @@ class LttngInfo:
 
         Parameters
         ----------
-        node_name : str
-            target node name.
+        node : NodeValue
+            target node.
 
         Returns
         -------
