@@ -1365,12 +1365,7 @@ class TopicIgnoredReader(ArchitectureReader):
         return subscriptions
 
     def get_services(self, node: NodeValue) -> List[ServiceValue]:
-        services: List[ServiceValue] = []
-        for service in self._reader.get_services(node):
-            if service.service_name in self._ignore_topics:
-                continue
-            services.append(service)
-        return services
+        return self._reader.get_services(node)
 
     def get_variable_passings(
         self,
