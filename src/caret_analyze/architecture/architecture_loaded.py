@@ -1399,9 +1399,4 @@ class TopicIgnoredReader(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[ServiceCallbackValue]:
-        callbacks: List[ServiceCallbackValue] = []
-        for service_callback in self._reader.get_service_callbacks(node):
-            if service_callback.service_name in self._ignore_topics:
-                continue
-            callbacks.append(service_callback)
-        return callbacks
+        return self._reader.get_service_callbacks(node)
