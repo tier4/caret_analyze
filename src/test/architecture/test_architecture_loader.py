@@ -348,6 +348,7 @@ class TestNodesInfoLoaded():
         assert node.publishers == (publisher,)
         assert node.timers == (timer,)
         assert node.subscriptions == (subscription,)
+        assert node.services == (service,)
         assert node.callbacks == (callback,)
         assert node.callback_groups == (cbg,)
         assert node.paths == (path, path_)
