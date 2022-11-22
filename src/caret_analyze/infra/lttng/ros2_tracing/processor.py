@@ -398,9 +398,13 @@ class Ros2Handler():
                 # The 'init_timestamp' is converted to the original
                 # measurement time and passed to the handler.
                 init_timestamp: int = pop_field(event, 'init_timestamp')  # type: ignore
-                assert self._monotonic_to_system_offset is not None
-                event['_timestamp'] = init_timestamp + self._monotonic_to_system_offset
-                handler(event)
+                recording_started_before_running = self._monotonic_to_system_offset is None
+                if not recording_started_before_running:
+                    assert self._monotonic_to_system_offset is not None
+                    event['_timestamp'] = init_timestamp + self._monotonic_to_system_offset
+                    handler(event)
+                else:
+                    handler(event)
         return _handler
 
     def _handle_caret_init(
