@@ -248,6 +248,7 @@ class TestNodesInfoLoaded():
         assert node.node_name == 'node'
         assert node.publishers == ()
         assert node.subscriptions == ()
+        assert node.services == ()
         assert node.callbacks == ()
         assert node.callback_groups == ()
         assert node.paths == ()
