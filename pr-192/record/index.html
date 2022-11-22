@@ -1721,7 +1721,7 @@ Columns
 
   <div class="doc doc-contents ">
   
-      <p>Constructor.</p>
+      <p>Construct an instance.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1961,8 +1961,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2002,8 +2002,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -2430,7 +2430,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="caret_analyze.record.column.ColumnValue">ColumnValue</span></code>
           </td>
-          <td></td>
+          <td><p>column</p></td>
           <td>
               <em>required</em>
           </td>
@@ -2440,7 +2440,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.List">List</span>[int]</code>
           </td>
-          <td></td>
+          <td><p>values</p></td>
           <td>
               <em>required</em>
           </td>
@@ -2522,8 +2522,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2627,8 +2627,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -2908,6 +2908,16 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           </td>
         </tr>
         <tr>
+          <td><code>columns</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td><p>columns</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
           <td><code>how</code></td>
           <td>
                 <code>str</code>
@@ -3032,7 +3042,17 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           </td>
         </tr>
         <tr>
-          <td><code>join_key</code></td>
+          <td><code>join_left_key</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>join key name to use equal condition.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>join_right_key</code></td>
           <td>
                 <code>str</code>
           </td>
@@ -3047,6 +3067,16 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
                 <code>str</code>
           </td>
           <td><p>merge type. [inner/right/left/outer]</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>columns</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td><p>columns</p></td>
           <td>
               <em>required</em>
           </td>
@@ -3210,6 +3240,16 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           </td>
         </tr>
         <tr>
+          <td><code>columns</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td><p>columns</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
           <td><code>progress_label</code></td>
           <td>
                 <code>str</code>
@@ -3296,7 +3336,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td></td>
+          <td><p>columns</p></td>
           <td>
               <em>required</em>
           </td>
@@ -3464,7 +3504,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>bool</code>
           </td>
-          <td></td>
+          <td><p>put none at top</p></td>
           <td>
                 <code>True</code>
           </td>

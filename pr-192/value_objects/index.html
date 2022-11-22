@@ -1839,21 +1839,41 @@ the node latency may be calculated to be small.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>callback_group_type_name</code></td>
+          <td><code>callback_group_type</code></td>
           <td>
                 <code>str</code>
           </td>
-          <td></td>
+          <td><p>callback group type</p></td>
           <td>
               <em>required</em>
           </td>
         </tr>
         <tr>
-          <td><code>node_names</code></td>
+          <td><code>node_name</code></td>
           <td>
                 <code>List[str]</code>
           </td>
-          <td></td>
+          <td><p>node name</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_values</code></td>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackStructValue" href="#caret_analyze.value_objects.CallbackStructValue">CallbackStructValue</a>, ...]</code>
+          </td>
+          <td><p>callback values</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_group_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback group name</p></td>
           <td>
               <em>required</em>
           </td>
@@ -2177,19 +2197,59 @@ the node latency may be calculated to be small.</p>
           <td>
                 <code>str</code>
           </td>
-          <td></td>
+          <td><p>callback group type name</p></td>
           <td>
               <em>required</em>
           </td>
         </tr>
         <tr>
-          <td><code>node_names</code></td>
+          <td><code>node_name</code></td>
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[str]</code>
           </td>
-          <td></td>
+          <td><p>node name</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>node id</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_ids</code></td>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[str, ...]</code>
+          </td>
+          <td><p>callback ids</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_group_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback group id</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_group_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>callback group name</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -2367,8 +2427,8 @@ the node latency may be calculated to be small.</p>
 <code class="highlight language-python"><span class="n">callback_type</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
@@ -2734,8 +2794,8 @@ If any properties is different, it should be a different callback id.</p>
 <code class="highlight language-python"><span class="n">callback_type</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
