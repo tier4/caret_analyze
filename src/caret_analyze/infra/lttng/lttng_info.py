@@ -1366,16 +1366,18 @@ class DataFrameFormatted:
         nodes.reset_index()
         merge(sub_df, nodes, 'node_handle')
 
-        ns = sub_df.at(0, 'namespace')
-        name = sub_df.at(0, 'name')
-        topic_name = sub_df.at(0, 'topic_name')
+        try:
+            ns = sub_df.at(0, 'namespace')
+            name = sub_df.at(0, 'name')
+            topic_name = sub_df.at(0, 'topic_name')
 
-        if ns == '/' and name == 'rviz2':
-            return True
+            if ns == '/' and name == 'rviz2':
+                return True
 
-        if topic_name == '/parameter_events':
-            return True
-
+            if topic_name == '/parameter_events':
+                return True
+        except KeyError:
+            pass
         return False
 
     @staticmethod
