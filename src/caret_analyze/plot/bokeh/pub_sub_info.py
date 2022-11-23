@@ -122,7 +122,7 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
         # if xaxis_type == 'sim_time':
         #     convert_df_to_sim_time(self._get_converter(), df)
 
-        min_time, max_time = self._get_earliest_timestamp()
+        min_time, max_time = self._get_timestamp_range()
         frequency = Frequency(pub_sub.to_records())
         frequency_records = frequency.to_records(base_timestamp=min_time, until_timestamp=max_time)
         frequency_df = frequency_records.to_dataframe()
@@ -146,7 +146,7 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
 
         return frequency_df
 
-    def _get_earliest_timestamp(
+    def _get_timestamp_range(
         self
     ) -> Tuple[int, int]:
         # TODO(hsgwa): Duplication of source code. Migrate to records.
