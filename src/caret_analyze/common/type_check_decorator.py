@@ -62,9 +62,9 @@ try:
 
         return expected_types_str
 
-    def _get_given_arg_loc(given_arg_loc: tuple) -> str:
+    def _get_given_arg_loc_str(given_arg_loc: tuple) -> str:
         """
-        Get given argument location.
+        Get given argument location string.
 
         Parameters
         ----------
@@ -173,10 +173,10 @@ try:
             except ValidationError as e:
                 expected_types = _get_expected_types(e)
                 loc_tuple = e.errors()[0]['loc']
-                given_arg_loc = _get_given_arg_loc(loc_tuple)
+                given_arg_loc_str = _get_given_arg_loc_str(loc_tuple)
                 given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple)
 
-                msg = f'Type of argument {given_arg_loc} must be {expected_types}. '
+                msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
                 raise UnsupportedTypeError(msg) from None
         return _custom_wrapper
