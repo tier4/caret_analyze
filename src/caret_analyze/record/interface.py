@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from functools import wraps
 from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
 from multimethod import multimethod as singledispatchmethod
@@ -221,10 +222,12 @@ class RecordsInterface:
     def append(self, arg):
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
+    @wraps(append)
     @append.register
     def __append_record(self, other: RecordInterface) -> None:
         self._append_record(other)
 
+    @wraps(append)
     @append.register
     def __append_record_base(self, other: RecordBase) -> None:
         self._append_record(other)  # type: ignore
@@ -242,6 +245,7 @@ class RecordsInterface:
         """
         pass
 
+    @wraps(append)
     @append.register
     def __append_dict(self, other: Dict[str, int]) -> None:
         self._append_dict(other)

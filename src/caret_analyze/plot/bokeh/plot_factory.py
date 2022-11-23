@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import wraps
 from logging import getLogger
 from typing import Collection, Union
 
@@ -55,6 +56,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_callback_frequency_plot)
     @create_callback_frequency_plot.register
     def _create_callback_frequency_plot(
         callbacks: Collection[CallbackBase]
@@ -62,6 +64,7 @@ class Plot:
         return CallbackFrequencyPlot(callbacks)
 
     @staticmethod
+    @wraps(create_callback_frequency_plot)
     @create_callback_frequency_plot.register
     def _create_callback_frequency_plot_tuple(
         *callbacks: CallbackBase
@@ -87,6 +90,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_callback_period_plot)
     @create_callback_period_plot.register
     def _create_callback_period_plot(
         callbacks: Collection[CallbackBase]
@@ -94,6 +98,7 @@ class Plot:
         return CallbackPeriodPlot(callbacks)
 
     @staticmethod
+    @wraps(create_callback_period_plot)
     @create_callback_period_plot.register
     def _create_callback_period_plot_tuple(
         *callbacks: CallbackBase
@@ -105,6 +110,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_callback_jitter_plot)
     @create_callback_jitter_plot.register
     def _create_callback_jitter_plot(
         callbacks: Collection[CallbackBase]
@@ -114,6 +120,7 @@ class Plot:
         return Plot.create_callback_period_plot(callbacks)
 
     @staticmethod
+    @wraps(create_callback_jitter_plot)
     @create_callback_jitter_plot.register
     def _create_callback_jitter_plot_tuple(
         *callbacks: CallbackBase
@@ -141,6 +148,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_callback_latency_plot)
     @create_callback_latency_plot.register
     def _create_callback_latency_plot(
         callbacks: Collection[CallbackBase]
@@ -148,6 +156,7 @@ class Plot:
         return CallbackLatencyPlot(callbacks)
 
     @staticmethod
+    @wraps(create_callback_latency_plot)
     @create_callback_latency_plot.register
     def _create_callback_latency_plot_tuple(
         *callbacks: CallbackBase
@@ -159,6 +168,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_publish_subscription_period_plot)
     @create_publish_subscription_period_plot.register
     def _create_publish_subscription_period_plot(
         pub_subs: Collection[Union[Publisher, Subscription]]
@@ -166,6 +176,7 @@ class Plot:
         return PubSubPeriodPlot(pub_subs)
 
     @staticmethod
+    @wraps(create_publish_subscription_period_plot)
     @create_publish_subscription_period_plot.register
     def _create_publish_subscription_period_plot_tuple(
         *pub_subs: Union[Publisher, Subscription]
@@ -177,6 +188,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_publish_subscription_frequency_plot)
     @create_publish_subscription_frequency_plot.register
     def _create_publish_subscription_frequency_plot(
         pub_subs: Collection[Union[Publisher, Subscription]]
@@ -184,6 +196,7 @@ class Plot:
         return PubSubFrequencyPlot(pub_subs)
 
     @staticmethod
+    @wraps(create_publish_subscription_frequency_plot)
     @create_publish_subscription_frequency_plot.register
     def _create_publish_subscription_frequency_plot_tuple(
         *pub_subs: Union[Publisher, Subscription]
@@ -195,6 +208,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_communication_latency_plot)
     @create_communication_latency_plot.register
     def _create_communication_latency_plot(
         communications: Collection[Communication]
@@ -202,6 +216,7 @@ class Plot:
         return CommunicationLatencyPlot(communications)
 
     @staticmethod
+    @wraps(create_communication_latency_plot)
     @create_communication_latency_plot.register
     def _create_communication_latency_plot_tuple(
         *communications: Communication
@@ -213,6 +228,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_communication_frequency_plot)
     @create_communication_frequency_plot.register
     def _create_communication_frequency_plot(
         communications: Collection[Communication]
@@ -220,6 +236,7 @@ class Plot:
         return CommunicationFrequencyPlot(communications)
 
     @staticmethod
+    @wraps(create_communication_frequency_plot)
     @create_communication_frequency_plot.register
     def _create_communication_frequency_plot_tuple(
         *communications: Communication
@@ -231,6 +248,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_communication_period_plot)
     @create_communication_period_plot.register
     def _create_communication_period_plot(
         communications: Collection[Communication]
@@ -238,6 +256,7 @@ class Plot:
         return CommunicationPeriodPlot(communications)
 
     @staticmethod
+    @wraps(create_communication_period_plot)
     @create_communication_period_plot.register
     def _create_communication_period_plot_tuple(
         *communications: Communication
@@ -263,6 +282,7 @@ class Plot:
         raise InvalidArgumentError(f'Unknown argument type: {arg}')
 
     @staticmethod
+    @wraps(create_response_time_histogram_plot)
     @create_response_time_histogram_plot.register
     def _create_response_time_histogram_plot(
         paths: Collection[Path],
@@ -272,6 +292,7 @@ class Plot:
         return ResponseTimePlot(paths, case, int(binsize_ns))
 
     @staticmethod
+    @wraps(create_response_time_histogram_plot)
     @create_response_time_histogram_plot.register
     def _create_response_time_histogram_plot_tuple(
         *paths: Path,
