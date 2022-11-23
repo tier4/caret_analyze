@@ -32,11 +32,20 @@ try:
             ValidationError instance has one or more ErrorDict instances.
             Example of ErrorDict structure is as follows.
             (i) Build-in type case:
-                {'type': 'type_error.[EXPECT_TYPE]', ...}
+                {'type': 'type_error.<EXPECT_TYPE>', ...}
 
             (ii) Custom class type case:
                 {'type': 'type_error.arbitrary_type',
-                'ctx': {'expected_arbitrary_type': '[EXPECT_TYPE]'}, ...}
+                'ctx': {'expected_arbitrary_type': '<EXPECT_TYPE>'}, ...}
+
+        Returns
+        -------
+        str
+            (i) Union case:
+                ['<EXPECT_TYPE1>', '<EXPECT_TYPE2>', ...]
+
+            (ii) otherwise:
+                '<EXPECT_TYPE>'
 
         """
         expected_types: List[str] = []
@@ -61,13 +70,25 @@ try:
         ----------
         given_arg_loc: tuple
             (i) Not iterable type case
-                ('[ARGUMENT_NAME],')
+                ('<ARGUMENT_NAME>,')
 
             (ii) Iterable type except for dict case
-                ('[ARGUMENT_NAME]', '[INDEX]')
+                ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
-                ('[ARGUMENT_NAME]', '[KEY]')
+                ('<ARGUMENT_NAME>', '<KEY>')
+
+        Returns
+        -------
+        str
+            (i) Not iterable type case
+                '<ARGUMENT_NAME>'
+
+            (ii) Iterable type except for dict case
+                '<ARGUMENT_NAME>'[INDEX]
+
+            (ii) Dict case
+                '<ARGUMENT_NAME>'[KEY]
 
         """
         if len(given_arg_loc) == 2:  # Iterable type case
@@ -96,13 +117,25 @@ try:
             Keyword arguments of target function.
         given_arg_loc: tuple
             (i) Not iterable type case
-                ('[ARGUMENT_NAME],')
+                ('<ARGUMENT_NAME>,')
 
             (ii) Iterable type except for dict case
-                ('[ARGUMENT_NAME]', '[INDEX]')
+                ('<ARGUMENT_NAME>', '<INDEX>')
 
             (ii) Dict case
-                ('[ARGUMENT_NAME]', '[KEY]')
+                ('<ARGUMENT_NAME>', '<KEY>')
+
+        Returns
+        -------
+        str
+            (i) Not iterable type case
+                Class name input for argument <ARGUMENT_NAME>
+
+            (ii) Iterable type except for dict case
+                Class name input for argument <ARGUMENT_NAME>[<INDEX>]
+
+            (ii) Dict case
+                Class name input for argument <ARGUMENT_NAME>[<KEY>]
 
         """
         arg_name = given_arg_loc[0]
