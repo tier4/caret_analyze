@@ -95,10 +95,12 @@ class PathBase(metaclass=ABCMeta):
         treat_drop_as_delay: bool
             Convert dropped records as a delay.
             Valid only when remove_dropped=false.
-        lstrip: Optional[float]
+        lstrip_s: Optional[float]
             Remove from beginning. [s]
-        rstrip: Optional[float]
+        rstrip_s: Optional[float]
             Remove from end [s]
+        shaper: Optional[DataFrameShaper]
+            shaper
 
         Returns
         -------
@@ -116,6 +118,7 @@ class PathBase(metaclass=ABCMeta):
         for column in column_names:
             if column in df.columns:
                 continue
+            # TODO(hsgwa): For pandas Int64, pd.NA should be used for missing values.
             df[column] = np.nan
         df = df[column_names]
 
@@ -129,6 +132,7 @@ class PathBase(metaclass=ABCMeta):
             df.dropna(inplace=True)
 
         for missing_column in set(column_names) - set(df.columns):
+            # TODO(hsgwa): For pandas Int64, pd.NA should be used for missing values.
             df[missing_column] = np.nan
 
         return df
@@ -152,10 +156,12 @@ class PathBase(metaclass=ABCMeta):
         treat_drop_as_delay : Optional[bool]
             Convert dropped records as a delay.
             Valid only when remove_dropped=false. default: False.
-        lstrip: Optional[float]
+        lstrip_s: Optional[float]
             Remove from beginning. [s] default: 0
-        rstrip: Optional[float]
+        rstrip_s: Optional[float]
             Remove from end [s] default: 0
+        shaper: Optional[DataFrameShaper]
+            shaper
 
         Returns
         -------
@@ -204,10 +210,12 @@ class PathBase(metaclass=ABCMeta):
             bin size for histogram. default 1ms.
         treat_drop_as_delay : bool
             Convert dropped records as a delay.
-        lstrip: Optional[float]
+        lstrip_s: Optional[float]
             Remove from beginning. [s]
-        rstrip: Optional[float]
+        rstrip_s: Optional[float]
             Remove from end [s]
+        shaper: Optional[DataFrameShaper]
+            shaper
 
         Returns
         -------

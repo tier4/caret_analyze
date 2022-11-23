@@ -27,7 +27,7 @@ class Period:
         target_column: Optional[str] = None
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
