@@ -28,7 +28,7 @@ from ..exceptions import InvalidArgumentError, ItemNotFoundError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodeStructValue, PathStructValue, PublisherStructValue,
-                             SubscriptionStructValue)
+                             ServiceStructValue, SubscriptionStructValue)
 
 
 class Architecture(Summarizable):
@@ -151,6 +151,11 @@ class Architecture(Summarizable):
     def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
         subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
         return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
+
+    @property
+    def services(self) -> Tuple[ServiceStructValue, ...]:
+        services = Util.flatten(_.services for _ in self.nodes)
+        return tuple(sorted(services, key=lambda x: x.service_name))
 
     @property
     def summary(self) -> Summary:

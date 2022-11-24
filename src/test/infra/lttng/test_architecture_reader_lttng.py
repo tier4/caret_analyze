@@ -18,6 +18,7 @@ from caret_analyze.infra.lttng.architecture_reader_lttng import \
     ArchitectureReaderLttng
 from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
                                          NodeValueWithId, PublisherValue,
+                                         ServiceCallbackValue,
                                          SubscriptionCallbackValue,
                                          TimerCallbackValue)
 
@@ -81,6 +82,22 @@ class TestArchitectureReaderLttng:
         mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
         reader = ArchitectureReaderLttng('trace_dir')
         assert reader.get_subscription_callbacks(node) == [subscription_cb_mock]
+
+    def test_get_service_callbacks(self, mocker):
+        lttng_mock = mocker.Mock(spec=Lttng)
+
+        mocker.patch.object(lttng_mock, 'get_service_callbacks', return_value=[])
+        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
+        reader = ArchitectureReaderLttng('trace_dir')
+        node = NodeValueWithId('node_name', 'node_id')
+        assert reader.get_service_callbacks(node) == []
+
+        service_cb_mock = mocker.Mock(spec=ServiceCallbackValue)
+        mocker.patch.object(
+            lttng_mock, 'get_service_callbacks', return_value=[service_cb_mock])
+        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
+        reader = ArchitectureReaderLttng('trace_dir')
+        assert reader.get_service_callbacks(node) == [service_cb_mock]
 
     def test_get_executors(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)

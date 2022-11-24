@@ -18,6 +18,7 @@ from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
 from .node_path import NodePathStruct
 from .publisher import PublisherStruct
+from .service import ServiceStruct
 from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
@@ -34,6 +35,7 @@ class NodeStruct():
         node_name: str,
         publishers: Tuple[PublisherStruct, ...],
         subscriptions_info: Tuple[SubscriptionStruct, ...],
+        services: Tuple[ServiceStruct, ...],
         timers: Tuple[TimerStruct, ...],
         node_paths: Tuple[NodePathStruct, ...],
         callback_groups: Optional[Tuple[CallbackGroupStruct, ...]],
@@ -42,6 +44,7 @@ class NodeStruct():
         self._node_name = node_name
         self._publishers = publishers
         self._subscriptions = subscriptions_info
+        self._services = services
         self._timers = timers
         self._callback_groups = callback_groups
         self._node_paths = node_paths
@@ -66,6 +69,10 @@ class NodeStruct():
     @property
     def subscriptions(self) -> Tuple[SubscriptionStruct, ...]:
         return self._subscriptions
+
+    @property
+    def services(self) -> Tuple[ServiceStruct, ...]:
+        return self._services
 
     @property
     def timers(self) -> Tuple[TimerStruct, ...]:
@@ -126,6 +133,20 @@ class NodeStruct():
             msg += f'topic_name: {subscribe_topic_name}'
             raise ItemNotFoundError(msg)
 
+    def get_service(
+        self,
+        service_name: str
+    ) -> ServiceStruct:
+
+        try:
+            return Util.find_one(
+                lambda x: x.service_name == service_name,
+                self._services)
+        except ItemNotFoundError:
+            msg = 'Failed to find service info. '
+            msg += f'service_name: {service_name}'
+            raise ItemNotFoundError(msg)
+
     def get_publisher(
         self,
         publish_topic_name: str
@@ -157,6 +178,7 @@ class NodeStruct():
             self.node_name,
             tuple(v.to_value() for v in self.publishers),
             tuple(v.to_value() for v in self.subscriptions),
+            tuple(v.to_value() for v in self.services),
             tuple(v.to_value() for v in self.timers),
             tuple(v.to_value() for v in self.paths),
             None if self.callback_groups is None
