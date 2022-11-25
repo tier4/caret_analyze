@@ -29,7 +29,6 @@ from .communication_info_interface import CommunicationTimeSeriesPlot
 from .histogram import ResponseTimePlot
 from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
-from ...exceptions import InvalidArgumentError
 from ...runtime import (CallbackBase, Communication, Path, Publisher, Subscription)
 
 logger = getLogger(__name__)
@@ -38,7 +37,9 @@ logger = getLogger(__name__)
 class Plot:
 
     @singledispatchmethod
-    def create_callback_frequency_plot(arg) -> TimeSeriesPlot:
+    def create_callback_frequency_plot(
+        callbacks: Collection[CallbackBase]
+    ) -> TimeSeriesPlot:
         """
         Get CallbackFrequencyPlot instance.
 
@@ -53,14 +54,6 @@ class Plot:
         CallbackFrequencyPlot
 
         """
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_callback_frequency_plot)
-    @create_callback_frequency_plot.register
-    def _create_callback_frequency_plot(
-        callbacks: Collection[CallbackBase]
-    ) -> TimeSeriesPlot:
         return CallbackFrequencyPlot(callbacks)
 
     @staticmethod
@@ -72,7 +65,9 @@ class Plot:
         return CallbackFrequencyPlot(callbacks)
 
     @singledispatchmethod
-    def create_callback_period_plot(arg) -> TimeSeriesPlot:
+    def create_callback_period_plot(
+        callbacks: Collection[CallbackBase]
+    ) -> TimeSeriesPlot:
         """
         Get CallbackPeriodPlot instance.
 
@@ -87,14 +82,6 @@ class Plot:
         CallbackPeriodPlot
 
         """
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_callback_period_plot)
-    @create_callback_period_plot.register
-    def _create_callback_period_plot(
-        callbacks: Collection[CallbackBase]
-    ) -> TimeSeriesPlot:
         return CallbackPeriodPlot(callbacks)
 
     @staticmethod
@@ -106,13 +93,7 @@ class Plot:
         return CallbackPeriodPlot(callbacks)
 
     @singledispatchmethod
-    def create_callback_jitter_plot(arg) -> TimeSeriesPlot:
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_callback_jitter_plot)
-    @create_callback_jitter_plot.register
-    def _create_callback_jitter_plot(
+    def create_callback_jitter_plot(
         callbacks: Collection[CallbackBase]
     ) -> TimeSeriesPlot:
         logger.warning('create_callback_jitter_plot is deprecated.'
@@ -130,7 +111,9 @@ class Plot:
         return Plot.create_callback_period_plot(callbacks)
 
     @singledispatchmethod
-    def create_callback_latency_plot(arg) -> TimeSeriesPlot:
+    def create_callback_latency_plot(
+        callbacks: Collection[CallbackBase]
+    ) -> TimeSeriesPlot:
         """
         Get CallbackLatencyPlot instance.
 
@@ -145,14 +128,6 @@ class Plot:
         CallbackLatencyPlot
 
         """
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_callback_latency_plot)
-    @create_callback_latency_plot.register
-    def _create_callback_latency_plot(
-        callbacks: Collection[CallbackBase]
-    ) -> TimeSeriesPlot:
         return CallbackLatencyPlot(callbacks)
 
     @staticmethod
@@ -164,13 +139,7 @@ class Plot:
         return CallbackLatencyPlot(callbacks)
 
     @singledispatchmethod
-    def create_publish_subscription_period_plot(arg) -> TimeSeriesPlot:
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_publish_subscription_period_plot)
-    @create_publish_subscription_period_plot.register
-    def _create_publish_subscription_period_plot(
+    def create_publish_subscription_period_plot(
         pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> PubSubTimeSeriesPlot:
         return PubSubPeriodPlot(pub_subs)
@@ -184,13 +153,7 @@ class Plot:
         return PubSubPeriodPlot(pub_subs)
 
     @singledispatchmethod
-    def create_publish_subscription_frequency_plot(arg) -> TimeSeriesPlot:
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_publish_subscription_frequency_plot)
-    @create_publish_subscription_frequency_plot.register
-    def _create_publish_subscription_frequency_plot(
+    def create_publish_subscription_frequency_plot(
         pub_subs: Collection[Union[Publisher, Subscription]]
     ) -> PubSubTimeSeriesPlot:
         return PubSubFrequencyPlot(pub_subs)
@@ -204,13 +167,7 @@ class Plot:
         return PubSubFrequencyPlot(pub_subs)
 
     @singledispatchmethod
-    def create_communication_latency_plot(arg) -> TimeSeriesPlot:
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_communication_latency_plot)
-    @create_communication_latency_plot.register
-    def _create_communication_latency_plot(
+    def create_communication_latency_plot(
         communications: Collection[Communication]
     ) -> CommunicationTimeSeriesPlot:
         return CommunicationLatencyPlot(communications)
@@ -224,13 +181,7 @@ class Plot:
         return CommunicationLatencyPlot(communications)
 
     @singledispatchmethod
-    def create_communication_frequency_plot(arg) -> TimeSeriesPlot:
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_communication_frequency_plot)
-    @create_communication_frequency_plot.register
-    def _create_communication_frequency_plot(
+    def create_communication_frequency_plot(
         communications: Collection[Communication]
     ) -> CommunicationTimeSeriesPlot:
         return CommunicationFrequencyPlot(communications)
@@ -244,13 +195,7 @@ class Plot:
         return CommunicationFrequencyPlot(communications)
 
     @singledispatchmethod
-    def create_communication_period_plot(arg) -> TimeSeriesPlot:
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_communication_period_plot)
-    @create_communication_period_plot.register
-    def _create_communication_period_plot(
+    def create_communication_period_plot(
         communications: Collection[Communication]
     ) -> CommunicationTimeSeriesPlot:
         return CommunicationPeriodPlot(communications)
@@ -264,7 +209,11 @@ class Plot:
         return CommunicationPeriodPlot(communications)
 
     @singledispatchmethod
-    def create_response_time_histogram_plot(arg) -> TimeSeriesPlot:
+    def create_response_time_histogram_plot(
+        paths: Collection[Path],
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
+    ) -> ResponseTimePlot:
         """
         Get ResponseTimePlot instance.
 
@@ -279,16 +228,6 @@ class Plot:
         ResponseTimePlot
 
         """
-        raise InvalidArgumentError(f'Unknown argument type: {arg}')
-
-    @staticmethod
-    @wraps(create_response_time_histogram_plot)
-    @create_response_time_histogram_plot.register
-    def _create_response_time_histogram_plot(
-        paths: Collection[Path],
-        case: str = 'best-to-worst',
-        binsize_ns: int = 10000000
-    ) -> ResponseTimePlot:
         return ResponseTimePlot(paths, case, int(binsize_ns))
 
     @staticmethod
