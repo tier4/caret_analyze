@@ -228,7 +228,7 @@ class Plot:
         ResponseTimePlot
 
         """
-        return ResponseTimePlot(paths, case, int(binsize_ns))
+        return ResponseTimePlot(list(paths), case, int(binsize_ns))
 
     @staticmethod
     @wraps(create_response_time_histogram_plot)
@@ -238,4 +238,4 @@ class Plot:
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
     ) -> ResponseTimePlot:
-        return ResponseTimePlot(paths, case, int(binsize_ns))
+        return ResponseTimePlot(list(paths), case, int(binsize_ns))

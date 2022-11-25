@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from logging import getLogger
-from typing import Collection
+from typing import Collection, Tuple
 
 import pandas as pd
 
 from .communication_info_interface import CommunicationTimeSeriesPlot
-from .plot_util import (add_top_level_column,
-                        convert_df_to_sim_time,
-                        get_freq_with_timestamp)
+from .plot_util import add_top_level_column, convert_df_to_sim_time
+from ...record import Frequency
 from ...runtime import Communication
 
 logger = getLogger(__name__)
@@ -67,6 +66,8 @@ class CommunicationLatencyPlot(CommunicationTimeSeriesPlot):
     ) -> pd.DataFrame:
         df = communication.to_dataframe()
         if xaxis_type == 'sim_time':
+            # If it is converted to simtime first, latency is calculated in simtime.
+            # Latency should be calculated in system time.
             convert_df_to_sim_time(self._get_converter(), df)
 
         latency_df = pd.DataFrame(data={
@@ -120,6 +121,8 @@ class CommunicationPeriodPlot(CommunicationTimeSeriesPlot):
     ) -> pd.DataFrame:
         df = communication.to_dataframe()
         if xaxis_type == 'sim_time':
+            # If it is converted to simtime first, latency is calculated in simtime.
+            # Latency should be calculated in system time.
             convert_df_to_sim_time(self._get_converter(), df)
 
         period_df = pd.DataFrame(data={
@@ -175,30 +178,46 @@ class CommunicationFrequencyPlot(CommunicationTimeSeriesPlot):
         xaxis_type: str,
         communication: Communication
     ) -> pd.DataFrame:
-        df = communication.to_dataframe()
-        if xaxis_type == 'sim_time':
-            convert_df_to_sim_time(self._get_converter(), df)
+        # df = callback.to_dataframe()
+        # The frequency should be calculated at system time, so no conversion should be done here.
+        # if xaxis_type == 'sim_time':
+        #     convert_df_to_sim_time(self._get_converter(), df)
 
-        initial_timestamp = self._get_earliest_timestamp()
-        ts_series, freq_series = get_freq_with_timestamp(df.iloc[:, 0],
-                                                         initial_timestamp)
-        frequency_df = pd.DataFrame(data={
-            'rclcpp_publish_timestamp [ns]': ts_series,
-            'frequency [Hz]': freq_series
-        })
+        min_time, max_time = self._get_timestamp_range()
+        frequency = Frequency(communication.to_records())
+        frequency_records = frequency.to_records(base_timestamp=min_time, until_timestamp=max_time)
+        frequency_df = frequency_records.to_dataframe()
+
+        frequency_df.rename(
+            columns={
+                frequency_df.columns[0]: 'rclcpp_publish_timestamp [ns]',
+                frequency_df.columns[1]: 'frequency [Hz]',
+            },
+            inplace=True
+        )
+
+        if xaxis_type == 'sim_time':
+            # Convert only the column of measured time to simtime.
+            converter = self._get_converter()
+            for i in range(len(frequency_df)):
+                frequency_df.iat[i, 0] = converter.convert(frequency_df.iat[i, 0])
+
         frequency_df = add_top_level_column(frequency_df,
                                             self._get_comm_name(communication))
 
         return frequency_df
 
-    def _get_earliest_timestamp(
+    def _get_timestamp_range(
         self
-    ) -> int:
+    ) -> Tuple[int, int]:
+        # TODO(hsgwa): Duplication of source code. Migrate to records.
         first_timestamps = []
+        last_timestamps = []
         for comm in self._communications:
             df = comm.to_dataframe()
             if len(df) == 0:
                 continue
             first_timestamps.append(df.iloc[0, 0])
+            last_timestamps.append(df.iloc[-1, 0])
 
-        return min(first_timestamps)
+        return min(first_timestamps), max(last_timestamps)

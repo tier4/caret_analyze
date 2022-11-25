@@ -32,7 +32,7 @@ import pandas as pd
 
 from .util import (apply_x_axis_offset,
                    get_callback_param_desc, get_range, RectValues)
-from ...common import ClockConverter, UniqueList, Util
+from ...common import ClockConverter, type_check_decorator, UniqueList, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
 from ...runtime import (Application, CallbackBase, CallbackGroup,
@@ -44,6 +44,7 @@ CallbackGroupTypes = Union[Application, Executor, Path, Node,
                            CallbackGroup, List[CallbackGroup]]
 
 
+@type_check_decorator
 def callback_sched(
     target: CallbackGroupTypes,
     lstrip_s: float = 0,

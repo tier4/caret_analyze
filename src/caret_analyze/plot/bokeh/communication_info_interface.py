@@ -179,6 +179,7 @@ class CommunicationTimeSeriesPlot(metaclass=ABCMeta):
         self,
         comm: Communication
     ) -> str:
+        # TODO(hsgwa): Change from Summary access to Property access.
         return (f'{comm.summary["publish_node"]}|'
                 f'{comm.summary["topic_name"]}|'
                 f'{comm.summary["subscribe_node"]}')
