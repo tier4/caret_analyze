@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
@@ -166,12 +166,26 @@ class NodeStruct():
             else tuple(v.to_value() for v in self.variable_passings))
 
     def assign_message_context(self, context_type, sub_topic_name: str, pub_topic_name: str):
-        assert self.publish_topic_names == ""
-        path = self.get_path(sub_topic_name, pub_topic_name)
-        path.message_context =\
-            MessageContextStruct.create_instance(context_type, {},
-                                                 self.node_name, path.subscription,
-                                                 path.publisher, None)
+        try:
+            path = self.get_path(sub_topic_name, pub_topic_name)
+            path.message_context =\
+                MessageContextStruct.create_instance(context_type, {},
+                                                     self.node_name, path.subscription,
+                                                     path.publisher, None)
+        except ItemNotFoundError:
+            subscription: SubscriptionStruct = \
+                Util.find_one(lambda x: x.topic_name == sub_topic_name, self._subscriptions)
+            publisher: PublisherStruct = \
+                Util.find_one(lambda x: x.topic_name == pub_topic_name, self._publishers)
+            message_context =\
+                MessageContextStruct.create_instance(context_type, {},
+                                                     self.node_name, subscription,
+                                                     publisher, None)
+            new_path: NodePathStruct = NodePathStruct(self.node_name, subscription, publisher,
+                                                      None, message_context)
+            paths = list(self._node_paths)
+            paths.append(new_path)
+            self._node_paths = tuple(paths)
 
     def assign_publisher(self, pub_topic_name: str,
                          callback_function: Optional[CallbackStruct]):
