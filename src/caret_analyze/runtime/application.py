@@ -369,7 +369,9 @@ class Application(Summarizable):
             All topic names defined in architecture.
 
         """
-        return sorted({_.topic_name for _ in self.communications})
+        topic_names = {_.topic_name for _ in self.publishers}
+        topic_names |= {_.topic_name for _ in self.subscriptions}
+        return sorted(topic_names)
 
     @property
     def executor_names(self) -> List[str]:

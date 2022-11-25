@@ -16,6 +16,7 @@ from .clock_converter import ClockConverter
 from .progress import Progress
 from .singleton import Singleton
 from .summary import Summarizable, Summary
+from .type_check_decorator import type_check_decorator
 from .unique_list import UniqueList
 from .util import Util
 
@@ -25,6 +26,7 @@ __all__ = [
     'Singleton',
     'Summarizable',
     'Summary',
+    'type_check_decorator',
     'Util',
     'UniqueList'
 ]

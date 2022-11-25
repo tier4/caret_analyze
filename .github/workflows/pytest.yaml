@@ -6,7 +6,7 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-    container: ghcr.io/autowarefoundation/autoware-universe:latest
+    container: ghcr.io/autowarefoundation/autoware-universe:humble-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -15,7 +15,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y software-properties-common
-          sudo apt-add-repository ppa:lttng/stable-2.12
+          sudo apt-add-repository ppa:lttng/stable-2.13
           sudo apt-get update
           sudo apt-get install -y python3-babeltrace python3-lttng python3-bt2
         shell: bash
@@ -25,12 +25,12 @@ jobs:
           sudo apt-get install -y python3-rosdep
           # sudo rosdep init
           rosdep update
-          rosdep install -i --from-paths . -y --rosdistro galactic
+          rosdep install -i --from-paths . -y --rosdistro humble
 
       - name: Install dependent packages
         run: python3 -m pip install -r src/requirements.txt
 
       - name: Run pytest
         run: |
-          . /opt/ros/galactic/setup.sh
+          . /opt/ros/humble/setup.sh
           python3 -m pytest
