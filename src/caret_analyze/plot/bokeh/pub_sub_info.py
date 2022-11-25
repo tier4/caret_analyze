@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from logging import getLogger
-from typing import Collection, Union
+from typing import Collection, Tuple, Union
 
 import pandas as pd
 
-from .plot_util import (add_top_level_column, convert_df_to_sim_time,
-                        get_freq_with_timestamp)
+from .plot_util import add_top_level_column, convert_df_to_sim_time
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
+from ...record import Frequency
 from ...runtime import Publisher, Subscription
 
 logger = getLogger(__name__)
@@ -117,30 +117,46 @@ class PubSubFrequencyPlot(PubSubTimeSeriesPlot):
         xaxis_type: str,
         pub_sub: Union[Publisher, Subscription]
     ) -> pd.DataFrame:
-        df = pub_sub.to_dataframe()
-        if xaxis_type == 'sim_time':
-            convert_df_to_sim_time(self._get_converter(), df)
+        # The frequency should be calculated at system time, so no conversion should be done here.
+        # df = pub_sub.to_dataframe()
+        # if xaxis_type == 'sim_time':
+        #     convert_df_to_sim_time(self._get_converter(), df)
 
-        initial_timestamp = self._get_earliest_timestamp()
-        ts_series, freq_series = get_freq_with_timestamp(df.iloc[:, 0],
-                                                         initial_timestamp)
-        frequency_df = pd.DataFrame(data={
-            self._get_ts_column_name(pub_sub): ts_series,
-            'frequency [Hz]': freq_series
-        })
+        min_time, max_time = self._get_timestamp_range()
+        frequency = Frequency(pub_sub.to_records())
+        frequency_records = frequency.to_records(base_timestamp=min_time, until_timestamp=max_time)
+        frequency_df = frequency_records.to_dataframe()
+
+        frequency_df.rename(
+            columns={
+                frequency_df.columns[0]: self._get_ts_column_name(pub_sub),
+                frequency_df.columns[1]: 'frequency [Hz]',
+            },
+            inplace=True
+        )
+
+        if xaxis_type == 'sim_time':
+            # Convert only the column of measured time to simtime.
+            converter = self._get_converter()
+            for i in range(len(frequency_df)):
+                frequency_df.iat[i, 0] = converter.convert(frequency_df.iat[i, 0])
+
         frequency_df = add_top_level_column(frequency_df,
                                             pub_sub.topic_name)
 
         return frequency_df
 
-    def _get_earliest_timestamp(
+    def _get_timestamp_range(
         self
-    ) -> int:
+    ) -> Tuple[int, int]:
+        # TODO(hsgwa): Duplication of source code. Migrate to records.
         first_timestamps = []
+        last_timestamps = []
         for pub_sub in self._pub_subs:
             df = pub_sub.to_dataframe()
             if len(df) == 0:
                 continue
             first_timestamps.append(df.iloc[0, 0])
+            last_timestamps.append(df.iloc[-1, 0])
 
-        return min(first_timestamps)
+        return min(first_timestamps), max(last_timestamps)

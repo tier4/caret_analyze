@@ -65,6 +65,7 @@ class RecordsProvider(metaclass=ABCMeta):
         Parameters
         ----------
         variable_passing_info : VariablePassingStructValue
+            variable passing information
 
         Returns
         -------
