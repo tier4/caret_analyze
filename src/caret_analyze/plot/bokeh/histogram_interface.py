@@ -12,20 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback import SubscriptionCallbackValueLttng, TimerCallbackValueLttng
-from .callback_group import CallbackGroupAddr, CallbackGroupId, CallbackGroupValueLttng
-from .node import NodeValueLttng
-from .publisher import PublisherValueLttng
-from .timer_control import TimerControl, TimerInit
+from abc import ABCMeta, abstractmethod
+from typing import Sequence
 
-__all__ = [
-    'CallbackGroupAddr',
-    'CallbackGroupId',
-    'CallbackGroupValueLttng',
-    'NodeValueLttng',
-    'PublisherValueLttng',
-    'SubscriptionCallbackValueLttng',
-    'TimerCallbackValueLttng',
-    'TimerControl',
-    'TimerInit',
-]
+from ...common import type_check_decorator
+from ...runtime import Path
+
+
+class HistPlot(metaclass=ABCMeta):
+
+    @type_check_decorator
+    def __init__(
+        self,
+        target: Sequence[Path]
+    ) -> None:
+        self._target = list(target)
+
+    def show(
+        self
+    ):
+        return self._show_core()
+
+    @abstractmethod
+    def _show_core(self):
+        pass

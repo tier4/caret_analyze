@@ -49,7 +49,7 @@ class Application(Summarizable):
         infra: InfraBase,
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
@@ -118,6 +118,34 @@ class Application(Summarizable):
 
         """
         return sorted(self._communications, key=lambda x: x.topic_name)
+
+    @property
+    def publishers(self) -> List[Publisher]:
+        """
+        Get publishers.
+
+        Returns
+        -------
+        List[Publisher]
+            All publishers defined in the architecture.
+
+        """
+        publishers = Util.flatten(_.publishers for _ in self.nodes)
+        return sorted(publishers, key=lambda x: x.topic_name)
+
+    @property
+    def subscriptions(self) -> List[Subscription]:
+        """
+        Get subscriptions.
+
+        Returns
+        -------
+        List[Subscription]
+            All subscriptions defined in the architecture.
+
+        """
+        subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
+        return sorted(subscriptions, key=lambda x: x.topic_name)
 
     @property
     def paths(self) -> List[Path]:
@@ -341,7 +369,9 @@ class Application(Summarizable):
             All topic names defined in architecture.
 
         """
-        return sorted({_.topic_name for _ in self.communications})
+        topic_names = {_.topic_name for _ in self.publishers}
+        topic_names |= {_.topic_name for _ in self.subscriptions}
+        return sorted(topic_names)
 
     @property
     def executor_names(self) -> List[str]:

@@ -18,10 +18,12 @@ from graphviz import Digraph, Source
 import numpy as np
 import pandas as pd
 
+from ...common import type_check_decorator
 from ...exceptions import InvalidArgumentError
 from ...runtime.path import Path
 
 
+@type_check_decorator
 def chain_latency(
     path: Path,
     export_path: Optional[str] = None,
@@ -29,7 +31,7 @@ def chain_latency(
     treat_drop_as_delay=False,
     lstrip_s=0,
     rstrip_s=0,
-) -> Optional[Source]:
+) -> Optional[Digraph]:
     granularity = granularity or 'node'
     if granularity not in ['node', 'end-to-end']:
         raise InvalidArgumentError('granularity must be [ node / end-to-end ]')

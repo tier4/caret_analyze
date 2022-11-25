@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 from datetime import datetime
+from functools import cached_property
 from logging import getLogger
 import os
 import pickle
@@ -28,8 +29,10 @@ from tqdm import tqdm
 from .events_factory import EventsFactory
 from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.data_model import Ros2DataModel
+from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
-from .value_objects import (PublisherValueLttng,
+from .value_objects import (CallbackGroupId,
+                            PublisherValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -46,16 +49,26 @@ logger = getLogger(__name__)
 
 class EventCollection(Iterable, Sized):
 
-    def __init__(self, trace_dir: str, force_conversion: bool) -> None:
+    def __init__(self, trace_dir: str, force_conversion: bool, *, store_cache=True) -> None:
+        if not self._trace_dir_exists(trace_dir):
+            raise FileNotFoundError(f'Failed to found {trace_dir}')
+
         self._iterable_events: IterableEvents
         cache_path = self._cache_path(trace_dir)
+        use_cache = False
 
-        if os.path.exists(cache_path) and not force_conversion:
+        if self._cache_exists(cache_path) and not force_conversion:
+            cache_start_time, _ = PickleEventCollection(cache_path).time_range()
+            ctf_start_time, _ = CtfEventCollection(trace_dir).time_range()
+            use_cache = cache_start_time == ctf_start_time
+
+        if use_cache:
             logger.info('Found converted file.')
             self._iterable_events = PickleEventCollection(cache_path)
         else:
             self._iterable_events = CtfEventCollection(trace_dir)
-            self._store_cache(self._iterable_events, cache_path)
+            if store_cache:
+                self._store_cache(self._iterable_events, cache_path)
             logger.info(f'Converted to {cache_path}')
 
     @staticmethod
@@ -74,6 +87,50 @@ class EventCollection(Iterable, Sized):
 
     def _cache_path(self, events_path: str) -> str:
         return os.path.join(events_path, 'caret_converted')
+
+    @staticmethod
+    def _trace_dir_exists(path: str) -> bool:
+        """
+        Check whether trace dir exists.
+
+        Parameters
+        ----------
+        path : str
+            Path to trace dir.
+
+        Returns
+        -------
+        bool
+            True if trace dir exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
+        return os.path.exists(path)
+
+    @staticmethod
+    def _cache_exists(path: str) -> bool:
+        """
+        Check whether cache exists.
+
+        Parameters
+        ----------
+        path : str
+            Path to cache.
+
+        Returns
+        -------
+        bool
+            True if cache exists, false otherwise.
+
+        Note
+        ----
+        This function is written in isolation to simplify testing.
+
+        """
+        return os.path.exists(path)
 
 
 class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
@@ -148,10 +205,10 @@ class CtfEventCollection(IterableEvents):
         self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
         self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
         self._size = event_count
-        self._events = self._to_dicts(events_path, event_count)
+        self._events_path = events_path
 
     def __iter__(self) -> Iterator[Dict]:
-        return iter(self._events)
+        return iter(self.events)
 
     def __len__(self) -> int:
         return self._size
@@ -165,9 +222,9 @@ class CtfEventCollection(IterableEvents):
         event.update(msg.event.common_context_field)
         return event
 
-    @property
+    @cached_property
     def events(self) -> List[Dict]:
-        return self._events
+        return self._to_dicts(self._events_path, self._size)
 
     def time_range(self) -> Tuple[int, int]:
         return self._begin_time, self._end_time
@@ -302,6 +359,25 @@ class Lttng(InfraBase):
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
+
+    def get_node_names_and_cb_symbols(
+        self,
+        callback_group_id: str
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+        """
+        Get node names and callback symbols from callback group id.
+
+        Returns
+        -------
+        Sequence[Tuple[Optional[str], Optional[str]]]
+            node names and callback symbols.
+            tuple structure: (node_name, callback_symbol)
+
+        """
+        data_model_srv = DataModelService(self.data)
+        cbg_addr = CallbackGroupId(callback_group_id).group_addr
+
+        return data_model_srv.get_node_names_and_cb_symbols(cbg_addr)
 
     def get_nodes(
         self

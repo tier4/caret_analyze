@@ -32,7 +32,7 @@ import pandas as pd
 
 from .util import (apply_x_axis_offset,
                    get_callback_param_desc, get_range, RectValues)
-from ...common import ClockConverter, UniqueList, Util
+from ...common import ClockConverter, type_check_decorator, UniqueList, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
 from ...runtime import (Application, CallbackBase, CallbackGroup,
@@ -44,6 +44,7 @@ CallbackGroupTypes = Union[Application, Executor, Path, Node,
                            CallbackGroup, List[CallbackGroup]]
 
 
+@type_check_decorator
 def callback_sched(
     target: CallbackGroupTypes,
     lstrip_s: float = 0,
@@ -163,8 +164,11 @@ def sched_plot_cbg(
     Parameters
     ----------
     target_name : str
+        target name
     callback_groups : Sequence[CallbackGroup]
+        callback group
     color_selector : ColorSelector
+        color selector
     clipper : Clip
         Values outside the range are replaced by the minimum or maximum value
     use_sim_time : bool
@@ -346,12 +350,15 @@ def get_callback_rect_list(
     Parameters
     ----------
     callback: CallbackBase
+        callback
     clip: Clip
+        clip
     y : int
         The start point of graph in y axis
     height : int
         The height of short rectangles
     converter : Optional[ClockConverter]
+        converter
 
     Returns
     -------
@@ -406,6 +413,9 @@ def get_callback_bar(
     Parameters
     ----------
     callback : CallbackBase
+        callback
+    y : double
+        y axis
     frame_max : int
         The end point of callback in x axis
     frame_min : int

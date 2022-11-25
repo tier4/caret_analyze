@@ -21,6 +21,11 @@ from ..exceptions import InvalidArgumentError
 
 
 class ClockConverter():
+    """
+    A class that converts time to a linear expression.
+
+    TODO(hsgwa): Migrate into record.
+    """
 
     def __init__(
         self,

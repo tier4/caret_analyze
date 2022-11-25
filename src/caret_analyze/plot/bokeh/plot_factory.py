@@ -25,10 +25,11 @@ from .communication_info import (CommunicationFrequencyPlot,
                                  CommunicationLatencyPlot,
                                  CommunicationPeriodPlot)
 from .communication_info_interface import CommunicationTimeSeriesPlot
+from .histogram import ResponseTimePlot
 from .pub_sub_info import PubSubFrequencyPlot, PubSubPeriodPlot
 from .pub_sub_info_interface import PubSubTimeSeriesPlot
 from ...exceptions import InvalidArgumentError
-from ...runtime import (CallbackBase, Communication, Publisher, Subscription)
+from ...runtime import (CallbackBase, Communication, Path, Publisher, Subscription)
 
 logger = getLogger(__name__)
 
@@ -242,3 +243,39 @@ class Plot:
         *communications: Communication
     ) -> CommunicationTimeSeriesPlot:
         return CommunicationPeriodPlot(communications)
+
+    @singledispatchmethod
+    def create_response_time_histogram_plot(arg) -> TimeSeriesPlot:
+        """
+        Get ResponseTimePlot instance.
+
+        Parameters
+        ----------
+        path : Collection[Path]
+            Target path.
+            This also accepts multiple path inputs by unpacking.
+
+        Returns
+        -------
+        ResponseTimePlot
+
+        """
+        raise InvalidArgumentError(f'Unknown argument type: {arg}')
+
+    @staticmethod
+    @create_response_time_histogram_plot.register
+    def _create_response_time_histogram_plot(
+        paths: Collection[Path],
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
+    ) -> ResponseTimePlot:
+        return ResponseTimePlot(list(paths), case, int(binsize_ns))
+
+    @staticmethod
+    @create_response_time_histogram_plot.register
+    def _create_response_time_histogram_plot_tuple(
+        *paths: Path,
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
+    ) -> ResponseTimePlot:
+        return ResponseTimePlot(list(paths), case, int(binsize_ns))

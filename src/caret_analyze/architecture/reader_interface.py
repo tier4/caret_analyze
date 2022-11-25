@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Sequence
+from typing import Dict, Optional, Sequence, Tuple
 
 from ..value_objects import (CallbackGroupValue, ExecutorValue, NodeValue,
                              NodeValueWithId, PathValue, PublisherValue,
@@ -28,6 +28,23 @@ IGNORE_TOPICS = ['/parameter_events', '/rosout', '/clock']
 
 class ArchitectureReader(metaclass=ABCMeta):
     """Architecture reader base class."""
+
+    @abstractmethod
+    def get_node_names_and_cb_symbols(
+        self,
+        callback_group_id: str
+    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+        """
+        Get node names and callback symbols from callback group id.
+
+        Returns
+        -------
+        Sequence[Tuple[Optional[str], Optional[str]]]
+            node names and callback symbols.
+            tuple structure: (node_name, callback_symbol)
+
+        """
+        pass
 
     @abstractmethod
     def get_nodes(
@@ -96,7 +113,7 @@ class ArchitectureReader(metaclass=ABCMeta):
 
         Parameters
         ----------
-        node : NodeValue
+        node_info : NodeValue
             target node
 
         Returns

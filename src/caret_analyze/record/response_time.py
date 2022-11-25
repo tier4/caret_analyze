@@ -33,7 +33,7 @@ class TimeRange:
         max_value: int
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class ResponseMap():
         output_column: str
     ):
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
@@ -247,7 +247,7 @@ class ResponseTime:
         output_column: Optional[str] = None
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
@@ -409,7 +409,7 @@ class ResponseRecords:
         response_map: ResponseMap,
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
@@ -694,12 +694,14 @@ class ResponseHistogram:
         response_timeseries: ResponseTimeseries
     ) -> None:
         """
-        Constructor.
+        Construct an instance.
 
         Parameters
         ----------
         response_records : ResponseRecords
             records for calculating histogram.
+        response_timeseries: ResponseTimeseries
+            response time series
 
         """
         self._response_records = response_records
