@@ -75,10 +75,10 @@ class ExecutorStruct():
                                    tuple(v.to_value() for v in self.callback_groups),
                                    self.executor_name)
 
-    def rename_node(self, src: str, dst: str):
+    def rename_node(self, src: str, dst: str) -> None:
         for c in self._cbg_values:
             c.rename_node(src, dst)
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         for c in self._cbg_values:
             c.rename_topic(src, dst)

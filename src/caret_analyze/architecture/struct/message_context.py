@@ -146,7 +146,7 @@ class MessageContextStruct():
     def to_value(self) -> MessageContext:
         pass
 
-    def rename_node(self, src: str, dst: str):
+    def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
 
@@ -160,7 +160,7 @@ class MessageContextStruct():
             for c in self._callbacks:
                 c.rename_node(src, dst)
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         if self._pub is not None:
             self._pub.rename_topic(src, dst)
 

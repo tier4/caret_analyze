@@ -164,7 +164,7 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
-    def rename_node(self, src: str, dst: str):
+    def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
 
@@ -188,7 +188,7 @@ class NodeStruct():
             for v in self._variable_passings_info:
                 v.rename_node(src, dst)
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         for p in self._publishers:
             p.rename_topic(src, dst)
 

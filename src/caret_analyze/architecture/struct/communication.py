@@ -110,7 +110,7 @@ class CommunicationStruct():
             None if self.subscribe_callback is None
             else self.subscribe_callback.to_value())
 
-    def rename_node(self, src: str, dst: str):
+    def rename_node(self, src: str, dst: str) -> None:
         self._node_pub.rename_node(src, dst)
         self._node_sub.rename_node(src, dst)
         self._publisher_value.rename_node(src, dst)
@@ -121,7 +121,7 @@ class CommunicationStruct():
         if self._subscription_callback_value is not None:
             self._subscription_callback_value.rename_node(src, dst)
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         if self.topic_name == src:
             self._topic_name = dst
 

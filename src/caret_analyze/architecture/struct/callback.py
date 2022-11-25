@@ -112,11 +112,11 @@ class CallbackStruct(metaclass=ABCMeta):
     def to_value(self) -> CallbackStructValue:
         pass
 
-    def rename_node(self, src: str, dst: str):
+    def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         if self._publish_topic_names is not None:
             for p in self._publish_topic_names:
                 if p == src:
@@ -195,7 +195,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
             None if self.publish_topic_names is None else tuple(self.publish_topic_names),
             self.callback_name)
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         if self._publish_topic_names is not None:
             for p in self._publish_topic_names:
                 if p == src:

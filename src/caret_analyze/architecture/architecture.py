@@ -256,14 +256,14 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    def rename_callback(self, src: str, dst: str):
+    def rename_callback(self, src: str, dst: str) -> None:
         cb_s: List[CallbackStruct] =\
             Util.flatten(cb_g.callbacks for cb_g in
                          Util.flatten([e.callback_groups for e in self._executors]))
         c: CallbackStruct = Util.find_similar_one(src, cb_s, lambda x: x.callback_name)
         c.callback_name = dst
 
-    def rename_node(self, src: str, dst: str):
+    def rename_node(self, src: str, dst: str) -> None:
         for n in self._nodes:
             n.rename_node(src, dst)
 
@@ -273,15 +273,15 @@ class Architecture(Summarizable):
         for c in self._communications:
             c.rename_node(src, dst)
 
-    def rename_path(self, src: str, dst: str):
+    def rename_path(self, src: str, dst: str) -> None:
         p: PathStruct = Util.find_similar_one(src, self._paths, lambda x: x.path_name)
         p.path_name = dst
 
-    def rename_executor(self, src: str, dst: str):
+    def rename_executor(self, src: str, dst: str) -> None:
         e: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
         e.executor_name = dst
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         for n in self._nodes:
             n.rename_topic(src, dst)
 

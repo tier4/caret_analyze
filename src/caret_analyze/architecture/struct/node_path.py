@@ -131,7 +131,7 @@ class NodePathStruct():
             None if self.child is None else tuple(v.to_value() for v in self.child),
             None if self.message_context is None else self.message_context.to_value())
 
-    def rename_node(self, src: str, dst: str):
+    def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
 
@@ -152,7 +152,7 @@ class NodePathStruct():
             for v in self.variable_passings:
                 v.rename_node(src, dst)
 
-    def rename_topic(self, src: str, dst: str):
+    def rename_topic(self, src: str, dst: str) -> None:
         if self._publisher is not None:
             self._publisher.rename_topic(src, dst)
 
