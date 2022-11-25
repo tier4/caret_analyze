@@ -117,15 +117,15 @@ class Architecture(Summarizable):
 
         for c in path_info.child:
             if isinstance(c, NodePathStructValue):
-                from .graph_search import NodePathSearcher
-                node_path_searcher: NodePathSearcher = \
-                    NodePathSearcher(tuple(self._nodes), tuple(self._communications))
+                def is_target_node(node: NodeStruct):
+                    return c.node_name == node.node_name
 
-                node_path: NodePathStruct = \
-                    node_path_searcher._find_node_path('' if c.subscribe_topic_name is None
-                                                       else c.subscribe_topic_name,
-                                                       '' if c.publish_topic_name is None
-                                                       else c.publish_topic_name, c.node_name)
+                def is_target_node_path(node_path: NodePathStruct):
+                    return c.publish_topic_name == node_path.publish_topic_name and \
+                        c.subscribe_topic_name == node_path.subscribe_topic_name
+
+                node: NodeStruct = Util.find_one(is_target_node, self._nodes)
+                node_path: NodePathStruct = Util.find_one(is_target_node_path, node.paths)
                 child.append(node_path)
 
             elif isinstance(c, CommunicationStructValue):
