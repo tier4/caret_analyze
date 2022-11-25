@@ -166,9 +166,10 @@ class NodeStruct():
             else tuple(v.to_value() for v in self.variable_passings))
 
     def assign_message_context(self, context_type, sub_topic_name: str, pub_topic_name: str):
+        assert self.publish_topic_names == ""
         path = self.get_path(sub_topic_name, pub_topic_name)
         path.message_context =\
-            MessageContextStruct.create_instance(context_type, Dict(),
+            MessageContextStruct.create_instance(context_type, {},
                                                  self.node_name, path.subscription,
                                                  path.publisher, None)
 

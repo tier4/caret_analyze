@@ -349,7 +349,7 @@ nodes:
 
         arch.assign_message_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
         arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
-        # arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+        arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
 
         node = arch.get_node('/pong_node')
 
