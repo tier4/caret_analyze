@@ -486,6 +486,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
         callback_records = self.callback_records(timer.callback)
+        if len(callback_records) == 0:
+            return RecordsFactory.create_instance()
+
         last_record = callback_records.data[-1]
         last_callback_start = last_record.get(callback_records.columns[0])
         timer_events = timer_events_factory.create(last_callback_start)
