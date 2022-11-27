@@ -158,16 +158,6 @@ class Architecture(Summarizable):
         return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
 
     @property
-    def publishers(self) -> Tuple[PublisherStructValue, ...]:
-        publishers = Util.flatten(_.publishers for _ in self.nodes)
-        return tuple(sorted(publishers, key=lambda x: x.topic_name))
-
-    @property
-    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
-        subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
-        return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
-
-    @property
     def summary(self) -> Summary:
         return Summary({
             'nodes': self.node_names
