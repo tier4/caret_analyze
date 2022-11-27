@@ -78,7 +78,7 @@ def message_flow(
     if use_sim_time:
         assert len(path.child) > 0
         child = path.child[0]
-        converter = child._provider.get_sim_time_converter()  # TODO(hsgwa): refactor
+        converter = child._provider.get_sim_time_converter() #type: ignore # TODO(hsgwa): refactor
 
     strip = Strip(lstrip_s, rstrip_s)
     clip = strip.to_clip(df)

@@ -131,10 +131,14 @@ def get_cbg_and_name(
     elif (isinstance(target, Path)):
         callback_groups = UniqueList()
         for comm in target.communications:
+            assert comm.publish_node.callback_groups is not None
             for cbg in comm.publish_node.callback_groups:
                 callback_groups.append(cbg)
+
+        assert target.communications[-1].subscribe_node.callback_groups is not None
         for cbg in target.communications[-1].subscribe_node.callback_groups:
             callback_groups.append(cbg)
+        assert target.path_name is not None
         return callback_groups.as_list(), target.path_name
 
     elif (isinstance(target, Node)):
@@ -287,6 +291,7 @@ def sched_plot_cbg(
                 y_start = rect_source.data['y'][1]+0.9
                 y_end = rect_source.data['y'][1]+rect_height
                 timer = callback.timer
+                assert timer is not None
                 df = timer.to_dataframe()
                 for item in df.itertuples():
                     timer_stamp = item._1
