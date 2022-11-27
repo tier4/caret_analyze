@@ -397,21 +397,11 @@ nodes:
         arch = Architecture('yaml', 'architecture.yaml')
         node_expected = arch.get_node('/pong_node')
 
-        assert {p.callback_name_write for p in node.variable_passings}\
-            == {p.callback_name_write for p in node_expected.variable_passings}
-        assert {p.callback_name_read for p in node.variable_passings}\
-            == {p.callback_name_read for p in node_expected.variable_passings}
+        assert [p.summary.data for p in node.variable_passings]\
+            == [p.summary.data for p in node_expected.variable_passings]
 
-        assert {p.topic_name for p in node.publishers}\
-            == {p.topic_name for p in node_expected.publishers}
-        assert {p.callback_names for p in node.publishers}\
-            == {p.callback_names for p in node_expected.publishers}
+        assert [p.summary.data for p in node.publishers]\
+            == [p.summary.data for p in node_expected.publishers]
 
-        """
-        assert {n.message_context.context_type.type_name for n in node.paths}\
-            == {n.message_context.context_type.type_name for n in node_expected.paths}
-        assert {n.message_context.subscription_topic_name for n in node.paths}\
-            == {n.message_context.subscription_topic_name for n in node_expected.paths}
-        assert {n.message_context.publisher_topic_name for n in node.paths}\
-            == {n.message_context.publisher_topic_name for n in node_expected.paths}
-        """
+        assert [n.summary.data for n in node.paths]\
+            == [n.summary.data for n in node_expected.paths]
