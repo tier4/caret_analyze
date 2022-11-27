@@ -214,6 +214,31 @@ class Architecture(Summarizable):
 
         return paths
 
+    def combine_path(
+        self,
+        path_left: PathStructValue,
+        path_right: PathStructValue
+        )-> PathStructValue:
+        if len(path_left.child)==0 or len(path_right.child)==0:
+            msg = 'input path cannot be null.'
+            raise InvalidArgumentError(msg)
+        elif len(path_left.node_paths)==0 and len(path_right.node_paths)==0:
+                msg = 'Communication and Communication cannot be combined.'
+                raise InvalidArgumentError(msg)
+        elif len(path_left.communications)==0 and len(path_right.communications)==0:
+                msg = 'nodepath and nodepath cannot be combined.'
+                raise InvalidArgumentError(msg)
+        if len(path_left.node_paths)==0 or len(path_right.node_paths)==0:
+                new_path = PathStructValue(None, (path_left.child, path_right.child))
+        else:
+            node_name=path_left.child[-1].node_name
+            path1=self.get_node(node_name).paths
+            for node_path in self.get_node(node_name).paths:
+                if node_path.publish_topic_name==path_right.child[0].publish_topic_name and node_path.subscribe_topic_name==path_left.child[-1].subscribe_topic_name:
+                    break
+            new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.child[1:]))
+        return new_path
+
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
         from collections import Counter
