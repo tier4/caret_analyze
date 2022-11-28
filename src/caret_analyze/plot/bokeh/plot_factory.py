@@ -212,6 +212,11 @@ class Plot:
         path : Collection[Path]
             Target path.
             This also accepts multiple path inputs by unpacking.
+        case : str, optional
+            response time calculation method, by default best-to-worst.
+            supported case: [best-to-worst/best/worst].
+        binsize_ns : int, optional
+            binsize [ns], by default 1000000.
 
         Returns
         -------
