@@ -658,6 +658,10 @@ nodes:
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
+        n0 = arch.get_node('/node_0')
+        n1 = arch.get_node('/node_1')
+        n0_c = arch_expected.get_node('/node_0')
+        n1_c = arch_expected.get_node('/node_1')
 
         assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
