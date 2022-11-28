@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# flake8: noqa: F811
-# This line is a workaround for the following warning that seems to be a problem with flake8.
-# F811 redefinition of unused 'publishers'
-# F811 redefinition of unused 'subscriptions'
-
 from __future__ import annotations
 
 import logging
@@ -180,10 +175,44 @@ class Architecture(Summarizable):
             if node_name not in self.node_names:
                 raise ItemNotFoundError(f'Failed to find node. {node_name}')
 
+        default_depth = 15  # When the depth is 15, the process takes only a few seconds.
+        max_node_depth = max_node_depth or default_depth
+
+        # Print message before search
+        msg_detail_page = (
+            'For details, '
+            'see https://tier4.github.io/CARET_doc/latest/configuration/inter_node_data_path/.'
+        )
+        if max_node_depth > default_depth:
+            msg = (
+                f"Argument 'max_node_depth' greater than {default_depth} is not recommended "
+                'because it significantly increases the search time '
+                'and the number of returned paths. '
+            )
+            msg += (
+                f'If you are searching for paths that exceeds the depth {default_depth}, '
+                'consider specifying an intermediate node. '
+            )
+            msg += msg_detail_page
+            print(msg)
+
+        # Search
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
-        return [
-            v.to_value() for v in path_searcher.search(*node_names, max_node_depth=max_node_depth)]
+        paths = [v.to_value() for v in
+                 path_searcher.search(*node_names, max_node_depth=max_node_depth)]
+
+        # Print message after search
+        msg = f'A search up to depth {max_node_depth} has been completed. '
+        msg += (
+            'If the paths you want to measure cannot be found, '
+            'consider specifying intermediate nodes. '
+        )
+        msg += 'Also, if the number of paths is too large, consider filtering node/topic names. '
+        msg += msg_detail_page
+        print(msg)
+
+        return paths
 
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
