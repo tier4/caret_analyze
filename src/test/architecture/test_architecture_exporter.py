@@ -26,6 +26,7 @@ from caret_analyze.architecture.reader_interface import UNDEFINED_STR
 from caret_analyze.exceptions import UnsupportedTypeError
 from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CallbackStructValue,
+                                         CallbackType,
                                          ExecutorStructValue,
                                          NodePathStructValue, NodeStructValue,
                                          PathStructValue, PublisherStructValue,
@@ -599,6 +600,7 @@ class TestCallbackDicts:
         callback_name = 'callback'
 
         mocker.patch.object(callback_mock, 'callback_name', callback_name)
+        mocker.patch.object(callback_mock, 'callback_type', CallbackType.TIMER)
         mocker.patch.object(callback_mock, 'period_ns', period_ns)
         mocker.patch.object(callback_mock, 'symbol', symbol)
         callback_dict = CallbackDicts((callback_mock,))
@@ -620,6 +622,7 @@ class TestCallbackDicts:
         callback_name = 'callback'
 
         mocker.patch.object(callback_mock, 'callback_name', callback_name)
+        mocker.patch.object(callback_mock, 'callback_type', CallbackType.SUBSCRIPTION)
         mocker.patch.object(callback_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(callback_mock, 'symbol', symbol)
         callback_dict = CallbackDicts((callback_mock,))
@@ -647,6 +650,10 @@ class TestCallbackDicts:
         mocker.patch.object(callback_mock_0, 'callback_name', 'callback_0')
         mocker.patch.object(callback_mock_1, 'callback_name', 'callback_1')
         mocker.patch.object(callback_mock_2, 'callback_name', 'callback_2')
+
+        mocker.patch.object(callback_mock_0, 'callback_type', CallbackType.SUBSCRIPTION)
+        mocker.patch.object(callback_mock_1, 'callback_type', CallbackType.SUBSCRIPTION)
+        mocker.patch.object(callback_mock_2, 'callback_type', CallbackType.SUBSCRIPTION)
 
         mocker.patch.object(callback_mock_0, 'subscribe_topic_name', None)
         mocker.patch.object(callback_mock_1, 'subscribe_topic_name', None)

@@ -33,6 +33,7 @@ from ..exceptions import (ItemNotFoundError, MultipleItemFoundError,
                           UnsupportedTypeError)
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
+                             CallbackType,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,
                              PathStructValue, PublisherStructValue,
@@ -706,12 +707,15 @@ class CallbacksLoaded:
         subscriptions_loaded: SubscriptionsLoaded,
         timers_loaded: TimersLoaded
     ) -> None:
+        # Processes related to services are implemented later.
         self._callbacks = [
             self._to_runtime(
                 cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded
             )
             for cb_info
             in callback_values
+            if cb_info.callback_type is not CallbackType.SERVICE
+            or cb_info.publish_topic_names is not None
         ]
 
     @staticmethod

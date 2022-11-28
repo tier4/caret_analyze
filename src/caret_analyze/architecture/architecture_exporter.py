@@ -18,7 +18,8 @@ from typing import Dict, List, Optional, Tuple
 
 from .reader_interface import UNDEFINED_STR
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
-from ..value_objects import (CallbackStructValue, ExecutorStructValue,
+from ..value_objects import (CallbackStructValue, CallbackType,
+                             ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,
                              PathStructValue, PublisherStructValue,
                              SubscriptionCallbackStructValue,
@@ -93,7 +94,9 @@ class CallbackDicts:
         self,
         callback_values: Tuple[CallbackStructValue, ...]
     ) -> None:
-        callbacks_dicts = [self._cb_to_dict(c) for c in callback_values]
+        # Processes related to services are implemented later.
+        callbacks_dicts = [self._cb_to_dict(c) for c in callback_values
+                           if c.callback_type is not CallbackType.SERVICE]
         self._data = sorted(callbacks_dicts, key=lambda x: x['callback_name'])
 
     def _timer_cb_to_dict(
@@ -103,7 +106,7 @@ class CallbackDicts:
         return  \
             {
                 'callback_name': timer_callback.callback_name,
-                'callback_type': 'timer_callback',
+                'callback_type': str(CallbackType.TIMER),
                 'period_ns': timer_callback.period_ns,
                 'symbol': timer_callback.symbol,
             }
@@ -114,7 +117,7 @@ class CallbackDicts:
     ) -> Dict:
         return {
             'callback_name': subscription_callback.callback_name,
-            'callback_type': 'subscription_callback',
+            'callback_type': str(CallbackType.SUBSCRIPTION),
             'topic_name': subscription_callback.subscribe_topic_name,
             'symbol': subscription_callback.symbol,
         }
