@@ -1412,7 +1412,10 @@ class DataFrameFormatted:
         callback_objects.rename_column('reference', 'subscription')
         subscription_objects = data.subscription_objects.clone()
         subscription_objects.reset_index()
-        merge(subscription_objects, callback_objects, 'subscription')
+
+        # Leave timestamp of rclcpp_subscription_callback_added trace point.
+        subscription_objects.drop_column('timestamp')
+        merge(subscription_objects, callback_objects, 'subscription', merge_drop_columns=['tid', 'rmw_handle'])
 
         ret_data = TracePointIntermediateData(
             ['subscription_handle', 'callback_object', 'callback_object_intra'],
@@ -1431,6 +1434,11 @@ class DataFrameFormatted:
             if len(group) == 1:
                 record['callback_object'] = group.at[0, 'callback_object']
             elif len(group) == 2:
+                # NOTE:
+                # The smaller timestamp is the callback_object of the in-process communication.
+                # The larger timestamp is callback_object for inter-process communication.
+                group.sort_values('timestamp', inplace=True)
+                group.reset_index(drop=True, inplace=True)
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
             else:
@@ -1477,8 +1485,9 @@ def merge(
     left_data: TracePointData,
     right_data: TracePointData,
     on,
-    how: Optional[str] = None
+    how: Optional[str] = None,
+    merge_drop_columns: Optional[List[str]] = None
 ):
     how = how or 'inner'
-    merge_drop_columns = ['timestamp', 'tid', 'rmw_handle']
+    merge_drop_columns = merge_drop_columns or ['timestamp', 'tid', 'rmw_handle']
     left_data.merge(right_data, on, how=how, drop_columns=merge_drop_columns)

@@ -398,6 +398,18 @@ class TracePointData:
         """
         self._df.drop(index=index, inplace=True)
 
+    def drop_column(self, column_name: str) -> None:
+        """
+        Drop column.
+
+        Parameters
+        ----------
+        column_name : str
+            column name to be dropped.
+
+        """
+        self._df.drop(columns=column_name, inplace=True, axis=1)
+
     def clone(self) -> TracePointData:
         """
         Return cloned instance.
