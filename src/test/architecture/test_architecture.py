@@ -658,10 +658,6 @@ nodes:
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
-        n0 = arch.get_node('/node_0')
-        n1 = arch.get_node('/node_1')
-        n0_c = arch_expected.get_node('/node_0')
-        n1_c = arch_expected.get_node('/node_1')
 
         assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
@@ -760,6 +756,9 @@ nodes:
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
+        #assert [arch.nodes[0].callback_groups[0].callback_names] == [('/changed_callback_0', '/callback_0')]
+        #assert 1 == 0
+        #assert [arch.nodes[0].callback_groups[0]] == [arch_expected.nodes[0].callback_groups[0]]
         assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.paths) == set(arch_expected.paths)
