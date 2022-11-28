@@ -118,9 +118,9 @@ class CallbackStruct(metaclass=ABCMeta):
 
     def rename_topic(self, src: str, dst: str) -> None:
         if self._publish_topic_names is not None:
-            for p in self._publish_topic_names:
+            for i, p in enumerate(self._publish_topic_names):
                 if p == src:
-                    p = dst
+                    self._publish_topic_names[i] = dst
 
         if self._subscribe_topic_name is not None:
             if self._subscribe_topic_name == src:
@@ -197,9 +197,9 @@ class SubscriptionCallbackStruct(CallbackStruct):
 
     def rename_topic(self, src: str, dst: str) -> None:
         if self._publish_topic_names is not None:
-            for p in self._publish_topic_names:
+            for i, p in enumerate(self._publish_topic_names):
                 if p == src:
-                    p = dst
+                    self._publish_topic_names[i] = dst
 
         if self.subscribe_topic_name == src:
             self._subscribe_topic_name = dst
