@@ -715,7 +715,6 @@ class CallbacksLoaded:
             for cb_info
             in callback_values
             if cb_info.callback_type is not CallbackType.SERVICE
-            or cb_info.publish_topic_names is not None
         ]
 
     @staticmethod
