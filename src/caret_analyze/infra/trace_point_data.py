@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 from multimethod import multimethod as singledispatchmethod
@@ -281,7 +280,6 @@ class TracePointData:
     def merge(self, arg) -> None:
         raise NotImplementedError('')
 
-    @wraps(merge)
     @merge.register
     def _merge_single_join_key(
         self,
@@ -293,7 +291,6 @@ class TracePointData:
     ) -> None:
         self._merge_impl(other, on, how, drop_columns=drop_columns)
 
-    @wraps(merge)
     @merge.register
     def _merge_multiple_join_key(
         self,
