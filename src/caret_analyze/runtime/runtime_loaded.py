@@ -33,10 +33,10 @@ from ..exceptions import (ItemNotFoundError, MultipleItemFoundError,
                           UnsupportedTypeError)
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
-                             CallbackType,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,
                              PathStructValue, PublisherStructValue,
+                             ServiceCallbackStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionStructValue, TimerCallbackStructValue,
                              VariablePassingStructValue)
@@ -708,13 +708,17 @@ class CallbacksLoaded:
         timers_loaded: TimersLoaded
     ) -> None:
         # Processes related to services are implemented later.
+        def _is_ignore_callback(callback: CallbackStructValue):
+            ignore_callback_types = (ServiceCallbackStructValue, )
+            return isinstance(callback, ignore_callback_types)
+
         self._callbacks = [
             self._to_runtime(
                 cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded
             )
             for cb_info
             in callback_values
-            if cb_info.callback_type is not CallbackType.SERVICE
+            if not _is_ignore_callback(cb_info)
         ]
 
     @staticmethod

@@ -22,6 +22,7 @@ from ..value_objects import (CallbackStructValue, CallbackType,
                              ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,
                              PathStructValue, PublisherStructValue,
+                             ServiceCallbackStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionStructValue, TimerCallbackStructValue,
                              VariablePassingStructValue)
@@ -95,8 +96,12 @@ class CallbackDicts:
         callback_values: Tuple[CallbackStructValue, ...]
     ) -> None:
         # Processes related to services are implemented later.
+        def _is_ignore_callback(callback: CallbackStructValue):
+            ignore_callback_types = (ServiceCallbackStructValue, )
+            return isinstance(callback, ignore_callback_types)
+
         callbacks_dicts = [self._cb_to_dict(c) for c in callback_values
-                           if c.callback_type is not CallbackType.SERVICE]
+                           if not _is_ignore_callback(c)]
         self._data = sorted(callbacks_dicts, key=lambda x: x['callback_name'])
 
     def _timer_cb_to_dict(
