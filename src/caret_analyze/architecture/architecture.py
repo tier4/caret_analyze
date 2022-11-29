@@ -256,6 +256,7 @@ class Architecture(Summarizable):
             Util.find_one(lambda x: x.callback_name == callback_function_name,
                           Util.flatten(_.callbacks for _ in
                                        Util.flatten(_.callback_groups for _ in self._executors)))
+        callback.assign_publisher(pub_topic_name)
         node.assign_publisher(pub_topic_name, callback)
 
     def assign_message_passings(self, node_name: str,

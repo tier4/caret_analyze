@@ -108,6 +108,13 @@ class CallbackStruct(metaclass=ABCMeta):
     def to_value(self) -> CallbackStructValue:
         pass
 
+    def assign_publisher(self, pub_topic_name: str):
+        if self._publish_topic_names is not None and\
+           pub_topic_name not in self._publish_topic_names:
+            pubs = list(self._publish_topic_names)
+            pubs.append(pub_topic_name)
+            self._publish_topic_names = tuple(pubs)
+
 
 class TimerCallbackStruct(CallbackStruct):
     """Structured timer callback value."""

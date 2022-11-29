@@ -345,13 +345,10 @@ nodes:
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
-        node = arch.get_node('/pong_node')
 
-        arch.assign_message_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
         arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
+        arch.assign_message_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
         arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
-
-        node = arch.get_node('/pong_node')
 
         architecture_text_expected = """
 named_paths: []
@@ -394,14 +391,11 @@ nodes:
 """
 
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
-        arch = Architecture('yaml', 'architecture.yaml')
-        node_expected = arch.get_node('/pong_node')
+        arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert [p.summary.data for p in node.variable_passings]\
-            == [p.summary.data for p in node_expected.variable_passings]
-
-        assert [p.summary.data for p in node.publishers]\
-            == [p.summary.data for p in node_expected.publishers]
-
-        assert [n.summary.data for n in node.paths]\
-            == [n.summary.data for n in node_expected.paths]
+        # assert arch.get_node('/pong_node').get_publisher('/ping').callbacks[0].publish_topic_names \
+        #   == arch_expected.get_node('/pong_node').get_publisher('/ping').callbacks[0].publish_topic_names
+        assert set(arch.nodes) == set(arch.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
