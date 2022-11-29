@@ -17,7 +17,15 @@ from ..common import Summarizable, Summary
 
 
 class Qos(ValueObject, Summarizable):
-    """qos info."""
+    """
+    Qos info.
+
+    Note:
+    ----
+    Currently, only DEPTH is supported, but it is desirable to support
+    other QoS by adding trace points.
+
+    """
 
     def __init__(self, depth: int) -> None:
         self._depth = depth
