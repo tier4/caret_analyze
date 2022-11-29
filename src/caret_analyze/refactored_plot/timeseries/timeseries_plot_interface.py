@@ -13,36 +13,32 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Collection, Union
+from typing import List, Sequence, Union
 
 from bokeh.plotting import Figure
 
-import pandas as pd
-
-from .plot_interface import PlotInterface
-from .visualize_lib import VisualizeLib
-from ..exceptions import UnsupportedTypeError
-from ..record import RecordsInterface
-from ..runtime import CallbackBase, Communication, Publisher, Subscription
-
+from ..plot_interface import PlotInterface
+from ..visualize_lib import VisualizeInterface
+from ...exceptions import UnsupportedTypeError
+from ...record import RecordsInterface
+from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class TimeSeriesPlotInterface(PlotInterface):
+class TimeSeriesInterface(PlotInterface):
 
-    def __init__(self, target_objects: Collection[TimeSeriesTypes]):
+    def __init__(
+        self,
+        target_objects: Sequence[TimeSeriesTypes],
+        visualize_lib: VisualizeInterface
+    ) -> None:
         self._target_objects = list(target_objects)
+        self._visualize_lib = visualize_lib
 
-    def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
-        self._validate_xaxis_type(xaxis_type)
-
-        all_df = pd.DataFrame()
-        for target_object in self._target_objects:
-            records = self._to_records_per_object(target_object, xaxis_type)
-            all_df = pd.concat([all_df, records.to_dataframe()], axis=1)
-
-        return all_df
+    @abstractmethod
+    def _create_timeseries_records(self) -> List[RecordsInterface]:
+        raise NotImplementedError()
 
     def figure(
         self,
@@ -51,28 +47,21 @@ class TimeSeriesPlotInterface(PlotInterface):
         full_legends: bool = False
     ) -> Figure:
         self._validate_xaxis_type(xaxis_type)
-        records_list = [self._to_records_per_object(obj, xaxis_type)
-                        for obj in self._target_objects]
+        timeseries_records_list = self._create_timeseries_records()
+        if xaxis_type == 'sim_time':
+            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
-        return VisualizeLib.create_timeseries_plot(
+        return self._visualize_lib.timeseries(
             self._target_objects,
-            records_list,
+            timeseries_records_list,
             xaxis_type,
             ywheel_zoom,
             full_legends
         )
 
-    @abstractmethod
-    def _to_records_per_object(
+    def _convert_timeseries_records_to_sim_time(
         self,
-        target_object: TimeSeriesTypes,
-        xaxis_type: str
-    ) -> RecordsInterface:
-        raise NotImplementedError()
-
-    def _convert_records_to_sim_time(
-        self,
-        target_records: RecordsInterface
+        timeseries_records_list: List[RecordsInterface]
     ) -> None:
         # get converter
         if isinstance(self._target_objects[0], Communication):
@@ -86,9 +75,10 @@ class TimeSeriesPlotInterface(PlotInterface):
             converter = self._target_objects[0]._provider.get_sim_time_converter()
 
         # convert
-        ts_column_name = target_records.columns[0]
-        for record in target_records:
-            record.data[ts_column_name] = converter.convert(record.get(ts_column_name))
+        ts_column_name = timeseries_records_list[0].columns[0]
+        for records in timeseries_records_list:
+            for record in records:
+                record.data[ts_column_name] = converter.convert(record.get(ts_column_name))
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:
         if xaxis_type not in ['system_time', 'sim_time', 'index']:

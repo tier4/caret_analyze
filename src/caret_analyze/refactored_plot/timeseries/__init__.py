@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .plot_facade import Plot
-from .plot_interface import PlotInterface
+from .timeseries_plot_factory import TimeSeriesPlotFactory
+from .timeseries_plot_interface import TimeSeriesInterface
 
 __all__ = [
-    'Plot',
-    'PlotInterface'
+    'TimeSeriesInterface',
+    'TimeSeriesPlotFactory'
 ]

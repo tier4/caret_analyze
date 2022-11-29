@@ -23,7 +23,10 @@ import pandas as pd
 class PlotInterface(metaclass=ABCMeta):
 
     @abstractmethod
-    def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+    def to_dataframe(
+        self,
+        xaxis_type: str = 'system_time'
+    ) -> pd.DataFrame:
         raise NotImplementedError()
 
     @abstractmethod

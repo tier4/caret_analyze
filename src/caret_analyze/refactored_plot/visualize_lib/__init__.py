@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .plot_facade import Plot
-from .plot_interface import PlotInterface
+from .visualize_lib_factory import VisualizeLib
+from .visualize_lib_interface import VisualizeInterface
 
 __all__ = [
-    'Plot',
-    'PlotInterface'
+    'VisualizeLib',
+    'VisualizeInterface'
 ]

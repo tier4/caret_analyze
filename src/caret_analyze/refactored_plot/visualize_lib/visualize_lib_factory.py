@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .plot_facade import Plot
-from .plot_interface import PlotInterface
+from .bokeh import Bokeh
+from .visualize_lib_interface import VisualizeInterface
 
-__all__ = [
-    'Plot',
-    'PlotInterface'
-]
+
+class VisualizeLib:
+
+    @staticmethod
+    def create_instance(use_package: str = 'bokeh') -> VisualizeInterface:
+        if use_package == 'bokeh':
+            return Bokeh()
+        else:
+            raise NotImplementedError()
