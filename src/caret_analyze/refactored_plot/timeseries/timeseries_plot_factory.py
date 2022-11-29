@@ -35,7 +35,8 @@ class TimeSeriesPlotFactory:
         if metrics == 'frequency':
             return FrequencyTimeSeriesPlot(list(target_objects), visualize_lib)
         elif metrics == 'latency':
-            return LatencyTimeSeriesPlot(list(target_objects), visualize_lib)
+            # Ignore the mypy type check because type_check_decorator is applied.
+            return LatencyTimeSeriesPlot(list(target_objects), visualize_lib)  # type: ignore
         elif metrics == 'period':
             return PeriodTimeSeriesPlot(list(target_objects), visualize_lib)
         else:

@@ -14,7 +14,7 @@
 
 from collections import defaultdict
 from logging import getLogger
-from typing import Any, Dict, Generator, List, Sequence, Tuple, Union
+from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 from bokeh.colors import Color, RGB
 from bokeh.models import HoverTool, Legend, LinearAxis, Range1d, SingleIntervalTicker
@@ -151,7 +151,7 @@ class Bokeh(VisualizeLibInterface):
         fig.extra_x_ranges = {x_range_name: Range1d(start=min_ns, end=max_ns)}
 
         xaxis = LinearAxis(x_range_name=x_range_name)
-        xaxis.visible = False
+        xaxis.visible = False  # type: ignore
 
         ticker = SingleIntervalTicker(interval=1, num_minor_ticks=10)
         fig.xaxis.ticker = ticker
@@ -194,11 +194,32 @@ class BokehTimeSeriesHelper:
         # Get x_item and y_item
         ts_column = timeseries_records.columns[0]
         value_column = timeseries_records.columns[1]
-        timestamps = timeseries_records.get_column_series(ts_column)
-        values = timeseries_records.get_column_series(value_column)
-        if 'latency' in value_column.lower() or 'period' in value_column.lower():
-            values = [v*10**(-6) for v in values]
 
+        def ensure_not_none(target_list: Sequence[Optional[int]]) -> List[int]:
+            """Ensure the inputted list does not include None.
+
+            Notes
+            -----
+            The timeseries_records is implemented not to include None,
+            so if None is included, an AssertionError is output.
+
+            """
+            original_len = len(target_list)
+            not_none_list = [_ for _ in target_list if _ is not None]
+            assert original_len == len(not_none_list)
+            return not_none_list
+
+        timestamps: List[int] = ensure_not_none(
+            timeseries_records.get_column_series(ts_column)
+        )
+        values: Union[List[int], List[float]] = ensure_not_none(
+            timeseries_records.get_column_series(value_column)
+        )
+        if 'latency' in value_column.lower() or 'period' in value_column.lower():
+            values = [v*10**(-6) for v in values]  # [ns] -> [ms]
+
+        x_item: Union[List[int], List[float]]
+        y_item: Union[List[int], List[float]]
         if xaxis_type == 'system_time':
             x_item = [(ts-frame_min)*10**(-9) for ts in timestamps]
             y_item = values
@@ -216,9 +237,9 @@ class BokehTimeSeriesHelper:
         line_source = ColumnDataSource(data=data)
 
         for x, y in zip(x_item, y_item):
-            new_data: Dict[str, Sequence[Any]] = {'x': [x], 'y': [y]}
+            new_data: Dict[str, Sequence[Union[float, str]]] = {'x': [x], 'y': [y]}
             new_data.update({p: [str(getattr(target_object, p))] for p in source_properties})
-            line_source.stream(new_data)
+            line_source.stream(new_data)  # type: ignore
 
         return line_source
 
