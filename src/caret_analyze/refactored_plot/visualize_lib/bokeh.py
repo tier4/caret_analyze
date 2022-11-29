@@ -195,7 +195,7 @@ class BokehTimeSeriesHelper:
         ts_column = timeseries_records.columns[0]
         value_column = timeseries_records.columns[1]
 
-        def ensure_not_none(target_list: Sequence[Optional[int]]) -> List[int]:
+        def ensure_not_none(target_seq: Sequence[Optional[int]]) -> List[int]:
             """
             Ensure the inputted list does not include None.
 
@@ -205,9 +205,8 @@ class BokehTimeSeriesHelper:
             so if None is included, an AssertionError is output.
 
             """
-            original_len = len(target_list)
-            not_none_list = [_ for _ in target_list if _ is not None]
-            assert original_len == len(not_none_list)
+            not_none_list = [_ for _ in target_seq if _ is not None]
+            assert len(target_seq) == len(not_none_list)
             return not_none_list
 
         timestamps: List[int] = ensure_not_none(
