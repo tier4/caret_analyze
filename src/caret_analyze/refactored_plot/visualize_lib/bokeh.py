@@ -192,8 +192,13 @@ class BokehTimeSeriesHelper:
         xaxis_type: str
     ) -> ColumnDataSource:
         # Get x_item and y_item
-        timestamps = timeseries_records.get_column_series(timeseries_records.columns[0])
-        values = timeseries_records.get_column_series(timeseries_records.columns[1])
+        ts_column = timeseries_records.columns[0]
+        value_column = timeseries_records.columns[1]
+        timestamps = timeseries_records.get_column_series(ts_column)
+        values = timeseries_records.get_column_series(value_column)
+        if 'latency' in value_column.lower() or 'period' in value_column.lower():
+            values = [v*10**(-6) for v in values]
+
         if xaxis_type == 'system_time':
             x_item = [(ts-frame_min)*10**(-9) for ts in timestamps]
             y_item = values
