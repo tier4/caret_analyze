@@ -32,22 +32,84 @@ class Util:
 
     @staticmethod
     def flatten(x: Iterable[Iterable[Any]]) -> List[Any]:
+        """
+        Expand double nested Iterable to List.
+
+        Parameters
+        ----------
+        x : Iterable[Iterable[Any]]
+            Target to flatten.
+
+        Returns
+        -------
+        List[Any]
+            Flattened list.
+
+        """
         import itertools
 
         return list(itertools.chain.from_iterable(x))
 
     @staticmethod
     def filter_items(f: Callable[[Any], bool], x: Optional[Iterable[Any]]) -> List[Any]:
+        """
+        Filter iterable.
+
+        Parameters
+        ----------
+        f : Callable[[Any], bool]
+            Filtering condition. Items that return True remain.
+        x : Optional[Iterable[Any]]
+            Filtering target.
+
+        Returns
+        -------
+        List[Any]
+            Filtered list.
+
+        """
         if x is None:
             return []
         return list(filter(f, x))
 
     @staticmethod
     def num_digit(i: int) -> int:
+        """
+        Get number of digits in decimal.
+
+        Parameters
+        ----------
+        i : int
+            number.
+
+        Returns
+        -------
+        int
+            digits.
+
+        """
         return len(str(abs(i)))
 
     @staticmethod
     def ext(path: str) -> str:
+        """
+        Get extension from path.
+
+        Parameters
+        ----------
+        path : str
+            path name to get extension.
+
+        Returns
+        -------
+        str
+            extension.
+
+        Note
+        ----
+            This function is duplicated. see: get_ext in Util.
+
+        """
         import os
 
         _, ext = os.path.splitext(path)
@@ -206,14 +268,60 @@ class Util:
 
     @staticmethod
     def ns_to_ms(x: float) -> float:
+        """
+        Convert nanosecond to millisecond.
+
+        Parameters
+        ----------
+        x : float
+            time in nano-second.
+
+        Returns
+        -------
+        float
+            time in millisecond.
+
+        """
         return x * 1.0e-6
 
     @staticmethod
     def get_ext(path: str) -> str:
+        """
+        Get extension from path.
+
+        Parameters
+        ----------
+        path : str
+            path name to get extension.
+
+        Returns
+        -------
+        str
+            extension.
+
+        Note
+        ----
+            This function is duplicated. see: ext in Util.
+
+        """
         return os.path.basename(path).split('.')[-1]
 
     @staticmethod
     def to_ns_and_name(nodename: str) -> Tuple[str, str]:
+        """
+        Convert fully qualified node name.
+
+        Parameters
+        ----------
+        nodename : str
+            fully qualified node name.
+
+        Returns
+        -------
+        Tuple[str, str]
+            name space, node name.
+
+        """
         strs = nodename.split('/')
         ns = '/'.join(strs[:-1]) + '/'
         name = strs[-1]

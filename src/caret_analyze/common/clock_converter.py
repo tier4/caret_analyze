@@ -22,7 +22,7 @@ from ..exceptions import InvalidArgumentError
 
 class ClockConverter():
     """
-    A class that converts time to a linear expression.
+    Class for time conversion. Convert in the form y=ax+b.
 
     TODO(hsgwa): Migrate into record.
     """
@@ -32,6 +32,17 @@ class ClockConverter():
         a: float,
         b: float
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        a : float
+            Slope.
+        b : float
+            Offset.
+
+        """
         self._a = a
         self._b = b
 
@@ -40,6 +51,27 @@ class ClockConverter():
         times_from: Sequence[float],
         times_to: Sequence[float]
     ) -> ClockConverter:
+        """
+        Construct an instance from time series data.
+
+        Parameters
+        ----------
+        times_from : Sequence[float]
+            Time before conversion.
+        times_to : Sequence[float]
+            Time after conversion.
+
+        Returns
+        -------
+        ClockConverter
+            converter instance.
+
+        Raises
+        ------
+        InvalidArgumentError
+            Occurs when calculation failed by the least-squares method.
+
+        """
         import numpy as np
         if len(times_from) < 2:
             raise InvalidArgumentError('Failed to construct ClockConverter. len(times_from) < 2')
@@ -59,5 +91,20 @@ class ClockConverter():
         self,
         time: float
     ) -> float:
+        """
+        Convert input time.
+
+        Parameters
+        ----------
+        time : float
+            Time to convert.
+
+        Returns
+        -------
+        float
+            Time after conversion.
+            Conversion are done with y=ax+b.
+
+        """
         converted = self._a * time + self._b
         return converted
