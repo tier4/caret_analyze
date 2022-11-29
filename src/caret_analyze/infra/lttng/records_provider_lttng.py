@@ -1547,6 +1547,8 @@ class FilteredRecordsSource:
                 inter_pub_records = grouped_records[publisher_handle].clone()
                 pub_records.concat(inter_pub_records)
 
+        pub_records.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+
         return pub_records
 
     def tilde_publish_records(
