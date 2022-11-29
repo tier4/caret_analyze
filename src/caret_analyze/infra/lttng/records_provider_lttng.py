@@ -1435,6 +1435,8 @@ class FilteredRecordsSource:
         merged.drop_columns(drop)
         merged.reindex(columns)
 
+        # NOTE: After merge, the dropped data are aligned at the end
+        # regardless of the time of publish.
         merged.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
 
         return merged
