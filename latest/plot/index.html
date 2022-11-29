@@ -1000,7 +1000,7 @@ for each callback and to obtain it in the pandas DataFrame format.</p>
 
 
 <h3 id="caret_analyze.plot.bokeh.plot_factory.Plot.create_callback_frequency_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_callback_frequency_plot</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_callback_frequency_plot</span><span class="p">(</span><span class="n">callbacks</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_callback_frequency_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1061,7 +1061,7 @@ This also accepts multiple CallbackBase inputs by unpacking.</p></td>
 
 
 <h3 id="caret_analyze.plot.bokeh.plot_factory.Plot.create_callback_latency_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_callback_latency_plot</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_callback_latency_plot</span><span class="p">(</span><span class="n">callbacks</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_callback_latency_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1122,7 +1122,7 @@ This also accepts multiple CallbackBase inputs by unpacking.</p></td>
 
 
 <h3 id="caret_analyze.plot.bokeh.plot_factory.Plot.create_callback_period_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_callback_period_plot</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_callback_period_plot</span><span class="p">(</span><span class="n">callbacks</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_callback_period_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1183,7 +1183,7 @@ This also accepts multiple CallbackBase inputs by unpacking.</p></td>
 
 
 <h3 id="caret_analyze.plot.bokeh.plot_factory.Plot.create_response_time_histogram_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_response_time_histogram_plot</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_response_time_histogram_plot</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s1">&#39;best-to-worst&#39;</span><span class="p">,</span> <span class="n">binsize_ns</span><span class="o">=</span><span class="mi">10000000</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.plot.bokeh.plot_factory.Plot.create_response_time_histogram_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1212,6 +1212,27 @@ This also accepts multiple CallbackBase inputs by unpacking.</p></td>
 This also accepts multiple path inputs by unpacking.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>case</code></td>
+          <td>
+                <code>str, optional</code>
+          </td>
+          <td><p>response time calculation method, by default best-to-worst.
+supported case: [best-to-worst/best/worst].</p></td>
+          <td>
+                <code>&#39;best-to-worst&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>binsize_ns</code></td>
+          <td>
+                <code>int, optional</code>
+          </td>
+          <td><p>binsize [ns], by default 1000000.</p></td>
+          <td>
+                <code>10000000</code>
           </td>
         </tr>
     </tbody>
