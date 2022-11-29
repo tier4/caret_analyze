@@ -94,8 +94,8 @@ class TracePointIntermediateData:
         if self._dtypes:
             df = df.astype(self._dtypes)  # type: ignore
 
-        subset_for_drop_dupolicates = list(set(df.columns) - set(self._exclusion_columns))
-        df.drop_duplicates(subset_for_drop_dupolicates, inplace=True)
+        subset_for_drop_duplicates = list(set(df.columns) - set(self._exclusion_columns))
+        df.drop_duplicates(subset_for_drop_duplicates, inplace=True)
 
         if index_column:
             df.set_index(index_column, inplace=True, drop=True)
