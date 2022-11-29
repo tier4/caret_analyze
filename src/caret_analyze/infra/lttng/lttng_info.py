@@ -1415,7 +1415,8 @@ class DataFrameFormatted:
 
         # Leave timestamp of rclcpp_subscription_callback_added trace point.
         subscription_objects.drop_column('timestamp')
-        merge(subscription_objects, callback_objects, 'subscription', merge_drop_columns=['tid', 'rmw_handle'])
+        merge(subscription_objects, callback_objects, 'subscription',
+              merge_drop_columns=['tid', 'rmw_handle'])
 
         ret_data = TracePointIntermediateData(
             ['subscription_handle', 'callback_object', 'callback_object_intra'],
