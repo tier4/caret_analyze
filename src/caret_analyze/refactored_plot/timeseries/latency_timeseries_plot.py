@@ -16,18 +16,18 @@ from typing import List, Sequence, Union
 
 import pandas as pd
 
-from .timeseries_plot_interface import TimeSeriesInterface
-from ..visualize_lib import VisualizeInterface
+from .timeseries_plot_base import TimeSeriesPlotBase
+from ..visualize_lib import VisualizeLibInterface
 from ...record import Latency, RecordsInterface
 from ...runtime import CallbackBase, Communication
 
 
-class LatencyTimeSeriesPlot(TimeSeriesInterface):
+class LatencyTimeSeriesPlot(TimeSeriesPlotBase):
 
     def __init__(
         self,
         target_object: Sequence[Union[CallbackBase, Communication]],
-        visualize_lib: VisualizeInterface
+        visualize_lib: VisualizeLibInterface
     ) -> None:
         super().__init__(target_object, visualize_lib)
 

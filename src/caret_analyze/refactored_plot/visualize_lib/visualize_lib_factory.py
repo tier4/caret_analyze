@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from .bokeh import Bokeh
-from .visualize_lib_interface import VisualizeInterface
+from .visualize_lib_interface import VisualizeLibInterface
 
 
-class VisualizeLib:
+class VisualizeLibFactory:
 
     @staticmethod
-    def create_instance(use_package: str = 'bokeh') -> VisualizeInterface:
+    def create_instance(use_package: str = 'bokeh') -> VisualizeLibInterface:
         if use_package == 'bokeh':
             return Bokeh()
         else:

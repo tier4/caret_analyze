@@ -18,7 +18,7 @@ from typing import List, Sequence, Union
 from bokeh.plotting import Figure
 
 from ..plot_interface import PlotInterface
-from ..visualize_lib import VisualizeInterface
+from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 from ...record import RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
@@ -26,12 +26,12 @@ from ...runtime import CallbackBase, Communication, Publisher, Subscription
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class TimeSeriesInterface(PlotInterface):
+class TimeSeriesPlotBase(PlotInterface):
 
     def __init__(
         self,
         target_objects: Sequence[TimeSeriesTypes],
-        visualize_lib: VisualizeInterface
+        visualize_lib: VisualizeLibInterface
     ) -> None:
         self._target_objects = list(target_objects)
         self._visualize_lib = visualize_lib

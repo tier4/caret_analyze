@@ -23,7 +23,7 @@ from ...runtime import (CallbackBase, Communication, Publisher, Subscription)
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class VisualizeInterface(metaclass=ABCMeta):
+class VisualizeLibInterface(metaclass=ABCMeta):
 
     @abstractmethod
     def timeseries(

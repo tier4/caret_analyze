@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .visualize_lib_factory import VisualizeLib
-from .visualize_lib_interface import VisualizeInterface
+from .visualize_lib_factory import VisualizeLibFactory
+from .visualize_lib_interface import VisualizeLibInterface
 
 __all__ = [
-    'VisualizeLib',
-    'VisualizeInterface'
+    'VisualizeLibFactory',
+    'VisualizeLibInterface'
 ]

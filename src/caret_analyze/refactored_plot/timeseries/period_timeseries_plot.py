@@ -16,20 +16,20 @@ from typing import List, Sequence, Union
 
 import pandas as pd
 
-from .timeseries_plot_interface import TimeSeriesInterface
-from ..visualize_lib import VisualizeInterface
+from .timeseries_plot_base import TimeSeriesPlotBase
+from ..visualize_lib import VisualizeLibInterface
 from ...record import Period, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class PeriodTimeSeriesPlot(TimeSeriesInterface):
+class PeriodTimeSeriesPlot(TimeSeriesPlotBase):
 
     def __init__(
         self,
         target_object: Sequence[TimeSeriesTypes],
-        visualize_lib: VisualizeInterface
+        visualize_lib: VisualizeLibInterface
     ) -> None:
         super().__init__(target_object, visualize_lib)
 

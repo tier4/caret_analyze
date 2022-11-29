@@ -17,8 +17,8 @@ from typing import Collection, Union
 from .frequency_timeseries_plot import FrequencyTimeSeriesPlot
 from .latency_timeseries_plot import LatencyTimeSeriesPlot
 from .period_timeseries_plot import PeriodTimeSeriesPlot
-from .timeseries_plot_interface import TimeSeriesInterface
-from ..visualize_lib import VisualizeInterface
+from .timeseries_plot_base import TimeSeriesPlotBase
+from ..visualize_lib import VisualizeLibInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesPlotTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
@@ -30,8 +30,8 @@ class TimeSeriesPlotFactory:
     def create_instance(
         target_objects: Collection[TimeSeriesPlotTypes],
         metrics: str,
-        visualize_lib: VisualizeInterface
-    ) -> TimeSeriesInterface:
+        visualize_lib: VisualizeLibInterface
+    ) -> TimeSeriesPlotBase:
         if metrics == 'frequency':
             return FrequencyTimeSeriesPlot(list(target_objects), visualize_lib)
         elif metrics == 'latency':

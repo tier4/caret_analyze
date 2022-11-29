@@ -22,7 +22,7 @@ from bokeh.plotting import ColumnDataSource, Figure, figure
 
 import colorcet as cc
 
-from .visualize_lib_interface import VisualizeInterface
+from .visualize_lib_interface import VisualizeLibInterface
 from ...record import RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -31,7 +31,7 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 logger = getLogger(__name__)
 
 
-class Bokeh(VisualizeInterface):
+class Bokeh(VisualizeLibInterface):
 
     def __init__(self) -> None:
         pass

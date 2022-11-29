@@ -19,7 +19,7 @@ from multimethod import multimethod as singledispatchmethod
 
 from .plot_interface import PlotInterface
 from .timeseries import TimeSeriesPlotFactory
-from .visualize_lib import VisualizeLib
+from .visualize_lib import VisualizeLibFactory
 from ..common import type_check_decorator
 from ..runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -35,7 +35,7 @@ class Plot:
     def create_period_timeseries_plot(
         target_objects: Collection[TimeSeriesTypes]
     ) -> PlotInterface:
-        visualize_lib = VisualizeLib.create_instance()
+        visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'period', visualize_lib
         )
@@ -47,7 +47,7 @@ class Plot:
     def _create_period_timeseries_plot_tuple(
         *target_objects: TimeSeriesTypes
     ) -> PlotInterface:
-        visualize_lib = VisualizeLib.create_instance()
+        visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'period', visualize_lib
         )
@@ -58,7 +58,7 @@ class Plot:
     def create_frequency_timeseries_plot(
         target_objects: Collection[TimeSeriesTypes]
     ) -> PlotInterface:
-        visualize_lib = VisualizeLib.create_instance()
+        visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'frequency', visualize_lib
         )
@@ -70,7 +70,7 @@ class Plot:
     def _create_frequency_timeseries_plot_tuple(
         *target_objects: TimeSeriesTypes
     ) -> PlotInterface:
-        visualize_lib = VisualizeLib.create_instance()
+        visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'frequency', visualize_lib
         )
@@ -81,7 +81,7 @@ class Plot:
     def create_latency_timeseries_plot(
         target_objects: Collection[Union[CallbackBase, Communication]]
     ) -> PlotInterface:
-        visualize_lib = VisualizeLib.create_instance()
+        visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'latency', visualize_lib
         )
@@ -93,7 +93,7 @@ class Plot:
     def _create_latency_timeseries_plot_tuple(
         *target_objects: Union[CallbackBase, Communication]
     ) -> PlotInterface:
-        visualize_lib = VisualizeLib.create_instance()
+        visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'latency', visualize_lib
         )
