@@ -1238,7 +1238,11 @@ class TopicIgnoredReader(ArchitectureReader):
                 cbg.callback_group_type.type_name,
                 cbg.node_name,
                 cbg.node_id,
-                tuple(set(cbg.callback_ids) - self._ignore_callback_ids),
+                tuple(
+                    callback_id
+                    for callback_id
+                    in cbg.callback_ids
+                    if callback_id not in self._ignore_callback_ids),
                 cbg.callback_group_id,
                 callback_group_name=cbg.callback_group_name
             )
