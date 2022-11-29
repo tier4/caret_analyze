@@ -196,7 +196,8 @@ class BokehTimeSeriesHelper:
         value_column = timeseries_records.columns[1]
 
         def ensure_not_none(target_list: Sequence[Optional[int]]) -> List[int]:
-            """Ensure the inputted list does not include None.
+            """
+            Ensure the inputted list does not include None.
 
             Notes
             -----
