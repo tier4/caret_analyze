@@ -1435,6 +1435,8 @@ class FilteredRecordsSource:
         merged.drop_columns(drop)
         merged.reindex(columns)
 
+        merged.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+
         return merged
 
     def intra_comm_records(
