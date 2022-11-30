@@ -117,22 +117,31 @@ class Architecture(Summarizable):
 
         for c in path_info.child:
             if isinstance(c, NodePathStructValue):
+                node_name = c.node_name
+                publish_topic_name = c.publish_topic_name
+                subscribe_topic_name = c.subscribe_topic_name
                 def is_target_node(node: NodeStruct):
-                    return c.node_name == node.node_name
+
+                    return node_name == node.node_name
 
                 def is_target_node_path(node_path: NodePathStruct):
-                    return c.publish_topic_name == node_path.publish_topic_name and \
-                        c.subscribe_topic_name == node_path.subscribe_topic_name
+
+                    return publish_topic_name == node_path.publish_topic_name and \
+                        subscribe_topic_name == node_path.subscribe_topic_name
 
                 node: NodeStruct = Util.find_one(is_target_node, self._nodes)
                 node_path: NodePathStruct = Util.find_one(is_target_node_path, node.paths)
                 child.append(node_path)
 
             elif isinstance(c, CommunicationStructValue):
+                publish_node_name = c.publish_node_name
+                subscribe_node_name = c.subscribe_node_name
+                topic_name = c.topic_name
                 def is_target_comm(comm: CommunicationStruct):
-                    return comm.publish_node_name == c.publish_node_name and \
-                        comm.subscribe_node_name == c.subscribe_node_name and \
-                        comm.topic_name == c.topic_name
+
+                    return publish_node_name == comm.publish_node_name and \
+                        subscribe_node_name == comm.subscribe_node_name and \
+                        topic_name == comm.topic_name
 
                 comm: CommunicationStruct = \
                     Util.find_one(is_target_comm, self._communications)
