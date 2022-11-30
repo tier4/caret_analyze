@@ -67,8 +67,8 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
     """
     Value object class for representing a callback.
 
-    This class has minimal information and no structure,
-    and used as the return value of ArchitectureReader.
+    This class has minimal information and no structure.
+    It's used as the return value of ArchitectureReader.
 
     """
 
@@ -139,7 +139,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         str
-            Node name.
+            Node id.
 
         """
         return self._node_id

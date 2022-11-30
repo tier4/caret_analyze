@@ -26,8 +26,7 @@ class ValueObject():
 
     Note:
     ----
-    Since the hash value is immutable,
-    inherited classes can be used as a dictionary type key, for example.
+    Since the hash value is immutable, inherited classes can be used as a dictionary type key.
     It is also suitable for cache use and does not unintentionally change properties.
 
     """

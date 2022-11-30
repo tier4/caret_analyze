@@ -35,7 +35,6 @@ class NodePathValue(ValueObject):
     This class has minimal information and no structure,
     and used as the return value of ArchitectureReader.
     In CARET, the node path is defined as from subscribe to publish.
-    Therefore, NodePath requires a pair of subscribe and publish.
     """
 
     def __init__(
@@ -81,7 +80,6 @@ class NodePathStructValue(ValueObject, Summarizable):
     This class is a structure that includes other related StructValue classes, such as callbacks,
     and used as the return value of Architecture object.
     In CARET, the node path is defined as from subscribe to publish.
-    Therefore, NodePath requires a pair of subscribe and publish.
     """
 
     def __init__(
