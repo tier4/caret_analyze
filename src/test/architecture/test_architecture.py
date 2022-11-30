@@ -399,17 +399,15 @@ nodes:
 
         assert arch.get_node('/node_0')
         assert arch.get_node('/node_1')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/changed_node')
-        assert e
+        with pytest.raises(ItemNotFoundError):
+            arch.get_node('/changed_node')
 
         arch.rename_node('/node_1', '/changed_node')
 
         assert arch.get_node('/node_0')
         assert arch.get_node('/changed_node')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/node_1')
-        assert e
+        with pytest.raises(ItemNotFoundError):
+            arch.get_node('/node_1')
 
         # define node renamed text
         renamed_architecture_text = \
@@ -436,17 +434,15 @@ nodes:
 
         assert arch.get_executor('executor_0')
         assert arch.get_executor('executor_1')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/changed_executor')
-        assert e
+        with pytest.raises(ItemNotFoundError):
+            arch.get_executor('changed_executor')
 
         arch.rename_executor('executor_1', 'changed_executor')
 
         assert arch.get_executor('executor_0')
         assert arch.get_executor('changed_executor')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/executor_1')
-        assert e
+        with pytest.raises(ItemNotFoundError):
+            arch.get_executor('executor_1')
 
         # define executor renamed text
         renamed_architecture_text = \
@@ -498,18 +494,16 @@ nodes:
 
         assert arch.get_callback('/callback_0')
         assert arch.get_callback('/callback_1')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/changed_callback')
-        assert e
+        with pytest.raises(ItemNotFoundError):
+            arch.get_callback('/changed_callback_0')
 
         arch.rename_callback('/callback_1', '/changed_callback_0')
         arch.rename_callback('/callback_2', '/changed_callback_1')
 
         assert arch.get_callback('/callback_0')
         assert arch.get_callback('/changed_callback_0')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/callback_1')
-        assert e
+        with pytest.raises(ItemNotFoundError):
+            arch.get_callback('/callback_1')
 
         # define callback renamed text
         renamed_architecture_text = \
@@ -540,16 +534,14 @@ nodes:
 
         assert arch.get_path('target_path_0')
         assert arch.get_path('target_path_1')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/changed_path')
-        assert e
+        with pytest.raises(InvalidArgumentError):
+            arch.get_path('changed_path')
 
         arch.rename_path('target_path_1', 'changed_path')
         assert arch.get_path('target_path_0')
         assert arch.get_path('changed_path')
-        with pytest.raises(ItemNotFoundError) as e:
-            assert arch.get_node('/target_path_1')
-        assert e
+        with pytest.raises(InvalidArgumentError):
+            arch.get_path('target_path_1')
 
         # define path renamed text
         renamed_architecture_text = \
