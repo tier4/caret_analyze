@@ -3162,8 +3162,8 @@ a value that can be identified when retrieved from the Architecture reader.</p><
 <code class="highlight language-python"><span class="n">callback_type</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
@@ -3422,8 +3422,8 @@ a value that can be identified when retrieved from the Architecture reader.</p><
 
   
       <p>Value object class for representing a callback.</p>
-<p>This class has minimal information and no structure,
-and used as the return value of ArchitectureReader.</p>
+<p>This class has minimal information and no structure.
+It's used as the return value of ArchitectureReader.</p>
 
 
 
@@ -3636,8 +3636,8 @@ If any properties is different, it should be a different callback id.</p>
 <code class="highlight language-python"><span class="n">callback_type</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
   </span>
 
 <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
@@ -3700,7 +3700,7 @@ If any properties is different, it should be a different callback id.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Node name.</p></td>
+          <td><p>Node id.</p></td>
         </tr>
     </tbody>
   </table>
@@ -4202,8 +4202,7 @@ If the input timestamp is not unique, it may calculate an incorrect value.</p>
       <p>StructValue object class for representing a node path.</p>
 <p>This class is a structure that includes other related StructValue classes, such as callbacks,
 and used as the return value of Architecture object.
-In CARET, the node path is defined as from subscribe to publish.
-Therefore, NodePath requires a pair of subscribe and publish.</p>
+In CARET, the node path is defined as from subscribe to publish.</p>
 
 
 
@@ -4329,8 +4328,7 @@ Required only when message_context is callback_chain.</p></td>
       <p>Value object class for representing a node path.</p>
 <p>This class has minimal information and no structure,
 and used as the return value of ArchitectureReader.
-In CARET, the node path is defined as from subscribe to publish.
-Therefore, NodePath requires a pair of subscribe and publish.</p>
+In CARET, the node path is defined as from subscribe to publish.</p>
 
 
 
@@ -5270,8 +5268,7 @@ and used as the return value of ArchitectureReader.</p>
 <p>Classes that inherit from this class will become immutable ValueObjects,
 and <strong>eq</strong> and <strong>hash</strong> will be calculated based on public properties.</p>
 <h4 id="caret_analyze.value_objects.ValueObject--note">Note:<a class="headerlink" href="#caret_analyze.value_objects.ValueObject--note" title="Permanent link">#</a></h4>
-<p>Since the hash value is immutable,
-inherited classes can be used as a dictionary type key, for example.
+<p>Since the hash value is immutable, inherited classes can be used as a dictionary type key.
 It is also suitable for cache use and does not unintentionally change properties.</p>
 
 
