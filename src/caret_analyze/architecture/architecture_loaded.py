@@ -930,6 +930,7 @@ class CallbacksLoaded():
         self._callbacks = callbacks
 
         self._callback_count: Dict[CallbackValue, int] = {}
+        # "_srv_callback_count" will be integrated into "_callback_count" when the service is officially supported.
         self._srv_callback_count: Dict[CallbackValue, int] = {}
         self._cb_dict: Dict[str, CallbackStruct] = {}
 
@@ -984,6 +985,9 @@ class CallbacksLoaded():
                 publish_topic_names=callback.publish_topic_names,
                 callback_name=callback_name,
             )
+        # Service callbacks support "read" only, not "export".
+        # To avoid affecting exported files, special handling is done for service callbacks.
+        # When the service is officially supported, the special processing will be removed.
         if isinstance(callback, ServiceCallbackValue):
             assert callback.service_name is not None
             self._srv_callback_count[callback] = self._srv_callback_count.get(
