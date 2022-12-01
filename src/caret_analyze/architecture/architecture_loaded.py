@@ -930,6 +930,7 @@ class CallbacksLoaded():
         self._callbacks = callbacks
 
         self._callback_count: Dict[CallbackValue, int] = {}
+        self._srv_callback_count: Dict[CallbackValue, int] = {}
         self._cb_dict: Dict[str, CallbackStruct] = {}
 
         callback_num = Util.num_digit(len(callbacks))
@@ -985,11 +986,11 @@ class CallbacksLoaded():
             )
         if isinstance(callback, ServiceCallbackValue):
             assert callback.service_name is not None
-            self._callback_count[callback] = self._callback_count.get(
-                callback, len(self._callback_count))
-            callback_count = self._callback_count[callback]
+            self._srv_callback_count[callback] = self._srv_callback_count.get(
+                callback, len(self._srv_callback_count))
+            callback_count = self._srv_callback_count[callback]
             indexed = indexed_name(
-                f'{self.node_name}/callback', callback_count, callback_num)
+                f'{self.node_name}/service_callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
             return ServiceCallbackStruct(
                 node_name=callback.node_name,
