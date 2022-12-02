@@ -385,10 +385,6 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        # assert arch.get_node('/pong_node')\
-        # .get_publisher('/ping').callbacks[0].publish_topic_names \
-        #   == arch_expected.get_node('/pong_node')\
-        # .get_publisher('/ping').callbacks[0].publish_topic_names
         assert set(arch.nodes) == set(arch.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
