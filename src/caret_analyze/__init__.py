@@ -29,6 +29,17 @@ __all__ = [
 ]
 
 
+"""
+Configure root logger settings.
+
+Note
+----
+Current implementation shows logs for all modules.
+It should be possible to set the log level details
+for each module in an external log configuration file.
+
+"""
+
 handler = StreamHandler()
 handler.setLevel(WARN)
 

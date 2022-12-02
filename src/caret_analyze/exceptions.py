@@ -12,9 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Exceptions package.
+
+This package defines exceptions raised by CARET.
+"""
+
 
 class Error(Exception):
-    """Base class for exception in this module."""
+    """
+    Base class for exception in this module.
+
+    Use this class when catching CARET-related errors.
+
+    Note:
+    ----
+    The inherited class defines a constructor unnecessarily.
+    Refactoring is needed.
+
+    """
 
 
 class TraceResultAnalyzeError(Error):
