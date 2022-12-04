@@ -132,8 +132,8 @@ def get_cbg_and_name(
     elif (isinstance(target, Path)):
         callback_groups = UniqueList()
         for comm in target.communications:
-            assert comm.publish_node.callback_groups is not None
-            for cbg in comm.publish_node.callback_groups:
+            callback_groups = comm.publish_node.callback_groups or []
+            for cbg in callback_groups:
                 callback_groups.append(cbg)
 
         callback_groups = target.communications[-1].subscribe_node.callback_groups or []
