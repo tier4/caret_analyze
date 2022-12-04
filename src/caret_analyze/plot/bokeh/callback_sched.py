@@ -136,8 +136,8 @@ def get_cbg_and_name(
             for cbg in comm.publish_node.callback_groups:
                 callback_groups.append(cbg)
 
-        assert target.communications[-1].subscribe_node.callback_groups is not None
-        for cbg in target.communications[-1].subscribe_node.callback_groups:
+        callback_groups = target.communications[-1].subscribe_node.callback_groups or []
+        for cbg in callback_groups:
             callback_groups.append(cbg)
         assert target.path_name is not None
         return callback_groups.as_list(), target.path_name
