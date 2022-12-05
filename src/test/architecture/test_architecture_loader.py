@@ -338,7 +338,7 @@ class TestNodesInfoLoaded():
         services_loaded = mocker.Mock(spec=ServicesLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.ServicesLoaded',
                      return_value=services_loaded)
-        mocker.patch.object(services_loaded, 'data', [service,])
+        mocker.patch.object(services_loaded, 'data', [service])
 
         timers_loaded = mocker.Mock(spec=TimersLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.TimersLoaded',

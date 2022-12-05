@@ -116,13 +116,13 @@ class ArchitectureLoaded():
                     if '/service_only_callback_group_'  \
                             in cbg.callback_group_name:
                         continue
-                    cbg._callbacks = tuple([cb for cb in cbg.callbacks
-                                            if cb.service_name is None])
+                    cbg._callbacks = [cb for cb in cbg.callbacks
+                                            if cb.service_name is None]
                     ignored_callback_groups.append(cbg)
 
-            n._callback_groups = tuple(ignored_callback_groups)
+            n._callback_groups = ignored_callback_groups
 
-        self._nodes = tuple(nodes)
+        self._nodes = nodes
 
         # for executor
         executors = list(self._executors)
@@ -131,7 +131,7 @@ class ArchitectureLoaded():
                           if '/service_only_callback_group_'
                           not in cbg.callback_group_name]
             # for cbg in exec.callback_groups:
-            executor._cbg_values = tuple(cbg_values)
+            executor._cbg_values = cbg_values
 
 
 class CommValuesLoaded():
@@ -802,8 +802,8 @@ class ServicesLoaded:
         node: NodeValue
     ) -> None:
         services_values = reader.get_services(node)
-        self._data = tuple(self._to_struct(callbacks_loaded, srv)
-                           for srv in services_values)
+        self._data = [self._to_struct(callbacks_loaded, srv)
+                      for srv in services_values]
 
     def _to_struct(
         self,
@@ -1062,7 +1062,8 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 service_name=callback.service_name,
-                publish_topic_names=callback.publish_topic_names,
+                publish_topic_names=None if callback.publish_topic_names is None
+                else list(callback.publish_topic_names),
                 callback_name=callback_name,
             )
         # Service callbacks support "read" only, not "export".
@@ -1080,7 +1081,8 @@ class CallbacksLoaded():
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 service_name=callback.service_name,
-                publish_topic_names=callback.publish_topic_names,
+                publish_topic_names=None if callback.publish_topic_names is None
+                else list(callback.publish_topic_names),
                 callback_name=callback_name,
             )
         raise UnsupportedTypeError('Unsupported callback type')
