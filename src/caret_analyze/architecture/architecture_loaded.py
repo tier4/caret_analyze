@@ -127,7 +127,7 @@ class ArchitectureLoaded():
         # for executor
         executors = list(self._executors)
         for executor in executors:
-            cbg_values = [cbg for cbg in executor._cbg_values
+            cbg_values = [cbg for cbg in executor.callback_groups
                           if '/service_only_callback_group_'
                           not in cbg.callback_group_name]
             # for cbg in exec.callback_groups:

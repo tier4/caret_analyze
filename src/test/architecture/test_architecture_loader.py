@@ -100,12 +100,25 @@ class TestArchitectureLoaded:
         pub_mock = mocker.Mock(spec=PublisherValue)
         sub_mock = mocker.Mock(spec=SubscriptionValue)
         sub_mock_ = mocker.Mock(spec=SubscriptionValue)
+        cb_mock = mocker.Mock(spec=CallbackStruct)
+        cbg_mock = mocker.Mock(spec=CallbackGroupStruct)
+        cbg_mock_ = mocker.Mock(spec=CallbackGroupStruct)
+        exec_mock = mocker.Mock(spec=ExecutorStruct)
 
         mocker.patch.object(pub_mock, 'topic_name', '/chatter')
         mocker.patch.object(sub_mock, 'topic_name', '/chatter')
         mocker.patch.object(sub_mock_, 'topic_name', '/chatter2')
         mocker.patch.object(node_mock, 'publishers', [pub_mock])
         mocker.patch.object(node_mock, 'subscriptions', [sub_mock, sub_mock_])
+        mocker.patch.object(node_mock, 'callback_groups', [cbg_mock, cbg_mock_])
+        mocker.patch.object(exec_mock, 'callback_groups', [cbg_mock, cbg_mock_])
+        mocker.patch.object(cbg_mock, 'callbacks', return_value=[cb_mock, ])
+        mocker.patch.object(cbg_mock, 'callback_group_name',
+                            return_value='callback_group_0')
+        mocker.patch.object(cbg_mock_, 'callback_group_name',
+                            return_value='service_only_callback_group_0')
+        mocker.patch.object(node_mock, 'callback_groups', (cbg_mock,))
+        mocker.patch.object(exec_mock, 'callback_groups', (cbg_mock,))
 
         mocker.patch.object(reader_mock, 'get_paths', return_value=[path_mock])
         mocker.patch.object(reader_mock, 'get_executors', return_value=[executor_mock])
@@ -127,7 +140,7 @@ class TestArchitectureLoaded:
 
         mocker.patch.object(node_loaded, 'data', (node_mock,))
         mocker.patch.object(comm_loaded, 'data', (comm_mock,))
-        mocker.patch.object(executor_loaded, 'data', (executor_mock,))
+        mocker.patch.object(executor_loaded, 'data', (exec_mock,))
         mocker.patch.object(path_loaded, 'data', (path_mock,))
 
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
