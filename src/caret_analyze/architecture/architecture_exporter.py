@@ -18,7 +18,8 @@ from typing import Dict, List, Optional, Tuple
 
 from .reader_interface import UNDEFINED_STR
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
-from ..value_objects import (CallbackStructValue, CallbackType,
+from ..value_objects import (CallbackStructValue, CallbackGroupStructValue,
+                             CallbackType,
                              ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,
                              PathStructValue, PublisherStructValue,
@@ -240,11 +241,35 @@ class NodesDicts:
         obj: Dict = {}
         obj['node_name'] = f'{node.node_name}'
 
+        # if len(node._publishers) == 0 and len(node._subscriptions) == 0 and len(node._timers) == 0:
+        #     return obj
+        """def _is_service_only_callback_group(callback_group: CallbackGroupStructValue):
+            cb_names = callback_group.callback_group_name
+            srv_cb_count = len([cb_name for cb_name in cb_names if '/service_callback' not in cb_name])
+            cb_count = len(cb_names)
+            return srv_cb_count == cb_count and srv_cb_count != 0
+
         if node.callback_groups is not None:
             obj['callback_groups'] = [{
                 'callback_group_type': cbg.callback_group_type_name,
                 'callback_group_name': cbg.callback_group_name,
-                'callback_names': sorted(cbg.callback_names)
+                'callback_names': sorted([cb_name for cb_name in cbg.callback_names if '/service_callback' not in cb_name])
+            } for cbg in node.callback_groups if _is_service_only_callback_group(cbg)]
+        """
+
+        """
+        if node.callback_groups is not None:
+            obj['callback_groups'] = [{
+                'callback_group_type': cbg.callback_group_type_name,
+                'callback_group_name': cbg.callback_group_name,
+                'callback_names': sorted([cb_name for cb_name in cbg.callback_names if '/service_callback' not in cb_name])
+            } for cbg in node.callback_groups if '/service_only_callback_group'not in cbg.callback_group_name]"""
+
+        if node.callback_groups is not None:
+            obj['callback_groups'] = [{
+                'callback_group_type': cbg.callback_group_type_name,
+                'callback_group_name': cbg.callback_group_name,
+                'callback_names': sorted([cb_name for cb_name in cbg.callback_names])
             } for cbg in node.callback_groups]
 
         if node.callbacks is not None:
