@@ -181,26 +181,24 @@ class NodeStruct():
                 MessageContextStruct.create_instance(context_type, {},
                                                      self.node_name, subscription,
                                                      publisher, None)
-            new_path: NodePathStruct = NodePathStruct(self.node_name, subscription, publisher,
-                                                      None, message_context)
-            paths = list(self._node_paths)
-            paths.append(new_path)
-            self._node_paths = tuple(paths)
+            path = NodePathStruct(self.node_name, subscription, publisher,
+                                  None, message_context)
+            self._node_paths.append(path)
 
     def assign_publisher(self, pub_topic_name: str,
                          callback_function: Optional[CallbackStruct]):
         publisher = PublisherStruct(self.node_name, pub_topic_name,
-                                    () if callback_function is None else (callback_function,))
-        publisher_list = list(self.publishers)
-        publisher_list.append(publisher)
-        self._publishers = tuple(publisher_list)
+                                    [] if callback_function is None else [callback_function])
+        self._publishers.append(publisher)
 
     def assign_message_passings(self, source_callback: CallbackStruct,
                                 destination_callback: CallbackStruct):
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
-        passing_list = [] if self.variable_passings is None else list(self.variable_passings)
-        passing_list.append(passing)
-        self._variable_passings_info = tuple(passing_list)
+        # passing_list = [] if self.variable_passings is None else list(self.variable_passings)
+        if self._variable_passings_info is None:
+            self._variable_passings_info = [passing]
+        else:
+            self._variable_passings_info.append(passing)
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
