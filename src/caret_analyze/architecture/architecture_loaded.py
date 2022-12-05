@@ -117,7 +117,7 @@ class ArchitectureLoaded():
                             in cbg.callback_group_name:
                         continue
                     cbg._callbacks = [cb for cb in cbg.callbacks
-                                            if cb.service_name is None]
+                                      if cb.service_name is None]
                     ignored_callback_groups.append(cbg)
 
             n._callback_groups = ignored_callback_groups
