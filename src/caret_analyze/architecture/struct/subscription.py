@@ -53,3 +53,17 @@ class SubscriptionStruct():
     def to_value(self) -> SubscriptionStructValue:
         return SubscriptionStructValue(self.node_name, self.topic_name,
                                        None if self.callback is None else self.callback.to_value())
+
+    def rename_node(self, src: str, dst: str) -> None:
+        if self.node_name == src:
+            self._node_name = dst
+
+        if self._callback_value is not None:
+            self._callback_value.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str) -> None:
+        if self.topic_name == src:
+            self._topic_name = dst
+
+        if self._callback_value is not None:
+            self._callback_value.rename_topic(src, dst)

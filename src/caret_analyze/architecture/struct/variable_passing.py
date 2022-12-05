@@ -84,3 +84,14 @@ class VariablePassingStruct():
         return VariablePassingStructValue(self.node_name,
                                           self.callback_write.to_value(),
                                           self.callback_read.to_value())
+
+    def rename_node(self, src: str, dst: str) -> None:
+        if self.node_name == src:
+            self._node_name = dst
+
+        self._cb_read.rename_node(src, dst)
+        self._cb_write.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str) -> None:
+        self._cb_read.rename_topic(src, dst)
+        self._cb_write.rename_topic(src, dst)

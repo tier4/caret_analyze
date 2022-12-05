@@ -29,11 +29,31 @@ from ..exceptions import ItemNotFoundError
 
 
 class NodeValue(ValueObject):
+    """
+    Value object class for representing a node.
+
+    This class has minimal information and no structure,
+    and used as the return value of ArchitectureReader.
+
+    """
+
     def __init__(
         self,
         node_name: str,
         node_id: Optional[str],
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        node_id : Optional[str]
+            Identification of the node,
+            a value that can be identified when retrieved from the Architecture reader.
+
+        """
         self.__node_name = node_name
         self.__node_id = node_id
 
@@ -47,11 +67,31 @@ class NodeValue(ValueObject):
 
 
 class NodeValueWithId(NodeValue):
+    """
+    Value object class for representing a node path.
+
+    This class has minimal information and no structure,
+    and used as the return value of ArchitectureReader.
+
+    """
+
     def __init__(
         self,
         node_name: str,
         node_id: str,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        node_id : Optional[str]
+            Identification of the node,
+            a value that can be identified when retrieved from the Architecture reader.
+
+        """
         super().__init__(node_name, node_id)
         self._node_id = node_id
 
@@ -61,7 +101,12 @@ class NodeValueWithId(NodeValue):
 
 
 class NodeStructValue(ValueObject, Summarizable):
-    """Executor info for architecture."""
+    """
+    StructValue object class for representing a node.
+
+    This class is a structure that includes other related StructValue classes, such as callbacks,
+    and used as the return value of Architecture object.
+    """
 
     def __init__(
         self,
