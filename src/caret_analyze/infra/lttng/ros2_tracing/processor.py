@@ -17,6 +17,9 @@
 
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
+from collections import defaultdict
+
+
 import bt2
 
 from .data_model import Ros2DataModel
@@ -175,6 +178,7 @@ class Ros2Handler():
             self._create_handler(self._handle_rcl_lifecycle_state_machine_init)
 
         self._monotonic_to_system_offset: Optional[int] = monotonic_to_system_time_offset
+        self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
         self.handler_map = handler_map
 
         # Temporary buffers
@@ -259,6 +263,25 @@ class Ros2Handler():
     @property
     def data(self) -> Ros2DataModel:
         return self._data  # type: ignore
+
+    def _is_valid_data(self, event) -> bool:
+        """
+        Confirm that the data to be converted is appropriate.
+
+        Returns
+        -------
+        bool
+            False for runtime recording if it is before caret_init is called,otherwise, True.
+            runtime tracepoints only.
+
+        """
+        exists_caret_trace = self._monotonic_to_system_offset
+        if not exists_caret_trace:
+            return True
+
+        pid = get_field(event, '_vpid')
+        assert isinstance(pid, int)
+        return self._caret_init_recorded[pid]
 
     def _handle_rcl_init(
         self,
@@ -414,6 +437,9 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         clock_offset = get_field(event, 'clock_offset')
         self.data.add_caret_init(clock_offset, timestamp)  # type: ignore
+        pid = get_field(event, '_vpid')
+        assert isinstance(pid, int)
+        self._caret_init_recorded[pid] = True
 
     @staticmethod
     def get_monotonic_to_system_offset(
@@ -454,6 +480,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         # Add to dict
         callback = get_field(event, 'callback')
         timestamp = get_field(event, '_timestamp')
@@ -465,6 +494,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         # Fetch from dict
         callback = get_field(event, 'callback')
         timestamp = get_field(event, '_timestamp')
@@ -482,6 +514,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         timestamp = get_field(event, '_timestamp')
         state_machine = get_field(event, 'state_machine')
         start_label = get_field(event, 'start_label')
@@ -493,6 +528,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = get_field(event, '_timestamp')
         message = get_field(event, 'message')
@@ -505,6 +543,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = get_field(event, '_timestamp')
         tid = get_field(event, '_vtid')
@@ -516,6 +557,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         original_message = get_field(event, 'original_message')
         constructed_message = get_field(event, 'constructed_message')
         timestamp = get_field(event, '_timestamp')
@@ -526,6 +570,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         message = get_field(event, 'message')
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = get_field(event, '_timestamp')
@@ -538,6 +585,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         callback_object = get_field(event, 'callback')
         message = get_field(event, 'message')
         timestamp = get_field(event, '_timestamp')
@@ -551,6 +601,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         callback_object = get_field(event, 'callback')
         message = get_field(event, 'message')
         timestamp = get_field(event, '_timestamp')
@@ -563,6 +616,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         timestamp = get_field(event, '_timestamp')
         source_stamp = get_field(event, 'source_stamp')
         self.data.add_on_data_available_instance(timestamp, source_stamp)
@@ -571,6 +627,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         timestamp = get_field(event, '_timestamp')
         message = get_field(event, 'message')
         tid = get_field(event, '_vtid')
@@ -580,6 +639,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         timestamp = get_field(event, '_timestamp')
         addr = get_field(event, 'addr')
         tid = get_field(event, '_vtid')
@@ -590,6 +652,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         timestamp = get_field(event, '_timestamp')
         addr_from = get_field(event, 'addr_from')
         addr_to = get_field(event, 'addr_to')
@@ -704,6 +769,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         timestamp = get_field(event, '_timestamp')
         subscription = get_field(event, 'subscription')
         tilde_message_id = get_field(event, 'tilde_message_id')
@@ -713,6 +781,9 @@ class Ros2Handler():
         self,
         event: Dict,
     ) -> None:
+        if not self._is_valid_data(event):
+            return
+
         publisher = get_field(event, 'publisher')
         publish_tilde_timestamp = get_field(event, 'tilde_publish_timestamp')
         tilde_message_id = get_field(event, 'tilde_message_id')
