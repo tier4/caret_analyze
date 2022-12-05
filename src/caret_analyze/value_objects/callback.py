@@ -103,6 +103,8 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
             Symbol name of the callback.
         subscribe_topic_name : Optional[str]
             Topic name which the callback subscribes.
+        service_name : Optional[str]
+            Service name which the callback service.
         publish_topic_names : Optional[Tuple[str, ...]]
             Topic name which the callback publishes.
         callback_name: Optional[str]
