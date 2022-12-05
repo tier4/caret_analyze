@@ -110,9 +110,9 @@ class ArchitectureLoaded():
         nodes = list(self._nodes)
         for n in nodes:
             ignored_callback_groups = []
-            org_callback_groups = n.callback_groups
-            if org_callback_groups is not None:
-                for cbg in org_callback_groups:
+            original_callback_groups = n.callback_groups
+            if original_callback_groups is not None:
+                for cbg in original_callback_groups:
                     if '/service_only_callback_group_'  \
                             in cbg.callback_group_name:
                         continue
