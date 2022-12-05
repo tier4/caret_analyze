@@ -120,12 +120,11 @@ class Architecture(Summarizable):
                 node_name = c.node_name
                 publish_topic_name = c.publish_topic_name
                 subscribe_topic_name = c.subscribe_topic_name
-                def is_target_node(node: NodeStruct):
 
+                def is_target_node(node: NodeStruct):
                     return node_name == node.node_name
 
                 def is_target_node_path(node_path: NodePathStruct):
-
                     return publish_topic_name == node_path.publish_topic_name and \
                         subscribe_topic_name == node_path.subscribe_topic_name
 
