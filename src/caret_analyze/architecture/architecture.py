@@ -136,8 +136,8 @@ class Architecture(Summarizable):
                 publish_node_name = c.publish_node_name
                 subscribe_node_name = c.subscribe_node_name
                 topic_name = c.topic_name
-                def is_target_comm(comm: CommunicationStruct):
 
+                def is_target_comm(comm: CommunicationStruct):
                     return publish_node_name == comm.publish_node_name and \
                         subscribe_node_name == comm.subscribe_node_name and \
                         topic_name == comm.topic_name
