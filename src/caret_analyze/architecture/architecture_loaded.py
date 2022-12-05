@@ -905,7 +905,7 @@ class CallbackGroupsLoaded():
         _cbg_dict: Dict[CallbackGroupValue, int] = {}
         _srv_only_cbg_dict: Dict[CallbackGroupValue, int] = {}
 
-        # ignore callback_group ontaining only service callbacks
+        # ignore callback_group containing only service callbacks
         def _is_service_only_callbackgroup(cbg: CallbackGroupValue):
             cbs = self._get_callbacks(callbacks_loaded, cbg)
             srv_cb_count = len([cb for cb in cbs
