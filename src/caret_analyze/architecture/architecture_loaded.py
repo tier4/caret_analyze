@@ -110,25 +110,29 @@ class ArchitectureLoaded():
         nodes = list(self._nodes)
         for n in nodes:
             n._services = ()
-            cbgs = []
+            ignored_cbgs = []
             org_cbgs = n.callback_groups
             if org_cbgs is not None:
                 for cbg in org_cbgs:
-                    if "/service_only_callback_group_" in cbg.callback_group_name:
+                    if '/service_only_callback_group_'  \
+                            in cbg.callback_group_name:
                         continue
-                    cbg._callbacks =  tuple([cb for cb in cbg.callbacks if cb.service_name is None])
-                    cbgs.append(cbg)
+                    cbg._callbacks = tuple([cb for cb in cbg.callbacks
+                                            if cb.service_name is None])
+                    ignored_cbgs.append(cbg)
 
-            n._callback_groups = tuple(cbgs)
+            n._callback_groups = tuple(ignored_cbgs)
 
         self._nodes = tuple(nodes)
 
         # for executor
         executors = list(self._executors)
-        for exec in executors:
-            cbg_values = [cbg for cbg in exec._cbg_values if '/service_only_callback_group_' not in cbg.callback_group_name]
+        for executor in executors:
+            cbg_values = [cbg for cbg in executor._cbg_values
+                          if '/service_only_callback_group_'
+                          not in cbg.callback_group_name]
             # for cbg in exec.callback_groups:
-            exec._cbg_values = tuple(cbg_values)
+            executor._cbg_values = tuple(cbg_values)
 
 
 class CommValuesLoaded():
@@ -905,7 +909,8 @@ class CallbackGroupsLoaded():
         # callback service only cbg は 無視する
         def _is_service_only_callbackgroup(cbg: CallbackGroupValue):
             cbs = self._get_callbacks(callbacks_loaded, cbg)
-            srv_cb_count = len([cb for cb in cbs if isinstance(cb, ServiceCallbackStruct)])
+            srv_cb_count = len([cb for cb in cbs
+                                if isinstance(cb, ServiceCallbackStruct)])
             cb_count = len(cbs)
             return srv_cb_count == cb_count and srv_cb_count != 0
 
@@ -913,11 +918,14 @@ class CallbackGroupsLoaded():
             self._validate(cbg, node)
 
             if not _is_service_only_callbackgroup(cbg):
-                cbg_name = cbg.callback_group_name or f'{node.node_name}/callback_group_{len(_cbg_dict)}'
+                cbg_name = cbg.callback_group_name  \
+                    or f'{node.node_name}/callback_group_{len(_cbg_dict)}'
                 _cbg_dict[cbg] = len(_cbg_dict)
 
             else:
-                cbg_name = cbg.callback_group_name or f'{node.node_name}/service_only_callback_group_{len(_srv_only_cbg_dict)}'
+                cbg_name = cbg.callback_group_name  \
+                    or f'{node.node_name}/service_only_callback_group_' \
+                    + '{len(_srv_only_cbg_dict)}'
                 _srv_only_cbg_dict[cbg] = len(_srv_only_cbg_dict)
 
             cbg_struct = CallbackGroupStruct(
@@ -976,13 +984,15 @@ class CallbacksLoaded():
         self._callbacks = callbacks
 
         self._callback_count: Dict[CallbackValue, int] = {}
-        # "_srv_callback_count" will be integrated into "_callback_count" when the service is officially supported.
+        # "_srv_callback_count" will be integrated
+        # into "_callback_count" when the service is officially supported.
         self._srv_callback_count: Dict[CallbackValue, int] = {}
         self._cb_dict: Dict[str, CallbackStruct] = {}
 
         # Service callbacks are handled specially until formal support for the service is provided
         # callback_num = Util.num_digit(len(callbacks))
-        callback_num = Util.num_digit(len(reader.get_timer_callbacks(node)) + len(reader.get_subscription_callbacks(node)))
+        callback_num = Util.num_digit(len(reader.get_timer_callbacks(node))
+                                      + len(reader.get_subscription_callbacks(node)))
         srv_callback_num = Util.num_digit(len(reader.get_service_callbacks(node)))
 
         for callback in callbacks:
