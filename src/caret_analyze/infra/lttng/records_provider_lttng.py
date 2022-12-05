@@ -1438,6 +1438,10 @@ class FilteredRecordsSource:
         merged.drop_columns(drop)
         merged.reindex(columns)
 
+        # NOTE: After merge, the dropped data are aligned at the end
+        # regardless of the time of publish.
+        merged.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+
         return merged
 
     def intra_comm_records(
@@ -1545,6 +1549,8 @@ class FilteredRecordsSource:
             if publisher_handle in grouped_records:
                 inter_pub_records = grouped_records[publisher_handle].clone()
                 pub_records.concat(inter_pub_records)
+
+        pub_records.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
 
         return pub_records
 

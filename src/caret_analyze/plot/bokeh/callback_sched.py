@@ -32,7 +32,7 @@ import pandas as pd
 
 from .util import (apply_x_axis_offset,
                    get_callback_param_desc, get_range, RectValues)
-from ...common import ClockConverter, UniqueList, Util
+from ...common import ClockConverter, type_check_decorator, UniqueList, Util
 from ...exceptions import InvalidArgumentError
 from ...record import Clip
 from ...runtime import (Application, CallbackBase, CallbackGroup,
@@ -44,6 +44,7 @@ CallbackGroupTypes = Union[Application, Executor, Path, Node,
                            CallbackGroup, List[CallbackGroup]]
 
 
+@type_check_decorator
 def callback_sched(
     target: CallbackGroupTypes,
     lstrip_s: float = 0,
@@ -131,10 +132,12 @@ def get_cbg_and_name(
     elif (isinstance(target, Path)):
         callback_groups = UniqueList()
         for comm in target.communications:
-            for cbg in comm.publish_node.callback_groups:
+            for cbg in comm.publish_node.callback_groups or []:
                 callback_groups.append(cbg)
-        for cbg in target.communications[-1].subscribe_node.callback_groups:
+
+        for cbg in target.communications[-1].subscribe_node.callback_groups or []:
             callback_groups.append(cbg)
+        assert target.path_name is not None
         return callback_groups.as_list(), target.path_name
 
     elif (isinstance(target, Node)):
@@ -287,6 +290,7 @@ def sched_plot_cbg(
                 y_start = rect_source.data['y'][1]+0.9
                 y_end = rect_source.data['y'][1]+rect_height
                 timer = callback.timer
+                assert timer is not None
                 df = timer.to_dataframe()
                 for item in df.itertuples():
                     timer_stamp = item._1
