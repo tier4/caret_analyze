@@ -44,9 +44,7 @@ class TimeSeriesPlot(metaclass=ABCMeta):
         self._callbacks: List[CallbackBase] = []
         if (len(target) == 1 and
                 (isinstance(target[0], (Application, Executor, Node, CallbackGroup, Path)))):
-            callbacks: Optional[List[CallbackBase]] = target[0].callbacks
-            assert callbacks is not None
-            self._callbacks = callbacks
+            self._callbacks = target[0].callbacks or []
             logger.warning(
                 'This way to input `target` argument is deprecated. '
                 'The argument type was changed to Collection[CallbackBase]. '
