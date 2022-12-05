@@ -722,7 +722,7 @@ class PublishersLoaded:
                 pub_callbacks.append(
                     callbacks_loaded.find_callback(callback_id))
 
-        # serviceやclientのみのケースでは誤って割り当てられる可能性がある
+        # May be assigned incorrectly for service or client-only nodes
         callbacks = PublishersLoaded._get_callbacks(callbacks_loaded)
         srv_ignored_callbacks = [c for c in callbacks if not isinstance(c, ServiceCallbackStruct)]
         if len(pub_callbacks) == 0 and len(srv_ignored_callbacks) == 1:
@@ -905,7 +905,7 @@ class CallbackGroupsLoaded():
         _cbg_dict: Dict[CallbackGroupValue, int] = {}
         _srv_only_cbg_dict: Dict[CallbackGroupValue, int] = {}
 
-        # callback service only cbg は 無視する
+        # ignore callback_group ontaining only service callbacks
         def _is_service_only_callbackgroup(cbg: CallbackGroupValue):
             cbs = self._get_callbacks(callbacks_loaded, cbg)
             srv_cb_count = len([cb for cb in cbs
@@ -1279,7 +1279,6 @@ class PathValuesLoaded():
     def data(self) -> List[PathStruct]:
         return self._data
 
-    # serviceはactionに対応していないので、おかしな結果になってしまう。
     # def _insert_publishers_to_callbacks(
     #     self,
     #     publishers: List[PublisherInfo],
