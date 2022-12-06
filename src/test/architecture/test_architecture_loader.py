@@ -172,7 +172,7 @@ class TestNodesInfoLoaded():
 
         loader = NodeValuesLoaded(reader_mock)
         nodes = loader.data
-        assert nodes == (node_mock,)
+        assert nodes == [node_mock]
 
     def test_name_sort(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
@@ -220,33 +220,33 @@ class TestNodesInfoLoaded():
         path_searched = mocker.Mock(spec=CallbackPathSearched)
         mocker.patch('caret_analyze.architecture.architecture_loaded.CallbackPathSearched',
                      return_value=path_searched)
-        mocker.patch.object(path_searched, 'data', ())
+        mocker.patch.object(path_searched, 'data', [])
 
         cbg_loaded = mocker.Mock(spec=CallbackGroupsLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.CallbackGroupsLoaded',
                      return_value=cbg_loaded)
-        mocker.patch.object(cbg_loaded, 'data', ())
+        mocker.patch.object(cbg_loaded, 'data', [])
 
         var_pass_loaded = mocker.Mock(spec=VariablePassingsLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.VariablePassingsLoaded',
                      return_value=var_pass_loaded)
-        mocker.patch.object(var_pass_loaded, 'data', ())
+        mocker.patch.object(var_pass_loaded, 'data', [])
 
         cbs_loaded = mocker.Mock(spec=CallbacksLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.CallbacksLoaded',
                      return_value=cbs_loaded)
-        mocker.patch.object(cbs_loaded, 'data', ())
+        mocker.patch.object(cbs_loaded, 'data', [])
 
         node_value = NodeValue('node', 'node')
         node, _, _ = NodeValuesLoaded._create_node(node_value, reader_mock)
 
         assert node.node_name == 'node'
-        assert node.publishers == ()
-        assert node.subscriptions == ()
-        assert node.callbacks == ()
-        assert node.callback_groups == ()
-        assert node.paths == ()
-        assert node.variable_passings == ()
+        assert node.publishers == []
+        assert node.subscriptions == []
+        assert node.callbacks == []
+        assert node.callback_groups == []
+        assert node.paths == []
+        assert node.variable_passings == []
 
     def test_create_node_full(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
@@ -281,41 +281,41 @@ class TestNodesInfoLoaded():
         path_searched = mocker.Mock(spec=CallbackPathSearched)
         mocker.patch('caret_analyze.architecture.architecture_loaded.CallbackPathSearched',
                      return_value=path_searched)
-        mocker.patch.object(path_searched, 'data', (path,))
+        mocker.patch.object(path_searched, 'data', [path])
 
         path_created = mocker.Mock(spec=NodePathCreated)
         mocker.patch('caret_analyze.architecture.architecture_loaded.NodePathCreated',
                      return_value=path_created)
-        mocker.patch.object(path_created, 'data', (path_,))
+        mocker.patch.object(path_created, 'data', [path_])
 
         cbg_loaded = mocker.Mock(spec=CallbackGroupsLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.CallbackGroupsLoaded',
                      return_value=cbg_loaded)
-        mocker.patch.object(cbg_loaded, 'data', (cbg,))
+        mocker.patch.object(cbg_loaded, 'data', [cbg])
 
         var_pass_loaded = mocker.Mock(spec=VariablePassingsLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.VariablePassingsLoaded',
                      return_value=var_pass_loaded)
-        mocker.patch.object(var_pass_loaded, 'data', (var_pass,))
+        mocker.patch.object(var_pass_loaded, 'data', [var_pass])
 
         cbs_loaded = mocker.Mock(spec=CallbacksLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.CallbacksLoaded',
                      return_value=cbs_loaded)
-        mocker.patch.object(cbs_loaded, 'data', ())
+        mocker.patch.object(cbs_loaded, 'data', [])
 
         publishers_loaded = mocker.Mock(spec=PublishersLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.PublishersLoaded',
                      return_value=publishers_loaded)
-        mocker.patch.object(publishers_loaded, 'data', (publisher,))
+        mocker.patch.object(publishers_loaded, 'data', [publisher])
 
         subscriptions_loaded = mocker.Mock(spec=SubscriptionsLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.SubscriptionsLoaded',
                      return_value=subscriptions_loaded)
-        mocker.patch.object(subscriptions_loaded, 'data', (subscription,))
+        mocker.patch.object(subscriptions_loaded, 'data', [subscription])
         timers_loaded = mocker.Mock(spec=TimersLoaded)
         mocker.patch('caret_analyze.architecture.architecture_loaded.TimersLoaded',
                      return_value=timers_loaded)
-        mocker.patch.object(timers_loaded, 'data', (timer,))
+        mocker.patch.object(timers_loaded, 'data', [timer])
 
         def assigned(node_paths, message_contexts):
             return node_paths
@@ -330,13 +330,13 @@ class TestNodesInfoLoaded():
         node, _, _ = NodeValuesLoaded._create_node(node_value, reader_mock)
 
         assert node.node_name == 'node'
-        assert node.publishers == (publisher,)
-        assert node.timers == (timer,)
-        assert node.subscriptions == (subscription,)
-        assert node.callbacks == (callback,)
-        assert node.callback_groups == (cbg,)
-        assert node.paths == (path, path_)
-        assert node.variable_passings == (var_pass,)
+        assert node.publishers == [publisher]
+        assert node.timers == [timer]
+        assert node.subscriptions == [subscription]
+        assert node.callbacks == [callback]
+        assert node.callback_groups == [cbg]
+        assert node.paths == [path, path_]
+        assert node.variable_passings == [var_pass]
 
     def test_find_callback(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
@@ -434,19 +434,19 @@ class TestNodesInfoLoaded():
         cb_mock = mocker.Mock(spec=CallbackStruct)
 
         mocker.patch.object(cb_loaded_mock, 'search_callbacks',
-                            return_value=(cb_mock,))
+                            return_value=[cb_mock])
         mocker.patch.object(NodeValuesLoaded, '_create_node',
                             return_value=(node_mock, cb_loaded_mock, cbg_loaded_mock))
 
         node = NodeValue('node', None)
-        mocker.patch.object(reader_mock, 'get_nodes', return_value=(node,))
+        mocker.patch.object(reader_mock, 'get_nodes', return_value=[node])
 
         loaded = NodeValuesLoaded(reader_mock)
-        assert loaded.find_callbacks(('callback_id',)) == (cb_mock,)
+        assert loaded.find_callbacks(['callback_id']) == [cb_mock]
 
-        mocker.patch.object(cb_loaded_mock, 'search_callbacks', return_value=())
+        mocker.patch.object(cb_loaded_mock, 'search_callbacks', return_value=[])
         with pytest.raises(ItemNotFoundError):
-            loaded.find_callbacks(('callback_id',))
+            loaded.find_callbacks(['callback_id'])
 
     def test_get_callbacks(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
@@ -688,7 +688,7 @@ class TestPublishersLoaded:
         assert isinstance(pub_struct_info, PublisherStruct)
         assert pub_struct_info.callback_names is not None
         assert len(pub_struct_info.callback_names) == 1
-        assert pub_struct_info.callbacks == (callback_struct_mock,)
+        assert pub_struct_info.callbacks == [callback_struct_mock]
         assert pub_struct_info.node_name == publisher_info.node_name
         assert pub_struct_info.topic_name == publisher_info.topic_name
 
@@ -828,7 +828,7 @@ class TestCallbacksLoaded:
         assert cb.node_name == timer_cb.node_id
         assert cb.callback_name == timer_cb.callback_name
         assert cb.callback_type == timer_cb.callback_type
-        assert cb.publish_topic_names == (topic_name,)
+        assert cb.publish_topic_names == [topic_name]
         assert cb.subscribe_topic_name is None
 
         cb = loaded.find_callback(callback_id[1])
@@ -1008,7 +1008,7 @@ class TestExecutorInfoLoaded:
         loaded = ExecutorValuesLoaded(reader_mock, nodes_loaded)
 
         executors = loaded.data
-        assert executors == ()
+        assert executors == []
 
     def test_single_executor(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1026,7 +1026,7 @@ class TestExecutorInfoLoaded:
 
         executors = loaded.data
 
-        assert executors == (struct_mock,)
+        assert executors == [struct_mock]
 
     def test_to_struct_empty(self, mocker):
         executor = ExecutorValue(
@@ -1052,7 +1052,7 @@ class TestExecutorInfoLoaded:
             (cbg_info_mock,))
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         mocker.patch.object(
-            cbg_info_mock, 'callback_ids', ('callback',)
+            cbg_info_mock, 'callback_ids', ['callback']
         )
 
         cbg_struct_info_mock = mocker.Mock(spec=CallbackStruct)
@@ -1064,7 +1064,7 @@ class TestExecutorInfoLoaded:
 
         assert isinstance(exec_info, ExecutorStruct)
         assert len(exec_info.callback_groups) == 1
-        assert exec_info.callback_groups == (cbg_struct_info_mock,)
+        assert exec_info.callback_groups == [cbg_struct_info_mock]
         assert exec_info.executor_type == ExecutorType.SINGLE_THREADED_EXECUTOR
         assert exec_info.executor_name == 'single_threaded_executor_0'
 
@@ -1110,10 +1110,10 @@ class TestCommunicationInfoLoaded:
 
         node_info_mock = mocker.Mock(spec=NodeStruct)
 
-        mocker.patch.object(node_info_mock, 'publishers', ())
-        mocker.patch.object(node_info_mock, 'subscriptions', ())
+        mocker.patch.object(node_info_mock, 'publishers', [])
+        mocker.patch.object(node_info_mock, 'subscriptions', [])
 
-        mocker.patch.object(nodes_loaded_mock, 'data', (node_info_mock,))
+        mocker.patch.object(nodes_loaded_mock, 'data', [node_info_mock])
         loaded = CommValuesLoaded(nodes_loaded_mock)
         assert len(loaded.data) == 0
 
@@ -1142,10 +1142,10 @@ class TestCommunicationInfoLoaded:
                             '_to_struct', return_value=comm_mock)
 
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
-        mocker.patch.object(nodes_loaded_mock, 'data', (node_info_mock,))
+        mocker.patch.object(nodes_loaded_mock, 'data', [node_info_mock])
 
         loaded = CommValuesLoaded(nodes_loaded_mock)
-        assert loaded.data == (comm_mock,)
+        assert loaded.data == [comm_mock]
 
     def test_to_struct_with_callback(self, mocker):
         topic_name = '/chatter'
@@ -1164,17 +1164,17 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(pub_mock, 'node_name', pub_node_name)
         mocker.patch.object(sub_mock, 'node_name', sub_node_name)
 
-        mocker.patch.object(node_pub_mock, 'publishers', (pub_mock,))
-        mocker.patch.object(node_sub_mock, 'subscriptions', (sub_mock,))
+        mocker.patch.object(node_pub_mock, 'publishers', [pub_mock])
+        mocker.patch.object(node_sub_mock, 'subscriptions', [sub_mock])
 
         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
 
-        mocker.patch.object(pub_cb_mock, 'publish_topic_names', (topic_name,))
+        mocker.patch.object(pub_cb_mock, 'publish_topic_names', [topic_name])
         mocker.patch.object(pub_cb_mock, 'subscribe_topic_name', None)
         mocker.patch.object(pub_cb_mock, 'node_name', pub_node_name)
 
-        mocker.patch.object(sub_cb_mock, 'publish_topic_names', ())
+        mocker.patch.object(sub_cb_mock, 'publish_topic_names', [])
         mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub_cb_mock, 'node_name', sub_node_name)
 
@@ -1185,7 +1185,7 @@ class TestCommunicationInfoLoaded:
             nodes_loaded_mock, pub_mock, sub_mock, node_pub_mock, node_sub_mock
         )
 
-        assert comm_info.publish_callbacks == (pub_cb_mock,)
+        assert comm_info.publish_callbacks == [pub_cb_mock]
         assert comm_info.subscribe_callback == sub_cb_mock
         assert comm_info.publish_node == node_pub_mock
         assert comm_info.subscribe_node == node_sub_mock
@@ -1194,7 +1194,7 @@ class TestCommunicationInfoLoaded:
 
     def test_find_communication(self, mocker):
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
-        mocker.patch.object(nodes_loaded_mock, 'data', ())
+        mocker.patch.object(nodes_loaded_mock, 'data', [])
         comm_loaded = CommValuesLoaded(nodes_loaded_mock)
 
         comm_mock = mocker.Mock(spec=CommunicationStruct)
@@ -1227,8 +1227,8 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(pub_mock, 'node_name', pub_node_name)
         mocker.patch.object(sub_mock, 'node_name', sub_node_name)
 
-        mocker.patch.object(node_pub_mock, 'publishers', (pub_mock,))
-        mocker.patch.object(node_sub_mock, 'subscriptions', (sub_mock,))
+        mocker.patch.object(node_pub_mock, 'publishers', [pub_mock])
+        mocker.patch.object(node_sub_mock, 'subscriptions', [sub_mock])
 
         mocker.patch.object(
             nodes_loaded_mock, 'get_callbacks', side_effect=ItemNotFoundError(''))
@@ -1253,11 +1253,11 @@ class TestPathInfoLoaded:
         comm_loaded_mock = mocker.Mock(spec=CommValuesLoaded)
 
         mocker.patch.object(
-            reader_mock, 'get_paths', return_value=())
+            reader_mock, 'get_paths', return_value=[])
         loaded = PathValuesLoaded(
             reader_mock, nodes_loaded_mock, comm_loaded_mock)
         paths_info = loaded.data
-        assert paths_info == ()
+        assert paths_info == []
 
     def test_single_path(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1266,7 +1266,7 @@ class TestPathInfoLoaded:
 
         path_info_mock = mocker.Mock(spec=PathValue)
         mocker.patch.object(reader_mock, 'get_paths',
-                            return_value=(path_info_mock,))
+                            return_value=[path_info_mock])
         path_mock = mocker.Mock(spec=PathStruct)
         mocker.patch.object(PathValuesLoaded, '_to_struct',
                             return_value=path_mock)
@@ -1275,12 +1275,12 @@ class TestPathInfoLoaded:
             reader_mock, nodes_loaded_mock, comm_loaded_mock)
 
         paths_info = loaded.data
-        assert paths_info == (path_mock,)
+        assert paths_info == [path_mock]
 
     def test_to_struct(self, mocker):
         path_name = 'path'
 
-        path_info = PathValue(path_name, ())
+        path_info = PathValue(path_name, [])
 
         node_path_mock = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(PathValuesLoaded, '_to_node_path_struct',
@@ -1298,5 +1298,5 @@ class TestPathInfoLoaded:
                      return_value=path_mock)
         paths_info = PathValuesLoaded._to_struct(
             path_info, nodes_loaded_mock, comm_loaded_mock)
-        assert paths_info.child == (
-            node_path_mock, comm_mock, node_path_mock)
+        assert paths_info.child == [
+            node_path_mock, comm_mock, node_path_mock]

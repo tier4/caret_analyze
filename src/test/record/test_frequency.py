@@ -107,6 +107,23 @@ class TestFrequencyRecords:
                                               base_timestamp=4))
         assert result == expect_raw
 
+    def test_specify_until_timestamp_case(self):
+        records_raw = [
+            {'timestamp': 5},
+            {'timestamp': 6},
+        ]
+        columns = [ColumnValue('timestamp')]
+        records = create_records(records_raw, columns)
+
+        frequency = Frequency(records)
+
+        expect_raw = [
+            {'timestamp': 5, 'frequency': 2},
+            {'timestamp': 15, 'frequency': 0},
+        ]
+        result = to_dict(frequency.to_records(interval_ns=10, until_timestamp=20))
+        assert result == expect_raw
+
     def test_two_column_default_case(self):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},

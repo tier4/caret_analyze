@@ -444,7 +444,7 @@ class CallbackPathSearcher:
             self._node.node_name,
             sub,
             pub,
-            tuple(child),
+            child,
             None)
 
     def _find_cb_or_varpass(
@@ -707,7 +707,7 @@ class NodePathSearcher:
 
         path_info = PathStruct(
             None,
-            tuple(child)
+            child
         )
         return path_info
 

@@ -48,7 +48,8 @@ class Frequency:
     def to_records(
         self,
         interval_ns: int = 1000000000,
-        base_timestamp: Optional[int] = None
+        base_timestamp: Optional[int] = None,
+        until_timestamp: Optional[int] = None
     ) -> RecordsInterface:
         """
         Calculate frequency records.
@@ -61,6 +62,9 @@ class Frequency:
         base_timestamp : Optional[int], optional
             Initial timestamp used for frequency calculation, by default None.
             If None, earliest timestamp is used.
+        until_timestamp : Optional[int], optional
+            End time of measurement.
+            If None, oldest timestamp is used.
 
         Returns
         -------
@@ -77,7 +81,8 @@ class Frequency:
 
         timestamp_list, frequency_list = self._get_frequency_with_timestamp(
             interval_ns,
-            base_timestamp or self._target_timestamps[0]
+            base_timestamp or self._target_timestamps[0],
+            until_timestamp or self._target_timestamps[-1]
         )
         for ts, freq in zip(timestamp_list, frequency_list):
             records.append({
@@ -97,7 +102,8 @@ class Frequency:
     def _get_frequency_with_timestamp(
         self,
         interval_ns: int,
-        base_timestamp: int
+        base_timestamp: int,
+        until_timestamp: int
     ) -> Tuple[List[int], List[int]]:
         timestamp_list: List[int] = [base_timestamp]
         frequency_list: List[int] = [0]
@@ -112,5 +118,9 @@ class Frequency:
                 frequency_list.append(0)
                 interval_start_time = next_interval_start_time
             frequency_list[-1] += 1
+
+        while timestamp_list[-1] + interval_ns <= until_timestamp:
+            timestamp_list.append(timestamp_list[-1] + interval_ns)
+            frequency_list.append(0)
 
         return timestamp_list, frequency_list
