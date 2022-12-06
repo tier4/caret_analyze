@@ -41,11 +41,11 @@ class RectValues():
 
     @property
     def x(self) -> float:
-        return np.mean(self._x)
+        return float(np.mean(self._x))
 
     @property
     def y(self) -> float:
-        return np.mean(self._y)
+        return float(np.mean(self._y))
 
     @property
     def width(self) -> float:

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection
+from typing import Sequence
 
 from bokeh.plotting import figure, show
 
@@ -31,7 +31,7 @@ class ResponseTimePlot(HistPlot):
 
     def __init__(
         self,
-        target: Collection[Path],
+        target: Sequence[Path],
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
     ):

@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Package defining the value object class.
+
+Defined classes are used as an interface across multiple packages:
+architecture, infra, and runtime.
+CARET uses value objects to avoid unexpectedly overwritten.
+
+"""
+
 from .callback import (CallbackStructValue,
                        CallbackType,
                        CallbackValue,
