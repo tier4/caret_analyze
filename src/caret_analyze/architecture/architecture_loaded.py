@@ -838,10 +838,6 @@ class CallbackGroupsLoaded():
 
             cbg_name: str
             if cbg.callback_group_name is None:
-                # TODO(hsgwa): Considering renaming feature,
-                # naming the node here complicates the process. This should be changed here.
-                # However, be careful with the change,
-                # because it will affect the format of the architecture file.
                 cbg_name = f'{node.node_name}/callback_group_{name_index}'
                 name_index += 1
             else:
