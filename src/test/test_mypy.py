@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from pathlib import Path
 
 from ament_mypy.main import main
@@ -23,7 +22,6 @@ import pytest
 reason = '[mypy test is to be officially supported in v0.4 or later.]'
 
 
-@pytest.mark.skipif('GITHUB_ACTION' in os.environ, reason=reason)
 @pytest.mark.mypy
 @pytest.mark.linter
 def test_mypy():
