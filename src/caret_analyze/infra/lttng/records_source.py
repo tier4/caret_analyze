@@ -390,8 +390,8 @@ class RecordsSource():
                 for control in self._controls:
 
                     if isinstance(control, TimerInit):
-                        control._timestamp
-                        timer_timestamp = control._timestamp
+                        control.timestamp
+                        timer_timestamp = control.timestamp
                         while timer_timestamp < until_ns:
                             record = {
                                 COLUMN_NAME.TIMER_EVENT_TIMESTAMP: timer_timestamp,
