@@ -1043,7 +1043,7 @@ class ExecutorValuesLoaded():
         for executor in exec_vals:
             executor_name: str
             if executor.executor_name is None:
-                executor_name = executor.executor_name or indexed_name('executor', name_index, num_digit)
+                executor_name = indexed_name('executor', name_index, num_digit)
                 name_index += 1
             else:
                 executor_name = executor.executor_name
