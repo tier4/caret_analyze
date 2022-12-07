@@ -64,7 +64,13 @@ CallbackType.SUBSCRIPTION = CallbackType('subscription_callback')
 
 
 class CallbackValue(ValueObject, metaclass=ABCMeta):
-    """Callback value base class."""
+    """
+    Value object class for representing a callback.
+
+    This class has minimal information and no structure.
+    It's used as the return value of ArchitectureReader.
+
+    """
 
     def __init__(
         self,
@@ -77,6 +83,29 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        callback_id : str
+            Callback unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        node_name : str
+            Node name.
+        node_id : str
+            Node unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        symbol : str
+            Symbol name of the callback.
+        subscribe_topic_name : Optional[str]
+            Topic name which the callback subscribes.
+        publish_topic_names : Optional[Tuple[str, ...]]
+            Topic name which the callback publishes.
+        callback_name: Optional[str]
+            Callback name, by default None. This argument is used by ArchitectureReaderYaml.
+
+        """
         self._callback_id = callback_id
         self._node_name = node_name
         self._node_id = node_id
@@ -90,14 +119,14 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         """
         Get callback id.
 
-        callback id is is used to bind.
-        callback id should be the same if the node name and other properties are the same.
+        Callback id is is used to bind.
+        Callback id should be the same if the node name and other properties are the same.
         If any properties is different, it should be a different callback id.
 
         Returns
         -------
         str
-            callback unique id.
+            Callback unique id.
 
         """
         return self._callback_id
@@ -110,7 +139,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         str
-            node name
+            Node id.
 
         """
         return self._node_id
@@ -123,7 +152,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -136,7 +165,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback symbol name
+            Callback symbol name.
 
         """
         return self._symbol
@@ -146,22 +175,51 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         """
         Get callback name.
 
-        Note that different architecture_readers return different values.
-
         Returns
         -------
         str
-            callback name
+            Callback name.
+
+        Note:
+        -----
+        Different architecture_readers may return different values.
 
         """
         return self._callback_name
 
     @property
     def subscribe_topic_name(self) -> Optional[str]:
+        """
+        Get subscription topic name.
+
+        Returns
+        -------
+        Optional[str]
+            Topic name which the callback subscribes.
+
+        Note:
+        -----
+        Only one subscription callback have a single subscribe topic name.
+
+        """
         return self._subscribe_topic_name
 
     @property
     def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
+        """
+        Get publisher topic names.
+
+        Returns
+        -------
+        Optional[Tuple[str, ...]]
+            Topic names which the callback publishes.
+
+        Note:
+        -----
+        Since callback publishes multiple topics,
+        there are multiple publish topic names.
+
+        """
         return self._publish_topic_names
 
     @property
@@ -180,7 +238,13 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
 
 
 class TimerCallbackValue(CallbackValue):
-    """Timer callback value."""
+    """
+    Value object class for representing a timer.
+
+    This class has minimal information and no structure,
+    and used as the return value of ArchitectureReader.
+
+    """
 
     def __init__(
         self,
