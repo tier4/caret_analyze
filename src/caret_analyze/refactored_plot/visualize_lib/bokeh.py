@@ -17,7 +17,8 @@ from logging import getLogger
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 from bokeh.colors import Color, RGB
-from bokeh.models import HoverTool, Legend, LinearAxis, Range1d, SingleIntervalTicker
+from bokeh.models import (GlyphRenderer, HoverTool, Legend,
+                          LinearAxis, Range1d, SingleIntervalTicker)
 from bokeh.plotting import ColumnDataSource, Figure, figure
 
 import colorcet as cc
@@ -25,7 +26,8 @@ import colorcet as cc
 from .visualize_lib_interface import VisualizeLibInterface
 from ..metrics_base import MetricsBase
 from ...record import RecordsInterface
-from ...runtime import CallbackBase, Communication, Publisher, Subscription
+from ...runtime import (CallbackBase, Communication, Publisher,
+                        Subscription, SubscriptionCallback, TimerCallback)
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
@@ -44,7 +46,6 @@ class Bokeh(VisualizeLibInterface):
         ywheel_zoom: bool,
         full_legends: bool
     ) -> Figure:
-        helper = BokehTimeSeriesHelper()
         target_objects = metrics.target_objects
         timeseries_records_list = metrics.to_timeseries_records_list(xaxis_type)
 
@@ -75,7 +76,6 @@ class Bokeh(VisualizeLibInterface):
             fig_args['title'] = f'Time-line of publishes/subscribes {y_axis_label}'
 
         p = figure(**fig_args)
-        p.add_tools(helper.get_hover(target_objects[0]))
 
         # Apply xaxis offset
         frame_min, frame_max = self._get_range(target_objects)
@@ -83,29 +83,32 @@ class Bokeh(VisualizeLibInterface):
             self._apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
 
         # Draw lines
-        color_generator = helper.get_color_generator()
-        legend_items = []
-        for to, timeseries in zip(target_objects, timeseries_records_list):
-            line_source = helper.get_line_source(to, timeseries, frame_min, xaxis_type)
-            renderer = p.line('x', 'y', source=line_source, color=next(color_generator))
-            legend_items.append((helper.get_legend_label(to), [renderer]))
+        def get_color_generator() -> Generator:
+            color_palette = self._create_color_palette()
+            color_idx = 0
+            while True:
+                yield color_palette[color_idx]
+                color_idx = (color_idx + 1) % len(color_palette)
 
-        # Add legends by ten
+        line_source = LineSource(frame_min, xaxis_type)
+        p.add_tools(line_source.create_hover(target_objects[0]))
+        color_generator = get_color_generator()
+        legend_manager = LegendManager()
+        for to, timeseries in zip(target_objects, timeseries_records_list):
+            renderer = p.line(
+                'x', 'y',
+                source=line_source.generate(to, timeseries),
+                color=next(color_generator)
+            )
+            legend_manager.add_legend(to, renderer)
+
+        # Draw legends
         num_legend_threshold = 20
         """
         In Autoware, the number of callbacks in a node is less than 20.
         Here, num_legend_threshold is set to 20 as the maximum value.
         """
-        for i in range(0, len(legend_items)+10, 10):
-            if not full_legends and i >= num_legend_threshold:
-                logger.warning(
-                    f'The maximum number of legends drawn by default is {num_legend_threshold}. '
-                    'If you want all legends to be displayed, '
-                    'please specify the `full_legends` option to True.'
-                )
-                break
-            p.add_layout(Legend(items=legend_items[i:i+10]), 'right')
-        p.legend.click_policy = 'hide'
+        legend_manager.draw_legends(p, num_legend_threshold, full_legends)
 
         return p
 
@@ -167,109 +170,152 @@ class Bokeh(VisualizeLibInterface):
         fig.xaxis.major_label_overrides = {0: f'0+{offset_s}'}
 
 
-class BokehTimeSeriesHelper:
+class LineSource:
 
-    _source_property_dict = {
-        'TimerCallback':
-            ['node_name', 'callback_name', 'callback_type', 'period_ns', 'symbol'],
-        'SubscriptionCallback':
-            ['node_name', 'callback_name', 'callback_type', 'subscribe_topic_name', 'symbol'],
-        'Communication':
-            ['topic_name', 'publish_node_name', 'subscribe_node_name'],
-        'Publisher':
-            ['node_name', 'topic_name'],
-        'Subscription':
-            ['node_name', 'topic_name']
-    }
+    def __init__(
+        self,
+        frame_min,
+        xaxis_type: str
+    ) -> None:
+        self._frame_min = frame_min
+        self._xaxis_type = xaxis_type
 
-    def __init__(self) -> None:
-        self._color_palette = Bokeh._create_color_palette()
-        self._legend_count_map: Dict[str, int] = defaultdict(int)
+    def create_hover(self, target_object: TimeSeriesTypes) -> HoverTool:
+        source_keys = self._get_source_keys(target_object)
+        tips_str = '<div style="width:400px; word-wrap: break-word;">'
+        for k in source_keys:
+            tips_str += f'@{k} <br>'
+        tips_str += '</div>'
 
-    def get_line_source(
+        return HoverTool(tooltips=tips_str, point_policy='follow_mouse')
+
+    def generate(
         self,
         target_object: TimeSeriesTypes,
         timeseries_records: RecordsInterface,
-        frame_min: int,
-        xaxis_type: str
     ) -> ColumnDataSource:
         # Get x_item and y_item
         ts_column = timeseries_records.columns[0]
         value_column = timeseries_records.columns[1]
-
-        def ensure_not_none(target_seq: Sequence[Optional[int]]) -> List[int]:
-            """
-            Ensure the inputted list does not include None.
-
-            Notes
-            -----
-            The timeseries_records is implemented not to include None,
-            so if None is included, an AssertionError is output.
-
-            """
-            not_none_list = [_ for _ in target_seq if _ is not None]
-            assert len(target_seq) == len(not_none_list)
-            return not_none_list
-
-        timestamps: List[int] = ensure_not_none(
+        timestamps: List[int] = self._ensure_not_none(
             timeseries_records.get_column_series(ts_column)
         )
-        values: Union[List[int], List[float]] = ensure_not_none(
+        values: Union[List[int], List[float]] = self._ensure_not_none(
             timeseries_records.get_column_series(value_column)
         )
         if 'latency' in value_column.lower() or 'period' in value_column.lower():
             values = [v*10**(-6) for v in values]  # [ns] -> [ms]
 
         x_item: Union[List[int], List[float]]
-        y_item: Union[List[int], List[float]]
-        if xaxis_type == 'system_time':
-            x_item = [(ts-frame_min)*10**(-9) for ts in timestamps]
-            y_item = values
-        elif xaxis_type == 'index':
+        y_item: Union[List[int], List[float]] = values
+        if self._xaxis_type == 'system_time':
+            x_item = [(ts-self._frame_min)*10**(-9) for ts in timestamps]
+        elif self._xaxis_type == 'index':
             x_item = list(range(0, len(values)))
-            y_item = values
-        elif xaxis_type == 'sim_time':
+        elif self._xaxis_type == 'sim_time':
             x_item = timestamps
-            y_item = values
 
-        # create line_source
-        source_properties = self._source_property_dict[type(target_object).__name__]
-        data: Dict[str, Sequence[Any]] = {'x': [], 'y': []}
-        data.update({p: [] for p in source_properties})
-        line_source = ColumnDataSource(data=data)
-
+        # Generate line_source
+        line_source = ColumnDataSource(data={
+            k: [] for k in (['x', 'y'] + self._get_source_keys(target_object))
+        })
+        data_dict = self._get_data_dict(target_object)
         for x, y in zip(x_item, y_item):
-            new_data: Dict[str, Sequence[Union[float, str]]] = {'x': [x], 'y': [y]}
-            new_data.update({p: [str(getattr(target_object, p))] for p in source_properties})
-            line_source.stream(new_data)  # type: ignore
+            line_source.stream({**{'x': [x], 'y': [y]}, **data_dict})  # type: ignore
 
         return line_source
 
-    def get_hover(self, target_object: TimeSeriesTypes) -> HoverTool:
+    def _ensure_not_none(self, target_seq: Sequence[Optional[int]]) -> List[int]:
+        """
+        Ensure the inputted list does not include None.
+
+        Notes
+        -----
+        The timeseries_records is implemented not to include None,
+        so if None is included, an AssertionError is output.
+
+        """
+        not_none_list = [_ for _ in target_seq if _ is not None]
+        assert len(target_seq) == len(not_none_list)
+
+        return not_none_list
+
+    def _get_source_keys(
+        self,
+        target_object: TimeSeriesTypes
+    ) -> List[str]:
+        source_keys: List[str]
         if isinstance(target_object, CallbackBase):
-            source_properties = sorted(set(
-                self._source_property_dict['TimerCallback'] +
-                self._source_property_dict['SubscriptionCallback'])
-            )
+            source_keys = ['node_name', 'callback_name', 'callback_type',
+                           'callback_param', 'symbol']
+        elif isinstance(target_object, Communication):
+            source_keys = ['topic_name', 'publish_node_name', 'subscribe_node_name']
+        elif isinstance(target_object, (Publisher, Subscription)):
+            source_keys = ['node_name', 'topic_name']
         else:
-            source_properties = self._source_property_dict[type(target_object).__name__]
+            raise NotImplementedError()
 
-        tips_str = '<div style="width:400px; word-wrap: break-word;"><br>'
-        for k in source_properties:
-            tips_str += f'{k} = @{k} <br>'
-        tips_str += '</div>'
+        return source_keys
 
-        return HoverTool(tooltips=tips_str, point_policy='follow_mouse')
+    def _get_description(
+        self,
+        key: str,
+        target_object: TimeSeriesTypes
+    ) -> str:
+        if key == 'callback_param':
+            if isinstance(target_object, TimerCallback):
+                description = f'period_ns = {target_object.period_ns}'
+            elif isinstance(target_object, SubscriptionCallback):
+                description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
+        else:
+            raise NotImplementedError()
 
-    def get_legend_label(self, target_object: TimeSeriesTypes) -> str:
+        return description
+
+    def _get_data_dict(
+        self,
+        target_object: TimeSeriesTypes
+    ) -> Dict[str, Any]:
+        data_dict: Dict[str, Any] = {}
+        for k in self._get_source_keys(target_object):
+            try:
+                data_dict[k] = [f'{k} = {getattr(target_object, k)}']
+            except AttributeError:
+                data_dict[k] = [self._get_description(k, target_object)]
+
+        return data_dict
+
+
+class LegendManager:
+
+    def __init__(self) -> None:
+        self._legend_count_map: Dict[str, int] = defaultdict(int)
+        self._legend_items: List[Tuple[str, List[GlyphRenderer]]] = []
+
+    def add_legend(
+        self,
+        target_object: Any,
+        renderer: GlyphRenderer
+    ) -> None:
         class_name = type(target_object).__name__
         label = f'{class_name.lower()}{self._legend_count_map[class_name]}'
         self._legend_count_map[class_name] += 1
+        self._legend_items.append((label, [renderer]))
 
-        return label
+    def draw_legends(
+        self,
+        figure: Figure,
+        max_legends: int = 20,
+        full_legends: bool = False
+    ) -> None:
+        for i in range(0, len(self._legend_items)+10, 10):
+            if not full_legends and i >= max_legends:
+                logger.warning(
+                    f'The maximum number of legends drawn by default is {max_legends}. '
+                    'If you want all legends to be displayed, '
+                    'please specify the `full_legends` option to True.'
+                )
+                break
+            figure.add_layout(Legend(items=self._legend_items[i:i+10]), 'right')
 
-    def get_color_generator(self) -> Generator:
-        color_idx = 0
-        while True:
-            yield self._color_palette[color_idx]
-            color_idx = (color_idx + 1) % len(self._color_palette)
+        figure.legend.click_policy = 'hide'
