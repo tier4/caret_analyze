@@ -14,10 +14,11 @@
 
 from typing import Collection, Union
 
-from .frequency_timeseries_plot import FrequencyTimeSeriesPlot
-from .latency_timeseries_plot import LatencyTimeSeriesPlot
-from .period_timeseries_plot import PeriodTimeSeriesPlot
-from .timeseries_plot_base import TimeSeriesPlotBase
+from .frequency_timeseries import FrequencyTimeSeries
+from .latency_timeseries import LatencyTimeSeries
+from .period_timeseries import PeriodTimeSeries
+from .timeseries_plot import TimeSeriesPlot
+from ..metrics_base import MetricsBase
 from ..visualize_lib import VisualizeLibInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -31,13 +32,17 @@ class TimeSeriesPlotFactory:
         target_objects: Collection[TimeSeriesPlotTypes],
         metrics: str,
         visualize_lib: VisualizeLibInterface
-    ) -> TimeSeriesPlotBase:
+    ) -> TimeSeriesPlot:
+        metrics_: MetricsBase
         if metrics == 'frequency':
-            return FrequencyTimeSeriesPlot(list(target_objects), visualize_lib)
+            metrics_ = FrequencyTimeSeries(list(target_objects))
+            return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'latency':
             # Ignore the mypy type check because type_check_decorator is applied.
-            return LatencyTimeSeriesPlot(list(target_objects), visualize_lib)  # type: ignore
+            metrics_ = LatencyTimeSeries(list(target_objects))  # type: ignore
+            return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'period':
-            return PeriodTimeSeriesPlot(list(target_objects), visualize_lib)
+            metrics_ = PeriodTimeSeries(list(target_objects))
+            return TimeSeriesPlot(metrics_, visualize_lib)
         else:
             raise NotImplementedError()

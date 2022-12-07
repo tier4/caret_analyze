@@ -16,25 +16,23 @@ from typing import List, Sequence, Tuple, Union
 
 import pandas as pd
 
-from .timeseries_plot_base import TimeSeriesPlotBase
-from ..visualize_lib import VisualizeLibInterface
+from ..metrics_base import MetricsBase
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class FrequencyTimeSeriesPlot(TimeSeriesPlotBase):
+class FrequencyTimeSeries(MetricsBase):
 
     def __init__(
         self,
-        target_object: Sequence[TimeSeriesTypes],
-        visualize_lib: VisualizeLibInterface
+        target_objects: Sequence[TimeSeriesTypes]
     ) -> None:
-        super().__init__(target_object, visualize_lib)
+        super().__init__(target_objects)
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
-        timeseries_records_list = self._create_timeseries_records()
+        timeseries_records_list = self.to_timeseries_records_list()
         if xaxis_type == 'sim_time':
             self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
@@ -52,16 +50,22 @@ class FrequencyTimeSeriesPlot(TimeSeriesPlotBase):
 
         return all_df
 
-    def _create_timeseries_records(self) -> List[RecordsInterface]:
+    def to_timeseries_records_list(
+        self,
+        xaxis_type: str = 'system_time'
+    ) -> List[RecordsInterface]:
         min_time, max_time = self._get_timestamp_range()
-        timeseries_records: List[RecordsInterface] = []
+        timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
             frequency = Frequency(target_object.to_records())
-            timeseries_records.append(frequency.to_records(
+            timeseries_records_list.append(frequency.to_records(
                 base_timestamp=min_time, until_timestamp=max_time
             ))
 
-        return timeseries_records
+        if xaxis_type == 'sim_time':
+            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+
+        return timeseries_records_list
 
     def _get_timestamp_range(
         self
@@ -75,4 +79,5 @@ class FrequencyTimeSeriesPlot(TimeSeriesPlotBase):
             first_timestamps.append(df.iloc[0, 0])
             last_timestamps.append(df.iloc[-1, 0])
 
+        # TODO: fix error when len(first_timestamp) == 0
         return min(first_timestamps), max(last_timestamps)

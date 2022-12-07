@@ -13,11 +13,11 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from typing import List, Union
+from typing import Union
 
 from bokeh.plotting import Figure
 
-from ...record import RecordsInterface
+from ..metrics_base import MetricsBase
 from ...runtime import (CallbackBase, Communication, Publisher, Subscription)
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
@@ -28,8 +28,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
     @abstractmethod
     def timeseries(
         self,
-        target_objects: List[TimeSeriesTypes],
-        timeseries_records: List[RecordsInterface],
+        metrics: MetricsBase,
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool

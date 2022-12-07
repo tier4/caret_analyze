@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .timeseries_plot_base import TimeSeriesPlotBase
+from .timeseries_plot import TimeSeriesPlot
 from .timeseries_plot_factory import TimeSeriesPlotFactory
 
 __all__ = [
-    'TimeSeriesPlotBase',
+    'TimeSeriesPlot',
     'TimeSeriesPlotFactory'
 ]

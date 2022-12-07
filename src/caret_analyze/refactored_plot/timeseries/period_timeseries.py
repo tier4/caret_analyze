@@ -16,25 +16,23 @@ from typing import List, Sequence, Union
 
 import pandas as pd
 
-from .timeseries_plot_base import TimeSeriesPlotBase
-from ..visualize_lib import VisualizeLibInterface
+from ..metrics_base import MetricsBase
 from ...record import Period, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class PeriodTimeSeriesPlot(TimeSeriesPlotBase):
+class PeriodTimeSeries(MetricsBase):
 
     def __init__(
         self,
-        target_object: Sequence[TimeSeriesTypes],
-        visualize_lib: VisualizeLibInterface
+        target_objects: Sequence[TimeSeriesTypes]
     ) -> None:
-        super().__init__(target_object, visualize_lib)
+        super().__init__(target_objects)
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
-        timeseries_records_list = self._create_timeseries_records()
+        timeseries_records_list = self.to_timeseries_records_list()
         if xaxis_type == 'sim_time':
             self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
@@ -53,10 +51,16 @@ class PeriodTimeSeriesPlot(TimeSeriesPlotBase):
 
         return all_df
 
-    def _create_timeseries_records(self) -> List[RecordsInterface]:
-        timeseries_records: List[RecordsInterface] = []
+    def to_timeseries_records_list(
+        self,
+        xaxis_type: str = 'system_time'
+    ) -> List[RecordsInterface]:
+        timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
             period = Period(target_object.to_records())
-            timeseries_records.append(period.to_records())
+            timeseries_records_list.append(period.to_records())
 
-        return timeseries_records
+        if xaxis_type == 'sim_time':
+            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+
+        return timeseries_records_list

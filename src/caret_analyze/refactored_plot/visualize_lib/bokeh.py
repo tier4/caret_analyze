@@ -23,6 +23,7 @@ from bokeh.plotting import ColumnDataSource, Figure, figure
 import colorcet as cc
 
 from .visualize_lib_interface import VisualizeLibInterface
+from ..metrics_base import MetricsBase
 from ...record import RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -38,13 +39,14 @@ class Bokeh(VisualizeLibInterface):
 
     def timeseries(
         self,
-        target_objects: List[TimeSeriesTypes],
-        timeseries_records_list: List[RecordsInterface],
+        metrics: MetricsBase,
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool
     ) -> Figure:
         helper = BokehTimeSeriesHelper()
+        target_objects = metrics.target_objects
+        timeseries_records_list = metrics.to_timeseries_records_list(xaxis_type)
 
         # Initialize figure
         y_axis_label = timeseries_records_list[0].columns[1]
