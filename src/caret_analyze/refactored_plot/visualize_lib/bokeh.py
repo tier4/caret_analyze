@@ -194,20 +194,46 @@ class LineSource:
         target_object: TimeSeriesTypes,
         timeseries_records: RecordsInterface,
     ) -> ColumnDataSource:
-        # Get x_item and y_item
+        line_source = ColumnDataSource(data={
+            k: [] for k in (['x', 'y'] + self._get_source_keys(target_object))
+        })
+        data_dict = self._get_data_dict(target_object)
+        x_item, y_item = self._get_x_y(timeseries_records)
+        for x, y in zip(x_item, y_item):
+            line_source.stream({**{'x': [x], 'y': [y]}, **data_dict})  # type: ignore
+
+        return line_source
+
+    def _get_x_y(
+        self,
+        timeseries_records: RecordsInterface
+    ) -> Tuple[List[Union[int, float]], List[Union[int, float]]]:
+        def ensure_not_none(
+            target_seq: Sequence[Optional[Union[int, float]]]
+        ) -> List[Union[int, float]]:
+            """
+            Ensure the inputted list does not include None.
+
+            Notes
+            -----
+            The timeseries_records is implemented not to include None,
+            so if None is included, an AssertionError is output.
+
+            """
+            not_none_list = [_ for _ in target_seq if _ is not None]
+            assert len(target_seq) == len(not_none_list)
+
+            return not_none_list
+
         ts_column = timeseries_records.columns[0]
         value_column = timeseries_records.columns[1]
-        timestamps: List[int] = self._ensure_not_none(
-            timeseries_records.get_column_series(ts_column)
-        )
-        values: Union[List[int], List[float]] = self._ensure_not_none(
-            timeseries_records.get_column_series(value_column)
-        )
+        timestamps = ensure_not_none(timeseries_records.get_column_series(ts_column))
+        values = ensure_not_none(timeseries_records.get_column_series(value_column))
         if 'latency' in value_column.lower() or 'period' in value_column.lower():
             values = [v*10**(-6) for v in values]  # [ns] -> [ms]
 
-        x_item: Union[List[int], List[float]]
-        y_item: Union[List[int], List[float]] = values
+        x_item: List[Union[int, float]]
+        y_item: List[Union[int, float]] = values
         if self._xaxis_type == 'system_time':
             x_item = [(ts-self._frame_min)*10**(-9) for ts in timestamps]
         elif self._xaxis_type == 'index':
@@ -215,30 +241,7 @@ class LineSource:
         elif self._xaxis_type == 'sim_time':
             x_item = timestamps
 
-        # Generate line_source
-        line_source = ColumnDataSource(data={
-            k: [] for k in (['x', 'y'] + self._get_source_keys(target_object))
-        })
-        data_dict = self._get_data_dict(target_object)
-        for x, y in zip(x_item, y_item):
-            line_source.stream({**{'x': [x], 'y': [y]}, **data_dict})  # type: ignore
-
-        return line_source
-
-    def _ensure_not_none(self, target_seq: Sequence[Optional[int]]) -> List[int]:
-        """
-        Ensure the inputted list does not include None.
-
-        Notes
-        -----
-        The timeseries_records is implemented not to include None,
-        so if None is included, an AssertionError is output.
-
-        """
-        not_none_list = [_ for _ in target_seq if _ is not None]
-        assert len(target_seq) == len(not_none_list)
-
-        return not_none_list
+        return x_item, y_item
 
     def _get_source_keys(
         self,
