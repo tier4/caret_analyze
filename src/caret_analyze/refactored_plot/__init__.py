@@ -13,11 +13,11 @@
 # limitations under the License.
 
 from .metrics_base import MetricsBase
+from .plot_base import PlotBase
 from .plot_facade import Plot
-from .plot_interface import PlotInterface
 
 __all__ = [
     'Plot',
-    'PlotInterface',
+    'PlotBase',
     'MetricsBase'
 ]

@@ -20,7 +20,7 @@ from bokeh.resources import CDN
 import pandas as pd
 
 
-class PlotInterface(metaclass=ABCMeta):
+class PlotBase(metaclass=ABCMeta):
 
     @abstractmethod
     def to_dataframe(

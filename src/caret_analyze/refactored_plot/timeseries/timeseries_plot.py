@@ -17,7 +17,7 @@ from typing import Union
 from bokeh.plotting import Figure
 
 from ..metrics_base import MetricsBase
-from ..plot_interface import PlotInterface
+from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
@@ -25,7 +25,7 @@ from ...runtime import CallbackBase, Communication, Publisher, Subscription
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class TimeSeriesPlot(PlotInterface):
+class TimeSeriesPlot(PlotBase):
 
     def __init__(
         self,
