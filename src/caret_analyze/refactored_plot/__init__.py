@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .metrics_base import MetricsBase
 from .plot_base import PlotBase
 from .plot_facade import Plot
 
 __all__ = [
     'Plot',
-    'PlotBase',
-    'MetricsBase'
+    'PlotBase'
 ]
