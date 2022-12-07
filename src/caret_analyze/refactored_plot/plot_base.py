@@ -43,9 +43,11 @@ class PlotBase(metaclass=ABCMeta):
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False
-    ) -> None:
+    ) -> Figure:
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)
         show(p)
+
+        return p
 
     def save(
         self,
