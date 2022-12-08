@@ -840,6 +840,7 @@ class CallbackGroupsLoaded():
             if cbg.callback_group_name is None:
                 cbg_name = f'{node.node_name}/callback_group_{name_index}'
                 name_index += 1
+                # TODO(hsgwa): Handle duplicate callback names with existing callback names.
             else:
                 cbg_name = cbg.callback_group_name
 
@@ -900,6 +901,8 @@ class CallbacksLoaded():
         self._callback_count: Dict[CallbackValue, int] = {}
         self._cb_dict: Dict[str, CallbackStruct] = {}
 
+        # TODO(hsgwa): Checking for unique constraints on id and name
+
         callback_num = Util.num_digit(len(callbacks))
         for callback in callbacks:
             if callback.callback_id is None:
@@ -928,6 +931,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
+            # TODO(hsgwa): Handle duplicate callback names with existing callback names.
 
             return TimerCallbackStruct(
                 node_name=callback.node_name,
@@ -945,6 +949,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
+            # TODO(hsgwa): Handle duplicate callback names with existing callback names.
             return SubscriptionCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
@@ -1037,6 +1042,7 @@ class ExecutorValuesLoaded():
         execs: List[ExecutorStruct] = []
 
         exec_vals = reader.get_executors()
+        # TODO(hsgwa): Checking for unique constraints on id and name
         num_digit = Util.num_digit(len(exec_vals))
         name_index = 0
 
@@ -1045,6 +1051,7 @@ class ExecutorValuesLoaded():
             if executor.executor_name is None:
                 executor_name = indexed_name('executor', name_index, num_digit)
                 name_index += 1
+                # TODO(hsgwa): Handle duplicate callback names with existing callback names.
             else:
                 executor_name = executor.executor_name
 
