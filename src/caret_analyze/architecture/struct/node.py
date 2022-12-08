@@ -185,16 +185,23 @@ class NodeStruct():
                                   None, message_context)
             self._node_paths.append(path)
 
-    def assign_publisher(self, pub_topic_name: str,
-                         callback_function: Optional[CallbackStruct]):
-        publisher = PublisherStruct(self.node_name, pub_topic_name,
-                                    [] if callback_function is None else [callback_function])
+    def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
+        callback: CallbackStruct = \
+            Util.find_one(lambda x: x.callback_name == callback_function_name, self.callbacks)
+
+        callback.assign_publisher(pub_topic_name)
+        publisher = PublisherStruct(self.node_name, pub_topic_name, [callback])
+
         self._publishers.append(publisher)
 
-    def assign_message_passings(self, source_callback: CallbackStruct,
-                                destination_callback: CallbackStruct):
+    def assign_message_passings(self, src_callback_name: str, des_callback_name: str):
+        source_callback =\
+            Util.find_one(lambda x: x.callback_name == src_callback_name, self.callbacks)
+        destination_callback =\
+            Util.find_one(lambda x: x.callback_name == des_callback_name, self.callbacks)
+
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
-        # passing_list = [] if self.variable_passings is None else list(self.variable_passings)
+
         if self._variable_passings_info is None:
             self._variable_passings_info = [passing]
         else:

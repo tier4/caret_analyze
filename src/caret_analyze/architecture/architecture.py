@@ -307,25 +307,16 @@ class Architecture(Summarizable):
         node.assign_message_context(context_type, sub_topic_name, pub_topic_name)
 
     def assign_publisher(self, node_name: str,
-                         pub_topic_name: str, callback_function_name: Optional[str]):
+                         pub_topic_name: str, callback_function_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-        callback: CallbackStruct =\
-            Util.find_one(lambda x: x.callback_name == callback_function_name,
-                          Util.flatten(_.callbacks for _ in
-                                       Util.flatten(_.callback_groups for _ in self._executors)))
-        callback.assign_publisher(pub_topic_name)
-        node.assign_publisher(pub_topic_name, callback)
+
+        node.assign_publisher(pub_topic_name, callback_function_name)
 
     def assign_message_passings(self, node_name: str,
-                                source_callback_name: str, destination_callback_name: str):
+                                src_callback_name: str, des_callback_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        source_callback =\
-            Util.find_one(lambda x: x.callback_name == source_callback_name, node.callbacks)
-        destination_callback =\
-            Util.find_one(lambda x: x.callback_name == destination_callback_name, node.callbacks)
-
-        node.assign_message_passings(source_callback, destination_callback)
+        node.assign_message_passings(src_callback_name, des_callback_name)
 
     def rename_callback(self, src: str, dst: str) -> None:
         cb_s: List[CallbackStruct] =\

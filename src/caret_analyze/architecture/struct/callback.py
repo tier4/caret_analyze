@@ -113,8 +113,8 @@ class CallbackStruct(metaclass=ABCMeta):
         pass
 
     def assign_publisher(self, pub_topic_name: str):
-        if self._publish_topic_names is not None and\
-           pub_topic_name not in self._publish_topic_names:
+        self._publish_topic_names = self._publish_topic_names or []
+        if pub_topic_name not in self._publish_topic_names:
             self._publish_topic_names.append(pub_topic_name)
 
     def rename_node(self, src: str, dst: str) -> None:
