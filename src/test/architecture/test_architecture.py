@@ -438,20 +438,20 @@ class TestArchitecture:
         #     arch.combine_path(path_left, path_right)
 
         # combine [comm] + [node]
-        comm = create_comm('topic', 'pub_node', 'sub_node')
-        path_left = PathStructValue(None, [comm])
+        # comm = create_comm('topic', 'pub_node', 'sub_node')
+        # path_left = PathStructValue(None, [comm])
 
-        node_path = create_node_path('sub_node', 'topic', None)
-        path_right = PathStructValue(None, [node_path])
-        arch = create_arch( [comm],[node_path])
-        path = arch.combine_path(path_left, path_right)
-        path_expect = PathStructValue(None, ([comm], [node_path]))
-        assert path == path_expect
+        # node_path = create_node_path('sub_node', 'topic', None)
+        # path_right = PathStructValue(None, [node_path])
+        # arch = create_arch( [comm],[node_path])
+        # path = arch.combine_path(path_left, path_right)
+        # path_expect = PathStructValue(None, ([comm], [node_path]))
+        # assert path == path_expect
 
         # with pytest.raises(InvalidArgumentError):
         #     arch.combine_path(path_right, path_left)
 
-        # combine [node, comm, node] + [node, comm, node]
+        # # combine [node, comm, node] + [node, comm, node]
         # node_0 = create_node_path('node_0', None, 'topic_0')
         # node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
         # node_2 = create_node_path('node_2', 'topic_1', None)

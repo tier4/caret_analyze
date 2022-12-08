@@ -233,14 +233,90 @@ class Architecture(Summarizable):
         if len(path_left.node_paths)==0 or len(path_right.node_paths)==0:
             new_path = PathStructValue(None, (path_left.child, path_right.child))
             return new_path
+ 
+        node_name = path_left.child[-1].node_name
+        # if (node_name != path_right.child[0].node_name):
+        #     msg = 'Last node of arg1 and first node of arg2 are difference.'
+        #     raise InvalidArgumentError(msg)
+
+        # # Add one node or comm
+        # if len(path_left.child) == 1 or len(path_right.child) == 1:
+        #     left_child = path_left.child[-1]
+        #     right_child = path_right.child[0]
+        #     # Left is node and Right is comm
+        #     if isinstance(left_child, NodeStructValue) and isinstance(right_child, CommunicationStructValue):
+        #         node_name = left_child.node_name
+        #         node_paths = self.get_node(node_name).paths
+        #         for node_path in node_paths:
+        #             if node_path.
+
+        left_child = path_left.child[-1]
+        right_child = path_right.child[0]
+        # Left = Node, Right = Node
+        if isinstance(left_child, NodeStructValue) and isinstance(right_child, NodeStructValue):
+            if len(path_left.child) == 1 or len(path_right.child) == 1:
+                msg = 'Cannot combine Node and Node.'
+                raise InvalidArgumentError(msg)
+
+            node_name = path_left.child[-1].node_name
+            if (node_name != path_right.child[0].node_name):
+                msg = 'Last node of arg1 and first node of arg2 are difference.'
+                raise InvalidArgumentError(msg)
+    
+            node_paths = self.get_node(node_name).paths
+            left_node_pub = path_left.child[-1].publish_topic_name
+            right_node_sub = path_right.child[0].subscribe_topic_name
+            for node_path in node_paths:
+                if (node_path.publish_topic_name == left_node_pub and 
+                    node_path.subscribe_topic_name == right_node_sub):
+                    break
+
+            new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.chidl[1:]))
+            return new_path
+
+        elif isinstance(left_child, NodeStructValue) and isinstance(right_child, CommunicationStructValue):
+            node_name = path_left.child[-1].node_name
+            node_paths = self.get_node(node_name).paths
+            left_node_pub = left_child.publish_topic_name
+            right_comm = right_child.topic_name
+
+            for node_path in node_paths:
+                if (node_path.publish_topic_name == left_node_pub and 
+                    node_path.subscribe_topic_name == right_comm):
+                    break
+            new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.chidl[1:]))
+            return new_path
+
+        elif isinstance(left_child, CommunicationStructValue) and isinstance(right_child, NodeStructValue):
+            pass
+        elif isinstance(left_child, CommunicationStructValue) and isinstance(right_child, CommunicationStructValue):
+        
+
+        # Combine paths
+
+
 
         # Core processing
-        node_name=path_left.child[-1].node_name
-        for node_path in self.get_node(node_name).paths:
-            if node_path.publish_topic_name==path_right.child[0].publish_topic_name and node_path.subscribe_topic_name==path_left.child[-1].subscribe_topic_name:
-                break
-        new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.child[1:]))
-        return new_path
+        # node_name=path_left.child[-1].node_name
+        # for node_path in self.get_node(node_name).paths:
+        #     if node_path.publish_topic_name==path_right.child[0].publish_topic_name and node_path.subscribe_topic_name==path_left.child[-1].subscribe_topic_name:
+        #         break
+        # new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.child[1:]))
+        # return new_path
+        # node_paths = self.get_node(node_name).paths
+        # left_node_pub = path_left.child[-1].publish_topic_name
+        # # left_node_sub = path_left.child[-1].subscribe_topic_name
+        # # right_node_pub = path_right.child[0].publish_topic_name
+        # right_node_sub = path_right.child[0].subscribe_topic_name
+        # for node_path in node_paths:
+        #     if (node_path.publish_topic_name == left_node_pub and 
+        #         node_path.subscribe_topic_name == right_node_sub):
+        #         new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.chidl[1:]))
+        #         return new_path
+        
+        # raise ItemNotFoundError()
+        
+
 
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
