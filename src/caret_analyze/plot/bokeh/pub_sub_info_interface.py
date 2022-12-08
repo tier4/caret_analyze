@@ -81,6 +81,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                     tooltips="""
                     <div style="width:400px; word-wrap: break-word;">
                     <br>
+                    legend_label = @legend_label<br>
                     node_name = @node_name <br>
                     topic_name = @topic_name <br>
                     </div>
@@ -112,6 +113,14 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                              if pub_sub.topic_name == topic_name]
         for i, pub_sub in enumerate(drawn_pub_sub):
             color = color_selector.get_color(str(i))
+
+            if isinstance(pub_sub, Publisher):
+                legend_label = f'publisher{pub_count}'
+                pub_count += 1
+            else:
+                legend_label = f'subscription{sub_count}'
+                sub_count += 1
+
             # TODO:
             # remove source_df_by_topic argument from _get_pub_sub_lines.
             # source_df_by_topic is a redundant argument since pub_sub has its data
@@ -119,14 +128,9 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                 pub_sub,
                 source_df_by_topic,
                 frame_min,
-                xaxis_type
+                xaxis_type,
+                legend_label
             )
-            if isinstance(pub_sub, Publisher):
-                legend_label = f'publisher{pub_count}'
-                pub_count += 1
-            else:
-                legend_label = f'subscription{sub_count}'
-                sub_count += 1
             renderer = p.line('x', 'y',
                               source=line_source,
                               color=color)
@@ -160,7 +164,8 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
         pub_sub: Union[Publisher, Subscription],
         source_df_by_topic: Dict[str, pd.DataFrame],
         frame_min: int,
-        xaxis_type: str
+        xaxis_type: str,
+        legend_label: str
     ) -> ColumnDataSource:
         source_df = source_df_by_topic[pub_sub.topic_name].dropna()
         ts_column_idx = source_df.columns.to_list().index(
@@ -184,6 +189,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                 'y': [],
                 'node_name': [],
                 'topic_name': [],
+                'legend_label': [],
             }
         )
         for x, y in zip(x_item, y_item):
@@ -192,6 +198,7 @@ class PubSubTimeSeriesPlot(metaclass=ABCMeta):
                 'y': [y],
                 'node_name': [pub_sub.node_name],
                 'topic_name': [pub_sub.topic_name],
+                'legend_label': [legend_label],
             }
             line_source.stream(new_data)
 
