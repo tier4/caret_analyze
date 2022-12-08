@@ -26,10 +26,12 @@ from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.architecture.struct import (CommunicationStruct,
                                                ExecutorStruct, NodePathStruct,
                                                NodeStruct, PathStruct,
-                                               TimerCallbackStruct)
+                                               TimerCallbackStruct,
+                                               PublisherStruct, SubscriptionStruct)
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
-                                         NodeStructValue, PathStructValue)
+                                         NodeStructValue, PathStructValue,
+                                         PublisherStructValue, SubscriptionStructValue)
 
 import pytest
 
@@ -74,7 +76,8 @@ def create_node_path(create_publisher, create_subscription):
 @pytest.fixture
 def create_arch(mocker):
     def _create_arch(node_paths, comms):
-        node_mock = mocker.Mock(spec=NodeStructValue)
+        # node_mock = mocker.Mock(spec=NodeStructValue)
+        node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'paths', node_paths)
         mocker.patch.object(node_mock, 'callbacks', [])
         loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
@@ -86,7 +89,7 @@ def create_arch(mocker):
                             'create_instance', return_value=reader_mock)
         mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
                      return_value=loaded_mock)
-        mocker.patch.object(loaded_mock, 'nodes', [])
+        # mocker.patch.object(loaded_mock, 'nodes', [])
         mocker.patch.object(loaded_mock, 'communications', comms)
         mocker.patch.object(loaded_mock, 'executors', [])
         mocker.patch.object(loaded_mock, 'paths', [])
@@ -102,9 +105,9 @@ def create_node(create_publisher, create_subscription):
         node_name: str,
         sub_topic_name: Optional[str],
         pub_topic_name: Optional[str]
-    ) -> NodeStructValue:
-        pub: Tuple[PublisherStructValue, ...]
-        sub: Tuple[SubscriptionStructValue, ...]
+    ) -> NodeStruct:
+        pub: Tuple[PublisherStruct, ...]
+        sub: Tuple[SubscriptionStruct, ...]
 
         if pub_topic_name:
             pub = (create_publisher(node_name, pub_topic_name),)
@@ -115,7 +118,7 @@ def create_node(create_publisher, create_subscription):
         else:
             sub = ()
 
-        node = NodeStructValue(
+        node = NodeStruct(
             node_name, pub, sub, (), (), None, None
         )
         return node
@@ -403,20 +406,24 @@ class TestArchitecture:
         create_comm,
         create_arch,
     ):
-        # arch = create_arch()
         # combine [] + []
-        # with pytest.raises(InvalidArgumentError):
-        #     path_left = PathStructValue(None, ())
-        #     path_right = PathStructValue(None, ())
-        #     arch.combine_path(path_left, path_right)
-        # # combine [comm] + [comm]
-        # left_comm = create_comm('topic', 'pub_node', 'sub_node')
-        # path_left = PathStructValue(None, [left_comm])
+        arch = create_arch([], [])
+        with pytest.raises(InvalidArgumentError):
+            path_left = PathStructValue(None, ())
+            path_right = PathStructValue(None, ())
+            arch.combine_path(path_left, path_right)
 
-        # right_comm = create_comm('topic', 'pub_node', 'sub_node')
-        # path_right = PathStructValue(None, [right_comm])
-        # arch = create_arch([left_comm], [right_comm])
-        # path = arch.combine_path(path_left, path_right)
+        # combine [comm] + [comm]
+        left_comm = create_comm('topic', 'pub_node', 'sub_node')
+        path_left = PathStructValue(None, [left_comm])
+
+        right_comm = create_comm('topic', 'pub_node', 'sub_node')
+        path_right = PathStructValue(None, [right_comm])
+        arch = create_arch([left_comm], [right_comm])
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_left, path_right)
+
+
         # combine [node] + [comm]
         # start_node_mock = mocker.Mock(spec=NodeStructValue)
         # end_node_mock = mocker.Mock(spec=NodeStructValue)
