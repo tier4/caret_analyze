@@ -13,10 +13,13 @@
 # limitations under the License.
 
 from caret_analyze.plot.metrics_base import MetricsBase
+from caret_analyze.runtime.callback import CallbackBase
+from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.publisher import Publisher
+from caret_analyze.runtime.subscription import Subscription
 
 
-class TestPubSubTimeSeriesPlot:
+class TestMetricsBase:
 
     def test_get_ts_column_name_pub_no_callback_name(self, mocker):
         pub_mock = mocker.Mock(spec=Publisher)
@@ -31,3 +34,22 @@ class TestPubSubTimeSeriesPlot:
 
         assert (MetricsBase._get_ts_column_name(pub_mock)
                 == 'cb0/rclcpp_publish_timestamp [ns]')
+
+    def test_get_ts_column_name_sub(self, mocker):
+        sub_mock = mocker.Mock(spec=Subscription)
+        mocker.patch.object(sub_mock, 'column_names', ['node/start', 'node/end'])
+
+        assert (MetricsBase._get_ts_column_name(sub_mock)
+                == 'node/start [ns]')
+
+    def test_get_ts_column_name_callback(self, mocker):
+        cb_mock = mocker.Mock(spec=CallbackBase)
+        mocker.patch.object(cb_mock, 'column_names', ['node/start', 'node/end'])
+
+        assert MetricsBase._get_ts_column_name(cb_mock) == 'start [ns]'
+
+    def test_get_ts_column_name_communication(self, mocker):
+        comm_mock = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_mock, 'column_names', ['node/start', 'node/end'])
+
+        assert MetricsBase._get_ts_column_name(comm_mock) == 'start [ns]'
