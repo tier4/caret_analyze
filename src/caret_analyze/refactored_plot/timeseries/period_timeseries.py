@@ -37,19 +37,22 @@ class PeriodTimeSeries(MetricsBase):
             self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
         all_df = pd.DataFrame()
-        for period_records in timeseries_records_list:
+        for to, period_records in zip(self.target_objects, timeseries_records_list):
             period_df = period_records.to_dataframe()
             period_df[period_df.columns[-1]] *= 10**(-6)
             period_df.rename(
                 columns={
-                    period_df.columns[0]: f'{period_df.columns[0]} [ns]',
+                    period_df.columns[0]: f'{self._get_ts_column_name(to)}',
                     period_df.columns[1]: 'period [ms]',
                 },
                 inplace=True
             )
+            # TODO: Multi-column DataFrame are difficult for users to handle,
+            #       so it should be a single-column DataFrame.
+            period_df = self._add_top_level_column(period_df, to)
             all_df = pd.concat([all_df, period_df], axis=1)
 
-        return all_df
+        return all_df.sort_index(level=0, axis=1, sort_remaining=False)
 
     def to_timeseries_records_list(
         self,

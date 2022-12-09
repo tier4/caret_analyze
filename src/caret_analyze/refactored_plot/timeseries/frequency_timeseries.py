@@ -37,18 +37,21 @@ class FrequencyTimeSeries(MetricsBase):
             self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
         all_df = pd.DataFrame()
-        for frequency_records in timeseries_records_list:
+        for to, frequency_records in zip(self.target_objects, timeseries_records_list):
             frequency_df = frequency_records.to_dataframe()
             frequency_df.rename(
                 columns={
-                    frequency_df.columns[0]: f'{frequency_df.columns[0]} [ns]',
+                    frequency_df.columns[0]: f'{self._get_ts_column_name(to)}',
                     frequency_df.columns[1]: 'frequency [Hz]',
                 },
                 inplace=True
             )
+            # TODO: Multi-column DataFrame are difficult for users to handle,
+            #       so it should be a single-column DataFrame.
+            frequency_df = self._add_top_level_column(frequency_df, to)
             all_df = pd.concat([all_df, frequency_df], axis=1)
 
-        return all_df
+        return all_df.sort_index(level=0, axis=1, sort_remaining=False)
 
     def to_timeseries_records_list(
         self,

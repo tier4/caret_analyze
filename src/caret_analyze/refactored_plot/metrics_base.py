@@ -50,6 +50,8 @@ class MetricsBase(metaclass=ABCMeta):
         self,
         timeseries_records_list: List[RecordsInterface]
     ) -> None:
+        # TODO: Migrate into records.
+
         # get converter
         if isinstance(self._target_objects[0], Communication):
             for comm in self._target_objects:
@@ -66,3 +68,40 @@ class MetricsBase(metaclass=ABCMeta):
         for records in timeseries_records_list:
             for record in records:
                 record.data[ts_column_name] = converter.convert(record.get(ts_column_name))
+
+    def _get_ts_column_name(
+        self,
+        target_object: TimeSeriesTypes
+    ) -> str:
+        # TODO: Multi-column DataFrame are difficult for users to handle,
+        #       so this function is unnecessary.
+
+        if isinstance(target_object, Publisher):
+            callback_names = (f'{target_object.callback_names[0]}/'
+                              if target_object.callback_names else '')
+            ts_column_name = f'{callback_names}rclcpp_publish_timestamp'
+        elif isinstance(target_object, Subscription):
+            ts_column_name = f'{target_object.column_names[0]}'
+        else:
+            ts_column_name = target_object.column_names[0].split('/')[-1]
+
+        return ts_column_name + ' [ns]'
+
+    def _add_top_level_column(
+        self,
+        target_df: pd.DataFrame,
+        target_object: TimeSeriesTypes
+    ) -> pd.DataFrame:
+        # TODO: Multi-column DataFrame are difficult for users to handle,
+        #       so this function is unnecessary.
+
+        if isinstance(target_object, CallbackBase):
+            column_name = target_object.callback_name
+        elif isinstance(target_object, Communication):
+            column_name = (f'{target_object.summary["publish_node"]}|'
+                           f'{target_object.summary["topic_name"]}|'
+                           f'{target_object.summary["subscribe_node"]}')
+        elif isinstance(target_object, (Publisher, Subscription)):
+            column_name = target_object.topic_name
+
+        return pd.concat([target_df], keys=[column_name], axis=1)
