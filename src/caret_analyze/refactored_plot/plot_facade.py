@@ -17,10 +17,11 @@ from typing import Collection, Union
 
 from multimethod import multimethod as singledispatchmethod
 
+from .histogram import ResponseTimePlot
 from .plot_base import PlotBase
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
-from ..runtime import CallbackBase, Communication, Publisher, Subscription
+from ..runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
 logger = getLogger(__name__)
 
@@ -91,6 +92,42 @@ class Plot:
             list(target_objects), 'latency', visualize_lib
         )
         return plot
+
+    @singledispatchmethod
+    def create_response_time_histogram_plot(
+        paths: Collection[Path],
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
+    ) -> ResponseTimePlot:
+        """
+        Get ResponseTimePlot instance.
+
+        Parameters
+        ----------
+        path : Collection[Path]
+            Target path.
+            This also accepts multiple path inputs by unpacking.
+        case : str, optional
+            response time calculation method, by default best-to-worst.
+            supported case: [best-to-worst/best/worst].
+        binsize_ns : int, optional
+            binsize [ns], by default 1000000.
+
+        Returns
+        -------
+        ResponseTimePlot
+
+        """
+        return ResponseTimePlot(list(paths), case, int(binsize_ns))
+
+    @staticmethod
+    @create_response_time_histogram_plot.register
+    def _create_response_time_histogram_plot_tuple(
+        *paths: Path,
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000
+    ) -> ResponseTimePlot:
+        return ResponseTimePlot(list(paths), case, int(binsize_ns))
 
     # ---------- Previous Interface ----------
     @singledispatchmethod
