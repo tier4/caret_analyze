@@ -23,6 +23,7 @@ from ...exceptions import InvalidYamlFormatError
 from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               NodePathValue, NodeValue, NodeValueWithId,
                               PathValue, PublisherValue,
+                              ServiceCallbackValue, ServiceValue,
                               SubscriptionCallbackValue, SubscriptionValue,
                               TimerCallbackValue, TimerValue, VariablePassingValue)
 
@@ -259,6 +260,9 @@ class ArchitectureReaderYaml(ArchitectureReader):
 
         return callbacks
 
+    def get_service_callbacks(self, node: NodeValue) -> Sequence[ServiceCallbackValue]:
+        return []
+
     def get_publishers(
         self,
         node: NodeValue
@@ -324,6 +328,9 @@ class ArchitectureReaderYaml(ArchitectureReader):
                 )
             )
         return subscriptions
+
+    def get_services(self, node: NodeValue) -> Sequence[ServiceValue]:
+        return []
 
     def _get_node_dict(
         self,
