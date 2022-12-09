@@ -27,6 +27,7 @@ from ..plot_util import PlotColorSelector
 from ...runtime import Path
 
 
+# TODO: Migrate drawing process to visualize_lib
 class ResponseTimePlot(HistPlot):
 
     def __init__(

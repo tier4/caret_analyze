@@ -19,6 +19,7 @@ from ...common import type_check_decorator
 from ...runtime import Path
 
 
+# TODO: Inherit PlotBase
 class HistPlot(metaclass=ABCMeta):
 
     @type_check_decorator

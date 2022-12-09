@@ -19,7 +19,7 @@ from bokeh.colors import Color, RGB
 import colorcet as cc
 
 
-# TODO: refactor
+# TODO: Migrate into visualize_lib
 class PlotColorSelector:
 
     def __init__(self) -> None:
