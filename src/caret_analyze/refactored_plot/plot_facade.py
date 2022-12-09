@@ -20,7 +20,6 @@ from multimethod import multimethod as singledispatchmethod
 from .plot_base import PlotBase
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
-from ..common import type_check_decorator
 from ..runtime import CallbackBase, Communication, Publisher, Subscription
 
 logger = getLogger(__name__)
@@ -31,7 +30,6 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 class Plot:
 
     @singledispatchmethod
-    @type_check_decorator
     def create_period_timeseries_plot(
         target_objects: Collection[TimeSeriesTypes]
     ) -> PlotBase:
@@ -43,7 +41,6 @@ class Plot:
 
     @staticmethod
     @create_period_timeseries_plot.register
-    @type_check_decorator
     def _create_period_timeseries_plot_tuple(
         *target_objects: TimeSeriesTypes
     ) -> PlotBase:
@@ -54,7 +51,6 @@ class Plot:
         return plot
 
     @singledispatchmethod
-    @type_check_decorator
     def create_frequency_timeseries_plot(
         target_objects: Collection[TimeSeriesTypes]
     ) -> PlotBase:
@@ -66,7 +62,6 @@ class Plot:
 
     @staticmethod
     @create_frequency_timeseries_plot.register
-    @type_check_decorator
     def _create_frequency_timeseries_plot_tuple(
         *target_objects: TimeSeriesTypes
     ) -> PlotBase:
@@ -77,7 +72,6 @@ class Plot:
         return plot
 
     @singledispatchmethod
-    @type_check_decorator
     def create_latency_timeseries_plot(
         target_objects: Collection[Union[CallbackBase, Communication]]
     ) -> PlotBase:
@@ -89,7 +83,6 @@ class Plot:
 
     @staticmethod
     @create_latency_timeseries_plot.register
-    @type_check_decorator
     def _create_latency_timeseries_plot_tuple(
         *target_objects: Union[CallbackBase, Communication]
     ) -> PlotBase:

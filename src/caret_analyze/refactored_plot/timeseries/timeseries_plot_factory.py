@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, Union
+from typing import Sequence, Union
 
 from .frequency_timeseries import FrequencyTimeSeries
 from .latency_timeseries import LatencyTimeSeries
@@ -20,6 +20,7 @@ from .period_timeseries import PeriodTimeSeries
 from .timeseries_plot import TimeSeriesPlot
 from ..metrics_base import MetricsBase
 from ..visualize_lib import VisualizeLibInterface
+from ...common import type_check_decorator
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesPlotTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
@@ -28,8 +29,9 @@ TimeSeriesPlotTypes = Union[CallbackBase, Communication, Union[Publisher, Subscr
 class TimeSeriesPlotFactory:
 
     @staticmethod
+    @type_check_decorator
     def create_instance(
-        target_objects: Collection[TimeSeriesPlotTypes],
+        target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,
         visualize_lib: VisualizeLibInterface
     ) -> TimeSeriesPlot:
