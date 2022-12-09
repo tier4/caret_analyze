@@ -98,3 +98,167 @@ class Plot:
             list(target_objects), 'latency', visualize_lib
         )
         return plot
+
+    # ---------- Previous Interface ----------
+    @singledispatchmethod
+    def create_callback_frequency_plot(
+        callbacks: Collection[CallbackBase]
+    ) -> PlotBase:
+        """
+        Get callback frequency plot.
+
+        Parameters
+        ----------
+        callbacks : Collection[CallbackBase]
+            Target callbacks.
+            This also accepts multiple CallbackBase inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        return Plot.create_frequency_timeseries_plot(callbacks)
+
+    @staticmethod
+    @create_callback_frequency_plot.register
+    def _create_callback_frequency_plot_tuple(
+        *callbacks: CallbackBase
+    ) -> PlotBase:
+        return Plot.create_frequency_timeseries_plot(callbacks)
+
+    @singledispatchmethod
+    def create_callback_period_plot(
+        callbacks: Collection[CallbackBase]
+    ) -> PlotBase:
+        """
+        Get callback period plot.
+
+        Parameters
+        ----------
+        callbacks : Collection[CallbackBase]
+            Target callbacks.
+            This also accepts multiple CallbackBase inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        return Plot.create_period_timeseries_plot(callbacks)
+
+    @staticmethod
+    @create_callback_period_plot.register
+    def _create_callback_period_plot_tuple(
+        *callbacks: CallbackBase
+    ) -> PlotBase:
+        return Plot.create_period_timeseries_plot(callbacks)
+
+    @singledispatchmethod
+    def create_callback_jitter_plot(
+        callbacks: Collection[CallbackBase]
+    ) -> PlotBase:
+        logger.warning('create_callback_jitter_plot is deprecated.'
+                       'Use create_callback_period_plot')
+        return Plot.create_callback_period_plot(callbacks)
+
+    @staticmethod
+    @create_callback_jitter_plot.register
+    def _create_callback_jitter_plot_tuple(
+        *callbacks: CallbackBase
+    ) -> PlotBase:
+        logger.warning('create_callback_jitter_plot is deprecated.'
+                       'Use create_callback_period_plot')
+        return Plot.create_callback_period_plot(callbacks)
+
+    @singledispatchmethod
+    def create_callback_latency_plot(
+        callbacks: Collection[CallbackBase]
+    ) -> PlotBase:
+        """
+        Get callback latency plot.
+
+        Parameters
+        ----------
+        callbacks : Collection[CallbackBase]
+            Target callbacks.
+            This also accepts multiple CallbackBase inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        return Plot.create_latency_timeseries_plot(callbacks)
+
+    @staticmethod
+    @create_callback_latency_plot.register
+    def _create_callback_latency_plot_tuple(
+        *callbacks: CallbackBase
+    ) -> PlotBase:
+        return Plot.create_latency_timeseries_plot(callbacks)
+
+    @singledispatchmethod
+    def create_publish_subscription_period_plot(
+        pub_subs: Collection[Union[Publisher, Subscription]]
+    ) -> PlotBase:
+        return Plot.create_period_timeseries_plot(pub_subs)
+
+    @staticmethod
+    @create_publish_subscription_period_plot.register
+    def _create_publish_subscription_period_plot_tuple(
+        *pub_subs: Union[Publisher, Subscription]
+    ) -> PlotBase:
+        return Plot.create_period_timeseries_plot(pub_subs)
+
+    @singledispatchmethod
+    def create_publish_subscription_frequency_plot(
+        pub_subs: Collection[Union[Publisher, Subscription]]
+    ) -> PlotBase:
+        return Plot.create_frequency_timeseries_plot(pub_subs)
+
+    @staticmethod
+    @create_publish_subscription_frequency_plot.register
+    def _create_publish_subscription_frequency_plot_tuple(
+        *pub_subs: Union[Publisher, Subscription]
+    ) -> PlotBase:
+        return Plot.create_frequency_timeseries_plot(pub_subs)
+
+    @singledispatchmethod
+    def create_communication_latency_plot(
+        communications: Collection[Communication]
+    ) -> PlotBase:
+        return Plot.create_latency_timeseries_plot(communications)
+
+    @staticmethod
+    @create_communication_latency_plot.register
+    def _create_communication_latency_plot_tuple(
+        *communications: Communication
+    ) -> PlotBase:
+        return Plot.create_latency_timeseries_plot(communications)
+
+    @singledispatchmethod
+    def create_communication_frequency_plot(
+        communications: Collection[Communication]
+    ) -> PlotBase:
+        return Plot.create_frequency_timeseries_plot(communications)
+
+    @staticmethod
+    @create_communication_frequency_plot.register
+    def _create_communication_frequency_plot_tuple(
+        *communications: Communication
+    ) -> PlotBase:
+        return Plot.create_frequency_timeseries_plot(communications)
+
+    @singledispatchmethod
+    def create_communication_period_plot(
+        communications: Collection[Communication]
+    ) -> PlotBase:
+        return Plot.create_period_timeseries_plot(communications)
+
+    @staticmethod
+    @create_communication_period_plot.register
+    def _create_communication_period_plot_tuple(
+        *communications: Communication
+    ) -> PlotBase:
+        return Plot.create_period_timeseries_plot(communications)
