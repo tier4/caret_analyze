@@ -27,6 +27,7 @@ PublisherClass = Union[Publisher, PublisherStructValue]
 SubscriptionClass = Union[Subscription, SubscriptionStructValue]
 
 
+# TODO: Migrate drawing process to visualize_lib
 def callback_graph(
     node: NodeClass,
     export_path: Optional[str] = None,
