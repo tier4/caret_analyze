@@ -69,8 +69,8 @@ class MetricsBase(metaclass=ABCMeta):
             for record in records:
                 record.data[ts_column_name] = converter.convert(record.get(ts_column_name))
 
+    @staticmethod
     def _get_ts_column_name(
-        self,
         target_object: TimeSeriesTypes
     ) -> str:
         # TODO: Multi-column DataFrame are difficult for users to handle,
@@ -87,8 +87,8 @@ class MetricsBase(metaclass=ABCMeta):
 
         return ts_column_name + ' [ns]'
 
+    @staticmethod
     def _add_top_level_column(
-        self,
         target_df: pd.DataFrame,
         target_object: TimeSeriesTypes
     ) -> pd.DataFrame:

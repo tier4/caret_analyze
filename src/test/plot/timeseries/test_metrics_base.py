@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.plot.bokeh.pub_sub_info_interface import PubSubTimeSeriesPlot
+from caret_analyze.plot.metrics_base import MetricsBase
 from caret_analyze.runtime.publisher import Publisher
 
 
 class TestPubSubTimeSeriesPlot:
 
-    def test_get_ts_column_name_no_callback_name_case(self, mocker):
+    def test_get_ts_column_name_pub_no_callback_name(self, mocker):
         pub_mock = mocker.Mock(spec=Publisher)
         mocker.patch.object(pub_mock, 'callback_names', [])
 
-        assert (PubSubTimeSeriesPlot._get_ts_column_name(pub_mock)
+        assert (MetricsBase._get_ts_column_name(pub_mock)
                 == 'rclcpp_publish_timestamp [ns]')
 
-    def test_get_ts_column_name_normal_case(self, mocker):
+    def test_get_ts_column_name_pub_normal(self, mocker):
         pub_mock = mocker.Mock(spec=Publisher)
         mocker.patch.object(pub_mock, 'callback_names', ['cb0', 'cb1'])
 
-        assert (PubSubTimeSeriesPlot._get_ts_column_name(pub_mock)
+        assert (MetricsBase._get_ts_column_name(pub_mock)
                 == 'cb0/rclcpp_publish_timestamp [ns]')
