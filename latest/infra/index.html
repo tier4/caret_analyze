@@ -497,6 +497,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_service_callbacks" class="md-nav__link">
+    get_service_callbacks()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_subscription_callbacks" class="md-nav__link">
     get_subscription_callbacks()
   </a>
@@ -878,6 +885,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_rmw_impl" class="md-nav__link">
     get_rmw_impl()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.infra.lttng.lttng.Lttng.get_service_callbacks" class="md-nav__link">
+    get_service_callbacks()
   </a>
   
 </li>
@@ -1528,6 +1542,66 @@ tuple structure: (node_name, callback_symbol)</p></td>
                 <code>str</code>
           </td>
           <td><p>rmw_implementation</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.infra.lttng.lttng.Lttng.get_service_callbacks" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_service_callbacks</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.infra.lttng.lttng.Lttng.get_service_callbacks" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get service callbacks information.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeValue" href="../value_objects/#caret_analyze.value_objects.NodeValue">NodeValue</a></code>
+          </td>
+          <td><p>target node name.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Sequence">Sequence</span>[ServiceCallbackInfoLttng]</code>
+          </td>
+          <td></td>
         </tr>
     </tbody>
   </table>
