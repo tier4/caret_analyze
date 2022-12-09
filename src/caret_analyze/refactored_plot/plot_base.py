@@ -43,7 +43,34 @@ class PlotBase(metaclass=ABCMeta):
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False
+        # TODO: add interactive option
     ) -> Figure:
+        """
+        Draw a graph using the bokeh library.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of x-axis of the graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument xaxis_type is not "system_time", "index", or "sim_time".
+
+        """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)
         show(p)
 
@@ -57,5 +84,31 @@ class PlotBase(metaclass=ABCMeta):
         ywheel_zoom: bool = True,
         full_legends: bool = False
     ) -> None:
+        """
+        Export a graph using the bokeh library.
+
+        Parameters
+        ----------
+        export_path : str
+            The graph will be saved as a file.
+        title: str
+            Title of the graph.
+        xaxis_type : str
+            Type of x-axis of the graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument xaxis_type is not "system_time", "index", or "sim_time".
+
+        """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)
         save(p, export_path, title=title, resources=CDN)

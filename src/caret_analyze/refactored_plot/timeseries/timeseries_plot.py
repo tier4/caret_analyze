@@ -16,6 +16,8 @@ from typing import Union
 
 from bokeh.plotting import Figure
 
+import pandas as pd
+
 from ..metrics_base import MetricsBase
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
@@ -35,8 +37,28 @@ class TimeSeriesPlot(PlotBase):
         self._metrics = metrics
         self._visualize_lib = visualize_lib
 
-    def to_dataframe(self):
-        return self._metrics.to_dataframe()
+    def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get time series data for each object in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument xaxis_type is not "system_time", "index", or "sim_time".
+
+        Notes
+        -----
+        xaxis_type "system_time" and "index" return the same DataFrame.
+
+        """
+        return self._metrics.to_dataframe(xaxis_type)
 
     def figure(
         self,
@@ -44,6 +66,32 @@ class TimeSeriesPlot(PlotBase):
         ywheel_zoom: bool = True,
         full_legends: bool = False
     ) -> Figure:
+        """
+        Draw a timeseries graph for each object using the bokeh library.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument xaxis_type is not "system_time", "index", or "sim_time".
+
+        """
         self._validate_xaxis_type(xaxis_type)
 
         return self._visualize_lib.timeseries(
