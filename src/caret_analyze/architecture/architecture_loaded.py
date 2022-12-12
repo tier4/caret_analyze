@@ -902,6 +902,7 @@ class CallbackGroupsLoaded():
         node: NodeValue
     ) -> None:
         self._data: Dict[str, CallbackGroupStruct] = {}
+
         _cbg_dict: Dict[CallbackGroupValue, int] = {}
         _srv_only_cbg_dict: Dict[CallbackGroupValue, int] = {}
 
@@ -913,14 +914,20 @@ class CallbackGroupsLoaded():
             cb_count = len(cbs)
             return srv_cb_count == cb_count and srv_cb_count != 0
 
-        for cbg in reader.get_callback_groups(node):
+        callback_groups = reader.get_callback_groups(node)
+
+        for cbg in callback_groups:
             self._validate(cbg, node)
 
-            if not _is_service_only_callbackgroup(cbg):
-                cbg_name = cbg.callback_group_name  \
-                    or f'{node.node_name}/callback_group_{len(_cbg_dict)}'
-                _cbg_dict[cbg] = len(_cbg_dict)
+            cbg_name: str
 
+            if not _is_service_only_callbackgroup(cbg):
+                if cbg.callback_group_name is None:
+                    cbg_name = f'{node.node_name}/callback_group_{len(_cbg_dict)}'
+                    _cbg_dict[cbg] = len(_cbg_dict)
+                    # TODO(hsgwa): Handle duplicate callback names with existing callback names.
+                else:
+                    cbg_name = cbg.callback_group_name
             else:
                 cbg_name = cbg.callback_group_name  \
                     or f'{node.node_name}/service_only_callback_group_' \
@@ -988,6 +995,8 @@ class CallbacksLoaded():
         self._srv_callback_count: Dict[CallbackValue, int] = {}
         self._cb_dict: Dict[str, CallbackStruct] = {}
 
+        # TODO(hsgwa): Checking for unique constraints on id and name
+
         # Service callbacks are handled specially until formal support for the service is provided
         # callback_num = Util.num_digit(len(callbacks))
         callback_num = Util.num_digit(len(reader.get_timer_callbacks(node))
@@ -1022,6 +1031,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
+            # TODO(hsgwa): Handle duplicate callback names with existing callback names.
 
             return TimerCallbackStruct(
                 node_name=callback.node_name,
@@ -1039,6 +1049,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
+            # TODO(hsgwa): Handle duplicate callback names with existing callback names.
             return SubscriptionCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
@@ -1169,10 +1180,19 @@ class ExecutorValuesLoaded():
         execs: List[ExecutorStruct] = []
 
         exec_vals = reader.get_executors()
+        # TODO(hsgwa): Checking for unique constraints on id and name
         num_digit = Util.num_digit(len(exec_vals))
+        name_index = 0
 
-        for i, executor in enumerate(exec_vals):
-            executor_name = executor.executor_name or indexed_name('executor', i, num_digit)
+        for executor in exec_vals:
+            executor_name: str
+            if executor.executor_name is None:
+                executor_name = indexed_name('executor', name_index, num_digit)
+                name_index += 1
+                # TODO(hsgwa): Handle duplicate callback names with existing callback names.
+            else:
+                executor_name = executor.executor_name
+
             try:
                 execs.append(
                     self._to_struct(executor_name, executor, nodes_loaded)
