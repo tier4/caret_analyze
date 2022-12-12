@@ -18,6 +18,9 @@ from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.publisher import Publisher
 from caret_analyze.runtime.subscription import Subscription
 
+import pandas as pd
+from pandas import MultiIndex
+
 
 class TestMetricsBase:
 
@@ -53,3 +56,42 @@ class TestMetricsBase:
         mocker.patch.object(comm_mock, 'column_names', ['node/start', 'node/end'])
 
         assert MetricsBase._get_ts_column_name(comm_mock) == 'start [ns]'
+
+    def test_add_top_level_column_callback(self, mocker):
+        cb_mock = mocker.Mock(spec=CallbackBase)
+        mocker.patch.object(cb_mock, 'callback_name', 'cb')
+        df = pd.DataFrame(data=None, columns=['_'])
+        df = MetricsBase._add_top_level_column(df, cb_mock)
+
+        assert isinstance(df.columns, MultiIndex)
+        assert df.columns.get_level_values(0) == 'cb'
+
+    def test_add_top_level_column_communication(self, mocker):
+        comm_mock = mocker.Mock(spec=Communication)
+        mocker.patch.object(
+            comm_mock, 'summary',
+            {'publish_node': 'pub', 'topic_name': 'topic', 'subscribe_node': 'sub'}
+        )
+        df = pd.DataFrame(data=None, columns=['_'])
+        df = MetricsBase._add_top_level_column(df, comm_mock)
+
+        assert isinstance(df.columns, MultiIndex)
+        assert df.columns.get_level_values(0) == 'pub|topic|sub'
+
+    def test_add_top_level_column_pub(self, mocker):
+        pub_mock = mocker.Mock(spec=Publisher)
+        mocker.patch.object(pub_mock, 'topic_name', 'topic')
+        df = pd.DataFrame(data=None, columns=['_'])
+        df = MetricsBase._add_top_level_column(df, pub_mock)
+
+        assert isinstance(df.columns, MultiIndex)
+        assert df.columns.get_level_values(0) == 'topic'
+
+    def test_add_top_level_column_sub(self, mocker):
+        sub_mock = mocker.Mock(spec=Subscription)
+        mocker.patch.object(sub_mock, 'topic_name', 'topic')
+        df = pd.DataFrame(data=None, columns=['_'])
+        df = MetricsBase._add_top_level_column(df, sub_mock)
+
+        assert isinstance(df.columns, MultiIndex)
+        assert df.columns.get_level_values(0) == 'topic'
