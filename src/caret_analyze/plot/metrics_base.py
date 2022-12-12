@@ -24,6 +24,7 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 
 
 class MetricsBase(metaclass=ABCMeta):
+    """Metics base class."""
 
     def __init__(
         self,
@@ -46,12 +47,11 @@ class MetricsBase(metaclass=ABCMeta):
     ) -> List[RecordsInterface]:
         raise NotImplementedError()
 
+    # TODO: Migrate into records.
     def _convert_timeseries_records_to_sim_time(
         self,
         timeseries_records_list: List[RecordsInterface]
     ) -> None:
-        # TODO: Migrate into records.
-
         # get converter
         if isinstance(self._target_objects[0], Communication):
             for comm in self._target_objects:
@@ -69,13 +69,12 @@ class MetricsBase(metaclass=ABCMeta):
             for record in records:
                 record.data[ts_column_name] = converter.convert(record.get(ts_column_name))
 
+    # TODO: Multi-column DataFrame are difficult for users to handle,
+    #       so this function is unnecessary.
     @staticmethod
     def _get_ts_column_name(
         target_object: TimeSeriesTypes
     ) -> str:
-        # TODO: Multi-column DataFrame are difficult for users to handle,
-        #       so this function is unnecessary.
-
         if isinstance(target_object, Publisher):
             callback_names = (f'{target_object.callback_names[0]}/'
                               if target_object.callback_names else '')
@@ -87,14 +86,13 @@ class MetricsBase(metaclass=ABCMeta):
 
         return ts_column_name + ' [ns]'
 
+    # TODO: Multi-column DataFrame are difficult for users to handle,
+    #       so this function is unnecessary.
     @staticmethod
     def _add_top_level_column(
         target_df: pd.DataFrame,
         target_object: TimeSeriesTypes
     ) -> pd.DataFrame:
-        # TODO: Multi-column DataFrame are difficult for users to handle,
-        #       so this function is unnecessary.
-
         if isinstance(target_object, CallbackBase):
             column_name = target_object.callback_name
         elif isinstance(target_object, Communication):

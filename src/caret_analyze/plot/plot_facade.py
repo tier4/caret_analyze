@@ -29,11 +29,29 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 
 
 class Plot:
+    """Facade class for plot."""
 
     @singledispatchmethod
     def create_period_timeseries_plot(
         target_objects: Collection[TimeSeriesTypes]
     ) -> PlotBase:
+        """
+        Get period timeseries plot instance.
+
+        Parameters
+        ----------
+        target_object : TimeSeriesTypes
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'period', visualize_lib
@@ -55,6 +73,23 @@ class Plot:
     def create_frequency_timeseries_plot(
         target_objects: Collection[TimeSeriesTypes]
     ) -> PlotBase:
+        """
+        Get frequency timeseries plot instance.
+
+        Parameters
+        ----------
+        target_object : TimeSeriesTypes
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'frequency', visualize_lib
@@ -76,6 +111,23 @@ class Plot:
     def create_latency_timeseries_plot(
         target_objects: Collection[Union[CallbackBase, Communication]]
     ) -> PlotBase:
+        """
+        Get latency timeseries plot instance.
+
+        Parameters
+        ----------
+        target_object : TimeSeriesTypes
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'latency', visualize_lib

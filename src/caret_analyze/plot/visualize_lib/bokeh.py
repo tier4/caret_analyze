@@ -35,6 +35,7 @@ logger = getLogger(__name__)
 
 
 class Bokeh(VisualizeLibInterface):
+    """Class that visualizes data using Bokeh library."""
 
     def __init__(self) -> None:
         pass
@@ -46,6 +47,30 @@ class Bokeh(VisualizeLibInterface):
         ywheel_zoom: bool,
         full_legends: bool
     ) -> Figure:
+        """
+        Get a timeseries figure.
+
+        Parameters
+        ----------
+        metrics : MetricsBase
+            Metrics to be y-axis in visualization.
+        xaxis_type : str
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of timeseries.
+
+        """
         target_objects = metrics.target_objects
         timeseries_records_list = metrics.to_timeseries_records_list(xaxis_type)
 
@@ -171,6 +196,7 @@ class Bokeh(VisualizeLibInterface):
 
 
 class LineSource:
+    """Class that generate lines of timeseries data."""
 
     def __init__(
         self,
@@ -181,6 +207,22 @@ class LineSource:
         self._xaxis_type = xaxis_type
 
     def create_hover(self, target_object: TimeSeriesTypes) -> HoverTool:
+        """
+        Create HoverTool for timeseries figure.
+
+        Parameters
+        ----------
+        target_object : TimeSeriesTypes
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+
+        Returns
+        -------
+        bokeh.models.HoverTool
+            This contains information display when hovering the mouse over a drawn line.
+
+        """
         source_keys = self._get_source_keys(target_object)
         tips_str = '<div style="width:400px; word-wrap: break-word;">'
         for k in source_keys:
@@ -194,6 +236,24 @@ class LineSource:
         target_object: TimeSeriesTypes,
         timeseries_records: RecordsInterface,
     ) -> ColumnDataSource:
+        """
+        Generate a line source for timeseries figure.
+
+        Parameters
+        ----------
+        target_object : TimeSeriesTypes
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+        timeseries_records : RecordsInterface
+            Records containing timeseries data.
+
+        Returns
+        -------
+        bokeh.plotting.ColumnDataSource
+            Line source for timeseries figure.
+
+        """
         line_source = ColumnDataSource(data={
             k: [] for k in (['x', 'y'] + self._get_source_keys(target_object))
         })
@@ -290,6 +350,7 @@ class LineSource:
 
 
 class LegendManager:
+    """Class that manages legend in Bokeh figure."""
 
     def __init__(self) -> None:
         self._legend_count_map: Dict[str, int] = defaultdict(int)
@@ -300,6 +361,17 @@ class LegendManager:
         target_object: Any,
         renderer: GlyphRenderer
     ) -> None:
+        """
+        Store a legend of the input object internally.
+
+        Parameters
+        ----------
+        target_object : Any
+            Instance of any class.
+        renderer : bokeh.models.GlyphRenderer
+            Instance of renderer.
+
+        """
         class_name = type(target_object).__name__
         label = f'{class_name.lower()}{self._legend_count_map[class_name]}'
         self._legend_count_map[class_name] += 1
@@ -311,6 +383,19 @@ class LegendManager:
         max_legends: int = 20,
         full_legends: bool = False
     ) -> None:
+        """
+        Add legends to the input figure.
+
+        Parameters
+        ----------
+        figure : Figure
+            Target figure.
+        max_legends : int, optional
+            Maximum number of legends to display, by default 20.
+        full_legends : bool, optional
+            Display all legends even if they exceed max_legends, by default False.
+
+        """
         for i in range(0, len(self._legend_items)+10, 10):
             if not full_legends and i >= max_legends:
                 logger.warning(

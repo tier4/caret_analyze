@@ -21,12 +21,14 @@ from .timeseries_plot import TimeSeriesPlot
 from ..metrics_base import MetricsBase
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
+from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesPlotTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
 class TimeSeriesPlotFactory:
+    """Factory class to create an instance of TimeSeriesPlot."""
 
     @staticmethod
     @type_check_decorator
@@ -35,6 +37,31 @@ class TimeSeriesPlotFactory:
         metrics: str,
         visualize_lib: VisualizeLibInterface
     ) -> TimeSeriesPlot:
+        """
+        Create an instance of TimeSeriesPlot.
+
+        Parameters
+        ----------
+        target_objects : Sequence[TimeSeriesPlotTypes]
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+        metrics : str
+            Metrics for timeseries data.
+            supported metrics: [frequency/latency/period]
+        visualize_lib : VisualizeLibInterface
+            Instance of VisualizeLibInterface used for visualization.
+
+        Returns
+        -------
+        TimeSeriesPlot
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument metrics is not "frequency", "latency", or "period".
+
+        """
         metrics_: MetricsBase
         if metrics == 'frequency':
             metrics_ = FrequencyTimeSeries(list(target_objects))
@@ -47,4 +74,7 @@ class TimeSeriesPlotFactory:
             metrics_ = PeriodTimeSeries(list(target_objects))
             return TimeSeriesPlot(metrics_, visualize_lib)
         else:
-            raise NotImplementedError()
+            raise UnsupportedTypeError(
+                'Unsupported metrics specified. '
+                'Supported metrics: [frequency/latency/period]'
+            )

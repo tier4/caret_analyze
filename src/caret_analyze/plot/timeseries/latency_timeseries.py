@@ -22,6 +22,7 @@ from ...runtime import CallbackBase, Communication
 
 
 class LatencyTimeSeries(MetricsBase):
+    """Class that provides latency timeseries data."""
 
     def __init__(
         self,
@@ -30,6 +31,26 @@ class LatencyTimeSeries(MetricsBase):
         super().__init__(target_objects)
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get latency timeseries data for each object in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Returns
+        -------
+        pd.DataFrame
+            Multi-column latency DataFrame.
+
+        Notes
+        -----
+        xaxis_type "system_time" and "index" return the same DataFrame.
+
+        """
         timeseries_records_list = self.to_timeseries_records_list()
         if xaxis_type == 'sim_time':
             self._convert_timeseries_records_to_sim_time(timeseries_records_list)
@@ -56,6 +77,22 @@ class LatencyTimeSeries(MetricsBase):
         self,
         xaxis_type: str = 'system_time'
     ) -> List[RecordsInterface]:
+        """
+        Get latency records list of all target objects.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Returns
+        -------
+        List[RecordsInterface]
+            Latency records list of all target objects.
+
+        """
         timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
             latency = Latency(target_object.to_records())

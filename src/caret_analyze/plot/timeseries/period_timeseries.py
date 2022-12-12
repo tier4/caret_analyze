@@ -24,6 +24,7 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 
 
 class PeriodTimeSeries(MetricsBase):
+    """Class that provides period timeseries data."""
 
     def __init__(
         self,
@@ -32,6 +33,31 @@ class PeriodTimeSeries(MetricsBase):
         super().__init__(target_objects)
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get period timeseries data for each object in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Raises
+        ------
+        UnsupportedTypeError
+            Argument xaxis_type is not "system_time", "index", or "sim_time".
+
+        Returns
+        -------
+        pd.DataFrame
+            Multi-column period DataFrame.
+
+        Notes
+        -----
+        xaxis_type "system_time" and "index" return the same DataFrame.
+
+        """
         timeseries_records_list = self.to_timeseries_records_list()
         if xaxis_type == 'sim_time':
             self._convert_timeseries_records_to_sim_time(timeseries_records_list)
@@ -58,6 +84,22 @@ class PeriodTimeSeries(MetricsBase):
         self,
         xaxis_type: str = 'system_time'
     ) -> List[RecordsInterface]:
+        """
+        Get period records list of all target objects.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Returns
+        -------
+        List[RecordsInterface]
+            Period records list of all target objects.
+
+        """
         timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
             period = Period(target_object.to_records())

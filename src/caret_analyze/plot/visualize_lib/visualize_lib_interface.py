@@ -24,6 +24,7 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
+    """Interface class for VisualizeLib."""
 
     @abstractmethod
     def timeseries(

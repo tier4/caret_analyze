@@ -28,6 +28,7 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 
 
 class TimeSeriesPlot(PlotBase):
+    """Class that provides API for timeseries data."""
 
     def __init__(
         self,
@@ -58,6 +59,7 @@ class TimeSeriesPlot(PlotBase):
         xaxis_type "system_time" and "index" return the same DataFrame.
 
         """
+        self._validate_xaxis_type(xaxis_type)
         return self._metrics.to_dataframe(xaxis_type)
 
     def figure(
@@ -67,7 +69,7 @@ class TimeSeriesPlot(PlotBase):
         full_legends: bool = False
     ) -> Figure:
         """
-        Draw a timeseries graph for each object using the bokeh library.
+        Get a timeseries graph for each object using the bokeh library.
 
         Parameters
         ----------

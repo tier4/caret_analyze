@@ -24,6 +24,7 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 
 
 class FrequencyTimeSeries(MetricsBase):
+    """Class that provides frequency timeseries data."""
 
     def __init__(
         self,
@@ -32,6 +33,26 @@ class FrequencyTimeSeries(MetricsBase):
         super().__init__(target_objects)
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get frequency timeseries data for each object in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Returns
+        -------
+        pd.DataFrame
+            Multi-column frequency DataFrame.
+
+        Notes
+        -----
+        xaxis_type "system_time" and "index" return the same DataFrame.
+
+        """
         timeseries_records_list = self.to_timeseries_records_list()
         if xaxis_type == 'sim_time':
             self._convert_timeseries_records_to_sim_time(timeseries_records_list)
@@ -57,6 +78,22 @@ class FrequencyTimeSeries(MetricsBase):
         self,
         xaxis_type: str = 'system_time'
     ) -> List[RecordsInterface]:
+        """
+        Get frequency records list of all target objects.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Returns
+        -------
+        List[RecordsInterface]
+            Frequency records list of all target objects.
+
+        """
         min_time, max_time = self._get_timestamp_range()
         timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
@@ -70,6 +107,7 @@ class FrequencyTimeSeries(MetricsBase):
 
         return timeseries_records_list
 
+    # TODO: Migrate into record.
     def _get_timestamp_range(
         self
     ) -> Tuple[int, int]:

@@ -21,6 +21,7 @@ import pandas as pd
 
 
 class PlotBase(metaclass=ABCMeta):
+    """Plot base class."""
 
     @abstractmethod
     def to_dataframe(
