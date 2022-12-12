@@ -28,6 +28,7 @@ from .struct import (CallbackGroupStruct, CallbackStruct,
                      MessageContextStruct,
                      NodePathStruct, NodeStruct, PathStruct,
                      PublisherStruct,
+                     ServiceCallbackStruct, ServiceStruct,
                      SubscriptionCallbackStruct, SubscriptionStruct,
                      TimerCallbackStruct, TimerStruct,
                      VariablePassingStruct)
@@ -41,6 +42,8 @@ from ..value_objects import (CallbackGroupValue,
                              NodePathValue, NodeValue,
                              NodeValueWithId, PathValue,
                              PublisherValue,
+                             ServiceCallbackValue,
+                             ServiceValue,
                              SubscriptionCallbackValue,
                              SubscriptionValue,
                              TimerCallbackValue,
@@ -82,6 +85,8 @@ class ArchitectureLoaded():
         self._named_paths: List[PathStruct]
         self._paths = paths_loaded.data
 
+        self._ignore_service()
+
         return None
 
     @property
@@ -99,6 +104,34 @@ class ArchitectureLoaded():
     @property
     def communications(self) -> List[CommunicationStruct]:
         return self._communications
+
+    def _ignore_service(self) -> None:
+        # for node
+        nodes = list(self._nodes)
+        for n in nodes:
+            ignored_callback_groups = []
+            original_callback_groups = n.callback_groups
+            if original_callback_groups is not None:
+                for cbg in original_callback_groups:
+                    if '/service_only_callback_group_'  \
+                            in cbg.callback_group_name:
+                        continue
+                    cbg._callbacks = [cb for cb in cbg.callbacks
+                                      if cb.service_name is None]
+                    ignored_callback_groups.append(cbg)
+
+            n._callback_groups = ignored_callback_groups
+
+        self._nodes = nodes
+
+        # for executor
+        executors = list(self._executors)
+        for executor in executors:
+            cbg_values = [cbg for cbg in executor.callback_groups
+                          if '/service_only_callback_group_'
+                          not in cbg.callback_group_name]
+            # for cbg in exec.callback_groups:
+            executor._cbg_values = cbg_values
 
 
 class CommValuesLoaded():
@@ -373,6 +406,9 @@ class NodeValuesLoaded():
         subscriptions: List[SubscriptionStruct]
         subscriptions = SubscriptionsLoaded(reader, callbacks_loaded, node).data
 
+        services: List[ServiceStruct]
+        services = ServicesLoaded(reader, callbacks_loaded, node).data
+
         timers: List[TimerStruct]
         timers = TimersLoaded(reader, callbacks_loaded, node).data
 
@@ -385,8 +421,8 @@ class NodeValuesLoaded():
             reader, callbacks_loaded, node).data
 
         node_struct = NodeStruct(
-            node.node_name, list(publishers), list(subscriptions), list(timers), [],
-            list(callback_groups), list(variable_passings)
+            node.node_name, list(publishers), list(subscriptions), list(services),
+            list(timers), [], list(callback_groups), list(variable_passings)
         )
 
         try:
@@ -394,6 +430,7 @@ class NodeValuesLoaded():
             node_path_added = NodeStruct(
                 node_struct.node_name, node_struct.publishers,
                 node_struct.subscriptions,
+                node_struct.services,
                 node_struct.timers,
                 list(node_paths), node_struct.callback_groups,
                 node_struct.variable_passings
@@ -685,8 +722,10 @@ class PublishersLoaded:
                 pub_callbacks.append(
                     callbacks_loaded.find_callback(callback_id))
 
+        # May be assigned incorrectly for service or client-only nodes
         callbacks = PublishersLoaded._get_callbacks(callbacks_loaded)
-        if len(pub_callbacks) == 0 and len(callbacks) == 1:
+        srv_ignored_callbacks = [c for c in callbacks if not isinstance(c, ServiceCallbackStruct)]
+        if len(pub_callbacks) == 0 and len(srv_ignored_callbacks) == 1:
             pub_callbacks.append(callbacks[0])
 
         for callback in callbacks:
@@ -752,6 +791,41 @@ class SubscriptionsLoaded:
 
     @property
     def data(self) -> List[SubscriptionStruct]:
+        return self._data
+
+
+class ServicesLoaded:
+    def __init__(
+        self,
+        reader: ArchitectureReader,
+        callbacks_loaded: CallbacksLoaded,
+        node: NodeValue
+    ) -> None:
+        services_values = reader.get_services(node)
+        self._data = [self._to_struct(callbacks_loaded, srv)
+                      for srv in services_values]
+
+    def _to_struct(
+        self,
+        callbacks_loaded: CallbacksLoaded,
+        service_value: ServiceValue
+    ) -> ServiceStruct:
+        srv_callback: Optional[CallbackStruct] = None
+
+        if service_value.callback_id is not None:
+            srv_callback = callbacks_loaded.find_callback(
+                service_value.callback_id)
+
+        assert isinstance(srv_callback, ServiceCallbackStruct)
+
+        return ServiceStruct(
+            service_value.node_name,
+            service_value.service_name,
+            srv_callback
+        )
+
+    @property
+    def data(self) -> List[ServiceStruct]:
         return self._data
 
 
@@ -828,9 +902,37 @@ class CallbackGroupsLoaded():
         node: NodeValue
     ) -> None:
         self._data: Dict[str, CallbackGroupStruct] = {}
-        for i, cbg in enumerate(reader.get_callback_groups(node)):
+
+        _cbg_dict: Dict[CallbackGroupValue, int] = {}
+        _srv_only_cbg_dict: Dict[CallbackGroupValue, int] = {}
+
+        # ignore callback_group containing only service callbacks
+        def _is_service_only_callbackgroup(cbg: CallbackGroupValue):
+            cbs = self._get_callbacks(callbacks_loaded, cbg)
+            srv_cb_count = len([cb for cb in cbs
+                                if isinstance(cb, ServiceCallbackStruct)])
+            cb_count = len(cbs)
+            return srv_cb_count == cb_count and srv_cb_count != 0
+
+        callback_groups = reader.get_callback_groups(node)
+
+        for cbg in callback_groups:
             self._validate(cbg, node)
-            cbg_name = cbg.callback_group_name or f'{node.node_name}/callback_group_{i}'
+
+            cbg_name: str
+
+            if not _is_service_only_callbackgroup(cbg):
+                if cbg.callback_group_name is None:
+                    cbg_name = f'{node.node_name}/callback_group_{len(_cbg_dict)}'
+                    _cbg_dict[cbg] = len(_cbg_dict)
+                    # TODO(hsgwa): Handle duplicate callback names with existing callback names.
+                else:
+                    cbg_name = cbg.callback_group_name
+            else:
+                cbg_name = cbg.callback_group_name  \
+                    or f'{node.node_name}/service_only_callback_group_' \
+                    + '{len(_srv_only_cbg_dict)}'
+                _srv_only_cbg_dict[cbg] = len(_srv_only_cbg_dict)
 
             cbg_struct = CallbackGroupStruct(
                 cbg.callback_group_type,
@@ -882,19 +984,30 @@ class CallbacksLoaded():
         callbacks: List[CallbackValue] = []
         callbacks += reader.get_timer_callbacks(node)
         callbacks += reader.get_subscription_callbacks(node)
+        callbacks += reader.get_service_callbacks(node)
 
         self._validate(callbacks)
         self._callbacks = callbacks
 
         self._callback_count: Dict[CallbackValue, int] = {}
+        # "_srv_callback_count" will be integrated
+        # into "_callback_count" when the service is officially supported.
+        self._srv_callback_count: Dict[CallbackValue, int] = {}
         self._cb_dict: Dict[str, CallbackStruct] = {}
 
-        callback_num = Util.num_digit(len(callbacks))
+        # TODO(hsgwa): Checking for unique constraints on id and name
+
+        # Service callbacks are handled specially until formal support for the service is provided
+        # callback_num = Util.num_digit(len(callbacks))
+        callback_num = Util.num_digit(len(reader.get_timer_callbacks(node))
+                                      + len(reader.get_subscription_callbacks(node)))
+        srv_callback_num = Util.num_digit(len(reader.get_service_callbacks(node)))
+
         for callback in callbacks:
             if callback.callback_id is None:
                 continue
             self._cb_dict[callback.callback_id] = self._to_struct(
-                callback, callback_num)
+                callback, callback_num, srv_callback_num)
 
     @property
     def node_name(self) -> str:
@@ -907,7 +1020,8 @@ class CallbacksLoaded():
     def _to_struct(
         self,
         callback: CallbackValue,
-        callback_num: int
+        callback_num: int,
+        srv_callback_num: int
     ) -> CallbackStruct:
 
         if isinstance(callback, TimerCallbackValue):
@@ -917,6 +1031,7 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
+            # TODO(hsgwa): Handle duplicate callback names with existing callback names.
 
             return TimerCallbackStruct(
                 node_name=callback.node_name,
@@ -934,10 +1049,49 @@ class CallbacksLoaded():
             indexed = indexed_name(
                 f'{self.node_name}/callback', callback_count, callback_num)
             callback_name = callback.callback_name or indexed
+            # TODO(hsgwa): Handle duplicate callback names with existing callback names.
             return SubscriptionCallbackStruct(
                 node_name=callback.node_name,
                 symbol=callback.symbol,
                 subscribe_topic_name=callback.subscribe_topic_name,
+                publish_topic_names=None if callback.publish_topic_names is None
+                else list(callback.publish_topic_names),
+                callback_name=callback_name,
+            )
+        # Service callbacks support "read" only, not "export".
+        # To avoid affecting exported files, special handling is done for service callbacks.
+        # When the service is officially supported, the special processing will be removed.
+        if isinstance(callback, ServiceCallbackValue):
+            assert callback.service_name is not None
+            self._srv_callback_count[callback] = self._srv_callback_count.get(
+                callback, len(self._srv_callback_count))
+            callback_count = self._srv_callback_count[callback]
+            indexed = indexed_name(
+                f'{self.node_name}/service_callback', callback_count, srv_callback_num)
+            callback_name = callback.callback_name or indexed
+            return ServiceCallbackStruct(
+                node_name=callback.node_name,
+                symbol=callback.symbol,
+                service_name=callback.service_name,
+                publish_topic_names=None if callback.publish_topic_names is None
+                else list(callback.publish_topic_names),
+                callback_name=callback_name,
+            )
+        # Service callbacks support "read" only, not "export".
+        # To avoid affecting exported files, special handling is done for service callbacks.
+        # When the service is officially supported, the special processing will be removed.
+        if isinstance(callback, ServiceCallbackValue):
+            assert callback.service_name is not None
+            self._srv_callback_count[callback] = self._srv_callback_count.get(
+                callback, len(self._srv_callback_count))
+            callback_count = self._srv_callback_count[callback]
+            indexed = indexed_name(
+                f'{self.node_name}/service_callback', callback_count, srv_callback_num)
+            callback_name = callback.callback_name or indexed
+            return ServiceCallbackStruct(
+                node_name=callback.node_name,
+                symbol=callback.symbol,
+                service_name=callback.service_name,
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
@@ -1026,10 +1180,19 @@ class ExecutorValuesLoaded():
         execs: List[ExecutorStruct] = []
 
         exec_vals = reader.get_executors()
+        # TODO(hsgwa): Checking for unique constraints on id and name
         num_digit = Util.num_digit(len(exec_vals))
+        name_index = 0
 
-        for i, executor in enumerate(exec_vals):
-            executor_name = executor.executor_name or indexed_name('executor', i, num_digit)
+        for executor in exec_vals:
+            executor_name: str
+            if executor.executor_name is None:
+                executor_name = indexed_name('executor', name_index, num_digit)
+                name_index += 1
+                # TODO(hsgwa): Handle duplicate callback names with existing callback names.
+            else:
+                executor_name = executor.executor_name
+
             try:
                 execs.append(
                     self._to_struct(executor_name, executor, nodes_loaded)
@@ -1136,7 +1299,6 @@ class PathValuesLoaded():
     def data(self) -> List[PathStruct]:
         return self._data
 
-    # serviceはactionに対応していないので、おかしな結果になってしまう。
     # def _insert_publishers_to_callbacks(
     #     self,
     #     publishers: List[PublisherInfo],
@@ -1312,6 +1474,9 @@ class TopicIgnoredReader(ArchitectureReader):
             subscriptions.append(subscription)
         return subscriptions
 
+    def get_services(self, node: NodeValue) -> List[ServiceValue]:
+        return list(self._reader.get_services(node))
+
     def get_variable_passings(
         self,
         node: NodeValue
@@ -1334,3 +1499,9 @@ class TopicIgnoredReader(ArchitectureReader):
                 continue
             callbacks.append(subscription_callback)
         return callbacks
+
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValue]:
+        return self._reader.get_service_callbacks(node)
