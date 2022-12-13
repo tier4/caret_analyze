@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 
 from ..metrics_base import MetricsBase
+from ...exceptions import InvalidArgumentError
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -94,7 +95,7 @@ class FrequencyTimeSeries(MetricsBase):
             Frequency records list of all target objects.
 
         """
-        min_time, max_time = self._get_timestamp_range()
+        min_time, max_time = self._get_timestamp_range(self._target_objects)
         timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
             frequency = Frequency(target_object.to_records())
@@ -108,17 +109,31 @@ class FrequencyTimeSeries(MetricsBase):
         return timeseries_records_list
 
     # TODO: Migrate into record.
+    @staticmethod
     def _get_timestamp_range(
-        self
+        target_objects: Sequence[TimeSeriesTypes]
     ) -> Tuple[int, int]:
+        def is_valid(timestamp: Optional[int]) -> bool:
+            import numpy as np
+            if timestamp is None:
+                return False
+            elif np.isnan(timestamp):
+                return False
+            else:
+                return True
+
         first_timestamps = []
         last_timestamps = []
-        for to in self._target_objects:
+        for to in target_objects:
             df = to.to_dataframe()
             if len(df) == 0:
                 continue
-            first_timestamps.append(df.iloc[0, 0])
-            last_timestamps.append(df.iloc[-1, 0])
+            if is_valid(first_timestamp := df.iloc[0, 0]):
+                first_timestamps.append(first_timestamp)
+            if is_valid(last_timestamp := df.iloc[-1, 0]):
+                last_timestamps.append(last_timestamp)
 
-        # TODO: fix error when len(first_timestamp) == 0
-        return min(first_timestamps), max(last_timestamps)
+        if len(first_timestamps) == 0 or len(last_timestamps) == 0:
+            raise InvalidArgumentError('None of the objects have timestamps.')
+        else:
+            return min(first_timestamps), max(last_timestamps)
