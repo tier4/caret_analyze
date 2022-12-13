@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
+from typing import Optional
 
 from bokeh.plotting import Figure, save, show
 from bokeh.resources import CDN
@@ -43,7 +44,8 @@ class PlotBase(metaclass=ABCMeta):
         self,
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
-        full_legends: bool = False
+        full_legends: bool = False,
+        export_path: Optional[str] = None,
         # TODO: add interactive option
     ) -> Figure:
         """
@@ -61,6 +63,9 @@ class PlotBase(metaclass=ABCMeta):
         full_legends : bool
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
+        export_path : str, optional
+            The graph will be saved as a file, by default None.
+            This option is deprecated, please use save method.
 
         Returns
         -------
@@ -73,14 +78,19 @@ class PlotBase(metaclass=ABCMeta):
 
         """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)
-        show(p)
+        if export_path:
+            print("The 'export_path' option is deprecated, please use 'save' method.")
+            self.save(export_path=export_path, xaxis_type=xaxis_type,
+                      ywheel_zoom=ywheel_zoom, full_legends=full_legends)
+        else:
+            show(p)
 
         return p
 
     def save(
         self,
         export_path: str,
-        title: str,
+        title: str = '',
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False
@@ -92,8 +102,8 @@ class PlotBase(metaclass=ABCMeta):
         ----------
         export_path : str
             The graph will be saved as a file.
-        title: str
-            Title of the graph.
+        title: str, optional
+            Title of the graph, by default ''.
         xaxis_type : str
             Type of x-axis of the graph to be plotted.
             "system_time", "index", or "sim_time" can be specified.
