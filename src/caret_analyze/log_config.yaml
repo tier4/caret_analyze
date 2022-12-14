@@ -1,0 +1,30 @@
+version: 1
+
+formatters:
+  caret_fmt:
+    format: '%(levelname)-8s: %(asctime)s | %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: WARN
+    formatter: caret_fmt
+
+loggers:
+  caret_analyze.architecture.architecture_loaded:
+    level: CRITICAL
+    handlers: [console]
+    propagate: true
+
+  caret_analyze.runtime.runtime_loaded:
+    level: CRITICAL
+    handlers: [console]
+    propagate: true
+
+root:
+  level: DEBUG
+  handlers: [console]
+  propagate: false
+
+disable_existing_loggers: false
