@@ -30,6 +30,7 @@ from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              NodePathStructValue, NodeStructValue, PathStructValue,
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
 
+logger = logging.getLogger(__name__)
 
 class Architecture(Summarizable):
     def __init__(
@@ -299,7 +300,7 @@ class Architecture(Summarizable):
             counter = Counter(callback_params)
 
             for uniqueness_violated in [param for param, count in counter.items() if count >= 2]:
-                logging.warning(
+                logger.warning(
                     ('Duplicate parameter callback found. '
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'
