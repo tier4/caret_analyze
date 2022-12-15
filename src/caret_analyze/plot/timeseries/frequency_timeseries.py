@@ -53,10 +53,7 @@ class FrequencyTimeSeries(MetricsBase):
         xaxis_type "system_time" and "index" return the same DataFrame.
 
         """
-        timeseries_records_list = self.to_timeseries_records_list()
-        if xaxis_type == 'sim_time':
-            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
-
+        timeseries_records_list = self.to_timeseries_records_list(xaxis_type)
         all_df = pd.DataFrame()
         for to, frequency_records in zip(self.target_objects, timeseries_records_list):
             frequency_df = frequency_records.to_dataframe()
