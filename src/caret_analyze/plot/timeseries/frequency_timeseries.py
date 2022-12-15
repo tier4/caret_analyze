@@ -113,6 +113,8 @@ class FrequencyTimeSeries(MetricsBase):
         last_timestamps = []
         for to in target_objects:
             records = to.to_records()
+            if len(records) == 0:
+                continue
             first_timestamp = records.get_column_series(records.columns[0])[0]
             if isinstance(first_timestamp, int):
                 first_timestamps.append(first_timestamp)
