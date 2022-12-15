@@ -17,7 +17,6 @@ from typing import List, Sequence, Tuple, Union
 import pandas as pd
 
 from ..metrics_base import MetricsBase
-from ...exceptions import InvalidArgumentError
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -125,6 +124,6 @@ class FrequencyTimeSeries(MetricsBase):
                 last_timestamps.append(last_timestamp)
 
         if len(first_timestamps) == 0 or len(last_timestamps) == 0:
-            raise InvalidArgumentError('None of the objects have timestamps.')
+            return 0, 1
         else:
             return min(first_timestamps), max(last_timestamps)

@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.plot.timeseries.frequency_timeseries import FrequencyTimeSeries
 from caret_analyze.record import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.runtime.callback import CallbackBase
-
-import pytest
 
 
 def create_expect_records(records_raw):
@@ -58,10 +55,9 @@ class TestFrequencyTimeSeries:
         assert max_ts == 5
 
     def test_get_timestamp_range_empty_input(self):
-        with pytest.raises(InvalidArgumentError) as e:
-            FrequencyTimeSeries._get_timestamp_range([])
-
-        assert 'timestamp' in str(e.value)
+        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range([])
+        assert min_ts == 0
+        assert max_ts == 1
 
     def test_get_timestamp_range_exist_empty_records(self, mocker):
         object_mock0 = mocker.Mock(spec=CallbackBase)
@@ -115,8 +111,8 @@ class TestFrequencyTimeSeries:
             object_mock1, 'to_records',
             return_value=create_expect_records([{}])
         )
-        with pytest.raises(InvalidArgumentError) as e:
-            FrequencyTimeSeries._get_timestamp_range(
-                [object_mock0, object_mock1])
+        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
+            [object_mock0, object_mock1])
 
-        assert 'timestamp' in str(e.value)
+        assert min_ts == 0
+        assert max_ts == 1
