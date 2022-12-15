@@ -13,12 +13,15 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
+from logging import getLogger
 from typing import Optional
 
 from bokeh.plotting import Figure, save, show
 from bokeh.resources import CDN
 
 import pandas as pd
+
+logger = getLogger(__name__)
 
 
 class PlotBase(metaclass=ABCMeta):
@@ -79,7 +82,7 @@ class PlotBase(metaclass=ABCMeta):
         """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)
         if export_path:
-            print("The 'export_path' option is deprecated, please use 'save' method.")
+            logger.warning("The 'export_path' option is deprecated, please use 'save' method.")
             self.save(export_path=export_path, xaxis_type=xaxis_type,
                       ywheel_zoom=ywheel_zoom, full_legends=full_legends)
         else:
