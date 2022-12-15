@@ -1102,6 +1102,45 @@ class TestCallbackGroupsLoaded:
         assert len(datum.callbacks) == 1
         assert datum.callbacks[0] == callback_mock
 
+    def test_name(self, mocker):
+        node = NodeValueWithId('node', 'node')
+
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+
+        cbg_0 = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_0'
+        )
+        cbg_name = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_1',
+            callback_group_name='callback_group_name'
+        )
+        cbg_1 = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_2',
+        )
+
+        mocker.patch.object(
+            reader_mock, 'get_callback_groups', return_value=[cbg_0, cbg_name, cbg_1])
+
+        loaded = CallbackGroupsLoaded(
+            reader_mock, callbacks_loaded_mock, node)
+
+        callback_group_names = [cbg.callback_group_name for cbg in loaded.data]
+        expect = ['node/callback_group_0', 'callback_group_name', 'node/callback_group_1']
+        assert callback_group_names == expect
+
 
 class TestExecutorInfoLoaded:
 
@@ -1115,6 +1154,26 @@ class TestExecutorInfoLoaded:
 
         executors = loaded.data
         assert executors == []
+
+    def test_name(self, mocker):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+
+        exec_0 = ExecutorValue(
+            ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, ())
+        exec_named = ExecutorValue(
+            ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, (), executor_name='exec_name')
+        exec_1 = ExecutorValue(
+            ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, ())
+        mocker.patch.object(reader_mock, 'get_executors',
+                            return_value=[exec_0, exec_named, exec_1])
+
+        nodes_loaded = mocker.Mock(NodeValuesLoaded)
+        loaded = ExecutorValuesLoaded(reader_mock, nodes_loaded)
+
+        executors = loaded.data
+        executor_names = [e.executor_name for e in executors]
+        expect = ['executor_0', 'exec_name', 'executor_1']
+        assert executor_names == expect
 
     def test_single_executor(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
