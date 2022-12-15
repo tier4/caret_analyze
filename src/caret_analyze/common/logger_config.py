@@ -22,5 +22,5 @@ def init_logger(cfg_path: str):
         logger.setLevel(DEBUG)
         logger.addHandler(handler)
 
-        logger.warn('Failed to load log config.')
-        logger.warn(e)
+        logger.warning('Failed to load log config.')
+        logger.warning(e)
