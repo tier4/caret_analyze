@@ -6,25 +6,36 @@ formatters:
     datefmt: '%Y-%m-%d %H:%M:%S'
 
 handlers:
-  console:
+  stream_handler:
     class: logging.StreamHandler
     level: WARN
+    formatter: caret_fmt
+  file_handler:
+    class: logging.FileHandler
+    level: WARN
+    formatter: caret_fmt
+    filename: './caret.log'
+    mode: w
+    encoding: utf-8
+  null_handler:
+    class: logging.NullHandler
+    level: CRITICAL
     formatter: caret_fmt
 
 loggers:
   caret_analyze.architecture.architecture_loaded:
-    level: CRITICAL
-    handlers: [console]
-    propagate: true
+    level: WARN
+    handlers: [null_handler]
+    #handlers: [file_handler] # if you need to output warnings to a file.
+    propagate: false
+    # propagate: on # if you need to propagate log
 
   caret_analyze.runtime.runtime_loaded:
     level: CRITICAL
-    handlers: [console]
-    propagate: true
+    handlers: [stream_handler]
 
 root:
   level: DEBUG
-  handlers: [console]
-  propagate: false
+  handlers: [stream_handler]
 
 disable_existing_loggers: false
