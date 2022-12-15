@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple, Union
 
 import pandas as pd
 
@@ -113,24 +113,15 @@ class FrequencyTimeSeries(MetricsBase):
     def _get_timestamp_range(
         target_objects: Sequence[TimeSeriesTypes]
     ) -> Tuple[int, int]:
-        def is_valid(timestamp: Optional[int]) -> bool:
-            import numpy as np
-            if timestamp is None:
-                return False
-            elif np.isnan(timestamp):
-                return False
-            else:
-                return True
-
         first_timestamps = []
         last_timestamps = []
         for to in target_objects:
-            df = to.to_dataframe()
-            if len(df) == 0:
-                continue
-            if is_valid(first_timestamp := df.iloc[0, 0]):
+            records = to.to_records()
+            first_timestamp = records.get_column_series(records.columns[0])[0]
+            if isinstance(first_timestamp, int):
                 first_timestamps.append(first_timestamp)
-            if is_valid(last_timestamp := df.iloc[-1, 0]):
+            last_timestamp = records.get_column_series(records.columns[-1])[0]
+            if isinstance(last_timestamp, int):
                 last_timestamps.append(last_timestamp)
 
         if len(first_timestamps) == 0 or len(last_timestamps) == 0:

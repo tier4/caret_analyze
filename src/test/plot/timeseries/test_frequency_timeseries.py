@@ -14,13 +14,23 @@
 
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.plot.timeseries.frequency_timeseries import FrequencyTimeSeries
+from caret_analyze.record import ColumnValue
+from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
 from caret_analyze.runtime.callback import CallbackBase
 
-import numpy as np
-
-import pandas as pd
-
 import pytest
+
+
+def create_expect_records(records_raw):
+    records = RecordsFactory.create_instance()
+    columns = [ColumnValue('first'), ColumnValue('last')]
+    for column in columns:
+        records.append_column(column, [])
+
+    for record_raw in records_raw:
+        record = RecordFactory.create_instance(record_raw)
+        records.append(record)
+    return records
 
 
 class TestFrequencyTimeSeries:
@@ -28,19 +38,19 @@ class TestFrequencyTimeSeries:
     def test_get_timestamp_range_normal(self, mocker):
         object_mock0 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock0, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [1, 2],
-                'last': [2, 3]
-            })
+            object_mock0, 'to_records',
+            return_value=create_expect_records([
+                {'first': 1, 'last': 2},
+                {'first': 2, 'last': 3}
+            ])
         )
         object_mock1 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock1, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [4, 5],
-                'last': [5, 6]
-            })
+            object_mock1, 'to_records',
+            return_value=create_expect_records([
+                {'first': 4, 'last': 5},
+                {'first': 5, 'last': 6}
+            ])
         )
         min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
             [object_mock0, object_mock1])
@@ -53,129 +63,57 @@ class TestFrequencyTimeSeries:
 
         assert 'timestamp' in str(e.value)
 
-    def test_get_timestamp_range_exist_empty_df(self, mocker):
+    def test_get_timestamp_range_exist_empty_records(self, mocker):
         object_mock0 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock0, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [1, 2],
-                'last': [2, 3]
-            })
+            object_mock0, 'to_records',
+            return_value=create_expect_records([
+                {'first': 1, 'last': 2},
+                {'first': 2, 'last': 3}
+            ])
         )
         object_mock1 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock1, 'to_dataframe',
-            return_value=pd.DataFrame()
+            object_mock1, 'to_records',
+            return_value=create_expect_records([{}])
         )
         min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
             [object_mock0, object_mock1])
         assert min_ts == 1
         assert max_ts == 2
 
-    def test_get_timestamp_range_df_include_nan(self, mocker):
+    def test_get_timestamp_range_drop(self, mocker):
         object_mock0 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock0, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [1, 2],
-                'last': [2, 3]
-            })
+            object_mock0, 'to_records',
+            return_value=create_expect_records([
+                {'first': 1, 'last': 2},
+                {'first': 2, 'last': 3}
+            ])
         )
         object_mock1 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock1, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [np.nan, 5],
-                'last': [5, 6]
-            }
-            )
+            object_mock1, 'to_records',
+            return_value=create_expect_records([
+                {'last': 5},
+                {'first': 5, 'last': 6}
+            ])
         )
         min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
             [object_mock0, object_mock1])
         assert min_ts == 1
         assert max_ts == 5
-
-    def test_get_timestamp_range_df_only_nan(self, mocker):
-        object_mock0 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock0, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [np.nan, np.nan],
-                'last': [np.nan, np.nan]
-            })
-        )
-        object_mock1 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock1, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [np.nan, np.nan],
-                'last': [np.nan, np.nan]
-            }
-            )
-        )
-        with pytest.raises(InvalidArgumentError) as e:
-            FrequencyTimeSeries._get_timestamp_range(
-                [object_mock0, object_mock1])
-
-        assert 'timestamp' in str(e.value)
-
-    def test_get_timestamp_range_df_include_none(self, mocker):
-        object_mock0 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock0, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [1, 2],
-                'last': [2, 3]
-            })
-        )
-        object_mock1 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock1, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [None, 5],
-                'last': [5, 6]
-            }
-            )
-        )
-        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
-            [object_mock0, object_mock1])
-        assert min_ts == 1
-        assert max_ts == 5
-
-    def test_get_timestamp_range_df_only_none(self, mocker):
-        object_mock0 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock0, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [None, None],
-                'last': [None, None]
-            })
-        )
-        object_mock1 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock1, 'to_dataframe',
-            return_value=pd.DataFrame(data={
-                'first': [None, None],
-                'last': [None, None]
-            }
-            )
-        )
-        with pytest.raises(InvalidArgumentError) as e:
-            FrequencyTimeSeries._get_timestamp_range(
-                [object_mock0, object_mock1])
-
-        assert 'timestamp' in str(e.value)
 
     def test_get_timestamp_range_len_timestamp_is_0(self, mocker):
         object_mock0 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock0, 'to_dataframe',
-            return_value=pd.DataFrame()
+            object_mock0, 'to_records',
+            return_value=create_expect_records([{}])
         )
         object_mock1 = mocker.Mock(spec=CallbackBase)
         mocker.patch.object(
-            object_mock1, 'to_dataframe',
-            return_value=pd.DataFrame()
+            object_mock1, 'to_records',
+            return_value=create_expect_records([{}])
         )
         with pytest.raises(InvalidArgumentError) as e:
             FrequencyTimeSeries._get_timestamp_range(
