@@ -68,10 +68,9 @@ class TestMetricsBase:
 
     def test_add_top_level_column_communication(self, mocker):
         comm_mock = mocker.Mock(spec=Communication)
-        mocker.patch.object(
-            comm_mock, 'summary',
-            {'publish_node': 'pub', 'topic_name': 'topic', 'subscribe_node': 'sub'}
-        )
+        mocker.patch.object(comm_mock, 'publish_node_name', 'pub')
+        mocker.patch.object(comm_mock, 'topic_name', 'topic')
+        mocker.patch.object(comm_mock, 'subscribe_node_name', 'sub')
         df = pd.DataFrame(data=None, columns=['_'])
         df = MetricsBase._add_top_level_column(df, comm_mock)
 

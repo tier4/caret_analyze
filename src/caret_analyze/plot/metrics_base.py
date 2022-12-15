@@ -110,9 +110,9 @@ class MetricsBase(metaclass=ABCMeta):
         if isinstance(target_object, CallbackBase):
             column_name = target_object.callback_name
         elif isinstance(target_object, Communication):
-            column_name = (f'{target_object.summary["publish_node"]}|'
-                           f'{target_object.summary["topic_name"]}|'
-                           f'{target_object.summary["subscribe_node"]}')
+            column_name = (f'{target_object.publish_node_name}|'
+                           f'{target_object.topic_name}|'
+                           f'{target_object.subscribe_node_name}')
         elif isinstance(target_object, (Publisher, Subscription)):
             column_name = target_object.topic_name
 
