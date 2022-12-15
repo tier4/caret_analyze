@@ -23,7 +23,6 @@ from ...exceptions import InvalidArgumentError
 from ...runtime.path import Path
 
 
-# TODO: Migrate drawing process to visualize_lib
 @type_check_decorator
 def chain_latency(
     path: Path,

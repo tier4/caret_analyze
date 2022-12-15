@@ -25,7 +25,6 @@ NodeClass = Union[NodeStructValue, Node]
 CommunicationClass = Union[CommunicationStructValue, Communication]
 
 
-# TODO: Migrate drawing process to visualize_lib
 def node_graph(
     arch: ArchClass,
     export_path: Optional[str] = None,
