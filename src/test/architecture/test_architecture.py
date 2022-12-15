@@ -466,11 +466,14 @@ $contexts
 
         # invalid assign
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_passings('/not_exist_node', 'timer_callback_1', 'subscription_callback_0')
+            arch_expected.assign_message_passings('/not_exist_node', 'timer_callback_1',
+                                                  'subscription_callback_0')
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_passings('/pong_node', 'not_exist_callback_1', 'subscription_callback_0')
+            arch_expected.assign_message_passings('/pong_node', 'not_exist_callback_1',
+                                                  'subscription_callback_0')
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_passings('/pong_node', 'timer_callback_1', 'not_exist_callback_0')
+            arch_expected.assign_message_passings('/pong_node', 'timer_callback_1',
+                                                  'not_exist_callback_0')
 
     def test_assign_message_contexts(self, mocker):
         # assign message context to template
@@ -519,11 +522,14 @@ $contexts
 
         # invalid assign
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_context('/not_exist_node', 'callback_chain', '/pong', '/ping')
+            arch_expected.assign_message_context('/not_exist_node', 'callback_chain',
+                                                 '/pong', '/ping')
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_context('/pong_node', 'callback_chain', '/not_exist_topic', '/ping')
+            arch_expected.assign_message_context('/pong_node', 'callback_chain',
+                                                 '/not_exist_topic', '/ping')
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_context('/pong_node', 'callback_chain', '/pong', '/not_exist_topic')
+            arch_expected.assign_message_context('/pong_node', 'callback_chain',
+                                                 '/pong', '/not_exist_topic')
 
     # define template text of rename function
     template_architecture_rename = Template("""
