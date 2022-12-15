@@ -17,7 +17,7 @@ from typing import List, Sequence, Union
 
 import pandas as pd
 
-from ..record import RecordsInterface
+from ..record import ColumnValue, RecordFactory, RecordsFactory, RecordsInterface
 from ..runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
@@ -66,8 +66,22 @@ class MetricsBase(metaclass=ABCMeta):
         # convert
         ts_column_name = timeseries_records_list[0].columns[0]
         for records in timeseries_records_list:
-            for record in records:
-                record.data[ts_column_name] = converter.convert(record.get(ts_column_name))
+            # TODO: Refactor after Records class supports quadrature operations.
+            values = [
+                RecordFactory.create_instance({
+                    k: v if k != ts_column_name else converter.convert(record.get(v))
+                    for k, v
+                    in record.data.items()
+                })
+                for record
+                in records
+            ]
+            columns = [
+                ColumnValue(column)
+                for column
+                in records.columns
+            ]
+            records = RecordsFactory.create_instance(values, columns)
 
     # TODO: Multi-column DataFrame are difficult for users to handle,
     #       so this function is unnecessary.
