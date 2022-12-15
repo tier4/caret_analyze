@@ -38,6 +38,7 @@ from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,
                              PathStructValue, PublisherStructValue,
+                             ServiceCallbackStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionStructValue, TimerCallbackStructValue,
                              VariablePassingStructValue)
@@ -725,10 +726,19 @@ class CallbacksLoaded:
         subscriptions_loaded: SubscriptionsLoaded,
         timers_loaded: TimersLoaded
     ) -> None:
+
+        # Processes related to services are implemented later.
+        def _is_ignore_callback(callback: CallbackStructValue):
+            ignore_callback_types = (ServiceCallbackStructValue, )
+            return isinstance(callback, ignore_callback_types)
+
         self._callbacks = []
 
         for cb_info in callback_values:
             try:
+                if _is_ignore_callback(cb_info):
+                    continue
+
                 self._callbacks.append(self._to_runtime(
                         cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded))
             except Error as e:

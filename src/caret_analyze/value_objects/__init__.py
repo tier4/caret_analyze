@@ -24,9 +24,12 @@ CARET uses value objects to avoid unexpectedly overwritten.
 from .callback import (CallbackStructValue,
                        CallbackType,
                        CallbackValue,
+                       ServiceCallbackStructValue,
+                       ServiceCallbackValue,
                        SubscriptionCallbackStructValue,
                        SubscriptionCallbackValue,
-                       TimerCallbackStructValue, TimerCallbackValue)
+                       TimerCallbackStructValue,
+                       TimerCallbackValue)
 from .callback_group import CallbackGroupStructValue, CallbackGroupType, CallbackGroupValue
 from .communication import CommunicationStructValue
 from .executor import ExecutorStructValue, ExecutorType, ExecutorValue
@@ -41,6 +44,7 @@ from .node_path import NodePathStructValue, NodePathValue
 from .path import PathStructValue, PathValue
 from .publisher import PublisherStructValue, PublisherValue
 from .qos import Qos
+from .service import ServiceStructValue, ServiceValue
 from .subscription import SubscriptionStructValue, SubscriptionValue
 from .timer import TimerStructValue, TimerValue
 from .value_object import ValueObject
@@ -76,6 +80,10 @@ __all__ = [
     'SubscriptionCallbackValue',
     'SubscriptionStructValue',
     'SubscriptionValue',
+    'ServiceCallbackStructValue',
+    'ServiceCallbackValue',
+    'ServiceStructValue',
+    'ServiceValue',
     'Tilde',
     'TimerValue',
     'TimerStructValue',

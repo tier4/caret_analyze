@@ -33,6 +33,7 @@ from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
 from .value_objects import (CallbackGroupId,
                             PublisherValueLttng,
+                            ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -524,6 +525,25 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_subscription_callbacks(node)
+
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValueLttng]:
+        """
+        Get service callbacks information.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node name.
+
+        Returns
+        -------
+        Sequence[ServiceCallbackInfoLttng]
+
+        """
+        return self._info.get_service_callbacks(node)
 
     def get_publisher_qos(
         self,

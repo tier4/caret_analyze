@@ -15,9 +15,9 @@
 
 """Module for trace events processor and ROS 2 model creation."""
 
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-
 from collections import defaultdict
+
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 
 import bt2

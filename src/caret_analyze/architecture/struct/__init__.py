@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from .callback import (CallbackStruct,
+                       ServiceCallbackStruct,
                        SubscriptionCallbackStruct,
                        TimerCallbackStruct)
 from .callback_group import CallbackGroupStruct
@@ -27,6 +28,7 @@ from .node import NodeStruct
 from .node_path import NodePathStruct
 from .path import PathStruct
 from .publisher import PublisherStruct
+from .service import ServiceStruct
 from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
@@ -46,6 +48,8 @@ __all__ = [
     'PublisherStruct',
     'SubscriptionCallbackStruct',
     'SubscriptionStruct',
+    'ServiceCallbackStruct',
+    'ServiceStruct',
     'TildeStruct',
     'TimerStruct',
     'TimerCallbackStruct',
