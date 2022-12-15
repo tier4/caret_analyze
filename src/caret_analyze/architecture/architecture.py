@@ -32,6 +32,7 @@ from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
 
 logger = logging.getLogger(__name__)
 
+
 class Architecture(Summarizable):
     def __init__(
         self,
