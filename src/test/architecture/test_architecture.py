@@ -391,7 +391,7 @@ $contexts
         assert set(arch.get_node('/pong_node').callback_names) == set(arch_expected.get_node('/pong_node').callback_names)
         assert set(arch.get_node('/pong_node').callbacks) == set(arch_expected.get_node('/pong_node').callbacks)
         assert arch.get_node('/pong_node').node_name == arch_expected.get_node('/pong_node').node_name
-        assert arch.get_node('/pong_node').paths == arch_expected.get_node('/pong_node').paths
+        assert set(arch.get_node('/pong_node').paths) == set(arch_expected.get_node('/pong_node').paths)
         assert set(arch.get_node('/pong_node').publishers) == set(arch_expected.get_node('/pong_node').publishers)
         assert set(arch.get_node('/pong_node').publish_topic_names) == set(arch_expected.get_node('/pong_node').publish_topic_names)
         assert set(arch.get_node('/pong_node').service_names) == set(arch_expected.get_node('/pong_node').service_names)
