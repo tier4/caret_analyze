@@ -2,8 +2,8 @@ version: 1
 
 formatters:
   caret_fmt:
-    format: '%(levelname)-8s: %(asctime)s | %(message)s'
-    datefmt: '%Y-%m-%d %H:%M:%S'
+    format: "%(levelname)-8s: %(asctime)s | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
 
 handlers:
   stream_handler:
