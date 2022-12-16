@@ -386,7 +386,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.nodes) == set(arch.nodes)
+        assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
@@ -408,7 +408,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.nodes) == set(arch.nodes)
+        # assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
@@ -418,6 +418,9 @@ $contexts
             arch_expected.assign_publisher('/not_exist_node', '/ping', 'timer_callback_1')
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_publisher('/not_exist_node', '/ping', 'not_exist_callback_1')
+  
+        # duplicated assign
+        # arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
 
     def test_assign_passings(self, mocker):
         # assign passing to template
@@ -437,7 +440,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.nodes) == set(arch.nodes)
+        assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
@@ -459,7 +462,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.nodes) == set(arch.nodes)
+        assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
@@ -493,7 +496,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.nodes) == set(arch.nodes)
+        assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
@@ -515,7 +518,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.nodes) == set(arch.nodes)
+        assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
