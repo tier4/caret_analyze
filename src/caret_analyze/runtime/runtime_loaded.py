@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from logging import getLogger
+
 from typing import List, Optional, Tuple, Union
 
 from .callback import CallbackBase, SubscriptionCallback, TimerCallback
@@ -29,7 +31,7 @@ from .timer import Timer, TimerStructValue
 from .variable_passing import VariablePassing
 from ..architecture import Architecture
 from ..common import Util
-from ..exceptions import (ItemNotFoundError, MultipleItemFoundError,
+from ..exceptions import (Error, ItemNotFoundError, MultipleItemFoundError,
                           UnsupportedTypeError)
 from ..infra.interface import RecordsProvider, RuntimeDataProvider
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
@@ -40,6 +42,9 @@ from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionStructValue, TimerCallbackStructValue,
                              VariablePassingStructValue)
+
+
+logger = getLogger(__name__)
 
 
 class RuntimeLoaded():
@@ -86,11 +91,12 @@ class ExecutorsLoaded:
         executors_values: Tuple[ExecutorStructValue, ...],
         nodes_loaded: NodesLoaded
     ) -> None:
-        self._data = [
-            self._to_runtime(exec_val, nodes_loaded)
-            for exec_val
-            in executors_values
-        ]
+        self._data = []
+        for exec_val in executors_values:
+            try:
+                self._data.append(self._to_runtime(exec_val, nodes_loaded))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -119,11 +125,12 @@ class NodesLoaded:
         node_values: Tuple[NodeStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider]
     ) -> None:
-        self._nodes: List[Node] = [
-            self._to_runtime(node_value, provider)
-            for node_value
-            in node_values
-        ]
+        self._nodes: List[Node] = []
+        for node_value in node_values:
+            try:
+                self._nodes.append(self._to_runtime(node_value, provider))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -269,11 +276,12 @@ class PublishersLoaded:
         publishers_info: Tuple[PublisherStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
-        self._pubs = [
-            self._to_runtime(pub_info, provider)
-            for pub_info
-            in publishers_info
-        ]
+        self._pubs = []
+        for pub_info in publishers_info:
+            try:
+                self._pubs.append(self._to_runtime(pub_info, provider))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -346,11 +354,12 @@ class SubscriptionsLoaded:
         subscriptions_info: Tuple[SubscriptionStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
-        self._subs = [
-            self._to_runtime(sub_info, provider)
-            for sub_info
-            in subscriptions_info
-        ]
+        self._subs = []
+        for sub_info in subscriptions_info:
+            try:
+                self._subs.append(self._to_runtime(sub_info, provider))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -387,6 +396,12 @@ class SubscriptionsLoaded:
             msg += f'callback_name: {callback_name}, '
             msg += f'topic_name: {topic_name}, '
             raise ItemNotFoundError(msg)
+        except MultipleItemFoundError:
+            msg = 'Multiple item found. '
+            msg += f'node_name: {node_name}, '
+            msg += f'callback_name: {callback_name}, '
+            msg += f'topic_name: {topic_name}, '
+            raise ItemNotFoundError(msg)
 
     class IsTarget:
         def __init__(
@@ -417,14 +432,15 @@ class SubscriptionsLoaded:
 class TimersLoaded:
     def __init__(
         self,
-        timer_info: Tuple[TimerStructValue, ...],
+        timers_info: Tuple[TimerStructValue, ...],
         provider: Union[RecordsProvider, RuntimeDataProvider],
     ) -> None:
-        self._timers = [
-            self._to_runtime(timer_info, provider)
-            for timer_info
-            in timer_info
-        ]
+        self._timers = []
+        for timer_info in timers_info:
+            try:
+                self._timers.append(self._to_runtime(timer_info, provider))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -497,12 +513,13 @@ class NodePathsLoaded:
         subscription_loaded: SubscriptionsLoaded,
         callbacks: List[CallbackBase],
     ) -> None:
-        self._data = [
-            self._to_runtime(
-                node_path_value, provider, publisher_loaded, subscription_loaded, callbacks)
-            for node_path_value
-            in node_path_values
-        ]
+        self._data = []
+        for node_path_value in node_path_values:
+            try:
+                self._data.append(self._to_runtime(
+                    node_path_value, provider, publisher_loaded, subscription_loaded, callbacks))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -550,11 +567,12 @@ class VariablePassingsLoaded:
         variable_passings_info: Tuple[VariablePassingStructValue, ...],
         provider: RecordsProvider
     ) -> None:
-        self._var_passes = [
-            self._to_runtime(var_pass, provider)
-            for var_pass
-            in variable_passings_info
-        ]
+        self._var_passes = []
+        for var_pass in variable_passings_info:
+            try:
+                self._var_passes.append(self._to_runtime(var_pass, provider))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -578,11 +596,12 @@ class PathsLoaded:
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
     ) -> None:
-        self._data = [
-            self._to_runtime(path_info, nodes_loaded, comms_loaded)
-            for path_info
-            in paths_info
-        ]
+        self._data = []
+        for path_info in paths_info:
+            try:
+                self._data.append(self._to_runtime(path_info, nodes_loaded, comms_loaded))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -707,19 +726,23 @@ class CallbacksLoaded:
         subscriptions_loaded: SubscriptionsLoaded,
         timers_loaded: TimersLoaded
     ) -> None:
+
         # Processes related to services are implemented later.
         def _is_ignore_callback(callback: CallbackStructValue):
             ignore_callback_types = (ServiceCallbackStructValue, )
             return isinstance(callback, ignore_callback_types)
 
-        self._callbacks = [
-            self._to_runtime(
-                cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded
-            )
-            for cb_info
-            in callback_values
-            if not _is_ignore_callback(cb_info)
-        ]
+        self._callbacks = []
+
+        for cb_info in callback_values:
+            try:
+                if _is_ignore_callback(cb_info):
+                    continue
+
+                self._callbacks.append(self._to_runtime(
+                        cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(
@@ -771,12 +794,14 @@ class CallbackGroupsLoaded:
         timers_loaded: TimersLoaded
     ) -> None:
 
-        self._data = [
-            self._to_runtime(cbg_info, provider,
-                             publishers_loaded, subscriptions_loaded, timers_loaded)
-            for cbg_info
-            in callback_group_value
-        ]
+        self._data = []
+        for cbg_info in callback_group_value:
+            try:
+                self._data.append(
+                    self._to_runtime(cbg_info, provider,
+                                     publishers_loaded, subscriptions_loaded, timers_loaded))
+            except Error as e:
+                logger.warning(e)
 
     @staticmethod
     def _to_runtime(

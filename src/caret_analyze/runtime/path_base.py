@@ -14,14 +14,17 @@
 
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
+from logging import getLogger
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-from ..exceptions import InvalidRecordsError
-from ..record import RecordsInterface
+from ..exceptions import Error, InvalidRecordsError
+from ..record import RecordsFactory, RecordsInterface
 from ..record.data_frame_shaper import DataFrameShaper, Strip
+
+logger = getLogger(__name__)
 
 
 class PathBase(metaclass=ABCMeta):
@@ -60,7 +63,12 @@ class PathBase(metaclass=ABCMeta):
     @property
     def __records(self) -> RecordsInterface:
         if self.__records_cache is None:
-            self.__records_cache = self._to_records_core()
+            try:
+                self.__records_cache = self._to_records_core()
+            except Error as e:
+                logger.warning(e)
+                self.__records_cache = RecordsFactory.create_instance()
+
         return self.__records_cache
 
     @property
