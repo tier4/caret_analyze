@@ -32,7 +32,7 @@ class Ros2DataModel():
         """Create a Ros2DataModel."""
         # Objects (one-time events, usually when something is created)
         self._contexts = TracePointIntermediateData(
-            ['context_handle', 'timestamp', 'pid', 'version'])
+            ['context_handle', 'timestamp', 'pid'])
         self._nodes = TracePointIntermediateData(
             ['node_handle', 'timestamp', 'tid', 'rmw_handle', 'namespace', 'name'])
         self._publishers = TracePointIntermediateData(
@@ -48,6 +48,8 @@ class Ros2DataModel():
             ['client_handle', 'timestamp', 'node_handle', 'rmw_handle', 'service_name'])
         self._timers = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'period', 'tid'])
+        self._caret_init = TracePointIntermediateData(
+            ['timestamp', 'clock_offset'])
         self._timer_node_links = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'node_handle'])
         self._callback_objects = TracePointIntermediateData(
@@ -209,12 +211,11 @@ class Ros2DataModel():
             ]
         )
 
-    def add_context(self, pid, context_handle, timestamp, version) -> None:
+    def add_context(self, pid, context_handle, timestamp) -> None:
         record = {
             'context_handle': context_handle,
             'timestamp': timestamp,
             'pid': pid,
-            'version': version,  # Comment out to align with Dict[str: int64_t]
         }
         self._contexts.append(record)
 
@@ -708,9 +709,23 @@ class Ros2DataModel():
         }
         self._callback_group_client.append(record)
 
+    def add_caret_init(
+        self,
+        clock_offset: int,
+        timestamp: int
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'clock_offset': clock_offset,
+        }
+        self._caret_init.append(record)
+
     def finalize(self) -> None:
         self.contexts = self._contexts.get_finalized('context_handle')
         del self._contexts
+
+        self.caret_init = self._caret_init.get_finalized()
+        del self._caret_init
 
         self.nodes = self._nodes.get_finalized('node_handle')
         del self._nodes

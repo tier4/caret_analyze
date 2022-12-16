@@ -287,7 +287,7 @@ def sched_plot_cbg(
             p.add_tools(Hover1)
             p.add_tools(Hover2)
 
-            if isinstance(callback, TimerCallback):
+            if isinstance(callback, TimerCallback) and len(rect_source.data['y']) > 1:
                 y_start = rect_source.data['y'][1]+0.9
                 y_end = rect_source.data['y'][1]+rect_height
                 timer = callback.timer
