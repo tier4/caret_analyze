@@ -477,7 +477,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
-        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.nodes) == set(arch_expected)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)

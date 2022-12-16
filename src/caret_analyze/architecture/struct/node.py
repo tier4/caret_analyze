@@ -220,7 +220,7 @@ class NodeStruct():
         self._node_paths.append(path)
 
         for s in self.subscriptions:
-            path = NodePathStruct(self.node_name, s, publisher, None, None)
+            path = NodePathStruct(self.node_name, s, publisher, [callback], None)
             self._node_paths.append(path)
 
     def assign_message_passings(self, src_callback_name: str, des_callback_name: str):
