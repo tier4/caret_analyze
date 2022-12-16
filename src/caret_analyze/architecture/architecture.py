@@ -257,7 +257,7 @@ class Architecture(Summarizable):
                     node_path.subscribe_topic_name == right_node_sub):
                     break
 
-            new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.chidl[1:]))
+            new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.child[1:]))
             return new_path
         # Left = Node, Right = Comm
         elif isinstance(left_child, NodePathStructValue) and isinstance(right_child, CommunicationStructValue):
@@ -270,7 +270,7 @@ class Architecture(Summarizable):
                 if (node_path.publish_topic_name == left_node_pub and 
                     node_path.subscribe_topic_name == right_comm):
                     break
-            new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.chidl[1:]))
+            new_path = PathStructValue(None, (path_left.child[0:-1], node_path, path_right.child[1:]))
             return new_path
 
         elif isinstance(left_child, CommunicationStructValue) and isinstance(right_child, NodePathStructValue):
