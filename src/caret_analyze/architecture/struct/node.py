@@ -216,6 +216,13 @@ class NodeStruct():
 
         self._publishers.append(publisher)
 
+        path = NodePathStruct(self.node_name, None, publisher, [callback], None)
+        self._node_paths.append(path)
+
+        for s in self.subscriptions:
+            path = NodePathStruct(self.node_name, s, publisher, None, None)
+            self._node_paths.append(path)
+
     def assign_message_passings(self, src_callback_name: str, des_callback_name: str):
         source_callback =\
             Util.find_one(lambda x: x.callback_name == src_callback_name, self.callbacks)

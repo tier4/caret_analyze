@@ -386,6 +386,21 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
+        assert set(arch.get_node('/pong_node').callback_group_names) == set(arch_expected.get_node('/pong_node').callback_group_names)
+        assert set(arch.get_node('/pong_node').callback_groups) == set(arch_expected.get_node('/pong_node').callback_groups)
+        assert set(arch.get_node('/pong_node').callback_names) == set(arch_expected.get_node('/pong_node').callback_names)
+        assert set(arch.get_node('/pong_node').callbacks) == set(arch_expected.get_node('/pong_node').callbacks)
+        assert arch.get_node('/pong_node').node_name == arch_expected.get_node('/pong_node').node_name
+        assert arch.get_node('/pong_node').paths == arch_expected.get_node('/pong_node').paths
+        assert set(arch.get_node('/pong_node').publishers) == set(arch_expected.get_node('/pong_node').publishers)
+        assert set(arch.get_node('/pong_node').publish_topic_names) == set(arch_expected.get_node('/pong_node').publish_topic_names)
+        assert set(arch.get_node('/pong_node').service_names) == set(arch_expected.get_node('/pong_node').service_names)
+        assert set(arch.get_node('/pong_node').subscriptions) == set(arch_expected.get_node('/pong_node').subscriptions)
+        assert set(arch.get_node('/pong_node').subscribe_topic_names) == set(arch_expected.get_node('/pong_node').subscribe_topic_names)
+        assert set(arch.get_node('/pong_node').variable_passings) == set(arch_expected.get_node('/pong_node').variable_passings)
+        assert set(arch.get_node('/pong_node').timers) == set(arch_expected.get_node('/pong_node').timers)
+        assert arch.get_node('/pong_node').summary == arch_expected.get_node('/pong_node').summary
+        assert arch.get_node('/pong_node') == arch_expected.get_node('/pong_node')
         assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
