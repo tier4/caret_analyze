@@ -418,7 +418,7 @@ $contexts
             arch_expected.assign_publisher('/not_exist_node', '/ping', 'timer_callback_1')
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_publisher('/not_exist_node', '/ping', 'not_exist_callback_1')
-  
+
         # duplicated assign
         # arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
 
