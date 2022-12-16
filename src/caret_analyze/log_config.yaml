@@ -24,9 +24,9 @@ loggers:
   caret_analyze.architecture.architecture_loaded:
     level: WARN
     handlers: [null_handler]
-    #handlers: [file_handler]   # if you need to output warnings to a file.
+    # handlers: [file_handler]   # if you need to output warnings to a file.
     propagate: false
-    #propagate: true            # if you need to propagate log
+    # propagate: true            # if you need to propagate log
 
   caret_analyze.runtime.runtime_loaded:
     level: CRITICAL
