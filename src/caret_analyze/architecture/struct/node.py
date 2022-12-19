@@ -24,7 +24,7 @@ from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Util
-from ...exceptions import ItemNotFoundError
+from ...exceptions import ItemNotFoundError, InvalidArgumentError
 from ...value_objects import NodeStructValue
 
 
@@ -191,6 +191,9 @@ class NodeStruct():
         self._node_paths = paths
 
     def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
+        if pub_topic_name in [publisher.topic_name for publisher in self.publishers] \
+            and callback_function_name in Util.flatten([publisher.callback_names for publisher in self.publishers]):
+            raise InvalidArgumentError("error: duplicated assign")
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_function_name, self.callbacks)
 
