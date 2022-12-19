@@ -478,7 +478,7 @@ $contexts
 
         # duplicated assign
         with pytest.raises(InvalidArgumentError):
-          arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
+            arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
 
     def test_assign_passings(self, mocker):
         # assign passing to template
@@ -504,7 +504,6 @@ $contexts
         assert set(arch.paths) == set(arch_expected.paths)
 
         # assign passing to be full architecture
-        """
         architecture_text = \
             self.template_architecture_assign.substitute(passings='',
                                                          publishes=self.publishes_text,
@@ -512,7 +511,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.assign_message_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
+        arch.assign_variable_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
@@ -525,17 +524,22 @@ $contexts
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
-        """
+
         # invalid assign
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_variable_passings('/not_exist_node', 'timer_callback_1',
-                                                  'subscription_callback_0')
+                                                   'subscription_callback_0')
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_variable_passings('/pong_node', 'not_exist_callback_1',
-                                                  'subscription_callback_0')
+                                                   'subscription_callback_0')
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_variable_passings('/pong_node', 'timer_callback_1',
-                                                  'not_exist_callback_0')
+                                                   'not_exist_callback_0')
+
+        # duplicated assign
+        with pytest.raises(InvalidArgumentError):
+            arch.assign_variable_passings('/pong_node', 'timer_callback_1',
+                                          'subscription_callback_0')
 
     # define template text of rename function
     template_architecture_rename = Template("""

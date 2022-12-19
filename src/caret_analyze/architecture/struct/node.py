@@ -16,7 +16,6 @@ from typing import List, Optional
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
-from .message_context import MessageContextStruct
 from .node_path import NodePathStruct
 from .publisher import PublisherStruct
 from .service import ServiceStruct
@@ -24,7 +23,7 @@ from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Util
-from ...exceptions import ItemNotFoundError, InvalidArgumentError
+from ...exceptions import InvalidArgumentError, ItemNotFoundError
 from ...value_objects import NodeStructValue
 
 
@@ -192,8 +191,10 @@ class NodeStruct():
 
     def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
         if pub_topic_name in [publisher.topic_name for publisher in self.publishers] \
-            and callback_function_name in Util.flatten([publisher.callback_names for publisher in self.publishers]):
-            raise InvalidArgumentError("error: duplicated assign")
+            and callback_function_name in \
+                Util.flatten([publisher.callback_names for publisher in self.publishers
+                              if publisher.callback_names is not None]):
+            raise InvalidArgumentError('error: duplicated assign')
 
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_function_name, self.callbacks)
@@ -203,14 +204,18 @@ class NodeStruct():
         self._publishers.append(publisher)
 
     def assign_variable_passings(self, src_callback_name: str, des_callback_name: str):
+        if self.variable_passings is not None and \
+            (src_callback_name, des_callback_name) in \
+                [(passing.callback_name_read, passing.callback_name_write)
+                    for passing in self.variable_passings]:
+            raise InvalidArgumentError('error: duplicated assign')
+
         source_callback: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == src_callback_name, self.callbacks)
         destination_callback: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == des_callback_name, self.callbacks)
 
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
-
-        # TODO: duplicated
         if self._variable_passings_info is None:
             self._variable_passings_info = [passing]
         else:

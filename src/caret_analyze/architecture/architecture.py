@@ -310,10 +310,10 @@ class Architecture(Summarizable):
                                sub_topic_name: str, pub_topic_name: str):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-        node.assign_message_context(context_type, sub_topic_name, pub_topic_name)
+        node.assign_node_path([])
 
         from .architecture_loaded import NodeValuesLoaded
-        node.assign_node_path(NodeValuesLoaded._search_node_paths(node))
+        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, self.reader))
 
     def assign_publisher(self, node_name: str,
                          pub_topic_name: str, callback_function_name: str):
@@ -324,7 +324,7 @@ class Architecture(Summarizable):
         node.assign_node_path(NodeValuesLoaded._search_node_paths(node, self.reader))
 
     def assign_variable_passings(self, node_name: str,
-                                src_callback_name: str, des_callback_name: str):
+                                 src_callback_name: str, des_callback_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.assign_variable_passings(src_callback_name, des_callback_name)
