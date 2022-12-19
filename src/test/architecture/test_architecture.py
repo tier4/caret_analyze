@@ -489,7 +489,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.assign_message_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
+        arch.assign_variable_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
@@ -528,13 +528,13 @@ $contexts
         """
         # invalid assign
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_passings('/not_exist_node', 'timer_callback_1',
+            arch_expected.assign_variable_passings('/not_exist_node', 'timer_callback_1',
                                                   'subscription_callback_0')
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_passings('/pong_node', 'not_exist_callback_1',
+            arch_expected.assign_variable_passings('/pong_node', 'not_exist_callback_1',
                                                   'subscription_callback_0')
         with pytest.raises(ItemNotFoundError):
-            arch_expected.assign_message_passings('/pong_node', 'timer_callback_1',
+            arch_expected.assign_variable_passings('/pong_node', 'timer_callback_1',
                                                   'not_exist_callback_0')
 
     # define template text of rename function

@@ -327,7 +327,9 @@ class Architecture(Summarizable):
                                 src_callback_name: str, des_callback_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.assign_message_passings(src_callback_name, des_callback_name)
+        node.assign_variable_passings(src_callback_name, des_callback_name)
+        from .architecture_loaded import NodeValuesLoaded
+        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, self.reader))
 
     def rename_callback(self, src: str, dst: str) -> None:
         cb_s: List[CallbackStruct] =\
