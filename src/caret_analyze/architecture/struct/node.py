@@ -187,25 +187,8 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
-    def assign_message_context(self, context_type, sub_topic_name: str, pub_topic_name: str):
-        try:
-            path = self.get_path(sub_topic_name, pub_topic_name)
-            path.message_context =\
-                MessageContextStruct.create_instance(context_type, {},
-                                                     self.node_name, path.subscription,
-                                                     path.publisher, None)
-        except ItemNotFoundError:
-            subscription: SubscriptionStruct = \
-                Util.find_one(lambda x: x.topic_name == sub_topic_name, self._subscriptions)
-            publisher: PublisherStruct = \
-                Util.find_one(lambda x: x.topic_name == pub_topic_name, self._publishers)
-            message_context =\
-                MessageContextStruct.create_instance(context_type, {},
-                                                     self.node_name, subscription,
-                                                     publisher, None)
-            path = NodePathStruct(self.node_name, subscription, publisher,
-                                  None, message_context)
-            self._node_paths.append(path)
+    def assign_node_path(self, paths: list[NodePathStruct]):
+        self._node_paths = paths
 
     def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
         callback: CallbackStruct = \
@@ -214,23 +197,18 @@ class NodeStruct():
         callback.assign_publisher(pub_topic_name)
         publisher = PublisherStruct(self.node_name, pub_topic_name, [callback])
 
+        # TODO: duplicated
         self._publishers.append(publisher)
 
-        path = NodePathStruct(self.node_name, None, publisher, [callback], None)
-        self._node_paths.append(path)
-
-        for s in self.subscriptions:
-            path = NodePathStruct(self.node_name, s, publisher, [callback], None)
-            self._node_paths.append(path)
-
-    def assign_message_passings(self, src_callback_name: str, des_callback_name: str):
-        source_callback =\
+    def assign_variable_passings(self, src_callback_name: str, des_callback_name: str):
+        source_callback: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == src_callback_name, self.callbacks)
-        destination_callback =\
+        destination_callback: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == des_callback_name, self.callbacks)
 
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
 
+        # TODO: duplicated
         if self._variable_passings_info is None:
             self._variable_passings_info = [passing]
         else:

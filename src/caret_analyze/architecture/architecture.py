@@ -52,6 +52,7 @@ class Architecture(Summarizable):
         self._executors: List[ExecutorStruct] = loaded.executors
         self._paths = loaded.paths
         self._verify(self._nodes)
+        self.reader = reader
 
     def get_node(self, node_name: str) -> NodeStructValue:
         try:
@@ -311,13 +312,18 @@ class Architecture(Summarizable):
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
         node.assign_message_context(context_type, sub_topic_name, pub_topic_name)
 
+        from .architecture_loaded import NodeValuesLoaded
+        node.assign_node_path(NodeValuesLoaded._search_node_paths(node))
+
     def assign_publisher(self, node_name: str,
                          pub_topic_name: str, callback_function_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-
         node.assign_publisher(pub_topic_name, callback_function_name)
 
-    def assign_message_passings(self, node_name: str,
+        from .architecture_loaded import NodeValuesLoaded
+        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, self.reader))
+
+    def assign_variable_passings(self, node_name: str,
                                 src_callback_name: str, des_callback_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
