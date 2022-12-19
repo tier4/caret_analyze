@@ -392,7 +392,6 @@ $contexts
         assert set(arch.paths) == set(arch_expected.paths)
 
         # assign message context to be full architecture
-        """
         architecture_text = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
                                                          publishes=self.publishes_text,
@@ -413,17 +412,23 @@ $contexts
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
-        """
+
         # invalid assign
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_message_context('/not_exist_node', 'callback_chain',
                                                  '/pong', '/ping')
+        """
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_message_context('/pong_node', 'callback_chain',
                                                  '/not_exist_topic', '/ping')
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_message_context('/pong_node', 'callback_chain',
                                                  '/pong', '/not_exist_topic')
+
+        # duplicated assign
+        with pytest.raises(InvalidArgumentError):
+            arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+        """
 
     def test_assign_publisher(self, mocker):
         # assign publisher to template

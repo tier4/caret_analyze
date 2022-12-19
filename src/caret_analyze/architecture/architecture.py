@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Collection, List, Optional, Tuple, Union
+from typing import Callable, Collection, Dict, List, Optional, Sequence, Tuple, Union
 
 from .architecture_exporter import ArchitectureExporter
 
@@ -52,7 +52,6 @@ class Architecture(Summarizable):
         self._executors: List[ExecutorStruct] = loaded.executors
         self._paths = loaded.paths
         self._verify(self._nodes)
-        self.reader = reader
 
     def get_node(self, node_name: str) -> NodeStructValue:
         try:
@@ -306,14 +305,74 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
+    from .reader_interface import ArchitectureReader
+
+    class AssignContextReader(ArchitectureReader):
+
+        def __init__(self, node: NodeStruct):
+            contexts = [path.message_context for path in node.paths]
+            self._contexts = [context.to_dict() for context in contexts if context is not None]
+
+        def append_message_context(self, context: Dict):
+            self._contexts.append(context)
+
+        from ..value_objects.node import NodeValue
+
+        def get_message_contexts(self, _: NodeValue) -> Sequence[Dict]:
+            return self._contexts
+
+        def get_callback_groups(self):
+            pass
+
+        def get_executors(self):
+            pass
+
+        def get_node_names_and_cb_symbols(self):
+            pass
+
+        def get_nodes(self):
+            pass
+
+        def get_paths(self):
+            pass
+
+        def get_publishers(self):
+            pass
+
+        def get_service_callbacks(self):
+            pass
+
+        def get_services(self):
+            pass
+
+        def get_subscription_callbacks(self):
+            pass
+
+        def get_subscriptions(self):
+            pass
+
+        def get_timer_callbacks(self):
+            pass
+
+        def get_timers(self):
+            pass
+
+        def get_variable_passings(self):
+            pass
+
     def assign_message_context(self, node_name: str, context_type: str,
                                sub_topic_name: str, pub_topic_name: str):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-        node.assign_node_path([])
+        # TODO: duplicated test
+
+        context_reader = Architecture.AssignContextReader(node)
+        context_reader.append_message_context({'context_type': context_type,
+                                               'subscription_topic_name': sub_topic_name,
+                                               'publisher_topic_name': pub_topic_name})
 
         from .architecture_loaded import NodeValuesLoaded
-        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, self.reader))
+        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
     def assign_publisher(self, node_name: str,
                          pub_topic_name: str, callback_function_name: str):
@@ -321,7 +380,8 @@ class Architecture(Summarizable):
         node.assign_publisher(pub_topic_name, callback_function_name)
 
         from .architecture_loaded import NodeValuesLoaded
-        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, self.reader))
+        node.assign_node_path(NodeValuesLoaded._search_node_paths(node,
+                              Architecture.AssignContextReader(node)))
 
     def assign_variable_passings(self, node_name: str,
                                  src_callback_name: str, des_callback_name: str):
@@ -329,7 +389,8 @@ class Architecture(Summarizable):
 
         node.assign_variable_passings(src_callback_name, des_callback_name)
         from .architecture_loaded import NodeValuesLoaded
-        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, self.reader))
+        node.assign_node_path(NodeValuesLoaded._search_node_paths(node,
+                              Architecture.AssignContextReader(node)))
 
     def rename_callback(self, src: str, dst: str) -> None:
         cb_s: List[CallbackStruct] =\
