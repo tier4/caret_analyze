@@ -194,13 +194,12 @@ class NodeStruct():
         if pub_topic_name in [publisher.topic_name for publisher in self.publishers] \
             and callback_function_name in Util.flatten([publisher.callback_names for publisher in self.publishers]):
             raise InvalidArgumentError("error: duplicated assign")
+
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_function_name, self.callbacks)
-
         callback.assign_publisher(pub_topic_name)
-        publisher = PublisherStruct(self.node_name, pub_topic_name, [callback])
 
-        # TODO: duplicated
+        publisher = PublisherStruct(self.node_name, pub_topic_name, [callback])
         self._publishers.append(publisher)
 
     def assign_variable_passings(self, src_callback_name: str, des_callback_name: str):
