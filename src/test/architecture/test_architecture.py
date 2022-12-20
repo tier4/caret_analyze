@@ -425,10 +425,10 @@ $contexts
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_message_context('/pong_node', 'callback_chain',
                                                  '/pong', '/not_exist_topic')
-        """
         # duplicated assign
         with pytest.raises(InvalidArgumentError):
             arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+        """
 
     def test_assign_publisher(self, mocker):
         # assign publisher to template
