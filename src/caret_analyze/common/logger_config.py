@@ -20,8 +20,9 @@ import yaml
 
 def init_logger(cfg_path: str):
     try:
-        conf_dict = yaml.safe_load(open(cfg_path).read())
-        config.dictConfig(conf_dict)
+        with open(cfg_path) as f:
+            conf_dict = yaml.safe_load(f.read())
+            config.dictConfig(conf_dict)
 
     except Exception as e:
         handler = StreamHandler()
