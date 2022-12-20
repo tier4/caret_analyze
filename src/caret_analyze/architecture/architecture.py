@@ -364,15 +364,18 @@ class Architecture(Summarizable):
                                sub_topic_name: str, pub_topic_name: str):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-        """
-        if pub_topic_name not in [pub.topic_name for pub in node.publishers]:
-            pass
+
+        if pub_topic_name not in node.publish_topic_names:
+            raise ItemNotFoundError('{pub_topib_name} is not found in {node_name}')
+
+        if sub_topic_name not in node.subscribe_topic_names:
+            raise ItemNotFoundError('{sub_topib_name} is not found in {node_name}')
+
         if (context_type, sub_topic_name, pub_topic_name) \
             in [(None if path.message_context_type is None
                  else path.message_context_type.type_name,
                  path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
             raise InvalidArgumentError('error: duplicated assign')
-            """
 
         context_reader = Architecture.AssignContextReader(node)
         context_reader.append_message_context({'context_type': context_type,
