@@ -85,6 +85,22 @@ class ArchitectureLoaded():
         self._named_paths: List[PathStruct]
         self._paths = paths_loaded.data
 
+        # TODO(hsgwa): Workaround implementation to minimize merge conflicts. Need to refactor.
+        # Remove caret_trace related nodes.
+        self._nodes = [
+            node
+            for node
+            in self._nodes
+            if 'caret_trace_' not in node.node_name
+        ]
+        # Remove caret_trace related executors.
+        self._executors = [
+            executor
+            for executor
+            in self._executors
+            if all('caret_trace_' not in cbg.node_name for cbg in executor.callback_groups)
+        ]
+
         self._ignore_service()
 
         return None

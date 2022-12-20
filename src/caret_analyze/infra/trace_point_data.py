@@ -28,7 +28,9 @@ class TracePointIntermediateData:
     def __init__(
         self,
         columns: Sequence[str],
-        dtypes: Optional[Dict[str, str]] = None
+        dtypes: Optional[Dict[str, str]] = None,
+        *,
+        exclusion_columns_for_drop_duplicates: Optional[List[str]] = None
     ) -> None:
         """
         Construct an instance.
@@ -42,11 +44,15 @@ class TracePointIntermediateData:
             This argument is used to manually determine which columns may be None.
             For columns that do not contain None,
             pandas.DataFrame.convert_dtypes will automatically determine it.
+        exclusion_columns_for_drop_duplicates : Optional[List[str]]
+            Column names to ignore when performing drop_duplicates.
+            Default value is ['timestamp']
 
         """
         self._data: Dict[str, Any] = {column: [] for column in columns}
         self._columns = list(columns)
         self._dtypes = dtypes
+        self._exclusion_columns = exclusion_columns_for_drop_duplicates or ['timestamp']
 
     def __len__(self) -> int:
         return len(self._data)
@@ -87,6 +93,9 @@ class TracePointIntermediateData:
         df = pd.DataFrame(self._data, columns=self._columns)
         if self._dtypes:
             df = df.astype(self._dtypes)  # type: ignore
+
+        subset_for_drop_duplicates = list(set(df.columns) - set(self._exclusion_columns))
+        df.drop_duplicates(subset_for_drop_duplicates, inplace=True)
 
         if index_column:
             df.set_index(index_column, inplace=True, drop=True)
@@ -388,6 +397,18 @@ class TracePointData:
 
         """
         self._df.drop(index=index, inplace=True)
+
+    def drop_column(self, column_name: str) -> None:
+        """
+        Drop column.
+
+        Parameters
+        ----------
+        column_name : str
+            column name to be dropped.
+
+        """
+        self._df.drop(columns=column_name, inplace=True, axis=1)
 
     def clone(self) -> TracePointData:
         """
