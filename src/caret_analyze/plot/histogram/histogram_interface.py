@@ -12,20 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback_sched import callback_sched
-from .graphviz.callback_graph import callback_graph
-from .graphviz.chain_latency import chain_latency
-from .graphviz.node_graph import node_graph
-from .message_flow import message_flow
-from .plot_base import PlotBase
-from .plot_facade import Plot
+from abc import ABCMeta, abstractmethod
+from typing import Sequence
 
-__all__ = [
-    'Plot',
-    'PlotBase',
-    'callback_graph',
-    'callback_sched',
-    'chain_latency',
-    'node_graph',
-    'message_flow'
-]
+from ...common import type_check_decorator
+from ...runtime import Path
+
+
+# TODO: Inherit PlotBase
+class HistPlot(metaclass=ABCMeta):
+
+    @type_check_decorator
+    def __init__(
+        self,
+        target: Sequence[Path]
+    ) -> None:
+        self._target = list(target)
+
+    def show(
+        self
+    ):
+        return self._show_core()
+
+    @abstractmethod
+    def _show_core(self):
+        pass

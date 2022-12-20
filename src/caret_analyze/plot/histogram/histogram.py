@@ -22,11 +22,12 @@ from caret_analyze.record import ResponseTime
 
 from .histogram_interface import HistPlot
 
-from .plot_util import PlotColorSelector
+from ..plot_util import PlotColorSelector
 
 from ...runtime import Path
 
 
+# TODO: Migrate drawing process to visualize_lib
 class ResponseTimePlot(HistPlot):
 
     def __init__(
