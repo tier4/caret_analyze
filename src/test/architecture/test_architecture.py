@@ -368,7 +368,7 @@ $contexts
       publisher_topic_name: /ping
 """
 
-    def test_assign_message_contexts(self, mocker):
+    def test_assign_message_contexts(self, mocker, caplog):
         # assign message context to template
         architecture_text = \
             self.template_architecture_assign.substitute(passings='',
@@ -400,7 +400,7 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+        # arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
@@ -414,15 +414,16 @@ $contexts
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
         """
+
         # invalid assign
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_message_context('/not_exist_node', 'callback_chain',
                                                  '/pong', '/ping')
-        """
-        with pytest.warns
+
         arch_expected.assign_message_context('/pong_node', 'invalid_contexts',
-                                                 '/pong', '/ping')
-        """
+                                             '/pong', '/ping')
+        assert any(['Failed to load message context.' in message for message in caplog.messages])
+
         with pytest.raises(ItemNotFoundError):
             arch_expected.assign_message_context('/pong_node', 'callback_chain',
                                                  '/not_exist_topic', '/ping')
@@ -432,7 +433,7 @@ $contexts
 
         # duplicated assign
         with pytest.raises(InvalidArgumentError):
-            arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+            arch_expected.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
 
     def test_assign_publisher(self, mocker):
         # assign publisher to template
@@ -487,7 +488,7 @@ $contexts
 
         # duplicated assign
         with pytest.raises(InvalidArgumentError):
-            arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
+            arch_expected.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
 
     def test_assign_passings(self, mocker):
         # assign passing to template
@@ -547,8 +548,8 @@ $contexts
 
         # duplicated assign
         with pytest.raises(InvalidArgumentError):
-            arch.assign_variable_passings('/pong_node', 'timer_callback_1',
-                                          'subscription_callback_0')
+            arch_expected.assign_variable_passings('/pong_node', 'timer_callback_1',
+                                                   'subscription_callback_0')
 
     # define template text of rename function
     template_architecture_rename = Template("""
