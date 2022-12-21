@@ -366,10 +366,10 @@ class Architecture(Summarizable):
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         if pub_topic_name not in node.publish_topic_names:
-            raise ItemNotFoundError('{pub_topib_name} is not found in {node_name}')
+            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
 
         if sub_topic_name not in node.subscribe_topic_names:
-            raise ItemNotFoundError('{sub_topib_name} is not found in {node_name}')
+            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
 
         if (context_type, sub_topic_name, pub_topic_name) \
             in [(None if path.message_context_type is None
