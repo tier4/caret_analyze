@@ -144,8 +144,10 @@ class DataModelService:
 
         try:
             match_middle = self._ensure_dataframe(middle_df.loc[handle, :])
-            node_handles = match_middle.loc[:, 'node_handle'].to_list()
+            node_handles = list(set(match_middle.loc[:, 'node_handle'].to_list()))
             match_nodes = self._data.nodes.df.loc[node_handles, :]
+            match_nodes.drop_duplicates(
+                set(match_nodes) - {'tid'}, inplace=True, ignore_index=True)
             assert len(match_nodes) == 1
             return ns_and_node_name(match_nodes.iloc[0])
         except KeyError:

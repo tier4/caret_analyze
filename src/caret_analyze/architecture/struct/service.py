@@ -14,21 +14,21 @@
 
 from typing import Optional
 
-from .callback import SubscriptionCallbackStruct
-from ...value_objects import SubscriptionStructValue
+from .callback import ServiceCallbackStruct
+from ...value_objects import ServiceStructValue
 
 
-class SubscriptionStruct():
-    """Subscription info."""
+class ServiceStruct():
+    """Service info."""
 
     def __init__(
         self,
         node_name: str,
-        topic_name: str,
-        callback_info: Optional[SubscriptionCallbackStruct],
+        service_name: str,
+        callback_info: Optional[ServiceCallbackStruct],
     ) -> None:
         self._node_name: str = node_name
-        self._topic_name: str = topic_name
+        self._service_name: str = service_name
         self._callback_value = callback_info
 
     @property
@@ -36,8 +36,8 @@ class SubscriptionStruct():
         return self._node_name
 
     @property
-    def topic_name(self) -> str:
-        return self._topic_name
+    def service_name(self) -> str:
+        return self._service_name
 
     @property
     def callback_name(self) -> Optional[str]:
@@ -47,23 +47,11 @@ class SubscriptionStruct():
         return self._callback_value.callback_name
 
     @property
-    def callback(self) -> Optional[SubscriptionCallbackStruct]:
+    def callback(self) -> Optional[ServiceCallbackStruct]:
         return self._callback_value
 
-    def to_value(self) -> SubscriptionStructValue:
-        return SubscriptionStructValue(self.node_name, self.topic_name,
-                                       None if self.callback is None else self.callback.to_value())
-
-    def rename_node(self, src: str, dst: str) -> None:
-        if self.node_name == src:
-            self._node_name = dst
-
-        if self._callback_value is not None:
-            self._callback_value.rename_node(src, dst)
-
-    def rename_topic(self, src: str, dst: str) -> None:
-        if self.topic_name == src:
-            self._topic_name = dst
-
-        if self._callback_value is not None:
-            self._callback_value.rename_topic(src, dst)
+    def to_value(self) -> ServiceStructValue:
+        return ServiceStructValue(
+            self.node_name,
+            self.service_name,
+            None if self.callback is None else self.callback.to_value())

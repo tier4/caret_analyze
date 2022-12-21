@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from typing import List, Optional
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
 from .node_path import NodePathStruct
 from .publisher import PublisherStruct
+from .service import ServiceStruct
 from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
@@ -32,16 +33,18 @@ class NodeStruct():
     def __init__(
         self,
         node_name: str,
-        publishers: Tuple[PublisherStruct, ...],
-        subscriptions_info: Tuple[SubscriptionStruct, ...],
-        timers: Tuple[TimerStruct, ...],
-        node_paths: Tuple[NodePathStruct, ...],
-        callback_groups: Optional[Tuple[CallbackGroupStruct, ...]],
-        variable_passings: Optional[Tuple[VariablePassingStruct, ...]],
+        publishers: List[PublisherStruct],
+        subscriptions_info: List[SubscriptionStruct],
+        services: List[ServiceStruct],
+        timers: List[TimerStruct],
+        node_paths: List[NodePathStruct],
+        callback_groups: Optional[List[CallbackGroupStruct]],
+        variable_passings: Optional[List[VariablePassingStruct]],
     ) -> None:
         self._node_name = node_name
         self._publishers = publishers
         self._subscriptions = subscriptions_info
+        self._services = services
         self._timers = timers
         self._callback_groups = callback_groups
         self._node_paths = node_paths
@@ -52,23 +55,27 @@ class NodeStruct():
         return self._node_name
 
     @property
-    def publishers(self) -> Tuple[PublisherStruct, ...]:
+    def publishers(self) -> List[PublisherStruct]:
         return self._publishers
 
     @property
-    def publish_topic_names(self) -> Tuple[str, ...]:
-        return tuple(p.topic_name for p in self._publishers)
+    def publish_topic_names(self) -> List[str]:
+        return [p.topic_name for p in self._publishers]
 
     @property
-    def subscribe_topic_names(self) -> Tuple[str, ...]:
-        return tuple(s.topic_name for s in self._subscriptions)
+    def subscribe_topic_names(self) -> List[str]:
+        return [s.topic_name for s in self._subscriptions]
 
     @property
-    def subscriptions(self) -> Tuple[SubscriptionStruct, ...]:
+    def subscriptions(self) -> List[SubscriptionStruct]:
         return self._subscriptions
 
     @property
-    def timers(self) -> Tuple[TimerStruct, ...]:
+    def services(self) -> List[ServiceStruct]:
+        return self._services
+
+    @property
+    def timers(self) -> List[TimerStruct]:
         return self._timers
 
     def get_path(
@@ -83,33 +90,33 @@ class NodeStruct():
         return Util.find_one(is_target, self.paths)
 
     @property
-    def callbacks(self) -> Optional[Tuple[CallbackStruct, ...]]:
+    def callbacks(self) -> Optional[List[CallbackStruct]]:
         if self._callback_groups is None:
             return None
-        return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
+        return list(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
-    def callback_names(self) -> Optional[Tuple[str, ...]]:
+    def callback_names(self) -> Optional[List[str]]:
         if self.callbacks is None:
             return None
-        return tuple(_.callback_name for _ in self.callbacks)
+        return [_.callback_name for _ in self.callbacks]
 
     @property
-    def callback_groups(self) -> Optional[Tuple[CallbackGroupStruct, ...]]:
+    def callback_groups(self) -> Optional[List[CallbackGroupStruct]]:
         return self._callback_groups
 
     @property
-    def callback_group_names(self) -> Optional[Tuple[str, ...]]:
+    def callback_group_names(self) -> Optional[List[str]]:
         if self.callback_groups is None:
             return None
-        return tuple(_.callback_group_name for _ in self.callback_groups)
+        return [_.callback_group_name for _ in self.callback_groups]
 
     @property
-    def paths(self) -> Tuple[NodePathStruct, ...]:
+    def paths(self) -> List[NodePathStruct]:
         return self._node_paths
 
     @property
-    def variable_passings(self) -> Optional[Tuple[VariablePassingStruct, ...]]:
+    def variable_passings(self) -> Optional[List[VariablePassingStruct]]:
         return self._variable_passings_info
 
     def get_subscription(
@@ -124,6 +131,20 @@ class NodeStruct():
         except ItemNotFoundError:
             msg = 'Failed to find subscription info. '
             msg += f'topic_name: {subscribe_topic_name}'
+            raise ItemNotFoundError(msg)
+
+    def get_service(
+        self,
+        service_name: str
+    ) -> ServiceStruct:
+
+        try:
+            return Util.find_one(
+                lambda x: x.service_name == service_name,
+                self._services)
+        except ItemNotFoundError:
+            msg = 'Failed to find service info. '
+            msg += f'service_name: {service_name}'
             raise ItemNotFoundError(msg)
 
     def get_publisher(
@@ -157,9 +178,55 @@ class NodeStruct():
             self.node_name,
             tuple(v.to_value() for v in self.publishers),
             tuple(v.to_value() for v in self.subscriptions),
+            tuple(v.to_value() for v in self.services),
             tuple(v.to_value() for v in self.timers),
             tuple(v.to_value() for v in self.paths),
             None if self.callback_groups is None
             else tuple(v.to_value() for v in self.callback_groups),
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
+
+    def rename_node(self, src: str, dst: str) -> None:
+        if self.node_name == src:
+            self._node_name = dst
+
+        for p in self._publishers:
+            p.rename_node(src, dst)
+
+        for s in self._subscriptions:
+            s.rename_node(src, dst)
+
+        for t in self._timers:
+            t.rename_node(src, dst)
+
+        if self._callback_groups is not None:
+            for c in self._callback_groups:
+                c.rename_node(src, dst)
+
+        for n in self._node_paths:
+            n.rename_node(src, dst)
+
+        if self._variable_passings_info is not None:
+            for v in self._variable_passings_info:
+                v.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str) -> None:
+        for p in self._publishers:
+            p.rename_topic(src, dst)
+
+        for s in self._subscriptions:
+            s.rename_topic(src, dst)
+
+        for t in self._timers:
+            t.rename_topic(src, dst)
+
+        if self._callback_groups is not None:
+            for c in self._callback_groups:
+                c.rename_topic(src, dst)
+
+        for n in self._node_paths:
+            n.rename_topic(src, dst)
+
+        if self._variable_passings_info is not None:
+            for v in self._variable_passings_info:
+                v.rename_topic(src, dst)

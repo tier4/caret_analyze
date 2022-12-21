@@ -486,6 +486,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
         callback_records = self.callback_records(timer.callback)
+        if len(callback_records) == 0:
+            return RecordsFactory.create_instance()
+
         last_record = callback_records.data[-1]
         last_callback_start = last_record.get(callback_records.columns[0])
         timer_events = timer_events_factory.create(last_callback_start)
@@ -1435,6 +1438,10 @@ class FilteredRecordsSource:
         merged.drop_columns(drop)
         merged.reindex(columns)
 
+        # NOTE: After merge, the dropped data are aligned at the end
+        # regardless of the time of publish.
+        merged.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
+
         return merged
 
     def intra_comm_records(
@@ -1542,6 +1549,8 @@ class FilteredRecordsSource:
             if publisher_handle in grouped_records:
                 inter_pub_records = grouped_records[publisher_handle].clone()
                 pub_records.concat(inter_pub_records)
+
+        pub_records.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
 
         return pub_records
 

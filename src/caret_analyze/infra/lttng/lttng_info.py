@@ -29,6 +29,7 @@ from .value_objects import (CallbackGroupAddr,
                             CallbackGroupValueLttng,
                             NodeValueLttng,
                             PublisherValueLttng,
+                            ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng,
                             TimerControl)
@@ -53,12 +54,17 @@ class LttngInfo:
 
         self._timer_cb_cache: Dict[str, Sequence[TimerCallbackValueLttng]] = {}
         self._sub_cb_cache: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
+        self._srv_cb_cache: Dict[str, List[ServiceCallbackValueLttng]] = {}
         self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
         self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
 
         self._id_to_topic: Dict[str, str] = {}
+        self._id_to_service: Dict[str, str] = {}
         self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
         self._sub_cb_cache_without_pub = None
+
+        self._srv_cb_cache_without_pub: Optional[Dict[str, List[ServiceCallbackValueLttng]]]
+        self._srv_cb_cache_without_pub = None
 
         self._timer_cb_cache_without_pub: Optional[Dict[str, List[TimerCallbackValueLttng]]]
         self._timer_cb_cache_without_pub = None
@@ -80,6 +86,15 @@ class LttngInfo:
             return []
 
         return self._sub_cb_cache_without_pub[node_id]
+
+    def _get_srv_cbs_without_pub(self, node_id: str) -> List[ServiceCallbackValueLttng]:
+        if self._srv_cb_cache_without_pub is None:
+            self._srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
+
+        if node_id not in self._srv_cb_cache_without_pub:
+            return []
+
+        return self._srv_cb_cache_without_pub[node_id]
 
     def get_rmw_impl(self) -> str:
         """
@@ -299,6 +314,83 @@ class LttngInfo:
     def tilde_sub_id_map(self) -> Dict[int, int]:
         return self._formatted.tilde_sub_id_map
 
+    def _load_srv_cbs_without_pub(
+        self
+    ) -> Dict[str, List[ServiceCallbackValueLttng]]:
+        srv_cbs_info: Dict[str, List[ServiceCallbackValueLttng]] = {}
+
+        for node in self.get_nodes():
+            srv_cbs_info[node.node_id] = []
+
+        srv = self._formatted.service_callbacks.clone()
+        nodes = self._formatted.nodes.clone()
+        merge(srv, nodes, 'node_handle')
+
+        for _, row in srv.df.iterrows():
+            node_name = row['node_name']
+            node_id = row['node_id']
+
+            self._id_to_service[row['callback_id']] = row['service_name']
+
+            srv_cbs_info[node_id].append(
+                ServiceCallbackValueLttng(
+                    callback_id=row['callback_id'],
+                    node_id=node_id,
+                    node_name=node_name,
+                    symbol=row['symbol'],
+                    service_name=row['service_name'],
+                    service_handle=row['service_handle'],
+                    publish_topic_names=None,
+                    callback_object=row['callback_object'],
+                )
+            )
+        return srv_cbs_info
+
+    def _get_service_callback_values(
+        self,
+        node: NodeValue
+    ) -> List[ServiceCallbackValueLttng]:
+        node_id = node.node_id
+        assert node_id is not None
+
+        srv_cbs_info: List[ServiceCallbackValueLttng]
+        srv_cbs_info = self._get_srv_cbs_without_pub(node_id)
+
+        return srv_cbs_info
+
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValueLttng]:
+        """
+        Get service callbacks information.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node.
+
+        Returns
+        -------
+        Sequence[ServiceCallbackInfo]
+
+        """
+        def get_srv_cb_local(node: NodeValueLttng):
+            node_id = node.node_id
+            if node_id not in self._srv_cb_cache.keys():
+                self._srv_cb_cache[node_id] = self._get_service_callback_values(node)
+            return self._srv_cb_cache[node_id]
+
+        if node.node_id is None:
+            return Util.flatten([
+                get_srv_cb_local(node)
+                for node
+                in self._get_nodes(node.node_name)
+            ])
+
+        node_lttng = NodeValueLttng(node.node_name, node.node_id)
+        return get_srv_cb_local(node_lttng)
+
     def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
         node_id = node.node_id
         # if node_id not in self._binder_cache.keys():
@@ -416,7 +508,11 @@ class LttngInfo:
         is_subscription = callback_id in self._id_to_topic.keys()
         if not is_subscription:
             return True
+        is_service = callback_id in self._id_to_service.keys()
+        if not is_service:
+            return True
         topic_name = self._id_to_topic[callback_id]
+
         return topic_name not in ['/clock', '/parameter_events']
 
     def _get_callback_groups(
@@ -426,6 +522,7 @@ class LttngInfo:
         concat_target_dfs = []
         concat_target_dfs.append(self._formatted.timer_callbacks.clone())
         concat_target_dfs.append(self._formatted.subscription_callbacks.clone())
+        concat_target_dfs.append(self._formatted.service_callbacks.clone())
 
         try:
             column_names = [
@@ -943,6 +1040,30 @@ class DataFrameFormatted:
         return self._sub_callbacks
 
     @property
+    def service_callbacks(self) -> TracePointData:
+        """
+        Build service callback table.
+
+        Parameters
+        ----------
+        data : Ros2DataModel
+
+        Returns
+        -------
+        pd.DataFrame
+            Columns
+            - callback_id
+            - callback_object
+            - callback_group_addr
+            - node_handle
+            - service_handle
+            - service_name
+            - symbol
+
+        """
+        return self._srv_callbacks
+
+    @property
     def nodes(self) -> TracePointData:
         """
         Build node table.
@@ -977,25 +1098,6 @@ class DataFrameFormatted:
 
         """
         return self._pub
-
-    @property
-    def services(self) -> TracePointData:
-        """
-        Get service info table.
-
-        Returns
-        -------
-        pd.DataFrame
-            Columns
-            - callback_id
-            - callback_object
-            - node_handle
-            - service_handle
-            - service_name
-            - symbol
-
-        """
-        return self._srv_callbacks
 
     @property
     def executor(self) -> TracePointData:
@@ -1259,7 +1361,7 @@ class DataFrameFormatted:
     ) -> TracePointData:
         columns = [
             'callback_id', 'callback_object', 'node_handle',
-            'service_handle', 'service_name', 'symbol'
+            'service_handle', 'callback_group_addr', 'service_name', 'symbol'
         ]
 
         def callback_id(row: pd.Series) -> str:
@@ -1277,6 +1379,10 @@ class DataFrameFormatted:
         symbols = data.callback_symbols.clone()
         symbols.reset_index()
         merge(services, symbols, 'callback_object')
+
+        callback_group_service = data.callback_group_service.clone()
+        callback_group_service.reset_index()
+        merge(services, callback_group_service, 'service_handle')
 
         services.add_column('callback_id', callback_id)
 
@@ -1366,16 +1472,18 @@ class DataFrameFormatted:
         nodes.reset_index()
         merge(sub_df, nodes, 'node_handle')
 
-        ns = sub_df.at(0, 'namespace')
-        name = sub_df.at(0, 'name')
-        topic_name = sub_df.at(0, 'topic_name')
+        try:
+            ns = sub_df.at(0, 'namespace')
+            name = sub_df.at(0, 'name')
+            topic_name = sub_df.at(0, 'topic_name')
 
-        if ns == '/' and name == 'rviz2':
-            return True
+            if ns == '/' and name == 'rviz2':
+                return True
 
-        if topic_name == '/parameter_events':
-            return True
-
+            if topic_name == '/parameter_events':
+                return True
+        except KeyError:
+            pass
         return False
 
     @staticmethod
@@ -1410,7 +1518,11 @@ class DataFrameFormatted:
         callback_objects.rename_column('reference', 'subscription')
         subscription_objects = data.subscription_objects.clone()
         subscription_objects.reset_index()
-        merge(subscription_objects, callback_objects, 'subscription')
+
+        # Leave timestamp of rclcpp_subscription_callback_added trace point.
+        subscription_objects.drop_column('timestamp')
+        merge(subscription_objects, callback_objects, 'subscription',
+              merge_drop_columns=['tid', 'rmw_handle'])
 
         ret_data = TracePointIntermediateData(
             ['subscription_handle', 'callback_object', 'callback_object_intra'],
@@ -1429,6 +1541,11 @@ class DataFrameFormatted:
             if len(group) == 1:
                 record['callback_object'] = group.at[0, 'callback_object']
             elif len(group) == 2:
+                # NOTE:
+                # The smaller timestamp is the callback_object of the in-process communication.
+                # The larger timestamp is callback_object for inter-process communication.
+                group.sort_values('timestamp', inplace=True)
+                group.reset_index(drop=True, inplace=True)
                 record['callback_object'] = group.at[1, 'callback_object']
                 record['callback_object_intra'] = group.at[0, 'callback_object']
             else:
@@ -1475,8 +1592,9 @@ def merge(
     left_data: TracePointData,
     right_data: TracePointData,
     on,
-    how: Optional[str] = None
+    how: Optional[str] = None,
+    merge_drop_columns: Optional[List[str]] = None
 ):
     how = how or 'inner'
-    merge_drop_columns = ['timestamp', 'tid', 'rmw_handle']
+    merge_drop_columns = merge_drop_columns or ['timestamp', 'tid', 'rmw_handle']
     left_data.merge(right_data, on, how=how, drop_columns=merge_drop_columns)
