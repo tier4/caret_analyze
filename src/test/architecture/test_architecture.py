@@ -368,6 +368,13 @@ $contexts
       publisher_topic_name: /ping
 """
 
+    contexts_text_latest = """
+  message_contexts:
+    - context_type: use_latest_message
+      subscription_topic_name: /pong
+      publisher_topic_name: /ping
+"""
+
     def test_assign_message_contexts(self, mocker, caplog):
         # assign message context to template
         architecture_text = \
@@ -391,7 +398,6 @@ $contexts
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
 
-        """
         # assign message context to be full architecture
         architecture_text = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
@@ -400,12 +406,12 @@ $contexts
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        # arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+        arch.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
                                                          publishes=self.publishes_text,
-                                                         contexts=self.contexts_text)
+                                                         contexts=self.contexts_text_latest)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
@@ -413,7 +419,6 @@ $contexts
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
-        """
 
         # invalid assign
         with pytest.raises(ItemNotFoundError):
@@ -433,7 +438,8 @@ $contexts
 
         # duplicated assign
         with pytest.raises(InvalidArgumentError):
-            arch_expected.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+            arch_expected.assign_message_context('/pong_node', 'use_latest_message',
+                                                 '/pong', '/ping')
 
     def test_assign_publisher(self, mocker):
         # assign publisher to template
