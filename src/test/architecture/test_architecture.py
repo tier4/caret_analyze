@@ -15,11 +15,9 @@
 
 from logging import WARNING
 
-<<<<<<< HEAD
-from typing import Optional, Tuple
-=======
+
 from string import Template
->>>>>>> origin/main
+from typing import Optional, Tuple
 
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
@@ -185,8 +183,8 @@ def create_node(create_publisher, create_subscription):
             sub = ()
 
         node = NodeStruct(
-            node_name, pub, sub, (), (), None, None
-        )
+            node_name, pub, sub, (), (), None, None, None
+        ) # type: ignore
         return node
     return _create_node
 
@@ -198,8 +196,8 @@ def create_comm(create_node):
         sub_node_name: str,
         pub_node_name: str
     ):
-        node_sub = create_node(sub_node_name, topic_name, None)
-        node_pub = create_node(pub_node_name, None, topic_name)
+        node_sub: NodeStruct = create_node(sub_node_name, topic_name, None)
+        node_pub: NodeStruct = create_node(pub_node_name, None, topic_name)
         comm = CommunicationStructValue(
             node_pub, node_sub,
             node_pub.publishers[0], node_sub.subscriptions[0],

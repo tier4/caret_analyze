@@ -28,12 +28,7 @@ from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTyp
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue, PathStructValue,
-<<<<<<< HEAD
-                             PublisherStructValue, SubscriptionStructValue)
-=======
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
->>>>>>> origin/main
-
 
 class Architecture(Summarizable):
     def __init__(
