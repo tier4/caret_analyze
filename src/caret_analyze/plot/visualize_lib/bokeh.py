@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections import defaultdict
 from logging import getLogger
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
@@ -115,10 +117,10 @@ class Bokeh(VisualizeLibInterface):
                 yield color_palette[color_idx]
                 color_idx = (color_idx + 1) % len(color_palette)
 
-        line_source = LineSource(frame_min, xaxis_type)
+        legend_manager = LegendManager()
+        line_source = LineSource(frame_min, xaxis_type, legend_manager)
         p.add_tools(line_source.create_hover(target_objects[0]))
         color_generator = get_color_generator()
-        legend_manager = LegendManager()
         for to, timeseries in zip(target_objects, timeseries_records_list):
             renderer = p.line(
                 'x', 'y',
@@ -201,10 +203,12 @@ class LineSource:
     def __init__(
         self,
         frame_min,
-        xaxis_type: str
+        xaxis_type: str,
+        legend_manager: LegendManager
     ) -> None:
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
+        self._legend = legend_manager
 
     def create_hover(self, target_object: TimeSeriesTypes) -> HoverTool:
         """
@@ -309,12 +313,13 @@ class LineSource:
     ) -> List[str]:
         source_keys: List[str]
         if isinstance(target_object, CallbackBase):
-            source_keys = ['node_name', 'callback_name', 'callback_type',
+            source_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
                            'callback_param', 'symbol']
         elif isinstance(target_object, Communication):
-            source_keys = ['topic_name', 'publish_node_name', 'subscribe_node_name']
+            source_keys = ['legend_label', 'topic_name',
+                           'publish_node_name', 'subscribe_node_name']
         elif isinstance(target_object, (Publisher, Subscription)):
-            source_keys = ['node_name', 'topic_name']
+            source_keys = ['legend_label', 'node_name', 'topic_name']
         else:
             raise NotImplementedError()
 
@@ -330,6 +335,9 @@ class LineSource:
                 description = f'period_ns = {target_object.period_ns}'
             elif isinstance(target_object, SubscriptionCallback):
                 description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
+        elif key == 'legend_label':
+            label = self._legend.get_label(target_object)
+            description = f'legend_label = {label}'
         else:
             raise NotImplementedError()
 
@@ -340,6 +348,7 @@ class LineSource:
         target_object: TimeSeriesTypes
     ) -> Dict[str, Any]:
         data_dict: Dict[str, Any] = {}
+
         for k in self._get_source_keys(target_object):
             try:
                 data_dict[k] = [f'{k} = {getattr(target_object, k)}']
@@ -355,6 +364,7 @@ class LegendManager:
     def __init__(self) -> None:
         self._legend_count_map: Dict[str, int] = defaultdict(int)
         self._legend_items: List[Tuple[str, List[GlyphRenderer]]] = []
+        self._legend: Dict[Any, str] = {}
 
     def add_legend(
         self,
@@ -372,10 +382,9 @@ class LegendManager:
             Instance of renderer.
 
         """
-        class_name = type(target_object).__name__
-        label = f'{class_name.lower()}{self._legend_count_map[class_name]}'
-        self._legend_count_map[class_name] += 1
+        label = self.get_label(target_object)
         self._legend_items.append((label, [renderer]))
+        self._legend[target_object] = label
 
     def draw_legends(
         self,
@@ -407,3 +416,14 @@ class LegendManager:
             figure.add_layout(Legend(items=self._legend_items[i:i+10]), 'right')
 
         figure.legend.click_policy = 'hide'
+
+    def get_label(self, target_object: Any) -> str:
+        if target_object in self._legend:
+            return self._legend[target_object]
+
+        class_name = type(target_object).__name__
+        label = f'{class_name.lower()}{self._legend_count_map[class_name]}'
+        self._legend_count_map[class_name] += 1
+        self._legend[target_object] = label
+
+        return label
