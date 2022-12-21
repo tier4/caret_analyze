@@ -75,28 +75,90 @@ def create_node_path(create_publisher, create_subscription):
 
 @pytest.fixture
 def create_arch(mocker):
-    def _create_arch(node_paths, comms):
-        # node_mock = mocker.Mock(spec=NodeStructValue)
-        node_mock = mocker.Mock(spec=NodeStruct)
-        mocker.patch.object(node_mock, 'paths', node_paths)
-        mocker.patch.object(node_mock, 'callbacks', [])
-        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+    def _create_arch(node_paths: Tuple[NodePathStructValue], comms: Tuple[CommunicationStructValue]):
+        node_list = []
+        node_dict = {}
+
+        for node_path in node_paths:
+            if node_path.node_name in node_dict.keys():
+                node_dict[node_path.node_name] += [node_path]
+            else:
+                node_dict[node_path.node_name] = [node_path]
+        
+        comm_list = []
+        # comm_dict = {}
+        # for comm in comms:
+        #     if comm.topic_name in comm_dict.keys():
+        #         comm_dict[comm.topic_name] += [comm]
+        #     else:
+        #         comm_dict[comm.topic_name] = [comm]
+
+        node_value_list = []
+
+        for node, node_path in node_dict.items():
+            node_value_mock = mocker.Mock(spec=NodeStructValue)
+            mocker.patch.object(node_value_mock, 'paths', node_path)
+            mocker.patch.object(node_value_mock, 'callbacks', [])
+            mocker.patch.object(node_value_mock, 'node_name', node)
+            mocker.patch('caret_analyze.value_objects.node.NodeStructValue')
+            node_value_list.append(node_value_mock)
+
+            node_mock = mocker.Mock(spec=NodeStruct)
+            mocker.patch.object(node_mock, 'callbacks', [])
+            mocker.patch.object(node_mock, 'node_name', node)
+            mocker.patch.object(node_mock, 'to_value', return_value=node_value_mock)
+            
+            mocker.patch('caret_analyze.architecture.struct.node.NodeStruct')
+            node_list.append(node_mock)
+        
+        for comm in comms:
+            # comm_value_mock = mocker.Mock(spec=CommunicationStructValue)
+            # mocker.patch.object(comm_value_mock, 'topic_name', comm.topic_name)
+            # mocker.patch.object(comm_value_mock, 'publish_node_name', comm.publish_node_name)
+            # mocker.patch.object(comm_value_mock, 'subscribe_node_name', comm.subscribe_node_name)
+            # mocker.patch('caret_analyze.architecture.struct.communication.CommunicationStructValue')
+
+            comm_mock = mocker.Mock(spec=CommunicationStruct)
+            # mocker.patch.object(comm_mock, 'to_value', return_value=comm_value_mock)
+            mocker.patch.object(comm_mock, 'to_value', return_value=comm)
+            mocker.patch('caret_analyze.architecture.struct.communication.CommunicationStruct')
+            comm_list.append(comm_mock)
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
-                     return_value=loaded_mock)
+
         mocker.patch.object(ArchitectureReaderFactory,
                             'create_instance', return_value=reader_mock)
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
-                     return_value=loaded_mock)
-        # mocker.patch.object(loaded_mock, 'nodes', [])
-        mocker.patch.object(loaded_mock, 'communications', comms)
+
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+        mocker.patch.object(loaded_mock, 'communications', comm_list)
         mocker.patch.object(loaded_mock, 'executors', [])
         mocker.patch.object(loaded_mock, 'paths', [])
-        mocker.patch.object(loaded_mock, 'nodes', [node_mock])
+        # mocker.patch.object(loaded_mock, 'nodes', [node_mock])
+        mocker.patch.object(loaded_mock, 'nodes', node_list)
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
+
+        # arch_mock = mocker.Mock(spec=Architecture)
+        # mocker.patch.object(arch_mock, 'get_nodes', return_value=node_value_mock)
+        # mocker.patch.object(arch_mock, 'get_comms', return_value=node_value_mock)
+
         arch = Architecture('file_type', 'file_path')
         return arch
     return _create_arch
+        # node_value_mock = mocker.Mock(spec=NodeStructValue)
+        # mocker.patch.object(node_value_mock, 'paths', node_paths)
+        # mocker.patch.object(node_value_mock, 'callbacks', [])
+        # mocker.patch.object(node_value_mock, 'node_name', node_paths[0].node_name)
+        # mocker.patch('caret_analyze.value_objects.node.NodeStructValue')
+
+        # node_mock = mocker.Mock(spec=NodeStruct)
+        # mocker.patch.object(node_mock, 'paths', node_paths)
+        # mocker.patch.object(node_mock, 'callbacks', [])
+        # mocker.patch.object(node_mock, 'node_name', node_paths[0].node_name)
+        # mocker.patch.object(node_mock, 'to_value', return_value=node_value_mock)
+        # loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+        # mocker.patch('caret_analyze.architecture.struct.node.NodeStruct')
+
 
 
 @pytest.fixture
@@ -129,8 +191,8 @@ def create_node(create_publisher, create_subscription):
 def create_comm(create_node):
     def _create_comm(
         topic_name: str,
-        pub_node_name: str,
-        sub_node_name: str
+        sub_node_name: str,
+        pub_node_name: str
     ):
         node_sub = create_node(sub_node_name, topic_name, None)
         node_pub = create_node(pub_node_name, None, topic_name)
@@ -406,83 +468,190 @@ class TestArchitecture:
         create_comm,
         create_arch,
     ):
-        # combine [] + []
+        # combine [] + [] 
         arch = create_arch([], [])
-        with pytest.raises(InvalidArgumentError):
-            path_left = PathStructValue(None, ())
-            path_right = PathStructValue(None, ())
-            arch.combine_path(path_left, path_right)
-
-        # combine [comm] + [comm]
-        left_comm = create_comm('topic', 'pub_node', 'sub_node')
-        path_left = PathStructValue(None, [left_comm])
-
-        right_comm = create_comm('topic', 'pub_node', 'sub_node')
-        path_right = PathStructValue(None, [right_comm])
-        arch = create_arch([left_comm], [right_comm])
+        path_left = PathStructValue(None, ())
+        path_right = PathStructValue(None, ())
         with pytest.raises(InvalidArgumentError):
             arch.combine_path(path_left, path_right)
 
+        # combine [comm] + [comm] = NG
+        left_comm = create_comm('topic_1', 'pub_node', 'sub_node')
+        right_comm = create_comm('topic_2', 'pub_node', 'sub_node')
+
+        path_left = PathStructValue(None, ([left_comm]))
+        path_right = PathStructValue(None, ([right_comm]))
+        arch = create_arch([], [left_comm, right_comm])
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_left, path_right)
+        
+        ## TODO(miura): [comm_1] + [comm_2] = [comm_1, node_x, comm_2]
+
+        # combine [node] + [node] (difference nodes) = NG
+        left_node = create_node_path('node_0', None, 'topic_0')
+        right_node = create_node_path('node_1', 'topic_0', None)
+        arch = create_arch([left_node, right_node], [])
+
+        path_left = PathStructValue(None, ([left_node]))
+        path_right = PathStructValue(None, ([right_node]))
+
+        with pytest.raises(InvalidArgumentError):
+            path = arch.combine_path(path_left, path_right)
+        
+        ## TODO(miura): [node_1] + [node_2] = [node_1, comm_x, node_2]
 
         # combine [node] + [comm]
-        # start_node_mock = mocker.Mock(spec=NodeStructValue)
-        # end_node_mock = mocker.Mock(spec=NodeStructValue)
+        node_0 = create_node_path('node_0', None, 'topic_0')
+        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        node_0_unmatch = create_node_path('node_0', None, 'topic_1') # topic_1 is for unmatch
+        comm_0_unmatch = create_comm('topic_0', 'node_2', 'node_1') # case for node_2 pub same topic with node_0
+        arch = create_arch([node_0, node_0_unmatch], [comm_0, comm_0_unmatch])
 
-        # mocker.patch.object(start_node_mock, 'node_name', 'pub_node')
-        # mocker.patch.object(end_node_mock, 'node_name', 'end_node')
-        # node_path = create_node_path('pub_node', None, 'topic')
-        # path_left = PathStructValue(None, [node_path])
+        ## [node_0] + [comm_0] = OK
+        path_left = PathStructValue(None, ([node_0]))
+        path_right = PathStructValue(None, ([comm_0]))
 
-        # comm = create_comm('topic', 'pub_node', 'sub_node')
-        # path_right = PathStructValue(None, [comm])
+        path_expect = PathStructValue(None, (node_0, comm_0))
+        path = arch.combine_path(path_left, path_right)
+        assert path == path_expect
 
-        # arch = create_arch([node_path], [comm])
-        # path_expect = PathStructValue(None, ([node_path], [comm]))
-        # path = arch.combine_path(path_left, path_right)
-        # assert path == path_expect
+        ## [node_0_unmatch] + [comm_0] = NG
+        path_left = PathStructValue(None, ([node_0_unmatch]))
+        path_right = PathStructValue(None, ([comm_0]))
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_right, path_left)
 
-        # with pytest.raises(InvalidArgumentError):
-        #     arch.combine_path(path_left, path_right)
+        ## [node_0] + [comm_0_unmatch] = NG
+        path_left = PathStructValue(None, ([node_0]))
+        path_right = PathStructValue(None, ([comm_0_unmatch]))
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_right, path_left)
 
         # combine [comm] + [node]
-        # comm = create_comm('topic', 'pub_node', 'sub_node')
-        # path_left = PathStructValue(None, [comm])
+        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        node_1 = create_node_path('node_1', 'topic_0', None)
+        comm_0_unmatch = create_comm('topic_0', 'node_0', 'node_2')
+        node_1_unmatch = create_node_path('node_1', 'topic_1', None)
+        arch = create_arch([node_1], [comm_0])
 
-        # node_path = create_node_path('sub_node', 'topic', None)
-        # path_right = PathStructValue(None, [node_path])
-        # arch = create_arch( [comm],[node_path])
-        # path = arch.combine_path(path_left, path_right)
-        # path_expect = PathStructValue(None, ([comm], [node_path]))
-        # assert path == path_expect
+        ## [comm_0] + [node_1] = OK
+        path_left = PathStructValue(None, [comm_0])
+        path_right = PathStructValue(None, [node_1])
 
-        # with pytest.raises(InvalidArgumentError):
-        #     arch.combine_path(path_right, path_left)
+        path = arch.combine_path(path_left, path_right)
+        path_expect = PathStructValue(None, (comm_0, node_1))
+        assert path == path_expect
 
-        # # combine [node, comm, node] + [node, comm, node]
-        # node_0 = create_node_path('node_0', None, 'topic_0')
-        # node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
-        # node_2 = create_node_path('node_2', 'topic_1', None)
+        ## [comm_0_unmatch] + [node_1] = NG
+        path_left = PathStructValue(None, [comm_0_unmatch])
+        path_right = PathStructValue(None, [node_1])
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_right, path_left)
 
-        # node_1_left = create_node_path('node_1', 'topic_0', None)
-        # node_1_right = create_node_path('node_1', None, 'topic_1')
+        ## [comm_0] + [node_1_unmatch] = NG
+        path_left = PathStructValue(None, [comm_0])
+        path_right = PathStructValue(None, [node_1_unmatch])
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_right, path_left)
 
-        # comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        # comm_1 = create_comm('topic_1', 'node_1', 'node_2')
+        # combine [node, comm, node] + [comm]
+        node_0 = create_node_path('node_0', None, 'topic_0')
+        node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
+        node_1_left = create_node_path('node_1', 'topic_0', None)
 
-        # path_left = PathStructValue(
-        #     None, (node_0, comm_0, node_1_left))
-        # path_right = PathStructValue(
-        #     None, (node_1_right, comm_1, node_2))
+        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        comm_1 = create_comm('topic_1', 'node_1', 'node_2')
 
-        # arch = create_arch(
-        #     [node_0, node_1, node_1_left, node_1_right, node_2],
-        #     [comm_0, comm_1]
-        # )
-        # path_expect = PathStructValue(
-        #     None, (node_0, comm_0, node_1, comm_1, node_2))
-        # path = arch.combine_path(path_left, path_right)
-        # assert path == path_expect
+        path_left = PathStructValue(None, (node_0, comm_0, node_1_left))
+        path_right = PathStructValue(None, ([comm_1]))
 
+        arch = create_arch([node_0, node_1, node_1_left], [comm_0, comm_1])
+        path = arch.combine_path(path_left, path_right)
+        path_expect = PathStructValue(None, (node_0, comm_0, node_1, comm_1))
+        assert path == path_expect
+
+        # combine [comm] + [node, comm, node]
+        node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
+        node_1_right = create_node_path('node_1', None, 'topic_1')
+        node_2 = create_node_path('node_2', 'topic_1', None)
+
+        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        comm_1 = create_comm('topic_1', 'node_1', 'node_2')
+
+        path_left = PathStructValue(None, ([comm_0]))
+        path_right = PathStructValue(None, (node_1_right, comm_1, node_2))
+
+        arch = create_arch([node_1, node_1_right, node_2], [comm_0, comm_1])
+        path = arch.combine_path(path_left, path_right)
+        path_expect = PathStructValue(None, (comm_0, node_1, comm_1, node_2))
+        assert path == path_expect
+
+        # combine [node, comm] + [comm, node]
+        node_0 = create_node_path('node_0', None, 'topic_0')
+        node_1 = create_node_path('node_1', 'topic_0', None)
+        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+
+        comm_0_left = create_comm('topic_0', 'node_0', None)
+        comm_0_right = create_comm('topic_0', None, 'node_1')
+        comm_0_left_unmatch = create_comm('topic_0', 'node_0', 'node_2') # node_2 is for unmatch
+        comm_0_right_unmatch = create_comm('topic_0', 'node_2', 'node_1')
+
+        arch = create_arch([node_0, node_1],
+                           [comm_0, comm_0_left, comm_0_right,
+                            comm_0_left_unmatch, comm_0_right_unmatch])
+        
+        ## [node_0, comm_0_left_unmatch] + [comm_0_right, node_1] = NG
+        path_left = PathStructValue(None, (node_0, comm_0_left_unmatch))
+        path_right = PathStructValue(None, (comm_0_right, node_1))
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_left, path_right)
+
+        ## [node_0, comm_0_left] + [comm_0_right_unmatch, node_1] = NG
+        path_left = PathStructValue(None, (node_0, comm_0_left_unmatch))
+        path_right = PathStructValue(None, (comm_0_right, node_1))
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_left, path_right)
+        
+        ## [node_0, comm_0_left] + [comm_0_right, node_1] = OK
+        path_left = PathStructValue(None, (node_0, comm_0_left))
+        path_right = PathStructValue(None, (comm_0_right, node_1))
+
+        path_expect = PathStructValue(None, (node_0, comm_0, node_1))
+        path = arch.combine_path(path_left, path_right)
+        assert path == path_expect
+
+        ## [node_0, comm_0] + [comm_0, node_1] = OK
+        path_left = PathStructValue(None, (node_0, comm_0_left))
+        path_right = PathStructValue(None, (comm_0_right, node_1))
+
+        path_expect = PathStructValue(None, (node_0, comm_0, node_1))
+        path = arch.combine_path(path_left, path_right)
+        assert path == path_expect
+
+        # combine [node, comm, node] + [node, comm, node]
+        node_0 = create_node_path('node_0', None, 'topic_0')
+        node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
+        node_2 = create_node_path('node_2', 'topic_1', None)
+
+        node_1_left = create_node_path('node_1', 'topic_0', None)
+        node_1_right = create_node_path('node_1', None, 'topic_1')
+
+        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        comm_1 = create_comm('topic_1', 'node_1', 'node_2')
+
+        path_left = PathStructValue(
+            None, (node_0, comm_0, node_1_left))
+        path_right = PathStructValue(
+            None, (node_1_right, comm_1, node_2))
+
+        arch = create_arch(
+            [node_0, node_1, node_1_left, node_1_right, node_2],
+            [comm_0, comm_1]
+        )
+        path_expect = PathStructValue(
+            None, (node_0, comm_0, node_1, comm_1, node_2))
+        path = arch.combine_path(path_left, path_right)
+        assert path == path_expect
 
     def test_verify_callback_uniqueness(self, mocker, caplog):
         node_mock = mocker.Mock(spec=NodeStruct)
