@@ -284,13 +284,13 @@ class Architecture(Summarizable):
 
         # Error processing
         if len(path_left.child) == 0 or len(path_right.child) == 0:
-            msg = 'input path cannot be null.'
+            msg = 'Input paths have no child.'
             raise InvalidArgumentError(msg)
         elif len(path_left.node_paths) == 0 and len(path_right.node_paths) == 0:
-            msg = 'Communication and Communication cannot be combined.'
+            msg = 'Input paths have no node path.'
             raise InvalidArgumentError(msg)
         elif len(path_left.communications) == 0 and len(path_right.communications) == 0:
-            msg = 'nodepath and nodepath cannot be combined.'
+            msg = 'input paths have no communication.'
             raise InvalidArgumentError(msg)
         # if len(path_left.node_paths)==0 and len(path_right.node_paths)==0:
         #     new_path = PathStructValue(None, (path_left.child, path_right.child))
@@ -308,15 +308,15 @@ class Architecture(Summarizable):
 
             # Error processing
             if (left_child.node_name != right_child.node_name):
-                msg = 'Unmatched left tail node and right head node name.'
+                msg = 'Not matched left tail node and right head node name.'
                 raise InvalidArgumentError(msg)
             if (left_child.publish_topic_name is not None and
                     left_child.publish_topic_name != right_child.publish_topic_name):
-                msg = 'Unmatched publish topics of left tail node and right head node.'
+                msg = 'Not matched publish topics of left tail node and right head node.'
                 raise InvalidArgumentError(msg)
             if (right_child.subscribe_topic_name is not None and
                     left_child.subscribe_topic_name != right_child.subscribe_topic_name):
-                msg = 'Unmatched subscription topics of left tail node and right head node.'
+                msg = 'Not matched subscription topics of left tail node and right head node.'
                 raise InvalidArgumentError(msg)
 
             # Search node path
@@ -346,10 +346,10 @@ class Architecture(Summarizable):
             # Error processing
             if (left_child.publish_topic_name is not None and
                     left_child.publish_topic_name != right_child.topic_name):
-                msg = 'Unmatched topic name.'
+                msg = 'Not matched topic name.'
                 raise InvalidArgumentError(msg)
             if (left_child.node_name != right_child.subscribe_node_name):
-                msg = 'Unmatched pulish node.'
+                msg = 'Not matched pulish node.'
                 raise InvalidArgumentError(msg)
 
             # Search node path
@@ -382,10 +382,10 @@ class Architecture(Summarizable):
             # Error processing
             if (right_child.subscribe_topic_name is not None and
                     right_child.subscribe_topic_name != left_child.topic_name):
-                msg = 'Unmatched topic name.'
+                msg = 'Not matched topic name.'
                 raise InvalidArgumentError(msg)
             if (right_child.node_name != left_child.publish_node_name):
-                msg = 'Unmatched subscription node.'
+                msg = 'Not matched subscription node.'
                 raise InvalidArgumentError(msg)
 
             # Search node path
@@ -416,18 +416,18 @@ class Architecture(Summarizable):
 
             # Error processing
             if (left_child.topic_name != right_child.topic_name):
-                msg = 'Unmatched topic names.'
+                msg = 'Not matched topic names.'
                 raise InvalidArgumentError(msg)
             if (left_child.subscribe_node_name is not None and
                     right_child.subscribe_node_name is not None and
                     left_child.subscribe_node_name != right_child.subscribe_node_name):
-                msg = 'Unmatched publish node.'
+                msg = 'Not matched publish node.'
                 raise InvalidArgumentError(msg)
             if (left_child.publish_node_name is not None and
                     right_child.publish_node_name is not None and
                     left_child.publish_node_name != right_child.publish_node_name):
 
-                msg = 'Unmatched subscription node.'
+                msg = 'Not matched subscription node.'
                 raise InvalidArgumentError(msg)
 
             # Search communication
