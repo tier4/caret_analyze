@@ -54,11 +54,10 @@ class TestFrequencyTimeSeries:
         assert min_ts == 1
         assert max_ts == 5
 
-    # TODO: Even if target_objects.to_records is empty, we want to display an empty graph.
-    # def test_get_timestamp_range_empty_input(self):
-    #     min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range([])
-    #     assert min_ts == 0
-    #     assert max_ts == 1
+    def test_get_timestamp_range_empty_input(self):
+        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range([])
+        assert min_ts == 0
+        assert max_ts == 1
 
     def test_get_timestamp_range_exist_empty_records(self, mocker):
         object_mock0 = mocker.Mock(spec=CallbackBase)
@@ -101,20 +100,19 @@ class TestFrequencyTimeSeries:
         assert min_ts == 1
         assert max_ts == 5
 
-    # TODO: Even if target_objects.to_records is empty, we want to display an empty graph.
-    # def test_get_timestamp_range_len_timestamp_is_0(self, mocker):
-    #     object_mock0 = mocker.Mock(spec=CallbackBase)
-    #     mocker.patch.object(
-    #         object_mock0, 'to_records',
-    #         return_value=create_expect_records([{}])
-    #     )
-    #     object_mock1 = mocker.Mock(spec=CallbackBase)
-    #     mocker.patch.object(
-    #         object_mock1, 'to_records',
-    #         return_value=create_expect_records([{}])
-    #     )
-    #     min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
-    #         [object_mock0, object_mock1])
-    #
-    #     assert min_ts == 0
-    #     assert max_ts == 1
+    def test_get_timestamp_range_len_timestamp_is_0(self, mocker):
+        object_mock0 = mocker.Mock(spec=CallbackBase)
+        mocker.patch.object(
+            object_mock0, 'to_records',
+            return_value=create_expect_records([{}])
+        )
+        object_mock1 = mocker.Mock(spec=CallbackBase)
+        mocker.patch.object(
+            object_mock1, 'to_records',
+            return_value=create_expect_records([{}])
+        )
+        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
+            [object_mock0, object_mock1])
+
+        assert min_ts == 0
+        assert max_ts == 1
