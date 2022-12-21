@@ -349,7 +349,7 @@ class Architecture(Summarizable):
                 msg = 'Not matched topic name.'
                 raise InvalidArgumentError(msg)
             if (left_child.node_name != right_child.subscribe_node_name):
-                msg = 'Not matched pulish node.'
+                msg = 'Not matched publish node.'
                 raise InvalidArgumentError(msg)
 
             # Search node path
