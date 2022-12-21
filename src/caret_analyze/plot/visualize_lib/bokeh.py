@@ -335,6 +335,9 @@ class LineSource:
                 description = f'period_ns = {target_object.period_ns}'
             elif isinstance(target_object, SubscriptionCallback):
                 description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
+        elif key == 'legend_label':
+            label = self._legend.get_label(target_object)
+            description = f'legend_label = {label}'
         else:
             raise NotImplementedError()
 
@@ -348,10 +351,6 @@ class LineSource:
 
         for k in self._get_source_keys(target_object):
             try:
-                if k == 'legend_label':
-                    label = self._legend.get_label(target_object)
-                    data_dict['legend_label'] = [f'legend_label = {label}']
-                    continue
                 data_dict[k] = [f'{k} = {getattr(target_object, k)}']
             except AttributeError:
                 data_dict[k] = [self._get_description(k, target_object)]
