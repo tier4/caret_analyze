@@ -29,8 +29,9 @@ loggers:
     # propagate: true            # if you need to propagate log
 
   caret_analyze.runtime.runtime_loaded:
-    level: CRITICAL
-    handlers: [stream_handler]
+    level: WARN
+    handlers: [null_handler]
+    propagate: false
 
 root:
   level: DEBUG
