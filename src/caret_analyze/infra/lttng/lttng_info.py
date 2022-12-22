@@ -1318,7 +1318,7 @@ class DataFrameFormatted:
         symbols.remove_column('timestamp')
         merge(timers, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
-        DataFrameFormatted._add_constructon_order(
+        DataFrameFormatted._add_construction_order(
             timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns', 'symbol')
 
         callback_group_timer = data.callback_group_timer.clone()
@@ -1361,7 +1361,7 @@ class DataFrameFormatted:
         symbols.remove_column('timestamp')
         merge(subscriptions, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
-        DataFrameFormatted._add_constructon_order(
+        DataFrameFormatted._add_construction_order(
             subscriptions, 'construction_order', 'timestamp',
             'node_handle', 'topic_name', 'symbol')
 
@@ -1378,7 +1378,7 @@ class DataFrameFormatted:
     KeyType = Tuple[Union[int, str], Union[int, str], Union[str, int]]
 
     @staticmethod
-    def _add_constructon_order(
+    def _add_construction_order(
         data: TracePointData,
         column_name: str,
         timestamp_column: str,
@@ -1430,7 +1430,7 @@ class DataFrameFormatted:
         symbols.remove_column('timestamp')
         merge(services, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
-        DataFrameFormatted._add_constructon_order(
+        DataFrameFormatted._add_construction_order(
             services, 'construction_order',
             'timestamp', 'node_handle', 'service_name', 'symbol')
 
