@@ -316,8 +316,8 @@ class Architecture(Summarizable):
         if (context_type, sub_topic_name, pub_topic_name) \
             not in [(None if path.message_context_type is None
                      else path.message_context_type.type_name,
-                     path.subscribe_topic_name, path.publish_topic_name) for path in self.paths]:
-            context_reader = AssignContextReader(self)
+                     path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
+            context_reader = AssignContextReader(node)
             context_reader.append_message_context({'context_type': context_type,
                                                    'subscription_topic_name': sub_topic_name,
                                                    'publisher_topic_name': pub_topic_name})
@@ -379,9 +379,7 @@ class Architecture(Summarizable):
 
 
 class AssignContextReader(ArchitectureReader):
-    """
-    TODO: docstring書く。
-    """
+    # TODO: docstring
 
     def __init__(self, node: NodeStruct):
         contexts = [path.message_context for path in node.paths]

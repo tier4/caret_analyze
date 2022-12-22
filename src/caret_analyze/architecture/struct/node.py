@@ -191,8 +191,9 @@ class NodeStruct():
 
     def assign_message_context(self, node_name: str, context_type: str,
                                sub_topic_name: str, pub_topic_name: str):
-        # NOTE: assign_message_contextでなくて、assign_node_pathsにしたのは、モジュールの依存関係の問題による。
-        # リファクタリングしたい。
+        # To assign message context, update_node_path() is called in Architecture.
+        # This is becaused module dependency.
+        # TODO: Refactoring module dependency
 
         if pub_topic_name not in self.publish_topic_names:
             raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
@@ -216,14 +217,12 @@ class NodeStruct():
             Util.find_one(lambda x: x.callback_name == des_callback_name, self.callbacks)
 
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
-        if self.variable_passings is None or \
-            (src_callback_name, des_callback_name) not in \
+        if self._variable_passings_info is None:
+            self._variable_passings_info = [passing]
+        elif (src_callback_name, des_callback_name) not in \
                 [(passing.callback_name_read, passing.callback_name_write)
-                    for passing in self.variable_passings]:
-            if self._variable_passings_info is None:
-                self._variable_passings_info = [passing]
-            else:
-                self._variable_passings_info.append(passing)
+                    for passing in self._variable_passings_info]:
+            self._variable_passings_info.append(passing)
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
