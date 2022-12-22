@@ -189,13 +189,6 @@ class NodeStruct():
     def update_node_path(self, paths: list[NodePathStruct]):
         self._node_paths = paths
 
-    def assign_message_context(self, node_name: str, context_type: str,
-                               sub_topic_name: str, pub_topic_name: str):
-        # To assign message context, update_node_path() is called in Architecture.
-        # This is because module dependency.
-        # TODO: Refactoring module dependency
-        pass
-
     def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_function_name, self.callbacks)

@@ -311,8 +311,6 @@ class Architecture(Summarizable):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.assign_message_context(node_name, context_type, sub_topic_name, pub_topic_name)
-
         if pub_topic_name not in node.publish_topic_names:
             raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
 

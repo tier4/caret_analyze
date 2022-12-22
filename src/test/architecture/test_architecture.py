@@ -447,13 +447,6 @@ $contexts
 
         arch.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
 
-        architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text_latest)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
-        arch_expected = Architecture('yaml', 'architecture.yaml')
-
         assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
         assert set(arch.executors) == set(arch_expected.executors)
@@ -504,13 +497,6 @@ $contexts
         arch = Architecture('yaml', 'architecture.yaml')
 
         arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
-
-        architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
-        arch_expected = Architecture('yaml', 'architecture.yaml')
 
         assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
@@ -589,13 +575,6 @@ $contexts
         arch = Architecture('yaml', 'architecture.yaml')
 
         arch.assign_variable_passings('/pong_node', 'timer_callback_1', 'subscription_callback_0')
-
-        architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
-        arch_expected = Architecture('yaml', 'architecture.yaml')
 
         assert set(arch.nodes) == set(arch_expected.nodes)
         assert set(arch.communications) == set(arch_expected.communications)
