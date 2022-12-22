@@ -563,19 +563,12 @@ class TestArchitecture:
         comm_0_left = create_comm('topic_0', 'node_0', None)
         comm_0_right = create_comm('topic_0', None, 'node_1')
         comm_0_left_unmatched = create_comm('topic_0', 'node_0', 'node_2')  # node_2 is for unmatched
-        comm_0_right_unmatched = create_comm('topic_0', 'node_2', 'node_1')
 
         arch = create_arch([node_0, node_1],
                            [comm_0, comm_0_left, comm_0_right,
-                            comm_0_left_unmatched, comm_0_right_unmatched])
+                            comm_0_left_unmatched])
 
         # #  [node_0, comm_0_left_unmatched] + [comm_0_right, node_1] = NG
-        path_left = PathStructValue(None, (node_0, comm_0_left_unmatched))
-        path_right = PathStructValue(None, (comm_0_right, node_1))
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
-
-        # #  [node_0, comm_0_left] + [comm_0_right_unmatched, node_1] = NG
         path_left = PathStructValue(None, (node_0, comm_0_left_unmatched))
         path_right = PathStructValue(None, (comm_0_right, node_1))
         with pytest.raises(InvalidArgumentError):
@@ -604,23 +597,34 @@ class TestArchitecture:
 
         node_1_left = create_node_path('node_1', 'topic_0', None)
         node_1_right = create_node_path('node_1', None, 'topic_1')
+        node_1_left_unmatched = create_node_path('node_1', 'topic_0', 'topic_2')
 
         comm_0 = create_comm('topic_0', 'node_0', 'node_1')
         comm_1 = create_comm('topic_1', 'node_1', 'node_2')
 
+        arch = create_arch(
+            [node_0, node_1, node_1_left, node_1_right, node_2, node_1_left_unmatched],
+            [comm_0, comm_1]
+        )
+
+        # # combine [node_0, comm_0, node_1_left] + [node_1_right, comm_1, node_2]
         path_left = PathStructValue(
             None, (node_0, comm_0, node_1_left))
         path_right = PathStructValue(
             None, (node_1_right, comm_1, node_2))
 
-        arch = create_arch(
-            [node_0, node_1, node_1_left, node_1_right, node_2],
-            [comm_0, comm_1]
-        )
         path_expect = PathStructValue(
             None, (node_0, comm_0, node_1, comm_1, node_2))
         path = arch.combine_path(path_left, path_right)
         assert path == path_expect
+
+        # # combine [node_0, comm_0, node_1_unmatched] + [node_1_right, comm_1, node_2]
+        path_left = PathStructValue(
+            None, (node_0, comm_0, node_1_unmatched))
+        path_right = PathStructValue(
+            None, (node_1_right, comm_1, node_2))
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_left, path_right)
 
     def test_verify_callback_uniqueness(self, mocker, caplog):
         node_mock = mocker.Mock(spec=NodeStruct)
