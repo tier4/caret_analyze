@@ -22,6 +22,7 @@ from bokeh.models import (GlyphRenderer, HoverTool, Legend,
 from bokeh.plotting import ColumnDataSource, Figure, figure
 
 import colorcet as cc
+import numpy as np
 
 from .visualize_lib_interface import VisualizeLibInterface
 from ..metrics_base import MetricsBase
@@ -150,23 +151,32 @@ class Bokeh(VisualizeLibInterface):
 
     @staticmethod
     def _get_range(target_objects: List[TimeSeriesTypes]) -> Tuple[int, int]:
-        to_valid = [to for to in target_objects if len(to.to_records()) > 0]
-        if len(to_valid) == 0:
-            logger.warning('Failed to found measurement results.')
+        has_valid_data = False
+
+        try:
+            to_dfs = [to.to_dataframe(remove_dropped=True) for to in target_objects]
+            to_dfs_valid = [to_df for to_df in to_dfs if len(to_df) > 0]
+
+            # NOTE:
+            # The first column is system time for now.
+            # The other columns could be other than system time.
+            # Only the system time is picked out here.
+            base_series = [df.iloc[:, 0] for df in to_dfs_valid]
+            min_series = [series.min() for series in base_series]
+            max_series = [series.max() for series in base_series]
+            valid_min_series = [value for value in min_series if not np.isnan(value)]
+            valid_max_series = [value for value in max_series if not np.isnan(value)]
+
+            has_valid_data = len(valid_max_series) > 0 or len(valid_min_series) > 0
+            to_min = min(valid_min_series)
+            to_max = max(valid_max_series)
+            return to_min, to_max
+        except Exception:
+            msg = 'Failed to calculate interval of measurement time.'
+            if not has_valid_data:
+                msg += ' No valid measurement data.'
+            logger.warning(msg)
             return 0, 1
-
-        to_dfs = [to.to_dataframe(remove_dropped=True) for to in target_objects]
-        to_dfs_valid = [to_df for to_df in to_dfs if len(to_df) > 0]
-
-        # NOTE:
-        # The first column is system time for now.
-        # The other columns could be other than system time.
-        # Only the system time is picked out here.
-        base_series = [df.iloc[:, 0] for df in to_dfs_valid]
-        to_min = min(series.min() for series in base_series)
-        to_max = max(series.max() for series in base_series)
-
-        return to_min, to_max
 
     @staticmethod
     def _apply_x_axis_offset(
