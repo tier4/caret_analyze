@@ -194,12 +194,7 @@ class NodeStruct():
         # To assign message context, update_node_path() is called in Architecture.
         # This is because module dependency.
         # TODO: Refactoring module dependency
-
-        if pub_topic_name not in self.publish_topic_names:
-            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
-
-        if sub_topic_name not in self.subscribe_topic_names:
-            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
+        pass
 
     def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
         callback: CallbackStruct = \

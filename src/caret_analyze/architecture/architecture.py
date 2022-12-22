@@ -313,6 +313,12 @@ class Architecture(Summarizable):
 
         node.assign_message_context(node_name, context_type, sub_topic_name, pub_topic_name)
 
+        if pub_topic_name not in node.publish_topic_names:
+            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
+
+        if sub_topic_name not in node.subscribe_topic_names:
+            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
+
         if (context_type, sub_topic_name, pub_topic_name) \
             not in [(None if path.message_context_type is None
                      else path.message_context_type.type_name,
