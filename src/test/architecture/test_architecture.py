@@ -436,7 +436,7 @@ $contexts
         arch_expected.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
 
     def test_assign_publisher(self, mocker):
-        # assign publisher to publusher function
+        # assign publisher to publisher function
         architecture_text = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
                                                          publisher_callback='UNDEFINED',

@@ -192,7 +192,7 @@ class NodeStruct():
     def assign_message_context(self, node_name: str, context_type: str,
                                sub_topic_name: str, pub_topic_name: str):
         # To assign message context, update_node_path() is called in Architecture.
-        # This is becaused module dependency.
+        # This is because module dependency.
         # TODO: Refactoring module dependency
 
         if pub_topic_name not in self.publish_topic_names:
