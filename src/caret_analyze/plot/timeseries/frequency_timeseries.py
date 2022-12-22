@@ -122,8 +122,7 @@ class FrequencyTimeSeries(MetricsBase):
             if isinstance(last_timestamp, int):
                 last_timestamps.append(last_timestamp)
 
-        # TODO: Even if target_objects.to_records is empty, we want to display an empty graph.
-        # if len(first_timestamps) == 0 or len(last_timestamps) == 0:
-        #     return 0, 1
-        # else:
-        return min(first_timestamps), max(last_timestamps)
+        if len(first_timestamps) == 0 or len(last_timestamps) == 0:
+            return 0, 1  # Intended to show an empty figure.
+        else:
+            return min(first_timestamps), max(last_timestamps)
