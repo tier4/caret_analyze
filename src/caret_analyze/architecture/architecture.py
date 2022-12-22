@@ -379,7 +379,7 @@ class Architecture(Summarizable):
 
 
 class AssignContextReader(ArchitectureReader):
-    # TODO: docstring
+    """MessageContext of NodeStruct implemented version of ArchitectureReader."""
 
     def __init__(self, node: NodeStruct):
         contexts = [path.message_context for path in node.paths]
