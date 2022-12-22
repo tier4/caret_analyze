@@ -154,7 +154,10 @@ class Bokeh(VisualizeLibInterface):
         has_valid_data = False
 
         try:
-            to_dfs = [to.to_dataframe(remove_dropped=True) for to in target_objects]
+            # NOTE:
+            # If remove_dropped=True,
+            # data in DataFrame may be lost due to drops in columns other than the first column.
+            to_dfs = [to.to_dataframe(remove_dropped=False) for to in target_objects]
             to_dfs_valid = [to_df for to_df in to_dfs if len(to_df) > 0]
 
             # NOTE:
