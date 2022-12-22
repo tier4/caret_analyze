@@ -307,41 +307,41 @@ class Architecture(Summarizable):
                      f'period_ns: {uniqueness_violated[1]}'))
 
     def assign_message_context(self, node_name: str, context_type: str,
-                               sub_topic_name: str, pub_topic_name: str):
+                               subscribe_topic_name: str, publish_topic_name: str):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        if pub_topic_name not in node.publish_topic_names:
+        if publish_topic_name not in node.publish_topic_names:
             raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
 
-        if sub_topic_name not in node.subscribe_topic_names:
+        if subscribe_topic_name not in node.subscribe_topic_names:
             raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
 
-        if (context_type, sub_topic_name, pub_topic_name) \
+        if (context_type, subscribe_topic_name, publish_topic_name) \
             not in [(None if path.message_context_type is None
                      else path.message_context_type.type_name,
                      path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
             context_reader = AssignContextReader(node)
             context_reader.append_message_context({'context_type': context_type,
-                                                   'subscription_topic_name': sub_topic_name,
-                                                   'publisher_topic_name': pub_topic_name})
+                                                   'subscription_topic_name': subscribe_topic_name,
+                                                   'publisher_topic_name': publish_topic_name})
 
             node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
-    def assign_publisher(self, node_name: str,
-                         pub_topic_name: str, callback_function_name: str):
+    def assign_publisher_and_callback(self, node_name: str,
+                                      publish_topic_name: str, callback_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.assign_publisher(pub_topic_name, callback_function_name)
+        node.assign_publisher_and_callback(publish_topic_name, callback_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
 
     def assign_variable_passings(self, node_name: str,
-                                 src_callback_name: str, des_callback_name: str):
+                                 callback_name_write: str, callback_name_read: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.assign_variable_passings(src_callback_name, des_callback_name)
+        node.assign_variable_passings(callback_name_write, callback_name_read)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))

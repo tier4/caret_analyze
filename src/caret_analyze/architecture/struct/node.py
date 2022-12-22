@@ -196,25 +196,25 @@ class NodeStruct():
     #     # TODO: Refactoring module dependency
     #     pass
 
-    def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
+    def assign_publisher_and_callback(self, publish_topic_name: str, callback_name: str):
         callback: CallbackStruct = \
-            Util.find_one(lambda x: x.callback_name == callback_function_name, self.callbacks)
-        callback.assign_publisher(pub_topic_name)
+            Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
+        callback.assign_publisher(publish_topic_name)
 
         publisher: PublisherStruct = \
-            Util.find_one(lambda x: x.topic_name == pub_topic_name, self._publishers)
+            Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
         publisher.assign_callback(callback)
 
-    def assign_variable_passings(self, src_callback_name: str, des_callback_name: str):
-        source_callback: CallbackStruct =\
-            Util.find_one(lambda x: x.callback_name == src_callback_name, self.callbacks)
-        destination_callback: CallbackStruct =\
-            Util.find_one(lambda x: x.callback_name == des_callback_name, self.callbacks)
+    def assign_variable_passings(self, callback_name_write: str, callback_name_read: str):
+        callback_write: CallbackStruct =\
+            Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
+        callback_read: CallbackStruct =\
+            Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
 
-        passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
+        passing = VariablePassingStruct(self.node_name, callback_write, callback_read)
         if self._variable_passings_info is None:
             self._variable_passings_info = [passing]
-        elif (src_callback_name, des_callback_name) not in \
+        elif (callback_name_read, callback_name_write) not in \
                 [(passing.callback_name_read, passing.callback_name_write)
                     for passing in self._variable_passings_info]:
             self._variable_passings_info.append(passing)
