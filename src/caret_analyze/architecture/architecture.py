@@ -18,8 +18,9 @@ import logging
 from typing import Callable, Collection, Dict, List, Optional, Sequence, Tuple, Union
 
 from .architecture_exporter import ArchitectureExporter
+from .architecture_loaded import NodeValuesLoaded
 
-from .reader_interface import IGNORE_TOPICS
+from .reader_interface import ArchitectureReader, IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodePathStruct, NodeStruct, PathStruct)
 from .struct.callback import CallbackStruct, TimerCallbackStruct
@@ -305,103 +306,41 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    from .reader_interface import ArchitectureReader
-
-    class AssignContextReader(ArchitectureReader):
-
-        def __init__(self, node: NodeStruct):
-            contexts = [path.message_context for path in node.paths]
-            self._contexts = [context.to_dict() for context in contexts if context is not None]
-
-        def append_message_context(self, context: Dict):
-            self._contexts.append(context)
-
-        from ..value_objects.node import NodeValue
-
-        def get_message_contexts(self, _: NodeValue) -> Sequence[Dict]:
-            return self._contexts
-
-        def get_callback_groups(self):
-            pass
-
-        def get_executors(self):
-            pass
-
-        def get_node_names_and_cb_symbols(self):
-            pass
-
-        def get_nodes(self):
-            pass
-
-        def get_paths(self):
-            pass
-
-        def get_publishers(self):
-            pass
-
-        def get_service_callbacks(self):
-            pass
-
-        def get_services(self):
-            pass
-
-        def get_subscription_callbacks(self):
-            pass
-
-        def get_subscriptions(self):
-            pass
-
-        def get_timer_callbacks(self):
-            pass
-
-        def get_timers(self):
-            pass
-
-        def get_variable_passings(self):
-            pass
-
     def assign_message_context(self, node_name: str, context_type: str,
                                sub_topic_name: str, pub_topic_name: str):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        if pub_topic_name not in node.publish_topic_names:
-            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
-
-        if sub_topic_name not in node.subscribe_topic_names:
-            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
+        node.assign_message_context(node_name, context_type, sub_topic_name, pub_topic_name)
 
         if (context_type, sub_topic_name, pub_topic_name) \
-            in [(None if path.message_context_type is None
-                 else path.message_context_type.type_name,
-                 path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
-            raise InvalidArgumentError('error: duplicated assign')
+            not in [(None if path.message_context_type is None
+                     else path.message_context_type.type_name,
+                     path.subscribe_topic_name, path.publish_topic_name) for path in self.paths]:
+            context_reader = AssignContextReader(self)
+            context_reader.append_message_context({'context_type': context_type,
+                                                   'subscription_topic_name': sub_topic_name,
+                                                   'publisher_topic_name': pub_topic_name})
 
-        context_reader = Architecture.AssignContextReader(node)
-        context_reader.append_message_context({'context_type': context_type,
-                                               'subscription_topic_name': sub_topic_name,
-                                               'publisher_topic_name': pub_topic_name})
-
-        from .architecture_loaded import NodeValuesLoaded
-        node.assign_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
+            node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
     def assign_publisher(self, node_name: str,
                          pub_topic_name: str, callback_function_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
         node.assign_publisher(pub_topic_name, callback_function_name)
 
-        from .architecture_loaded import NodeValuesLoaded
-        node.assign_node_path(NodeValuesLoaded._search_node_paths(node,
-                              Architecture.AssignContextReader(node)))
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
 
     def assign_variable_passings(self, node_name: str,
                                  src_callback_name: str, des_callback_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.assign_variable_passings(src_callback_name, des_callback_name)
-        from .architecture_loaded import NodeValuesLoaded
-        node.assign_node_path(NodeValuesLoaded._search_node_paths(node,
-                              Architecture.AssignContextReader(node)))
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
 
     def rename_callback(self, src: str, dst: str) -> None:
         cb_s: List[CallbackStruct] =\
@@ -437,3 +376,58 @@ class Architecture(Summarizable):
 
         for c in self._communications:
             c.rename_topic(src, dst)
+
+
+class AssignContextReader(ArchitectureReader):
+    """
+    TODO: docstring書く。
+    """
+
+    def __init__(self, node: NodeStruct):
+        contexts = [path.message_context for path in node.paths]
+        self._contexts = [context.to_dict() for context in contexts if context is not None]
+
+    def append_message_context(self, context: Dict):
+        self._contexts.append(context)
+
+    def get_message_contexts(self, _) -> Sequence[Dict]:
+        return self._contexts
+
+    def get_callback_groups(self):
+        pass
+
+    def get_executors(self):
+        pass
+
+    def get_node_names_and_cb_symbols(self):
+        pass
+
+    def get_nodes(self):
+        pass
+
+    def get_paths(self):
+        pass
+
+    def get_publishers(self):
+        pass
+
+    def get_service_callbacks(self):
+        pass
+
+    def get_services(self):
+        pass
+
+    def get_subscription_callbacks(self):
+        pass
+
+    def get_subscriptions(self):
+        pass
+
+    def get_timer_callbacks(self):
+        pass
+
+    def get_timers(self):
+        pass
+
+    def get_variable_passings(self):
+        pass

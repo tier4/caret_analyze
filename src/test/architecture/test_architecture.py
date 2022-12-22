@@ -344,7 +344,10 @@ $passings
   subscribes:
     - topic_name: /pong
       callback_name: subscription_callback_0
-$publishes
+  publishes:
+    - topic_name: /ping
+      callback_names:
+        - $publisher_callback
 $contexts
 """)
 
@@ -352,13 +355,6 @@ $contexts
   variable_passings:
     - callback_name_write: subscription_callback_0
       callback_name_read: timer_callback_1
-"""
-
-    publishes_text = """
-  publishes:
-    - topic_name: /ping
-      callback_names:
-        - timer_callback_1
 """
 
     contexts_text = """
@@ -379,7 +375,7 @@ $contexts
         # assign message context to template
         architecture_text = \
             self.template_architecture_assign.substitute(passings='',
-                                                         publishes=self.publishes_text,
+                                                         publisher_callback='timer_callback_1',
                                                          contexts='')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
@@ -388,7 +384,7 @@ $contexts
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings='',
-                                                         publishes=self.publishes_text,
+                                                         publisher_callback='timer_callback_1',
                                                          contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -401,7 +397,7 @@ $contexts
         # assign message context to be full architecture
         architecture_text = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publishes=self.publishes_text,
+                                                         publisher_callback='timer_callback_1',
                                                          contexts='')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
@@ -410,7 +406,7 @@ $contexts
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publishes=self.publishes_text,
+                                                         publisher_callback='timer_callback_1',
                                                          contexts=self.contexts_text_latest)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -437,37 +433,13 @@ $contexts
                                                  '/pong', '/not_exist_topic')
 
         # duplicated assign
-        with pytest.raises(InvalidArgumentError):
-            arch_expected.assign_message_context('/pong_node', 'use_latest_message',
-                                                 '/pong', '/ping')
+        arch_expected.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
 
     def test_assign_publisher(self, mocker):
-        # assign publisher to template
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings='',
-                                                         publishes='',
-                                                         contexts='')
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
-        arch.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
-
-        architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings='',
-                                                         publishes=self.publishes_text,
-                                                         contexts='')
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
-        arch_expected = Architecture('yaml', 'architecture.yaml')
-
-        assert set(arch.nodes) == set(arch_expected.nodes)
-        assert set(arch.communications) == set(arch_expected.communications)
-        assert set(arch.executors) == set(arch_expected.executors)
-        assert set(arch.paths) == set(arch_expected.paths)
-
-        # assign publisher to be full architecture
+        # assign publisher to publusher function
         architecture_text = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publishes='',
+                                                         publisher_callback='UNDEFINED',
                                                          contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
@@ -476,7 +448,7 @@ $contexts
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publishes=self.publishes_text,
+                                                         publisher_callback='timer_callback_1',
                                                          contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -493,14 +465,13 @@ $contexts
             arch_expected.assign_publisher('/pong_node', '/ping', 'not_exist_callback_1')
 
         # duplicated assign
-        with pytest.raises(InvalidArgumentError):
-            arch_expected.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
+        arch_expected.assign_publisher('/pong_node', '/ping', 'timer_callback_1')
 
     def test_assign_passings(self, mocker):
         # assign passing to template
         architecture_text = \
             self.template_architecture_assign.substitute(passings='',
-                                                         publishes='',
+                                                         publisher_callback='timer_callback_1',
                                                          contexts='')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
@@ -509,7 +480,7 @@ $contexts
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publishes='',
+                                                         publisher_callback='timer_callback_1',
                                                          contexts='')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -522,7 +493,7 @@ $contexts
         # assign passing to be full architecture
         architecture_text = \
             self.template_architecture_assign.substitute(passings='',
-                                                         publishes=self.publishes_text,
+                                                         publisher_callback='timer_callback_1',
                                                          contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
@@ -531,7 +502,7 @@ $contexts
 
         architecture_text_expected = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publishes=self.publishes_text,
+                                                         publisher_callback='timer_callback_1',
                                                          contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
@@ -553,9 +524,8 @@ $contexts
                                                    'not_exist_callback_0')
 
         # duplicated assign
-        with pytest.raises(InvalidArgumentError):
-            arch_expected.assign_variable_passings('/pong_node', 'timer_callback_1',
-                                                   'subscription_callback_0')
+        arch_expected.assign_variable_passings(
+          '/pong_node', 'timer_callback_1', 'subscription_callback_0')
 
     # define template text of rename function
     template_architecture_rename = Template("""

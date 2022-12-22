@@ -23,7 +23,7 @@ from .subscription import SubscriptionStruct
 from .timer import TimerStruct
 from .variable_passing import VariablePassingStruct
 from ...common import Util
-from ...exceptions import InvalidArgumentError, ItemNotFoundError
+from ...exceptions import ItemNotFoundError
 from ...value_objects import NodeStructValue
 
 
@@ -186,40 +186,44 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
-    def assign_node_path(self, paths: list[NodePathStruct]):
+    def update_node_path(self, paths: list[NodePathStruct]):
         self._node_paths = paths
 
-    def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
-        if pub_topic_name in [publisher.topic_name for publisher in self.publishers] \
-            and callback_function_name in \
-                Util.flatten([publisher.callback_names for publisher in self.publishers
-                              if publisher.callback_names is not None]):
-            raise InvalidArgumentError('error: duplicated assign')
+    def assign_message_context(self, node_name: str, context_type: str,
+                               sub_topic_name: str, pub_topic_name: str):
+        # NOTE: assign_message_contextでなくて、assign_node_pathsにしたのは、モジュールの依存関係の問題による。
+        # リファクタリングしたい。
 
+        if pub_topic_name not in self.publish_topic_names:
+            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
+
+        if sub_topic_name not in self.subscribe_topic_names:
+            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
+
+    def assign_publisher(self, pub_topic_name: str, callback_function_name: str):
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_function_name, self.callbacks)
         callback.assign_publisher(pub_topic_name)
 
-        publisher = PublisherStruct(self.node_name, pub_topic_name, [callback])
-        self._publishers.append(publisher)
+        publisher: PublisherStruct = \
+            Util.find_one(lambda x: x.topic_name == pub_topic_name, self._publishers)
+        publisher.assign_callback(callback)
 
     def assign_variable_passings(self, src_callback_name: str, des_callback_name: str):
-        if self.variable_passings is not None and \
-            (src_callback_name, des_callback_name) in \
-                [(passing.callback_name_read, passing.callback_name_write)
-                    for passing in self.variable_passings]:
-            raise InvalidArgumentError('error: duplicated assign')
-
         source_callback: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == src_callback_name, self.callbacks)
         destination_callback: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == des_callback_name, self.callbacks)
 
         passing = VariablePassingStruct(self.node_name, destination_callback, source_callback)
-        if self._variable_passings_info is None:
-            self._variable_passings_info = [passing]
-        else:
-            self._variable_passings_info.append(passing)
+        if self.variable_passings is None or \
+            (src_callback_name, des_callback_name) not in \
+                [(passing.callback_name_read, passing.callback_name_write)
+                    for passing in self.variable_passings]:
+            if self._variable_passings_info is None:
+                self._variable_passings_info = [passing]
+            else:
+                self._variable_passings_info.append(passing)
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:

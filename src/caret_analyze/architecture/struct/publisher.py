@@ -60,6 +60,10 @@ class PublisherStruct():
             self.node_name, self.topic_name,
             None if self.callbacks is None else tuple(v.to_value() for v in self.callbacks))
 
+    def assign_callback(self, callback: CallbackStruct):
+        if callback.callback_name not in self.callback_names:
+            self._callbacks.append(callback)
+
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
