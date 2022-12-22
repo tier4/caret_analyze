@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import cached_property, lru_cache
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
 from caret_analyze.value_objects.timer import TimerValue
