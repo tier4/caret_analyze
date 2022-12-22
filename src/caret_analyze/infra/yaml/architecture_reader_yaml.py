@@ -113,6 +113,8 @@ class ArchitectureReaderYaml(ArchitectureReader):
             publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
+            construction_order = self._get_value_with_default(info, 'construction_order', 0)
+
             callbacks.append(
                 TimerCallbackValue(
                     callback_id=callback_id,
@@ -121,8 +123,8 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     symbol=self._get_value(info, 'symbol'),
                     period_ns=self._get_value(info, 'period_ns'),
                     publish_topic_names=tuple(publish_topic_names),
-                    callback_name=callback_name
-                )
+                    construction_order=construction_order,
+                    callback_name=callback_name)
             )
         return callbacks
 
@@ -246,6 +248,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
             publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
+            construction_order = self._get_value_with_default(val, 'construction_order', None)
             callbacks.append(
                 SubscriptionCallbackValue(
                     callback_id=callback_id,
@@ -254,7 +257,8 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     symbol=self._get_value(val, 'symbol'),
                     subscribe_topic_name=self._get_value(val, 'topic_name'),
                     publish_topic_names=tuple(publish_topic_names),
-                    callback_name=callback_name
+                    callback_name=callback_name,
+                    construction_order=construction_order
                 )
             )
 

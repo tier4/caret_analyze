@@ -145,9 +145,9 @@ class TestArchitectureReaderLttng:
         callback_id = ['callback0', 'callback1']
 
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None)
+            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None)
+            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None, None)
 
         mocker.patch.object(
             lttng_mock,

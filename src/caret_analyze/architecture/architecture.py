@@ -22,7 +22,8 @@ from .architecture_exporter import ArchitectureExporter
 from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodePathStruct, NodeStruct, PathStruct)
-from .struct.callback import CallbackStruct, TimerCallbackStruct
+from .struct.callback import (
+    CallbackStruct, ServiceCallbackStruct, SubscriptionCallbackStruct, TimerCallbackStruct)
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
@@ -286,15 +287,21 @@ class Architecture(Summarizable):
             if callbacks is None:
                 continue
 
-            callback_params: List[Tuple[str, Union[str, int]]] = []
+            callback_params: List[Tuple[str, Union[str, int], str, int]] = []
             for callback in callbacks:
                 cb_type = callback.callback_type_name
+                symbol = callback.symbol
+                # TODO: refactor Add callback_parameter property to CallbackStruct
                 cb_param: Union[str, int]
                 if isinstance(callback, TimerCallbackStruct):
                     cb_param = callback.period_ns
+                elif isinstance(callback, SubscriptionCallbackStruct):
+                    cb_param = callback.subscribe_topic_name
+                elif isinstance(callback, ServiceCallbackStruct):
+                    cb_param = callback.service_name
                 else:
                     continue
-                callback_params.append((cb_type, cb_param))
+                callback_params.append((cb_type, cb_param, symbol, callback.construction_order))
 
             counter = Counter(callback_params)
 

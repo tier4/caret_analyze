@@ -14,9 +14,10 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from functools import cached_property, lru_cache
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
 from caret_analyze.value_objects.timer import TimerValue
@@ -130,7 +131,8 @@ class LttngInfo:
                     period_ns=row['period_ns'],
                     timer_handle=row['timer_handle'],
                     publish_topic_names=None,
-                    callback_object=row['callback_object']
+                    callback_object=row['callback_object'],
+                    construction_order=row['construction_order'],
                 )
             )
 
@@ -253,7 +255,8 @@ class LttngInfo:
                     subscription_handle=row['subscription_handle'],
                     callback_object=row['callback_object'],
                     callback_object_intra=callback_object_intra,
-                    tilde_subscription=tilde_subscription
+                    tilde_subscription=tilde_subscription,
+                    construction_order=row['construction_order']
                 )
             )
         return sub_cbs_info
@@ -342,6 +345,7 @@ class LttngInfo:
                     service_handle=row['service_handle'],
                     publish_topic_names=None,
                     callback_object=row['callback_object'],
+                    construction_order=row['construction_order']
                 )
             )
         return srv_cbs_info
@@ -1287,7 +1291,7 @@ class DataFrameFormatted:
     ) -> TracePointData:
         columns = [
             'callback_id', 'callback_object', 'node_handle', 'timer_handle', 'callback_group_addr',
-            'period_ns', 'symbol',
+            'period_ns', 'symbol', 'construction_order'
         ]
 
         def callback_id(row: pd.Series) -> str:
@@ -1295,27 +1299,33 @@ class DataFrameFormatted:
             return f'timer_callback_{cb_object}'
         timers = data.timers.clone()
         timers.reset_index()
+        timers.rename_column('period', 'period_ns')
 
+        merge_drop_columns = ['tid', 'rmw_handle']
         timer_node_links = data.timer_node_links.clone()
         timer_node_links.reset_index()
-        merge(timers, timer_node_links, 'timer_handle')
+        timer_node_links.remove_column('timestamp')
+        merge(timers, timer_node_links, 'timer_handle', merge_drop_columns=merge_drop_columns)
 
         callback_objects = data.callback_objects.clone()
         callback_objects.reset_index()
         callback_objects.rename_column('reference', 'timer_handle')
-        merge(timers, callback_objects, 'timer_handle')
+        callback_objects.remove_column('timestamp')
+        merge(timers, callback_objects, 'timer_handle', merge_drop_columns=merge_drop_columns)
 
         symbols = data.callback_symbols.clone()
         symbols.reset_index()
-        merge(timers, symbols, 'callback_object')
+        symbols.remove_column('timestamp')
+        merge(timers, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
+
+        DataFrameFormatted._add_constructon_order(
+            timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns', 'symbol')
 
         callback_group_timer = data.callback_group_timer.clone()
         callback_group_timer.reset_index()
         merge(timers, callback_group_timer, 'timer_handle')
 
         timers.add_column('callback_id', callback_id)
-
-        timers.rename_column('period', 'period_ns')
 
         timers.set_columns(columns)
 
@@ -1327,23 +1337,33 @@ class DataFrameFormatted:
     ) -> TracePointData:
         columns = [
             'callback_id', 'callback_object', 'callback_object_intra', 'node_handle',
-            'subscription_handle', 'callback_group_addr', 'topic_name', 'symbol', 'depth'
+            'subscription_handle', 'callback_group_addr', 'topic_name', 'symbol', 'depth',
+            'construction_order'
         ]
 
         def callback_id(row: pd.Series) -> str:
             cb_object = row['callback_object']
             return f'subscription_callback_{cb_object}'
 
+        merge_drop_columns = ['tid', 'rmw_handle']
+
         subscriptions = data.subscriptions.clone()
         subscriptions.reset_index()
 
         subscription_callback_object = \
             DataFrameFormatted._format_subscription_callback_object(data)
-        merge(subscriptions, subscription_callback_object, 'subscription_handle')
+
+        merge(subscriptions, subscription_callback_object, 'subscription_handle',
+              merge_drop_columns=merge_drop_columns)
 
         symbols = data.callback_symbols.clone()
         symbols.reset_index()
-        merge(subscriptions, symbols, 'callback_object')
+        symbols.remove_column('timestamp')
+        merge(subscriptions, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
+
+        DataFrameFormatted._add_constructon_order(
+            subscriptions, 'construction_order', 'timestamp',
+            'node_handle', 'topic_name', 'symbol')
 
         callback_group_subscription = data.callback_group_subscription.clone()
         callback_group_subscription.reset_index()
@@ -1355,18 +1375,46 @@ class DataFrameFormatted:
 
         return subscriptions
 
+    KeyType = Tuple[Union[int, str], Union[int, str], Union[str, int]]
+
+    @staticmethod
+    def _add_constructon_order(
+        data: TracePointData,
+        column_name: str,
+        timestamp_column: str,
+        node_handle_column: str,
+        callback_parameter_column: str,
+        symbol_column: str
+    ) -> None:
+
+        data.sort(timestamp_column)
+        order: defaultdict[DataFrameFormatted.KeyType, int] = defaultdict(int)
+
+        def construct_order(row: pd.Series) -> int:
+            node = row[node_handle_column]
+            callback_param = row[callback_parameter_column]
+            symbol = row[symbol_column]
+            key: DataFrameFormatted.KeyType = node, callback_param, symbol
+            order_ = int(order[key])
+            order[key] += 1
+            return order_
+
+        data.add_column(column_name, construct_order)
+
     @staticmethod
     def _build_srv_callbacks(
         data: Ros2DataModel,
     ) -> TracePointData:
         columns = [
             'callback_id', 'callback_object', 'node_handle',
-            'service_handle', 'callback_group_addr', 'service_name', 'symbol'
+            'service_handle', 'callback_group_addr', 'service_name', 'symbol', 'construction_order'
         ]
 
         def callback_id(row: pd.Series) -> str:
             cb_object = row['callback_object']
             return f'service_callback_{cb_object}'
+
+        merge_drop_columns = ['tid', 'rmw_handle']
 
         services = data.services.clone()
         services.reset_index()
@@ -1374,11 +1422,17 @@ class DataFrameFormatted:
         callback_objects = data.callback_objects.clone()
         callback_objects.reset_index()
         callback_objects.rename_column('reference', 'service_handle')
-        merge(services, callback_objects, 'service_handle')
+        callback_objects.remove_column('timestamp')
+        merge(services, callback_objects, 'service_handle', merge_drop_columns=merge_drop_columns)
 
         symbols = data.callback_symbols.clone()
         symbols.reset_index()
-        merge(services, symbols, 'callback_object')
+        symbols.remove_column('timestamp')
+        merge(services, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
+
+        DataFrameFormatted._add_constructon_order(
+            services, 'construction_order',
+            'timestamp', 'node_handle', 'service_name', 'symbol')
 
         callback_group_service = data.callback_group_service.clone()
         callback_group_service.reset_index()

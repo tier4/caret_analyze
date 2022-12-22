@@ -1056,6 +1056,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         if isinstance(callback, SubscriptionCallbackValue):
             assert callback.subscribe_topic_name is not None
@@ -1073,6 +1074,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         # Service callbacks support "read" only, not "export".
         # To avoid affecting exported files, special handling is done for service callbacks.
@@ -1092,6 +1094,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         # Service callbacks support "read" only, not "export".
         # To avoid affecting exported files, special handling is done for service callbacks.
@@ -1111,6 +1114,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         raise UnsupportedTypeError('Unsupported callback type')
 

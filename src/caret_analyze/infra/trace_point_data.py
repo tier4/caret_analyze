@@ -252,6 +252,18 @@ class TracePointData:
 
         self._df = df
 
+    def remove_column(self, column: str) -> None:
+        """
+        Remove column.
+
+        Parameters
+        ----------
+        column : str
+            column name to be removed.
+
+        """
+        self._df.drop(column, axis=1, inplace=True)
+
     def filter_rows(self, column: str, value: Any) -> None:
         """
         Filter data.
@@ -397,6 +409,18 @@ class TracePointData:
 
         """
         self._df.drop(index=index, inplace=True)
+
+    def sort(self, column_name: str) -> None:
+        """
+        Sort rows by values.
+
+        Parameters
+        ----------
+        column_name : str
+            column name to be sorted.
+
+        """
+        self._df.sort_values(column_name, inplace=True)
 
     def drop_column(self, column_name: str) -> None:
         """

@@ -400,6 +400,8 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         period = get_field(event, 'period')
         tid = get_field(event, '_vtid')
+        if period == 20000000 - 1:
+            period = 20000000
         self.data.add_timer(tid, handle, timestamp, period)
 
     def _create_handler(
