@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from .clock_converter import ClockConverter
+from .logger_config import init_logger
 from .progress import Progress
 from .singleton import Singleton
 from .summary import Summarizable, Summary
@@ -28,5 +29,6 @@ __all__ = [
     'Summary',
     'type_check_decorator',
     'Util',
-    'UniqueList'
+    'UniqueList',
+    'init_logger'
 ]

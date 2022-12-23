@@ -18,6 +18,7 @@ from abc import ABCMeta, abstractmethod
 from typing import List, Optional
 
 from ...value_objects import (CallbackStructValue, CallbackType,
+                              ServiceCallbackStructValue,
                               SubscriptionCallbackStructValue,
                               TimerCallbackStructValue)
 
@@ -30,6 +31,7 @@ class CallbackStruct(metaclass=ABCMeta):
         node_name: str,
         symbol: str,
         subscribe_topic_name: Optional[str],
+        service_name: Optional[str],
         publish_topic_names: Optional[List[str]],
         callback_name: str,
     ) -> None:
@@ -37,6 +39,7 @@ class CallbackStruct(metaclass=ABCMeta):
         self._callback_name = callback_name
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
+        self._service_name = service_name
         self._publish_topic_names = publish_topic_names
 
     @property
@@ -105,6 +108,10 @@ class CallbackStruct(metaclass=ABCMeta):
         return self._subscribe_topic_name
 
     @property
+    def service_name(self) -> Optional[str]:
+        return self._service_name
+
+    @property
     def publish_topic_names(self) -> Optional[List[str]]:
         return self._publish_topic_names
 
@@ -142,6 +149,7 @@ class TimerCallbackStruct(CallbackStruct):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=None,
+            service_name=None,
             publish_topic_names=publish_topic_names,
             callback_name=callback_name)
         self._period_ns = period_ns
@@ -176,6 +184,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=subscribe_topic_name,
+            service_name=None,
             publish_topic_names=publish_topic_names,
             callback_name=callback_name)
         self.__subscribe_topic_name = subscribe_topic_name
@@ -204,3 +213,40 @@ class SubscriptionCallbackStruct(CallbackStruct):
         if self.subscribe_topic_name == src:
             self._subscribe_topic_name = dst
             self.__subscribe_topic_name = dst
+
+
+class ServiceCallbackStruct(CallbackStruct):
+    """Structured service callback value."""
+
+    def __init__(
+        self,
+        node_name: str,
+        symbol: str,
+        service_name: str,
+        publish_topic_names: Optional[List[str]],
+        callback_name: str,
+    ) -> None:
+        super().__init__(
+            node_name=node_name,
+            symbol=symbol,
+            subscribe_topic_name=None,
+            service_name=service_name,
+            publish_topic_names=publish_topic_names,
+            callback_name=callback_name)
+        self.__service_name = service_name
+
+    @property
+    def callback_type(self) -> CallbackType:
+        return CallbackType.SERVICE
+
+    @property
+    def service_name(self) -> str:
+        return self.__service_name
+
+    def to_value(self) -> ServiceCallbackStructValue:
+        return ServiceCallbackStructValue(
+            self.node_name,
+            self.symbol,
+            self.service_name,
+            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
+            self.callback_name)

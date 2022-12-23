@@ -28,12 +28,13 @@ import numpy as np
 import pandas as pd
 
 from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
-from ...common import ClockConverter, type_check_decorator
-from ...exceptions import InvalidArgumentError
-from ...record.data_frame_shaper import Clip, Strip
-from ...runtime.path import Path
+from ..common import ClockConverter, type_check_decorator
+from ..exceptions import InvalidArgumentError
+from ..record.data_frame_shaper import Clip, Strip
+from ..runtime.path import Path
 
 
+# TODO: Migrate drawing process to visualize_lib
 @type_check_decorator
 def message_flow(
     path: Path,
