@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from functools import cached_property, lru_cache
-from logging import getLogger
+from logging import getLogger, WARN
 from typing import Dict, List, Optional, Sequence, Union
 
 from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
@@ -1273,7 +1273,10 @@ class DataFrameFormatted:
                     for i, node_name_and_cb_symbol in enumerate(node_names_and_cb_symbols):
                         msg += f'\t|node name {i}| {node_name_and_cb_symbol[0]}.\n'
                         msg += f'\t|callback symbol {i}| {node_name_and_cb_symbol[1]}.\n'
-                logger.warn(msg)
+                # This warning occurs frequently,
+                # but currently does not significantly affect behavior.
+                # Therefore, the log level is temporarily lowered.
+                logger.log(WARN-1, msg)
                 executor_duplicated_indexes += list(group.index)[:-1]
 
         if len(executor_duplicated_indexes) >= 1:
