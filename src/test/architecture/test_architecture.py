@@ -80,7 +80,7 @@ def create_arch(mocker):
     def _create_arch(node_paths: Tuple[NodePathStructValue],
                      comms: Tuple[CommunicationStructValue]):
         node_list = []
-        node_dict: Dict[str, Tuple[NodePathStructValue]] = {}
+        node_dict: Dict[str, Tuple[NodePathStructValue, ...]] = {}
 
         for node_path in node_paths:
             if node_path.node_name in node_dict.keys():

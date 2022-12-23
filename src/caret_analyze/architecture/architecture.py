@@ -290,6 +290,7 @@ class Architecture(Summarizable):
         left_child: Union[NodePathStructValue, CommunicationStructValue] = path_left.child[-1]
         right_child: Union[NodePathStructValue, CommunicationStructValue] = path_right.child[0]
 
+        # Core processing
         # Left, Right = (Node, Node) or (Node, Comm) or (Comm, Node)
         if isinstance(left_child, NodePathStructValue) or \
                 isinstance(right_child, NodePathStructValue):
@@ -383,7 +384,7 @@ class CombinePath():
     def __init__(self):
         pass
     
-    def is_none_or_same(self, name1: Optional[str], name2: Optional[str]) -> bool:
+    def check_none_or_same(self, name1: Optional[str], name2: Optional[str]) -> bool:
         return name1 is None or name2 is None or name1 == name2
 
     @singledispatchmethod
@@ -403,10 +404,10 @@ class CombinePath():
         if (left_child.node_name != right_child.node_name):
             msg = 'Not matched left tail node and right head node name.'
             raise InvalidArgumentError(msg)
-        if (self.is_none_or_same(left_child.publish_topic_name, right_child.publish_topic_name) is False):
+        if (self.check_none_or_same(left_child.publish_topic_name, right_child.publish_topic_name) is False):
             msg = 'Not matched publish topics of left tail node and right head node.'
             raise InvalidArgumentError(msg)
-        if (self.is_none_or_same(right_child.subscribe_topic_name, left_child.subscribe_topic_name) is False):
+        if (self.check_none_or_same(right_child.subscribe_topic_name, left_child.subscribe_topic_name) is False):
             msg = 'Not matched subscription topics of left tail node and right head node.'
             raise InvalidArgumentError(msg)
     
@@ -416,7 +417,7 @@ class CombinePath():
         left_child: NodePathStructValue,
         right_child: CommunicationStructValue,
     ) -> None:
-        if (self.is_none_or_same(left_child.publish_topic_name, right_child.topic_name) is False):
+        if (self.check_none_or_same(left_child.publish_topic_name, right_child.topic_name) is False):
             msg = 'Not matched topic name.'
             raise InvalidArgumentError(msg)
         if (left_child.node_name != right_child.subscribe_node_name):
@@ -429,7 +430,7 @@ class CombinePath():
         left_child: CommunicationStructValue,
         right_child: NodePathStructValue,
     ) -> None:
-        if (self.is_none_or_same(right_child.subscribe_topic_name, left_child.topic_name) is False):
+        if (self.check_none_or_same(right_child.subscribe_topic_name, left_child.topic_name) is False):
             msg = 'Not matched topic name.'
             raise InvalidArgumentError(msg)
         if (right_child.node_name != left_child.publish_node_name):
@@ -445,10 +446,10 @@ class CombinePath():
         if (left_child.topic_name != right_child.topic_name):
             msg = 'Not matched topic names.'
             raise InvalidArgumentError(msg)
-        if (self.is_none_or_same(left_child.subscribe_node_name, right_child.subscribe_node_name) is False):
+        if (self.check_none_or_same(left_child.subscribe_node_name, right_child.subscribe_node_name) is False):
             msg = 'Not matched publish node.'
             raise InvalidArgumentError(msg)
-        if (self.is_none_or_same(left_child.publish_node_name, right_child.publish_node_name) is False):
+        if (self.check_none_or_same(left_child.publish_node_name, right_child.publish_node_name) is False):
             msg = 'Not matched subscription node.'
             raise InvalidArgumentError(msg)
 
@@ -457,7 +458,6 @@ class CombinePath():
         path_left: PathStructValue,
         path_right: PathStructValue
     ) -> None:
-
 
         if len(path_left.child) == 0 or len(path_right.child) == 0:
             msg = 'Input paths have no child. '
@@ -532,8 +532,6 @@ class CombinePath():
     ) -> NodePathStructValue:
         return self._search(left_child, right_child, node_paths)
 
-
-
     def get_node_name(self,
         left_child: Union[NodePathStructValue, CommunicationStructValue],
         right_child: Union[NodePathStructValue, CommunicationStructValue]
@@ -546,43 +544,50 @@ class CombinePath():
         raise UnsupportedTypeError(msg)
 
     def _create_path_core(self,
-                     *children: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]):
-        new_child: Tuple[Union[NodePathStructValue, CommunicationStructValue]] = tuple()
+        *children: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]
+    ) -> PathStructValue:
+        new_child: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...] = tuple()
         for child in children:
             new_child += tuple(child)
         return PathStructValue(None, (new_child))
     
-
     def create_path(self,
         path_left: PathStructValue,
         path_right: PathStructValue,
         middle_path: Union[NodePathStructValue, CommunicationStructValue]
     ) -> PathStructValue:
-
         left_child: Union[NodePathStructValue, CommunicationStructValue] = path_left.child[-1]
         right_child: Union[NodePathStructValue, CommunicationStructValue] = path_right.child[0]
 
         if isinstance(left_child, NodePathStructValue) and \
                 isinstance(right_child, NodePathStructValue):
-            return self._create_path_core(path_left.child[0:-1], (middle_path, ), path_right.child[1:])
+            return self._create_path_core(path_left.child[0:-1],
+                                          (middle_path, ),
+                                          path_right.child[1:])
 
         if isinstance(left_child, NodePathStructValue) and \
                 isinstance(right_child, CommunicationStructValue):
             if (len(path_left.child) == 1):
-                return self._create_path_core((middle_path,) , path_right.child)
+                return self._create_path_core((middle_path, ), path_right.child)
             else:
-                return self._create_path_core(path_left.child[0:-1], (middle_path, ), path_right.child)
+                return self._create_path_core(path_left.child[0:-1],
+                                              (middle_path, ),
+                                              path_right.child)
 
         if isinstance(left_child, CommunicationStructValue) and \
                 isinstance(right_child, NodePathStructValue):
             if (len(path_right.child) == 1):
-                return self._create_path_core(path_left.child, (middle_path,))
+                return self._create_path_core(path_left.child, (middle_path, ))
             else:
-                return self._create_path_core(path_left.child, (middle_path,) , path_right.child[1:])
+                return self._create_path_core(path_left.child,
+                                              (middle_path, ),
+                                              path_right.child[1:])
 
         if isinstance(left_child, CommunicationStructValue) and \
                 isinstance(right_child, CommunicationStructValue):
-            return self._create_path_core(path_left.child[0:-1], (middle_path,), path_right.child[1:])
-        
+            return self._create_path_core(path_left.child[0:-1],
+                                          (middle_path, ),
+                                          path_right.child[1:])
+
         msg = 'Input type is wrong'
         raise InvalidArgumentError(msg)
