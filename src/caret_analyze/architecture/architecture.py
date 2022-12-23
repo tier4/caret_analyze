@@ -410,7 +410,7 @@ class CombinePath():
         if (self.check_none_or_same(right_child.subscribe_topic_name, left_child.subscribe_topic_name) is False):
             msg = 'Not matched subscription topics of left tail node and right head node.'
             raise InvalidArgumentError(msg)
-    
+
     @_validate_child.register
     def _validate_child_node_comm(
         self,
@@ -472,7 +472,7 @@ class CombinePath():
         left_child: Union[NodePathStructValue, CommunicationStructValue] = path_left.child[-1]
         right_child: Union[NodePathStructValue, CommunicationStructValue] = path_right.child[0]
         self._validate_child(left_child, right_child)
-    
+
     def node_path_filter(self,
         node_path: NodePathStructValue,
         subscribe_topic_name: Optional[str],
@@ -480,7 +480,7 @@ class CombinePath():
     ) -> bool:
         return node_path.subscribe_topic_name == subscribe_topic_name and \
                node_path.publish_topic_name == publish_topic_name
- 
+
     @singledispatchmethod
     def _search(self,
         left_child: Union[NodePathStructValue, CommunicationStructValue],
@@ -500,7 +500,7 @@ class CombinePath():
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)
-    
+
     @_search.register
     def _search_node_comm(self,
         left_child: NodePathStructValue,
@@ -550,7 +550,7 @@ class CombinePath():
         for child in children:
             new_child += tuple(child)
         return PathStructValue(None, (new_child))
-    
+
     def create_path(self,
         path_left: PathStructValue,
         path_right: PathStructValue,
