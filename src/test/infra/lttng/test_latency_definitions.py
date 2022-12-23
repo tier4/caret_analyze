@@ -1312,6 +1312,8 @@ class TestCommunicationRecords:
     ):
         pub_handle = 7
         callback_obj = 12
+        callback_obj_intra = 5
+        subscription_handle = 8
 
         data = Ros2DataModel()
         data.finalize()
@@ -1321,7 +1323,7 @@ class TestCommunicationRecords:
         callback = subscription.callback
         communication = create_comm_struct(publisher, subscription)
         publisher_lttng = create_publisher_lttng(pub_handle)
-        sub_cb_lttng = create_subscription_lttng(callback_obj, 5, callback_obj)
+        sub_cb_lttng = create_subscription_lttng(callback_obj, subscription_handle, callback_obj_intra)
 
         setup_bridge_get_publisher(publisher, [publisher_lttng])
         bridge_setup_get_callback(subscription.callback, sub_cb_lttng)
@@ -1627,12 +1629,10 @@ class TestVarPassRecords:
         create_lttng,
         create_callback_lttng,
         create_callback_struct,
-        bridge_mock,
         bridge_setup_get_callback,
     ):
         callback_obj = 5
         callback_obj_ = 7
-        # pid, tid = 15, 16
         data = Ros2DataModel()
         data.finalize()
 
