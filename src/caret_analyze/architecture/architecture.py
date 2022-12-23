@@ -382,7 +382,7 @@ class Architecture(Summarizable):
 class CombinePath():
     def __init__(self):
         pass
-    
+
     def is_none_or_same(self, name1: Optional[str], name2: Optional[str]) -> bool:
         return name1 is None or name2 is None or name1 == name2
 
@@ -409,7 +409,7 @@ class CombinePath():
         if (self.is_none_or_same(right_child.subscribe_topic_name, left_child.subscribe_topic_name) is False):
             msg = 'Not matched subscription topics of left tail node and right head node.'
             raise InvalidArgumentError(msg)
-    
+
     @_validate_child.register
     def _validate_child_node_comm(
         self,
@@ -472,7 +472,7 @@ class CombinePath():
         left_child: Union[NodePathStructValue, CommunicationStructValue] = path_left.child[-1]
         right_child: Union[NodePathStructValue, CommunicationStructValue] = path_right.child[0]
         self._validate_child(left_child, right_child)
-    
+
     def node_path_filter(self,
         node_path: NodePathStructValue,
         subscribe_topic_name: Optional[str],
@@ -480,7 +480,7 @@ class CombinePath():
     ) -> bool:
         return node_path.subscribe_topic_name == subscribe_topic_name and \
                node_path.publish_topic_name == publish_topic_name
- 
+
     @singledispatchmethod
     def _search(self,
         left_child: Union[NodePathStructValue, CommunicationStructValue],
@@ -500,7 +500,7 @@ class CombinePath():
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)
-    
+
     @_search.register
     def _search_node_comm(self,
         left_child: NodePathStructValue,
@@ -551,7 +551,7 @@ class CombinePath():
         for child in children:
             new_child += tuple(child)
         return PathStructValue(None, (new_child))
-    
+
 
     def create_path(self,
         path_left: PathStructValue,
@@ -583,6 +583,6 @@ class CombinePath():
         if isinstance(left_child, CommunicationStructValue) and \
                 isinstance(right_child, CommunicationStructValue):
             return self._create_path_core(path_left.child[0:-1], (middle_path,), path_right.child[1:])
-        
+
         msg = 'Input type is wrong'
         raise InvalidArgumentError(msg)
