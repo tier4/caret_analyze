@@ -383,7 +383,7 @@ class Architecture(Summarizable):
 class CombinePath():
     def __init__(self):
         pass
-    
+
     def check_none_or_same(self, name1: Optional[str], name2: Optional[str]) -> bool:
         return name1 is None or name2 is None or name1 == name2
 
