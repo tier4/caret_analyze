@@ -40,6 +40,7 @@ import pytest
 
 @pytest.fixture
 def create_publisher():
+    # 戻り値の型アノテーションがほしい。
     def _create_publisher(node_name: str, topic_name: str):
         pub = PublisherStructValue(node_name, topic_name, None)
         return pub
@@ -80,6 +81,8 @@ def create_arch(mocker):
     def _create_arch(node_paths: Tuple[NodePathStructValue],
                      comms: Tuple[CommunicationStructValue]):
         node_list = []
+        # ここはわざわざTupleにしなくても。。
+        # defaultlistをつかうと、もう少し簡潔に書けます。
         node_dict: Dict[str, Tuple[NodePathStructValue, ...]] = {}
 
         for node_path in node_paths:
@@ -100,6 +103,7 @@ def create_arch(mocker):
             mocker.patch.object(node_mock, 'node_name', node)
             mocker.patch.object(node_mock, 'to_value', return_value=node_value_mock)
 
+            # ↓このパッチは何をしている？要らない。
             mocker.patch('caret_analyze.architecture.struct.node.NodeStruct')
             node_list.append(node_mock)
 
@@ -139,6 +143,7 @@ def create_node(create_publisher, create_subscription):
         sub: Tuple[SubscriptionStructValue, ...]
 
         if pub_topic_name:
+            # pub -> pubsにして欲しい。
             pub = (create_publisher(node_name, pub_topic_name),)
         else:
             pub = ()
@@ -149,7 +154,7 @@ def create_node(create_publisher, create_subscription):
 
         node = NodeStructValue(
             node_name, pub, sub, (), (), (), None, None
-        )  # type: ignore
+        )  # type: ignore # ←このignoreは必要なのか？
         return node
     return _create_node
 
