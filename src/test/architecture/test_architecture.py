@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
 
 from logging import WARNING
 
-
 from string import Template
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
@@ -39,9 +39,9 @@ import pytest
 
 
 @pytest.fixture
-def create_publisher():
+def create_publisher():  # -> Callable[[], PublisherStructValue]
     # 戻り値の型アノテーションがほしい。
-    def _create_publisher(node_name: str, topic_name: str):
+    def _create_publisher(node_name: str, topic_name: str) -> PublisherStructValue:
         pub = PublisherStructValue(node_name, topic_name, None)
         return pub
     return _create_publisher
@@ -56,7 +56,10 @@ def create_subscription():
 
 
 @pytest.fixture
-def create_node_path(create_publisher, create_subscription):
+def create_node_path(
+    create_publisher: Callable[[Optional[str], Optional[str]], PublisherStructValue],
+    create_subscription: Callable[[Optional[str], Optional[str]], SubscriptionStructValue]
+):  # -> Callable[[], NodePathStructValue]
     def _create_node_path(
         node_name: str,
         sub_topic_name: Optional[str],
@@ -78,22 +81,18 @@ def create_node_path(create_publisher, create_subscription):
 
 @pytest.fixture
 def create_arch(mocker):
-    def _create_arch(node_paths: Tuple[NodePathStructValue],
-                     comms: Tuple[CommunicationStructValue]):
-        node_list = []
-        # ここはわざわざTupleにしなくても。。
-        # defaultlistをつかうと、もう少し簡潔に書けます。
-        node_dict: Dict[str, Tuple[NodePathStructValue, ...]] = {}
-
+    def _create_arch(
+        node_paths: Tuple[NodePathStructValue],
+        comms: Tuple[CommunicationStructValue]
+    ) -> Architecture:
+        node_dict: defaultdict[str, List[NodePathStructValue]] = defaultdict(list)
         for node_path in node_paths:
-            if node_path.node_name in node_dict.keys():
-                node_dict[node_path.node_name] += (node_path,)
-            else:
-                node_dict[node_path.node_name] = (node_path,)
+            node_dict[node_path.node_name].append(node_path)
+        node_list = []  # List[mock]
 
         for node, paths in node_dict.items():
             node_value_mock = mocker.Mock(spec=NodeStructValue)
-            mocker.patch.object(node_value_mock, 'paths', paths)
+            mocker.patch.object(node_value_mock, 'paths', tuple(paths))
             mocker.patch.object(node_value_mock, 'callbacks', [])
             mocker.patch.object(node_value_mock, 'node_name', node)
             mocker.patch('caret_analyze.value_objects.node.NodeStructValue')
@@ -103,8 +102,6 @@ def create_arch(mocker):
             mocker.patch.object(node_mock, 'node_name', node)
             mocker.patch.object(node_mock, 'to_value', return_value=node_value_mock)
 
-            # ↓このパッチは何をしている？要らない。
-            mocker.patch('caret_analyze.architecture.struct.node.NodeStruct')
             node_list.append(node_mock)
 
         comm_list = []
@@ -133,38 +130,40 @@ def create_arch(mocker):
 
 
 @pytest.fixture
-def create_node(create_publisher, create_subscription):
+def create_node(
+    create_publisher: Callable[[Optional[str], Optional[str]], PublisherStructValue],
+    create_subscription: Callable[[Optional[str], Optional[str]], SubscriptionStructValue]
+):
     def _create_node(
         node_name: str,
         sub_topic_name: Optional[str],
         pub_topic_name: Optional[str]
     ) -> NodeStructValue:
-        pub: Tuple[PublisherStructValue, ...]
-        sub: Tuple[SubscriptionStructValue, ...]
+        pubs: Tuple[PublisherStructValue, ...]
+        subs: Tuple[SubscriptionStructValue, ...]
 
         if pub_topic_name:
-            # pub -> pubsにして欲しい。
-            pub = (create_publisher(node_name, pub_topic_name),)
+            pubs = (create_publisher(node_name, pub_topic_name),)
         else:
-            pub = ()
+            pubs = ()
         if sub_topic_name:
-            sub = (create_subscription(node_name, sub_topic_name),)
+            subs = (create_subscription(node_name, sub_topic_name),)
         else:
-            sub = ()
+            subs = ()
 
         node = NodeStructValue(
-            node_name, pub, sub, (), (), (), None, None
-        )  # type: ignore # ←このignoreは必要なのか？
+            node_name, pubs, subs, (), (), (), None, None
+        )
         return node
     return _create_node
 
 
 @pytest.fixture
-def create_comm(create_node):
+def create_comm(create_node: Callable[[str, Optional[str], Optional[str]], NodeStructValue]):
     def _create_comm(
         topic_name: str,
-        sub_node_name: str,
-        pub_node_name: str
+        pub_node_name: str,
+        sub_node_name: str
     ):
         node_sub: NodeStructValue = create_node(sub_node_name, topic_name, None)
         node_pub: NodeStructValue = create_node(pub_node_name, None, topic_name)
@@ -443,18 +442,18 @@ class TestArchitecture:
         create_arch,
     ):
         # combine [] + []
-        arch = create_arch([], [])
+        arch: Architecture = create_arch([], [])
         path_left = PathStructValue(None, ())
         path_right = PathStructValue(None, ())
         with pytest.raises(InvalidArgumentError):
             arch.combine_path(path_left, path_right)
 
         # combine [comm] + [comm] = NG
-        left_comm = create_comm('topic_1', 'pub_node', 'sub_node')
-        right_comm = create_comm('topic_2', 'pub_node', 'sub_node')
+        left_comm: CommunicationStructValue = create_comm('topic_1', 'pub_node', 'sub_node')
+        right_comm: CommunicationStructValue = create_comm('topic_2', 'pub_node', 'sub_node')
 
-        path_left = PathStructValue(None, ([left_comm]))
-        path_right = PathStructValue(None, ([right_comm]))
+        path_left = PathStructValue(None, (left_comm,))
+        path_right = PathStructValue(None, (right_comm,))
         arch = create_arch([], [left_comm, right_comm])
         with pytest.raises(InvalidArgumentError):
             arch.combine_path(path_left, path_right)
@@ -462,12 +461,12 @@ class TestArchitecture:
         # #  TODO(miura): [comm_1] + [comm_2] = [comm_1, node_x, comm_2]
 
         # combine [node] + [node] (difference nodes) = NG
-        left_node = create_node_path('node_0', None, 'topic_0')
-        right_node = create_node_path('node_1', 'topic_0', None)
+        left_node: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+        right_node: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         arch = create_arch([left_node, right_node], [])
 
-        path_left = PathStructValue(None, ([left_node]))
-        path_right = PathStructValue(None, ([right_node]))
+        path_left = PathStructValue(None, (left_node,))
+        path_right = PathStructValue(None, (right_node,))
 
         with pytest.raises(InvalidArgumentError):
             path = arch.combine_path(path_left, path_right)
@@ -475,69 +474,69 @@ class TestArchitecture:
         # #  TODO(miura): [node_1] + [node_2] = [node_1, comm_x, node_2]
 
         # combine [node] + [comm]
-        node_0 = create_node_path('node_0', None, 'topic_0')
-        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        node_0_unmatched = create_node_path('node_0', None, 'topic_1')  # topic_1 is for unmatched
-        comm_0_unmatched = create_comm('topic_0', 'node_2', 'node_1')
+        node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+        comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+        node_0_unmatched: NodePathStructValue = create_node_path('node_0', None, 'topic_1')
+        comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_2', 'node_1')
         arch = create_arch([node_0, node_0_unmatched], [comm_0, comm_0_unmatched])
 
         # #  [node_0] + [comm_0] = OK
-        path_left = PathStructValue(None, ([node_0]))
-        path_right = PathStructValue(None, ([comm_0]))
+        path_left = PathStructValue(None, (node_0,))
+        path_right = PathStructValue(None, (comm_0,))
 
         path_expect = PathStructValue(None, (node_0, comm_0))
         path = arch.combine_path(path_left, path_right)
         assert path == path_expect
 
         # #  [node_0_unmatched] + [comm_0] = NG
-        path_left = PathStructValue(None, ([node_0_unmatched]))
-        path_right = PathStructValue(None, ([comm_0]))
+        path_left = PathStructValue(None, (node_0_unmatched,))
+        path_right = PathStructValue(None, (comm_0,))
         with pytest.raises(InvalidArgumentError):
             arch.combine_path(path_left, path_right)
 
         # #  [node_0] + [comm_0_unmatched] = NG
-        path_left = PathStructValue(None, ([node_0]))
-        path_right = PathStructValue(None, ([comm_0_unmatched]))
+        path_left = PathStructValue(None, (node_0,))
+        path_right = PathStructValue(None, (comm_0_unmatched,))
         with pytest.raises(InvalidArgumentError):
             arch.combine_path(path_left, path_right)
 
         # combine [comm] + [node]
         comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        node_1 = create_node_path('node_1', 'topic_0', None)
+        node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         comm_0_unmatched = create_comm('topic_0', 'node_0', 'node_2')
-        node_1_unmatched = create_node_path('node_1', 'topic_1', None)
+        node_1_unmatched: CommunicationStructValue = create_node_path('node_1', 'topic_1', None)
         arch = create_arch([node_1], [comm_0])
 
         # #  [comm_0] + [node_1] = OK
-        path_left = PathStructValue(None, [comm_0])
-        path_right = PathStructValue(None, [node_1])
+        path_left = PathStructValue(None, (comm_0,))
+        path_right = PathStructValue(None, (node_1,))
 
         path = arch.combine_path(path_left, path_right)
         path_expect = PathStructValue(None, (comm_0, node_1))
         assert path == path_expect
 
         # #  [comm_0_unmatched] + [node_1] = NG
-        path_left = PathStructValue(None, [comm_0_unmatched])
-        path_right = PathStructValue(None, [node_1])
+        path_left = PathStructValue(None, (comm_0_unmatched,))
+        path_right = PathStructValue(None, (node_1,))
         with pytest.raises(InvalidArgumentError):
             arch.combine_path(path_left, path_right)
 
         # #  [comm_0] + [node_1_unmatched] = NG
-        path_left = PathStructValue(None, [comm_0])
-        path_right = PathStructValue(None, [node_1_unmatched])
+        path_left = PathStructValue(None, (comm_0,))
+        path_right = PathStructValue(None, (node_1_unmatched,))
         with pytest.raises(InvalidArgumentError):
             arch.combine_path(path_left, path_right)
 
         # combine [node, comm, node] + [comm]
         node_0 = create_node_path('node_0', None, 'topic_0')
         node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
-        node_1_left = create_node_path('node_1', 'topic_0', None)
+        node_1_left: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
 
         comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        comm_1 = create_comm('topic_1', 'node_1', 'node_2')
+        comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
 
         path_left = PathStructValue(None, (node_0, comm_0, node_1_left))
-        path_right = PathStructValue(None, ([comm_1]))
+        path_right = PathStructValue(None, (comm_1,))
 
         arch = create_arch([node_0, node_1, node_1_left], [comm_0, comm_1])
         path = arch.combine_path(path_left, path_right)
@@ -546,13 +545,13 @@ class TestArchitecture:
 
         # combine [comm] + [node, comm, node]
         node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
-        node_1_right = create_node_path('node_1', None, 'topic_1')
-        node_2 = create_node_path('node_2', 'topic_1', None)
+        node_1_right: NodePathStructValue = create_node_path('node_1', None, 'topic_1')
+        node_2: NodePathStructValue = create_node_path('node_2', 'topic_1', None)
 
         comm_0 = create_comm('topic_0', 'node_0', 'node_1')
         comm_1 = create_comm('topic_1', 'node_1', 'node_2')
 
-        path_left = PathStructValue(None, ([comm_0]))
+        path_left = PathStructValue(None, (comm_0,))
         path_right = PathStructValue(None, (node_1_right, comm_1, node_2))
 
         arch = create_arch([node_1, node_1_right, node_2], [comm_0, comm_1])
@@ -565,9 +564,10 @@ class TestArchitecture:
         node_1 = create_node_path('node_1', 'topic_0', None)
         comm_0 = create_comm('topic_0', 'node_0', 'node_1')
 
-        comm_0_left = create_comm('topic_0', 'node_0', None)
-        comm_0_right = create_comm('topic_0', None, 'node_1')
-        comm_0_left_unmatched = create_comm('topic_0', 'node_0', 'node_2')  # node_2 is for unmatched
+        comm_0_left: CommunicationStructValue = create_comm('topic_0', 'node_0', None)
+        comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
+        comm_0_left_unmatched: CommunicationStructValue = \
+            create_comm('topic_0', 'node_0', 'node_2')  # node_2 for unmatched
 
         arch = create_arch([node_0, node_1],
                            [comm_0, comm_0_left, comm_0_right,
@@ -602,7 +602,8 @@ class TestArchitecture:
 
         node_1_left = create_node_path('node_1', 'topic_0', None)
         node_1_right = create_node_path('node_1', None, 'topic_1')
-        node_1_left_unmatched = create_node_path('node_1', 'topic_0', 'topic_2')
+        node_1_left_unmatched: NodePathStructValue = \
+            create_node_path('node_1', 'topic_0', 'topic_2')
 
         comm_0 = create_comm('topic_0', 'node_0', 'node_1')
         comm_1 = create_comm('topic_1', 'node_1', 'node_2')
