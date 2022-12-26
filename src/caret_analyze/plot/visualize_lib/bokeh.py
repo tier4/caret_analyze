@@ -77,10 +77,14 @@ class Bokeh(VisualizeLibInterface):
         timeseries_records_list = metrics.to_timeseries_records_list(xaxis_type)
 
         # Initialize figure
+        fig_args: Dict[str, Any] = {'frame_height': 270,
+                                    'frame_width': 800}
+
         y_axis_label = timeseries_records_list[0].columns[1]
-        fig_args = {'frame_height': 270,
-                    'frame_width': 800,
-                    'y_axis_label': y_axis_label}
+        if y_axis_label == 'frequency':
+            fig_args['y_axis_label'] = y_axis_label + ' [Hz]'
+        elif y_axis_label in ['period', 'latency']:
+            fig_args['y_axis_label'] = y_axis_label + ' [ms]'
 
         if xaxis_type == 'system_time':
             fig_args['x_axis_label'] = 'system time [s]'
