@@ -387,7 +387,6 @@ class CombinePath():
     def __validate_topic_name(
         self, left_topic_name: Optional[str], right_topic_name: Optional[str]
     ) -> None:
-        # TODO:  left_topic_name,  right_topic_nameをOptionalに変更。
         # NOTE:  たぶん、_check_none_or_sameは消して良くなる気がします。
         if self.__can_combine(left_topic_name, right_topic_name):
             return
@@ -417,20 +416,23 @@ class CombinePath():
         left_last_child: NodePathStructValue,
         right_first_child: NodePathStructValue,
     ) -> None:
-        if left_last_child.node_name != right_first_child.node_name:
-            msg = 'Not matched left tail node and right head node name.'
-            raise InvalidArgumentError(msg)
+        # if left_last_child.node_name != right_first_child.node_name:
+        #     msg = 'Not matched left tail node and right head node name.'
+        #     raise InvalidArgumentError(msg)
         # TODO: 何を確認しているか？関数名を変える。
         # ex:  if not can_combine():
         # can 「プログラミング　動詞」
         # isとか、booleanを返すことが期待される。
+        assert left_last_child.node_name is not None
+        assert right_first_child.node_name is not None
+        # validate_node_nameだけだとNoneだったときに通ってしまう。Node-Nodeの結合時のみ、NoneはOutにしたい
         self.__validate_topic_name(
             left_last_child.publish_topic_name,
             right_first_child.publish_topic_name)
         self.__validate_topic_name(
             left_last_child.subscribe_topic_name,
             right_first_child.subscribe_topic_name)
-        # self.__validate_node_name(left_last_child.node_name, right_first_child.node_name)
+        self.__validate_node_name(left_last_child.node_name, right_first_child.node_name)
 
     @_validate_child.register
     def _validate_child_node_comm(
@@ -599,7 +601,6 @@ class CombinePath():
         middle_path: Union[NodePathStructValue, CommunicationStructValue],
         right_path: PathStructValue,
     ) -> PathStructValue:
-        # インデックスアクセスは、全て、要素が足りないlen(left_path.child) == 0 ケースも考える。
         left_last_child: Union[NodePathStructValue, CommunicationStructValue] = \
             left_path.child[-1]
         right_first_child: Union[NodePathStructValue, CommunicationStructValue] = \
@@ -665,19 +666,14 @@ class CombinePath():
             return self._create_path(left_path, target_node_path, right_path)
 
         # Left, Right = (Comm, Comm)
-        if isinstance(left_last_child, CommunicationStructValue) and \
-                isinstance(right_first_child, CommunicationStructValue):
-            comm_path: CommunicationStructValue = \
-                self._get_communication(
-                    left_last_child.publish_node_name,
-                    right_first_child.subscribe_node_name,
-                    left_last_child.topic_name)
+        comm_path: CommunicationStructValue = \
+            self._get_communication(
+                left_last_child.publish_node_name,
+                right_first_child.subscribe_node_name,
+                left_last_child.topic_name)
 
-            if (comm_path is None):
-                msg = 'No matched topic'
-                raise InvalidArgumentError(msg)
+        if comm_path is None:
+            msg = 'No matched topic'
+            raise InvalidArgumentError(msg)
 
-            return self._create_path(left_path, comm_path, right_path)
-
-        msg = 'Input type is wrong'
-        raise InvalidArgumentError(msg)
+        return self._create_path(left_path, comm_path, right_path)

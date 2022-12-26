@@ -64,7 +64,7 @@ def create_node_path(
         node_name: str,
         sub_topic_name: Optional[str],
         pub_topic_name: Optional[str],
-    ):
+    ) -> NodePathStructValue:
         sub = None
         if sub_topic_name is not None:
             sub = create_subscription(node_name, sub_topic_name)
@@ -77,7 +77,6 @@ def create_node_path(
         )
         return node_path
     return _create_node_path
-
 
 @pytest.fixture
 def create_arch(mocker):
