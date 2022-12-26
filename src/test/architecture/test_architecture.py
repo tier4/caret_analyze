@@ -440,159 +440,159 @@ class TestArchitecture:
         create_comm,
         create_arch,
     ):
-        # combine [] + []
-        arch: Architecture = create_arch([], [])
-        path_left = PathStructValue(None, ())
-        path_right = PathStructValue(None, ())
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
+        # # combine [] + []
+        # arch: Architecture = create_arch([], [])
+        # path_left = PathStructValue(None, ())
+        # path_right = PathStructValue(None, ())
+        # with pytest.raises(InvalidArgumentError):
+        #     arch.combine_path(path_left, path_right)
 
-        # combine [comm] + [comm] = NG
-        left_comm: CommunicationStructValue = create_comm('topic_1', 'pub_node', 'sub_node')
-        right_comm: CommunicationStructValue = create_comm('topic_2', 'pub_node', 'sub_node')
+        # # combine [comm] + [comm] = NG
+        # left_comm: CommunicationStructValue = create_comm('topic_1', 'pub_node', 'sub_node')
+        # right_comm: CommunicationStructValue = create_comm('topic_2', 'pub_node', 'sub_node')
 
-        path_left = PathStructValue(None, (left_comm,))
-        path_right = PathStructValue(None, (right_comm,))
-        arch = create_arch([], [left_comm, right_comm])
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
+        # path_left = PathStructValue(None, (left_comm,))
+        # path_right = PathStructValue(None, (right_comm,))
+        # arch = create_arch([], [left_comm, right_comm])
+        # with pytest.raises(InvalidArgumentError):
+        #     arch.combine_path(path_left, path_right)
 
-        # #  TODO(miura): [comm_1] + [comm_2] = [comm_1, node_x, comm_2]
+        # # #  TODO(miura): [comm_1] + [comm_2] = [comm_1, node_x, comm_2]
 
-        # combine [node] + [node] (difference nodes) = NG
-        left_node: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
-        right_node: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
-        arch = create_arch([left_node, right_node], [])
+        # # combine [node] + [node] (difference nodes) = NG
+        # left_node: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+        # right_node: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
+        # arch = create_arch([left_node, right_node], [])
 
-        path_left = PathStructValue(None, (left_node,))
-        path_right = PathStructValue(None, (right_node,))
+        # path_left = PathStructValue(None, (left_node,))
+        # path_right = PathStructValue(None, (right_node,))
 
-        with pytest.raises(InvalidArgumentError):
-            path = arch.combine_path(path_left, path_right)
+        # with pytest.raises(InvalidArgumentError):
+        #     path = arch.combine_path(path_left, path_right)
 
-        # #  TODO(miura): [node_1] + [node_2] = [node_1, comm_x, node_2]
+        # # #  TODO(miura): [node_1] + [node_2] = [node_1, comm_x, node_2]
 
-        # combine [node] + [comm]
-        node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
-        comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
-        node_0_unmatched: NodePathStructValue = create_node_path('node_0', None, 'topic_1')
-        comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_2', 'node_1')
-        arch = create_arch([node_0, node_0_unmatched], [comm_0, comm_0_unmatched])
+        # # combine [node] + [comm]
+        # node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+        # comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+        # node_0_unmatched: NodePathStructValue = create_node_path('node_0', None, 'topic_1')
+        # comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_2', 'node_1')
+        # arch = create_arch([node_0, node_0_unmatched], [comm_0, comm_0_unmatched])
 
-        # #  [node_0] + [comm_0] = OK
-        path_left = PathStructValue(None, (node_0,))
-        path_right = PathStructValue(None, (comm_0,))
+        # # #  [node_0] + [comm_0] = OK
+        # path_left = PathStructValue(None, (node_0,))
+        # path_right = PathStructValue(None, (comm_0,))
 
-        path_expect = PathStructValue(None, (node_0, comm_0))
-        path = arch.combine_path(path_left, path_right)
-        assert path == path_expect
+        # path_expect = PathStructValue(None, (node_0, comm_0))
+        # path = arch.combine_path(path_left, path_right)
+        # assert path == path_expect
 
-        # #  [node_0_unmatched] + [comm_0] = NG
-        path_left = PathStructValue(None, (node_0_unmatched,))
-        path_right = PathStructValue(None, (comm_0,))
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
+        # # #  [node_0_unmatched] + [comm_0] = NG
+        # path_left = PathStructValue(None, (node_0_unmatched,))
+        # path_right = PathStructValue(None, (comm_0,))
+        # with pytest.raises(InvalidArgumentError):
+        #     arch.combine_path(path_left, path_right)
 
-        # #  [node_0] + [comm_0_unmatched] = NG
-        path_left = PathStructValue(None, (node_0,))
-        path_right = PathStructValue(None, (comm_0_unmatched,))
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
+        # # #  [node_0] + [comm_0_unmatched] = NG
+        # path_left = PathStructValue(None, (node_0,))
+        # path_right = PathStructValue(None, (comm_0_unmatched,))
+        # with pytest.raises(InvalidArgumentError):
+        #     arch.combine_path(path_left, path_right)
 
-        # combine [comm] + [node]
-        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
-        comm_0_unmatched = create_comm('topic_0', 'node_0', 'node_2')
-        node_1_unmatched: CommunicationStructValue = create_node_path('node_1', 'topic_1', None)
-        arch = create_arch([node_1], [comm_0])
+        # # combine [comm] + [node]
+        # comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        # node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
+        # comm_0_unmatched = create_comm('topic_0', 'node_0', 'node_2')
+        # node_1_unmatched: CommunicationStructValue = create_node_path('node_1', 'topic_1', None)
+        # arch = create_arch([node_1], [comm_0])
 
-        # #  [comm_0] + [node_1] = OK
-        path_left = PathStructValue(None, (comm_0,))
-        path_right = PathStructValue(None, (node_1,))
+        # # #  [comm_0] + [node_1] = OK
+        # path_left = PathStructValue(None, (comm_0,))
+        # path_right = PathStructValue(None, (node_1,))
 
-        path = arch.combine_path(path_left, path_right)
-        path_expect = PathStructValue(None, (comm_0, node_1))
-        assert path == path_expect
+        # path = arch.combine_path(path_left, path_right)
+        # path_expect = PathStructValue(None, (comm_0, node_1))
+        # assert path == path_expect
 
-        # #  [comm_0_unmatched] + [node_1] = NG
-        path_left = PathStructValue(None, (comm_0_unmatched,))
-        path_right = PathStructValue(None, (node_1,))
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
+        # # #  [comm_0_unmatched] + [node_1] = NG
+        # path_left = PathStructValue(None, (comm_0_unmatched,))
+        # path_right = PathStructValue(None, (node_1,))
+        # with pytest.raises(InvalidArgumentError):
+        #     arch.combine_path(path_left, path_right)
 
-        # #  [comm_0] + [node_1_unmatched] = NG
-        path_left = PathStructValue(None, (comm_0,))
-        path_right = PathStructValue(None, (node_1_unmatched,))
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
+        # # #  [comm_0] + [node_1_unmatched] = NG
+        # path_left = PathStructValue(None, (comm_0,))
+        # path_right = PathStructValue(None, (node_1_unmatched,))
+        # with pytest.raises(InvalidArgumentError):
+        #     arch.combine_path(path_left, path_right)
 
-        # combine [node, comm, node] + [comm]
-        node_0 = create_node_path('node_0', None, 'topic_0')
-        node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
-        node_1_left: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
+        # # combine [node, comm, node] + [comm]
+        # node_0 = create_node_path('node_0', None, 'topic_0')
+        # node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
+        # node_1_left: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
 
-        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
+        # comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        # comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
 
-        path_left = PathStructValue(None, (node_0, comm_0, node_1_left))
-        path_right = PathStructValue(None, (comm_1,))
+        # path_left = PathStructValue(None, (node_0, comm_0, node_1_left))
+        # path_right = PathStructValue(None, (comm_1,))
 
-        arch = create_arch([node_0, node_1, node_1_left], [comm_0, comm_1])
-        path = arch.combine_path(path_left, path_right)
-        path_expect = PathStructValue(None, (node_0, comm_0, node_1, comm_1))
-        assert path == path_expect
+        # arch = create_arch([node_0, node_1, node_1_left], [comm_0, comm_1])
+        # path = arch.combine_path(path_left, path_right)
+        # path_expect = PathStructValue(None, (node_0, comm_0, node_1, comm_1))
+        # assert path == path_expect
 
-        # combine [comm] + [node, comm, node]
-        node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
-        node_1_right: NodePathStructValue = create_node_path('node_1', None, 'topic_1')
-        node_2: NodePathStructValue = create_node_path('node_2', 'topic_1', None)
+        # # combine [comm] + [node, comm, node]
+        # node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
+        # node_1_right: NodePathStructValue = create_node_path('node_1', None, 'topic_1')
+        # node_2: NodePathStructValue = create_node_path('node_2', 'topic_1', None)
 
-        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        comm_1 = create_comm('topic_1', 'node_1', 'node_2')
+        # comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        # comm_1 = create_comm('topic_1', 'node_1', 'node_2')
 
-        path_left = PathStructValue(None, (comm_0,))
-        path_right = PathStructValue(None, (node_1_right, comm_1, node_2))
+        # path_left = PathStructValue(None, (comm_0,))
+        # path_right = PathStructValue(None, (node_1_right, comm_1, node_2))
 
-        arch = create_arch([node_1, node_1_right, node_2], [comm_0, comm_1])
-        path = arch.combine_path(path_left, path_right)
-        path_expect = PathStructValue(None, (comm_0, node_1, comm_1, node_2))
-        assert path == path_expect
+        # arch = create_arch([node_1, node_1_right, node_2], [comm_0, comm_1])
+        # path = arch.combine_path(path_left, path_right)
+        # path_expect = PathStructValue(None, (comm_0, node_1, comm_1, node_2))
+        # assert path == path_expect
 
-        # combine [node, comm] + [comm, node]
-        node_0 = create_node_path('node_0', None, 'topic_0')
-        node_1 = create_node_path('node_1', 'topic_0', None)
-        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
+        # # combine [node, comm] + [comm, node]
+        # node_0 = create_node_path('node_0', None, 'topic_0')
+        # node_1 = create_node_path('node_1', 'topic_0', None)
+        # comm_0 = create_comm('topic_0', 'node_0', 'node_1')
 
-        comm_0_left: CommunicationStructValue = create_comm('topic_0', 'node_0', None)
-        comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
-        comm_0_left_unmatched: CommunicationStructValue = \
-            create_comm('topic_0', 'node_0', 'node_2')  # node_2 for unmatched
+        # comm_0_left: CommunicationStructValue = create_comm('topic_0', 'node_0', None)
+        # comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
+        # comm_0_left_unmatched: CommunicationStructValue = \
+        #     create_comm('topic_0', 'node_0', 'node_2')  # node_2 for unmatched
 
-        arch = create_arch([node_0, node_1],
-                           [comm_0, comm_0_left, comm_0_right,
-                            comm_0_left_unmatched])
+        # arch = create_arch([node_0, node_1],
+        #                    [comm_0, comm_0_left, comm_0_right,
+        #                     comm_0_left_unmatched])
 
-        # #  [node_0, comm_0_left_unmatched] + [comm_0_right, node_1] = NG
-        path_left = PathStructValue(None, (node_0, comm_0_left_unmatched))
-        path_right = PathStructValue(None, (comm_0_right, node_1))
-        with pytest.raises(InvalidArgumentError):
-            arch.combine_path(path_left, path_right)
+        # # #  [node_0, comm_0_left_unmatched] + [comm_0_right, node_1] = NG
+        # path_left = PathStructValue(None, (node_0, comm_0_left_unmatched))
+        # path_right = PathStructValue(None, (comm_0_right, node_1))
+        # with pytest.raises(InvalidArgumentError):
+        #     arch.combine_path(path_left, path_right)
 
-        # #  [node_0, comm_0_left] + [comm_0_right, node_1] = OK
-        path_left = PathStructValue(None, (node_0, comm_0_left))
-        path_right = PathStructValue(None, (comm_0_right, node_1))
+        # # #  [node_0, comm_0_left] + [comm_0_right, node_1] = OK
+        # path_left = PathStructValue(None, (node_0, comm_0_left))
+        # path_right = PathStructValue(None, (comm_0_right, node_1))
 
-        path_expect = PathStructValue(None, (node_0, comm_0, node_1))
-        path = arch.combine_path(path_left, path_right)
-        assert path == path_expect
+        # path_expect = PathStructValue(None, (node_0, comm_0, node_1))
+        # path = arch.combine_path(path_left, path_right)
+        # assert path == path_expect
 
-        # #  [node_0, comm_0] + [comm_0, node_1] = OK
-        path_left = PathStructValue(None, (node_0, comm_0_left))
-        path_right = PathStructValue(None, (comm_0_right, node_1))
+        # # #  [node_0, comm_0] + [comm_0, node_1] = OK
+        # path_left = PathStructValue(None, (node_0, comm_0_left))
+        # path_right = PathStructValue(None, (comm_0_right, node_1))
 
-        path_expect = PathStructValue(None, (node_0, comm_0, node_1))
-        path = arch.combine_path(path_left, path_right)
-        assert path == path_expect
+        # path_expect = PathStructValue(None, (node_0, comm_0, node_1))
+        # path = arch.combine_path(path_left, path_right)
+        # assert path == path_expect
 
         # combine [node, comm, node] + [node, comm, node]
         node_0 = create_node_path('node_0', None, 'topic_0')
@@ -623,9 +623,9 @@ class TestArchitecture:
         path = arch.combine_path(path_left, path_right)
         assert path == path_expect
 
-        # # combine [node_0, comm_0, node_1_unmatched] + [node_1_right, comm_1, node_2]
+        # # combine [node_0, comm_0, node_1_left_unmatched] + [node_1_right, comm_1, node_2]
         path_left = PathStructValue(
-            None, (node_0, comm_0, node_1_unmatched))
+            None, (node_0, comm_0, node_1_left_unmatched))
         path_right = PathStructValue(
             None, (node_1_right, comm_1, node_2))
         with pytest.raises(InvalidArgumentError):
