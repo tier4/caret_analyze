@@ -28,7 +28,9 @@ from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTyp
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue, PathStructValue,
-                             PublisherStructValue, SubscriptionStructValue)
+                             PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
+
+logger = logging.getLogger(__name__)
 
 
 class Architecture(Summarizable):
@@ -210,6 +212,11 @@ class Architecture(Summarizable):
         return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
 
     @property
+    def services(self) -> Tuple[ServiceStructValue, ...]:
+        services = Util.flatten(_.services for _ in self.nodes)
+        return tuple(sorted(services, key=lambda x: x.service_name))
+
+    @property
     def summary(self) -> Summary:
         return Summary({
             'nodes': self.node_names
@@ -294,7 +301,7 @@ class Architecture(Summarizable):
             counter = Counter(callback_params)
 
             for uniqueness_violated in [param for param, count in counter.items() if count >= 2]:
-                logging.warning(
+                logger.warning(
                     ('Duplicate parameter callback found. '
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'

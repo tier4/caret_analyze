@@ -33,6 +33,7 @@ from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
 from .value_objects import (CallbackGroupId,
                             PublisherValueLttng,
+                            ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -300,11 +301,12 @@ class Lttng(InfraBase):
     ) -> Tuple[Ros2DataModel, Optional[List[Dict]], int, int]:
 
         data = Ros2DataModel()
-        handler = Ros2Handler(data)
+        offset: Optional[int] = None
         events = []
         begin: int
         end: int
 
+        # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events, str):
             event_collection = EventCollection(
                 trace_dir_or_events, force_conversion)
@@ -313,6 +315,15 @@ class Lttng(InfraBase):
             common = LttngEventFilter.Common()
             begin, end = event_collection.time_range()
             common.start_time, common.end_time = begin, end
+
+            # Offset is obtained for conversion from the monotonic clock time to the system time.
+            for event in event_collection:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name == 'ros2_caret:caret_init':
+                    offset = Ros2Handler.get_monotonic_to_system_offset(event)
+                    break
+
+            handler = Ros2Handler(data, offset)
 
             filtered_event_count = 0
             for event in tqdm(
@@ -340,6 +351,16 @@ class Lttng(InfraBase):
             assert isinstance(trace_dir_or_events, List)
             filtered_event_count = 0
             events = trace_dir_or_events
+
+            # Offset is obtained for conversion from the monotonic clock time to the system time.
+            for event in events:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name == 'ros2_caret:caret_init':
+                    offset = Ros2Handler.get_monotonic_to_system_offset(event)
+                    break
+
+            handler = Ros2Handler(data, offset)
+
             begin = events[0][LttngEventFilter.TIMESTAMP]
             end = events[-1][LttngEventFilter.TIMESTAMP]
 
@@ -504,6 +525,25 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_subscription_callbacks(node)
+
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValueLttng]:
+        """
+        Get service callbacks information.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node name.
+
+        Returns
+        -------
+        Sequence[ServiceCallbackInfoLttng]
+
+        """
+        return self._info.get_service_callbacks(node)
 
     def get_publisher_qos(
         self,
