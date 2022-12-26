@@ -12,19 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
+from typing import Callable, Optional, Tuple
 
-
-from typing import Callable, List, Optional, Tuple
-
-from caret_analyze.architecture import Architecture
-from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
-from caret_analyze.architecture.architecture_reader_factory import \
-    ArchitectureReaderFactory
 from caret_analyze.architecture.combine_path import CombinePath
-from caret_analyze.architecture.reader_interface import ArchitectureReader
-from caret_analyze.architecture.struct import (CommunicationStruct,
-                                               NodeStruct)
+
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
                                          NodeStructValue, PathStructValue,
@@ -72,54 +63,6 @@ def create_node_path(
         return node_path
     return _create_node_path
 
-@pytest.fixture
-def create_arch(mocker):
-    def _create_arch(
-        node_paths: Tuple[NodePathStructValue],
-        comms: Tuple[CommunicationStructValue]
-    ) -> Architecture:
-        node_dict: defaultdict[str, List[NodePathStructValue]] = defaultdict(list)
-        for node_path in node_paths:
-            node_dict[node_path.node_name].append(node_path)
-        node_list = []  # List[mock]
-
-        for node, paths in node_dict.items():
-            node_value_mock = mocker.Mock(spec=NodeStructValue)
-            mocker.patch.object(node_value_mock, 'paths', tuple(paths))
-            mocker.patch.object(node_value_mock, 'callbacks', [])
-            mocker.patch.object(node_value_mock, 'node_name', node)
-            # mocker.patch('caret_analyze.value_objects.node.NodeStructValue')
-
-            node_mock = mocker.Mock(spec=NodeStruct)
-            mocker.patch.object(node_mock, 'callbacks', [])
-            mocker.patch.object(node_mock, 'node_name', node)
-            mocker.patch.object(node_mock, 'to_value', return_value=node_value_mock)
-
-            node_list.append(node_mock)
-
-        comm_list = []
-        for comm in comms:
-            comm_mock = mocker.Mock(spec=CommunicationStruct)
-            mocker.patch.object(comm_mock, 'to_value', return_value=comm)
-            # mocker.patch('caret_analyze.architecture.struct.communication.CommunicationStruct')
-            comm_list.append(comm_mock)
-
-        reader_mock = mocker.Mock(spec=ArchitectureReader)
-
-        mocker.patch.object(ArchitectureReaderFactory,
-                            'create_instance', return_value=reader_mock)
-
-        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
-        mocker.patch.object(loaded_mock, 'communications', comm_list)
-        mocker.patch.object(loaded_mock, 'executors', [])
-        mocker.patch.object(loaded_mock, 'paths', [])
-        mocker.patch.object(loaded_mock, 'nodes', node_list)
-        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
-                     return_value=loaded_mock)
-
-        arch = Architecture('file_type', 'file_path')
-        return arch
-    return _create_arch
 
 @pytest.fixture
 def create_get_node(mocker):
@@ -136,10 +79,12 @@ def create_get_node(mocker):
         mocker.patch.object(node_value_mock, 'paths', tuple(node_paths))
         mocker.patch.object(node_value_mock, 'callbacks', [])
         mocker.patch.object(node_value_mock, 'node_name', joint_node_name)
+
         def get_node(node_name: str) -> NodeStructValue:
             return node_value_mock
         return get_node
     return _create_get_node
+
 
 @pytest.fixture
 def create_get_communication():
@@ -154,7 +99,6 @@ def create_get_communication():
             return joint_comm
         return get_communication
     return _create_get_communication
-
 
 
 @pytest.fixture

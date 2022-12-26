@@ -23,7 +23,6 @@ from ..value_objects import (CommunicationStructValue, NodePathStructValue,
                              NodeStructValue, PathStructValue)
 
 
-
 class CombinePath():
     def __init__(
         self,

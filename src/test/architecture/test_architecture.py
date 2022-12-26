@@ -39,8 +39,7 @@ import pytest
 
 
 @pytest.fixture
-def create_publisher():  # -> Callable[[], PublisherStructValue]
-    # 戻り値の型アノテーションがほしい。
+def create_publisher():
     def _create_publisher(node_name: str, topic_name: str) -> PublisherStructValue:
         pub = PublisherStructValue(node_name, topic_name, None)
         return pub
@@ -59,7 +58,7 @@ def create_subscription():
 def create_node_path(
     create_publisher: Callable[[Optional[str], Optional[str]], PublisherStructValue],
     create_subscription: Callable[[Optional[str], Optional[str]], SubscriptionStructValue]
-):  # -> Callable[[], NodePathStructValue]
+):
     def _create_node_path(
         node_name: str,
         sub_topic_name: Optional[str],
@@ -77,6 +76,7 @@ def create_node_path(
         )
         return node_path
     return _create_node_path
+
 
 @pytest.fixture
 def create_arch(mocker):
@@ -435,7 +435,6 @@ class TestArchitecture:
 
     def test_combine_path(
         self,
-        mocker,
         create_node_path,
         create_comm,
         create_arch,
@@ -595,19 +594,19 @@ class TestArchitecture:
         # assert path == path_expect
 
         # combine [node, comm, node] + [node, comm, node]
-        node_0 = create_node_path('node_0', None, 'topic_0')
-        node_1 = create_node_path('node_1', 'topic_0', 'topic_1')
-        node_2 = create_node_path('node_2', 'topic_1', None)
+        node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+        node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', 'topic_1')
+        node_2: NodePathStructValue = create_node_path('node_2', 'topic_1', None)
 
-        node_1_left = create_node_path('node_1', 'topic_0', None)
-        node_1_right = create_node_path('node_1', None, 'topic_1')
+        node_1_left: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
+        node_1_right: NodePathStructValue = create_node_path('node_1', None, 'topic_1')
         node_1_left_unmatched: NodePathStructValue = \
             create_node_path('node_1', 'topic_0', 'topic_2')
 
-        comm_0 = create_comm('topic_0', 'node_0', 'node_1')
-        comm_1 = create_comm('topic_1', 'node_1', 'node_2')
+        comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+        comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
 
-        arch = create_arch(
+        arch: Architecture = create_arch(
             [node_0, node_1, node_1_left, node_1_right, node_2, node_1_left_unmatched],
             [comm_0, comm_1]
         )
