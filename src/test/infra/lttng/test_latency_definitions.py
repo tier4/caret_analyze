@@ -1323,7 +1323,8 @@ class TestCommunicationRecords:
         callback = subscription.callback
         communication = create_comm_struct(publisher, subscription)
         publisher_lttng = create_publisher_lttng(pub_handle)
-        sub_cb_lttng = create_subscription_lttng(callback_obj, subscription_handle, callback_obj_intra)
+        sub_cb_lttng = create_subscription_lttng(
+            callback_obj, subscription_handle, callback_obj_intra)
 
         setup_bridge_get_publisher(publisher, [publisher_lttng])
         bridge_setup_get_callback(subscription.callback, sub_cb_lttng)
