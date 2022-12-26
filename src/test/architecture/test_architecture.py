@@ -316,8 +316,273 @@ class TestArchitecture:
         Architecture._verify([node_mock])
         assert len(caplog.record_tuples) == 1
 
+    template_architecture_assign = Template("""
+named_paths: []
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
+nodes:
+- node_name: /pong_node
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - subscription_callback_0
+    - timer_callback_1
+  callbacks:
+    - callback_name: subscription_callback_0
+      callback_type: subscription_callback
+      topic_name: /pong
+      symbol: sub_symbol
+    - callback_name: timer_callback_1
+      callback_type: timer_callback
+      period_ns: 1
+      symbol: timer_symbol
+$passings
+  subscribes:
+    - topic_name: /pong
+      callback_name: subscription_callback_0
+  publishes:
+    - topic_name: /ping
+      callback_names:
+        - $publisher_callback
+$contexts
+""")
+
+    passings_text = """
+  variable_passings:
+    - callback_name_write: subscription_callback_0
+      callback_name_read: timer_callback_1
+"""
+
+    contexts_text = """
+  message_contexts:
+    - context_type: callback_chain
+      subscription_topic_name: /pong
+      publisher_topic_name: /ping
+"""
+
+    contexts_text_latest = """
+  message_contexts:
+    - context_type: use_latest_message
+      subscription_topic_name: /pong
+      publisher_topic_name: /ping
+"""
+
+    def test_assign_message_contexts(self, mocker, caplog):
+        # assign message context to template
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings='',
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+
+        architecture_text_expected = \
+            self.template_architecture_assign.substitute(passings='',
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # assign message context to be full architecture
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
+
+        architecture_text_expected = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text_latest)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # invalid assign
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text_latest)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_message_context('/not_exist_node', 'callback_chain', '/pong', '/ping')
+
+        arch.assign_message_context('/pong_node', 'invalid_contexts', '/pong', '/ping')
+        assert any(['Failed to load message context.' in message for message in caplog.messages])
+
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_message_context('/pong_node', 'callback_chain',
+                                        '/not_exist_topic', '/ping')
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_message_context('/pong_node', 'callback_chain',
+                                        '/pong', '/not_exist_topic')
+
+        # duplicated assign
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text_latest)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+    def test_assign_publisher_and_callback(self, mocker):
+        # assign publisher to publisher function
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='UNDEFINED',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_publisher_and_callback('/pong_node', '/ping', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # invalid assign
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_publisher_and_callback('/not_exist_node', '/ping', 'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_publisher_and_callback('/pong_node', '/ping', 'not_exist_callback_1')
+
+        # duplicated assign
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_publisher_and_callback('/pong_node', '/ping', 'timer_callback_1')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+    def test_assign_passings(self, mocker):
+        # assign passing to template
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings='',
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_variable_passings('/pong_node', 'subscription_callback_0', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # assign passing to be full architecture
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings='',
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_variable_passings('/pong_node', 'subscription_callback_0', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # invalid assign
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_variable_passings('/not_exist_node', 'subscription_callback_0',
+                                          'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_variable_passings('/pong_node', 'not_exist_callback_0',
+                                          'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.assign_variable_passings('/pong_node', 'subscription_callback_0',
+                                          'not_exist_callback_0')
+
+        # duplicated assign
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings=self.passings_text,
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.assign_variable_passings('/pong_node', 'subscription_callback_0', 'timer_callback_1')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
     # define template text of rename function
-    template_architecture = Template("""
+    template_architecture_rename = Template("""
 named_paths:
 - path_name: target_path_0
   node_chain:
@@ -390,10 +655,12 @@ nodes:
 
     def test_rename_node(self, mocker):
         architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
@@ -411,10 +678,12 @@ nodes:
 
         # define node renamed text
         renamed_architecture_text = \
-            self.template_architecture.substitute(node='/changed_node', executor='executor_1',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/changed_node',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
@@ -425,10 +694,12 @@ nodes:
 
     def test_rename_executor(self, mocker):
         architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
@@ -446,10 +717,12 @@ nodes:
 
         # define executor renamed text
         renamed_architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='changed_executor',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='changed_executor',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
@@ -460,10 +733,12 @@ nodes:
 
     def test_rename_topic(self, mocker):
         architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
@@ -471,10 +746,12 @@ nodes:
 
         # define topic renamed text
         renamed_architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/changed_topic', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/changed_topic',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
@@ -485,10 +762,12 @@ nodes:
 
     def test_rename_callback(self, mocker):
         architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
@@ -507,10 +786,12 @@ nodes:
 
         # define callback renamed text
         renamed_architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/changed_callback_0',
-                                                  callback_2='/changed_callback_1')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/changed_callback_0',
+                                                         callback_2='/changed_callback_1')
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
@@ -521,10 +802,12 @@ nodes:
 
     def test_rename_path(self, mocker):
         architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/topic_1', path='target_path_1',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='target_path_1',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
@@ -541,10 +824,12 @@ nodes:
 
         # define path renamed text
         renamed_architecture_text = \
-            self.template_architecture.substitute(node='/node_1', executor='executor_1',
-                                                  topic='/topic_1', path='changed_path',
-                                                  callback_1='/callback_1',
-                                                  callback_2='/callback_2')
+            self.template_architecture_rename.substitute(node='/node_1',
+                                                         executor='executor_1',
+                                                         topic='/topic_1',
+                                                         path='changed_path',
+                                                         callback_1='/callback_1',
+                                                         callback_2='/callback_2')
         mocker.patch('builtins.open', mocker.mock_open(read_data=renamed_architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
