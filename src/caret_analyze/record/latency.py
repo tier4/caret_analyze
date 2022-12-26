@@ -72,10 +72,11 @@ class Latency:
         records = self._create_empty_records()
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
-            records.append({
-                    self._start_column: start_ts,
-                    'latency': end_ts - start_ts
-            })
+            record = {
+                self._start_column: start_ts,
+                'latency': end_ts - start_ts
+            }
+            records.append(record)
 
         return records
 

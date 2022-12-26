@@ -85,10 +85,11 @@ class Frequency:
             until_timestamp or self._target_timestamps[-1]
         )
         for ts, freq in zip(timestamp_list, frequency_list):
-            records.append({
+            record = {
                 self._target_column: ts,
                 'frequency': freq
-            })
+            }
+            records.append(record)
 
         return records
 

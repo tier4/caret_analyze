@@ -61,10 +61,11 @@ class Period:
         records = self._create_empty_records()
 
         for i in range(1, len(self._target_timestamps)):
-            records.append({
+            record = {
                 self._target_column: self._target_timestamps[i-1],
                 'period': self._target_timestamps[i] - self._target_timestamps[i-1]
-            })
+            }
+            records.append(record)
 
         return records
 

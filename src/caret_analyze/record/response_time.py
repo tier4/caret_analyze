@@ -472,13 +472,12 @@ class ResponseRecords:
         records = self._create_empty_records(columns)
 
         def add_records(output_time, input_time_min, input_time_max):
-            records.append(
-                {
-                    self._response_map.output_column: output_time,
-                    f'{self._input_column}_min': input_time_min,
-                    f'{self._input_column}_max': input_time_max,
-                }
-            )
+            record = {
+                self._response_map.output_column: output_time,
+                f'{self._input_column}_min': input_time_min,
+                f'{self._input_column}_max': input_time_max,
+            }
+            records.append(record)
 
         self._create_response_records_core(add_records)
 
@@ -506,10 +505,11 @@ class ResponseRecords:
         records = self._create_empty_records(columns)
 
         def add_records(output_time, input_time_min, input_time_max):
-            records.append({
-                    self._response_map.output_column: output_time,
-                    f'{self._input_column}': input_time_max,
-            })
+            record = {
+                self._response_map.output_column: output_time,
+                f'{self._input_column}': input_time_max,
+            }
+            records.append(record)
 
         self._create_response_records_core(add_records)
 
@@ -537,10 +537,11 @@ class ResponseRecords:
         records = self._create_empty_records(columns)
 
         def add_records(output_time, input_time_min, input_time_max):
-            records.append({
+            record = {
                     self._response_map.output_column: output_time,
                     f'{self._input_column}': input_time_min,
-            })
+            }
+            records.append(record)
 
         self._create_response_records_core(add_records)
 
@@ -572,18 +573,20 @@ class ResponseRecords:
         for output_time in self._response_map.sorted_iter():
             input_time_range = self._response_map.at(output_time)
 
-            records.append({
-                    self._input_column: input_time_range.min_value,
-                    self._output_column: output_time
-            })
+            record = {
+                self._input_column: input_time_range.min_value,
+                self._output_column: output_time
+            }
+            records.append(record)
 
             if input_time_range.min_value == input_time_range.max_value:
                 continue
 
-            records.append({
+            record = {
                 self._input_column: input_time_range.max_value,
                 self._output_column: output_time
-            })
+            }
+            records.append(record)
 
         records.sort_column_order()
 
@@ -593,15 +596,17 @@ class ResponseRecords:
         records = self._create_empty_records()
 
         def add_records(output_time, input_time_min, input_time_max):
-            records.append({
+            record = {
                 self._input_column: input_time_min,
                 self._output_column: output_time
-            })
+            }
+            records.append(record)
 
-            records.append({
+            record = {
                 self._input_column: input_time_max,
                 self._output_column: output_time
-            })
+            }
+            records.append(record)
 
         self._create_response_records_core(add_records)
 
