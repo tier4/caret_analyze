@@ -670,7 +670,10 @@ class LttngInfo:
         for _, row in timer_controls.df.iterrows():
             if row['type'] == 'init':
                 params = row['params']
-                control = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
+                control = TimerInit(
+                    int(row['timer_handle']),
+                    int(row['timestamp']),
+                    int(params['period']))
                 controls.append(control)
             else:
                 raise NotImplementedError('Unsupported timer control type.')
