@@ -67,7 +67,7 @@ class UniqueList(UserList):
         Returns
         -------
         UniqueList
-            List with data added.
+            Updated list with added data.
 
         """
         return self.data + other  # TODO(hsgwa): fix to "self + other"
@@ -84,7 +84,7 @@ class UniqueList(UserList):
         Returns
         -------
         UniqueList
-            List with data added.
+            Updated list with added data.
 
         """
         for i in other:
@@ -93,7 +93,7 @@ class UniqueList(UserList):
 
     def as_list(self) -> List[Any]:
         """
-        Get data as python list.
+        Get data as Python list.
 
         Returns
         -------

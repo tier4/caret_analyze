@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Union
 
 class Summary(UserDict):
     """
-    Summary info about for value objects and runtime data objects.
+    Summary about value objects and runtime data objects.
 
     Note:
     ----
@@ -48,7 +48,7 @@ class Summary(UserDict):
     @staticmethod
     def _convert_safe(obj: Any) -> Union[List, Dict]:
         """
-        Convert to a object yaml-convertible type.
+        Convert a object to a object convertible to YAML.
 
         Parameters
         ----------
