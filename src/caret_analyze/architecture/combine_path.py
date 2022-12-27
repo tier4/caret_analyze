@@ -38,6 +38,7 @@ class CombinePath():
             get_node function
         get_communication : Callable[[str, str, str], CommunicationStructValue]
             get_communication function
+
         """
         self._get_node = get_node
         self._get_communication = get_communication
@@ -58,6 +59,7 @@ class CombinePath():
         -------
         bool
             result
+
         """
         if name1 is None and name2 is None:
             return False
@@ -80,6 +82,7 @@ class CombinePath():
         ------
         InvalidArgumentError
             Not matched topic name.
+
         """
         if self.__can_combine(left_topic_name, right_topic_name):
             return
@@ -103,6 +106,7 @@ class CombinePath():
         ------
         InvalidArgumentError
             Not matched node name.
+
         """
         if self.__can_combine(left_node_name, right_node_name):
             return
@@ -133,6 +137,7 @@ class CombinePath():
             left last child
         right_first_child : NodePathStructValue
             right last child
+
         """
         self.__validate_topic_name(
             left_last_child.publish_topic_name,
@@ -157,6 +162,7 @@ class CombinePath():
             left last child
         right_first_child : CommunicationStructValue
             right last child
+
         """
         self.__validate_topic_name(
             left_last_child.publish_topic_name,
@@ -180,6 +186,7 @@ class CombinePath():
             left last child
         right_first_child : NodePathStructValue
             right last child
+
         """
         self.__validate_topic_name(
             right_first_child.subscribe_topic_name,
@@ -203,6 +210,7 @@ class CombinePath():
             left last child
         right_first_child : CommunicationStructValue
             right last child
+
         """
         self.__validate_topic_name(
             left_last_child.topic_name,
@@ -233,6 +241,7 @@ class CombinePath():
         ------
         InvalidArgumentError
             No child in input path.
+
         """
         if len(left_path.child) == 0 or len(right_path.child) == 0:
             msg = 'No child in input path. '
@@ -266,6 +275,7 @@ class CombinePath():
         -------
         bool
             valid or invalid
+
         """
         return node_path.subscribe_topic_name == subscribe_topic_name and \
             node_path.publish_topic_name == publish_topic_name
@@ -307,6 +317,7 @@ class CombinePath():
         ------
         InvalidArgumentError
             No node path to combine.
+
         """
         for node_path in node_paths:
             if (self.__is_valid(
@@ -345,6 +356,7 @@ class CombinePath():
         ------
         InvalidArgumentError
             No node path to combine.
+
         """
         for node_path in node_paths:
             if (self.__is_valid(
@@ -383,6 +395,7 @@ class CombinePath():
         ------
         InvalidArgumentError
             No node path to combine.
+
         """
         for node_path in node_paths:
             if (self.__is_valid(
@@ -425,6 +438,7 @@ class CombinePath():
         ------
         UnsupportedTypeError
             Unsupported in case of Comm-Comm
+
         """
         if (isinstance(left_last_child, NodePathStructValue)):
             return left_last_child.node_name
@@ -447,6 +461,7 @@ class CombinePath():
         -------
         str
             node or topic name
+
         """
         if isinstance(child, NodePathStructValue):
             return child.node_name
@@ -471,6 +486,7 @@ class CombinePath():
         -------
         bool
             same or difference
+
         """
         return self.__get_name(left_child) == self.__get_name(right_child) and \
             type(left_child) == type(right_child)
@@ -497,6 +513,7 @@ class CombinePath():
         -------
         PathStructValue
             Combined path
+
         """
         new_child: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...] = ()
         candidate_path: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...] = \
@@ -538,6 +555,7 @@ class CombinePath():
         -------
         NodePathStructValue
             Middle node path
+
         """
         node_name: str = self._get_node_name(left_last_child, right_first_child)
         node_paths: Tuple[NodePathStructValue, ...] = self._get_node(node_name).paths
@@ -570,6 +588,7 @@ class CombinePath():
         ------
         InvalidArgumentError
             No matched topic (communication).
+
         """
         comm_path: CommunicationStructValue = \
             self._get_communication(
@@ -605,6 +624,7 @@ class CombinePath():
         -------
         PathStructValue
             combined path
+
         """
         left_last_child: Union[NodePathStructValue, CommunicationStructValue] = \
             left_path.child[-1]
@@ -629,13 +649,14 @@ class CombinePath():
         ----------
         left_path: PathStructValue
             left path
-        left_path: PathStructValue
+        right_path: PathStructValue
             right path
 
         Returns
         -------
         PathStructValue
             combined path
+
         """
         raise NotImplementedError('')
 
@@ -651,13 +672,14 @@ class CombinePath():
         ----------
         left_path: PathStructValue
             left path
-        left_path: PathStructValue
+        right_path: PathStructValue
             right path
 
         Returns
         -------
         PathStructValue
             combined path
+
         """
         self._validate(left_path, right_path)
 
