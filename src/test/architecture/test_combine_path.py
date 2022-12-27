@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from caret_analyze.architecture.combine_path import CombinePath
 
@@ -67,18 +67,10 @@ def create_node_path(
 @pytest.fixture
 def create_get_node(mocker):
     def _create_get_node(
-        node_paths: Tuple[NodePathStructValue],
-        joint_node_name: str,
+        node_paths: List[NodePathStructValue],
     ) -> Callable[[str], NodeStructValue]:
-        # node_path_list: List[NodePathStructValue] = []
-        # for node_path in node_paths:
-        #     if node_path.node_name == joint_node_name:
-        #         node_path_list.append(node_path)
         node_value_mock = mocker.Mock(spec=NodeStructValue)
-        # mocker.patch.object(node_value_mock, 'paths', tuple(node_path_list))
         mocker.patch.object(node_value_mock, 'paths', tuple(node_paths))
-        mocker.patch.object(node_value_mock, 'callbacks', [])
-        mocker.patch.object(node_value_mock, 'node_name', joint_node_name)
 
         def get_node(node_name: str) -> NodeStructValue:
             return node_value_mock
@@ -89,14 +81,14 @@ def create_get_node(mocker):
 @pytest.fixture
 def create_get_communication():
     def _create_get_communication(
-        joint_comm: CommunicationStructValue,
+        comm: CommunicationStructValue,
     ):
         def get_communication(
             publisher_node_name: str,
             subscription_node_name: str,
             topic_name: str
         ) -> CommunicationStructValue:
-            return joint_comm
+            return comm
         return get_communication
     return _create_get_communication
 
@@ -156,7 +148,7 @@ class TestCombinePath:
         create_get_communication,
     ):
         # combine [] + []
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -175,7 +167,7 @@ class TestCombinePath:
         left_comm: CommunicationStructValue = create_comm('topic_1', 'pub_node', 'sub_node')
         right_comm: CommunicationStructValue = create_comm('topic_2', 'pub_node', 'sub_node')
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -197,7 +189,7 @@ class TestCombinePath:
         left_node: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
         right_node: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -219,11 +211,9 @@ class TestCombinePath:
     ):
         # [node_0] + [comm_0] = OK
         node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
-        # node_0_unmatched: NodePathStructValue = create_node_path('node_0', None, 'topic_1')
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
-        # comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_2', 'node_1')
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([node_0], node_0.node_name)
+        get_node: Callable[[str], NodeStructValue] = create_get_node([node_0])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -243,12 +233,10 @@ class TestCombinePath:
         create_get_communication,
     ):
         # [node_0_unmatched] + [comm_0] = NG
-        # node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
         node_0_unmatched: NodePathStructValue = create_node_path('node_0', None, 'topic_1')
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
-        # comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_2', 'node_1')
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -267,11 +255,9 @@ class TestCombinePath:
     ):
         # [node_0] + [comm_0_unmatched] = NG
         node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
-        # node_0_unmatched: NodePathStructValue = create_node_path('node_0', None, 'topic_1')
-        # comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
         comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_2', 'node_1')
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -290,11 +276,9 @@ class TestCombinePath:
     ):
         # [comm_0] + [node_1] = OK
         node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
-        # node_1_unmatched: NodePathStructValue = create_node_path('node_1', 'topic_1', None)
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
-        # comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_2')
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([node_1], node_1.node_name)
+        get_node: Callable[[str], NodeStructValue] = create_get_node([node_1])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -315,11 +299,9 @@ class TestCombinePath:
     ):
         # [comm_0_unmatched] + [node_1] = NG
         node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
-        # node_1_unmatched: NodePathStructValue = create_node_path('node_1', 'topic_1', None)
-        # comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
         comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_2')
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -337,12 +319,10 @@ class TestCombinePath:
         create_get_communication,
     ):
         # [comm_0] + [node_1_unmatched] = NG
-        # node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         node_1_unmatched: NodePathStructValue = create_node_path('node_1', 'topic_1', None)
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
-        # comm_0_unmatched: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_2')
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -367,7 +347,7 @@ class TestCombinePath:
         comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
 
         get_node: Callable[[str], NodeStructValue] = \
-            create_get_node([node_1, node_1_left], node_1.node_name)
+            create_get_node([node_1, node_1_left])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -396,7 +376,7 @@ class TestCombinePath:
         comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
 
         get_node: Callable[[str], NodeStructValue] = \
-            create_get_node([node_1, node_1_right], node_1.node_name)
+            create_get_node([node_1, node_1_right])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -426,7 +406,7 @@ class TestCombinePath:
         path_left = PathStructValue(None, (node_0, comm_0_left))
         path_right = PathStructValue(None, (comm_0_right, node_1))
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication(comm_0)
 
@@ -449,10 +429,8 @@ class TestCombinePath:
 
         comm_0_left: CommunicationStructValue = create_comm('topic_0', 'node_0', None)
         comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
-        # comm_0_left_unmatched: CommunicationStructValue = \
-        #     create_comm('topic_0', 'node_0', 'node_2')  # node_2 for unmatched
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication(comm_0)
         combine_path = CombinePath(get_node, get_communication)
@@ -476,12 +454,11 @@ class TestCombinePath:
         node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
 
-        # comm_0_left: CommunicationStructValue = create_comm('topic_0', 'node_0', None)
         comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
         comm_0_left_unmatched: CommunicationStructValue = \
             create_comm('topic_0', 'node_0', 'node_2')  # node_2 for unmatched
 
-        get_node: Callable[[str], NodeStructValue] = create_get_node([], '')
+        get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication(comm_0)
         combine_path = CombinePath(get_node, get_communication)
@@ -505,14 +482,12 @@ class TestCombinePath:
 
         node_1_left: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         node_1_right: NodePathStructValue = create_node_path('node_1', None, 'topic_1')
-        # node_1_left_unmatched: NodePathStructValue = \
-        #     create_node_path('node_1', 'topic_0', 'topic_2')
 
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
         comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
 
         get_node: Callable[[str], NodeStructValue] = \
-            create_get_node([node_1, node_1_left, node_1_right], node_1.node_name)
+            create_get_node([node_1, node_1_left, node_1_right])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
@@ -536,10 +511,8 @@ class TestCombinePath:
     ):
         # combine [node_0, comm_0, node_1_left_unmatched] + [node_1_right, comm_1, node_2]
         node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
-        # node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', 'topic_1')
         node_2: NodePathStructValue = create_node_path('node_2', 'topic_1', None)
 
-        # node_1_left: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         node_1_right: NodePathStructValue = create_node_path('node_1', None, 'topic_1')
         node_1_left_unmatched: NodePathStructValue = \
             create_node_path('node_1', 'topic_0', 'topic_2')
@@ -548,7 +521,7 @@ class TestCombinePath:
         comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
 
         get_node: Callable[[str], NodeStructValue] = \
-            create_get_node([], '')
+            create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
             create_get_communication([])
         combine_path = CombinePath(get_node, get_communication)
