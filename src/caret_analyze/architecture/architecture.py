@@ -15,20 +15,23 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Collection, Dict, List, Optional, Tuple, Union
-
+from typing import Callable, Collection, Dict, List, Optional, Sequence, Tuple, Union
 
 from .architecture_exporter import ArchitectureExporter
-from .reader_interface import IGNORE_TOPICS
+from .architecture_loaded import NodeValuesLoaded
+
+from .reader_interface import ArchitectureReader, IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
-                     NodeStruct)
-from .struct.callback import TimerCallbackStruct
+                     NodePathStruct, NodeStruct, PathStruct)
+from .struct.callback import CallbackStruct, TimerCallbackStruct
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, ItemNotFoundError
+from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
-                             NodeStructValue, PathStructValue, PublisherStructValue,
-                             SubscriptionStructValue)
+                             NodePathStructValue, NodeStructValue, PathStructValue,
+                             PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
+
+logger = logging.getLogger(__name__)
 
 
 class Architecture(Summarizable):
@@ -47,10 +50,10 @@ class Architecture(Summarizable):
             file_type, file_path)
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
-        self._nodes: Tuple[NodeStruct, ...] = loaded.nodes
-        self._communications: Tuple[CommunicationStruct, ...] = loaded.communications
-        self._executors: Tuple[ExecutorStruct, ...] = loaded.executors
-        self._path_manager = NamedPathManager(tuple(v.to_value() for v in loaded.paths))
+        self._nodes: List[NodeStruct] = loaded.nodes
+        self._communications: List[CommunicationStruct] = loaded.communications
+        self._executors: List[ExecutorStruct] = loaded.executors
+        self._paths = loaded.paths
         self._verify(self._nodes)
 
     def get_node(self, node_name: str) -> NodeStructValue:
@@ -103,16 +106,73 @@ class Architecture(Summarizable):
         return Util.find_one(is_target_comm, self.communications)
 
     def get_path(self, path_name: str) -> PathStructValue:
-        return self._path_manager.get_named_path(path_name)
+        if path_name not in self.path_names:
+            raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
+
+        named_path: PathStruct = Util.find_one(lambda x: x._path_name == path_name, self._paths)
+        return named_path.to_value()
 
     def add_path(self, path_name: str, path_info: PathStructValue) -> None:
-        self._path_manager.add_named_path(path_name, path_info)
+        if path_name in self.path_names:
+            raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
+
+        child: List[Union[NodePathStruct, CommunicationStruct]] = []
+
+        for c in path_info.child:
+            if isinstance(c, NodePathStructValue):
+                node_name = c.node_name
+                publish_topic_name = c.publish_topic_name
+                subscribe_topic_name = c.subscribe_topic_name
+
+                def is_target_node(node: NodeStruct):
+                    return node_name == node.node_name
+
+                def is_target_node_path(node_path: NodePathStruct):
+                    return publish_topic_name == node_path.publish_topic_name and \
+                        subscribe_topic_name == node_path.subscribe_topic_name
+
+                node: NodeStruct = Util.find_one(is_target_node, self._nodes)
+                node_path: NodePathStruct = Util.find_one(is_target_node_path, node.paths)
+                child.append(node_path)
+
+            elif isinstance(c, CommunicationStructValue):
+                publish_node_name = c.publish_node_name
+                subscribe_node_name = c.subscribe_node_name
+                topic_name = c.topic_name
+
+                def is_target_comm(comm: CommunicationStruct):
+                    return publish_node_name == comm.publish_node_name and \
+                        subscribe_node_name == comm.subscribe_node_name and \
+                        topic_name == comm.topic_name
+
+                comm: CommunicationStruct = \
+                    Util.find_one(is_target_comm, self._communications)
+                child.append(comm)
+
+            else:
+                raise UnsupportedTypeError('')
+
+        named_path_info = PathStruct(path_name, child)
+        self._paths.append(named_path_info)
 
     def remove_path(self, path_name: str) -> None:
-        self._path_manager.remove_named_path(path_name)
+        if path_name not in self.path_names:
+            raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
+
+        idx = None
+        for i, p in enumerate(self._paths):
+            if p.path_name == path_name:
+                idx = i
+
+        if idx is not None:
+            self._paths.pop(idx)
 
     def update_path(self, path_name: str, path: PathStructValue) -> None:
-        self._path_manager.update_named_path(path_name, path)
+        if path.path_name is None:
+            raise InvalidArgumentError('path_info.path_name is None')
+
+        self.remove_path(path.path_name)
+        self.add_path(path_name, path)
 
     @property
     def nodes(self) -> Tuple[NodeStructValue, ...]:
@@ -132,11 +192,11 @@ class Architecture(Summarizable):
 
     @property
     def paths(self) -> Tuple[PathStructValue, ...]:
-        return self._path_manager.named_paths
+        return tuple([v.to_value() for v in self._paths])
 
     @property
     def path_names(self) -> Tuple[str, ...]:
-        return tuple(sorted(_.path_name for _ in self._path_manager.named_paths))
+        return tuple(sorted(v.path_name for v in self._paths if v.path_name is not None))
 
     @property
     def communications(self) -> Tuple[CommunicationStructValue, ...]:
@@ -151,6 +211,11 @@ class Architecture(Summarizable):
     def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
         subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
         return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
+
+    @property
+    def services(self) -> Tuple[ServiceStructValue, ...]:
+        services = Util.flatten(_.services for _ in self.nodes)
+        return tuple(sorted(services, key=lambda x: x.service_name))
 
     @property
     def summary(self) -> Summary:
@@ -198,7 +263,7 @@ class Architecture(Summarizable):
 
         # Search
         path_searcher = NodePathSearcher(
-            self._nodes, self._communications, node_filter, communication_filter)
+            tuple(self._nodes), tuple(self._communications), node_filter, communication_filter)
         paths = [v.to_value() for v in
                  path_searcher.search(*node_names, max_node_depth=max_node_depth)]
 
@@ -237,63 +302,136 @@ class Architecture(Summarizable):
             counter = Counter(callback_params)
 
             for uniqueness_violated in [param for param, count in counter.items() if count >= 2]:
-                logging.warning(
+                logger.warning(
                     ('Duplicate parameter callback found. '
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
+    def assign_message_context(self, node_name: str, context_type: str,
+                               subscribe_topic_name: str, publish_topic_name: str):
+        node: NodeStruct =\
+            Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-"""
-    def rename_callback(src: str, dest: str):
-        raise NotImplementedError('')
+        if publish_topic_name not in node.publish_topic_names:
+            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
 
-    def rename_node(src: str, dest: str):
-        raise NotImplementedError('')
+        if subscribe_topic_name not in node.subscribe_topic_names:
+            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
 
-    def rename_path(src: str, dest: str):
-        raise NotImplementedError('')
+        if (context_type, subscribe_topic_name, publish_topic_name) \
+            not in [(None if path.message_context_type is None
+                     else path.message_context_type.type_name,
+                     path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
+            context_reader = AssignContextReader(node)
+            context_reader.append_message_context({'context_type': context_type,
+                                                   'subscription_topic_name': subscribe_topic_name,
+                                                   'publisher_topic_name': publish_topic_name})
 
-    def rename_executor(src: str, dest: str):
-        raise NotImplementedError('')
+            node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
-    def rename_topic(src: str, dest: str):
-        raise NotImplementedError('')
-"""
+    def assign_publisher_and_callback(self, node_name: str,
+                                      publish_topic_name: str, callback_name: str):
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.assign_publisher_and_callback(publish_topic_name, callback_name)
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
+
+    def assign_variable_passings(self, node_name: str,
+                                 callback_name_write: str, callback_name_read: str):
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.assign_variable_passings(callback_name_write, callback_name_read)
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
+
+    def rename_callback(self, src: str, dst: str) -> None:
+        cb_s: List[CallbackStruct] =\
+            Util.flatten(cb_g.callbacks for cb_g in
+                         Util.flatten([e.callback_groups for e in self._executors]))
+        c: CallbackStruct = Util.find_similar_one(src, cb_s, lambda x: x.callback_name)
+        c.callback_name = dst
+
+    def rename_node(self, src: str, dst: str) -> None:
+        for n in self._nodes:
+            n.rename_node(src, dst)
+
+        for e in self._executors:
+            e.rename_node(src, dst)
+
+        for c in self._communications:
+            c.rename_node(src, dst)
+
+    def rename_path(self, src: str, dst: str) -> None:
+        p: PathStruct = Util.find_similar_one(src, self._paths, lambda x: x.path_name)
+        p.path_name = dst
+
+    def rename_executor(self, src: str, dst: str) -> None:
+        e: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
+        e.executor_name = dst
+
+    def rename_topic(self, src: str, dst: str) -> None:
+        for n in self._nodes:
+            n.rename_topic(src, dst)
+
+        for e in self._executors:
+            e.rename_topic(src, dst)
+
+        for c in self._communications:
+            c.rename_topic(src, dst)
 
 
-class NamedPathManager():
+class AssignContextReader(ArchitectureReader):
+    """MessageContext of NodeStruct implemented version of ArchitectureReader."""
 
-    def __init__(self, paths: Tuple[PathStructValue, ...]) -> None:
-        self._named_paths: Dict[str, PathStructValue] = {}
-        for path in paths:
-            if path.path_name is None:
-                continue
-            self._named_paths[path.path_name] = path
+    def __init__(self, node: NodeStruct):
+        contexts = [path.message_context for path in node.paths]
+        self._contexts = [context.to_dict() for context in contexts if context is not None]
 
-    @property
-    def named_paths(self) -> Tuple[PathStructValue, ...]:
-        return tuple(self._named_paths.values())
+    def append_message_context(self, context: Dict):
+        self._contexts.append(context)
 
-    def get_named_path(self, path_name: str) -> PathStructValue:
-        if path_name not in self._named_paths.keys():
-            raise InvalidArgumentError(f'Failed to get named path. {path_name} not exist.')
-        return self._named_paths[path_name]
+    def get_message_contexts(self, _) -> Sequence[Dict]:
+        return self._contexts
 
-    def add_named_path(self, path_name: str, path_info: PathStructValue):
-        if path_name in self._named_paths.keys():
-            raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
-        named_path_info = PathStructValue(path_name, path_info.child)
-        self._named_paths[path_name] = named_path_info
+    def get_callback_groups(self):
+        pass
 
-    def remove_named_path(self, path_name: str):
-        if path_name not in self._named_paths.keys():
-            raise InvalidArgumentError(f'Failed to remove named path. {path_name} not exist.')
-        del self._named_paths[path_name]
+    def get_executors(self):
+        pass
 
-    def update_named_path(self, path_name: str, path_info: PathStructValue):
-        if path_info.path_name is None:
-            raise InvalidArgumentError('path_info.path_name is None')
+    def get_node_names_and_cb_symbols(self):
+        pass
 
-        self.remove_named_path(path_info.path_name)
-        self.add_named_path(path_name, path_info)
+    def get_nodes(self):
+        pass
+
+    def get_paths(self):
+        pass
+
+    def get_publishers(self):
+        pass
+
+    def get_service_callbacks(self):
+        pass
+
+    def get_services(self):
+        pass
+
+    def get_subscription_callbacks(self):
+        pass
+
+    def get_subscriptions(self):
+        pass
+
+    def get_timer_callbacks(self):
+        pass
+
+    def get_timers(self):
+        pass
+
+    def get_variable_passings(self):
+        pass

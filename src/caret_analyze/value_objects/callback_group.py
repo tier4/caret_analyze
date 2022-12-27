@@ -23,7 +23,15 @@ from ..common import Summarizable, Summary
 
 
 class CallbackGroupType(ValueObject):
-    """callback group type class."""
+    """
+    Callback group type class.
+
+    The types of callback groups are as follows:
+
+    - MUTUALLY_EXCLUSIVE
+    - REENTRANT
+
+    """
 
     MUTUALLY_EXCLUSIVE: CallbackGroupType
     REENTRANT: CallbackGroupType
@@ -78,22 +86,25 @@ class CallbackGroupValue(ValueObject):
         callback_group_name: Optional[str] = None
     ) -> None:
         """
-        Construct callback value object.
+        Construct an instance.
 
         Parameters
         ----------
         callback_group_type_name : str
-            callback group type name
-        node_name : Tuple[str]
-            node name
-        node_id: str
-            node id
-        callback_ids: Tuple[str, ...]
-            callback ids
-        callback_group_id: str
-            callback group id
-        callback_group_name: Optional[str]
-            callback group name
+            callback group type name: ['mutually_exclusive' / 'reentrant']
+        node_name : str
+            node name.
+        node_id : str
+            Identification of the node,
+            a value that can be identified when retrieved from the Architecture reader.
+        callback_ids : Tuple[str, ...]
+            Identification of the callback,
+            a value that can be identified when retrieved from the Architecture reader.
+        callback_group_id : str
+            Identification of the callback group,
+            a value that can be identified when retrieved from the Architecture reader.
+        callback_group_name : Optional[str], optional
+            callback group name, by default None. If None, it is generated automatically.
 
         """
         self._callback_group_type = CallbackGroupType(callback_group_type_name)
@@ -117,18 +128,54 @@ class CallbackGroupValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name which includes the callback group.
+
+        """
         return self._node_name
 
     @property
     def node_id(self) -> str:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str
+            Node id.
+
+        """
         return self._node_id
 
     @property
     def callback_group_name(self) -> Optional[str]:
+        """
+        Get callback group name.
+
+        Returns
+        -------
+        Optional[str]
+            Callback group name.
+
+        """
         return self._callback_group_name
 
     @property
     def callback_group_id(self) -> str:
+        """
+        Get callback group id.
+
+        Returns
+        -------
+        str
+            Callback group id.
+
+        """
         return self._callback_group_id
 
     @property
@@ -201,6 +248,15 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
 
     @property
     def callback_group_name(self) -> str:
+        """
+        Get callback group name.
+
+        Returns
+        -------
+        str
+            Callback group name.
+
+        """
         return self._callback_group_name
 
     @property
@@ -218,10 +274,28 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
 
     @property
     def callbacks(self) -> Tuple[CallbackStructValue, ...]:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        Tuple[CallbackStructValue, ...]
+            Callbacks which are added to the callback group.
+
+        """
         return self._callback_values
 
     @property
     def callback_names(self) -> Tuple[str, ...]:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        Tuple[str, ...]
+            Callback names which are added to the callback group.
+
+        """
         return tuple(i.callback_name for i in self._callback_values)
 
     @property

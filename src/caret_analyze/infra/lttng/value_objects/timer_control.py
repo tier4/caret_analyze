@@ -23,6 +23,7 @@ class TimerControl:
     def timer_handle(self) -> int:
         return self._timer_handle
 
+    @property
     def timestamp(self) -> int:
         return self._timestamp
 

@@ -21,13 +21,14 @@ from bokeh.plotting import Figure
 import numpy as np
 
 
-from ...exceptions import UnsupportedTypeError
-from ...runtime import (CallbackBase, Communication, Publisher,
-                        Subscription, SubscriptionCallback, TimerCallback)
+from ..exceptions import UnsupportedTypeError
+from ..runtime import (CallbackBase, Communication, Publisher,
+                       Subscription, SubscriptionCallback, TimerCallback)
 
 logger = getLogger(__name__)
 
 
+# TODO: Migrate into visualize_lib
 class RectValues():
     def __init__(
         self,
@@ -41,11 +42,11 @@ class RectValues():
 
     @property
     def x(self) -> float:
-        return np.mean(self._x)
+        return float(np.mean(self._x))
 
     @property
     def y(self) -> float:
-        return np.mean(self._y)
+        return float(np.mean(self._y))
 
     @property
     def width(self) -> float:
@@ -56,6 +57,7 @@ class RectValues():
         return abs(self._y[0] - self._y[1])
 
 
+# TODO: Duplication of source code. Use visualize_lib
 def apply_x_axis_offset(
     fig: Figure,
     x_range_name: str,
@@ -68,7 +70,7 @@ def apply_x_axis_offset(
     fig.extra_x_ranges = {x_range_name: Range1d(start=min_ns, end=max_ns)}
 
     xaxis = LinearAxis(x_range_name=x_range_name)
-    xaxis.visible = False
+    xaxis.visible = False  # type: ignore
 
     ticker = SingleIntervalTicker(interval=1, num_minor_ticks=10)
     fig.xaxis.ticker = ticker
@@ -82,6 +84,7 @@ def apply_x_axis_offset(
     fig.xaxis.major_label_overrides = {0: f'0+{offset_s}'}
 
 
+# TODO: Duplication of source code. Use visualize_lib
 def get_callback_param_desc(callback: CallbackBase):
     if isinstance(callback, TimerCallback):
         return f'period_ns: {callback.period_ns}'
@@ -96,6 +99,7 @@ def get_callback_param_desc(callback: CallbackBase):
 PlotObjectTypes = Union[CallbackBase, Communication, Publisher, Subscription]
 
 
+# TODO: Duplication of source code. Use visualize_lib
 def get_range(
     plot_objects: Sequence[PlotObjectTypes]
 ) -> Tuple[int, int]:

@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Tuple
+from typing import List, Optional
 
 from ...value_objects import (CallbackStructValue, CallbackType,
+                              ServiceCallbackStructValue,
                               SubscriptionCallbackStructValue,
                               TimerCallbackStructValue)
 
@@ -30,13 +31,15 @@ class CallbackStruct(metaclass=ABCMeta):
         node_name: str,
         symbol: str,
         subscribe_topic_name: Optional[str],
-        publish_topic_names: Optional[Tuple[str, ...]],
+        service_name: Optional[str],
+        publish_topic_names: Optional[List[str]],
         callback_name: str,
     ) -> None:
         self._node_name = node_name
         self._callback_name = callback_name
         self._symbol = symbol
         self._subscribe_topic_name = subscribe_topic_name
+        self._service_name = service_name
         self._publish_topic_names = publish_topic_names
 
     @property
@@ -78,6 +81,10 @@ class CallbackStruct(metaclass=ABCMeta):
         """
         return self._callback_name
 
+    @callback_name.setter
+    def callback_name(self, n: str):
+        self._callback_name = n
+
     @property
     @abstractmethod
     def callback_type(self) -> CallbackType:
@@ -101,12 +108,35 @@ class CallbackStruct(metaclass=ABCMeta):
         return self._subscribe_topic_name
 
     @property
-    def publish_topic_names(self) -> Optional[Tuple[str, ...]]:
+    def service_name(self) -> Optional[str]:
+        return self._service_name
+
+    @property
+    def publish_topic_names(self) -> Optional[List[str]]:
         return self._publish_topic_names
 
     @abstractmethod
     def to_value(self) -> CallbackStructValue:
         pass
+
+    def assign_publisher(self, publish_topic_name: str):
+        self._publish_topic_names = self._publish_topic_names or []
+        if publish_topic_name not in self._publish_topic_names:
+            self._publish_topic_names.append(publish_topic_name)
+
+    def rename_node(self, src: str, dst: str) -> None:
+        if self.node_name == src:
+            self._node_name = dst
+
+    def rename_topic(self, src: str, dst: str) -> None:
+        if self._publish_topic_names is not None:
+            for i, p in enumerate(self._publish_topic_names):
+                if p == src:
+                    self._publish_topic_names[i] = dst
+
+        if self._subscribe_topic_name is not None:
+            if self._subscribe_topic_name == src:
+                self._subscribe_topic_name = dst
 
 
 class TimerCallbackStruct(CallbackStruct):
@@ -117,13 +147,14 @@ class TimerCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         period_ns: int,
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: Optional[List[str]],
         callback_name: str,
     ) -> None:
         super().__init__(
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=None,
+            service_name=None,
             publish_topic_names=publish_topic_names,
             callback_name=callback_name)
         self._period_ns = period_ns
@@ -139,7 +170,7 @@ class TimerCallbackStruct(CallbackStruct):
     def to_value(self) -> TimerCallbackStructValue:
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
-            self.publish_topic_names,
+            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
             self.callback_name)
 
 
@@ -151,13 +182,14 @@ class SubscriptionCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: Optional[List[str]],
         callback_name: str,
     ) -> None:
         super().__init__(
             node_name=node_name,
             symbol=symbol,
             subscribe_topic_name=subscribe_topic_name,
+            service_name=None,
             publish_topic_names=publish_topic_names,
             callback_name=callback_name)
         self.__subscribe_topic_name = subscribe_topic_name
@@ -174,5 +206,52 @@ class SubscriptionCallbackStruct(CallbackStruct):
         return SubscriptionCallbackStructValue(
             self.node_name, self.symbol,
             self.subscribe_topic_name,
-            self.publish_topic_names,
+            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
+            self.callback_name)
+
+    def rename_topic(self, src: str, dst: str) -> None:
+        if self._publish_topic_names is not None:
+            for i, p in enumerate(self._publish_topic_names):
+                if p == src:
+                    self._publish_topic_names[i] = dst
+
+        if self.subscribe_topic_name == src:
+            self._subscribe_topic_name = dst
+            self.__subscribe_topic_name = dst
+
+
+class ServiceCallbackStruct(CallbackStruct):
+    """Structured service callback value."""
+
+    def __init__(
+        self,
+        node_name: str,
+        symbol: str,
+        service_name: str,
+        publish_topic_names: Optional[List[str]],
+        callback_name: str,
+    ) -> None:
+        super().__init__(
+            node_name=node_name,
+            symbol=symbol,
+            subscribe_topic_name=None,
+            service_name=service_name,
+            publish_topic_names=publish_topic_names,
+            callback_name=callback_name)
+        self.__service_name = service_name
+
+    @property
+    def callback_type(self) -> CallbackType:
+        return CallbackType.SERVICE
+
+    @property
+    def service_name(self) -> str:
+        return self.__service_name
+
+    def to_value(self) -> ServiceCallbackStructValue:
+        return ServiceCallbackStructValue(
+            self.node_name,
+            self.symbol,
+            self.service_name,
+            None if self.publish_topic_names is None else tuple(self.publish_topic_names),
             self.callback_name)
