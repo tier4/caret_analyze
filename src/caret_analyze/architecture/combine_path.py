@@ -244,7 +244,7 @@ class CombinePath():
         self._validate_child(left_last_child, right_first_child)
 
     @staticmethod
-    def _find_one_node_path(
+    def __is_valid(
         node_path: NodePathStructValue,
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str]
@@ -264,7 +264,7 @@ class CombinePath():
         Returns
         -------
         bool
-            match or unmatch
+            valid or invalid
         """
         return node_path.subscribe_topic_name == subscribe_topic_name and \
             node_path.publish_topic_name == publish_topic_name
@@ -308,7 +308,7 @@ class CombinePath():
             No node path to combine.
         """
         for node_path in node_paths:
-            if (self._find_one_node_path(
+            if (self.__is_valid(
                     node_path,
                     left_last_child.subscribe_topic_name,
                     right_first_child.publish_topic_name)):
@@ -346,7 +346,7 @@ class CombinePath():
             No node path to combine.
         """
         for node_path in node_paths:
-            if (self._find_one_node_path(
+            if (self.__is_valid(
                     node_path,
                     left_last_child.subscribe_topic_name,
                     right_first_child.topic_name)):
@@ -384,7 +384,7 @@ class CombinePath():
             No node path to combine.
         """
         for node_path in node_paths:
-            if (self._find_one_node_path(
+            if (self.__is_valid(
                     node_path,
                     left_last_child.topic_name,
                     right_first_child.publish_topic_name)):
