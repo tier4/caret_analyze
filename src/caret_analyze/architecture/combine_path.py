@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Callable, Optional, Tuple, Union
 
 from multimethod import multimethod as singledispatchmethod
+
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..value_objects import (CommunicationStructValue, NodePathStructValue,
                              NodeStructValue, PathStructValue)
@@ -114,7 +115,7 @@ class CombinePath():
         left_last_child,    # 'singledispatchmethod' doesn't
         right_first_child,  # allow to attach annotation to parameters.
     ) -> None:
-        msg = "Unsupported type."
+        msg = 'Unsupported type.'
         raise UnsupportedTypeError(msg)
 
     @_validate_child.register

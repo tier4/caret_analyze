@@ -25,7 +25,7 @@ from .reader_interface import ArchitectureReader, IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodePathStruct, NodeStruct, PathStruct)
 from .struct.callback import CallbackStruct, TimerCallbackStruct
-from ..common import Summarizable, Summary, Util, type_check_decorator
+from ..common import Summarizable, Summary, type_check_decorator, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
