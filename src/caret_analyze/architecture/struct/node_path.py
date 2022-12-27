@@ -81,6 +81,10 @@ class NodePathStruct():
     def message_context(self) -> Optional[MessageContextStruct]:
         return self._context
 
+    @message_context.setter
+    def message_context(self, context: MessageContextStruct) -> None:
+        self._context = context
+
     @property
     def message_context_type(self) -> Optional[MessageContextType]:
         if self._context is None:

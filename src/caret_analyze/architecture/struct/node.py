@@ -186,6 +186,39 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
+    def update_node_path(self, paths: list[NodePathStruct]):
+        self._node_paths = paths
+
+    # def assign_message_context(self, node_name: str, context_type: str,
+    #                            sub_topic_name: str, pub_topic_name: str):
+    #     # To assign message context, update_node_path() is called in Architecture.
+    #     # This is because module dependency.
+    #     # TODO: Refactoring module dependency
+    #     pass
+
+    def assign_publisher_and_callback(self, publish_topic_name: str, callback_name: str):
+        callback: CallbackStruct = \
+            Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
+        callback.assign_publisher(publish_topic_name)
+
+        publisher: PublisherStruct = \
+            Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
+        publisher.assign_callback(callback)
+
+    def assign_variable_passings(self, callback_name_write: str, callback_name_read: str):
+        callback_write: CallbackStruct =\
+            Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
+        callback_read: CallbackStruct =\
+            Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
+
+        passing = VariablePassingStruct(self.node_name, callback_write, callback_read)
+        if self._variable_passings_info is None:
+            self._variable_passings_info = [passing]
+        elif (callback_name_read, callback_name_write) not in \
+                [(passing.callback_name_read, passing.callback_name_write)
+                    for passing in self._variable_passings_info]:
+            self._variable_passings_info.append(passing)
+
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst

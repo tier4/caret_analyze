@@ -12,28 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from abc import ABCMeta, abstractmethod
+from typing import Union
 
-class TimerControl:
+from bokeh.plotting import Figure
 
-    def __init__(self, timer_handle: int, timestamp: int) -> None:
-        self._timer_handle = timer_handle
-        self._timestamp = timestamp
+from ..metrics_base import MetricsBase
+from ...runtime import (CallbackBase, Communication, Publisher, Subscription)
 
-    @property
-    def timer_handle(self) -> int:
-        return self._timer_handle
-
-    @property
-    def timestamp(self) -> int:
-        return self._timestamp
+TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
-class TimerInit(TimerControl):
+class VisualizeLibInterface(metaclass=ABCMeta):
+    """Interface class for VisualizeLib."""
 
-    def __init__(self, timer_handle: int, timestamp: int, period_ns: int) -> None:
-        super().__init__(timer_handle, timestamp)
-        self._period_ns = period_ns
-
-    @property
-    def period_ns(self) -> int:
-        return self._period_ns
+    @abstractmethod
+    def timeseries(
+        self,
+        metrics: MetricsBase,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool
+    ) -> Figure:
+        raise NotImplementedError()

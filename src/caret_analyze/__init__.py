@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from logging import DEBUG, Formatter, getLogger, StreamHandler, WARN
+
+from pathlib import Path
 
 from .architecture import Architecture, check_procedure
-from .common import Progress
+from .common import init_logger, Progress
 from .infra.lttng import Lttng, LttngEventFilter
 from .runtime.application import Application
 
@@ -40,15 +41,5 @@ for each module in an external log configuration file.
 
 """
 
-handler = StreamHandler()
-handler.setLevel(WARN)
-
-fmt = '%(levelname)-8s: %(asctime)s | %(message)s'
-formatter = Formatter(
-    fmt,
-    datefmt='%Y-%m-%d %H:%M:%S')
-handler.setFormatter(formatter)
-
-logger = getLogger()
-logger.setLevel(DEBUG)
-logger.addHandler(handler)
+log_cfg_path = Path(__file__).parent/'log_config.yaml'
+init_logger(str(log_cfg_path))
