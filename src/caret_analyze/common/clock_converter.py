@@ -22,7 +22,7 @@ from ..exceptions import InvalidArgumentError
 
 class ClockConverter():
     """
-    Class for time conversion. Convert in the form y=ax+b.
+    Class for time conversion. Converts a time given in linear form (y=ax+b) to another time.
 
     TODO(hsgwa): Migrate into record.
     """
