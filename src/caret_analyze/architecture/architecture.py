@@ -24,7 +24,7 @@ from .reader_interface import IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodePathStruct, NodeStruct, PathStruct)
 from .struct.callback import CallbackStruct, TimerCallbackStruct
-from ..common import Summarizable, Summary, Util
+from ..common import Summarizable, Summary, Util, type_check_decorator
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
@@ -277,6 +277,7 @@ class Architecture(Summarizable):
 
         return paths
 
+    @type_check_decorator
     def combine_path(
         self,
         path_left: PathStructValue,
