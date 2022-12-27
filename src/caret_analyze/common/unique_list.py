@@ -70,7 +70,8 @@ class UniqueList(UserList):
             Updated list with added data.
 
         """
-        return self.data + other  # TODO(hsgwa): fix to "self + other"
+        #  TODO(hsgwa): fix to "self + other"
+        return self.data + other  # type: ignore
 
     def __iadd__(self, other: Iterable[Any]) -> UniqueList:
         """
