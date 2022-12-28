@@ -295,7 +295,6 @@ class TestCombinePath:
     #     with pytest.raises(InvalidArgumentError):
     #         combine_path.combine(path_left, path_right)
 
-
     def test_combine__node__comm(
         self,
         create_node_path,
