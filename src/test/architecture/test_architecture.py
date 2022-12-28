@@ -56,8 +56,8 @@ def create_subscription():
 
 @pytest.fixture
 def create_node_path(
-    create_publisher: Callable[[Optional[str], Optional[str]], PublisherStructValue],
-    create_subscription: Callable[[Optional[str], Optional[str]], SubscriptionStructValue]
+    create_publisher: Callable[[str, str], PublisherStructValue],
+    create_subscription: Callable[[str, str], SubscriptionStructValue]
 ):
     def _create_node_path(
         node_name: str,
@@ -94,7 +94,6 @@ def create_arch(mocker):
             mocker.patch.object(node_value_mock, 'paths', tuple(paths))
             mocker.patch.object(node_value_mock, 'callbacks', [])
             mocker.patch.object(node_value_mock, 'node_name', node)
-            mocker.patch('caret_analyze.value_objects.node.NodeStructValue')
 
             node_mock = mocker.Mock(spec=NodeStruct)
             mocker.patch.object(node_mock, 'callbacks', [])
@@ -107,7 +106,6 @@ def create_arch(mocker):
         for comm in comms:
             comm_mock = mocker.Mock(spec=CommunicationStruct)
             mocker.patch.object(comm_mock, 'to_value', return_value=comm)
-            mocker.patch('caret_analyze.architecture.struct.communication.CommunicationStruct')
             comm_list.append(comm_mock)
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -130,8 +128,8 @@ def create_arch(mocker):
 
 @pytest.fixture
 def create_node(
-    create_publisher: Callable[[Optional[str], Optional[str]], PublisherStructValue],
-    create_subscription: Callable[[Optional[str], Optional[str]], SubscriptionStructValue]
+    create_publisher: Callable[[str, str], PublisherStructValue],
+    create_subscription: Callable[[str, str], SubscriptionStructValue]
 ):
     def _create_node(
         node_name: str,

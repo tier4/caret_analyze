@@ -42,8 +42,8 @@ def create_subscription():
 
 @pytest.fixture
 def create_node_path(
-    create_publisher: Callable[[Optional[str], Optional[str]], PublisherStructValue],
-    create_subscription: Callable[[Optional[str], Optional[str]], SubscriptionStructValue]
+    create_publisher: Callable[[str, str], PublisherStructValue],
+    create_subscription: Callable[[str, str], SubscriptionStructValue]
 ):
     def _create_node_path(
         node_name: str,
@@ -95,8 +95,8 @@ def create_get_communication():
 
 @pytest.fixture
 def create_node(
-    create_publisher: Callable[[Optional[str], Optional[str]], PublisherStructValue],
-    create_subscription: Callable[[Optional[str], Optional[str]], SubscriptionStructValue]
+    create_publisher: Callable[[str, str], PublisherStructValue],
+    create_subscription: Callable[[str, str], SubscriptionStructValue]
 ):
     def _create_node(
         node_name: str,

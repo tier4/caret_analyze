@@ -58,7 +58,7 @@ class CombinePath():
         Returns
         -------
         bool
-            result
+            True if combine is available, false otherwise.
 
         """
         if name1 is None and name2 is None:
@@ -81,7 +81,7 @@ class CombinePath():
         Raises
         ------
         InvalidArgumentError
-            Not matched topic name.
+            Occurs when combine is not available.
 
         """
         if self.__can_combine(left_topic_name, right_topic_name):
@@ -105,7 +105,7 @@ class CombinePath():
         Raises
         ------
         InvalidArgumentError
-            Not matched node name.
+            Occurs when combine is not available.
 
         """
         if self.__can_combine(left_node_name, right_node_name):
@@ -136,7 +136,7 @@ class CombinePath():
         left_last_child : NodePathStructValue
             left last child
         right_first_child : NodePathStructValue
-            right last child
+            right first child
 
         """
         self.__validate_topic_name(
@@ -161,7 +161,7 @@ class CombinePath():
         left_last_child : NodePathStructValue
             left last child
         right_first_child : CommunicationStructValue
-            right last child
+            right first child
 
         """
         self.__validate_topic_name(
@@ -185,7 +185,7 @@ class CombinePath():
         left_last_child : CommunicationStructValue
             left last child
         right_first_child : NodePathStructValue
-            right last child
+            right first child
 
         """
         self.__validate_topic_name(
@@ -240,7 +240,7 @@ class CombinePath():
         Raises
         ------
         InvalidArgumentError
-            No child in input path.
+            Occurs when combine is not available.
 
         """
         if len(left_path.child) == 0 or len(right_path.child) == 0:
@@ -260,7 +260,7 @@ class CombinePath():
         publish_topic_name: Optional[str]
     ) -> bool:
         """
-        Find node path matched topics.
+        Check if the given NodePathStructValue matches.
 
         Parameters
         ----------
@@ -274,7 +274,7 @@ class CombinePath():
         Returns
         -------
         bool
-            valid or invalid
+            True if match, False otherwise.
 
         """
         return node_path.subscribe_topic_name == subscribe_topic_name and \
@@ -320,10 +320,10 @@ class CombinePath():
 
         """
         for node_path in node_paths:
-            if (self.__is_valid(
+            if self.__is_valid(
                     node_path,
                     left_last_child.subscribe_topic_name,
-                    right_first_child.publish_topic_name)):
+                    right_first_child.publish_topic_name):
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)
@@ -359,10 +359,10 @@ class CombinePath():
 
         """
         for node_path in node_paths:
-            if (self.__is_valid(
+            if self.__is_valid(
                     node_path,
                     left_last_child.subscribe_topic_name,
-                    right_first_child.topic_name)):
+                    right_first_child.topic_name):
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)
@@ -398,10 +398,10 @@ class CombinePath():
 
         """
         for node_path in node_paths:
-            if (self.__is_valid(
+            if self.__is_valid(
                     node_path,
                     left_last_child.topic_name,
-                    right_first_child.publish_topic_name)):
+                    right_first_child.publish_topic_name):
                 return node_path
         msg = 'No node path to combine.'
         raise InvalidArgumentError(msg)
@@ -440,9 +440,9 @@ class CombinePath():
             Unsupported in case of Comm-Comm
 
         """
-        if (isinstance(left_last_child, NodePathStructValue)):
+        if isinstance(left_last_child, NodePathStructValue):
             return left_last_child.node_name
-        if (isinstance(right_first_child, NodePathStructValue)):
+        if isinstance(right_first_child, NodePathStructValue):
             return right_first_child.node_name
         msg = "'combine_path.get_node_name' does not support communication. "
         raise UnsupportedTypeError(msg)
@@ -529,7 +529,7 @@ class CombinePath():
             else:
                 new_child += (child,)
         new_child += (right_path[-1],)
-        return PathStructValue(None, (new_child))
+        return PathStructValue(None, new_child)
 
     @singledispatchmethod
     def _get_middle_child(
@@ -658,7 +658,8 @@ class CombinePath():
             combined path
 
         """
-        raise NotImplementedError('')
+        msg = 'This is a not implemented COMBINE case. Please contact maintainer if necessary.'
+        raise NotImplementedError(msg)
 
     def combine(
         self,
