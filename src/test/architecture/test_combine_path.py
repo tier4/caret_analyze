@@ -129,8 +129,8 @@ def create_comm(create_node: Callable[[str, Optional[str], Optional[str]], NodeS
         pub_node_name: str,
         sub_node_name: str
     ):
-        node_sub: NodeStructValue = create_node(sub_node_name, topic_name, None)
         node_pub: NodeStructValue = create_node(pub_node_name, None, topic_name)
+        node_sub: NodeStructValue = create_node(sub_node_name, topic_name, None)
         comm = CommunicationStructValue(
             node_pub, node_sub,
             node_pub.publishers[0], node_sub.subscriptions[0],
@@ -177,7 +177,52 @@ class TestCombinePath:
         with pytest.raises(InvalidArgumentError):
             combine_path.combine(path_left, path_right)
 
-        # #  TODO(miura): [comm_1] + [comm_2] = [comm_1, node_x, comm_2]
+    # def test_combine__comm1__comm2(
+    #     self,
+    #     create_node_path,
+    #     create_comm,
+    #     create_get_node,
+    #     create_get_communication,
+    # ):
+    #     # TODO(miura): [comm_1] + [comm_2] = [comm_1, node_x, comm_2]
+    #     node_0: NodePathStructValue = create_node_path('node_1', 'topic_0', 'topic_1')
+    #     comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+    #     comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node2')
+
+    #     get_node: Callable[[str], NodeStructValue] = create_get_node([node_0])
+    #     get_communication: Callable[[str, str, str], CommunicationStructValue] = \
+    #         create_get_communication([])
+    #     combine_path = CombinePath(get_node, get_communication)
+
+    #     path_left = PathStructValue(None, (comm_0,))
+    #     path_right = PathStructValue(None, (comm_1,))
+    #     path_expect = PathStructValue(None, (comm_0, node_0, comm_1))
+    #     path = combine_path.combine(path_left, path_right)
+    #     assert path == path_expect
+
+    # def test_combine__comm1__comm2__no_matched_node(
+    #     self,
+    #     create_node_path,
+    #     create_comm,
+    #     create_get_node,
+    #     create_get_communication,
+    # ):
+    #     # TODO(miura): [comm_1] + [comm_2] (no matched node) = NG
+    #     # Test case for no node between comm_1 and comm_2.
+
+    #     node_0: NodePathStructValue = create_node_path('node_1', 'topic_0', 'topic_1')
+    #     comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+    #     comm_1: CommunicationStructValue = create_comm('topic_2', 'node_1', 'node2')
+
+    #     get_node: Callable[[str], NodeStructValue] = create_get_node([node_0])
+    #     get_communication: Callable[[str, str, str], CommunicationStructValue] = \
+    #         create_get_communication([])
+    #     combine_path = CombinePath(get_node, get_communication)
+
+    #     path_left = PathStructValue(None, (comm_0,))
+    #     path_right = PathStructValue(None, (comm_1,))
+    #     with pytest.raises(InvalidArgumentError):
+    #         combine_path.combine(path_left, path_right)
 
     def test_combine__node__node(
         self,
@@ -200,7 +245,56 @@ class TestCombinePath:
         with pytest.raises(InvalidArgumentError):
             combine_path.combine(path_left, path_right)
 
-        # #  TODO(miura): [node_1] + [node_2] = [node_1, comm_x, node_2]
+    # def test_combine__node1__node2(
+    #     self,
+    #     create_node_path,
+    #     create_comm,
+    #     create_get_node,
+    #     create_get_communication,
+    # ):
+    #     # TODO(miura): [node_1] + [node_2] = [node_1, comm_x, node_2]
+
+    #     node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+    #     node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
+    #     comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+
+    #     get_node: Callable[[str], NodeStructValue] = create_get_node([])
+    #     get_communication: Callable[[str, str, str], CommunicationStructValue] = \
+    #         create_get_communication(comm_0)
+    #     combine_path = CombinePath(get_node, get_communication)
+
+    #     path_left = PathStructValue(None, (node_0,))
+    #     path_right = PathStructValue(None, (node_1,))
+
+    #     path_expect = PathStructValue(None, (node_0, comm_0, node_1))
+    #     path = combine_path.combine(path_left, path_right)
+    #     assert path == path_expect
+
+    # def test_combine__node1__node2__no_matched_comm(
+    #     self,
+    #     create_node_path,
+    #     create_comm,
+    #     create_get_node,
+    #     create_get_communication,
+    # ):
+    #     # TODO(miura): [node_1] + [node_2] (no matched comm) = NG
+    #     # Test case for no topic between node_1 and node_2.
+
+    #     node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+    #     node_1: NodePathStructValue = create_node_path('node_1', 'topic_1', None)
+    #     comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+
+    #     get_node: Callable[[str], NodeStructValue] = create_get_node([])
+    #     get_communication: Callable[[str, str, str], CommunicationStructValue] = \
+    #         create_get_communication(comm_0)
+    #     combine_path = CombinePath(get_node, get_communication)
+
+    #     path_left = PathStructValue(None, (node_0,))
+    #     path_right = PathStructValue(None, (node_1,))
+
+    #     with pytest.raises(InvalidArgumentError):
+    #         combine_path.combine(path_left, path_right)
+
 
     def test_combine__node__comm(
         self,
@@ -400,11 +494,8 @@ class TestCombinePath:
         node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
 
-        comm_0_left: CommunicationStructValue = create_comm('topic_0', 'node_0', None)
-        comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
-
-        path_left = PathStructValue(None, (node_0, comm_0_left))
-        path_right = PathStructValue(None, (comm_0_right, node_1))
+        path_left = PathStructValue(None, (node_0, comm_0))
+        path_right = PathStructValue(None, (comm_0, node_1))
 
         get_node: Callable[[str], NodeStructValue] = create_get_node([])
         get_communication: Callable[[str, str, str], CommunicationStructValue] = \
@@ -412,33 +503,6 @@ class TestCombinePath:
 
         path_expect = PathStructValue(None, (node_0, comm_0, node_1))
         combine_path = CombinePath(get_node, get_communication)
-        path = combine_path.combine(path_left, path_right)
-        assert path == path_expect
-
-    def test_combine__node_comm__comm_node__with_none(
-        self,
-        create_node_path,
-        create_comm,
-        create_get_node,
-        create_get_communication,
-    ):
-        # [node_0, comm_0_left] + [comm_0_right, node_1] = OK
-        node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
-        node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
-        comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
-
-        comm_0_left: CommunicationStructValue = create_comm('topic_0', 'node_0', None)
-        comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
-
-        get_node: Callable[[str], NodeStructValue] = create_get_node([])
-        get_communication: Callable[[str, str, str], CommunicationStructValue] = \
-            create_get_communication(comm_0)
-        combine_path = CombinePath(get_node, get_communication)
-
-        path_left = PathStructValue(None, (node_0, comm_0_left))
-        path_right = PathStructValue(None, (comm_0_right, node_1))
-
-        path_expect = PathStructValue(None, (node_0, comm_0, node_1))
         path = combine_path.combine(path_left, path_right)
         assert path == path_expect
 
@@ -454,7 +518,6 @@ class TestCombinePath:
         node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
         comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
 
-        comm_0_right: CommunicationStructValue = create_comm('topic_0', None, 'node_1')
         comm_0_left_unmatched: CommunicationStructValue = \
             create_comm('topic_0', 'node_0', 'node_2')  # node_2 for unmatched
 
@@ -464,7 +527,7 @@ class TestCombinePath:
         combine_path = CombinePath(get_node, get_communication)
 
         path_left = PathStructValue(None, (node_0, comm_0_left_unmatched))
-        path_right = PathStructValue(None, (comm_0_right, node_1))
+        path_right = PathStructValue(None, (comm_0, node_1))
         with pytest.raises(InvalidArgumentError):
             combine_path.combine(path_left, path_right)
 
