@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
 
 from logging import WARNING
 
 from string import Template
+from typing import Callable, List, Optional, Tuple
 
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
@@ -26,12 +28,149 @@ from caret_analyze.architecture.reader_interface import ArchitectureReader
 from caret_analyze.architecture.struct import (CommunicationStruct,
                                                ExecutorStruct, NodePathStruct,
                                                NodeStruct, PathStruct,
-                                               TimerCallbackStruct)
+                                               TimerCallbackStruct
+                                               )
 from caret_analyze.exceptions import InvalidArgumentError, ItemNotFoundError
 from caret_analyze.value_objects import (CommunicationStructValue, NodePathStructValue,
-                                         NodeStructValue, PathStructValue)
+                                         NodeStructValue, PathStructValue,
+                                         PublisherStructValue, SubscriptionStructValue)
 
 import pytest
+
+
+@pytest.fixture
+def create_publisher():
+    def _create_publisher(node_name: str, topic_name: str) -> PublisherStructValue:
+        pub = PublisherStructValue(node_name, topic_name, None)
+        return pub
+    return _create_publisher
+
+
+@pytest.fixture
+def create_subscription():
+    def _create_subscription(node_name: str, topic_name: str):
+        sub = SubscriptionStructValue(node_name, topic_name, None)
+        return sub
+    return _create_subscription
+
+
+@pytest.fixture
+def create_node_path(
+    create_publisher: Callable[[str, str], PublisherStructValue],
+    create_subscription: Callable[[str, str], SubscriptionStructValue]
+):
+    def _create_node_path(
+        node_name: str,
+        sub_topic_name: Optional[str],
+        pub_topic_name: Optional[str],
+    ) -> NodePathStructValue:
+        sub = None
+        if sub_topic_name is not None:
+            sub = create_subscription(node_name, sub_topic_name)
+        pub = None
+        if pub_topic_name is not None:
+            pub = create_publisher(node_name, pub_topic_name)
+
+        node_path = NodePathStructValue(
+            node_name, sub, pub, None, None
+        )
+        return node_path
+    return _create_node_path
+
+
+@pytest.fixture
+def create_arch(mocker):
+    def _create_arch(
+        node_paths: Tuple[NodePathStructValue],
+        comms: Tuple[CommunicationStructValue]
+    ) -> Architecture:
+        node_dict: defaultdict[str, List[NodePathStructValue]] = defaultdict(list)
+        for node_path in node_paths:
+            node_dict[node_path.node_name].append(node_path)
+        node_list = []  # List[mock]
+
+        for node, paths in node_dict.items():
+            node_value_mock = mocker.Mock(spec=NodeStructValue)
+            mocker.patch.object(node_value_mock, 'paths', tuple(paths))
+            mocker.patch.object(node_value_mock, 'callbacks', [])
+            mocker.patch.object(node_value_mock, 'node_name', node)
+
+            node_mock = mocker.Mock(spec=NodeStruct)
+            mocker.patch.object(node_mock, 'callbacks', [])
+            mocker.patch.object(node_mock, 'node_name', node)
+            mocker.patch.object(node_mock, 'to_value', return_value=node_value_mock)
+
+            node_list.append(node_mock)
+
+        comm_list = []
+        for comm in comms:
+            comm_mock = mocker.Mock(spec=CommunicationStruct)
+            mocker.patch.object(comm_mock, 'to_value', return_value=comm)
+            comm_list.append(comm_mock)
+
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+
+        mocker.patch.object(ArchitectureReaderFactory,
+                            'create_instance', return_value=reader_mock)
+
+        loaded_mock = mocker.Mock(spec=ArchitectureLoaded)
+        mocker.patch.object(loaded_mock, 'communications', comm_list)
+        mocker.patch.object(loaded_mock, 'executors', [])
+        mocker.patch.object(loaded_mock, 'paths', [])
+        mocker.patch.object(loaded_mock, 'nodes', node_list)
+        mocker.patch('caret_analyze.architecture.architecture_loaded.ArchitectureLoaded',
+                     return_value=loaded_mock)
+
+        arch = Architecture('file_type', 'file_path')
+        return arch
+    return _create_arch
+
+
+@pytest.fixture
+def create_node(
+    create_publisher: Callable[[str, str], PublisherStructValue],
+    create_subscription: Callable[[str, str], SubscriptionStructValue]
+):
+    def _create_node(
+        node_name: str,
+        sub_topic_name: Optional[str],
+        pub_topic_name: Optional[str]
+    ) -> NodeStructValue:
+        pubs: Tuple[PublisherStructValue, ...]
+        subs: Tuple[SubscriptionStructValue, ...]
+
+        if pub_topic_name:
+            pubs = (create_publisher(node_name, pub_topic_name),)
+        else:
+            pubs = ()
+        if sub_topic_name:
+            subs = (create_subscription(node_name, sub_topic_name),)
+        else:
+            subs = ()
+
+        node = NodeStructValue(
+            node_name, pubs, subs, (), (), (), None, None
+        )
+        return node
+    return _create_node
+
+
+@pytest.fixture
+def create_comm(create_node: Callable[[str, Optional[str], Optional[str]], NodeStructValue]):
+    def _create_comm(
+        topic_name: str,
+        pub_node_name: str,
+        sub_node_name: str
+    ):
+        node_sub: NodeStructValue = create_node(sub_node_name, topic_name, None)
+        node_pub: NodeStructValue = create_node(pub_node_name, None, topic_name)
+        comm = CommunicationStructValue(
+            node_pub, node_sub,
+            node_pub.publishers[0], node_sub.subscriptions[0],
+            None, None
+        )
+        return comm
+    return _create_comm
 
 
 class TestArchitecture:
@@ -291,6 +430,49 @@ class TestArchitecture:
 
         paths = arch.search_paths('0', '1', '2')
         assert len(paths) == 1
+
+    def test_combine_path(
+        self,
+        create_node_path,
+        create_comm,
+        create_arch,
+    ):
+        # combine [node, comm, node] + [node, comm, node]
+        node_0: NodePathStructValue = create_node_path('node_0', None, 'topic_0')
+        node_1: NodePathStructValue = create_node_path('node_1', 'topic_0', 'topic_1')
+        node_2: NodePathStructValue = create_node_path('node_2', 'topic_1', None)
+
+        node_1_left: NodePathStructValue = create_node_path('node_1', 'topic_0', None)
+        node_1_right: NodePathStructValue = create_node_path('node_1', None, 'topic_1')
+        node_1_left_unmatched: NodePathStructValue = \
+            create_node_path('node_1', 'topic_0', 'topic_2')
+
+        comm_0: CommunicationStructValue = create_comm('topic_0', 'node_0', 'node_1')
+        comm_1: CommunicationStructValue = create_comm('topic_1', 'node_1', 'node_2')
+
+        arch: Architecture = create_arch(
+            [node_0, node_1, node_1_left, node_1_right, node_2, node_1_left_unmatched],
+            [comm_0, comm_1]
+        )
+
+        # # combine [node_0, comm_0, node_1_left] + [node_1_right, comm_1, node_2]
+        path_left = PathStructValue(
+            None, (node_0, comm_0, node_1_left))
+        path_right = PathStructValue(
+            None, (node_1_right, comm_1, node_2))
+
+        path_expect = PathStructValue(
+            None, (node_0, comm_0, node_1, comm_1, node_2))
+        path = arch.combine_path(path_left, path_right)
+        assert path == path_expect
+
+        # # combine [node_0, comm_0, node_1_left_unmatched] + [node_1_right, comm_1, node_2]
+        path_left = PathStructValue(
+            None, (node_0, comm_0, node_1_left_unmatched))
+        path_right = PathStructValue(
+            None, (node_1_right, comm_1, node_2))
+        with pytest.raises(InvalidArgumentError):
+            arch.combine_path(path_left, path_right)
 
     def test_verify_callback_uniqueness(self, mocker, caplog):
         node_mock = mocker.Mock(spec=NodeStruct)

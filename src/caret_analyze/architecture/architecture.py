@@ -19,12 +19,13 @@ from typing import Callable, Collection, Dict, List, Optional, Sequence, Tuple, 
 
 from .architecture_exporter import ArchitectureExporter
 from .architecture_loaded import NodeValuesLoaded
+from .combine_path import CombinePath
 
 from .reader_interface import ArchitectureReader, IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodePathStruct, NodeStruct, PathStruct)
 from .struct.callback import CallbackStruct, TimerCallbackStruct
-from ..common import Summarizable, Summary, Util
+from ..common import Summarizable, Summary, type_check_decorator, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
@@ -278,6 +279,26 @@ class Architecture(Summarizable):
         print(msg)
 
         return paths
+
+    @type_check_decorator
+    def combine_path(
+        self,
+        path_left: PathStructValue,
+        path_right: PathStructValue
+    ) -> PathStructValue:
+
+        def get_node(node_name: str) -> NodeStructValue:
+            return self.get_node(node_name)
+
+        def get_communication(
+            publish_node_name: str,
+            subscribe_node_name: str,
+            topic_name: str
+        ) -> CommunicationStructValue:
+            return self.get_communication(publish_node_name, subscribe_node_name, topic_name)
+
+        combine_path = CombinePath(get_node, get_communication)
+        return combine_path.combine(path_left, path_right)
 
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
