@@ -121,13 +121,18 @@ class NodeStruct():
 
     def get_subscription(
         self,
-        subscribe_topic_name: str
+        subscribe_topic_name: str,
+        callback_name: Optional[str] = None
     ) -> SubscriptionStruct:
 
+        def is_target(subscription: SubscriptionStruct):
+            match = subscription.topic_name == subscribe_topic_name
+            if callback_name:
+                match &= subscription.callback_name == callback_name
+            return match
+
         try:
-            return Util.find_one(
-                lambda x: x.topic_name == subscribe_topic_name,
-                self._subscriptions)
+            return Util.find_one(is_target, self._subscriptions)
         except ItemNotFoundError:
             msg = 'Failed to find subscription info. '
             msg += f'topic_name: {subscribe_topic_name}'

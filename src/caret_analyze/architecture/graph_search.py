@@ -412,9 +412,10 @@ class CallbackPathSearcher:
         sub: Optional[SubscriptionStruct] = None
         pub: Optional[PublisherStruct] = None
 
-        if subscribe_topic_name is not None:
+        if subscribe_topic_name is not None and len(graph_node_names) > 0:
             try:
-                sub = self._node.get_subscription(subscribe_topic_name)
+                sub_cb_name = self._point_name_to_callback_name(graph_node_names[0])
+                sub = self._node.get_subscription(subscribe_topic_name, sub_cb_name)
             except ItemNotFoundError:
                 msg = 'Failed to find subscription. '
                 msg += f'node_name: {self._node.node_name}, '

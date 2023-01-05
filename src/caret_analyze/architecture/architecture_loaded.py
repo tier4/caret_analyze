@@ -255,7 +255,12 @@ class CommValuesLoaded():
         def __call__(self, callback: CallbackStruct) -> bool:
             if callback.subscribe_topic_name is None:
                 return False
-            return self._subscription.topic_name == callback.subscribe_topic_name
+
+            match = self._subscription.topic_name == callback.subscribe_topic_name
+            if self._subscription.callback_name:
+                match &= self._subscription.callback_name == callback.callback_name
+
+            return match
 
 
 class NodeValuesLoaded():
