@@ -12,20 +12,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Iterable
+
 from tqdm import tqdm
 
 
 class Progress:
+    """
+    Class that manages the progress bar.
+
+    Set Progress.enable = True if to display progress bar.
+    """
+
     enable = False
 
     @classmethod
-    def tqdm(cls, it, *args):
+    def tqdm(cls, it, *args) -> Iterable[Any]:
+        """
+        Progress bar for python iterators.
+
+        Parameters
+        ----------
+        it : _type_
+            iterator
+
+        Returns
+        -------
+        Iterable[Any]
+            iterator.
+            progress bar is enabled if Progress.enable == True, disabled otherwise.
+
+        """
         if cls.enable:
             return tqdm(it, *args)
         return it
 
     @classmethod
     def records_label(cls, label: str) -> str:
+        """
+        Progress bar for the iterator in Records.
+
+        Parameters
+        ----------
+        label : str
+            operation label.
+
+        Returns
+        -------
+        str
+            '' if Progress.enables == True, label otherwise.
+            progress bar is enabled if Progress.enable == True, disabled otherwise.
+
+        """
         if cls.enable:
             return label
         return ''

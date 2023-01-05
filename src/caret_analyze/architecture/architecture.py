@@ -15,21 +15,25 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Collection, List, Optional, Tuple, Union
+from typing import Callable, Collection, Dict, List, Optional, Sequence, Tuple, Union
 
 from .architecture_exporter import ArchitectureExporter
+from .architecture_loaded import NodeValuesLoaded
+from .combine_path import CombinePath
 
-from .reader_interface import IGNORE_TOPICS
+from .reader_interface import ArchitectureReader, IGNORE_TOPICS
 from .struct import (CommunicationStruct, ExecutorStruct,
                      NodePathStruct, NodeStruct, PathStruct)
 from .struct.callback import (
     CallbackStruct, ServiceCallbackStruct, SubscriptionCallbackStruct, TimerCallbackStruct)
-from ..common import Summarizable, Summary, Util
+from ..common import Summarizable, Summary, type_check_decorator, Util
 from ..exceptions import InvalidArgumentError, ItemNotFoundError, UnsupportedTypeError
 from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue, PathStructValue,
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
+
+logger = logging.getLogger(__name__)
 
 
 class Architecture(Summarizable):
@@ -277,6 +281,26 @@ class Architecture(Summarizable):
 
         return paths
 
+    @type_check_decorator
+    def combine_path(
+        self,
+        path_left: PathStructValue,
+        path_right: PathStructValue
+    ) -> PathStructValue:
+
+        def get_node(node_name: str) -> NodeStructValue:
+            return self.get_node(node_name)
+
+        def get_communication(
+            publish_node_name: str,
+            subscribe_node_name: str,
+            topic_name: str
+        ) -> CommunicationStructValue:
+            return self.get_communication(publish_node_name, subscribe_node_name, topic_name)
+
+        combine_path = CombinePath(get_node, get_communication)
+        return combine_path.combine(path_left, path_right)
+
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
         from collections import Counter
@@ -306,11 +330,51 @@ class Architecture(Summarizable):
             counter = Counter(callback_params)
 
             for uniqueness_violated in [param for param, count in counter.items() if count >= 2]:
-                logging.warning(
+                logger.warning(
                     ('Duplicate parameter callback found. '
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
+
+    def assign_message_context(self, node_name: str, context_type: str,
+                               subscribe_topic_name: str, publish_topic_name: str):
+        node: NodeStruct =\
+            Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        if publish_topic_name not in node.publish_topic_names:
+            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
+
+        if subscribe_topic_name not in node.subscribe_topic_names:
+            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
+
+        if (context_type, subscribe_topic_name, publish_topic_name) \
+            not in [(None if path.message_context_type is None
+                     else path.message_context_type.type_name,
+                     path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
+            context_reader = AssignContextReader(node)
+            context_reader.append_message_context({'context_type': context_type,
+                                                   'subscription_topic_name': subscribe_topic_name,
+                                                   'publisher_topic_name': publish_topic_name})
+
+            node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
+
+    def assign_publisher_and_callback(self, node_name: str,
+                                      publish_topic_name: str, callback_name: str):
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.assign_publisher_and_callback(publish_topic_name, callback_name)
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
+
+    def assign_variable_passings(self, node_name: str,
+                                 callback_name_write: str, callback_name_read: str):
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.assign_variable_passings(callback_name_write, callback_name_read)
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
 
     def rename_callback(self, src: str, dst: str) -> None:
         cb_s: List[CallbackStruct] =\
@@ -346,3 +410,56 @@ class Architecture(Summarizable):
 
         for c in self._communications:
             c.rename_topic(src, dst)
+
+
+class AssignContextReader(ArchitectureReader):
+    """MessageContext of NodeStruct implemented version of ArchitectureReader."""
+
+    def __init__(self, node: NodeStruct):
+        contexts = [path.message_context for path in node.paths]
+        self._contexts = [context.to_dict() for context in contexts if context is not None]
+
+    def append_message_context(self, context: Dict):
+        self._contexts.append(context)
+
+    def get_message_contexts(self, _) -> Sequence[Dict]:
+        return self._contexts
+
+    def get_callback_groups(self):
+        pass
+
+    def get_executors(self):
+        pass
+
+    def get_node_names_and_cb_symbols(self):
+        pass
+
+    def get_nodes(self):
+        pass
+
+    def get_paths(self):
+        pass
+
+    def get_publishers(self):
+        pass
+
+    def get_service_callbacks(self):
+        pass
+
+    def get_services(self):
+        pass
+
+    def get_subscription_callbacks(self):
+        pass
+
+    def get_subscriptions(self):
+        pass
+
+    def get_timer_callbacks(self):
+        pass
+
+    def get_timers(self):
+        pass
+
+    def get_variable_passings(self):
+        pass

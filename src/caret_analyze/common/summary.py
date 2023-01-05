@@ -18,7 +18,16 @@ from typing import Any, Dict, List, Union
 
 
 class Summary(UserDict):
-    """Summary info about for value objects and runtime data objects."""
+    """
+    Summary about value objects and runtime data objects.
+
+    Note:
+    ----
+    The class is used to get an overview of the instance
+    without any effect to __eq__ and  __hash__.
+    Users can get an overview in dictionary form or check the overview in the standard output.
+
+    """
 
     def pprint(self):
         print((self))
@@ -37,7 +46,21 @@ class Summary(UserDict):
         return dump(self._convert_safe(self.data))
 
     @staticmethod
-    def _convert_safe(obj) -> Union[List, Dict]:
+    def _convert_safe(obj: Any) -> Union[List, Dict]:
+        """
+        Convert a object to a object convertible to YAML.
+
+        Parameters
+        ----------
+        obj : Any
+            Object to convert.
+
+        Returns
+        -------
+        Union[List, Dict]
+            converted object.
+
+        """
         if isinstance(obj, tuple) or isinstance(obj, list):
             return [Summary._convert_safe(_) for _ in obj]
 

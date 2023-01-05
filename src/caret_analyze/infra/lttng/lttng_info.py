@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from functools import cached_property, lru_cache
-from logging import getLogger
+from logging import getLogger, WARN
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
@@ -674,7 +674,10 @@ class LttngInfo:
         for _, row in timer_controls.df.iterrows():
             if row['type'] == 'init':
                 params = row['params']
-                control = TimerInit(row['timer_handle'], row['timestamp'], params['period'])
+                control = TimerInit(
+                    int(row['timer_handle']),
+                    int(row['timestamp']),
+                    int(params['period']))
                 controls.append(control)
             else:
                 raise NotImplementedError('Unsupported timer control type.')
@@ -1277,7 +1280,10 @@ class DataFrameFormatted:
                     for i, node_name_and_cb_symbol in enumerate(node_names_and_cb_symbols):
                         msg += f'\t|node name {i}| {node_name_and_cb_symbol[0]}.\n'
                         msg += f'\t|callback symbol {i}| {node_name_and_cb_symbol[1]}.\n'
-                logger.warn(msg)
+                # This warning occurs frequently,
+                # but currently does not significantly affect behavior.
+                # Therefore, the log level is temporarily lowered.
+                logger.log(WARN-1, msg)
                 executor_duplicated_indexes += list(group.index)[:-1]
 
         if len(executor_duplicated_indexes) >= 1:
