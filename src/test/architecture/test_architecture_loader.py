@@ -1324,6 +1324,7 @@ class TestCommunicationInfoLoaded:
         topic_name = '/chatter'
         pub_node_name = 'talker'
         sub_node_name = 'listener'
+        callback_name = 'callback_name'
 
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         pub_mock = mocker.Mock(spec=PublisherStruct)
@@ -1336,6 +1337,7 @@ class TestCommunicationInfoLoaded:
 
         mocker.patch.object(pub_mock, 'node_name', pub_node_name)
         mocker.patch.object(sub_mock, 'node_name', sub_node_name)
+        mocker.patch.object(sub_mock, 'callback_name', callback_name)
 
         mocker.patch.object(node_pub_mock, 'publishers', [pub_mock])
         mocker.patch.object(node_sub_mock, 'subscriptions', [sub_mock])
@@ -1350,6 +1352,7 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(sub_cb_mock, 'publish_topic_names', [])
         mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub_cb_mock, 'node_name', sub_node_name)
+        mocker.patch.object(sub_cb_mock, 'callback_name', callback_name)
 
         mocker.patch.object(
             nodes_loaded_mock, 'get_callbacks', return_value=(pub_cb_mock, sub_cb_mock))
