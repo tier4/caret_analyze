@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import List, Sequence, Union
+from typing import List, Optional, Sequence, Union
 
-from bokeh.plotting import Figure
+from bokeh.plotting import Figure, save, show
+from bokeh.resources import CDN
 
 import pandas as pd
 
@@ -68,6 +69,34 @@ class CallbackSchedulingPlot(PlotBase):
             self._callback_groups, xaxis_type, ywheel_zoom, full_legends,
             coloring_rule, lstrip_s, rstrip_s
         )
+
+    def show(
+        self,
+        xaxis_type: str = 'system_time',
+        ywheel_zoom: bool = True,
+        full_legends: bool = False,
+        export_path: Optional[str] = None,
+        coloring_rule: str = 'callback',
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
+    ) -> Figure:
+        p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule, lstrip_s, rstrip_s)
+        show(p)
+        return p
+
+    def save(
+        self,
+        export_path: str,
+        title: str = '',
+        xaxis_type: str = 'system_time',
+        ywheel_zoom: bool = True,
+        full_legends: bool = False,
+        coloring_rule: str = 'callback',
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
+    ) -> None:
+        p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule, lstrip_s, rstrip_s)
+        save(p, export_path, title=title, resources=CDN)
 
     @staticmethod
     def _get_callback_groups(target_objects: CallbackGroupTypes) -> List[CallbackGroup]:
