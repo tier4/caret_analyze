@@ -59,7 +59,8 @@ class CallbackSchedulingPlot(PlotBase):
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> Figure:
-        """Get a callback scheduling plot using the bokeh library.
+        """
+        Get a callback scheduling plot using the bokeh library.
 
         Parameters
         ----------
@@ -84,7 +85,6 @@ class CallbackSchedulingPlot(PlotBase):
         Returns
         -------
         bokeh.plotting.Figure
-            _description_
 
         Raises
         ------

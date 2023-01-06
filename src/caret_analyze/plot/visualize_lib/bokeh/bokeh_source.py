@@ -224,7 +224,8 @@ class CallbackSchedRectSource(BokehSourceInterface):
         return self._rect_y_base
 
     def generate(self, callback: CallbackBase) -> ColumnDataSource:
-        """Generate callback scheduling rect source.
+        """
+        Generate callback scheduling rect source.
 
         Parameters
         ----------
@@ -286,7 +287,8 @@ class CallbackSchedBarSource(BokehSourceInterface):
         self._frame_max = frame_max
 
     def generate(self, callback: CallbackBase, rect_y_base: float) -> ColumnDataSource:
-        """Generate callback scheduling bar source.
+        """
+        Generate callback scheduling bar source.
 
         Parameters
         ----------

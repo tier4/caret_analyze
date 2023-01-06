@@ -61,7 +61,8 @@ class ColorSelectorInterface:
         cbg_name: str = '',
         callback_name: str = ''
     ) -> Color:
-        """Get color.
+        """
+        Get color.
 
         Parameters
         ----------

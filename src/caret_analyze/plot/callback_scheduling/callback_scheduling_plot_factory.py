@@ -34,7 +34,8 @@ class CallbackSchedulingPlotFactory:
         target_objects: CallbackGroupTypes,
         visualize_lib: VisualizeLibInterface,
     ) -> CallbackSchedulingPlot:
-        """Create instance.
+        """
+        Create instance.
 
         Parameters
         ----------

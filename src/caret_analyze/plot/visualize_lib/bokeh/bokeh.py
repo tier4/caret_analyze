@@ -53,7 +53,8 @@ class Bokeh(VisualizeLibInterface):
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> Figure:
-        """Get callback scheduling figure.
+        """
+        Get callback scheduling figure.
 
         Parameters
         ----------

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback_scheduling_plot_factory import CallbackSchedulingPlotFactory
 from .callback_scheduling_plot import CallbackSchedulingPlot
+from .callback_scheduling_plot_factory import CallbackSchedulingPlotFactory
 
-__all__ = ['CallbackSchedulingPlotFactory', 'CallbackSchedulingPlot']
+__all__ = ['CallbackSchedulingPlot', 'CallbackSchedulingPlotFactory']
