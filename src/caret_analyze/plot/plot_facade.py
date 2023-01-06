@@ -17,15 +17,19 @@ from typing import Collection, Union
 
 from multimethod import multimethod as singledispatchmethod
 
+from .callback_scheduling import CallbackSchedulingFactory
 from .histogram import ResponseTimePlot
 from .plot_base import PlotBase
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
-from ..runtime import CallbackBase, Communication, Path, Publisher, Subscription
+from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
+                       Path, Publisher, Subscription)
 
 logger = getLogger(__name__)
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+CallbackSchedTypes = Union[Application, Executor, Path,
+                           Node, CallbackGroup, Collection[CallbackGroup]]
 
 
 class Plot:
@@ -180,6 +184,29 @@ class Plot:
         binsize_ns: int = 10000000
     ) -> ResponseTimePlot:
         return ResponseTimePlot(list(paths), case, int(binsize_ns))
+
+    @singledispatchmethod
+    def create_callback_scheduling_plot(  # type: ignore
+        target_objects: CallbackSchedTypes,
+    ) -> PlotBase:
+        visualize_lib = VisualizeLibFactory.create_instance()
+        if isinstance(target_objects, (tuple, set)):
+            target_objects = list(target_objects)
+        plot = CallbackSchedulingFactory.create_instance(
+            target_objects, visualize_lib
+        )
+        return plot
+
+    @staticmethod
+    @create_callback_scheduling_plot.register
+    def _create_callback_scheduling_plot_tuple(
+        *target_objects: CallbackGroup,
+    ) -> PlotBase:
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = CallbackSchedulingFactory.create_instance(
+            list(target_objects), visualize_lib
+        )
+        return plot
 
     # ---------- Previous Interface ----------
     @singledispatchmethod
