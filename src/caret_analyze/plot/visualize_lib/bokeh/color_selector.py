@@ -23,6 +23,7 @@ import colorcet as cc
 
 
 class ColorSelectorFactory:
+    """Factory class to create an instance of ColorSelector."""
 
     @staticmethod
     def create_instance(coloring_rule: str):
@@ -40,6 +41,7 @@ class ColorSelectorFactory:
 
 
 class ColorSelectorInterface:
+    """Interface class of ColorSelector."""
 
     def __init__(self) -> None:
         self._palette: Sequence[Color] = \
@@ -59,6 +61,22 @@ class ColorSelectorInterface:
         cbg_name: str = '',
         callback_name: str = ''
     ) -> Color:
+        """Get color.
+
+        Parameters
+        ----------
+        node_name : str, optional
+            node name, by default ''
+        cbg_name : str, optional
+            callback group name, by default ''
+        callback_name : str, optional
+            callback name, by default ''
+
+        Returns
+        -------
+        Color
+
+        """
         color_hash = self._get_color_hash(node_name, cbg_name, callback_name)
 
         if color_hash not in self._color_map:

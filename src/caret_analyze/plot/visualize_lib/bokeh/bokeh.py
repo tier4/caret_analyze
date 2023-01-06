@@ -53,6 +53,35 @@ class Bokeh(VisualizeLibInterface):
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> Figure:
+        """Get callback scheduling figure.
+
+        Parameters
+        ----------
+        callback_groups : Sequence[CallbackGroup]
+            The target callback groups.
+        xaxis_type : str, optional
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool, optional
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool, optional
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+        coloring_rule : str, optional
+            The unit of color change
+            There are there rules which are [callback/callback_group/node], by default 'callback'
+        lstrip_s : float, optional
+            Left strip, by default 0
+        rstrip_s : float, optional
+            Right strip, by default 0
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+
+        """
         # Initialize figure
         fig_args = {
             'y_axis_label': '', 'width': 1200,

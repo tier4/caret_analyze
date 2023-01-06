@@ -17,7 +17,7 @@ from typing import Collection, Union
 
 from multimethod import multimethod as singledispatchmethod
 
-from .callback_scheduling import CallbackSchedulingFactory
+from .callback_scheduling import CallbackSchedulingPlotFactory
 from .histogram import ResponseTimePlot
 from .plot_base import PlotBase
 from .timeseries import TimeSeriesPlotFactory
@@ -192,7 +192,7 @@ class Plot:
         visualize_lib = VisualizeLibFactory.create_instance()
         if isinstance(target_objects, (tuple, set)):
             target_objects = list(target_objects)
-        plot = CallbackSchedulingFactory.create_instance(
+        plot = CallbackSchedulingPlotFactory.create_instance(
             target_objects, visualize_lib
         )
         return plot
@@ -203,7 +203,7 @@ class Plot:
         *target_objects: CallbackGroup,
     ) -> PlotBase:
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = CallbackSchedulingFactory.create_instance(
+        plot = CallbackSchedulingPlotFactory.create_instance(
             list(target_objects), visualize_lib
         )
         return plot

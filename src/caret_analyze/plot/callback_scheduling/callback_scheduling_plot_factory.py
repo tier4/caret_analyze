@@ -25,7 +25,8 @@ CallbackGroupTypes = Union[Application, Executor,
                            Path, Node, CallbackGroup, Sequence[CallbackGroup]]
 
 
-class CallbackSchedulingFactory:
+class CallbackSchedulingPlotFactory:
+    """Factory class to create an instance of CallbackSchedulingPlot."""
 
     @staticmethod
     @type_check_decorator
@@ -33,4 +34,19 @@ class CallbackSchedulingFactory:
         target_objects: CallbackGroupTypes,
         visualize_lib: VisualizeLibInterface,
     ) -> CallbackSchedulingPlot:
+        """Create instance.
+
+        Parameters
+        ----------
+        target_objects : CallbackGroupTypes
+            CallbackGroupTypes = Union[Application, Executor, Path,
+                                       Node, CallbackGroup, Sequence[CallbackGroup]]
+        visualize_lib : VisualizeLibInterface
+            Instance of VisualizeLibInterface used for visualization.
+
+        Returns
+        -------
+        CallbackSchedulingPlot
+
+        """
         return CallbackSchedulingPlot(target_objects, visualize_lib)

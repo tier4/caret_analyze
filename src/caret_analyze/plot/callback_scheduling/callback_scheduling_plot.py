@@ -35,6 +35,7 @@ logger = getLogger(__name__)
 
 
 class CallbackSchedulingPlot(PlotBase):
+    """Class that provides API for callback scheduling plot."""
 
     def __init__(
         self,
@@ -58,6 +59,40 @@ class CallbackSchedulingPlot(PlotBase):
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> Figure:
+        """Get a callback scheduling plot using the bokeh library.
+
+        Parameters
+        ----------
+        xaxis_type : str, optional
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool, optional
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool, optional
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+        coloring_rule : str, optional
+            The unit of color change
+            There are there rules which are [callback/callback_group/node], by default 'callback'
+        lstrip_s : float, optional
+            Left strip, by default 0
+        rstrip_s : float, optional
+            Right strip, by default 0
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            _description_
+
+        Raises
+        ------
+        UnsupportedTypeError
+            - Argument xaxis_type is not "system_time", "index", or "sim_time".
+            - Argument coloring_rule is not 'callback', 'callback_group', or 'node'.
+
+        """
         self._validate_xaxis_type(xaxis_type)
         if coloring_rule not in ['callback', 'callback_group', 'node']:
             raise UnsupportedTypeError(

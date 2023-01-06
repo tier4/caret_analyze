@@ -122,6 +122,8 @@ class BokehSourceInterface(metaclass=ABCMeta):
         ----------
         target_object : Any
             The target object to be drawn.
+        options: dict, optional
+            Additional options for HoverTool.
 
         Returns
         -------
@@ -201,6 +203,7 @@ class RectValues:
 
 
 class CallbackSchedRectSource(BokehSourceInterface):
+    """Class to generate callback scheduling rect sources."""
 
     RECT_HEIGHT = 0.3
     _RECT_Y_STEP = -1.5
@@ -220,7 +223,19 @@ class CallbackSchedRectSource(BokehSourceInterface):
     def rect_y_base(self) -> float:
         return self._rect_y_base
 
-    def generate(self, callback: CallbackBase):
+    def generate(self, callback: CallbackBase) -> ColumnDataSource:
+        """Generate callback scheduling rect source.
+
+        Parameters
+        ----------
+        callback : CallbackBase
+            target callback.
+
+        Returns
+        -------
+        ColumnDataSource
+
+        """
         rect_source = ColumnDataSource(data={
             k: [] for k in (['x', 'y', 'width', 'height'] + self._get_source_keys(callback))
         })
@@ -247,6 +262,7 @@ class CallbackSchedRectSource(BokehSourceInterface):
         return rect_source
 
     def update_rect_y_base(self) -> None:
+        """Update rect_y_base to the next step."""
         self._rect_y_base += self._RECT_Y_STEP
 
     def _get_source_keys(self, target_object: Any) -> List[str]:
@@ -257,6 +273,7 @@ class CallbackSchedRectSource(BokehSourceInterface):
 
 
 class CallbackSchedBarSource(BokehSourceInterface):
+    """Class to generate callback scheduling bar sources."""
 
     def __init__(
         self,
@@ -268,7 +285,21 @@ class CallbackSchedBarSource(BokehSourceInterface):
         self._frame_min = frame_min
         self._frame_max = frame_max
 
-    def generate(self, callback: CallbackBase, rect_y_base: float):
+    def generate(self, callback: CallbackBase, rect_y_base: float) -> ColumnDataSource:
+        """Generate callback scheduling bar source.
+
+        Parameters
+        ----------
+        callback : CallbackBase
+            target callback.
+        rect_y_base : float
+            The y-base of rect.
+
+        Returns
+        -------
+        ColumnDataSource
+
+        """
         data_dict = self._get_data_dict(callback)
         rect = RectValues(
             self._frame_min, self._frame_max,
@@ -292,6 +323,7 @@ class CallbackSchedBarSource(BokehSourceInterface):
 
 
 class LineSource(BokehSourceInterface):
+    """Class to generate timeseries line sources."""
 
     def __init__(
         self,
