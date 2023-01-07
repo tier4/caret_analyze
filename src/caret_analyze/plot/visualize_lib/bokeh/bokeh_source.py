@@ -106,13 +106,10 @@ class LegendManager:
 
 
 class BokehSourceInterface(metaclass=ABCMeta):
+    """Interface class of BokehSource."""
 
     def __init__(self, legend_manager: LegendManager) -> None:
         self._legend = legend_manager
-
-    @abstractmethod
-    def _get_source_keys(self, target_object: Any) -> List[str]:
-        raise NotImplementedError()
 
     def create_hover(self, target_object: Any, options: dict = {}) -> HoverTool:
         """
@@ -140,6 +137,10 @@ class BokehSourceInterface(metaclass=ABCMeta):
         return HoverTool(
             tooltips=tips_str, point_policy='follow_mouse', toggleable=False, **options
         )
+
+    @abstractmethod
+    def _get_source_keys(self, target_object: Any) -> List[str]:
+        raise NotImplementedError()
 
     def _get_data_dict(
         self,

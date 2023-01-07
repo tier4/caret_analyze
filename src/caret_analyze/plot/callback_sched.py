@@ -42,10 +42,8 @@ def callback_sched(
 
     plot = Plot.create_callback_scheduling_plot(target)
     xaxis_type = 'sim_time' if use_sim_time else 'system_time'
-    p = plot.show(xaxis_type=xaxis_type, coloring_rule=coloring_rule,
-                  lstrip_s=lstrip_s, rstrip_s=rstrip_s)
+    p = plot.show(xaxis_type=xaxis_type, coloring_rule=coloring_rule)
     if export_path:
-        plot.save(export_path=export_path, xaxis_type=xaxis_type, coloring_rule=coloring_rule,
-                  lstrip_s=lstrip_s, rstrip_s=rstrip_s)
+        plot.save(export_path=export_path, xaxis_type=xaxis_type, coloring_rule=coloring_rule)
 
     return p

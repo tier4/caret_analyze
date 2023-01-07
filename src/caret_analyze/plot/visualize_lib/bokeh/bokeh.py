@@ -74,9 +74,9 @@ class Bokeh(VisualizeLibInterface):
             The unit of color change
             There are there rules which are [callback/callback_group/node], by default 'callback'
         lstrip_s : float, optional
-            Left strip, by default 0
-        rstrip_s : float, optional
-            Right strip, by default 0
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
 
         Returns
         -------

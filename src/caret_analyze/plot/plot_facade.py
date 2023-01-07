@@ -17,7 +17,7 @@ from typing import Collection, Union
 
 from multimethod import multimethod as singledispatchmethod
 
-from .callback_scheduling import CallbackSchedulingPlotFactory
+from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import ResponseTimePlot
 from .plot_base import PlotBase
 from .timeseries import TimeSeriesPlotFactory
@@ -188,12 +188,29 @@ class Plot:
     @singledispatchmethod
     def create_callback_scheduling_plot(  # type: ignore
         target_objects: CallbackSchedTypes,
-    ) -> PlotBase:
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
+    ) -> CallbackSchedulingPlot:
+        """
+        Get CallbackSchedulingPlot instance.
+
+        Parameters
+        ----------
+        lstrip_s : float, optional
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
+
+        Returns
+        -------
+        CallbackSchedulingPlot
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         if isinstance(target_objects, (tuple, set)):
             target_objects = list(target_objects)
         plot = CallbackSchedulingPlotFactory.create_instance(
-            target_objects, visualize_lib
+            target_objects, visualize_lib, lstrip_s, rstrip_s
         )
         return plot
 
@@ -201,10 +218,12 @@ class Plot:
     @create_callback_scheduling_plot.register
     def _create_callback_scheduling_plot_tuple(
         *target_objects: CallbackGroup,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
     ) -> PlotBase:
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = CallbackSchedulingPlotFactory.create_instance(
-            list(target_objects), visualize_lib
+            list(target_objects), visualize_lib, lstrip_s, rstrip_s
         )
         return plot
 

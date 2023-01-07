@@ -33,6 +33,8 @@ class CallbackSchedulingPlotFactory:
     def create_instance(
         target_objects: CallbackGroupTypes,
         visualize_lib: VisualizeLibInterface,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
     ) -> CallbackSchedulingPlot:
         """
         Create instance.
@@ -44,10 +46,14 @@ class CallbackSchedulingPlotFactory:
                                        Node, CallbackGroup, Sequence[CallbackGroup]]
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
+        lstrip_s : float, optional
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
 
         Returns
         -------
         CallbackSchedulingPlot
 
         """
-        return CallbackSchedulingPlot(target_objects, visualize_lib)
+        return CallbackSchedulingPlot(target_objects, visualize_lib, lstrip_s, rstrip_s)

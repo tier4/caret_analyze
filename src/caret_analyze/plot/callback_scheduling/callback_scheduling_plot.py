@@ -41,10 +41,13 @@ class CallbackSchedulingPlot(PlotBase):
         self,
         target_objects: CallbackGroupTypes,
         visualize_lib: VisualizeLibInterface,
+        lstrip_s: float,
+        rstrip_s: float
     ) -> None:
-        self._target_objects = target_objects
         self._visualize_lib = visualize_lib
-        self._callback_groups = self._get_callback_groups(self._target_objects)
+        self._callback_groups = self._get_callback_groups(target_objects)
+        self._lstrip_s = lstrip_s
+        self._rstrip_s = rstrip_s
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
         logger.warning("'to_dataframe' method is not implemented in CallbackSchedulingPlot.")
@@ -56,8 +59,6 @@ class CallbackSchedulingPlot(PlotBase):
         ywheel_zoom: bool = True,
         full_legends: bool = False,
         coloring_rule: str = 'callback',
-        lstrip_s: float = 0,
-        rstrip_s: float = 0
     ) -> Figure:
         """
         Get a callback scheduling plot using the bokeh library.
@@ -77,10 +78,6 @@ class CallbackSchedulingPlot(PlotBase):
         coloring_rule : str, optional
             The unit of color change
             There are there rules which are [callback/callback_group/node], by default 'callback'
-        lstrip_s : float, optional
-            Left strip, by default 0
-        rstrip_s : float, optional
-            Right strip, by default 0
 
         Returns
         -------
@@ -102,7 +99,7 @@ class CallbackSchedulingPlot(PlotBase):
 
         return self._visualize_lib.callback_scheduling(
             self._callback_groups, xaxis_type, ywheel_zoom, full_legends,
-            coloring_rule, lstrip_s, rstrip_s
+            coloring_rule, self._lstrip_s, self._rstrip_s
         )
 
     def show(
@@ -110,12 +107,10 @@ class CallbackSchedulingPlot(PlotBase):
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False,
-        export_path: Optional[str] = None,
+        export_path: Optional[str] = None,  # TODO: remove
         coloring_rule: str = 'callback',
-        lstrip_s: float = 0,
-        rstrip_s: float = 0
     ) -> Figure:
-        p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule, lstrip_s, rstrip_s)
+        p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
         show(p)
         return p
 
@@ -126,11 +121,9 @@ class CallbackSchedulingPlot(PlotBase):
         xaxis_type: str = 'system_time',
         ywheel_zoom: bool = True,
         full_legends: bool = False,
-        coloring_rule: str = 'callback',
-        lstrip_s: float = 0,
-        rstrip_s: float = 0
+        coloring_rule: str = 'callback'
     ) -> None:
-        p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule, lstrip_s, rstrip_s)
+        p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
         save(p, export_path, title=title, resources=CDN)
 
     @staticmethod
