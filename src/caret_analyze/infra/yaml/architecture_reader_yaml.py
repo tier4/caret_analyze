@@ -248,7 +248,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
             publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
-            construction_order = self._get_value_with_default(val, 'construction_order', None)
+            construction_order = self._get_value_with_default(val, 'construction_order', 0)
             callbacks.append(
                 SubscriptionCallbackValue(
                     callback_id=callback_id,
