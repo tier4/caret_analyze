@@ -538,17 +538,17 @@ class NodePathSearcher:
         self._comm_dict: Dict[Tuple[str, str, str], CommunicationStruct] = {}
 
         node_paths: List[NodePathStruct] = Util.flatten([n.paths for n in self._nodes])
-        duplicadted_node_paths: Dict = {}
+        duplicated_node_paths: Dict = {}
         for node_path in node_paths:
             key = self._node_path_key(
                 node_path.subscribe_topic_name, node_path.publish_topic_name, node_path.node_name
             )
             if key not in self._node_path_dict:
                 self._node_path_dict[key] = node_path
-            elif key not in duplicadted_node_paths:
-                duplicadted_node_paths[key] = node_path
+            elif key not in duplicated_node_paths:
+                duplicated_node_paths[key] = node_path
 
-        for node_path in duplicadted_node_paths.values():
+        for node_path in duplicated_node_paths.values():
             logger.warning(
                 'duplicated node_path found. skip adding. '
                 f'node_name: {node_path.node_name}, '
