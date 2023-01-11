@@ -117,7 +117,6 @@ class ArchitectureReaderLttng(ArchitectureReader):
         info: List[SubscriptionValue] = []
         for sub_cb in self.get_subscription_callbacks(node):
             topic_name = sub_cb.subscribe_topic_name
-            assert topic_name is not None
             info.append(SubscriptionValue(
                 topic_name,
                 sub_cb.node_name,
@@ -133,7 +132,6 @@ class ArchitectureReaderLttng(ArchitectureReader):
         info: List[ServiceValue] = []
         for srv_cb in self.get_service_callbacks(node):
             service_name = srv_cb.service_name
-            assert service_name is not None
             info.append(ServiceValue(
                 service_name,
                 srv_cb.node_name,

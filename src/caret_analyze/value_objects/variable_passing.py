@@ -81,8 +81,6 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         callback_write: CallbackStructValue,
         callback_read: CallbackStructValue,
     ) -> None:
-        assert isinstance(callback_write, CallbackStructValue)
-        assert isinstance(callback_read, CallbackStructValue)
         self._node_name = node_name
         self._cb_write = callback_write
         self._cb_read = callback_read

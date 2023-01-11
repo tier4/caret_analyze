@@ -1037,7 +1037,6 @@ class CallbacksLoaded():
                 callback_name=callback_name,
             )
         if isinstance(callback, SubscriptionCallbackValue):
-            assert callback.subscribe_topic_name is not None
             self._callback_count[callback] = self._callback_count.get(
                 callback, len(self._callback_count))
             callback_count = self._callback_count[callback]
@@ -1057,7 +1056,6 @@ class CallbacksLoaded():
         # To avoid affecting exported files, special handling is done for service callbacks.
         # When the service is officially supported, the special processing will be removed.
         if isinstance(callback, ServiceCallbackValue):
-            assert callback.service_name is not None
             self._srv_callback_count[callback] = self._srv_callback_count.get(
                 callback, len(self._srv_callback_count))
             callback_count = self._srv_callback_count[callback]
@@ -1076,7 +1074,6 @@ class CallbacksLoaded():
         # To avoid affecting exported files, special handling is done for service callbacks.
         # When the service is officially supported, the special processing will be removed.
         if isinstance(callback, ServiceCallbackValue):
-            assert callback.service_name is not None
             self._srv_callback_count[callback] = self._srv_callback_count.get(
                 callback, len(self._srv_callback_count))
             callback_count = self._srv_callback_count[callback]

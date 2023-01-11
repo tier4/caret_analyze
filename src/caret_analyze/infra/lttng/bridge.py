@@ -174,8 +174,6 @@ class TimerCallbackBindCondition:
         self,
         target_condition: Union[TimerCallbackValue, TimerCallbackStructValue]
     ) -> None:
-        assert isinstance(target_condition, TimerCallbackValue) or \
-            isinstance(target_condition, TimerCallbackStructValue)
         self._target = target_condition
 
     def __call__(
@@ -223,8 +221,6 @@ class SubscriptionCallbackBindCondition:
         target_condition: Union[SubscriptionCallbackValue,
                                 SubscriptionCallbackStructValue]
     ) -> None:
-        assert isinstance(target_condition, SubscriptionCallbackValue) or \
-            isinstance(target_condition, SubscriptionCallbackStructValue)
         self._target = target_condition
 
     def __call__(
@@ -275,8 +271,6 @@ class PublisherBindCondition:
         self,
         target_condition: Union[PublisherValue, PublisherStructValue]
     ) -> None:
-        assert isinstance(target_condition, PublisherValue) or \
-            isinstance(target_condition, PublisherStructValue)
         self._target = target_condition
 
     def __call__(
