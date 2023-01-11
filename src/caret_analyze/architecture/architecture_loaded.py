@@ -776,7 +776,7 @@ class SubscriptionsLoaded:
             sub_callback = callbacks_loaded.find_callback(
                 subscription_value.callback_id)
 
-        assert isinstance(sub_callback, SubscriptionCallbackStruct)
+            assert isinstance(sub_callback, SubscriptionCallbackStruct)
 
         return SubscriptionStruct(
             subscription_value.node_name,
@@ -811,7 +811,7 @@ class ServicesLoaded:
             srv_callback = callbacks_loaded.find_callback(
                 service_value.callback_id)
 
-        assert isinstance(srv_callback, ServiceCallbackStruct)
+            assert isinstance(srv_callback, ServiceCallbackStruct)
 
         return ServiceStruct(
             service_value.node_name,
