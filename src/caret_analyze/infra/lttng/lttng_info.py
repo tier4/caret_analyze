@@ -975,7 +975,7 @@ class DataFrameFormatted:
         timers.reset_index()
         timers.rename_column('period', 'period_ns')
 
-        merge_drop_columns = ['tid', 'rmw_handle']
+        merge_drop_columns = ['tid']
         timer_node_links = data.timer_node_links.clone()
         timer_node_links.reset_index()
         timer_node_links.remove_column('timestamp')

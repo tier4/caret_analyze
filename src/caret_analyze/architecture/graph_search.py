@@ -518,6 +518,7 @@ class CallbackPathSearcher:
 
 
 NodePathKey = Tuple[Optional[str], Optional[str], Optional[str]]
+CommKey = Tuple[str, str, str]
 
 
 class NodePathSearcher:
@@ -538,7 +539,8 @@ class NodePathSearcher:
         self._comm_dict: Dict[Tuple[str, str, str], CommunicationStruct] = {}
 
         node_paths: List[NodePathStruct] = Util.flatten([n.paths for n in self._nodes])
-        duplicated_node_paths: Dict = {}
+        duplicated_node_paths: Dict[NodePathKey, NodePathStruct] = {}
+
         for node_path in node_paths:
             key = self._node_path_key(
                 node_path.subscribe_topic_name, node_path.publish_topic_name, node_path.node_name
@@ -562,7 +564,7 @@ class NodePathSearcher:
 
             self._graph.add_node(GraphNode(node.node_name))
 
-        duplicated_comms = {}
+        duplicated_comms: Dict[CommKey, CommunicationStruct] = {}
 
         for comm in communications:
             if communication_filter is not None and \
