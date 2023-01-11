@@ -12,13 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import lru_cache
 import itertools
 
+from logging import getLogger, Logger
 from typing import List, Optional, Set, Tuple, Union
 
 import pandas as pd
 
 from .data_model import Ros2DataModel
+
+
+logger = getLogger(__name__)
 
 
 class DataModelService:
@@ -128,6 +133,11 @@ class DataModelService:
 
         return node_names_and_cb_symbols
 
+    @staticmethod
+    @lru_cache(maxsize=10)
+    def _log_once(logger_: Logger, message: str):
+        logger_.warning(message)
+
     def _get_node_name_from_handle(
         self,
         handle: int,
@@ -148,8 +158,14 @@ class DataModelService:
             match_nodes = self._data.nodes.df.loc[node_handles, :]
             match_nodes.drop_duplicates(
                 set(match_nodes) - {'tid'}, inplace=True, ignore_index=True)
-            assert len(match_nodes) == 1
-            return ns_and_node_name(match_nodes.iloc[0])
+            node_names = [ns_and_node_name(row) for _, row in match_nodes.iterrows()]
+            if len(node_names) > 1:
+                self._log_once(
+                    logger,
+                    'Failed to identify node name from node_handler.'
+                    f'Several candidates were found: {node_names}',
+                )
+            return node_names[0]
         except KeyError:
             return None
 
