@@ -56,7 +56,7 @@ class Ros2Handler():
         monotonic_to_system_time_offset: Optional[int]
     ) -> None:
         """
-        Create Ros2Handler
+        Create Ros2Handler.
 
         Parameters
         ----------
