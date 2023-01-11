@@ -69,6 +69,7 @@ class PathBase(metaclass=ABCMeta):
                 logger.warning(e)
                 self.__records_cache = RecordsFactory.create_instance()
 
+        assert self.__records_cache is not None
         return self.__records_cache
 
     @property
