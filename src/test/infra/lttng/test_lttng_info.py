@@ -168,6 +168,7 @@ class TestLttngInfo:
         callback_group_addr = 14
         timer_handle = 15
         symbol = 'symbol'
+        construction_order = 0
 
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
@@ -182,7 +183,8 @@ class TestLttngInfo:
                     'callback_group_addr': callback_group_addr,
                     'period_ns': period_ns,
                     'symbol': symbol,
-                    'callback_id': 'timer_callback_0'
+                    'callback_id': 'timer_callback_0',
+                    'construction_order': 0
                 }
             ]
         ))
@@ -215,7 +217,8 @@ class TestLttngInfo:
             period_ns,
             timer_handle,
             None,
-            callback_object=callback_object
+            callback_object=callback_object,
+            construction_order=construction_order
         )
 
         assert timer_cbs_info == [timer_cb_info_expect]
@@ -251,7 +254,8 @@ class TestLttngInfo:
                     'topic_name': topic_name[0],
                     'symbol': symbol[0],
                     'callback_id': 'subscription_callback_0',
-                    'depth': depth[0]
+                    'depth': depth[0],
+                    'construction_order': 0,
                 },
                 {
                     'callback_object': callback_object[1],
@@ -261,7 +265,8 @@ class TestLttngInfo:
                     'topic_name': topic_name[1],
                     'symbol': symbol[1],
                     'callback_id': 'subscription_callback_1',
-                    'depth': depth[1]
+                    'depth': depth[1],
+                    'construction_order': 0,
                 }
             ]
         ).convert_dtypes())
@@ -316,7 +321,8 @@ class TestLttngInfo:
             None,
             callback_object=callback_object[0],
             callback_object_intra=callback_object_intra[0],
-            tilde_subscription=tilde_subscription[0]
+            tilde_subscription=tilde_subscription[0],
+            construction_order=0
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
@@ -331,7 +337,8 @@ class TestLttngInfo:
             None,
             callback_object[1],
             None,
-            tilde_subscription=tilde_subscription[1]
+            tilde_subscription=tilde_subscription[1],
+            construction_order=0
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
@@ -362,6 +369,7 @@ class TestLttngInfo:
                     'service_name': service_name[0],
                     'symbol': symbol[0],
                     'callback_id': 'service_callback_0',
+                    'construction_order': 0,
                 },
                 {
                     'callback_object': callback_object[1],
@@ -371,6 +379,7 @@ class TestLttngInfo:
                     'service_name': service_name[1],
                     'symbol': symbol[1],
                     'callback_id': 'service_callback_1',
+                    'construction_order': 0,
                 }
             ]
         ).convert_dtypes())
@@ -407,6 +416,7 @@ class TestLttngInfo:
             service_handle[0],
             None,
             callback_object=callback_object[0],
+            construction_order=0
         )
         assert srv_cbs_info == [srv_cb_info_expect]
 
@@ -420,6 +430,7 @@ class TestLttngInfo:
             service_handle[1],
             None,
             callback_object[1],
+            construction_order=0
         )
         assert srv_cbs_info == [srv_cb_info_expect]
 
@@ -601,6 +612,7 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr,
                     'period_ns': period_ns,
                     'symbol': symbol,
+                    'construction_order': 0,
                 },
             ]
         ).convert_dtypes()
@@ -692,7 +704,8 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr[0],
                     'topic_name': topic_name[0],
                     'symbol': symbol[0],
-                    'depth': depth[0]
+                    'depth': depth[0],
+                    'construction_order': 0,
                 },
                 {
                     'callback_id': f'subscription_callback_{callback_object_inter[1]}',
@@ -703,6 +716,7 @@ class TestDataFrameFormatted:
                     'topic_name': topic_name[1],
                     'symbol': symbol[1],
                     'depth': depth[1],
+                    'construction_order': 0,
                 },
             ]
         ).convert_dtypes()
@@ -755,6 +769,7 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr[0],
                     'service_name': service_name[0],
                     'symbol': symbol[0],
+                    'construction_order': 0,
                 },
                 {
                     'callback_id': f'service_callback_{callback_object_inter[1]}',
@@ -764,6 +779,7 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr[1],
                     'service_name': service_name[1],
                     'symbol': symbol[1],
+                    'construction_order': 0,
                 },
             ]
         ).convert_dtypes()

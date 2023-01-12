@@ -412,9 +412,10 @@ class CallbackPathSearcher:
         sub: Optional[SubscriptionStruct] = None
         pub: Optional[PublisherStruct] = None
 
-        if subscribe_topic_name is not None:
+        if subscribe_topic_name is not None and len(graph_node_names) > 0:
             try:
-                sub = self._node.get_subscription(subscribe_topic_name)
+                sub_cb_name = self._point_name_to_callback_name(graph_node_names[0])
+                sub = self._node.get_subscription(subscribe_topic_name, sub_cb_name)
             except ItemNotFoundError:
                 msg = 'Failed to find subscription. '
                 msg += f'node_name: {self._node.node_name}, '
@@ -517,6 +518,7 @@ class CallbackPathSearcher:
 
 
 NodePathKey = Tuple[Optional[str], Optional[str], Optional[str]]
+CommKey = Tuple[str, str, str]
 
 
 class NodePathSearcher:
@@ -537,18 +539,23 @@ class NodePathSearcher:
         self._comm_dict: Dict[Tuple[str, str, str], CommunicationStruct] = {}
 
         node_paths: List[NodePathStruct] = Util.flatten([n.paths for n in self._nodes])
+        duplicated_node_paths: Dict[NodePathKey, NodePathStruct] = {}
+
         for node_path in node_paths:
             key = self._node_path_key(
                 node_path.subscribe_topic_name, node_path.publish_topic_name, node_path.node_name
             )
             if key not in self._node_path_dict:
                 self._node_path_dict[key] = node_path
-            else:
-                logger.warning(
-                    'duplicated node_path found. skip adding. '
-                    f'node_name: {node_path.node_name}, '
-                    f'subscribe_topic_name: {node_path.subscribe_topic_name}, '
-                    f'publish_topic_name: {node_path.publish_topic_name}')
+            elif key not in duplicated_node_paths:
+                duplicated_node_paths[key] = node_path
+
+        for node_path in duplicated_node_paths.values():
+            logger.warning(
+                'duplicated node_path found. skip adding. '
+                f'node_name: {node_path.node_name}, '
+                f'subscribe_topic_name: {node_path.subscribe_topic_name}, '
+                f'publish_topic_name: {node_path.publish_topic_name}')
 
         for node in nodes:
             if node_filter is not None and \
@@ -556,6 +563,8 @@ class NodePathSearcher:
                 continue
 
             self._graph.add_node(GraphNode(node.node_name))
+
+        duplicated_comms: Dict[CommKey, CommunicationStruct] = {}
 
         for comm in communications:
             if communication_filter is not None and \
@@ -569,12 +578,8 @@ class NodePathSearcher:
             key = self._comm_key(comm.publish_node_name, comm.subscribe_node_name, comm.topic_name)
             if key not in self._comm_dict:
                 self._comm_dict[key] = comm
-            else:
-                logger.warning(
-                    'duplicated communication found. skip adding.'
-                    f'topic_name: {comm.topic_name}, '
-                    f'publish_node_name: {comm.publish_node_name}, '
-                    f'subscribe_node_name: {comm.subscribe_node_name}, ')
+            elif key not in duplicated_comms:
+                duplicated_comms[key] = comm
                 continue
 
             self._graph.add_edge(
@@ -582,6 +587,12 @@ class NodePathSearcher:
                 GraphNode(comm.subscribe_node_name),
                 comm.topic_name
             )
+        for comm in duplicated_comms.values():
+            logger.warning(
+                'duplicated communication found. skip adding.'
+                f'topic_name: {comm.topic_name}, '
+                f'publish_node_name: {comm.publish_node_name}, '
+                f'subscribe_node_name: {comm.subscribe_node_name}, ')
 
     @staticmethod
     def _comm_key(

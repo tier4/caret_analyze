@@ -255,7 +255,12 @@ class CommValuesLoaded():
         def __call__(self, callback: CallbackStruct) -> bool:
             if callback.subscribe_topic_name is None:
                 return False
-            return self._subscription.topic_name == callback.subscribe_topic_name
+
+            match = self._subscription.topic_name == callback.subscribe_topic_name
+            if self._subscription.callback_name:
+                match &= self._subscription.callback_name == callback.callback_name
+
+            return match
 
 
 class NodeValuesLoaded():
@@ -1035,6 +1040,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         if isinstance(callback, SubscriptionCallbackValue):
             assert callback.subscribe_topic_name is not None
@@ -1052,6 +1058,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         # Service callbacks support "read" only, not "export".
         # To avoid affecting exported files, special handling is done for service callbacks.
@@ -1071,6 +1078,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         # Service callbacks support "read" only, not "export".
         # To avoid affecting exported files, special handling is done for service callbacks.
@@ -1090,6 +1098,7 @@ class CallbacksLoaded():
                 publish_topic_names=None if callback.publish_topic_names is None
                 else list(callback.publish_topic_names),
                 callback_name=callback_name,
+                construction_order=callback.construction_order
             )
         raise UnsupportedTypeError('Unsupported callback type')
 

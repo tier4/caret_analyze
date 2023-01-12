@@ -33,7 +33,8 @@ class CallbackStruct(metaclass=ABCMeta):
         subscribe_topic_name: Optional[str],
         service_name: Optional[str],
         publish_topic_names: Optional[List[str]],
-        callback_name: str,
+        construction_order: int,
+        callback_name: str
     ) -> None:
         self._node_name = node_name
         self._callback_name = callback_name
@@ -41,6 +42,7 @@ class CallbackStruct(metaclass=ABCMeta):
         self._subscribe_topic_name = subscribe_topic_name
         self._service_name = service_name
         self._publish_topic_names = publish_topic_names
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -115,6 +117,19 @@ class CallbackStruct(metaclass=ABCMeta):
     def publish_topic_names(self) -> Optional[List[str]]:
         return self._publish_topic_names
 
+    @property
+    def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            construction order
+
+        """
+        return self._construction_order
+
     @abstractmethod
     def to_value(self) -> CallbackStructValue:
         pass
@@ -148,6 +163,7 @@ class TimerCallbackStruct(CallbackStruct):
         symbol: str,
         period_ns: int,
         publish_topic_names: Optional[List[str]],
+        construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
@@ -156,6 +172,7 @@ class TimerCallbackStruct(CallbackStruct):
             subscribe_topic_name=None,
             service_name=None,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
         self._period_ns = period_ns
 
@@ -171,7 +188,7 @@ class TimerCallbackStruct(CallbackStruct):
         return TimerCallbackStructValue(
             self.node_name, self.symbol, self.period_ns,
             None if self.publish_topic_names is None else tuple(self.publish_topic_names),
-            self.callback_name)
+            self.construction_order, self.callback_name)
 
 
 class SubscriptionCallbackStruct(CallbackStruct):
@@ -183,6 +200,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
         symbol: str,
         subscribe_topic_name: str,
         publish_topic_names: Optional[List[str]],
+        construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
@@ -191,6 +209,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
             subscribe_topic_name=subscribe_topic_name,
             service_name=None,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
         self.__subscribe_topic_name = subscribe_topic_name
 
@@ -207,7 +226,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
             self.node_name, self.symbol,
             self.subscribe_topic_name,
             None if self.publish_topic_names is None else tuple(self.publish_topic_names),
-            self.callback_name)
+            self.construction_order, self.callback_name)
 
     def rename_topic(self, src: str, dst: str) -> None:
         if self._publish_topic_names is not None:
@@ -229,6 +248,7 @@ class ServiceCallbackStruct(CallbackStruct):
         symbol: str,
         service_name: str,
         publish_topic_names: Optional[List[str]],
+        construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
@@ -237,6 +257,7 @@ class ServiceCallbackStruct(CallbackStruct):
             subscribe_topic_name=None,
             service_name=service_name,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
         self.__service_name = service_name
 
@@ -254,4 +275,4 @@ class ServiceCallbackStruct(CallbackStruct):
             self.symbol,
             self.service_name,
             None if self.publish_topic_names is None else tuple(self.publish_topic_names),
-            self.callback_name)
+            self.construction_order, self.callback_name)

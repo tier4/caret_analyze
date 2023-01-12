@@ -200,7 +200,8 @@ class TimerCallbackBindCondition:
         return value.node_name == struct_value.node_name and \
             value.callback_type == struct_value.callback_type and \
             value.period_ns == struct_value.period_ns and \
-            value.symbol == struct_value.symbol
+            value.symbol == struct_value.symbol and \
+            value.construction_order == struct_value.construction_order
 
     def __str__(self):
         return str(self._target)

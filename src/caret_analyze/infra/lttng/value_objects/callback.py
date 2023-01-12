@@ -30,6 +30,7 @@ class TimerCallbackValueLttng(TimerCallbackValue):
         timer_handle: int,
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
+        construction_order: int,
     ) -> None:
         super().__init__(
             callback_id=callback_id,
@@ -38,6 +39,7 @@ class TimerCallbackValueLttng(TimerCallbackValue):
             symbol=symbol,
             period_ns=period_ns,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order
         )
         self._callback_object = callback_object
         self._timer_handle = timer_handle
@@ -63,6 +65,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
         callback_object_intra: Optional[int],
+        construction_order: int,
         tilde_subscription: Optional[int]
     ) -> None:
         super().__init__(
@@ -72,6 +75,7 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
             symbol=symbol,
             subscribe_topic_name=subscribe_topic_name,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order
         )
 
         self._callback_object = callback_object
@@ -107,6 +111,7 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
         service_handle: int,
         publish_topic_names: Optional[Tuple[str, ...]],
         callback_object: int,
+        construction_order: int,
     ) -> None:
         super().__init__(
             callback_id=callback_id,
@@ -114,7 +119,8 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
             node_name=node_name,
             symbol=symbol,
             service_name=service_name,
-            publish_topic_names=publish_topic_names)
+            publish_topic_names=publish_topic_names,
+            construction_order=construction_order)
 
         self._callback_object = callback_object
         self._service_handle = service_handle
