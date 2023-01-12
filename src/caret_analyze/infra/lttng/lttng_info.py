@@ -851,6 +851,8 @@ class DataFrameFormatted:
 
         publishers.add_column('publisher_id', to_publisher_id)
         publishers.set_columns(columns)
+        publishers.drop_duplicate()
+
         return publishers
 
     @staticmethod
@@ -953,6 +955,7 @@ class DataFrameFormatted:
         if len(executor_duplicated_indexes) >= 1:
             callback_groups.drop_row(executor_duplicated_indexes)
 
+        callback_groups.drop_duplicate()
         return callback_groups
 
     @staticmethod
@@ -993,6 +996,11 @@ class DataFrameFormatted:
 
         timers.set_columns(columns)
 
+        # In the case of runtime recording, there are cases where duplicates are recorded.
+        # If duplicates are left, the instance cannot be uniquely identified and a warning will
+        # be issued, so they should be deleted.
+        timers.drop_duplicate()
+
         return timers
 
     @staticmethod
@@ -1026,6 +1034,7 @@ class DataFrameFormatted:
         subscriptions.add_column('callback_id', callback_id)
 
         subscriptions.set_columns(columns)
+        subscriptions.drop_duplicate()
 
         return subscriptions
 
@@ -1061,6 +1070,7 @@ class DataFrameFormatted:
         services.add_column('callback_id', callback_id)
 
         services.set_columns(columns)
+        services.drop_duplicate()
 
         return services
 
@@ -1075,6 +1085,7 @@ class DataFrameFormatted:
 
         tilde_subscriptions.rename_column('subscription', 'tilde_subscription')
         tilde_subscriptions.set_columns(columns)
+        tilde_subscriptions.drop_duplicate()
         return tilde_subscriptions
 
     @staticmethod
@@ -1087,6 +1098,7 @@ class DataFrameFormatted:
         tilde_publishers.reset_index()
         tilde_publishers.rename_column('publisher', 'tilde_publisher')
         tilde_publishers.set_columns(columns)
+        tilde_publishers.drop_duplicate()
         return tilde_publishers
 
     @staticmethod
@@ -1100,6 +1112,7 @@ class DataFrameFormatted:
         tilde_subscribe_added.merge(sub, ['node_name', 'topic_name'], how='left')
 
         tilde_subscribe_added.set_columns(columns)
+        tilde_subscribe_added.drop_duplicate()
         return tilde_subscribe_added
 
     @staticmethod
@@ -1132,6 +1145,7 @@ class DataFrameFormatted:
         subscriptions.add_column('callback_id', callback_id)
 
         subscriptions.set_columns(columns)
+        subscriptions.drop_duplicate()
 
         return subscriptions
 
@@ -1230,7 +1244,10 @@ class DataFrameFormatted:
                     f'subscription_handle = {key}, '
                     f'callback_objects = {cb_objs}')
             ret_data.append(record)
-        return ret_data.get_finalized()
+
+        trace_data = ret_data.get_finalized()
+        trace_data.drop_duplicate()
+        return trace_data
 
     @staticmethod
     def _build_nodes(
@@ -1259,6 +1276,8 @@ class DataFrameFormatted:
 
         node.add_column('node_id', to_node_id)
         node.set_columns(columns)
+        node.drop_duplicate()
+
         return node
 
 
