@@ -186,7 +186,6 @@ class CallbackSchedRectSource(BokehSourceInterface):
                 'width': [rect.width],
                 'height': [rect.height],
                 'callback_start': [f'callback_start = {callback_start} [ns]'],
-                'callback_start': [f'callback_start = {callback_start} [ns]'],
                 'callback_end': [f'callback_end = {callback_end} [ns]'],
                 'latency': [f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]']
             })
