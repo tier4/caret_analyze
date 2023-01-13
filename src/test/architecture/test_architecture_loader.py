@@ -36,7 +36,7 @@ from caret_analyze.architecture.struct import (CallbackGroupStruct, CallbackStru
                                                PublisherStruct,
                                                ServiceCallbackStruct, ServiceStruct,
                                                SubscriptionCallbackStruct, SubscriptionStruct,
-                                               TimerStruct,
+                                               TimerCallbackStruct, TimerStruct,
                                                VariablePassingStruct)
 from caret_analyze.common import Util
 from caret_analyze.exceptions import (InvalidReaderError, ItemNotFoundError,
@@ -48,7 +48,7 @@ from caret_analyze.value_objects import (CallbackGroupType, CallbackGroupValue,
                                          PathValue, PublisherValue,
                                          ServiceCallbackValue, ServiceValue,
                                          SubscriptionCallbackValue, SubscriptionValue,
-                                         TimerCallbackValue,
+                                         TimerCallbackValue, TimerValue,
                                          VariablePassingValue)
 
 from caret_analyze.value_objects.message_context import MessageContextType
@@ -191,6 +191,41 @@ class TestNodesInfoLoaded():
         loader = NodeValuesLoaded(reader_mock)
         nodes = loader.data
         assert nodes == [node_mock]
+
+    def test_duplicated_node_name_and_id(self, mocker):
+        reader_mock = mocker.Mock(spec=TopicIgnoredReader)
+
+        mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
+                     return_value=reader_mock)
+
+        node_mock = mocker.Mock(spec=NodeStruct)
+        cb_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+        cbg_loaded_mock = mocker.Mock(spec=CallbackGroupsLoaded)
+        mocker.patch.object(NodeValuesLoaded, '_create_node',
+                            return_value=(node_mock, cb_loaded_mock, cbg_loaded_mock))
+
+        # duplicate check for node name
+        node_a = NodeValue('nodeA', 'nodeAid')
+        node_b = NodeValue('nodeA', 'nodeBid')
+        mocker.patch.object(reader_mock, 'get_nodes',
+                            return_value=[node_a, node_b])
+
+        loader = NodeValuesLoaded(reader_mock)
+        nodes = loader.data
+        assert len(nodes) == 1
+
+        # duplicate check for node id
+        nodes = []
+        node_a = []
+        node_b = []
+        node_a = NodeValue('nodeA', 'nodeAid')
+        node_b = NodeValue('nodeB', 'nodeAid')
+        mocker.patch.object(reader_mock, 'get_nodes',
+                            return_value=[node_a, node_b])
+
+        loader = NodeValuesLoaded(reader_mock)
+        nodes = loader.data
+        assert len(nodes) == 1
 
     def test_name_sort(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
@@ -766,6 +801,37 @@ class TestSubscriptionsLoaded:
         assert sub_struct_info.node_name == subscription_info.node_name
         assert sub_struct_info.topic_name == subscription_info.topic_name
 
+    def test_duplicated_subscription_name(self, mocker):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        callback_id_a = '5'
+        callback_id_b = '6'
+
+        subscript_info_a = SubscriptionValue(
+            'topic_name', 'node_name', 'node_id',  callback_id_a
+        )
+        subscript_info_b = SubscriptionValue(
+            'topic_name', 'node_name', 'node_id',  callback_id_b
+        )
+        subscript_info_c = SubscriptionValue(
+            'topic_name', 'node_name', 'node_id',  callback_id_a
+        )
+        mocker.patch.object(reader_mock, 'get_subscriptions',
+                            return_value=[subscript_info_a, subscript_info_b, subscript_info_c])
+
+        callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+        callback_mock = mocker.Mock(spec=CallbackValue)
+        mocker.patch.object(callback_mock, 'callback_id', callback_id_a)
+        mocker.patch.object(callbacks_loaded_mock, 'data', [callback_mock])
+        callback_struct_mock = mocker.Mock(spec=SubscriptionCallbackStruct)
+        mocker.patch.object(callbacks_loaded_mock,
+                            'find_callback', return_value=callback_struct_mock)
+
+        node = NodeValue('node_name', None)
+        loaded = SubscriptionsLoaded(
+            reader_mock, callbacks_loaded_mock, node)
+
+        assert len(loaded.data) == 2
+
 
 class TestServicesLoaded:
 
@@ -806,6 +872,37 @@ class TestServicesLoaded:
         assert srv_struct_info.callback == callback_struct_mock
         assert srv_struct_info.node_name == service_info.node_name
         assert srv_struct_info.service_name == service_info.service_name
+
+    def test_duplicated_service_name(self, mocker):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        callback_id_a = '5'
+        callback_id_b = '6'
+
+        service_info_a = ServiceValue(
+            'service_name', 'node_name', 'node_id',  callback_id_a
+        )
+        service_info_b = ServiceValue(
+            'service_name', 'node_name', 'node_id',  callback_id_b
+        )
+        service_info_c = ServiceValue(
+            'service_name', 'node_name', 'node_id',  callback_id_a
+        )
+        mocker.patch.object(reader_mock, 'get_services',
+                            return_value=[service_info_a, service_info_b, service_info_c])
+
+        callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+        callback_mock = mocker.Mock(spec=CallbackValue)
+        mocker.patch.object(callback_mock, 'callback_id', callback_id_a)
+        mocker.patch.object(callbacks_loaded_mock, 'data', [callback_mock])
+        callback_struct_mock = mocker.Mock(spec=ServiceCallbackStruct)
+        mocker.patch.object(callbacks_loaded_mock,
+                            'find_callback', return_value=callback_struct_mock)
+
+        node = NodeValue('node_name', None)
+        loaded = ServicesLoaded(
+            reader_mock, callbacks_loaded_mock, node)
+
+        assert len(loaded.data) == 2
 
 
 class TestCallbacksLoaded:
@@ -998,6 +1095,80 @@ class TestCallbacksLoaded:
         cb = loaded.find_callback(callback_id[3])
         assert cb.callback_name == '/node_name/callback_3'
 
+    def test_duplicated_callback_id(self, mocker):
+        from logging import getLogger
+        logger = getLogger(__name__)
+
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        node = NodeValueWithId('/node_name', '/node_name')
+        period_ns = 4
+        topic_name = '/topic_name'
+        service_name = '/service_name'
+        symbol = ['symbol0', 'symbol1', 'symbol2', 'symbol3', 'symbol4', 'symbol5']
+        callback_id = ['5', '6', '5', '8', '9', '10']
+
+        timer_cb_0 = TimerCallbackValue(
+            callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, ())
+        timer_cb_1 = TimerCallbackValue(
+            callback_id[1], node.node_name, node.node_id, symbol[1], period_ns, ())
+        sub_cb_0 = SubscriptionCallbackValue(
+            callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, None)
+        sub_cb_1 = SubscriptionCallbackValue(
+            callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, None)
+        srv_cb_0 = ServiceCallbackValue(
+            callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None)
+        srv_cb_1 = ServiceCallbackValue(
+            callback_id[5], node.node_name, node.node_id, symbol[5], service_name, None)
+
+        mocker.patch.object(
+            reader_mock, 'get_subscription_callbacks', return_value=[sub_cb_0, sub_cb_1])
+        mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[srv_cb_0, srv_cb_1])
+        mocker.patch.object(
+            reader_mock, 'get_timer_callbacks', return_value=[timer_cb_0, timer_cb_1])
+
+        with pytest.raises(InvalidReaderError) as e:
+            CallbacksLoaded(reader_mock, node)
+
+        logger.warn(e)
+
+    def test_duplicated_callback_name_cl(self, mocker):
+        from logging import getLogger
+        logger = getLogger(__name__)
+
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        callback_name = ['callback_name0', 'callback_name1', 'callback_name2']
+        period_ns = 4
+        topic_name = '/topic_name'
+        service_name = '/service_name'
+        symbol = ['symbol0', 'symbol1', 'symbol2']
+        callback_id = ['5', '6', '7', '8']
+        node = NodeValueWithId('/node_name', '/node_name')
+
+        timer_cb = TimerCallbackValue(
+            callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, (
+                topic_name, ), callback_name=callback_name[0])
+
+        sub_cb = SubscriptionCallbackValue(
+            callback_id[1], node.node_name, node.node_id, symbol[1],
+            topic_name, None, callback_name=callback_name[1])
+
+        srv_cb = ServiceCallbackValue(
+            callback_id[2], node.node_name, node.node_id, symbol[2],
+            service_name, None, callback_name=callback_name[0])
+
+        mocker.patch.object(
+            reader_mock, 'get_subscription_callbacks', return_value=[sub_cb])
+        mocker.patch.object(
+            reader_mock, 'get_service_callbacks', return_value=[srv_cb])
+        mocker.patch.object(
+            reader_mock, 'get_timer_callbacks', return_value=[timer_cb])
+
+        with pytest.raises(InvalidReaderError) as e:
+            CallbacksLoaded(reader_mock, node)
+
+        logger.warn(e)
+
 
 class TestVariablePassingsLoaded:
 
@@ -1143,6 +1314,81 @@ class TestCallbackGroupsLoaded:
         expect = ['node/callback_group_0', 'callback_group_name', 'node/callback_group_1']
         assert callback_group_names == expect
 
+    def test_duplicated_callback_group_id(self, mocker):
+        node = NodeValueWithId('node', 'node')
+
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+
+        cbg_0 = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_0'
+        )
+        cbg_name = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_1',
+            callback_group_name='callback_group_name'
+        )
+        cbg_1 = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_0',
+        )
+
+        mocker.patch.object(
+            reader_mock, 'get_callback_groups', return_value=[cbg_0, cbg_name, cbg_1])
+
+        loaded = CallbackGroupsLoaded(
+            reader_mock, callbacks_loaded_mock, node)
+
+        assert len(loaded.data) == 2
+
+    def test_duplicated_callback_group_name(self, mocker):
+        node = NodeValueWithId('node', 'node')
+
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+
+        cbg_0 = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_0'
+        )
+        cbg_name = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_1',
+            callback_group_name='callback_group_name'
+        )
+        cbg_1 = CallbackGroupValue(
+            CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
+            node.node_name,
+            node.node_id,
+            (),
+            'callback_group_id_2',
+            callback_group_name='callback_group_name'
+        )
+
+        mocker.patch.object(
+            reader_mock, 'get_callback_groups', return_value=[cbg_0, cbg_name, cbg_1])
+
+        loaded = CallbackGroupsLoaded(
+            reader_mock, callbacks_loaded_mock, node)
+
+        assert len(loaded.data) == 2
+
 
 class TestExecutorInfoLoaded:
 
@@ -1174,8 +1420,36 @@ class TestExecutorInfoLoaded:
 
         executors = loaded.data
         executor_names = [e.executor_name for e in executors]
-        expect = ['executor_0', 'exec_name', 'executor_1']
+# The order has changed because it is sorted by duplication check
+#        expect = ['executor_0', 'exec_name', 'executor_1']
+        expect = ['exec_name', 'executor_0', 'executor_1']
         assert executor_names == expect
+
+    def test_duplicated_executor_name(self, mocker):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+
+        # duplicate check for executor name
+        exec_0 = ExecutorValue(
+            ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, ())
+        exec_named1 = ExecutorValue(
+            ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, (), executor_name='exec_name')
+        exec_1 = ExecutorValue(
+            ExecutorType.MULTI_THREADED_EXECUTOR.type_name, ())
+        exec_named2 = ExecutorValue(
+            ExecutorType.MULTI_THREADED_EXECUTOR.type_name, (), executor_name='exec_name')
+        exec_2 = ExecutorValue(
+            ExecutorType.SINGLE_THREADED_EXECUTOR.type_name, ())
+        mocker.patch.object(reader_mock, 'get_executors',
+                            return_value=[exec_0, exec_named1, exec_1, exec_named2, exec_2])
+
+        nodes_loaded = mocker.Mock(NodeValuesLoaded)
+        loaded = ExecutorValuesLoaded(reader_mock, nodes_loaded)
+
+        executors = loaded.data
+        executor_names = [e.executor_name for e in executors]
+        expect = ['exec_name', 'executor_0', 'executor_1', 'executor_2']
+        assert executor_names == expect
+        assert len(executors) == 4
 
     def test_single_executor(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1444,6 +1718,30 @@ class TestPathInfoLoaded:
         paths_info = loaded.data
         assert paths_info == [path_mock]
 
+    def test_duplicated_path_name(self, mocker):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
+        comm_loaded_mock = mocker.Mock(spec=CommValuesLoaded)
+
+        # duplicate check for path name
+        path_name_a = 'pathA'
+        path_name_b = 'pathB'
+        path_name_c = 'pathA'
+        path_info_a = PathValue(path_name_a, [])
+        path_info_b = PathValue(path_name_b, [])
+        path_info_c = PathValue(path_name_c, [])
+        mocker.patch.object(reader_mock, 'get_paths',
+                            return_value=[path_info_a, path_info_b, path_info_c])
+
+        path_mock = mocker.Mock(spec=PathStruct)
+        mocker.patch.object(PathValuesLoaded, '_to_struct',
+                            return_value=path_mock)
+
+        loaded = PathValuesLoaded(
+            reader_mock, nodes_loaded_mock, comm_loaded_mock)
+        nodes = loaded.data
+        assert len(nodes) == 2
+
     def test_to_struct(self, mocker):
         path_name = 'path'
 
@@ -1467,3 +1765,48 @@ class TestPathInfoLoaded:
             path_info, nodes_loaded_mock, comm_loaded_mock)
         assert paths_info.child == [
             node_path_mock, comm_mock, node_path_mock]
+
+
+class TestTimersLoaded:
+
+    def test_empty(self, mocker):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        mocker.patch.object(
+            reader_mock, 'get_timers', return_value=[])
+        callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+        mocker.patch.object(callbacks_loaded_mock, 'data', [])
+        node = NodeValue('node_name', None)
+        loaded = TimersLoaded(reader_mock, callbacks_loaded_mock, node)
+        assert len(loaded.data) == 0
+
+    def test_duplicated_timer_callback_id(self, mocker):
+        reader_mock = mocker.Mock(spec=ArchitectureReader)
+        callback_id_a = '5'
+        callback_id_b = '6'
+        period_ns = 4
+
+        timer_info_a = TimerValue(
+            period_ns, 'node_name', 'node_id',  callback_id_a
+        )
+        timer_info_b = TimerValue(
+            period_ns, 'node_name', 'node_id',  callback_id_b
+        )
+        timer_info_c = TimerValue(
+            period_ns, 'node_name', 'node_id',  callback_id_a
+        )
+        mocker.patch.object(reader_mock, 'get_timers',
+                            return_value=[timer_info_a, timer_info_b, timer_info_c])
+
+        callbacks_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
+        callback_mock = mocker.Mock(spec=CallbackValue)
+        mocker.patch.object(callback_mock, 'callback_id', callback_id_a)
+        mocker.patch.object(callbacks_loaded_mock, 'data', [callback_mock])
+        callback_struct_mock = mocker.Mock(spec=TimerCallbackStruct)
+        mocker.patch.object(callbacks_loaded_mock,
+                            'find_callback', return_value=callback_struct_mock)
+
+        node = NodeValue('node_name', None)
+        loaded = TimersLoaded(
+            reader_mock, callbacks_loaded_mock, node)
+
+        assert len(loaded.data) == 2
