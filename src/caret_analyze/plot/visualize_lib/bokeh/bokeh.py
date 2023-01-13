@@ -17,18 +17,20 @@ from __future__ import annotations
 from logging import getLogger
 from typing import List, Sequence, Tuple, Union
 
-from bokeh.colors import Color, RGB
-from bokeh.models import LinearAxis, Range1d, SingleIntervalTicker
+from bokeh.models import Arrow, LinearAxis, NormalHead, Range1d, SingleIntervalTicker
 from bokeh.plotting import Figure, figure
-
-import colorcet as cc
 import numpy as np
+import pandas as pd
 
-from .bokeh_source import LegendManager, LineSource
+from .bokeh_source import (CallbackSchedBarSource, CallbackSchedRectSource, LegendManager,
+                           LineSource)
 from .color_selector import ColorSelectorFactory
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
-from ....runtime import CallbackBase, Communication, Publisher, Subscription
+from ....common import Util
+from ....record import Clip
+from ....runtime import (CallbackBase, CallbackGroup, Communication, Publisher, Subscription,
+                         TimerCallback)
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
@@ -40,6 +42,163 @@ class Bokeh(VisualizeLibInterface):
 
     def __init__(self) -> None:
         pass
+
+    def callback_scheduling(
+        self,
+        callback_groups: Sequence[CallbackGroup],
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+        coloring_rule: str,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
+    ) -> Figure:
+        """
+        Get callback scheduling figure.
+
+        Parameters
+        ----------
+        callback_groups : Sequence[CallbackGroup]
+            The target callback groups.
+        xaxis_type : str, optional
+            Type of x-axis of the line graph to be plotted.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+        ywheel_zoom : bool, optional
+            If True, the drawn graph can be expanded in the y-axis direction
+            by the mouse wheel.
+        full_legends : bool, optional
+            If True, all legends are drawn
+            even if the number of legends exceeds the threshold.
+        coloring_rule : str, optional
+            The unit of color change
+            There are there rules which are [callback/callback_group/node], by default 'callback'
+        lstrip_s : float, optional
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+
+        """
+        # Initialize figure
+        fig_args = {
+            'y_axis_label': '', 'width': 1200,
+            'title': 'Callback Scheduling in '
+                     f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}]."
+        }
+
+        if xaxis_type == 'system_time':
+            fig_args['x_axis_label'] = 'system time [s]'
+        elif xaxis_type == 'sim_time':
+            fig_args['x_axis_label'] = 'simulation time [s]'
+
+        if ywheel_zoom:
+            fig_args['active_scroll'] = 'wheel_zoom'
+        else:
+            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
+            fig_args['active_scroll'] = 'xwheel_zoom'
+
+        p = figure(**fig_args)
+        p.sizing_mode = 'stretch_width'  # type: ignore
+
+        # Apply xaxis offset
+        callbacks: List[CallbackBase] = Util.flatten(
+            cbg.callbacks for cbg in callback_groups if len(cbg.callbacks) > 0)
+        range_min, range_max = self._get_range(callbacks)
+        clip_min = int(range_min + lstrip_s*1.0e9)
+        clip_max = int(range_max - rstrip_s*1.0e9)
+        clip = Clip(clip_min, clip_max)
+        if xaxis_type == 'sim_time':
+            # TODO(hsgwa): refactor
+            converter = callbacks[0]._provider.get_sim_time_converter()
+            frame_min = converter.convert(clip.min_ns)
+            frame_max = converter.convert(clip.max_ns)
+        else:
+            converter = None
+            frame_min = clip.min_ns
+            frame_max = clip.max_ns
+        x_range_name = 'x_plot_axis'
+        self._apply_x_axis_offset(p, x_range_name, frame_min, frame_max)
+
+        # Draw callback scheduling
+        color_selector = ColorSelectorFactory.create_instance(coloring_rule)
+        legend_manager = LegendManager()
+        rect_source_gen = CallbackSchedRectSource(clip, legend_manager, converter)
+        bar_source_gen = CallbackSchedBarSource(legend_manager, frame_min, frame_max)
+
+        for cbg in callback_groups:
+            for callback in cbg.callbacks:
+                color = color_selector.get_color(
+                    callback.node_name,
+                    cbg.callback_group_name,
+                    callback.callback_name
+                )
+                rect_source = rect_source_gen.generate(callback)
+                rect = p.rect(
+                    'x', 'y', 'width', 'height',
+                    source=rect_source,
+                    color=color,
+                    alpha=1.0,
+                    hover_fill_color=color,
+                    hover_alpha=1.0,
+                    x_range_name=x_range_name
+                )
+                legend_manager.add_legend(callback, rect)
+                p.add_tools(rect_source_gen.create_hover(
+                    callback, {'attachment': 'above', 'renderers': [rect]}
+                ))
+                bar = p.rect(
+                    'x', 'y', 'width', 'height',
+                    source=bar_source_gen.generate(callback, rect_source_gen.rect_y_base),
+                    fill_color=color,
+                    hover_fill_color=color,
+                    hover_alpha=0.1,
+                    fill_alpha=0.1,
+                    level='underlay',
+                    x_range_name=x_range_name
+                )
+                p.add_tools(bar_source_gen.create_hover(
+                    callback, {'attachment': 'below', 'renderers': [bar]}
+                ))
+
+                if isinstance(callback, TimerCallback) and len(rect_source.data['y']) > 1:
+                    # If the response time exceeds this value, it is considered a delay.
+                    delay_threshold = 500000
+                    y_start = rect_source.data['y'][1]+0.9
+                    y_end = rect_source.data['y'][1]+rect_source_gen.RECT_HEIGHT
+                    timer_df = callback.timer.to_dataframe()  # type: ignore
+                    for row in timer_df.itertuples():
+                        timer_stamp = row[1]
+                        callback_start = row[2]
+                        response_time = callback_start - timer_stamp
+                        if pd.isna(response_time):
+                            continue
+                        p.add_layout(Arrow(
+                            end=NormalHead(
+                                fill_color='red' if response_time > delay_threshold else 'white',
+                                line_width=1, size=10
+                            ),
+                            x_start=(timer_stamp - frame_min) * 1.0e-9, y_start=y_start,
+                            x_end=(timer_stamp - frame_min) * 1.0e-9, y_end=y_end
+                        ))
+
+                rect_source_gen.update_rect_y_base()
+
+        # Draw legends
+        num_legend_threshold = 20
+        """
+        In Autoware, the number of callbacks in a node is less than 20.
+        Here, num_legend_threshold is set to 20 as the maximum value.
+        """
+        legend_manager.draw_legends(p, num_legend_threshold, full_legends)
+
+        p.ygrid.grid_line_alpha = 0
+        p.yaxis.visible = False
+
+        return p
 
     def timeseries(
         self,
@@ -132,18 +291,7 @@ class Bokeh(VisualizeLibInterface):
         return p
 
     @staticmethod
-    def _create_color_palette() -> Sequence[Color]:
-        def from_rgb(r: float, g: float, b: float) -> RGB:
-            r_ = int(r*255)
-            g_ = int(g*255)
-            b_ = int(b*255)
-
-            return RGB(r_, g_, b_)
-
-        return [from_rgb(*rgb) for rgb in cc.glasbey_bw_minc_20]
-
-    @staticmethod
-    def _get_range(target_objects: List[TimeSeriesTypes]) -> Tuple[int, int]:
+    def _get_range(target_objects: Sequence[TimeSeriesTypes]) -> Tuple[int, int]:
         has_valid_data = False
 
         try:
