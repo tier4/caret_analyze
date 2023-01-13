@@ -22,7 +22,10 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from bokeh.models import GlyphRenderer, HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure
 
-from ....record import RecordsInterface
+import numpy as np
+
+from ....common import ClockConverter
+from ....record import Clip, RecordsInterface
 from ....runtime import (CallbackBase, Communication, Publisher, Subscription,
                          SubscriptionCallback, TimerCallback)
 
@@ -99,6 +102,157 @@ class BokehSourceInterface(metaclass=ABCMeta):
             raise NotImplementedError()
 
         return description
+
+
+class RectValues:
+    def __init__(
+        self,
+        callback_start: float,
+        callback_end: float,
+        y_min: float,
+        y_max: float
+    ) -> None:
+        self._y = [y_min, y_max]
+        self._x = [callback_start, callback_end]
+
+    @property
+    def x(self) -> float:
+        return float(np.mean(self._x))
+
+    @property
+    def y(self) -> float:
+        return float(np.mean(self._y))
+
+    @property
+    def width(self) -> float:
+        return abs(self._x[0] - self._x[1])
+
+    @property
+    def height(self) -> float:
+        return abs(self._y[0] - self._y[1])
+
+
+class CallbackSchedRectSource(BokehSourceInterface):
+    """Class to generate callback scheduling rect sources."""
+
+    RECT_HEIGHT = 0.3
+    _RECT_Y_STEP = -1.5
+
+    def __init__(
+        self,
+        clip: Clip,
+        legend_manager: LegendManager,
+        converter: Optional[ClockConverter] = None
+    ) -> None:
+        super().__init__(legend_manager)
+        self._rect_y_base = 0.0
+        self._clip = clip
+        self._converter = converter
+
+    @property
+    def rect_y_base(self) -> float:
+        return self._rect_y_base
+
+    def generate(self, callback: CallbackBase) -> ColumnDataSource:
+        """
+        Generate callback scheduling rect source.
+
+        Parameters
+        ----------
+        callback : CallbackBase
+            target callback.
+
+        Returns
+        -------
+        ColumnDataSource
+
+        """
+        rect_source = ColumnDataSource(data={
+            k: [] for k in (['x', 'y', 'width', 'height'] + self._get_source_keys(callback))
+        })
+        latency_table = callback.to_dataframe(shaper=self._clip)
+        for row in latency_table.itertuples():
+            callback_start = self._converter.convert(row[1]) if self._converter else row[1]
+            callback_end = self._converter.convert(row[-1]) if self._converter else row[-1]
+            rect = RectValues(
+                callback_start, callback_end,
+                (self._rect_y_base-self.RECT_HEIGHT),
+                (self._rect_y_base+self.RECT_HEIGHT)
+            )
+            rect_source.stream({
+                'legend_label': [self._get_description('legend_label', callback)],
+                'x': [rect.x],
+                'y': [rect.y],
+                'width': [rect.width],
+                'height': [rect.height],
+                'callback_start': [f'callback_start = {callback_start} [ns]'],
+                'callback_start': [f'callback_start = {callback_start} [ns]'],
+                'callback_end': [f'callback_end = {callback_end} [ns]'],
+                'latency': [f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]']
+            })
+
+        return rect_source
+
+    def update_rect_y_base(self) -> None:
+        """Update rect_y_base to the next step."""
+        self._rect_y_base += self._RECT_Y_STEP
+
+    def _get_source_keys(self, target_object: Any) -> List[str]:
+        if isinstance(target_object, CallbackBase):
+            return ['legend_label', 'callback_start', 'callback_end', 'latency']
+        else:
+            raise NotImplementedError()
+
+
+class CallbackSchedBarSource(BokehSourceInterface):
+    """Class to generate callback scheduling bar sources."""
+
+    def __init__(
+        self,
+        legend_manager: LegendManager,
+        frame_min: float,
+        frame_max: float
+    ) -> None:
+        super().__init__(legend_manager)
+        self._frame_min = frame_min
+        self._frame_max = frame_max
+
+    def generate(self, callback: CallbackBase, rect_y_base: float) -> ColumnDataSource:
+        """
+        Generate callback scheduling bar source.
+
+        Parameters
+        ----------
+        callback : CallbackBase
+            target callback.
+        rect_y_base : float
+            The y-base of rect.
+
+        Returns
+        -------
+        ColumnDataSource
+
+        """
+        data_dict = self._get_data_dict(callback)
+        rect = RectValues(
+            self._frame_min, self._frame_max,
+            rect_y_base - 0.5,
+            rect_y_base + 0.5
+        )
+        bar_source = ColumnDataSource(data={
+            **{'x': [rect.x], 'y': [rect.y],
+               'width': [rect.width], 'height': [rect.height]},
+            **data_dict
+        })
+
+        return bar_source
+
+    def _get_source_keys(self, target_object: Any) -> List[str]:
+        if isinstance(target_object, CallbackBase):
+            return ['legend_label', 'node_name', 'callback_name',
+                    'callback_type', 'callback_param', 'symbol']
+        else:
+            raise NotImplementedError()
 
 
 class LineSource(BokehSourceInterface):
