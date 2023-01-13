@@ -237,23 +237,6 @@ class Plot:
         return Plot.create_period_timeseries_plot(callbacks)
 
     @singledispatchmethod
-    def create_callback_jitter_plot(
-        callbacks: Collection[CallbackBase]
-    ) -> PlotBase:
-        logger.warning('create_callback_jitter_plot is deprecated.'
-                       'Use create_callback_period_plot')
-        return Plot.create_callback_period_plot(callbacks)
-
-    @staticmethod
-    @create_callback_jitter_plot.register
-    def _create_callback_jitter_plot_tuple(
-        *callbacks: CallbackBase
-    ) -> PlotBase:
-        logger.warning('create_callback_jitter_plot is deprecated.'
-                       'Use create_callback_period_plot')
-        return Plot.create_callback_period_plot(callbacks)
-
-    @singledispatchmethod
     def create_callback_latency_plot(
         callbacks: Collection[CallbackBase]
     ) -> PlotBase:

@@ -615,10 +615,10 @@ class TestTopicIgnoreReader:
                             return_value=[node])
 
         sub_info = SubscriptionCallbackValue(
-            'cb', node.node_name, node.node_id, 'symbol', 'topic', None
+            'cb', node.node_name, node.node_id, 'symbol', 'topic', None, 0
         )
         sub_info_ignore = SubscriptionCallbackValue(
-            'cb_ignore', node.node_name, node.node_id, 'symbol', 'topic_ignore', None
+            'cb_ignore', node.node_name, node.node_id, 'symbol', 'topic_ignore', None, 0
         )
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks',
@@ -637,9 +637,9 @@ class TestTopicIgnoreReader:
         node = NodeValueWithId('node_name', 'node_name')
 
         sub_cb = SubscriptionCallbackValue(
-            'cb_id', node.node_name, node.node_id, 'symbol', '/topic_name', None)
+            'cb_id', node.node_name, node.node_id, 'symbol', '/topic_name', None, 0)
         sub_cb_ignored = SubscriptionCallbackValue(
-            'cb_id_ignore', node.node_name, node.node_id, 'symbol', '/ignore', None)
+            'cb_id_ignore', node.node_name, node.node_id, 'symbol', '/ignore', None, 0)
         mocker.patch.object(reader_mock, 'get_subscription_callbacks',
                             return_value=[sub_cb, sub_cb_ignored])
 
@@ -658,9 +658,9 @@ class TestTopicIgnoreReader:
         node = NodeValueWithId('node_name', 'node_id')
 
         sub_cb = SubscriptionCallbackValue(
-            callback_id[0], node.node_name, node.node_id, 'symbol', '/topic_name', None)
+            callback_id[0], node.node_name, node.node_id, 'symbol', '/topic_name', None, 0)
         sub_cb_ignored = SubscriptionCallbackValue(
-            callback_id[1], node.node_name, node.node_id, 'symbol', '/ignore', None)
+            callback_id[1], node.node_name, node.node_id, 'symbol', '/ignore', None, 0)
         cbg = CallbackGroupValue(
             CallbackGroupType.MUTUALLY_EXCLUSIVE.type_name,
             node.node_name, node.node_id, (sub_cb.callback_id, sub_cb_ignored.callback_id),
@@ -985,15 +985,15 @@ class TestCallbacksLoaded:
 
         timer_cb = TimerCallbackValue(
             callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, (
-                topic_name, ), callback_name=callback_name[0])
+                topic_name, ), callback_name=callback_name[0], construction_order=0)
 
         sub_cb = SubscriptionCallbackValue(
             callback_id[1], node.node_name, node.node_id, symbol[1],
-            topic_name, None, callback_name=callback_name[1])
+            topic_name, None, callback_name=callback_name[1], construction_order=0)
 
         srv_cb = ServiceCallbackValue(
             callback_id[2], node.node_name, node.node_id, symbol[2],
-            service_name, None, callback_name=callback_name[2])
+            service_name, None, callback_name=callback_name[2], construction_order=0)
 
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[sub_cb])
@@ -1062,17 +1062,23 @@ class TestCallbacksLoaded:
         callback_id = ['5', '6', '7', '8', '9', '10']
 
         timer_cb_0 = TimerCallbackValue(
-            callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, ())
+            callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, (),
+            construction_order=0)
         timer_cb_1 = TimerCallbackValue(
-            callback_id[1], node.node_name, node.node_id, symbol[1], period_ns, ())
+            callback_id[1], node.node_name, node.node_id, symbol[1], period_ns, (),
+            construction_order=0)
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, None)
+            callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, None,
+            construction_order=0)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, None)
+            callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, None,
+            construction_order=0)
         srv_cb_0 = ServiceCallbackValue(
-            callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None)
+            callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None,
+            construction_order=0)
         srv_cb_1 = ServiceCallbackValue(
-            callback_id[5], node.node_name, node.node_id, symbol[5], service_name, None)
+            callback_id[5], node.node_name, node.node_id, symbol[5], service_name, None,
+            construction_order=0)
 
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[sub_cb_0, sub_cb_1])
@@ -1592,6 +1598,7 @@ class TestCommunicationInfoLoaded:
         topic_name = '/chatter'
         pub_node_name = 'talker'
         sub_node_name = 'listener'
+        callback_name = 'callback_name'
 
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         pub_mock = mocker.Mock(spec=PublisherStruct)
@@ -1604,6 +1611,7 @@ class TestCommunicationInfoLoaded:
 
         mocker.patch.object(pub_mock, 'node_name', pub_node_name)
         mocker.patch.object(sub_mock, 'node_name', sub_node_name)
+        mocker.patch.object(sub_mock, 'callback_name', callback_name)
 
         mocker.patch.object(node_pub_mock, 'publishers', [pub_mock])
         mocker.patch.object(node_sub_mock, 'subscriptions', [sub_mock])
@@ -1618,6 +1626,7 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(sub_cb_mock, 'publish_topic_names', [])
         mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub_cb_mock, 'node_name', sub_node_name)
+        mocker.patch.object(sub_cb_mock, 'callback_name', callback_name)
 
         mocker.patch.object(
             nodes_loaded_mock, 'get_callbacks', return_value=(pub_cb_mock, sub_cb_mock))

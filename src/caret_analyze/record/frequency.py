@@ -16,7 +16,7 @@ from typing import List, Optional, Tuple
 
 from .column import ColumnValue
 from .interface import RecordsInterface
-from .record_factory import RecordFactory, RecordsFactory
+from .record_factory import RecordsFactory
 
 
 class Frequency:
@@ -85,9 +85,11 @@ class Frequency:
             until_timestamp or self._target_timestamps[-1]
         )
         for ts, freq in zip(timestamp_list, frequency_list):
-            records.append(RecordFactory.create_instance(
-                {self._target_column: ts, 'frequency': freq}
-            ))
+            record = {
+                self._target_column: ts,
+                'frequency': freq
+            }
+            records.append(record)
 
         return records
 

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from .reader_interface import UNDEFINED_STR
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
@@ -109,24 +109,31 @@ class CallbackDicts:
         self,
         timer_callback: TimerCallbackStructValue
     ) -> Dict:
-        return  \
-            {
+        d = {
                 'callback_name': timer_callback.callback_name,
                 'callback_type': str(CallbackType.TIMER),
                 'period_ns': timer_callback.period_ns,
                 'symbol': timer_callback.symbol,
             }
+        if timer_callback.construction_order > 0:
+            d['construction_order'] = timer_callback.construction_order
+        return d
 
     def _sub_cb_to_dict(
         self,
         subscription_callback: SubscriptionCallbackStructValue
     ) -> Dict:
-        return {
+        d: Dict[str, Union[str, int]]
+        d = {
             'callback_name': subscription_callback.callback_name,
             'callback_type': str(CallbackType.SUBSCRIPTION),
             'topic_name': subscription_callback.subscribe_topic_name,
             'symbol': subscription_callback.symbol,
         }
+        if subscription_callback.construction_order > 0:
+            d['construction_order'] = subscription_callback.construction_order
+
+        return d
 
     def _cb_to_dict(
         self,

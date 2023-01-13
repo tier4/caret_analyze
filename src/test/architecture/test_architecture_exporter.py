@@ -597,17 +597,19 @@ class TestCallbackDicts:
         period_ns = 3
         symbol = 'symbol'
         callback_name = 'callback'
+        construction_order = 0
 
         mocker.patch.object(callback_mock, 'callback_name', callback_name)
         mocker.patch.object(callback_mock, 'period_ns', period_ns)
         mocker.patch.object(callback_mock, 'symbol', symbol)
+        mocker.patch.object(callback_mock, 'construction_order', construction_order)
         callback_dict = CallbackDicts((callback_mock,))
 
         expect = [{
             'callback_name': callback_name,
             'callback_type': 'timer_callback',
             'period_ns': period_ns,
-            'symbol': symbol
+            'symbol': symbol,
         }]
 
         assert callback_dict.data == expect
@@ -622,13 +624,14 @@ class TestCallbackDicts:
         mocker.patch.object(callback_mock, 'callback_name', callback_name)
         mocker.patch.object(callback_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(callback_mock, 'symbol', symbol)
+        mocker.patch.object(callback_mock, 'construction_order', 0)
         callback_dict = CallbackDicts((callback_mock,))
 
         expect = [{
             'callback_name': callback_name,
             'callback_type': 'subscription_callback',
             'topic_name': topic_name,
-            'symbol': symbol
+            'symbol': symbol,
         }]
 
         assert callback_dict.data == expect
@@ -656,6 +659,10 @@ class TestCallbackDicts:
         mocker.patch.object(callback_mock_1, 'symbol', '')
         mocker.patch.object(callback_mock_2, 'symbol', '')
 
+        mocker.patch.object(callback_mock_0, 'construction_order', 0)
+        mocker.patch.object(callback_mock_1, 'construction_order', 0)
+        mocker.patch.object(callback_mock_2, 'construction_order', 0)
+
         callback_dict = CallbackDicts((callback_mock_2, callback_mock_1, callback_mock_0))
 
         expect = [
@@ -663,19 +670,19 @@ class TestCallbackDicts:
                 'callback_name': 'callback_0',
                 'callback_type': 'subscription_callback',
                 'topic_name': None,
-                'symbol': ''
+                'symbol': '',
             },
             {
                 'callback_name': 'callback_1',
                 'callback_type': 'subscription_callback',
                 'topic_name': None,
-                'symbol': ''
+                'symbol': '',
             },
             {
                 'callback_name': 'callback_2',
                 'callback_type': 'subscription_callback',
                 'topic_name': None,
-                'symbol': ''
+                'symbol': '',
             }
         ]
 

@@ -557,7 +557,7 @@ class TestCallbacksLoaded:
         symbol = 'symbol'
 
         cb_info = TimerCallbackStructValue(
-            node_name, symbol, period_ns, (pub_topic_name,), cb_name
+            node_name, symbol, period_ns, (pub_topic_name,), 0, cb_name
         )
 
         pub_mock = mocker.Mock(spec=Publisher)
@@ -593,7 +593,7 @@ class TestCallbacksLoaded:
         mocker.patch.object(sub_loaded_mock, 'get_subscription', return_value=sub_mock)
 
         cb_info = SubscriptionCallbackStructValue(
-            node_name, symbol, sub_topic, (pub_topic,), cb_name
+            node_name, symbol, sub_topic, (pub_topic,), 0, cb_name
         )
 
         cb = CallbacksLoaded._to_runtime(

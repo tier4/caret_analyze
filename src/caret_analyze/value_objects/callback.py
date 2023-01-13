@@ -83,6 +83,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         subscribe_topic_name: Optional[str],
         service_name: Optional[str],
         publish_topic_names: Optional[Tuple[str, ...]],
+        construction_order: int,
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -107,7 +108,9 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
             Service name which the callback service.
         publish_topic_names : Optional[Tuple[str, ...]]
             Topic name which the callback publishes.
-        callback_name: Optional[str]
+        construction_order: int
+            Order of instance creation within the identical node.
+        callback_name: str
             Callback name, by default None. This argument is used by ArchitectureReaderYaml.
 
         """
@@ -119,6 +122,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         self._subscribe_topic_name = subscribe_topic_name
         self._service_name = service_name
         self._publish_topic_names = publish_topic_names
+        self._construction_order = construction_order
 
     @property
     def callback_id(self) -> str:
@@ -246,6 +250,19 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         """
         pass
 
+    @property
+    def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            construction order
+
+        """
+        return self._construction_order
+
 
 class TimerCallbackValue(CallbackValue):
     """
@@ -264,6 +281,7 @@ class TimerCallbackValue(CallbackValue):
         symbol: str,
         period_ns: int,
         publish_topic_names: Optional[Tuple[str, ...]],
+        construction_order: int,
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -275,6 +293,7 @@ class TimerCallbackValue(CallbackValue):
             subscribe_topic_name=None,
             service_name=None,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
         self._period_ns = period_ns
 
@@ -298,6 +317,7 @@ class SubscriptionCallbackValue(CallbackValue):
         symbol: str,
         subscribe_topic_name: str,
         publish_topic_names: Optional[Tuple[str, ...]],
+        construction_order: int,
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -310,6 +330,7 @@ class SubscriptionCallbackValue(CallbackValue):
             subscribe_topic_name=subscribe_topic_name,
             service_name=None,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
 
     @property
@@ -332,6 +353,7 @@ class ServiceCallbackValue(CallbackValue):
         symbol: str,
         service_name: str,
         publish_topic_names: Optional[Tuple[str, ...]],
+        construction_order: int,
         *,  # for yaml reader only.
         callback_name: Optional[str] = None,
     ) -> None:
@@ -344,6 +366,7 @@ class ServiceCallbackValue(CallbackValue):
             subscribe_topic_name=None,
             service_name=service_name,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
 
     @property
@@ -365,7 +388,8 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         subscribe_topic_name: Optional[str],
         service_name: Optional[str],
         publish_topic_names: Optional[Tuple[str, ...]],
-        callback_name: str,
+        construction_order: int,
+        callback_name: str
     ) -> None:
         self._node_name = node_name
         self._callback_name = callback_name
@@ -373,6 +397,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         self._subscribe_topic_name = subscribe_topic_name
         self._service_name = service_name
         self._publish_topic_names = publish_topic_names
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -444,6 +469,19 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         return self._publish_topic_names
 
     @property
+    def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            construction order
+
+        """
+        return self._construction_order
+
+    @property
     @abstractmethod
     def summary(self) -> Summary:
         pass
@@ -458,6 +496,7 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
         symbol: str,
         period_ns: int,
         publish_topic_names: Optional[Tuple[str, ...]],
+        construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
@@ -466,6 +505,7 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
             subscribe_topic_name=None,
             service_name=None,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
         self._period_ns = period_ns
 
@@ -495,7 +535,8 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
         symbol: str,
         subscribe_topic_name: str,
         publish_topic_names: Optional[Tuple[str, ...]],
-        callback_name: str,
+        construction_order: int,
+        callback_name: str
     ) -> None:
         super().__init__(
             node_name=node_name,
@@ -503,6 +544,7 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
             subscribe_topic_name=subscribe_topic_name,
             service_name=None,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
 
     @property
@@ -518,6 +560,12 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
             'topic': self.subscribe_topic_name
         })
 
+    @property
+    def subscribe_topic_name(self) -> str:
+        topic_name = super().subscribe_topic_name
+        assert topic_name is not None
+        return topic_name
+
 
 class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
     """Structured service callback value."""
@@ -528,6 +576,7 @@ class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
         symbol: str,
         service_name: str,
         publish_topic_names: Optional[Tuple[str, ...]],
+        construction_order: int,
         callback_name: str,
     ) -> None:
         super().__init__(
@@ -536,6 +585,7 @@ class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
             subscribe_topic_name=None,
             service_name=service_name,
             publish_topic_names=publish_topic_names,
+            construction_order=construction_order,
             callback_name=callback_name)
 
     @property
