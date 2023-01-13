@@ -1468,17 +1468,17 @@ class PathValuesLoaded():
         paths: List[PathStruct] = []
 
         # duplicate check for path name
-        getpaths = reader.get_paths()
-        getpaths = sorted(getpaths, key=lambda x: x.path_name)
+        get_paths = reader.get_paths()
+        get_paths = sorted(get_paths, key=lambda x: x.path_name)
         try:
-            self._validate(getpaths)
+            self._validate(get_paths)
         except InvalidReaderError as e:
             logger.warn(e)
 
-        getpaths = self._remove_duplicated(getpaths)
+        get_paths = self._remove_duplicated(get_paths)
 
         # for path in reader.get_paths():
-        for path in getpaths:
+        for path in get_paths:
             try:
                 paths.append(
                     self._to_struct(path, nodes_loaded, communications_loaded)
