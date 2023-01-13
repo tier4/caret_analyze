@@ -17,15 +17,19 @@ from typing import Collection, Union
 
 from multimethod import multimethod as singledispatchmethod
 
+from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import ResponseTimePlot
 from .plot_base import PlotBase
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
-from ..runtime import CallbackBase, Communication, Path, Publisher, Subscription
+from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
+                       Path, Publisher, Subscription)
 
 logger = getLogger(__name__)
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+CallbackSchedTypes = Union[Application, Executor, Path,
+                           Node, CallbackGroup, Collection[CallbackGroup]]
 
 
 class Plot:
@@ -180,6 +184,48 @@ class Plot:
         binsize_ns: int = 10000000
     ) -> ResponseTimePlot:
         return ResponseTimePlot(list(paths), case, int(binsize_ns))
+
+    @singledispatchmethod
+    def create_callback_scheduling_plot(  # type: ignore
+        target_objects: CallbackSchedTypes,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
+    ) -> CallbackSchedulingPlot:
+        """
+        Get CallbackSchedulingPlot instance.
+
+        Parameters
+        ----------
+        lstrip_s : float, optional
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
+
+        Returns
+        -------
+        CallbackSchedulingPlot
+
+        """
+        visualize_lib = VisualizeLibFactory.create_instance()
+        if isinstance(target_objects, (tuple, set)):
+            target_objects = list(target_objects)
+        plot = CallbackSchedulingPlotFactory.create_instance(
+            target_objects, visualize_lib, lstrip_s, rstrip_s
+        )
+        return plot
+
+    @staticmethod
+    @create_callback_scheduling_plot.register
+    def _create_callback_scheduling_plot_tuple(
+        *target_objects: CallbackGroup,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
+    ) -> PlotBase:
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = CallbackSchedulingPlotFactory.create_instance(
+            list(target_objects), visualize_lib, lstrip_s, rstrip_s
+        )
+        return plot
 
     # ---------- Previous Interface ----------
     @singledispatchmethod
