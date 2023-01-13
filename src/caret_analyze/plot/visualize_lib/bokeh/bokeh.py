@@ -15,16 +15,15 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Generator, List, Sequence, Tuple, Union
+from typing import List, Tuple, Union
 
-from bokeh.colors import Color, RGB
 from bokeh.models import LinearAxis, Range1d, SingleIntervalTicker
 from bokeh.plotting import Figure, figure
 
-import colorcet as cc
 import numpy as np
 
 from .bokeh_source import LegendManager, LineSource
+from .color_selector import ColorSelectorFactory
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, Communication, Publisher, Subscription
@@ -108,22 +107,15 @@ class Bokeh(VisualizeLibInterface):
             self._apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
 
         # Draw lines
-        def get_color_generator() -> Generator:
-            color_palette = self._create_color_palette()
-            color_idx = 0
-            while True:
-                yield color_palette[color_idx]
-                color_idx = (color_idx + 1) % len(color_palette)
-
+        color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
         line_source = LineSource(frame_min, xaxis_type, legend_manager)
         p.add_tools(line_source.create_hover(target_objects[0]))
-        color_generator = get_color_generator()
         for to, timeseries in zip(target_objects, timeseries_records_list):
             renderer = p.line(
                 'x', 'y',
                 source=line_source.generate(to, timeseries),
-                color=next(color_generator)
+                color=color_selector.get_color()
             )
             legend_manager.add_legend(to, renderer)
 
@@ -136,17 +128,6 @@ class Bokeh(VisualizeLibInterface):
         legend_manager.draw_legends(p, num_legend_threshold, full_legends)
 
         return p
-
-    @staticmethod
-    def _create_color_palette() -> Sequence[Color]:
-        def from_rgb(r: float, g: float, b: float) -> RGB:
-            r_ = int(r*255)
-            g_ = int(g*255)
-            b_ = int(b*255)
-
-            return RGB(r_, g_, b_)
-
-        return [from_rgb(*rgb) for rgb in cc.glasbey_bw_minc_20]
 
     @staticmethod
     def _get_range(target_objects: List[TimeSeriesTypes]) -> Tuple[int, int]:
