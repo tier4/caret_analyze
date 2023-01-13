@@ -16,12 +16,179 @@ from __future__ import annotations
 
 from collections import defaultdict
 from logging import getLogger
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
-from bokeh.models import GlyphRenderer, Legend
-from bokeh.plotting import Figure
+from bokeh.models import GlyphRenderer, HoverTool, Legend
+from bokeh.plotting import ColumnDataSource, Figure
+
+from ....record import RecordsInterface
+from ....runtime import (CallbackBase, Communication, Publisher, Subscription,
+                         SubscriptionCallback, TimerCallback)
+
+TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 logger = getLogger(__name__)
+
+
+class LineSource:
+    """Class that generate lines of timeseries data."""
+
+    def __init__(
+        self,
+        frame_min,
+        xaxis_type: str,
+        legend_manager: LegendManager
+    ) -> None:
+        self._frame_min = frame_min
+        self._xaxis_type = xaxis_type
+        self._legend = legend_manager
+
+    def create_hover(self, target_object: TimeSeriesTypes) -> HoverTool:
+        """
+        Create HoverTool for timeseries figure.
+
+        Parameters
+        ----------
+        target_object : TimeSeriesTypes
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+
+        Returns
+        -------
+        bokeh.models.HoverTool
+            This contains information display when hovering the mouse over a drawn line.
+
+        """
+        source_keys = self._get_source_keys(target_object)
+        tips_str = '<div style="width:400px; word-wrap: break-word;">'
+        for k in source_keys:
+            tips_str += f'@{k} <br>'
+        tips_str += '</div>'
+
+        return HoverTool(tooltips=tips_str, point_policy='follow_mouse')
+
+    def generate(
+        self,
+        target_object: TimeSeriesTypes,
+        timeseries_records: RecordsInterface,
+    ) -> ColumnDataSource:
+        """
+        Generate a line source for timeseries figure.
+
+        Parameters
+        ----------
+        target_object : TimeSeriesTypes
+            TimeSeriesPlotTypes = Union[
+                CallbackBase, Communication, Union[Publisher, Subscription]
+            ]
+        timeseries_records : RecordsInterface
+            Records containing timeseries data.
+
+        Returns
+        -------
+        bokeh.plotting.ColumnDataSource
+            Line source for timeseries figure.
+
+        """
+        line_source = ColumnDataSource(data={
+            k: [] for k in (['x', 'y'] + self._get_source_keys(target_object))
+        })
+        data_dict = self._get_data_dict(target_object)
+        x_item, y_item = self._get_x_y(timeseries_records)
+        for x, y in zip(x_item, y_item):
+            line_source.stream({**{'x': [x], 'y': [y]}, **data_dict})  # type: ignore
+
+        return line_source
+
+    def _get_x_y(
+        self,
+        timeseries_records: RecordsInterface
+    ) -> Tuple[List[Union[int, float]], List[Union[int, float]]]:
+        def ensure_not_none(
+            target_seq: Sequence[Optional[Union[int, float]]]
+        ) -> List[Union[int, float]]:
+            """
+            Ensure the inputted list does not include None.
+
+            Notes
+            -----
+            The timeseries_records is implemented not to include None,
+            so if None is included, an AssertionError is output.
+
+            """
+            not_none_list = [_ for _ in target_seq if _ is not None]
+            assert len(target_seq) == len(not_none_list)
+
+            return not_none_list
+
+        ts_column = timeseries_records.columns[0]
+        value_column = timeseries_records.columns[1]
+        timestamps = ensure_not_none(timeseries_records.get_column_series(ts_column))
+        values = ensure_not_none(timeseries_records.get_column_series(value_column))
+        if 'latency' in value_column.lower() or 'period' in value_column.lower():
+            values = [v*10**(-6) for v in values]  # [ns] -> [ms]
+
+        x_item: List[Union[int, float]]
+        y_item: List[Union[int, float]] = values
+        if self._xaxis_type == 'system_time':
+            x_item = [(ts-self._frame_min)*10**(-9) for ts in timestamps]
+        elif self._xaxis_type == 'index':
+            x_item = list(range(0, len(values)))
+        elif self._xaxis_type == 'sim_time':
+            x_item = timestamps
+
+        return x_item, y_item
+
+    def _get_source_keys(
+        self,
+        target_object: TimeSeriesTypes
+    ) -> List[str]:
+        source_keys: List[str]
+        if isinstance(target_object, CallbackBase):
+            source_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
+                           'callback_param', 'symbol']
+        elif isinstance(target_object, Communication):
+            source_keys = ['legend_label', 'topic_name',
+                           'publish_node_name', 'subscribe_node_name']
+        elif isinstance(target_object, (Publisher, Subscription)):
+            source_keys = ['legend_label', 'node_name', 'topic_name']
+        else:
+            raise NotImplementedError()
+
+        return source_keys
+
+    def _get_description(
+        self,
+        key: str,
+        target_object: TimeSeriesTypes
+    ) -> str:
+        if key == 'callback_param':
+            if isinstance(target_object, TimerCallback):
+                description = f'period_ns = {target_object.period_ns}'
+            elif isinstance(target_object, SubscriptionCallback):
+                description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
+        elif key == 'legend_label':
+            label = self._legend.get_label(target_object)
+            description = f'legend_label = {label}'
+        else:
+            raise NotImplementedError()
+
+        return description
+
+    def _get_data_dict(
+        self,
+        target_object: TimeSeriesTypes
+    ) -> Dict[str, Any]:
+        data_dict: Dict[str, Any] = {}
+
+        for k in self._get_source_keys(target_object):
+            try:
+                data_dict[k] = [f'{k} = {getattr(target_object, k)}']
+            except AttributeError:
+                data_dict[k] = [self._get_description(k, target_object)]
+
+        return data_dict
 
 
 class LegendManager:
