@@ -65,8 +65,8 @@ class Ros2Handler():
         monotonic_to_system_time_offset : Optional[int]
             Offset time to convert monotonic time to system time.
             This values should be valid number if a recording was done with runtime recording.
-            Pass None if recorded from before the start of the application,
-            to use the time of the trace point.
+            None is given, if recording begins before launch of the application,
+            to use time sampled from the trace point.
 
         """
         # Link a ROS trace event to its corresponding handling method
