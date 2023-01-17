@@ -19,7 +19,7 @@ from logging import getLogger
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.models import GlyphRenderer, HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, Figure
+from bokeh.plotting import ColumnDataSource
 
 import numpy as np
 
@@ -412,25 +412,28 @@ class LegendManager:
         self._legend_items.append((label, [renderer]))
         self._legend[target_object] = label
 
-    def draw_legends(
+    def create_legends(
         self,
-        figure: Figure,
         max_legends: int = 20,
         full_legends: bool = False
-    ) -> None:
+    ) -> List[Legend]:
         """
-        Add legends to the input figure.
+        Create legends.
 
         Parameters
         ----------
-        figure : Figure
-            Target figure.
         max_legends : int, optional
             Maximum number of legends to display, by default 20.
         full_legends : bool, optional
             Display all legends even if they exceed max_legends, by default False.
 
+        Returns
+        -------
+        List[Legend]
+            List of Legend instances separated by 10.
+
         """
+        legends: List[Legend] = []
         for i in range(0, len(self._legend_items)+10, 10):
             if not full_legends and i >= max_legends:
                 logger.warning(
@@ -439,9 +442,9 @@ class LegendManager:
                     'please specify the `full_legends` option to True.'
                 )
                 break
-            figure.add_layout(Legend(items=self._legend_items[i:i+10]), 'right')
+            legends.append(Legend(items=self._legend_items[i:i+10]))
 
-        figure.legend.click_policy = 'hide'
+        return legends
 
     def get_label(self, target_object: Any) -> str:
         if target_object in self._legend:

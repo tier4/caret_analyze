@@ -193,7 +193,10 @@ class Bokeh(VisualizeLibInterface):
         In Autoware, the number of callbacks in a node is less than 20.
         Here, num_legend_threshold is set to 20 as the maximum value.
         """
-        legend_manager.draw_legends(p, num_legend_threshold, full_legends)
+        legends = legend_manager.create_legends(num_legend_threshold, full_legends)
+        for legend in legends:
+            p.add_layout(legend, 'right')
+        p.legend.click_policy = 'hide'
 
         p.ygrid.grid_line_alpha = 0
         p.yaxis.visible = False
@@ -286,7 +289,10 @@ class Bokeh(VisualizeLibInterface):
         In Autoware, the number of callbacks in a node is less than 20.
         Here, num_legend_threshold is set to 20 as the maximum value.
         """
-        legend_manager.draw_legends(p, num_legend_threshold, full_legends)
+        legends = legend_manager.create_legends(num_legend_threshold, full_legends)
+        for legend in legends:
+            p.add_layout(legend, 'right')
+        p.legend.click_policy = 'hide'
 
         return p
 
