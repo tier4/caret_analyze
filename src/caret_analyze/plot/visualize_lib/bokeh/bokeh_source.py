@@ -25,6 +25,7 @@ from bokeh.plotting import ColumnDataSource, Figure
 import numpy as np
 
 from ....common import ClockConverter
+from ....exceptions import InvalidArgumentError
 from ....record import Clip, RecordsInterface
 from ....runtime import (CallbackBase, Communication, Publisher, Subscription,
                          SubscriptionCallback, TimerCallback)
@@ -33,6 +34,52 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 
 logger = getLogger(__name__)
 
+
+class LegendKeys:
+    _SUPPORTED_GRAPH_TYPE = ['callback_scheduling_bar', 'callback_scheduling_rect', 'timeseries']
+
+    def __init__(self, graph_type: str, target_object: TimeSeriesTypes) -> None:
+        self._validate(graph_type, target_object)
+        self._graph_type = graph_type
+        self._target_object = target_object
+
+    def _validate(self, graph_type: str, target_object: Any) -> None:
+        if graph_type not in self._SUPPORTED_GRAPH_TYPE:
+            raise InvalidArgumentError(
+                f"'graph_type' must be [{'/'.join(self._SUPPORTED_GRAPH_TYPE)}]."
+            )
+
+        if graph_type == 'callback_scheduling' and not isinstance(target_object, CallbackBase):
+            raise InvalidArgumentError(
+                "'target_object' must be CallbackBase in callback scheduling graph."
+            )
+
+        if (graph_type == 'timeseries' and not isinstance(
+                target_object, (CallbackBase, Communication, Publisher, Subscription))):
+            raise InvalidArgumentError(
+                "'target_object' must be [CallbackBase/Communication/Publisher/Subscription]"
+                'in timeseries graph.'
+            )
+
+    def to_list(self) -> List[str]:
+        if self._graph_type == 'callback_scheduling_bar':
+            legend_keys = ['legend_label', 'node_name', 'callback_name',
+                           'callback_type', 'callback_param', 'symbol']
+
+        if self._graph_type == 'callback_scheduling_rect':
+            legend_keys = ['legend_label', 'callback_start', 'callback_end', 'latency']
+
+        if self._graph_type == 'timeseries':
+            if isinstance(self._target_object, CallbackBase):
+                legend_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
+                               'callback_param', 'symbol']
+            elif isinstance(self._target_object, Communication):
+                legend_keys = ['legend_label', 'topic_name',
+                               'publish_node_name', 'subscribe_node_name']
+            elif isinstance(self._target_object, (Publisher, Subscription)):
+                legend_keys = ['legend_label', 'node_name', 'topic_name']
+
+        return legend_keys
 
 class BokehSourceInterface(metaclass=ABCMeta):
     """Interface class of BokehSource."""
