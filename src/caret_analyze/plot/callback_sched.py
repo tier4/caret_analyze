@@ -37,7 +37,7 @@ def callback_sched(
     use_sim_time: bool = False,
     export_path: Optional[str] = None
 ) -> Figure:
-    logger.warning("The 'callback_sched' interface is deprecated, "
+    logger.warning("The 'callback_sched' method is deprecated, "
                    "please use 'Plot.create_callback_scheduling_plot()' method.")
 
     plot = Plot.create_callback_scheduling_plot(target)
