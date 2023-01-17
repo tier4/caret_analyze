@@ -65,17 +65,13 @@ class LttngInfo:
         self._srv_cb_cache_without_pub: Optional[Dict[str, List[ServiceCallbackValueLttng]]]
         self._srv_cb_cache_without_pub = None
 
-        self._timer_cb_cache_without_pub: Optional[Dict[str, List[TimerCallbackValueLttng]]]
-        self._timer_cb_cache_without_pub = None
-
     def _get_timer_cbs_without_pub(self, node_id: str) -> List[TimerCallbackValueLttng]:
-        if self._timer_cb_cache_without_pub is None:
-            self._timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
+        timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
 
-        if node_id not in self._timer_cb_cache_without_pub:
+        if node_id not in timer_cb_cache_without_pub:
             return []
 
-        return self._timer_cb_cache_without_pub[node_id]
+        return timer_cb_cache_without_pub[node_id]
 
     def _get_sub_cbs_without_pub(self, node_id: str) -> List[SubscriptionCallbackValueLttng]:
         if self._sub_cb_cache_without_pub is None:
@@ -107,6 +103,7 @@ class LttngInfo:
         """
         return self._rmw_implementation
 
+    @lru_cache
     def _load_timer_cbs_without_pub(self) -> Dict[str, List[TimerCallbackValueLttng]]:
         timer_cbs_info: Dict[str, List[TimerCallbackValueLttng]] = {}
 
