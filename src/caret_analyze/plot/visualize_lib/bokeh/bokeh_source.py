@@ -135,11 +135,11 @@ class LegendSource:
             if hasattr(target_object, k):
                 legend_values[k] = [f'{k} = {getattr(target_object, k)}']
             else:
-                legend_values[k] = [self.get_description(target_object, k)]
+                legend_values[k] = [self.get_non_property_data(target_object, k)]
 
         return legend_values
 
-    def get_description(self, target_object: Any, key: str) -> str:
+    def get_non_property_data(self, target_object: Any, key: str) -> str:
         """
         Get non-property data from target object.
 
@@ -153,7 +153,7 @@ class LegendSource:
         Returns
         -------
         str
-            description, i.e., non-property data.
+            Non-property data.
 
         Raises
         ------
@@ -272,7 +272,9 @@ class CallbackSchedRectSource:
                 (self._rect_y_base+self.RECT_HEIGHT)
             )
             rect_source.stream({
-                'legend_label': [self._legend_source.get_description(callback, 'legend_label')],
+                'legend_label': [
+                    self._legend_source.get_non_property_data(callback, 'legend_label')
+                ],
                 'x': [rect.x],
                 'y': [rect.y],
                 'width': [rect.width],
