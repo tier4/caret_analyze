@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.record import ColumnValue
-from caret_analyze.record.period import Period
+from caret_analyze.record import ColumnValue, Period
 from caret_analyze.record.record_factory import RecordsFactory
 
 

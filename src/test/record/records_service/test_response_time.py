@@ -13,9 +13,8 @@
 # limitations under the License.
 
 from caret_analyze.exceptions import InvalidRecordsError
-from caret_analyze.record import ColumnValue
+from caret_analyze.record import ColumnValue, ResponseTime
 from caret_analyze.record.record_factory import RecordsFactory
-from caret_analyze.record.response_time import ResponseTime
 
 import pytest
 

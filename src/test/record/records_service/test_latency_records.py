@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from caret_analyze.record import ColumnValue
-from caret_analyze.record.latency import Latency
+from caret_analyze.record import Latency
 from caret_analyze.record.record_factory import RecordsFactory
 
 
