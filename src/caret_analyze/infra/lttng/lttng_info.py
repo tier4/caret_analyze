@@ -51,7 +51,6 @@ class LttngInfo:
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iat(0, 0) if len(data.rmw_impl) > 0 else ''
 
-        self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
         self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
 
         self._id_to_topic: Dict[str, str] = {}
@@ -361,6 +360,7 @@ class LttngInfo:
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
         return get_srv_cb_local(node_lttng)
 
+    @lru_cache
     def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
         node_id = node.node_id
         return self.get_publishers_without_cb_bind(node_id)
@@ -380,12 +380,7 @@ class LttngInfo:
 
         """
         def get_publishers_local(node: NodeValueLttng):
-            node_id = node.node_id
-
-            if node_id not in self._pub_cache.keys():
-                self._pub_cache[node_id] = self._get_publishers(node)
-
-            return self._pub_cache[node_id]
+            return self._get_publishers(node)
 
         if node.node_id is None:
             return Util.flatten([
