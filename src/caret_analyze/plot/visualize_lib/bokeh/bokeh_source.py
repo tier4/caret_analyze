@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
@@ -123,7 +122,7 @@ class LegendSource:
             if hasattr(target_object, k):
                 legend_values[k] = [f'{k} = {getattr(target_object, k)}']
             else:
-                legend_values[k] = [self.get_description(k, target_object)]
+                legend_values[k] = [self.get_description(target_object, k)]
 
         return legend_values
 
@@ -138,76 +137,6 @@ class LegendSource:
             label = self._legend_manager.get_label(target_object)
             description = f'legend_label = {label}'
 
-        else:
-            raise NotImplementedError()
-
-        return description
-
-
-class BokehSourceInterface(metaclass=ABCMeta):
-    """Interface class of BokehSource."""
-
-    def __init__(self, legend_manager: LegendManager) -> None:
-        self._legend = legend_manager
-
-    def create_hover(self, target_object: Any, options: dict = {}) -> HoverTool:
-        """
-        Create HoverTool for Bokeh figure.
-
-        Parameters
-        ----------
-        target_object : Any
-            The target object to be drawn.
-        options: dict, optional
-            Additional options for HoverTool.
-
-        Returns
-        -------
-        bokeh.models.HoverTool
-            This contains information display when hovering the mouse over a drawn line.
-
-        """
-        source_keys = self._get_source_keys(target_object)
-        tips_str = '<div style="width:400px; word-wrap: break-word;">'
-        for k in source_keys:
-            tips_str += f'@{k} <br>'
-        tips_str += '</div>'
-
-        return HoverTool(
-            tooltips=tips_str, point_policy='follow_mouse', toggleable=False, **options
-        )
-
-    @abstractmethod
-    def _get_source_keys(self, target_object: Any) -> List[str]:
-        raise NotImplementedError()
-
-    def _get_data_dict(
-        self,
-        target_object: Any
-    ) -> Dict[str, Any]:
-        data_dict: Dict[str, Any] = {}
-
-        for k in self._get_source_keys(target_object):
-            try:
-                data_dict[k] = [f'{k} = {getattr(target_object, k)}']
-            except AttributeError:
-                data_dict[k] = [self._get_description(k, target_object)]
-
-        return data_dict
-
-    def _get_description(
-        self,
-        key: str,
-        target_object: Any
-    ) -> str:
-        if key == 'callback_param':
-            if isinstance(target_object, TimerCallback):
-                description = f'period_ns = {target_object.period_ns}'
-            elif isinstance(target_object, SubscriptionCallback):
-                description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
-        elif key == 'legend_label':
-            label = self._legend.get_label(target_object)
-            description = f'legend_label = {label}'
         else:
             raise NotImplementedError()
 
@@ -242,7 +171,7 @@ class RectValues:
         return abs(self._y[0] - self._y[1])
 
 
-class CallbackSchedRectSource(BokehSourceInterface):
+class CallbackSchedRectSource:
     """Class to generate callback scheduling rect sources."""
 
     RECT_HEIGHT = 0.3
@@ -250,18 +179,24 @@ class CallbackSchedRectSource(BokehSourceInterface):
 
     def __init__(
         self,
-        clip: Clip,
         legend_manager: LegendManager,
+        target_object: TimeSeriesTypes,
+        clip: Clip,
         converter: Optional[ClockConverter] = None
     ) -> None:
-        super().__init__(legend_manager)
-        self._rect_y_base = 0.0
+        self._legend_keys = LegendKeys('callback_scheduling_rect', target_object)
+        self._hover = HoverCreator(self._legend_keys)
+        self._legend_source = LegendSource(legend_manager, self._legend_keys)
         self._clip = clip
         self._converter = converter
+        self._rect_y_base = 0.0
 
     @property
     def rect_y_base(self) -> float:
         return self._rect_y_base
+
+    def create_hover(self, options: dict = {}) -> HoverTool:
+        return self._hover.create(options)
 
     def generate(self, callback: CallbackBase) -> ColumnDataSource:
         """
@@ -278,7 +213,7 @@ class CallbackSchedRectSource(BokehSourceInterface):
 
         """
         rect_source = ColumnDataSource(data={
-            k: [] for k in (['x', 'y', 'width', 'height'] + self._get_source_keys(callback))
+            k: [] for k in (['x', 'y', 'width', 'height'] + self._legend_keys.to_list())
         })
         latency_table = callback.to_dataframe(shaper=self._clip)
         for row in latency_table.itertuples():
@@ -290,7 +225,7 @@ class CallbackSchedRectSource(BokehSourceInterface):
                 (self._rect_y_base+self.RECT_HEIGHT)
             )
             rect_source.stream({
-                'legend_label': [self._get_description('legend_label', callback)],
+                'legend_label': [self._legend_source.get_description(callback, 'legend_label')],
                 'x': [rect.x],
                 'y': [rect.y],
                 'width': [rect.width],
@@ -306,25 +241,25 @@ class CallbackSchedRectSource(BokehSourceInterface):
         """Update rect_y_base to the next step."""
         self._rect_y_base += self._RECT_Y_STEP
 
-    def _get_source_keys(self, target_object: Any) -> List[str]:
-        if isinstance(target_object, CallbackBase):
-            return ['legend_label', 'callback_start', 'callback_end', 'latency']
-        else:
-            raise NotImplementedError()
 
-
-class CallbackSchedBarSource(BokehSourceInterface):
+class CallbackSchedBarSource:
     """Class to generate callback scheduling bar sources."""
 
     def __init__(
         self,
         legend_manager: LegendManager,
+        target_object: TimeSeriesTypes,
         frame_min: float,
         frame_max: float
     ) -> None:
-        super().__init__(legend_manager)
+        self._legend_keys = LegendKeys('callback_scheduling_bar', target_object)
+        self._hover = HoverCreator(self._legend_keys)
+        self._legend_source = LegendSource(legend_manager, self._legend_keys)
         self._frame_min = frame_min
         self._frame_max = frame_max
+
+    def create_hover(self, options: dict = {}) -> HoverTool:
+        return self._hover.create(options)
 
     def generate(self, callback: CallbackBase, rect_y_base: float) -> ColumnDataSource:
         """
@@ -342,40 +277,39 @@ class CallbackSchedBarSource(BokehSourceInterface):
         ColumnDataSource
 
         """
-        data_dict = self._get_data_dict(callback)
         rect = RectValues(
             self._frame_min, self._frame_max,
             rect_y_base - 0.5,
             rect_y_base + 0.5
         )
+        legend_source = self._legend_source.generate(callback)
         bar_source = ColumnDataSource(data={
             **{'x': [rect.x], 'y': [rect.y],
                'width': [rect.width], 'height': [rect.height]},
-            **data_dict
+            **legend_source  # type: ignore
         })
 
         return bar_source
 
-    def _get_source_keys(self, target_object: Any) -> List[str]:
-        if isinstance(target_object, CallbackBase):
-            return ['legend_label', 'node_name', 'callback_name',
-                    'callback_type', 'callback_param', 'symbol']
-        else:
-            raise NotImplementedError()
 
-
-class LineSource(BokehSourceInterface):
+class LineSource:
     """Class to generate timeseries line sources."""
 
     def __init__(
         self,
+        legend_manager: LegendManager,
+        target_object: TimeSeriesTypes,
         frame_min,
         xaxis_type: str,
-        legend_manager: LegendManager
     ) -> None:
+        self._legend_keys = LegendKeys('timeseries', target_object)
+        self._hover = HoverCreator(self._legend_keys)
+        self._legend_source = LegendSource(legend_manager, self._legend_keys)
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
-        super().__init__(legend_manager)
+
+    def create_hover(self, options: dict = {}) -> HoverTool:
+        return self._hover.create(options)
 
     def generate(
         self,
@@ -401,32 +335,14 @@ class LineSource(BokehSourceInterface):
 
         """
         line_source = ColumnDataSource(data={
-            k: [] for k in (['x', 'y'] + self._get_source_keys(target_object))
+            k: [] for k in (['x', 'y'] + self._legend_keys.to_list())
         })
-        data_dict = self._get_data_dict(target_object)
+        legend_source = self._legend_source.generate(target_object)
         x_item, y_item = self._get_x_y(timeseries_records)
         for x, y in zip(x_item, y_item):
-            line_source.stream({**{'x': [x], 'y': [y]}, **data_dict})  # type: ignore
+            line_source.stream({**{'x': [x], 'y': [y]}, **legend_source})  # type: ignore
 
         return line_source
-
-    def _get_source_keys(
-        self,
-        target_object: Any
-    ) -> List[str]:
-        source_keys: List[str]
-        if isinstance(target_object, CallbackBase):
-            source_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
-                           'callback_param', 'symbol']
-        elif isinstance(target_object, Communication):
-            source_keys = ['legend_label', 'topic_name',
-                           'publish_node_name', 'subscribe_node_name']
-        elif isinstance(target_object, (Publisher, Subscription)):
-            source_keys = ['legend_label', 'node_name', 'topic_name']
-        else:
-            raise NotImplementedError()
-
-        return source_keys
 
     def _get_x_y(
         self,

@@ -126,8 +126,8 @@ class Bokeh(VisualizeLibInterface):
         # Draw callback scheduling
         color_selector = ColorSelectorFactory.create_instance(coloring_rule)
         legend_manager = LegendManager()
-        rect_source_gen = CallbackSchedRectSource(clip, legend_manager, converter)
-        bar_source_gen = CallbackSchedBarSource(legend_manager, frame_min, frame_max)
+        rect_source_gen = CallbackSchedRectSource(legend_manager, callbacks[0], clip, converter)
+        bar_source_gen = CallbackSchedBarSource(legend_manager, callbacks[0], frame_min, frame_max)
 
         for cbg in callback_groups:
             for callback in cbg.callbacks:
@@ -148,7 +148,7 @@ class Bokeh(VisualizeLibInterface):
                 )
                 legend_manager.add_legend(callback, rect)
                 p.add_tools(rect_source_gen.create_hover(
-                    callback, {'attachment': 'above', 'renderers': [rect]}
+                    {'attachment': 'above', 'renderers': [rect]}
                 ))
                 bar = p.rect(
                     'x', 'y', 'width', 'height',
@@ -161,7 +161,7 @@ class Bokeh(VisualizeLibInterface):
                     x_range_name=x_range_name
                 )
                 p.add_tools(bar_source_gen.create_hover(
-                    callback, {'attachment': 'below', 'renderers': [bar]}
+                    {'attachment': 'below', 'renderers': [bar]}
                 ))
 
                 if isinstance(callback, TimerCallback) and len(rect_source.data['y']) > 1:
@@ -270,8 +270,8 @@ class Bokeh(VisualizeLibInterface):
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
-        line_source = LineSource(frame_min, xaxis_type, legend_manager)
-        p.add_tools(line_source.create_hover(target_objects[0]))
+        line_source = LineSource(legend_manager, target_objects[0], frame_min, xaxis_type)
+        p.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
             renderer = p.line(
                 'x', 'y',
