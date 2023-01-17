@@ -143,18 +143,15 @@ class LttngInfo:
         Sequence[TimerCallbackInfo]
 
         """
-        def get_timer_cb_local(node: NodeValueLttng):
-            return self._get_timer_callbacks(node)
-
         if node.node_id is None:
             return Util.flatten([
-                get_timer_cb_local(node)
+                self._get_timer_callbacks(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_timer_cb_local(node_lttng)
+        return self._get_timer_callbacks(node_lttng)
 
     @lru_cache
     def get_nodes(self) -> Sequence[NodeValueLttng]:
@@ -264,18 +261,15 @@ class LttngInfo:
         Sequence[SubscriptionCallbackInfo]
 
         """
-        def get_sub_cb_local(node: NodeValueLttng):
-            return self._get_subscription_callback_values(node)
-
         if node.node_id is None:
             return Util.flatten([
-                get_sub_cb_local(node)
+                self._get_subscription_callback_values(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_sub_cb_local(node_lttng)
+        return self._get_subscription_callback_values(node_lttng)
 
     @property
     def tilde_sub_id_map(self) -> Dict[int, int]:
@@ -345,18 +339,15 @@ class LttngInfo:
         Sequence[ServiceCallbackInfo]
 
         """
-        def get_srv_cb_local(node: NodeValueLttng):
-            return self._get_service_callback_values(node)
-
         if node.node_id is None:
             return Util.flatten([
-                get_srv_cb_local(node)
+                self._get_service_callback_values(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_srv_cb_local(node_lttng)
+        return self._get_service_callback_values(node_lttng)
 
     @lru_cache
     def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
@@ -377,18 +368,15 @@ class LttngInfo:
         List[PublisherInfo]
 
         """
-        def get_publishers_local(node: NodeValueLttng):
-            return self._get_publishers(node)
-
         if node.node_id is None:
             return Util.flatten([
-                get_publishers_local(node)
+                self._get_publishers(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_publishers_local(node_lttng)
+        return self._get_publishers(node_lttng)
 
     def _get_nodes(
         self,
@@ -511,18 +499,15 @@ class LttngInfo:
         List[CallbackGroupInfo]
 
         """
-        def get_cbg_local(node: NodeValueLttng):
-            return self._get_callback_groups(node.node_id)
-
         if node.node_id is None:
             return Util.flatten([
-                get_cbg_local(node)
+                self._get_callback_groups(node.node_id)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_cbg_local(node_lttng)
+        return self._get_callback_groups(node_lttng.node_id)
 
     def get_executors(self) -> List[ExecutorValue]:
         """
