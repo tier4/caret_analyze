@@ -14,9 +14,6 @@
 
 from .column import Column, Columns, ColumnValue
 from .data_frame_shaper import Clip, DataFrameShaper, Strip
-from .frequency import Frequency
-from .latency import Latency
-from .period import Period
 from .record import (merge,
                      merge_sequential,
                      merge_sequential_for_addr_track,
@@ -24,9 +21,8 @@ from .record import (merge,
                      RecordInterface,
                      Records,
                      RecordsInterface)
-
 from .record_factory import RecordFactory, RecordsFactory
-from .response_time import ResponseTime
+from .records_service import Frequency, Latency, Period, ResponseTime
 
 __all__ = [
     'Clip',

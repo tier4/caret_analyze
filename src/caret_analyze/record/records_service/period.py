@@ -14,9 +14,9 @@
 
 from typing import List, Optional
 
-from .column import ColumnValue
-from .interface import RecordsInterface
-from .record_factory import RecordsFactory
+from ..column import ColumnValue
+from ..interface import RecordsInterface
+from ..record_factory import RecordsFactory
 
 
 class Period:

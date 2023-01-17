@@ -18,10 +18,10 @@ from typing import Iterator, Optional, Sequence, Tuple
 
 import numpy as np
 
-from .column import ColumnValue
-from .interface import RecordsInterface
-from .record_factory import RecordsFactory
-from ..exceptions import InvalidRecordsError
+from ..column import ColumnValue
+from ..interface import RecordsInterface
+from ..record_factory import RecordsFactory
+from ...exceptions import InvalidRecordsError
 
 
 class TimeRange:
