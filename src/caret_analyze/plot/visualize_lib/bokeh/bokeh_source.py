@@ -35,6 +35,8 @@ logger = getLogger(__name__)
 
 
 class LegendKeys:
+    """Legend keys."""
+
     _SUPPORTED_GRAPH_TYPE = ['callback_scheduling_bar', 'callback_scheduling_rect', 'timeseries']
 
     def __init__(self, graph_type: str, target_object: TimeSeriesTypes) -> None:
@@ -61,6 +63,15 @@ class LegendKeys:
             )
 
     def to_list(self) -> List[str]:
+        """
+        Get legend keys as a list.
+
+        Returns
+        -------
+        List[str]
+            Legend keys.
+
+        """
         if self._graph_type == 'callback_scheduling_bar':
             legend_keys = ['legend_label', 'node_name', 'callback_name',
                            'callback_type', 'callback_param', 'symbol']
@@ -82,13 +93,14 @@ class LegendKeys:
 
 
 class HoverCreator:
+    """Class to create HoverTool for bokeh graph."""
 
     def __init__(self, legend_keys: LegendKeys) -> None:
         self._legend_keys = legend_keys
 
     def create(self, options: dict = {}) -> HoverTool:
         """
-        Create HoverTool.
+        Create HoverTool based on the legend keys.
 
         Parameters
         ----------
@@ -111,6 +123,7 @@ class HoverCreator:
 
 
 class LegendSource:
+    """Legend source."""
 
     def __init__(self, legend_manager: LegendManager, legend_keys: LegendKeys) -> None:
         self._legend_manager = legend_manager
@@ -127,6 +140,27 @@ class LegendSource:
         return legend_values
 
     def get_description(self, target_object: Any, key: str) -> str:
+        """
+        Get non-property data from target object.
+
+        Parameters
+        ----------
+        target_object : Any
+            Target object.
+        key : str
+            Legend key.
+
+        Returns
+        -------
+        str
+            description, i.e., non-property data.
+
+        Raises
+        ------
+        NotImplementedError
+            'key' not in [callback_param/legend_label].
+
+        """
         if key == 'callback_param':
             if isinstance(target_object, TimerCallback):
                 description = f'period_ns = {target_object.period_ns}'
@@ -196,6 +230,19 @@ class CallbackSchedRectSource:
         return self._rect_y_base
 
     def create_hover(self, options: dict = {}) -> HoverTool:
+        """
+        Create HoverTool based on the legend keys.
+
+        Parameters
+        ----------
+        options : dict, optional
+            Additional options, by default {}
+
+        Returns
+        -------
+        HoverTool
+
+        """
         return self._hover.create(options)
 
     def generate(self, callback: CallbackBase) -> ColumnDataSource:
@@ -259,6 +306,19 @@ class CallbackSchedBarSource:
         self._frame_max = frame_max
 
     def create_hover(self, options: dict = {}) -> HoverTool:
+        """
+        Create HoverTool based on the legend keys.
+
+        Parameters
+        ----------
+        options : dict, optional
+            Additional options, by default {}
+
+        Returns
+        -------
+        HoverTool
+
+        """
         return self._hover.create(options)
 
     def generate(self, callback: CallbackBase, rect_y_base: float) -> ColumnDataSource:
@@ -309,6 +369,19 @@ class LineSource:
         self._xaxis_type = xaxis_type
 
     def create_hover(self, options: dict = {}) -> HoverTool:
+        """
+        Create HoverTool based on the legend keys.
+
+        Parameters
+        ----------
+        options : dict, optional
+            Additional options, by default {}
+
+        Returns
+        -------
+        HoverTool
+
+        """
         return self._hover.create(options)
 
     def generate(
@@ -447,6 +520,20 @@ class LegendManager:
         return legends
 
     def get_label(self, target_object: Any) -> str:
+        """
+        Get label name of target object.
+
+        Parameters
+        ----------
+        target_object : Any
+            Target object.
+
+        Returns
+        -------
+        str
+            Label name of target object.
+
+        """
         if target_object in self._legend:
             return self._legend[target_object]
 
