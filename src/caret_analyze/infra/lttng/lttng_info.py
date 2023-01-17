@@ -352,7 +352,7 @@ class LttngInfo:
     @lru_cache
     def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
         node_id = node.node_id
-        return self.get_publishers_without_cb_bind(node_id)
+        return self._get_publishers_without_cb_bind(node_id)
 
     def get_publishers(self, node: NodeValue) -> List[PublisherValueLttng]:
         """
@@ -384,7 +384,7 @@ class LttngInfo:
     ) -> Sequence[NodeValueLttng]:
         return Util.filter_items(lambda x: x.node_name == node_name, self.get_nodes())
 
-    def get_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
+    def _get_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
         """
         Get publishers information.
 
