@@ -718,7 +718,6 @@ class PublishersLoaded:
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue
     ) -> None:
-        # NOTE(miyakoshi): duplicate check is unnecessary because no id. (Pub:Callback=1:n)
         publisher_values = reader.get_publishers(node)
         self._data = [self._to_struct(callbacks_loaded, pub)
                       for pub in publisher_values]
