@@ -200,7 +200,8 @@ class CtfEventCollection(IterableEvents):
                     begin_msg = msg  # store first one
                 end_msg = msg  # store last one
 
-        # Ensure that trace data includes one at least. If there is no message in trace data, assertion failed.
+        # Ensure that trace data includes one at least.
+        # If there is no message in trace data, assertion failed.
         assert begin_msg is not None
         assert end_msg is not None
 
