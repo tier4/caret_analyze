@@ -51,8 +51,6 @@ class LttngInfo:
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iat(0, 0) if len(data.rmw_impl) > 0 else ''
 
-        self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
-
         self._id_to_topic: Dict[str, str] = {}
         self._id_to_service: Dict[str, str] = {}
 
@@ -454,6 +452,7 @@ class LttngInfo:
 
         return topic_name not in ['/clock', '/parameter_events']
 
+    @lru_cache
     def _get_callback_groups(
         self,
         node_id: str
@@ -513,12 +512,7 @@ class LttngInfo:
 
         """
         def get_cbg_local(node: NodeValueLttng):
-            node_id = node.node_id
-
-            if node_id not in self._cbg_cache:
-                self._cbg_cache[node_id] = self._get_callback_groups(node.node_id)
-
-            return self._cbg_cache[node_id]
+            return self._get_callback_groups(node.node_id)
 
         if node.node_id is None:
             return Util.flatten([
