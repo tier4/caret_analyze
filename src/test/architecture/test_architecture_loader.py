@@ -192,11 +192,8 @@ class TestNodesInfoLoaded():
         nodes = loader.data
         assert nodes == [node_mock]
 
-    def test_duplicated_node_name_and_id(self, mocker):
+    def test_duplicated_node_name_and_id(self, mocker, caplog):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
-
-        mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
-                     return_value=reader_mock)
 
         node_mock = mocker.Mock(spec=NodeStruct)
         cb_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
@@ -213,11 +210,10 @@ class TestNodesInfoLoaded():
         loader = NodeValuesLoaded(reader_mock)
         nodes = loader.data
         assert len(nodes) == 1
+        assert 'Duplicated node name.' in caplog.messages[0]
+        caplog.clear()
 
         # duplicate check for node id
-        nodes = []
-        node_a = []
-        node_b = []
         node_a = NodeValue('nodeA', 'nodeAid')
         node_b = NodeValue('nodeB', 'nodeAid')
         mocker.patch.object(reader_mock, 'get_nodes',
@@ -226,6 +222,7 @@ class TestNodesInfoLoaded():
         loader = NodeValuesLoaded(reader_mock)
         nodes = loader.data
         assert len(nodes) == 1
+        assert 'Duplicated node id.' in caplog.messages[0]
 
     def test_name_sort(self, mocker):
         reader_mock = mocker.Mock(spec=TopicIgnoredReader)
@@ -801,7 +798,7 @@ class TestSubscriptionsLoaded:
         assert sub_struct_info.node_name == subscription_info.node_name
         assert sub_struct_info.topic_name == subscription_info.topic_name
 
-    def test_duplicated_subscription_name(self, mocker):
+    def test_duplicated_subscription_name(self, mocker, caplog):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_id_a = '5'
         callback_id_b = '6'
@@ -831,6 +828,7 @@ class TestSubscriptionsLoaded:
             reader_mock, callbacks_loaded_mock, node)
 
         assert len(loaded.data) == 2
+        assert 'Duplicated callback id.' in caplog.messages[0]
 
 
 class TestServicesLoaded:
@@ -873,7 +871,7 @@ class TestServicesLoaded:
         assert srv_struct_info.node_name == service_info.node_name
         assert srv_struct_info.service_name == service_info.service_name
 
-    def test_duplicated_service_name(self, mocker):
+    def test_duplicated_service_name(self, mocker, caplog):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_id_a = '5'
         callback_id_b = '6'
@@ -903,6 +901,7 @@ class TestServicesLoaded:
             reader_mock, callbacks_loaded_mock, node)
 
         assert len(loaded.data) == 2
+        assert 'Duplicated callback id.' in caplog.messages[0]
 
 
 class TestCallbacksLoaded:
@@ -1101,7 +1100,7 @@ class TestCallbacksLoaded:
         cb = loaded.find_callback(callback_id[3])
         assert cb.callback_name == '/node_name/callback_3'
 
-    def test_duplicated_callback_id(self, mocker):
+    def test_duplicated_callback_id(self, mocker, caplog):
         from logging import getLogger
         logger = getLogger(__name__)
 
@@ -1114,17 +1113,23 @@ class TestCallbacksLoaded:
         callback_id = ['5', '6', '5', '8', '9', '10']
 
         timer_cb_0 = TimerCallbackValue(
-            callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, ())
+            callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, (),
+            construction_order=0)
         timer_cb_1 = TimerCallbackValue(
-            callback_id[1], node.node_name, node.node_id, symbol[1], period_ns, ())
+            callback_id[1], node.node_name, node.node_id, symbol[1], period_ns, (),
+            construction_order=0)
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, None)
+            callback_id[2], node.node_name, node.node_id, symbol[2], topic_name, None,
+            construction_order=0)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, None)
+            callback_id[3], node.node_name, node.node_id, symbol[3], topic_name, None,
+            construction_order=0)
         srv_cb_0 = ServiceCallbackValue(
-            callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None)
+            callback_id[4], node.node_name, node.node_id, symbol[4], service_name, None,
+            construction_order=0)
         srv_cb_1 = ServiceCallbackValue(
-            callback_id[5], node.node_name, node.node_id, symbol[5], service_name, None)
+            callback_id[5], node.node_name, node.node_id, symbol[5], service_name, None,
+            construction_order=0)
 
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[sub_cb_0, sub_cb_1])
@@ -1137,8 +1142,9 @@ class TestCallbacksLoaded:
             CallbacksLoaded(reader_mock, node)
 
         logger.warn(e)
+        assert 'Duplicated callback id.' in caplog.messages[0]
 
-    def test_duplicated_callback_name_cl(self, mocker):
+    def test_duplicated_callback_name_cl(self, mocker, caplog):
         from logging import getLogger
         logger = getLogger(__name__)
 
@@ -1153,15 +1159,15 @@ class TestCallbacksLoaded:
 
         timer_cb = TimerCallbackValue(
             callback_id[0], node.node_name, node.node_id, symbol[0], period_ns, (
-                topic_name, ), callback_name=callback_name[0])
+                topic_name, ), construction_order=0, callback_name=callback_name[0])
 
         sub_cb = SubscriptionCallbackValue(
             callback_id[1], node.node_name, node.node_id, symbol[1],
-            topic_name, None, callback_name=callback_name[1])
+            topic_name, None, construction_order=0, callback_name=callback_name[1])
 
         srv_cb = ServiceCallbackValue(
             callback_id[2], node.node_name, node.node_id, symbol[2],
-            service_name, None, callback_name=callback_name[0])
+            service_name, None, construction_order=0, callback_name=callback_name[0])
 
         mocker.patch.object(
             reader_mock, 'get_subscription_callbacks', return_value=[sub_cb])
@@ -1174,6 +1180,7 @@ class TestCallbacksLoaded:
             CallbacksLoaded(reader_mock, node)
 
         logger.warn(e)
+        assert 'Duplicated callback names.' in caplog.messages[0]
 
 
 class TestVariablePassingsLoaded:
@@ -1320,7 +1327,7 @@ class TestCallbackGroupsLoaded:
         expect = ['node/callback_group_0', 'callback_group_name', 'node/callback_group_1']
         assert callback_group_names == expect
 
-    def test_duplicated_callback_group_id(self, mocker):
+    def test_duplicated_callback_group_id(self, mocker, caplog):
         node = NodeValueWithId('node', 'node')
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1356,8 +1363,9 @@ class TestCallbackGroupsLoaded:
             reader_mock, callbacks_loaded_mock, node)
 
         assert len(loaded.data) == 2
+        assert 'Duplicated callback id.' in caplog.messages[0]
 
-    def test_duplicated_callback_group_name(self, mocker):
+    def test_duplicated_callback_group_name(self, mocker, caplog):
         node = NodeValueWithId('node', 'node')
 
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1394,6 +1402,7 @@ class TestCallbackGroupsLoaded:
             reader_mock, callbacks_loaded_mock, node)
 
         assert len(loaded.data) == 2
+        assert 'Duplicated callback name.' in caplog.messages[0]
 
 
 class TestExecutorInfoLoaded:
@@ -1426,12 +1435,10 @@ class TestExecutorInfoLoaded:
 
         executors = loaded.data
         executor_names = [e.executor_name for e in executors]
-# The order has changed because it is sorted by duplication check
-#        expect = ['executor_0', 'exec_name', 'executor_1']
-        expect = ['exec_name', 'executor_0', 'executor_1']
+        expect = ['executor_0', 'exec_name', 'executor_1']
         assert executor_names == expect
 
-    def test_duplicated_executor_name(self, mocker):
+    def test_duplicated_executor_name(self, mocker, caplog):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
 
         # duplicate check for executor name
@@ -1452,10 +1459,8 @@ class TestExecutorInfoLoaded:
         loaded = ExecutorValuesLoaded(reader_mock, nodes_loaded)
 
         executors = loaded.data
-        executor_names = [e.executor_name for e in executors]
-        expect = ['exec_name', 'executor_0', 'executor_1', 'executor_2']
-        assert executor_names == expect
         assert len(executors) == 4
+        assert 'Duplicated executor name.' in caplog.messages[0]
 
     def test_single_executor(self, mocker):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
@@ -1727,7 +1732,7 @@ class TestPathInfoLoaded:
         paths_info = loaded.data
         assert paths_info == [path_mock]
 
-    def test_duplicated_path_name(self, mocker):
+    def test_duplicated_path_name(self, mocker, caplog):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
         comm_loaded_mock = mocker.Mock(spec=CommValuesLoaded)
@@ -1750,6 +1755,7 @@ class TestPathInfoLoaded:
             reader_mock, nodes_loaded_mock, comm_loaded_mock)
         nodes = loaded.data
         assert len(nodes) == 2
+        assert 'Duplicated path name.' in caplog.messages[0]
 
     def test_to_struct(self, mocker):
         path_name = 'path'
@@ -1788,7 +1794,7 @@ class TestTimersLoaded:
         loaded = TimersLoaded(reader_mock, callbacks_loaded_mock, node)
         assert len(loaded.data) == 0
 
-    def test_duplicated_timer_callback_id(self, mocker):
+    def test_duplicated_timer_callback_id(self, mocker, caplog):
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_id_a = '5'
         callback_id_b = '6'
@@ -1819,3 +1825,4 @@ class TestTimersLoaded:
             reader_mock, callbacks_loaded_mock, node)
 
         assert len(loaded.data) == 2
+        assert 'Duplicated callback id.' in caplog.messages[0]

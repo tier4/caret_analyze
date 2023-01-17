@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from itertools import product
 from logging import getLogger, WARN
-from typing import cast, Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from caret_analyze.architecture.struct.message_context import CallbackChainStruct
 
@@ -314,20 +314,23 @@ class NodeValuesLoaded():
 
         # validate node name uniqueness.
         node_names = [n.node_name for n in nodes]
-        duplicated: List[str] = []
+        duplicated_name: List[str] = []
+        duplicated_id: List[str] = []
         for node_name, group in groupby(node_names):
             if len(list(group)) >= 2:
-                duplicated.append(node_name)
-        if len(duplicated) >= 1:
-            raise InvalidReaderError(f'Duplicated node name. {duplicated}. Use first node only.')
+                duplicated_name.append(node_name)
+        if len(duplicated_name) >= 1:
+            msg = f'Duplicated node name. {duplicated_name}. Use first node name only.'
+            raise InvalidReaderError(msg)
 
         # validate node id uniqueness.
         node_ids = [n.node_id for n in nodes]
         for node_id, group in groupby(node_ids):
             if len(list(group)) >= 2:
-                duplicated.append(node_id)
-        if len(duplicated) >= 1:
-            raise InvalidReaderError(f'Duplicated node id. {duplicated}. Use first id only.')
+                duplicated_id.append(node_id)
+        if len(duplicated_id) >= 1:
+            msg = f'Duplicated node id. {duplicated_id}. Use first node id only.'
+            raise InvalidReaderError(msg)
 
     @property
     def data(self) -> List[NodeStruct]:
@@ -715,7 +718,7 @@ class PublishersLoaded:
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue
     ) -> None:
-        # TODO(miyakoshi): duplicate check is unnecessary because no id. (Pub:Callback=1:n)
+        # NOTE(miyakoshi): duplicate check is unnecessary because no id. (Pub:Callback=1:n)
         publisher_values = reader.get_publishers(node)
         self._data = [self._to_struct(callbacks_loaded, pub)
                       for pub in publisher_values]
@@ -780,7 +783,6 @@ class SubscriptionsLoaded:
     ) -> None:
         # duplicate check for callback_id
         subscription_values = reader.get_subscriptions(node)
-        subscription_values = sorted(subscription_values, key=lambda x: x.callback_id or '')
         try:
             self._validate(subscription_values)
         except InvalidReaderError as e:
@@ -792,31 +794,30 @@ class SubscriptionsLoaded:
                       for sub in subscription_values]
 
     @staticmethod
-    def _validate(callback_vals: List[SubscriptionValue]):
-        from itertools import groupby
-
+    def _validate(callback_vals: Sequence[SubscriptionValue]):
         # validate callback id uniqueness.
-        callback_ids = [n.callback_id for n in callback_vals]
+        callback_ids: Set[str] = set()
         duplicated: List[str] = []
-        for callback_id, group in groupby(callback_ids):
-            if callback_id is not None:
-                if len(list(group)) >= 2:
-                    duplicated.append(cast(str, callback_id))
-        if len(duplicated) >= 1:
+        for callback_id in callback_vals:
+            if callback_id.callback_id is not None:
+                if callback_id.callback_id not in callback_ids:
+                    callback_ids.add(callback_id.callback_id)
+                else:
+                    duplicated.append(callback_id.callback_id)
+        if len(callback_ids) != len(callback_vals):
             msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(callback_vals: List[SubscriptionValue]) -> List[SubscriptionValue]:
+    def _remove_duplicated(callback_vals: Sequence[SubscriptionValue]) -> List[SubscriptionValue]:
         ids_: List[SubscriptionValue] = []
         callback_ids: Set[str] = set()
         for callback in callback_vals:
             # remove if callback id are not unique
             if callback.callback_id is None:
-                callback_ids.add(cast(str, callback.callback_id))
                 ids_.append(callback)
             elif callback.callback_id not in callback_ids:
-                callback_ids.add(cast(str, callback.callback_id))
+                callback_ids.add(callback.callback_id)
                 ids_.append(callback)
         return ids_
 
@@ -853,7 +854,6 @@ class ServicesLoaded:
     ) -> None:
         # duplicate check for callback_id
         services_values = reader.get_services(node)
-        services_values = sorted(services_values, key=lambda x: x.callback_id or '')
         try:
             self._validate(services_values)
         except InvalidReaderError as e:
@@ -865,31 +865,30 @@ class ServicesLoaded:
                       for srv in services_values]
 
     @staticmethod
-    def _validate(callback_vals: List[ServiceValue]):
-        from itertools import groupby
-
+    def _validate(callback_vals: Sequence[ServiceValue]):
         # validate callback id uniqueness.
-        callback_ids = [n.callback_id for n in callback_vals]
+        callback_ids: Set[str] = set()
         duplicated: List[str] = []
-        for callback_id, group in groupby(callback_ids):
-            if callback_id is not None:
-                if len(list(group)) >= 2:
-                    duplicated.append(cast(str, callback_id))
-        if len(duplicated) >= 1:
+        for callback_id in callback_vals:
+            if callback_id.callback_id is not None:
+                if callback_id.callback_id not in callback_ids:
+                    callback_ids.add(callback_id.callback_id)
+                else:
+                    duplicated.append(callback_id.callback_id)
+        if len(callback_ids) != len(callback_vals):
             msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(callback_vals: List[ServiceValue]) -> List[ServiceValue]:
+    def _remove_duplicated(callback_vals: Sequence[ServiceValue]) -> List[ServiceValue]:
         ids_: List[ServiceValue] = []
         callback_ids: Set[str] = set()
         for callback in callback_vals:
             # remove if callback id are not unique
             if callback.callback_id is None:
-                callback_ids.add(cast(str, callback.callback_id))
                 ids_.append(callback)
             elif callback.callback_id not in callback_ids:
-                callback_ids.add(cast(str, callback.callback_id))
+                callback_ids.add(callback.callback_id)
                 ids_.append(callback)
         return ids_
 
@@ -927,7 +926,6 @@ class TimersLoaded:
         timer_values = reader.get_timers(node)
 
         # duplicate check for callback_id
-        timer_values = sorted(timer_values, key=lambda x: x.callback_id or '')
         try:
             self._validate(timer_values)
         except InvalidReaderError as e:
@@ -939,31 +937,30 @@ class TimersLoaded:
                       for timer in timer_values]
 
     @staticmethod
-    def _validate(callback_vals: List[TimerValue]):
-        from itertools import groupby
-
+    def _validate(callback_vals: Sequence[TimerValue]):
         # validate callback id uniqueness.
-        callback_ids = [n.callback_id for n in callback_vals]
+        callback_ids: Set[str] = set()
         duplicated: List[str] = []
-        for callback_id, group in groupby(callback_ids):
-            if callback_id is not None:
-                if len(list(group)) >= 2:
-                    duplicated.append(cast(str, callback_id))
-        if len(duplicated) >= 1:
+        for callback_id in callback_vals:
+            if callback_id.callback_id is not None:
+                if callback_id.callback_id not in callback_ids:
+                    callback_ids.add(callback_id.callback_id)
+                else:
+                    duplicated.append(callback_id.callback_id)
+        if len(callback_ids) != len(callback_vals):
             msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(callback_vals: List[TimerValue]) -> List[TimerValue]:
+    def _remove_duplicated(callback_vals: Sequence[TimerValue]) -> List[TimerValue]:
         ids_: List[TimerValue] = []
         callback_ids: Set[str] = set()
         for callback in callback_vals:
             # remove if callback id are not unique
             if callback.callback_id is None:
-                callback_ids.add(cast(str, callback.callback_id))
                 ids_.append(callback)
             elif callback.callback_id not in callback_ids:
-                callback_ids.add(cast(str, callback.callback_id))
+                callback_ids.add(callback.callback_id)
                 ids_.append(callback)
         return ids_
 
@@ -1043,7 +1040,6 @@ class CallbackGroupsLoaded():
 
         # duplicate check for callback_group_id
         callback_groups = reader.get_callback_groups(node)
-        callback_groups = sorted(callback_groups, key=lambda x: x.callback_group_id)
         try:
             self._validate_id(callback_groups)
         except InvalidReaderError as e:
@@ -1079,42 +1075,41 @@ class CallbackGroupsLoaded():
             )
 
             try:
-                if self._validate_name(cbg_name, duplicated_names):
-                    duplicated_names.add(cast(str, cbg_name))
-                    self._data[cbg.callback_group_id] = cbg_struct
+                self._validate_name(cbg_name, duplicated_names)
+                duplicated_names.add(cbg_name)
+                self._data[cbg.callback_group_id] = cbg_struct
             except InvalidReaderError as e:
                 logger.warn(e)
 
     @staticmethod
-    def _validate_name(name, names):
-        if name not in names:
-            return True
-        else:
+    def _validate_name(name: str, names: set[str]):
+        if name in names:
             msg = f'Duplicated callback name. {name}. Use first callback name only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _validate_id(callback_vals: List[CallbackGroupValue]):
-        from itertools import groupby
-
+    def _validate_id(callback_vals: Sequence[CallbackGroupValue]):
         # validate callback group id uniqueness.
-        callback_ids = [n.callback_group_id for n in callback_vals]
+        callback_ids: Set[str] = set()
         duplicated: List[str] = []
-        for callback_id, group in groupby(callback_ids):
-            if len(list(group)) >= 2:
-                duplicated.append(cast(str, callback_id))
-        if len(duplicated) >= 1:
+        for callback_id in callback_vals:
+            if callback_id.callback_group_id not in callback_ids:
+                callback_ids.add(callback_id.callback_group_id)
+            else:
+                duplicated.append(callback_id.callback_group_id)
+        if len(callback_ids) != len(callback_vals):
             msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(callback_vals: List[CallbackGroupValue]) -> List[CallbackGroupValue]:
+    def _remove_duplicated(callback_vals: Sequence[CallbackGroupValue]) \
+            -> List[CallbackGroupValue]:
         ids_: List[CallbackGroupValue] = []
         callback_ids: Set[str] = set()
         for callback in callback_vals:
             # remove if callback id are not unique
             if callback.callback_group_id not in callback_ids:
-                callback_ids.add(cast(str, callback.callback_group_id))
+                callback_ids.add(callback.callback_group_id)
                 ids_.append(callback)
         return ids_
 
@@ -1358,7 +1353,6 @@ class ExecutorValuesLoaded():
     ) -> None:
         execs: List[ExecutorStruct] = []
 
-        # TODO(miyakoshi): duplicate check is unnecessary because there is no id
         exec_vals = reader.get_executors()
         # TODO(hsgwa): Checking for unique constraints on id and name
         num_digit = Util.num_digit(len(exec_vals))
@@ -1383,27 +1377,26 @@ class ExecutorValuesLoaded():
                     f'executor_name = {executor_name}. {e}')
 
         # duplicate check for executor name
-        executors = sorted(execs, key=lambda x: x.executor_name)
         try:
-            self._validate(executors)
+            self._validate(execs)
         except InvalidReaderError as e:
             logger.warn(e)
         # If you don't need to remove duplicate data, remove the following line
-        execs = self._remove_duplicated(executors)
+        execs = self._remove_duplicated(execs)
 
         self._data = execs
 
     @staticmethod
     def _validate(exec_vals: List[ExecutorStruct]):
-        from itertools import groupby
-
         # validate executor name uniqueness.
-        executor_names = [n.executor_name for n in exec_vals]
+        executor_names: Set[str] = set()
         duplicated: List[str] = []
-        for executor_name, group in groupby(executor_names):
-            if len(list(group)) >= 2:
-                duplicated.append(executor_name)
-        if len(duplicated) >= 1:
+        for executor_name in exec_vals:
+            if executor_name.executor_name not in executor_names:
+                executor_names.add(executor_name.executor_name)
+            else:
+                duplicated.append(executor_name.executor_name)
+        if len(executor_names) != len(exec_vals):
             msg = f'Duplicated executor name. {duplicated}. Use first executor name only.'
             raise InvalidReaderError(msg)
 
@@ -1469,7 +1462,6 @@ class PathValuesLoaded():
 
         # duplicate check for path name
         get_paths = reader.get_paths()
-        get_paths = sorted(get_paths, key=lambda x: x.path_name)
         try:
             self._validate(get_paths)
         except InvalidReaderError as e:
@@ -1477,7 +1469,6 @@ class PathValuesLoaded():
 
         get_paths = self._remove_duplicated(get_paths)
 
-        # for path in reader.get_paths():
         for path in get_paths:
             try:
                 paths.append(
@@ -1489,21 +1480,21 @@ class PathValuesLoaded():
         self._data = paths
 
     @staticmethod
-    def _validate(path_vals: List[PathValue]):
-        from itertools import groupby
-
-        # validate executor name uniqueness.
-        path_names = [n.path_name for n in path_vals]
+    def _validate(path_vals: Sequence[PathValue]):
+        # validate path name uniqueness.
+        path_names: Set[str] = set()
         duplicated: List[str] = []
-        for path_name, group in groupby(path_names):
-            if len(list(group)) >= 2:
-                duplicated.append(path_name)
-        if len(duplicated) >= 1:
+        for path in path_vals:
+            if path.path_name not in path_names:
+                path_names.add(path.path_name)
+            else:
+                duplicated.append(path.path_name)
+        if len(path_names) != len(path_vals):
             msg = f'Duplicated path name. {duplicated}. Use first path name only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(path_vals: List[PathValue]) -> List[PathValue]:
+    def _remove_duplicated(path_vals: Sequence[PathValue]) -> List[PathValue]:
         paths_: List[PathValue] = []
         path_names: Set[str] = set()
         for path in path_vals:
