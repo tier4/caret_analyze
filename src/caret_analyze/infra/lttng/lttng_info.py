@@ -51,7 +51,6 @@ class LttngInfo:
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iat(0, 0) if len(data.rmw_impl) > 0 else ''
 
-        self._sub_cb_cache: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
         self._srv_cb_cache: Dict[str, List[ServiceCallbackValueLttng]] = {}
         self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
         self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
@@ -240,6 +239,7 @@ class LttngInfo:
             )
         return sub_cbs_info
 
+    @lru_cache
     def _get_subscription_callback_values(
         self,
         node: NodeValue
@@ -269,10 +269,7 @@ class LttngInfo:
 
         """
         def get_sub_cb_local(node: NodeValueLttng):
-            node_id = node.node_id
-            if node_id not in self._sub_cb_cache.keys():
-                self._sub_cb_cache[node_id] = self._get_subscription_callback_values(node)
-            return self._sub_cb_cache[node_id]
+            return self._get_subscription_callback_values(node)
 
         if node.node_id is None:
             return Util.flatten([
