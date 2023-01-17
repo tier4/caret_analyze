@@ -55,7 +55,20 @@ class Ros2Handler():
         data: Ros2DataModel,
         monotonic_to_system_time_offset: Optional[int]
     ) -> None:
-        """Create a Ros2Handler."""
+        """
+        Create Ros2Handler.
+
+        Parameters
+        ----------
+        data : Ros2DataModel
+            DataModel to be handles
+        monotonic_to_system_time_offset : Optional[int]
+            Offset time to convert monotonic time to system time.
+            This values should be valid number if a recording was done with runtime recording.
+            None is given, if recording begins before launch of the application,
+            to use time sampled from the trace point.
+
+        """
         # Link a ROS trace event to its corresponding handling method
 
         handler_map = {}
@@ -420,10 +433,8 @@ class Ros2Handler():
                 # 'init_timestamp' with the monotonic clock.
                 # The 'init_timestamp' is converted to the original
                 # measurement time and passed to the handler.
-                init_timestamp: int = pop_field(event, 'init_timestamp')  # type: ignore
-                recording_started_before_running = self._monotonic_to_system_offset is None
-                if not recording_started_before_running:
-                    assert self._monotonic_to_system_offset is not None
+                if self._monotonic_to_system_offset:
+                    init_timestamp: int = pop_field(event, 'init_timestamp')  # type: ignore
                     event['_timestamp'] = init_timestamp + self._monotonic_to_system_offset
                     handler(event)
                 else:

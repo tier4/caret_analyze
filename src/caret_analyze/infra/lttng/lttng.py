@@ -200,8 +200,11 @@ class CtfEventCollection(IterableEvents):
                     begin_msg = msg  # store first one
                 end_msg = msg  # store last one
 
+        # Ensure that trace data includes one at least.
+        # If there is no message in trace data, assertion failed.
         assert begin_msg is not None
         assert end_msg is not None
+
         # NOTE: Begin_time and end_time should be the same time as the PickleEventCollection.
         self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
         self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
@@ -348,7 +351,6 @@ class Lttng(InfraBase):
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
             # Note: giving events as arguments is used only for debugging.
-            assert isinstance(trace_dir_or_events, List)
             filtered_event_count = 0
             events = trace_dir_or_events
 
