@@ -51,7 +51,6 @@ class LttngInfo:
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iat(0, 0) if len(data.rmw_impl) > 0 else ''
 
-        self._timer_cb_cache: Dict[str, Sequence[TimerCallbackValueLttng]] = {}
         self._sub_cb_cache: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
         self._srv_cb_cache: Dict[str, List[ServiceCallbackValueLttng]] = {}
         self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
@@ -126,6 +125,7 @@ class LttngInfo:
 
         return timer_cbs_info
 
+    @lru_cache
     def _get_timer_callbacks(self, node: NodeValue) -> Sequence[TimerCallbackValueLttng]:
         node_id = node.node_id
         assert node_id is not None
@@ -149,10 +149,7 @@ class LttngInfo:
 
         """
         def get_timer_cb_local(node: NodeValueLttng):
-            node_id = node.node_id
-            if node.node_id not in self._timer_cb_cache.keys():
-                self._timer_cb_cache[node_id] = self._get_timer_callbacks(node)
-            return self._timer_cb_cache[node_id]
+            return self._get_timer_callbacks(node)
 
         if node.node_id is None:
             return Util.flatten([
