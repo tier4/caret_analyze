@@ -21,23 +21,30 @@ from bokeh.colors import Color, RGB
 
 import colorcet as cc
 
+from ....exceptions import InvalidArgumentError
+
 
 class ColorSelectorFactory:
     """Factory class to create an instance of ColorSelector."""
 
     @staticmethod
-    def create_instance(coloring_rule: str):
+    def create_instance(coloring_rule: str) -> ColorSelectorInterface:
         if coloring_rule == 'unique':
             return ColorSelectorUnique()
 
-        if coloring_rule == 'callback':
+        elif coloring_rule == 'callback':
             return ColorSelectorCallback()
 
-        if coloring_rule == 'callback_group':
+        elif coloring_rule == 'callback_group':
             return ColorSelectorCbg()
 
-        if coloring_rule == 'node':
+        elif coloring_rule == 'node':
             return ColorSelectorNode()
+
+        else:
+            raise InvalidArgumentError(
+                "'coloring_rule' must be [unique/callback/callback_group/node]"
+            )
 
 
 class ColorSelectorInterface:
