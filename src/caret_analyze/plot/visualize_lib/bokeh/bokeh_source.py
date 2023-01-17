@@ -81,6 +81,35 @@ class LegendKeys:
 
         return legend_keys
 
+
+class HoverCreator:
+
+    def __init__(self, legend_keys: LegendKeys) -> None:
+        self._legend_keys = legend_keys
+
+    def create(self, options: dict = {}) -> HoverTool:
+        """
+        Create HoverTool.
+
+        Parameters
+        ----------
+        options : dict, optional
+            Additional options, by default {}
+
+        Returns
+        -------
+        HoverTool
+
+        """
+        tips_str = '<div style="width:400px; word-wrap: break-word;">'
+        for k in self._legend_keys.to_list():
+            tips_str += f'@{k} <br>'
+        tips_str += '</div>'
+
+        return HoverTool(
+            tooltips=tips_str, point_policy='follow_mouse', toggleable=False, **options
+        )
+
 class BokehSourceInterface(metaclass=ABCMeta):
     """Interface class of BokehSource."""
 
