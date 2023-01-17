@@ -59,8 +59,6 @@ class LttngInfo:
 
         self._id_to_topic: Dict[str, str] = {}
         self._id_to_service: Dict[str, str] = {}
-        self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
-        self._sub_cb_cache_without_pub = None
 
         self._srv_cb_cache_without_pub: Optional[Dict[str, List[ServiceCallbackValueLttng]]]
         self._srv_cb_cache_without_pub = None
@@ -74,13 +72,12 @@ class LttngInfo:
         return timer_cb_cache_without_pub[node_id]
 
     def _get_sub_cbs_without_pub(self, node_id: str) -> List[SubscriptionCallbackValueLttng]:
-        if self._sub_cb_cache_without_pub is None:
-            self._sub_cb_cache_without_pub = self._load_sub_cbs_without_pub()
+        sub_cb_cache_without_pub = self._load_sub_cbs_without_pub()
 
-        if node_id not in self._sub_cb_cache_without_pub:
+        if node_id not in sub_cb_cache_without_pub:
             return []
 
-        return self._sub_cb_cache_without_pub[node_id]
+        return sub_cb_cache_without_pub[node_id]
 
     def _get_srv_cbs_without_pub(self, node_id: str) -> List[ServiceCallbackValueLttng]:
         if self._srv_cb_cache_without_pub is None:
@@ -203,6 +200,7 @@ class LttngInfo:
 
         return nodes
 
+    @lru_cache
     def _load_sub_cbs_without_pub(
         self
     ) -> Dict[str, List[SubscriptionCallbackValueLttng]]:
