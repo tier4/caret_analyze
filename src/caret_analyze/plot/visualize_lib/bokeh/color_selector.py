@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Dict, Sequence
+from typing import Dict, Optional, Sequence
 
 from bokeh.colors import Color, RGB
 
@@ -57,9 +57,9 @@ class ColorSelectorInterface:
 
     def get_color(
         self,
-        node_name: str = '',
-        cbg_name: str = '',
-        callback_name: str = ''
+        node_name: Optional[str] = None,
+        cbg_name: Optional[str] = None,
+        callback_name: Optional[str] = None
     ) -> Color:
         """
         Get color.
@@ -67,11 +67,11 @@ class ColorSelectorInterface:
         Parameters
         ----------
         node_name : str, optional
-            node name, by default ''
+            node name, by default None.
         cbg_name : str, optional
-            callback group name, by default ''
+            callback group name, by default None.
         callback_name : str, optional
-            callback name, by default ''
+            callback name, by default None.
 
         Returns
         -------
@@ -89,9 +89,9 @@ class ColorSelectorInterface:
     @abstractmethod
     def _get_color_hash(
         self,
-        node_name: str,
-        cbg_name: str,
-        callback_name: str
+        node_name: Optional[str],
+        cbg_name: Optional[str],
+        callback_name: Optional[str]
     ) -> str:
         raise NotImplementedError()
 
@@ -104,9 +104,9 @@ class ColorSelectorUnique(ColorSelectorInterface):
 
     def _get_color_hash(
         self,
-        node_name: str,
-        cbg_name: str,
-        callback_name: str
+        node_name: Optional[str],
+        cbg_name: Optional[str],
+        callback_name: Optional[str]
     ) -> str:
         self._color_index += 1
         return str(self._color_index)
@@ -116,10 +116,11 @@ class ColorSelectorCallback(ColorSelectorInterface):
 
     def _get_color_hash(
         self,
-        node_name: str,
-        cbg_name: str,
-        callback_name: str
+        node_name: Optional[str],
+        cbg_name: Optional[str],
+        callback_name: Optional[str]
     ) -> str:
+        assert callback_name
         return callback_name
 
 
@@ -127,10 +128,11 @@ class ColorSelectorCbg(ColorSelectorInterface):
 
     def _get_color_hash(
         self,
-        node_name: str,
-        cbg_name: str,
-        callback_name: str
+        node_name: Optional[str],
+        cbg_name: Optional[str],
+        callback_name: Optional[str]
     ) -> str:
+        assert cbg_name
         return cbg_name
 
 
@@ -138,8 +140,9 @@ class ColorSelectorNode(ColorSelectorInterface):
 
     def _get_color_hash(
         self,
-        node_name: str,
-        cbg_name: str,
-        callback_name: str
+        node_name: Optional[str],
+        cbg_name: Optional[str],
+        callback_name: Optional[str]
     ) -> str:
+        assert node_name
         return node_name
