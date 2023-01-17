@@ -60,9 +60,6 @@ class LttngInfo:
         self._id_to_topic: Dict[str, str] = {}
         self._id_to_service: Dict[str, str] = {}
 
-        self._srv_cb_cache_without_pub: Optional[Dict[str, List[ServiceCallbackValueLttng]]]
-        self._srv_cb_cache_without_pub = None
-
     def _get_timer_cbs_without_pub(self, node_id: str) -> List[TimerCallbackValueLttng]:
         timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
 
@@ -80,13 +77,12 @@ class LttngInfo:
         return sub_cb_cache_without_pub[node_id]
 
     def _get_srv_cbs_without_pub(self, node_id: str) -> List[ServiceCallbackValueLttng]:
-        if self._srv_cb_cache_without_pub is None:
-            self._srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
+        srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
 
-        if node_id not in self._srv_cb_cache_without_pub:
+        if node_id not in srv_cb_cache_without_pub:
             return []
 
-        return self._srv_cb_cache_without_pub[node_id]
+        return srv_cb_cache_without_pub[node_id]
 
     def get_rmw_impl(self) -> str:
         """
@@ -295,6 +291,7 @@ class LttngInfo:
     def tilde_sub_id_map(self) -> Dict[int, int]:
         return self._formatted.tilde_sub_id_map
 
+    @lru_cache
     def _load_srv_cbs_without_pub(
         self
     ) -> Dict[str, List[ServiceCallbackValueLttng]]:
