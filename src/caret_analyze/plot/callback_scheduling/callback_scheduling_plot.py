@@ -25,7 +25,7 @@ import pandas as pd
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...common import UniqueList
-from ...exceptions import InvalidArgumentError, UnsupportedTypeError
+from ...exceptions import UnsupportedTypeError
 from ...runtime import Application, CallbackGroup, Executor, Node, Path
 
 CallbackGroupTypes = Union[Application, Executor,
@@ -132,8 +132,10 @@ class CallbackSchedulingPlot(PlotBase):
 
         if isinstance(target_objects, (Application, Executor, Node)):
             if target_objects.callback_groups is None:
-                raise InvalidArgumentError('target.callback_groups is None')
-            callback_groups = target_objects.callback_groups
+                logger.warning('target.callback_groups is None')
+                callback_groups = []
+            else:
+                callback_groups = target_objects.callback_groups
 
         elif isinstance(target_objects, Path):
             _callback_groups = UniqueList()
@@ -143,8 +145,10 @@ class CallbackSchedulingPlot(PlotBase):
             for cbg in target_objects.communications[-1].subscribe_node.callback_groups or []:
                 _callback_groups.append(cbg)
             if len(_callback_groups) == 0:
-                raise InvalidArgumentError('target.callback_groups is None')
-            callback_groups = _callback_groups.as_list()
+                logger.warning('target.callback_groups is None')
+                callback_groups = []
+            else:
+                callback_groups = _callback_groups.as_list()
 
         elif isinstance(target_objects, CallbackGroup):
             callback_groups = [target_objects]

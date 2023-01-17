@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.plot.callback_scheduling import CallbackSchedulingPlot
 from caret_analyze.runtime import Application, CallbackGroup, Communication, Executor, Node, Path
-
-import pytest
 
 
 class TestCallbackSchedulingPlot:
@@ -46,9 +43,7 @@ class TestCallbackSchedulingPlot:
         node_mock = mocker.Mock(spec=Node)
         mocker.patch.object(node_mock, 'callback_groups', None)
 
-        with pytest.raises(InvalidArgumentError) as e:
-            CallbackSchedulingPlot._get_callback_groups(node_mock)
-        assert 'None' in str(e.value)
+        assert CallbackSchedulingPlot._get_callback_groups(node_mock) == []
 
     def test_get_callback_groups_path(self, mocker):
         pub_node_mock = mocker.Mock(spec=Node)
@@ -76,9 +71,7 @@ class TestCallbackSchedulingPlot:
         path_mock = mocker.Mock(spec=Path)
         mocker.patch.object(path_mock, 'communications', [comm_mock])
 
-        with pytest.raises(InvalidArgumentError) as e:
-            CallbackSchedulingPlot._get_callback_groups(path_mock)
-        assert 'None' in str(e.value)
+        assert CallbackSchedulingPlot._get_callback_groups(path_mock) == []
 
     def test_get_callback_groups_callback_groups(self, mocker):
         cbg_mock = mocker.Mock(spec=CallbackGroup)
