@@ -110,6 +110,40 @@ class HoverCreator:
             tooltips=tips_str, point_policy='follow_mouse', toggleable=False, **options
         )
 
+
+class LegendSource:
+
+    def __init__(self, legend_manager: LegendManager, legend_keys: LegendKeys) -> None:
+        self._legend_manager = legend_manager
+        self._legend_keys = legend_keys
+
+    def generate(self, target_object: Any) -> Dict[str, str]:
+        legend_values: Dict[str, Any] = {}
+        for k in self._legend_keys.to_list():
+            if hasattr(target_object, k):
+                legend_values[k] = [f'{k} = {getattr(target_object, k)}']
+            else:
+                legend_values[k] = [self.get_description(k, target_object)]
+
+        return legend_values
+
+    def get_description(self, target_object: Any, key: str) -> str:
+        if key == 'callback_param':
+            if isinstance(target_object, TimerCallback):
+                description = f'period_ns = {target_object.period_ns}'
+            elif isinstance(target_object, SubscriptionCallback):
+                description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
+
+        elif key == 'legend_label':
+            label = self._legend_manager.get_label(target_object)
+            description = f'legend_label = {label}'
+
+        else:
+            raise NotImplementedError()
+
+        return description
+
+
 class BokehSourceInterface(metaclass=ABCMeta):
     """Interface class of BokehSource."""
 
