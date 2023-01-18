@@ -51,49 +51,32 @@ class LttngInfo:
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iat(0, 0) if len(data.rmw_impl) > 0 else ''
 
-        self._timer_cb_cache: Dict[str, Sequence[TimerCallbackValueLttng]] = {}
-        self._sub_cb_cache: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
-        self._srv_cb_cache: Dict[str, List[ServiceCallbackValueLttng]] = {}
-        self._pub_cache: Dict[str, List[PublisherValueLttng]] = {}
-        self._cbg_cache: Dict[str, List[CallbackGroupValueLttng]] = {}
-
         self._id_to_topic: Dict[str, str] = {}
         self._id_to_service: Dict[str, str] = {}
-        self._sub_cb_cache_without_pub: Optional[Dict[str, List[SubscriptionCallbackValueLttng]]]
-        self._sub_cb_cache_without_pub = None
-
-        self._srv_cb_cache_without_pub: Optional[Dict[str, List[ServiceCallbackValueLttng]]]
-        self._srv_cb_cache_without_pub = None
-
-        self._timer_cb_cache_without_pub: Optional[Dict[str, List[TimerCallbackValueLttng]]]
-        self._timer_cb_cache_without_pub = None
 
     def _get_timer_cbs_without_pub(self, node_id: str) -> List[TimerCallbackValueLttng]:
-        if self._timer_cb_cache_without_pub is None:
-            self._timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
+        timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
 
-        if node_id not in self._timer_cb_cache_without_pub:
+        if node_id not in timer_cb_cache_without_pub:
             return []
 
-        return self._timer_cb_cache_without_pub[node_id]
+        return timer_cb_cache_without_pub[node_id]
 
     def _get_sub_cbs_without_pub(self, node_id: str) -> List[SubscriptionCallbackValueLttng]:
-        if self._sub_cb_cache_without_pub is None:
-            self._sub_cb_cache_without_pub = self._load_sub_cbs_without_pub()
+        sub_cb_cache_without_pub = self._load_sub_cbs_without_pub()
 
-        if node_id not in self._sub_cb_cache_without_pub:
+        if node_id not in sub_cb_cache_without_pub:
             return []
 
-        return self._sub_cb_cache_without_pub[node_id]
+        return sub_cb_cache_without_pub[node_id]
 
     def _get_srv_cbs_without_pub(self, node_id: str) -> List[ServiceCallbackValueLttng]:
-        if self._srv_cb_cache_without_pub is None:
-            self._srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
+        srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
 
-        if node_id not in self._srv_cb_cache_without_pub:
+        if node_id not in srv_cb_cache_without_pub:
             return []
 
-        return self._srv_cb_cache_without_pub[node_id]
+        return srv_cb_cache_without_pub[node_id]
 
     def get_rmw_impl(self) -> str:
         """
@@ -107,6 +90,7 @@ class LttngInfo:
         """
         return self._rmw_implementation
 
+    @lru_cache
     def _load_timer_cbs_without_pub(self) -> Dict[str, List[TimerCallbackValueLttng]]:
         timer_cbs_info: Dict[str, List[TimerCallbackValueLttng]] = {}
 
@@ -136,6 +120,7 @@ class LttngInfo:
 
         return timer_cbs_info
 
+    @lru_cache
     def _get_timer_callbacks(self, node: NodeValue) -> Sequence[TimerCallbackValueLttng]:
         node_id = node.node_id
         assert node_id is not None
@@ -158,21 +143,15 @@ class LttngInfo:
         Sequence[TimerCallbackInfo]
 
         """
-        def get_timer_cb_local(node: NodeValueLttng):
-            node_id = node.node_id
-            if node.node_id not in self._timer_cb_cache.keys():
-                self._timer_cb_cache[node_id] = self._get_timer_callbacks(node)
-            return self._timer_cb_cache[node_id]
-
         if node.node_id is None:
             return Util.flatten([
-                get_timer_cb_local(node)
+                self._get_timer_callbacks(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_timer_cb_local(node_lttng)
+        return self._get_timer_callbacks(node_lttng)
 
     @lru_cache
     def get_nodes(self) -> Sequence[NodeValueLttng]:
@@ -206,6 +185,7 @@ class LttngInfo:
 
         return nodes
 
+    @lru_cache
     def _load_sub_cbs_without_pub(
         self
     ) -> Dict[str, List[SubscriptionCallbackValueLttng]]:
@@ -252,6 +232,7 @@ class LttngInfo:
             )
         return sub_cbs_info
 
+    @lru_cache
     def _get_subscription_callback_values(
         self,
         node: NodeValue
@@ -280,26 +261,21 @@ class LttngInfo:
         Sequence[SubscriptionCallbackInfo]
 
         """
-        def get_sub_cb_local(node: NodeValueLttng):
-            node_id = node.node_id
-            if node_id not in self._sub_cb_cache.keys():
-                self._sub_cb_cache[node_id] = self._get_subscription_callback_values(node)
-            return self._sub_cb_cache[node_id]
-
         if node.node_id is None:
             return Util.flatten([
-                get_sub_cb_local(node)
+                self._get_subscription_callback_values(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_sub_cb_local(node_lttng)
+        return self._get_subscription_callback_values(node_lttng)
 
     @property
     def tilde_sub_id_map(self) -> Dict[int, int]:
         return self._formatted.tilde_sub_id_map
 
+    @lru_cache
     def _load_srv_cbs_without_pub(
         self
     ) -> Dict[str, List[ServiceCallbackValueLttng]]:
@@ -333,6 +309,7 @@ class LttngInfo:
             )
         return srv_cbs_info
 
+    @lru_cache
     def _get_service_callback_values(
         self,
         node: NodeValue
@@ -362,25 +339,20 @@ class LttngInfo:
         Sequence[ServiceCallbackInfo]
 
         """
-        def get_srv_cb_local(node: NodeValueLttng):
-            node_id = node.node_id
-            if node_id not in self._srv_cb_cache.keys():
-                self._srv_cb_cache[node_id] = self._get_service_callback_values(node)
-            return self._srv_cb_cache[node_id]
-
         if node.node_id is None:
             return Util.flatten([
-                get_srv_cb_local(node)
+                self._get_service_callback_values(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_srv_cb_local(node_lttng)
+        return self._get_service_callback_values(node_lttng)
 
+    @lru_cache
     def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
         node_id = node.node_id
-        return self.get_publishers_without_cb_bind(node_id)
+        return self._get_publishers_without_cb_bind(node_id)
 
     def get_publishers(self, node: NodeValue) -> List[PublisherValueLttng]:
         """
@@ -396,23 +368,15 @@ class LttngInfo:
         List[PublisherInfo]
 
         """
-        def get_publishers_local(node: NodeValueLttng):
-            node_id = node.node_id
-
-            if node_id not in self._pub_cache.keys():
-                self._pub_cache[node_id] = self._get_publishers(node)
-
-            return self._pub_cache[node_id]
-
         if node.node_id is None:
             return Util.flatten([
-                get_publishers_local(node)
+                self._get_publishers(node)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_publishers_local(node_lttng)
+        return self._get_publishers(node_lttng)
 
     def _get_nodes(
         self,
@@ -420,7 +384,7 @@ class LttngInfo:
     ) -> Sequence[NodeValueLttng]:
         return Util.filter_items(lambda x: x.node_name == node_name, self.get_nodes())
 
-    def get_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
+    def _get_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
         """
         Get publishers information.
 
@@ -476,6 +440,7 @@ class LttngInfo:
 
         return topic_name not in ['/clock', '/parameter_events']
 
+    @lru_cache
     def _get_callback_groups(
         self,
         node_id: str
@@ -534,23 +499,15 @@ class LttngInfo:
         List[CallbackGroupInfo]
 
         """
-        def get_cbg_local(node: NodeValueLttng):
-            node_id = node.node_id
-
-            if node_id not in self._cbg_cache:
-                self._cbg_cache[node_id] = self._get_callback_groups(node.node_id)
-
-            return self._cbg_cache[node_id]
-
         if node.node_id is None:
             return Util.flatten([
-                get_cbg_local(node)
+                self._get_callback_groups(node.node_id)
                 for node
                 in self._get_nodes(node.node_name)
             ])
 
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
-        return get_cbg_local(node_lttng)
+        return self._get_callback_groups(node_lttng.node_id)
 
     def get_executors(self) -> List[ExecutorValue]:
         """
