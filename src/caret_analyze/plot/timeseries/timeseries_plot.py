@@ -46,8 +46,7 @@ class TimeSeriesPlot(PlotBase):
         ----------
         xaxis_type : str
             Type of time for timestamp.
-            "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
+            "system_time", "index", or "sim_time" can be specified, by default "system_time".
 
         Raises
         ------
@@ -75,14 +74,13 @@ class TimeSeriesPlot(PlotBase):
         ----------
         xaxis_type : str
             Type of x-axis of the line graph to be plotted.
-            "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
+            "system_time", "index", or "sim_time" can be specified, by default "system_time".
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
-            by the mouse wheel.
+            by the mouse wheel, by default True.
         full_legends : bool
             If True, all legends are drawn
-            even if the number of legends exceeds the threshold.
+            even if the number of legends exceeds the threshold, by default False.
 
         Returns
         -------

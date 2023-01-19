@@ -56,7 +56,7 @@ class CallbackSchedulingPlot(PlotBase):
     def figure(
         self,
         xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
+        ywheel_zoom: bool = False,
         full_legends: bool = False,
         coloring_rule: str = 'callback',
     ) -> Figure:
@@ -67,14 +67,13 @@ class CallbackSchedulingPlot(PlotBase):
         ----------
         xaxis_type : str, optional
             Type of x-axis of the line graph to be plotted.
-            "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
+            "system_time", "index", or "sim_time" can be specified, by default "system_time".
         ywheel_zoom : bool, optional
             If True, the drawn graph can be expanded in the y-axis direction
-            by the mouse wheel.
+            by the mouse wheel, by default False.
         full_legends : bool, optional
             If True, all legends are drawn
-            even if the number of legends exceeds the threshold.
+            even if the number of legends exceeds the threshold, by default False.
         coloring_rule : str, optional
             The unit of color change
             There are there rules which are [callback/callback_group/node], by default 'callback'
