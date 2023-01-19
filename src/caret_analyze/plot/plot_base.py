@@ -30,16 +30,16 @@ class PlotBase(metaclass=ABCMeta):
     @abstractmethod
     def to_dataframe(
         self,
-        xaxis_type: str = 'system_time'
+        xaxis_type: str
     ) -> pd.DataFrame:
         raise NotImplementedError()
 
     @abstractmethod
     def figure(
         self,
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
-        full_legends: bool = False
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool
     ) -> Figure:
         raise NotImplementedError()
 
