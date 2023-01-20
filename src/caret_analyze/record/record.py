@@ -18,7 +18,7 @@ from copy import deepcopy
 from enum import IntEnum
 from itertools import groupby
 from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
-
+from multimethod import multimethod as singledispatchmethod
 import pandas as pd
 
 from .column import Column, Columns, ColumnValue
@@ -115,6 +115,33 @@ class Records(RecordsInterface):
         columns_set = set(columns)
         for record in init:
             unknown_column = set(record.columns) - columns_set
+            if len(unknown_column) > 0:
+                msg = 'Contains an unknown columns. '
+                msg += f'{unknown_column}'
+                raise InvalidArgumentError(msg)
+
+        if len(set(columns)) != len(columns):
+            from itertools import groupby
+            msg = 'columns must be unique. '
+            columns = sorted(columns)
+            msg += 'duplicated columns: '
+            for key, group in groupby(columns):
+                if len(list(group)) >= 2:
+                    msg += f'{key}, '
+
+            raise InvalidArgumentError(msg)
+
+    @staticmethod
+    def _validate_merge_records(
+        left: RecordsInterface,
+        right: RecordsInterface,
+        columns: Optional[List[str]]
+    ) -> None:
+        columns = columns or []
+
+        columns_set = set(columns)
+        for records in [left, right]:
+            unknown_column = set(records.columns) - columns_set
             if len(unknown_column) > 0:
                 msg = 'Contains an unknown columns. '
                 msg += f'{unknown_column}'
@@ -360,7 +387,7 @@ class Records(RecordsInterface):
         progress_label: Optional[str] = None  # unused
     ) -> Records:
         maxsize = 2**64 - 1
-        self._validate(None, columns)
+        self._validate_merge_records(self, right_records, columns)
 
         left_records = self.clone()
         merge_left = how in ['left', 'outer']
