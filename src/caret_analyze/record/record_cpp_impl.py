@@ -246,7 +246,7 @@ class RecordsCppImpl(RecordsInterface):
         progress_label: Optional[str] = None,
     ) -> RecordsInterface:
         progress_label = progress_label or ''
-        Records._validate_merge_records(self, right_records, columns)
+        Records._validate_merge_records(columns, self, right_records)
 
         assert isinstance(right_records, RecordsCppImpl)
         merged_cpp_base = self._records.merge_sequential(

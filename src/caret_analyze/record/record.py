@@ -144,14 +144,13 @@ class Records(RecordsInterface):
 
     @staticmethod
     def _validate_merge_records(
-        left: RecordsInterface,
-        right: RecordsInterface,
-        columns: Optional[List[str]]
+        columns: Optional[List[str]],
+        *records_args: RecordsInterface,
     ) -> None:
         columns = columns or []
 
         columns_set = set(columns)
-        for records in [left, right]:
+        for records in records_args:
             Records._validate_unknown_columns(set(records.columns), columns_set)
 
         Records._validate_duplicated_columns(columns)
@@ -385,7 +384,7 @@ class Records(RecordsInterface):
         progress_label: Optional[str] = None  # unused
     ) -> Records:
         maxsize = 2**64 - 1
-        self._validate_merge_records(self, right_records, columns)
+        self._validate_merge_records(columns, self, right_records)
 
         left_records = self.clone()
         merge_left = how in ['left', 'outer']
