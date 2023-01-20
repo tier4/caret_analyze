@@ -17,8 +17,7 @@ from __future__ import annotations
 from copy import deepcopy
 from enum import IntEnum
 from itertools import groupby
-from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
-from multimethod import multimethod as singledispatchmethod
+from typing import Callable, Dict, List, Optional, Sequence, Set , Tuple
 import pandas as pd
 
 from .column import Column, Columns, ColumnValue
@@ -120,6 +119,11 @@ class Records(RecordsInterface):
                 msg += f'{unknown_column}'
                 raise InvalidArgumentError(msg)
 
+        Records._validate_duplicated_columns(columns)
+
+
+    @staticmethod
+    def _validate_duplicated_columns(columns: Sequence[str]):
         if len(set(columns)) != len(columns):
             from itertools import groupby
             msg = 'columns must be unique. '
@@ -147,16 +151,7 @@ class Records(RecordsInterface):
                 msg += f'{unknown_column}'
                 raise InvalidArgumentError(msg)
 
-        if len(set(columns)) != len(columns):
-            from itertools import groupby
-            msg = 'columns must be unique. '
-            columns = sorted(columns)
-            msg += 'duplicated columns: '
-            for key, group in groupby(columns):
-                if len(list(group)) >= 2:
-                    msg += f'{key}, '
-
-            raise InvalidArgumentError(msg)
+        Records._validate_duplicated_columns(columns)
 
     def __len__(self) -> int:
         return len(self.data)
