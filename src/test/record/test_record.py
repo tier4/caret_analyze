@@ -1208,6 +1208,34 @@ class TestRecords:
             assert records_right.columns == [
                 'stamp_', 'value_right']  # type: ignore
 
+    def test_merge_validate(self):
+        records_left_py: Records = Records(
+            [
+                Record({'stamp': 1, 'value_left': 10}),
+            ],
+            [ColumnValue('stamp'), ColumnValue('value_left')]
+        )
+        records_right_py: Records = Records(
+            [
+                Record({'stamp_': 2, 'value_right': 10}),
+            ],
+            [ColumnValue('stamp_'), ColumnValue('value_right')]
+        )
+
+        records_left_cpp = to_cpp_records(records_left_py)
+        records_right_cpp = to_cpp_records(records_right_py)
+
+        for records_left, records_right in zip(
+            [records_left_py, records_left_cpp],
+            [records_right_py, records_right_cpp],
+        ):
+            if records_left is None or records_right is None:
+                continue
+
+            with pytest.raises(InvalidArgumentError):
+                records_left.merge(
+                    records_right, 'value_left', 'value_right', ['unknown'], how='inner')
+
     @pytest.mark.parametrize(
         'how, expect_records_py',
         [
@@ -2219,3 +2247,47 @@ class TestRecords:
             assert sink_records.columns == ['sink_addr', 'sink_stamp']
 
             assert merged.equals(expect_records)
+
+    def test_merge_sequential_for_addr_track_validate(self):
+        source_records: Records = Records(
+            [
+                Record({'source_addr': 1, 'source_stamp': 0}),
+            ],
+            [ColumnValue('source_addr'), ColumnValue('source_stamp')]
+        )
+
+        copy_records: Records = Records(
+            [
+                Record({'addr_from': 1, 'addr_to': 13, 'copy_stamp': 1}),
+            ],
+            [ColumnValue('addr_from'), ColumnValue('addr_to'), ColumnValue('copy_stamp')]
+        )
+
+        sink_records: Records = Records(
+            [
+                Record({'sink_addr': 13, 'sink_stamp': 2}),
+            ],
+            [ColumnValue('sink_addr'), ColumnValue('sink_stamp')]
+        )
+
+        for source_records, copy_records, sink_records in zip(
+            [source_records, to_cpp_records(source_records)],
+            [copy_records, to_cpp_records(copy_records)],
+            [sink_records, to_cpp_records(sink_records)],
+        ):
+            if source_records is None and not CppImplEnabled:
+                continue
+
+            with pytest.raises(InvalidArgumentError):
+                source_records.merge_sequential_for_addr_track(
+                    source_stamp_key='source_stamp',
+                    source_key='source_addr',
+                    copy_records=copy_records,
+                    copy_stamp_key='copy_stamp',
+                    copy_from_key='addr_from',
+                    copy_to_key='addr_to',
+                    sink_records=sink_records,
+                    sink_stamp_key='sink_stamp',
+                    sink_from_key='sink_addr',
+                    columns=['unknown'],
+                )
