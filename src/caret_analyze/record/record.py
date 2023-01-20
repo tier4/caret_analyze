@@ -114,12 +114,12 @@ class Records(RecordsInterface):
 
         columns_set = set(columns)
         for record in init:
-            Records._validate_unknown_columns(set(record.columns), columns_set)
+            Records.__validate_unknown_columns(set(record.columns), columns_set)
 
-        Records._validate_duplicated_columns(columns)
+        Records.__validate_duplicated_columns(columns)
 
     @staticmethod
-    def _validate_duplicated_columns(columns: Sequence[str]):
+    def __validate_duplicated_columns(columns: Sequence[str]):
         if len(set(columns)) != len(columns):
             from itertools import groupby
             msg = 'columns must be unique. '
@@ -132,7 +132,7 @@ class Records(RecordsInterface):
             raise InvalidArgumentError(msg)
 
     @staticmethod
-    def _validate_unknown_columns(
+    def __validate_unknown_columns(
         columns: Set[str],
         selected_columns: Set[str]
     ) -> None:
@@ -151,9 +151,9 @@ class Records(RecordsInterface):
 
         columns_set = set(columns)
         for records in records_args:
-            Records._validate_unknown_columns(set(records.columns), columns_set)
+            Records.__validate_unknown_columns(set(records.columns), columns_set)
 
-        Records._validate_duplicated_columns(columns)
+        Records.__validate_duplicated_columns(columns)
 
     def __len__(self) -> int:
         return len(self.data)
