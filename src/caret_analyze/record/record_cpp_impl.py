@@ -127,6 +127,8 @@ class RecordsCppImpl(RecordsInterface):
         assert how in ['inner', 'left', 'right', 'outer']
         assert isinstance(right_records, RecordsCppImpl)
 
+        Records._validate_merge_records(columns, self, right_records)
+
         merged_cpp_base = self._records.merge(
             right_records._records, join_left_key, join_right_key,
             columns, how,
@@ -282,6 +284,8 @@ class RecordsCppImpl(RecordsInterface):
     ) -> RecordsInterface:
         assert isinstance(copy_records, RecordsCppImpl)
         assert isinstance(sink_records, RecordsCppImpl)
+
+        Records._validate_merge_records(columns, self, copy_records, sink_records)
 
         progress_label = progress_label or ''
         merged_cpp_base = self._records.merge_sequential_for_addr_track(
