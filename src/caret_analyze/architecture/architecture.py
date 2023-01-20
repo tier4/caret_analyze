@@ -242,6 +242,38 @@ class Architecture(Summarizable):
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
+    
+    
+    @staticmethod
+    def diff_node_names(arch1: Architecture, arch2: Architecture):
+        arch1_only_names = []
+        arch2_only_names = []
+        for arc1 in arch1.node_names:
+            frag = True
+            for arc2 in arch2.node_names:
+                if arc1 == arc2:
+                    frag = False
+                    break
+            if frag is True:
+                arch1_only_names.append(arc1)
+
+        for arc2 in arch2.node_names:
+            frag = True
+            for arc1 in arch1.node_names:
+                if arc2 == arc1:
+                    frag = False
+                    break
+            if frag is True:
+                arch2_only_names.append(arc2)
+
+        # print("arch1_only: "+ str(arch1_only_names))
+        # print("arch2_only: "+ str(arch2_only_names))
+
+        arch1_only_names = tuple(arch1_only_names)
+        arch2_only_names = tuple(arch2_only_names)
+
+        return arch1_only_names, arch2_only_names
+
 
 
 """
