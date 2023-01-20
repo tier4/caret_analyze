@@ -1755,6 +1755,38 @@ class TestRecords:
 
             assert merged.equals(expect_records)
 
+    def test_merge_sequential_validate(self):
+        left_records_py: Records = Records(
+            [
+                Record({'stamp': 0}),
+            ],
+            [ColumnValue('stamp')]
+        )
+
+        right_records_py: Records = Records(
+            [
+                Record({'sub_stamp': 1}),
+            ],
+            [ColumnValue('sub_stamp')]
+        )
+
+        for left_records, right_records in zip(
+            [left_records_py, to_cpp_records(left_records_py)],
+            [right_records_py, to_cpp_records(right_records_py)],
+        ):
+            if left_records is None and not CppImplEnabled:
+                continue
+            with pytest.raises(InvalidArgumentError):
+                left_records.merge_sequential(
+                    right_records=right_records,
+                    left_stamp_key='stamp',
+                    right_stamp_key='sub_stamp',
+                    join_left_key=None,
+                    join_right_key=None,
+                    columns=['not_exist'],
+                    how='left',
+                )
+
     @pytest.mark.parametrize(
         'how, expect_records_py',
         [
