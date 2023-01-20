@@ -17,7 +17,8 @@ from __future__ import annotations
 from copy import deepcopy
 from enum import IntEnum
 from itertools import groupby
-from typing import Callable, Dict, List, Optional, Sequence, Set , Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
+
 import pandas as pd
 
 from .column import Column, Columns, ColumnValue
@@ -116,7 +117,6 @@ class Records(RecordsInterface):
             Records._validate_unknown_columns(set(record.columns), columns_set)
 
         Records._validate_duplicated_columns(columns)
-
 
     @staticmethod
     def _validate_duplicated_columns(columns: Sequence[str]):
