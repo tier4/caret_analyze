@@ -133,10 +133,10 @@ class Records(RecordsInterface):
 
     @staticmethod
     def __validate_unknown_columns(
-        columns: Set[str],
-        selected_columns: Set[str]
+        selected_columns: Set[str],
+        columns: Set[str]
     ) -> None:
-        unknown_column = columns - set(selected_columns)
+        unknown_column = selected_columns - columns
         if len(unknown_column) > 0:
             msg = 'Contains an unknown columns. '
             msg += f'{unknown_column}'
@@ -150,8 +150,12 @@ class Records(RecordsInterface):
         columns = columns or []
 
         columns_set = set(columns)
+        columns_set_ = set()
         for records in records_args:
-            Records.__validate_unknown_columns(set(records.columns), columns_set)
+            for column in records.columns:
+                columns_set_.add(column)
+
+        Records.__validate_unknown_columns(columns_set, columns_set_)
 
         Records.__validate_duplicated_columns(columns)
 
@@ -384,7 +388,6 @@ class Records(RecordsInterface):
         progress_label: Optional[str] = None  # unused
     ) -> Records:
         maxsize = 2**64 - 1
-        self._validate_merge_records(columns, self, right_records)
 
         left_records = self.clone()
         merge_left = how in ['left', 'outer']
