@@ -113,11 +113,7 @@ class Records(RecordsInterface):
 
         columns_set = set(columns)
         for record in init:
-            unknown_column = set(record.columns) - columns_set
-            if len(unknown_column) > 0:
-                msg = 'Contains an unknown columns. '
-                msg += f'{unknown_column}'
-                raise InvalidArgumentError(msg)
+            Records._validate_unknown_columns(set(record.columns), columns_set)
 
         Records._validate_duplicated_columns(columns)
 
@@ -136,6 +132,17 @@ class Records(RecordsInterface):
             raise InvalidArgumentError(msg)
 
     @staticmethod
+    def _validate_unknown_columns(
+        columns: Set[str],
+        selected_columns: Set[str]
+    ) -> None:
+        unknown_column = columns - set(selected_columns)
+        if len(unknown_column) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_column}'
+            raise InvalidArgumentError(msg)
+
+    @staticmethod
     def _validate_merge_records(
         left: RecordsInterface,
         right: RecordsInterface,
@@ -145,11 +152,7 @@ class Records(RecordsInterface):
 
         columns_set = set(columns)
         for records in [left, right]:
-            unknown_column = set(records.columns) - columns_set
-            if len(unknown_column) > 0:
-                msg = 'Contains an unknown columns. '
-                msg += f'{unknown_column}'
-                raise InvalidArgumentError(msg)
+            Records._validate_unknown_columns(set(records.columns), columns_set)
 
         Records._validate_duplicated_columns(columns)
 
