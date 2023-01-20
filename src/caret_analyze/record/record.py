@@ -152,8 +152,7 @@ class Records(RecordsInterface):
         columns_set = set(columns)
         columns_set_ = set()
         for records in records_args:
-            for column in records.columns:
-                columns_set_.add(column)
+            columns_set_ |= set(records.columns)
 
         Records.__validate_unknown_columns(columns_set, columns_set_)
 
