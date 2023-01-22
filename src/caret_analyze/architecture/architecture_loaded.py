@@ -1353,7 +1353,14 @@ class ExecutorValuesLoaded():
         execs: List[ExecutorStruct] = []
 
         exec_vals = reader.get_executors()
-        # TODO(hsgwa): Checking for unique constraints on id and name
+
+        # duplicate check for executor name
+        try:
+            self._validate(exec_vals)
+        except InvalidReaderError as e:
+            logger.warn(e)
+        exec_vals = self._remove_duplicated(exec_vals)
+
         num_digit = Util.num_digit(len(exec_vals))
         name_index = 0
 
@@ -1375,14 +1382,6 @@ class ExecutorValuesLoaded():
                     'Failed to load executor. skip loading. '
                     f'executor_name = {executor_name}. {e}')
 
-        # duplicate check for executor name
-        try:
-            self._validate(exec_vals)
-        except InvalidReaderError as e:
-            logger.warn(e)
-        # If you don't need to remove duplicate data, remove the following line
-        execs = self._remove_duplicated(execs)
-
         self._data = execs
 
     @staticmethod
@@ -1401,12 +1400,14 @@ class ExecutorValuesLoaded():
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(executors: List[ExecutorStruct]) -> List[ExecutorStruct]:
-        executors_: List[ExecutorStruct] = []
+    def _remove_duplicated(executors: Sequence[ExecutorValue]) -> List[ExecutorValue]:
+        executors_: List[ExecutorValue] = []
         executor_names: Set[str] = set()
         for executor in executors:
-            # remove if name and id are not unique
-            if executor.executor_name not in executor_names:
+            # remove if name are not unique
+            if executor.executor_name is None:
+                executors_.append(executor)
+            elif executor.executor_name not in executor_names:
                 executor_names.add(executor.executor_name)
                 executors_.append(executor)
         return executors_
