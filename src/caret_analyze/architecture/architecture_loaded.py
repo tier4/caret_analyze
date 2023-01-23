@@ -320,7 +320,7 @@ class NodeValuesLoaded():
             if len(list(group)) >= 2:
                 duplicated_name.append(node_name)
         if len(duplicated_name) >= 1:
-            msg = f'Duplicated node name. {duplicated_name}. Use first node name only.'
+            msg = f'Duplicated node name. {duplicated_name}. Use first node only.'
             raise InvalidReaderError(msg)
 
         # validate node id uniqueness.
@@ -329,7 +329,7 @@ class NodeValuesLoaded():
             if len(list(group)) >= 2:
                 duplicated_id.append(node_id)
         if len(duplicated_id) >= 1:
-            msg = f'Duplicated node id. {duplicated_id}. Use first node id only.'
+            msg = f'Duplicated node id. {duplicated_id}. Use first node only.'
             raise InvalidReaderError(msg)
 
     @property
@@ -804,7 +804,7 @@ class SubscriptionsLoaded:
                 else:
                     duplicated.append(subscription.callback_id)
         if len(duplicated) > 0:
-            msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
+            msg = f'Duplicated callback id. {duplicated}. Use first subscription only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
@@ -875,7 +875,7 @@ class ServicesLoaded:
                 else:
                     duplicated.append(service.callback_id)
         if len(duplicated) > 0:
-            msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
+            msg = f'Duplicated callback id. {duplicated}. Use first service only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
@@ -947,7 +947,7 @@ class TimersLoaded:
                 else:
                     duplicated.append(timer.callback_id)
         if len(duplicated) > 0:
-            msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
+            msg = f'Duplicated callback id. {duplicated}. Use first timer only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
@@ -1083,7 +1083,7 @@ class CallbackGroupsLoaded():
     @staticmethod
     def _validate_name(name: str, names: set[str]):
         if name in names:
-            msg = f'Duplicated callback name. {name}. Use first callback name only.'
+            msg = f'Duplicated callback group name. {name}. Use first callback group only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
@@ -1097,7 +1097,7 @@ class CallbackGroupsLoaded():
             else:
                 duplicated.append(callback_group.callback_group_id)
         if len(duplicated) > 0:
-            msg = f'Duplicated callback id. {duplicated}. Use first callback id only.'
+            msg = f'Duplicated callback group id. {duplicated}. Use first callback group only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
@@ -1396,7 +1396,7 @@ class ExecutorValuesLoaded():
                 else:
                     duplicated.append(executor.executor_name)
         if len(duplicated) > 0:
-            msg = f'Duplicated executor name. {duplicated}. Use first executor name only.'
+            msg = f'Duplicated executor name. {duplicated}. Use first executor only.'
             raise InvalidReaderError(msg)
 
     @staticmethod
@@ -1491,7 +1491,7 @@ class PathValuesLoaded():
             else:
                 duplicated.append(path.path_name)
         if len(duplicated) > 0:
-            msg = f'Duplicated path name. {duplicated}. Use first path name only.'
+            msg = f'Duplicated path name. {duplicated}. Use first path only.'
             raise InvalidReaderError(msg)
 
     @staticmethod

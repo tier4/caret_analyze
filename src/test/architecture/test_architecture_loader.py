@@ -1363,7 +1363,7 @@ class TestCallbackGroupsLoaded:
             reader_mock, callbacks_loaded_mock, node)
 
         assert len(loaded.data) == 2
-        assert 'Duplicated callback id.' in caplog.messages[0]
+        assert 'Duplicated callback group id.' in caplog.messages[0]
 
     def test_duplicated_callback_group_name(self, mocker, caplog):
         node = NodeValueWithId('node', 'node')
@@ -1402,7 +1402,7 @@ class TestCallbackGroupsLoaded:
             reader_mock, callbacks_loaded_mock, node)
 
         assert len(loaded.data) == 2
-        assert 'Duplicated callback name.' in caplog.messages[0]
+        assert 'Duplicated callback group name.' in caplog.messages[0]
 
 
 class TestExecutorInfoLoaded:
