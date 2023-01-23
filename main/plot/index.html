@@ -457,6 +457,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_facade.Plot.create_callback_scheduling_plot" class="md-nav__link">
+    create_callback_scheduling_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_facade.Plot.create_frequency_timeseries_plot" class="md-nav__link">
     create_frequency_timeseries_plot()
   </a>
@@ -702,6 +709,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_facade.Plot.create_callback_period_plot" class="md-nav__link">
     create_callback_period_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_facade.Plot.create_callback_scheduling_plot" class="md-nav__link">
+    create_callback_scheduling_plot()
   </a>
   
 </li>
@@ -1007,6 +1021,76 @@ This also accepts multiple CallbackBase inputs by unpacking.</p></td>
         <tr>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.plot_base.PlotBase" href="#caret_analyze.plot.PlotBase">PlotBase</a></code>
+          </td>
+          <td></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.plot.plot_facade.Plot.create_callback_scheduling_plot" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">create_callback_scheduling_plot</span><span class="p">(</span><span class="n">target_objects</span><span class="p">,</span> <span class="n">lstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.plot.plot_facade.Plot.create_callback_scheduling_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get CallbackSchedulingPlot instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>lstrip_s</code></td>
+          <td>
+                <code>float, optional</code>
+          </td>
+          <td><p>Start time of cropping range, by default 0.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>rstrip_s</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>End point of cropping range, by default 0.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="caret_analyze.plot.callback_scheduling.CallbackSchedulingPlot">CallbackSchedulingPlot</span></code>
           </td>
           <td></td>
         </tr>
@@ -1334,7 +1418,7 @@ supported case: [best-to-worst/best/worst].</p></td>
 
 
 <h3 id="caret_analyze.plot.plot_base.PlotBase.save" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">save</span><span class="p">(</span><span class="n">export_path</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xaxis_type</span><span class="o">=</span><span class="s1">&#39;system_time&#39;</span><span class="p">,</span> <span class="n">ywheel_zoom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">full_legends</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">save</span><span class="p">(</span><span class="n">export_path</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xaxis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ywheel_zoom</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_legends</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.plot.plot_base.PlotBase.save" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1380,10 +1464,9 @@ supported case: [best-to-worst/best/worst].</p></td>
                 <code>str</code>
           </td>
           <td><p>Type of x-axis of the graph to be plotted.
-"system_time", "index", or "sim_time" can be specified.
-The default is "system_time".</p></td>
+"system_time", "index", or "sim_time" can be specified.</p></td>
           <td>
-                <code>&#39;system_time&#39;</code>
+                <code>None</code>
           </td>
         </tr>
         <tr>
@@ -1394,7 +1477,7 @@ The default is "system_time".</p></td>
           <td><p>If True, the drawn graph can be expanded in the y-axis direction
 by the mouse wheel.</p></td>
           <td>
-                <code>True</code>
+                <code>None</code>
           </td>
         </tr>
         <tr>
@@ -1405,7 +1488,7 @@ by the mouse wheel.</p></td>
           <td><p>If True, all legends are drawn
 even if the number of legends exceeds the threshold.</p></td>
           <td>
-                <code>False</code>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -1438,7 +1521,7 @@ even if the number of legends exceeds the threshold.</p></td>
 
 
 <h3 id="caret_analyze.plot.plot_base.PlotBase.show" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">show</span><span class="p">(</span><span class="n">xaxis_type</span><span class="o">=</span><span class="s1">&#39;system_time&#39;</span><span class="p">,</span> <span class="n">ywheel_zoom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">full_legends</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">export_path</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">show</span><span class="p">(</span><span class="n">xaxis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ywheel_zoom</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_legends</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">export_path</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.plot.plot_base.PlotBase.show" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1464,10 +1547,9 @@ even if the number of legends exceeds the threshold.</p></td>
                 <code>str</code>
           </td>
           <td><p>Type of x-axis of the graph to be plotted.
-"system_time", "index", or "sim_time" can be specified.
-The default is "system_time".</p></td>
+"system_time", "index", or "sim_time" can be specified.</p></td>
           <td>
-                <code>&#39;system_time&#39;</code>
+                <code>None</code>
           </td>
         </tr>
         <tr>
@@ -1478,7 +1560,7 @@ The default is "system_time".</p></td>
           <td><p>If True, the drawn graph can be expanded in the y-axis direction
 by the mouse wheel.</p></td>
           <td>
-                <code>True</code>
+                <code>None</code>
           </td>
         </tr>
         <tr>
@@ -1489,7 +1571,7 @@ by the mouse wheel.</p></td>
           <td><p>If True, all legends are drawn
 even if the number of legends exceeds the threshold.</p></td>
           <td>
-                <code>False</code>
+                <code>None</code>
           </td>
         </tr>
         <tr>
@@ -1497,7 +1579,7 @@ even if the number of legends exceeds the threshold.</p></td>
           <td>
                 <code>str, optional</code>
           </td>
-          <td><p>The graph will be saved as a file, by default None.
+          <td><p>The graph will be saved as a file.
 This option is deprecated, please use save method.</p></td>
           <td>
                 <code>None</code>
