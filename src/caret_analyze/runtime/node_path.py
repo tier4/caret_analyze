@@ -107,6 +107,23 @@ class NodePath(PathBase, Summarizable):
         return self._val.message_context
 
     @property
+    def value(self) -> NodePathStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        NodePathStructValue
+            node path value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
+    @property
     def summary(self) -> Summary:
         """
         Get summary [override].
