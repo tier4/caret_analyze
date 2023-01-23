@@ -13,18 +13,31 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
-from typing import Union
+from typing import Sequence, Union
 
 from bokeh.plotting import Figure
 
 from ..metrics_base import MetricsBase
-from ...runtime import (CallbackBase, Communication, Publisher, Subscription)
+from ...runtime import CallbackBase, CallbackGroup, Communication, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
     """Interface class for VisualizeLib."""
+
+    @abstractmethod
+    def callback_scheduling(
+        self,
+        callback_groups: Sequence[CallbackGroup],
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+        coloring_rule: str,
+        lstrip_s: float,
+        rstrip_s: float
+    ) -> Figure:
+        raise NotImplementedError()
 
     @abstractmethod
     def timeseries(

@@ -30,25 +30,25 @@ class PlotBase(metaclass=ABCMeta):
     @abstractmethod
     def to_dataframe(
         self,
-        xaxis_type: str = 'system_time'
+        xaxis_type: str
     ) -> pd.DataFrame:
         raise NotImplementedError()
 
     @abstractmethod
     def figure(
         self,
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
-        full_legends: bool = False
+        xaxis_type: Optional[str],
+        ywheel_zoom: Optional[bool],
+        full_legends: Optional[bool]
     ) -> Figure:
         raise NotImplementedError()
 
     def show(
         self,
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
-        full_legends: bool = False,
-        export_path: Optional[str] = None,
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None,
+        export_path: Optional[str] = None,  # TODO: remove
         # TODO: add interactive option
     ) -> Figure:
         """
@@ -59,7 +59,6 @@ class PlotBase(metaclass=ABCMeta):
         xaxis_type : str
             Type of x-axis of the graph to be plotted.
             "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
             by the mouse wheel.
@@ -67,7 +66,7 @@ class PlotBase(metaclass=ABCMeta):
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
         export_path : str, optional
-            The graph will be saved as a file, by default None.
+            The graph will be saved as a file.
             This option is deprecated, please use save method.
 
         Returns
@@ -94,9 +93,9 @@ class PlotBase(metaclass=ABCMeta):
         self,
         export_path: str,
         title: str = '',
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
-        full_legends: bool = False
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None
     ) -> None:
         """
         Export a graph using the bokeh library.
@@ -110,7 +109,6 @@ class PlotBase(metaclass=ABCMeta):
         xaxis_type : str
             Type of x-axis of the graph to be plotted.
             "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
             by the mouse wheel.
