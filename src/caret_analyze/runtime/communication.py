@@ -250,7 +250,7 @@ class Communication(PathBase, Summarizable):
         Returns
         -------
         CommunicationStructValue
-            communnication value.
+            communication value.
 
         Notes
         -----
