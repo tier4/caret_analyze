@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Optional, Union
 
 from bokeh.plotting import Figure
 
@@ -63,9 +63,9 @@ class TimeSeriesPlot(PlotBase):
 
     def figure(
         self,
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
-        full_legends: bool = False
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None
     ) -> Figure:
         """
         Get a timeseries graph for each object using the bokeh library.
@@ -92,6 +92,12 @@ class TimeSeriesPlot(PlotBase):
             Argument xaxis_type is not "system_time", "index", or "sim_time".
 
         """
+        # Set default value
+        xaxis_type = xaxis_type or 'system_time'
+        ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else True
+        full_legends = full_legends if full_legends is not None else False
+
+        # Validate
         self._validate_xaxis_type(xaxis_type)
 
         return self._visualize_lib.timeseries(

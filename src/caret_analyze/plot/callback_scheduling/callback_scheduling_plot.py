@@ -55,10 +55,10 @@ class CallbackSchedulingPlot(PlotBase):
 
     def figure(
         self,
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = False,
-        full_legends: bool = False,
-        coloring_rule: str = 'callback',
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None,
+        coloring_rule: Optional[str] = None,
     ) -> Figure:
         """
         Get a callback scheduling plot using the bokeh library.
@@ -89,6 +89,13 @@ class CallbackSchedulingPlot(PlotBase):
             - Argument coloring_rule is not 'callback', 'callback_group', or 'node'.
 
         """
+        # Set default value
+        xaxis_type = xaxis_type or 'system_time'
+        ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else False
+        full_legends = full_legends if full_legends is not None else False
+        coloring_rule = coloring_rule or 'callback'
+
+        # Validate
         self._validate_xaxis_type(xaxis_type)
         if coloring_rule not in ['callback', 'callback_group', 'node']:
             raise UnsupportedTypeError(
@@ -103,24 +110,30 @@ class CallbackSchedulingPlot(PlotBase):
 
     def show(
         self,
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
-        full_legends: bool = False,
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None,
         export_path: Optional[str] = None,  # TODO: remove
-        coloring_rule: str = 'callback',
+        coloring_rule: Optional[str] = None,
     ) -> Figure:
         p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
-        show(p)
+        if export_path:
+            logger.warning("The 'export_path' option is deprecated, please use 'save' method.")
+            self.save(export_path=export_path, xaxis_type=xaxis_type,
+                      ywheel_zoom=ywheel_zoom, full_legends=full_legends)
+        else:
+            show(p)
+
         return p
 
     def save(
         self,
         export_path: str,
         title: str = '',
-        xaxis_type: str = 'system_time',
-        ywheel_zoom: bool = True,
-        full_legends: bool = False,
-        coloring_rule: str = 'callback'
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None,
+        coloring_rule: Optional[str] = None
     ) -> None:
         p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
         save(p, export_path, title=title, resources=CDN)
