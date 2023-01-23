@@ -238,6 +238,23 @@ class Node(Summarizable):
         return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
+    def value(self) -> NodeStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        NodeStructValue
+            node value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
+    @property
     def summary(self) -> Summary:
         """
         Get summary [override].

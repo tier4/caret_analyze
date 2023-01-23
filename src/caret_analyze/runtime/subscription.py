@@ -58,6 +58,23 @@ class Subscription(PathBase, Summarizable):
         return self._val.node_name
 
     @property
+    def value(self) -> SubscriptionStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        SubscriptionStructValue
+            subscription value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
+    @property
     def summary(self) -> Summary:
         """
         Get summary [override].
