@@ -28,11 +28,13 @@ class SubscriptionValue(ValueObject):
         node_name: str,
         node_id: Optional[str],
         callback_id: Optional[str],
+        construction_order: int
     ) -> None:
         self._node_name = node_name
         self._node_id = node_id
         self._topic_name = topic_name
         self._callback_id = callback_id
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -50,6 +52,10 @@ class SubscriptionValue(ValueObject):
     def callback_id(self) -> Optional[str]:
         return self._callback_id
 
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
+
 
 class SubscriptionStructValue(ValueObject, Summarizable):
     """Subscription info."""
@@ -59,10 +65,12 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         node_name: str,
         topic_name: str,
         callback_info: Optional[SubscriptionCallbackStructValue],
+        construction_order: int
     ) -> None:
         self._node_name: str = node_name
         self._topic_name: str = topic_name
         self._callback_value = callback_info
+        self._construction_order = construction_order
 
     def __eq__(self, other) -> bool:
         # It is not necessary because __eq__ is defined in ValueObject type,
@@ -101,3 +109,7 @@ class SubscriptionStructValue(ValueObject, Summarizable):
     @property
     def callback(self) -> Optional[SubscriptionCallbackStructValue]:
         return self._callback_value
+
+    @property
+    def construction_order(self) -> Optional[int]:
+        return self._construction_order

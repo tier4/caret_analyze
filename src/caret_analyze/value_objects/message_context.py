@@ -125,6 +125,14 @@ class MessageContext(ValueObject, Summarizable):
         return self._sub.topic_name
 
     @property
+    def publisher_construction_order(self) -> int:
+        raise NotImplementedError('TODO')
+
+    @property
+    def subscription_construction_order(self) -> int:
+        raise NotImplementedError('TODO')
+
+    @property
     def summary(self) -> Summary:
         return Summary({
             'subscription_topic_name': self.subscription_topic_name,

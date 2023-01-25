@@ -183,6 +183,8 @@ class ArchitectureReaderYaml(ArchitectureReader):
                 sub_topic = self._get_value_with_default(
                     node_path_value, 'subscribe_topic_name', None)
 
+                # TODO: construction_orderの対応
+
                 if pub_topic == UNDEFINED_STR:
                     pub_topic = None
                 if sub_topic == UNDEFINED_STR:
@@ -284,6 +286,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_name=node.node_name,
                     node_id=node.node_name,
                     callback_ids=tuple(self._get_value(pub, 'callback_names')),
+                    construction_order=self._get_value_with_default(pub, 'construction_order', 0)
                 )
             )
         return publishers
@@ -302,12 +305,14 @@ class ArchitectureReaderYaml(ArchitectureReader):
         for cb_dict in cbs_dict:
             if self._get_value(cb_dict, 'callback_type') != 'timer_callback':
                 continue
+            # timerのconstruction_orderはコールバックを使用。
             timers.append(
                 TimerValue(
                     period=int(self._get_value(cb_dict, 'period_ns')),
                     node_name=node.node_name,
                     node_id=node.node_id,
                     callback_id=self._get_value(cb_dict, 'callback_name'),
+                    construction_order=self._get_value_with_default(cb_dict, 'construction_order', 0)
                 )
             )
         return timers
@@ -322,13 +327,14 @@ class ArchitectureReaderYaml(ArchitectureReader):
         if 'subscribes' not in node_dict.keys():
             return []
 
-        for pub in self._get_value(node_dict, 'subscribes'):
+        for sub in self._get_value(node_dict, 'subscribes'):
             subscriptions.append(
                 SubscriptionValue(
                     node_name=node.node_name,
                     node_id=node.node_name,
-                    topic_name=self._get_value(pub, 'topic_name'),
-                    callback_id=self._get_value(pub, 'callback_name'),
+                    topic_name=self._get_value(sub, 'topic_name'),
+                    callback_id=self._get_value(sub, 'callback_name'),
+                    construction_order=self._get_value_with_default(sub, 'construction_order', 0)
                 )
             )
         return subscriptions

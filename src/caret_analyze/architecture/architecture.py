@@ -98,12 +98,17 @@ class Architecture(Summarizable):
         self,
         publisher_node_name: str,
         subscription_node_name: str,
-        topic_name: str
+        topic_name: str,
+        *,
+        publisher_construction_order: int = 0,
+        subscription_construction_order: int = 0
     ) -> CommunicationStructValue:
         def is_target_comm(comm: CommunicationStructValue):
             return comm.publish_node_name == publisher_node_name and \
                 comm.subscribe_node_name == subscription_node_name and \
-                comm.topic_name == topic_name
+                comm.topic_name == topic_name and \
+                comm.publisher_construction_order == publisher_construction_order and \
+                comm.subscription_construction_order == subscription_construction_order
 
         return Util.find_one(is_target_comm, self.communications)
 

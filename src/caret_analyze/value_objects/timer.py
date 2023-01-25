@@ -28,11 +28,17 @@ class TimerValue(ValueObject):
         node_name: str,
         node_id: Optional[str],
         callback_id: Optional[str],
+        construction_order: int
     ) -> None:
         self._node_name = node_name
         self._node_id = node_id
         self._period = period
         self._callback_id = callback_id
+        self._construction_order = construction_order
+
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
 
     @property
     def node_name(self) -> str:
@@ -59,10 +65,12 @@ class TimerStructValue(ValueObject, Summarizable):
         node_name: str,
         period_ns: int,
         callback_info: Optional[TimerCallbackStructValue],
+        construction_order: int
     ) -> None:
         self._node_name: str = node_name
         self._period_ns: int = period_ns
         self._callback_value = callback_info
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -90,3 +98,7 @@ class TimerStructValue(ValueObject, Summarizable):
     @property
     def callback(self) -> Optional[TimerCallbackStructValue]:
         return self._callback_value
+
+    @property
+    def construction_order(self) -> Optional[int]:
+        return self._construction_order

@@ -116,6 +116,18 @@ class NodePathStruct():
         return None
 
     @property
+    def publisher_construction_order(self) -> Optional[int]:
+        if self.publisher:
+            return self.publisher.construction_order
+        return None
+
+    @property
+    def subscription_construction_order(self) -> Optional[int]:
+        if self.subscription:
+            return self.subscription.construction_order
+        return None
+
+    @property
     def publish_topic_name(self) -> Optional[str]:
         if self._publisher is None:
             return None
