@@ -238,7 +238,7 @@ class CtfEventCollection(IterableEvents):
         msg_it = bt2.TraceCollectionMessageIterator(trace_dir)
         events = []
         acceptable_tracepoints = set(Ros2Handler.get_trace_points())
-        for msg in tqdm(msg_it, total=count, desc='converting'):
+        for msg in tqdm(msg_it, total=count, desc='converting', mininterval=1.0):
             if type(msg) is not bt2._EventMessageConst:
                 continue
             if msg.event.name not in acceptable_tracepoints:
@@ -332,7 +332,8 @@ class Lttng(InfraBase):
             for event in tqdm(
                     iter(event_collection),
                     total=len(event_collection),
-                    desc='loading'):
+                    desc='loading',
+                    mininterval=1.0):
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
                     continue
