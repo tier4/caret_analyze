@@ -235,4 +235,3 @@ class NodePathStructValue(ValueObject, Summarizable):
         if self.subscription:
             return self.subscription.construction_order
         return None
-
