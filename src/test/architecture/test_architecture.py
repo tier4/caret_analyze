@@ -312,3 +312,11 @@ class TestArchitecture:
         caplog.clear()
         Architecture._verify([node_mock])
         assert len(caplog.record_tuples) == 1
+
+    def test_diff_node_names(self, mocker):
+        node_mock = mocker.Mock(spec=Architecture)
+        node_mock2 = mocker.Mock(spec=Architecture)
+        mocker.patch.object(node_mock, 'node_names', 'hoge')
+        mocker.patch.object(node_mock2, 'node_names', 'hoge')
+        name1, name2 = Architecture._diff_node_names(node_mock, node_mock2)
+        assert name1 == name2
