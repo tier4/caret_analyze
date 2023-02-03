@@ -378,7 +378,7 @@ class Architecture(Summarizable):
 
     def rename_callback(self, src: str, dst: str) -> None:
         """
-        Update callback name "src" to "dst" in arhchitecture.
+        Update callback name "src" to "dst" in architecture.
 
         Parameters
         ----------
@@ -396,7 +396,7 @@ class Architecture(Summarizable):
 
     def rename_node(self, src: str, dst: str) -> None:
         """
-        Update node name "src" to "dst" in arhchitecture.
+        Update node name "src" to "dst" in architecture.
 
         Parameters
         ----------
@@ -417,7 +417,7 @@ class Architecture(Summarizable):
 
     def rename_path(self, src: str, dst: str) -> None:
         """
-        Update path name "src" to "dst" in arhchitecture.
+        Update path name "src" to "dst" in architecture.
 
         Parameters
         ----------
@@ -432,7 +432,7 @@ class Architecture(Summarizable):
 
     def rename_executor(self, src: str, dst: str) -> None:
         """
-        Update executor name "src" to "dst" in arhchitecture.
+        Update executor name "src" to "dst" in architecture.
 
         Parameters
         ----------
@@ -447,7 +447,7 @@ class Architecture(Summarizable):
 
     def rename_topic(self, src: str, dst: str) -> None:
         """
-        Update topic name "src" to "dst" in arhchitecture.
+        Update topic name "src" to "dst" in architecture.
 
         Parameters
         ----------
