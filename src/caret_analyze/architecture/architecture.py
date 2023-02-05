@@ -309,7 +309,6 @@ class Diff:
         arch1: Architecture,
         arch2: Architecture
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-
         set_arch1 = set(arch1.node_names)
         set_arch2 = set(arch2.node_names)
         inter_arch1_arch2 = set_arch1 & set_arch2
