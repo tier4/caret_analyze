@@ -242,40 +242,6 @@ class Architecture(Summarizable):
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
-
-
-    @staticmethod
-    def diff_node_names(arch1: Architecture, arch2: Architecture):
-        arch1_only_names = []
-        arch2_only_names = []
-        for arc1 in arch1.node_names:
-            frag = True
-            for arc2 in arch2.node_names:
-                if arc1 == arc2:
-                    frag = False
-                    break
-            if frag is True:
-                arch1_only_names.append(arc1)
-
-        for arc2 in arch2.node_names:
-            frag = True
-            for arc1 in arch1.node_names:
-                if arc2 == arc1:
-                    frag = False
-                    break
-            if frag is True:
-                arch2_only_names.append(arc2)
-
-        # print("arch1_only: "+ str(arch1_only_names))
-        # print("arch2_only: "+ str(arch2_only_names))
-
-        arch1_only_names = tuple(arch1_only_names)
-        arch2_only_names = tuple(arch2_only_names)
-
-        return arch1_only_names, arch2_only_names
-
-
-
 """
     def rename_callback(src: str, dest: str):
         raise NotImplementedError('')
@@ -329,3 +295,24 @@ class NamedPathManager():
 
         self.remove_named_path(path_info.path_name)
         self.add_named_path(path_name, path_info)
+
+class Diff:
+    def __init__(
+        self,
+        arch1: Architecture,
+        arch2: Architecture
+    ):
+        pass
+
+    @staticmethod
+    def _diff_node_names(
+        arch1: Architecture,
+        arch2: Architecture
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+
+        set_arch1 = set(arch1.node_names)
+        set_arch2 = set(arch2.node_names)
+        inter_arch1_arch2 = set_arch1 & set_arch2
+        only_arch1_names = tuple(set_arch1 - inter_arch1_arch2)
+        only_arch2_names = tuple(set_arch2 - inter_arch1_arch2)
+        return only_arch1_names, only_arch2_names
