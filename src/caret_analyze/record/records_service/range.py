@@ -22,18 +22,30 @@ logger = getLogger(__name__)
 
 
 class Range:
+    """Range class."""
 
     def __init__(self, records_list: Sequence[RecordsInterface]) -> None:
         self._records_list = records_list
 
     def get_range(self) -> Tuple[int, int]:
+        """
+        Get minimum and maximum timestamps.
+
+        Returns
+        -------
+        Tuple[int, int]
+            Minimum and Maximum timestamps.
+
+        Notes
+        -----
+        The first column is system time for now.
+        The other columns could be other than system time.
+        Only the system time is picked out here.
+
+        """
         def remove_none(series: Sequence[Optional[int]]) -> List[int]:
             return [v for v in series if v is not None]
 
-        # NOTE:
-        # The first column is system time for now.
-        # The other columns could be other than system time.
-        # Only the system time is picked out here.
         base_series = [remove_none(r.get_column_series(r.columns[0])) for r in self._records_list]
         min_series: List[int] = []
         max_series: List[int] = []
