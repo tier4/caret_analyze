@@ -383,9 +383,9 @@ class Architecture(Summarizable):
         Parameters
         ----------
         src : str
-            callback name to be updated
+            current callback name
         dst : str
-            callback name to be updating
+            updated callback name
 
         """
         cb_s: List[CallbackStruct] =\
@@ -401,9 +401,9 @@ class Architecture(Summarizable):
         Parameters
         ----------
         src : str
-            node name to be updated
+            current node name
         dst : str
-            node name to be updating
+            updated node name
 
         """
         for n in self._nodes:
@@ -422,9 +422,9 @@ class Architecture(Summarizable):
         Parameters
         ----------
         src : str
-            path name to be updated
+            current path name
         dst : str
-            path name to be updating
+            updated path name
 
         """
         p: PathStruct = Util.find_similar_one(src, self._paths, lambda x: x.path_name)
@@ -437,9 +437,9 @@ class Architecture(Summarizable):
         Parameters
         ----------
         src : str
-            executor name to be updated
+            current executor name
         dst : str
-            executor name to be updating
+            updated executor name
 
         """
         e: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
@@ -452,9 +452,9 @@ class Architecture(Summarizable):
         Parameters
         ----------
         src : str
-            topic name to be updated
+            current topic name
         dst : str
-            topic name to be updating
+            updated topic name
 
         """
         for n in self._nodes:
