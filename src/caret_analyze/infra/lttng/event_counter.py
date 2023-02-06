@@ -43,7 +43,14 @@ class EventCounter:
         return count_df
 
     def _validate(self):
-        count_df = self.get_count(['trace_point'])
+        # The record containing ignored_topics can records trace_points_added_by_ld_preload
+        # and trace_points_added_by_fork_rclcpp.
+        # Exclude these records as they interfere with validation.
+        record_df = self.get_count(['trace_point', 'topic_name']).reset_index()
+        ignored_topics = ['caret/start_record', '/caret/end_record']
+        ignored_df = record_df[~record_df['topic_name'].isin(ignored_topics)]
+
+        count_df = ignored_df.groupby('trace_point').sum([['size']])
         count_df_recorded = count_df[count_df['size'] > 0]
         recorded_trace_points = list(count_df_recorded.index)
 
