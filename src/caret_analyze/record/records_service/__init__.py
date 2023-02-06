@@ -15,11 +15,13 @@
 from .frequency import Frequency
 from .latency import Latency
 from .period import Period
-from . response_time import ResponseTime
+from .range import Range
+from .response_time import ResponseTime
 
 __all__ = [
     'Frequency',
     'Latency',
     'Period',
+    'Range',
     'ResponseTime',
 ]
