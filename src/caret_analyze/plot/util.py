@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from logging import getLogger
 from typing import Sequence, Tuple, Union
 
-import datetime
-
-from bokeh.models import LinearAxis, Range1d, AdaptiveTicker
+from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
 from bokeh.plotting import Figure
 
 import numpy as np

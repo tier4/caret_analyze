@@ -14,12 +14,11 @@
 
 from __future__ import annotations
 
+import datetime
 from logging import getLogger
 from typing import List, Sequence, Tuple, Union
 
-import datetime
-
-from bokeh.models import Arrow, LinearAxis, NormalHead, Range1d, AdaptiveTicker
+from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.plotting import Figure, figure
 import numpy as np
 import pandas as pd
