@@ -1,0 +1,6129 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://tier4.github.io/CARET_analyze/pr-253/value_objects/">
+      
+      
+        <link rel="prev" href="../record/">
+      
+      
+      <link rel="icon" href="../assets/images/tier4.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.12">
+    
+    
+      
+        <title>value_objects - CARET analyze API document</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.0d440cfe.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/mermaid@8.13.10/dist/mermaid.css">
+    
+      <link rel="stylesheet" href="../assets/css/extra.css">
+    
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#caret_analyze.value_objects" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="CARET analyze API document" class="md-header__button md-logo" aria-label="CARET analyze API document" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M135.2 117.4 109.1 192h293.8l-26.1-74.6c-4.5-12.8-16.6-21.4-30.2-21.4H165.4c-13.6 0-25.7 8.6-30.2 21.4zm-95.6 79.4L74.8 96.3C88.3 57.8 124.6 32 165.4 32h181.2c40.8 0 77.1 25.8 90.6 64.3l35.2 100.5c23.2 9.6 39.6 32.5 39.6 59.2v192c0 17.7-14.3 32-32 32h-32c-17.7 0-32-14.3-32-32v-48H96v48c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V256c0-26.7 16.4-49.6 39.6-59.2zM128 288c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm288 32c17.7 0 32-14.3 32-32s-14.3-32-32-32-32 14.3-32 32 14.3 32 32 32z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CARET analyze API document
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              value_objects
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="grey" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tier4/CARET_analyze" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href=".." class="md-tabs__link">
+      HOME
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        API for user
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../common/" class="md-tabs__link md-tabs__link--active">
+        API for developer
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="CARET analyze API document" class="md-nav__button md-logo" aria-label="CARET analyze API document" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M135.2 117.4 109.1 192h293.8l-26.1-74.6c-4.5-12.8-16.6-21.4-30.2-21.4H165.4c-13.6 0-25.7 8.6-30.2 21.4zm-95.6 79.4L74.8 96.3C88.3 57.8 124.6 32 165.4 32h181.2c40.8 0 77.1 25.8 90.6 64.3l35.2 100.5c23.2 9.6 39.6 32.5 39.6 59.2v192c0 17.7-14.3 32-32 32h-32c-17.7 0-32-14.3-32-32v-48H96v48c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V256c0-26.7 16.4-49.6 39.6-59.2zM128 288c0-17.7-14.3-32-32-32s-32 14.3-32 32 14.3 32 32 32 32-14.3 32-32zm288 32c17.7 0 32-14.3 32-32s-14.3-32-32-32-32 14.3-32 32 14.3 32 32 32z"/></svg>
+
+    </a>
+    CARET analyze API document
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tier4/CARET_analyze" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        HOME
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          API for user
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          API for user
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        architecture
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../infra/" class="md-nav__link">
+        infra
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plot/" class="md-nav__link">
+        plot
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        runtime
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exceptions/" class="md-nav__link">
+        exceptions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      
+      
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          API for developer
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          API for developer
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../common/" class="md-nav__link">
+        common
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../record/" class="md-nav__link">
+        record
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          value_objects
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        value_objects
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects" class="md-nav__link">
+    caret_analyze.value_objects
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackChain" class="md-nav__link">
+    CallbackChain
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackChain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.CallbackChain.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackGroupStructValue" class="md-nav__link">
+    CallbackGroupStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackGroupStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_name" class="md-nav__link">
+    callback_group_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type" class="md-nav__link">
+    callback_group_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type_name" class="md-nav__link">
+    callback_group_type_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_names" class="md-nav__link">
+    callback_names
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callbacks" class="md-nav__link">
+    callbacks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackGroupType" class="md-nav__link">
+    CallbackGroupType
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackGroupType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupType.type_name" class="md-nav__link">
+    type_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupType.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackGroupValue" class="md-nav__link">
+    CallbackGroupValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackGroupValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_id" class="md-nav__link">
+    callback_group_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_name" class="md-nav__link">
+    callback_group_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_type" class="md-nav__link">
+    callback_group_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_ids" class="md-nav__link">
+    callback_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.node_id" class="md-nav__link">
+    node_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackStructValue" class="md-nav__link">
+    CallbackStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_name" class="md-nav__link">
+    callback_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_type" class="md-nav__link">
+    callback_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.construction_order" class="md-nav__link">
+    construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.symbol" class="md-nav__link">
+    symbol
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackType" class="md-nav__link">
+    CallbackType
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackType.type_name" class="md-nav__link">
+    type_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackType.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackValue" class="md-nav__link">
+    CallbackValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_id" class="md-nav__link">
+    callback_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_name" class="md-nav__link">
+    callback_name
+  </a>
+  
+    <nav class="md-nav" aria-label="callback_name">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_name--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_type" class="md-nav__link">
+    callback_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.construction_order" class="md-nav__link">
+    construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.node_id" class="md-nav__link">
+    node_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.publish_topic_names" class="md-nav__link">
+    publish_topic_names
+  </a>
+  
+    <nav class="md-nav" aria-label="publish_topic_names">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.publish_topic_names--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name" class="md-nav__link">
+    subscribe_topic_name
+  </a>
+  
+    <nav class="md-nav" aria-label="subscribe_topic_name">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.symbol" class="md-nav__link">
+    symbol
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ExecutorStructValue" class="md-nav__link">
+    ExecutorStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ExecutorType" class="md-nav__link">
+    ExecutorType
+  </a>
+  
+    <nav class="md-nav" aria-label="ExecutorType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.executor.ExecutorType.type_name" class="md-nav__link">
+    type_name
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ExecutorValue" class="md-nav__link">
+    ExecutorValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.InheritUniqueStamp" class="md-nav__link">
+    InheritUniqueStamp
+  </a>
+  
+    <nav class="md-nav" aria-label="InheritUniqueStamp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.InheritUniqueStamp.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.MessageContext" class="md-nav__link">
+    MessageContext
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.MessageContextType" class="md-nav__link">
+    MessageContextType
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodePathStructValue" class="md-nav__link">
+    NodePathStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="NodePathStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node_path.NodePathStructValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodePathValue" class="md-nav__link">
+    NodePathValue
+  </a>
+  
+    <nav class="md-nav" aria-label="NodePathValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node_path.NodePathValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodeStructValue" class="md-nav__link">
+    NodeStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodeValue" class="md-nav__link">
+    NodeValue
+  </a>
+  
+    <nav class="md-nav" aria-label="NodeValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node.NodeValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodeValueWithId" class="md-nav__link">
+    NodeValueWithId
+  </a>
+  
+    <nav class="md-nav" aria-label="NodeValueWithId">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node.NodeValueWithId.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.PathValue" class="md-nav__link">
+    PathValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.PublisherStructValue" class="md-nav__link">
+    PublisherStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.PublisherValue" class="md-nav__link">
+    PublisherValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.Qos" class="md-nav__link">
+    Qos
+  </a>
+  
+    <nav class="md-nav" aria-label="Qos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.Qos--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceCallbackStructValue" class="md-nav__link">
+    ServiceCallbackStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceCallbackValue" class="md-nav__link">
+    ServiceCallbackValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceStructValue" class="md-nav__link">
+    ServiceStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceValue" class="md-nav__link">
+    ServiceValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionCallbackStructValue" class="md-nav__link">
+    SubscriptionCallbackStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionCallbackValue" class="md-nav__link">
+    SubscriptionCallbackValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionStructValue" class="md-nav__link">
+    SubscriptionStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionValue" class="md-nav__link">
+    SubscriptionValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.Tilde" class="md-nav__link">
+    Tilde
+  </a>
+  
+    <nav class="md-nav" aria-label="Tilde">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.Tilde.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerCallbackStructValue" class="md-nav__link">
+    TimerCallbackStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerCallbackValue" class="md-nav__link">
+    TimerCallbackValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerStructValue" class="md-nav__link">
+    TimerStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerValue" class="md-nav__link">
+    TimerValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.UseLatestMessage" class="md-nav__link">
+    UseLatestMessage
+  </a>
+  
+    <nav class="md-nav" aria-label="UseLatestMessage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.UseLatestMessage.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ValueObject" class="md-nav__link">
+    ValueObject
+  </a>
+  
+    <nav class="md-nav" aria-label="ValueObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ValueObject--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__eq__" class="md-nav__link">
+    __eq__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+    <nav class="md-nav" aria-label="__hash__()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__--references" class="md-nav__link">
+    References
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__str__" class="md-nav__link">
+    __str__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.VariablePassingStructValue" class="md-nav__link">
+    VariablePassingStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="VariablePassingStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_read" class="md-nav__link">
+    callback_name_read
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_write" class="md-nav__link">
+    callback_name_write
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.VariablePassingValue" class="md-nav__link">
+    VariablePassingValue
+  </a>
+  
+    <nav class="md-nav" aria-label="VariablePassingValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_read" class="md-nav__link">
+    callback_id_read
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_write" class="md-nav__link">
+    callback_id_write
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects" class="md-nav__link">
+    caret_analyze.value_objects
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackChain" class="md-nav__link">
+    CallbackChain
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackChain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.CallbackChain.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackGroupStructValue" class="md-nav__link">
+    CallbackGroupStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackGroupStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_name" class="md-nav__link">
+    callback_group_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type" class="md-nav__link">
+    callback_group_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type_name" class="md-nav__link">
+    callback_group_type_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_names" class="md-nav__link">
+    callback_names
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callbacks" class="md-nav__link">
+    callbacks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackGroupType" class="md-nav__link">
+    CallbackGroupType
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackGroupType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupType.type_name" class="md-nav__link">
+    type_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupType.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackGroupValue" class="md-nav__link">
+    CallbackGroupValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackGroupValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_id" class="md-nav__link">
+    callback_group_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_name" class="md-nav__link">
+    callback_group_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_type" class="md-nav__link">
+    callback_group_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_ids" class="md-nav__link">
+    callback_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.node_id" class="md-nav__link">
+    node_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackStructValue" class="md-nav__link">
+    CallbackStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_name" class="md-nav__link">
+    callback_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_type" class="md-nav__link">
+    callback_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.construction_order" class="md-nav__link">
+    construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackStructValue.symbol" class="md-nav__link">
+    symbol
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackType" class="md-nav__link">
+    CallbackType
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackType.type_name" class="md-nav__link">
+    type_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackType.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.CallbackValue" class="md-nav__link">
+    CallbackValue
+  </a>
+  
+    <nav class="md-nav" aria-label="CallbackValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_id" class="md-nav__link">
+    callback_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_name" class="md-nav__link">
+    callback_name
+  </a>
+  
+    <nav class="md-nav" aria-label="callback_name">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_name--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.callback_type" class="md-nav__link">
+    callback_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.construction_order" class="md-nav__link">
+    construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.node_id" class="md-nav__link">
+    node_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.publish_topic_names" class="md-nav__link">
+    publish_topic_names
+  </a>
+  
+    <nav class="md-nav" aria-label="publish_topic_names">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.publish_topic_names--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name" class="md-nav__link">
+    subscribe_topic_name
+  </a>
+  
+    <nav class="md-nav" aria-label="subscribe_topic_name">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.symbol" class="md-nav__link">
+    symbol
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.callback.CallbackValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ExecutorStructValue" class="md-nav__link">
+    ExecutorStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ExecutorType" class="md-nav__link">
+    ExecutorType
+  </a>
+  
+    <nav class="md-nav" aria-label="ExecutorType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.executor.ExecutorType.type_name" class="md-nav__link">
+    type_name
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ExecutorValue" class="md-nav__link">
+    ExecutorValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.InheritUniqueStamp" class="md-nav__link">
+    InheritUniqueStamp
+  </a>
+  
+    <nav class="md-nav" aria-label="InheritUniqueStamp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.InheritUniqueStamp.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.MessageContext" class="md-nav__link">
+    MessageContext
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.MessageContextType" class="md-nav__link">
+    MessageContextType
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodePathStructValue" class="md-nav__link">
+    NodePathStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="NodePathStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node_path.NodePathStructValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodePathValue" class="md-nav__link">
+    NodePathValue
+  </a>
+  
+    <nav class="md-nav" aria-label="NodePathValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node_path.NodePathValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodeStructValue" class="md-nav__link">
+    NodeStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodeValue" class="md-nav__link">
+    NodeValue
+  </a>
+  
+    <nav class="md-nav" aria-label="NodeValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node.NodeValue.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.NodeValueWithId" class="md-nav__link">
+    NodeValueWithId
+  </a>
+  
+    <nav class="md-nav" aria-label="NodeValueWithId">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.node.NodeValueWithId.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.PathValue" class="md-nav__link">
+    PathValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.PublisherStructValue" class="md-nav__link">
+    PublisherStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.PublisherValue" class="md-nav__link">
+    PublisherValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.Qos" class="md-nav__link">
+    Qos
+  </a>
+  
+    <nav class="md-nav" aria-label="Qos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.Qos--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceCallbackStructValue" class="md-nav__link">
+    ServiceCallbackStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceCallbackValue" class="md-nav__link">
+    ServiceCallbackValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceStructValue" class="md-nav__link">
+    ServiceStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ServiceValue" class="md-nav__link">
+    ServiceValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionCallbackStructValue" class="md-nav__link">
+    SubscriptionCallbackStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionCallbackValue" class="md-nav__link">
+    SubscriptionCallbackValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionStructValue" class="md-nav__link">
+    SubscriptionStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.SubscriptionValue" class="md-nav__link">
+    SubscriptionValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.Tilde" class="md-nav__link">
+    Tilde
+  </a>
+  
+    <nav class="md-nav" aria-label="Tilde">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.Tilde.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerCallbackStructValue" class="md-nav__link">
+    TimerCallbackStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerCallbackValue" class="md-nav__link">
+    TimerCallbackValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerStructValue" class="md-nav__link">
+    TimerStructValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.TimerValue" class="md-nav__link">
+    TimerValue
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.UseLatestMessage" class="md-nav__link">
+    UseLatestMessage
+  </a>
+  
+    <nav class="md-nav" aria-label="UseLatestMessage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.message_context.UseLatestMessage.TYPE_NAME" class="md-nav__link">
+    TYPE_NAME
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ValueObject" class="md-nav__link">
+    ValueObject
+  </a>
+  
+    <nav class="md-nav" aria-label="ValueObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.ValueObject--note" class="md-nav__link">
+    Note:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__eq__" class="md-nav__link">
+    __eq__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+    <nav class="md-nav" aria-label="__hash__()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__--references" class="md-nav__link">
+    References
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.value_object.ValueObject.__str__" class="md-nav__link">
+    __str__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.VariablePassingStructValue" class="md-nav__link">
+    VariablePassingStructValue
+  </a>
+  
+    <nav class="md-nav" aria-label="VariablePassingStructValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_read" class="md-nav__link">
+    callback_name_read
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_write" class="md-nav__link">
+    callback_name_write
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.VariablePassingValue" class="md-nav__link">
+    VariablePassingValue
+  </a>
+  
+    <nav class="md-nav" aria-label="VariablePassingValue">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_read" class="md-nav__link">
+    callback_id_read
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_write" class="md-nav__link">
+    callback_id_write
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.node_name" class="md-nav__link">
+    node_name
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+  <h1>value_objects</h1>
+
+<div class="doc doc-object doc-module">
+
+
+<a id="caret_analyze.value_objects"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Package defining the value object class.</p>
+<p>Defined classes are used as an interface across multiple packages:
+architecture, infra, and runtime.
+CARET uses value objects to avoid unexpectedly overwritten.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.CallbackChain" class="doc doc-heading">
+        <code>CallbackChain</code>
+
+
+<a href="#caret_analyze.value_objects.CallbackChain" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.message_context.MessageContext" href="#caret_analyze.value_objects.MessageContext">MessageContext</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.message_context.CallbackChain.TYPE_NAME" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">TYPE_NAME</span> <span class="o">=</span> <span class="s1">&#39;callback_chain&#39;</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.message_context.CallbackChain.TYPE_NAME" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Callback chain.</p>
+<p>Latency is calculated from callback durations in the node path.
+When a path within a node passes through multiple callbacks,
+it is assumed that messages are passed between callbacks by a buffer of
+queue size 1 (ex. a member variable that stores a single message).
+If the queue size is larger than 1,
+the node latency may be calculated to be small.</p>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.CallbackGroupStructValue" class="doc doc-heading">
+        <code>CallbackGroupStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.CallbackGroupStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Callback group value object.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_group_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback group name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Callback group name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_group_type</span><span class="p">:</span> <span class="n">CallbackGroupType</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback_group_type.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback_group.CallbackGroupType" href="#caret_analyze.value_objects.CallbackGroupType">CallbackGroupType</a></code>
+          </td>
+          <td></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_group_type_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_group_type_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback_group_type name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>CallbackGroupType name</code>
+          </td>
+          <td></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_names" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_names</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callback_names" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback names.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[str, ...]</code>
+          </td>
+          <td><p>Callback names which are added to the callback group.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callbacks" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callbacks</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">CallbackStructValue</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.callbacks" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callbacks.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackStructValue" href="#caret_analyze.value_objects.CallbackStructValue">CallbackStructValue</a>, ...]</code>
+          </td>
+          <td><p>Callbacks which are added to the callback group.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupStructValue.node_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.node_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>node name</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupStructValue.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">callback_group_type</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">callback_values</span><span class="p">,</span> <span class="n">callback_group_name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupStructValue.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct callback group value object.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback_group_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback group type</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>List[str]</code>
+          </td>
+          <td><p>node name</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_values</code></td>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackStructValue" href="#caret_analyze.value_objects.CallbackStructValue">CallbackStructValue</a>, ...]</code>
+          </td>
+          <td><p>callback values</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_group_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback group name</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.CallbackGroupType" class="doc doc-heading">
+        <code>CallbackGroupType</code>
+
+
+<a href="#caret_analyze.value_objects.CallbackGroupType" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Callback group type class.</p>
+<p>The types of callback groups are as follows:</p>
+<ul>
+<li>MUTUALLY_EXCLUSIVE</li>
+<li>REENTRANT</li>
+</ul>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupType.type_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupType.type_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return callback group type name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>type name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupType.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupType.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct CallbackGroupType.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>type name ['mutually_exclusive', 'reentrant']</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.CallbackGroupValue" class="doc doc-heading">
+        <code>CallbackGroupValue</code>
+
+
+<a href="#caret_analyze.value_objects.CallbackGroupValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Callback group value object.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_group_id</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_id" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback group id.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Callback group id.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_group_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback group name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Callback group name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_group_type</span><span class="p">:</span> <span class="n">CallbackGroupType</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_group_type" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback_group_type.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback_group.CallbackGroupType" href="#caret_analyze.value_objects.CallbackGroupType">CallbackGroupType</a></code>
+          </td>
+          <td></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_ids" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_ids</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.callback_ids" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback ids.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[str, ...]</code>
+          </td>
+          <td><p>callback ids added to the callback group.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupValue.node_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.node_id" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node id.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node id.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupValue.node_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.node_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node name which includes the callback group.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.callback_group.CallbackGroupValue.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">callback_group_type_name</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">callback_ids</span><span class="p">,</span> <span class="n">callback_group_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">callback_group_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.callback_group.CallbackGroupValue.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct an instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback_group_type_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback group type name: ['mutually_exclusive' / 'reentrant']</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>node name.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Identification of the node,
+a value that can be identified when retrieved from the Architecture reader.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_ids</code></td>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[str, ...]</code>
+          </td>
+          <td><p>Identification of the callback,
+a value that can be identified when retrieved from the Architecture reader.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_group_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Identification of the callback group,
+a value that can be identified when retrieved from the Architecture reader.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_group_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str], optional</code>
+          </td>
+          <td><p>callback group name, by default None. If None, it is generated automatically.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.CallbackStructValue" class="doc doc-heading">
+        <code>CallbackStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.CallbackStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Callback value base class.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackStructValue.callback_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback name</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackStructValue.callback_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_type</span><span class="p">:</span> <span class="n">CallbackType</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackStructValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback type name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackType" href="#caret_analyze.value_objects.CallbackType">CallbackType</a></code>
+          </td>
+          <td><p>callback type</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackStructValue.construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">construction_order</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackStructValue.construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get construction order.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>construction order</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackStructValue.node_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackStructValue.node_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>node name</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackStructValue.symbol" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackStructValue.symbol" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback symbol name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback symbol name</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.CallbackType" class="doc doc-heading">
+        <code>CallbackType</code>
+
+
+<a href="#caret_analyze.value_objects.CallbackType" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>callback group type class.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackType.type_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackType.type_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return callback type name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>type name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackType.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.callback.CallbackType.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct callback type.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>callback type name ['timer_callback', 'subscription_callback', 'service_callback']</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.CallbackValue" class="doc doc-heading">
+        <code>CallbackValue</code>
+
+
+<a href="#caret_analyze.value_objects.CallbackValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Value object class for representing a callback.</p>
+<p>This class has minimal information and no structure.
+It's used as the return value of ArchitectureReader.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.callback_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_id</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.callback_id" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback id.</p>
+<p>Callback id is is used to bind.
+Callback id should be the same if the node name and other properties are the same.
+If any properties is different, it should be a different callback id.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Callback unique id.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.callback_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.callback_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Callback name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+      <h5 id="caret_analyze.value_objects.callback.CallbackValue.callback_name--note">Note:<a class="headerlink" href="#caret_analyze.value_objects.callback.CallbackValue.callback_name--note" title="Permanent link">#</a></h5>
+<p>Different architecture_readers may return different values.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.callback_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_type</span><span class="p">:</span> <span class="n">CallbackType</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.callback_type" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback type name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackType" href="#caret_analyze.value_objects.CallbackType">CallbackType</a></code>
+          </td>
+          <td><p>callback type</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">construction_order</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get construction order.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>construction order</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.node_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.node_id" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node id.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node id.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.node_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.node_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.publish_topic_names" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">publish_topic_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.publish_topic_names" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get publisher topic names.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Tuple">Tuple</span>[str, ...]]</code>
+          </td>
+          <td><p>Topic names which the callback publishes.</p></td>
+        </tr>
+    </tbody>
+  </table>
+      <h5 id="caret_analyze.value_objects.callback.CallbackValue.publish_topic_names--note">Note:<a class="headerlink" href="#caret_analyze.value_objects.callback.CallbackValue.publish_topic_names--note" title="Permanent link">#</a></h5>
+<p>Since callback publishes multiple topics,
+there are multiple publish topic names.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">subscribe_topic_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get subscription topic name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Topic name which the callback subscribes.</p></td>
+        </tr>
+    </tbody>
+  </table>
+      <h5 id="caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name--note">Note:<a class="headerlink" href="#caret_analyze.value_objects.callback.CallbackValue.subscribe_topic_name--note" title="Permanent link">#</a></h5>
+<p>Only one subscription callback have a single subscribe topic name.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.symbol" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.symbol" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get callback symbol name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Callback symbol name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.callback.CallbackValue.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">callback_id</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">subscribe_topic_name</span><span class="p">,</span> <span class="n">service_name</span><span class="p">,</span> <span class="n">publish_topic_names</span><span class="p">,</span> <span class="n">construction_order</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">callback_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.callback.CallbackValue.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct an instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>callback_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Callback unique id,
+a value that can be identified when retrieved from the Architecture reader.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node name.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node unique id,
+a value that can be identified when retrieved from the Architecture reader.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>symbol</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Symbol name of the callback.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subscribe_topic_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Topic name which the callback subscribes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>service_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Service name which the callback service.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publish_topic_names</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Tuple">Tuple</span>[str, ...]]</code>
+          </td>
+          <td><p>Topic name which the callback publishes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>construction_order</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Order of instance creation within the identical node.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Callback name, by default None. This argument is used by ArchitectureReaderYaml.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ExecutorStructValue" class="doc doc-heading">
+        <code>ExecutorStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.ExecutorStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Executor info for architecture.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ExecutorType" class="doc doc-heading">
+        <code>ExecutorType</code>
+
+
+<a href="#caret_analyze.value_objects.ExecutorType" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>executor type class.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.executor.ExecutorType.type_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.executor.ExecutorType.type_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return executor type name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>type name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ExecutorValue" class="doc doc-heading">
+        <code>ExecutorValue</code>
+
+
+<a href="#caret_analyze.value_objects.ExecutorValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Executor info for architecture.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.InheritUniqueStamp" class="doc doc-heading">
+        <code>InheritUniqueStamp</code>
+
+
+<a href="#caret_analyze.value_objects.InheritUniqueStamp" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.message_context.MessageContext" href="#caret_analyze.value_objects.MessageContext">MessageContext</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.message_context.InheritUniqueStamp.TYPE_NAME" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">TYPE_NAME</span> <span class="o">=</span> <span class="s1">&#39;inherit_unique_stamp&#39;</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.message_context.InheritUniqueStamp.TYPE_NAME" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Inherit header timestamp.</p>
+<p>Latency is calculated for pub/sub messages with the same timestamp value.
+If the input timestamp is not unique, it may calculate an incorrect value.</p>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.MessageContext" class="doc doc-heading">
+        <code>MessageContext</code>
+
+
+<a href="#caret_analyze.value_objects.MessageContext" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Structured message context value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.MessageContextType" class="doc doc-heading">
+        <code>MessageContextType</code>
+
+
+<a href="#caret_analyze.value_objects.MessageContextType" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Message context type.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.NodePathStructValue" class="doc doc-heading">
+        <code>NodePathStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.NodePathStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>StructValue object class for representing a node path.</p>
+<p>This class is a structure that includes other related StructValue classes, such as callbacks,
+and used as the return value of Architecture object.
+In CARET, the node path is defined as from subscribe to publish.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.node_path.NodePathStructValue.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">subscription</span><span class="p">,</span> <span class="n">publisher</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">message_context</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.node_path.NodePathStructValue.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct an instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node name</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subscription</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.subscription.SubscriptionStructValue" href="#caret_analyze.value_objects.SubscriptionStructValue">SubscriptionStructValue</a>]</code>
+          </td>
+          <td><p>Subscription which the node path subscribes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publisher</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.publisher.PublisherStructValue" href="#caret_analyze.value_objects.PublisherStructValue">PublisherStructValue</a>]</code>
+          </td>
+          <td><p>Publisher which the node path publishes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>child</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Tuple">Tuple</span>[<span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackStructValue" href="#caret_analyze.value_objects.CallbackStructValue">CallbackStructValue</a>, <a class="autorefs autorefs-internal" title="caret_analyze.value_objects.variable_passing.VariablePassingStructValue" href="#caret_analyze.value_objects.VariablePassingStructValue">VariablePassingStructValue</a>], ...]]</code>
+          </td>
+          <td><p>Child elements of a node path.
+Required only when message_context is callback_chain.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>message_context</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.value_objects.message_context.MessageContext" href="#caret_analyze.value_objects.MessageContext">MessageContext</a>]</code>
+          </td>
+          <td><p>Message Context. Used to define node latency.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.NodePathValue" class="doc doc-heading">
+        <code>NodePathValue</code>
+
+
+<a href="#caret_analyze.value_objects.NodePathValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Value object class for representing a node path.</p>
+<p>This class has minimal information and no structure,
+and used as the return value of ArchitectureReader.
+In CARET, the node path is defined as from subscribe to publish.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.node_path.NodePathValue.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">subscribe_topic_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.node_path.NodePathValue.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct an instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node name.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subscribe_topic_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Topic name which the node-path subscribes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publish_topic_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Topic name which the node-path publishes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.NodeStructValue" class="doc doc-heading">
+        <code>NodeStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.NodeStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>StructValue object class for representing a node.</p>
+<p>This class is a structure that includes other related StructValue classes, such as callbacks,
+and used as the return value of Architecture object.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.NodeValue" class="doc doc-heading">
+        <code>NodeValue</code>
+
+
+<a href="#caret_analyze.value_objects.NodeValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Value object class for representing a node.</p>
+<p>This class has minimal information and no structure,
+and used as the return value of ArchitectureReader.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.node.NodeValue.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">node_id</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.node.NodeValue.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct an instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node name.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_id</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Identification of the node,
+a value that can be identified when retrieved from the Architecture reader.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.NodeValueWithId" class="doc doc-heading">
+        <code>NodeValueWithId</code>
+
+
+<a href="#caret_analyze.value_objects.NodeValueWithId" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.node.NodeValue" href="#caret_analyze.value_objects.NodeValue">NodeValue</a></code></p>
+
+  
+      <p>Value object class for representing a node path.</p>
+<p>This class has minimal information and no structure,
+and used as the return value of ArchitectureReader.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.node.NodeValueWithId.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">node_id</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.node.NodeValueWithId.__init__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Construct an instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Node name.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_id</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Identification of the node,
+a value that can be identified when retrieved from the Architecture reader.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.PathValue" class="doc doc-heading">
+        <code>PathValue</code>
+
+
+<a href="#caret_analyze.value_objects.PathValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Path name alias.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.PublisherStructValue" class="doc doc-heading">
+        <code>PublisherStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.PublisherStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Structured publisher value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.PublisherValue" class="doc doc-heading">
+        <code>PublisherValue</code>
+
+
+<a href="#caret_analyze.value_objects.PublisherValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Publisher value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.Qos" class="doc doc-heading">
+        <code>Qos</code>
+
+
+<a href="#caret_analyze.value_objects.Qos" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Qos info.</p>
+<h4 id="caret_analyze.value_objects.Qos--note">Note:<a class="headerlink" href="#caret_analyze.value_objects.Qos--note" title="Permanent link">#</a></h4>
+<p>Currently, only DEPTH is supported, but it is desirable to support
+other QoS by adding trace points.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ServiceCallbackStructValue" class="doc doc-heading">
+        <code>ServiceCallbackStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.ServiceCallbackStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackStructValue" href="#caret_analyze.value_objects.CallbackStructValue">CallbackStructValue</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Structured service callback value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ServiceCallbackValue" class="doc doc-heading">
+        <code>ServiceCallbackValue</code>
+
+
+<a href="#caret_analyze.value_objects.ServiceCallbackValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackValue" href="#caret_analyze.value_objects.CallbackValue">CallbackValue</a></code></p>
+
+  
+      <p>Service callback value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ServiceStructValue" class="doc doc-heading">
+        <code>ServiceStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.ServiceStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Service info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ServiceValue" class="doc doc-heading">
+        <code>ServiceValue</code>
+
+
+<a href="#caret_analyze.value_objects.ServiceValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Service info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.SubscriptionCallbackStructValue" class="doc doc-heading">
+        <code>SubscriptionCallbackStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.SubscriptionCallbackStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackStructValue" href="#caret_analyze.value_objects.CallbackStructValue">CallbackStructValue</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Structured subscription callback value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.SubscriptionCallbackValue" class="doc doc-heading">
+        <code>SubscriptionCallbackValue</code>
+
+
+<a href="#caret_analyze.value_objects.SubscriptionCallbackValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackValue" href="#caret_analyze.value_objects.CallbackValue">CallbackValue</a></code></p>
+
+  
+      <p>Subscription callback value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.SubscriptionStructValue" class="doc doc-heading">
+        <code>SubscriptionStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.SubscriptionStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Subscription info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.SubscriptionValue" class="doc doc-heading">
+        <code>SubscriptionValue</code>
+
+
+<a href="#caret_analyze.value_objects.SubscriptionValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Subscription info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.Tilde" class="doc doc-heading">
+        <code>Tilde</code>
+
+
+<a href="#caret_analyze.value_objects.Tilde" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.message_context.MessageContext" href="#caret_analyze.value_objects.MessageContext">MessageContext</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.message_context.Tilde.TYPE_NAME" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">TYPE_NAME</span> <span class="o">=</span> <span class="s1">&#39;tilde&#39;</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.message_context.Tilde.TYPE_NAME" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>tilde.</p>
+<p>Latency is calculated from tilde.</p>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.TimerCallbackStructValue" class="doc doc-heading">
+        <code>TimerCallbackStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.TimerCallbackStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackStructValue" href="#caret_analyze.value_objects.CallbackStructValue">CallbackStructValue</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Structured timer callback value.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.TimerCallbackValue" class="doc doc-heading">
+        <code>TimerCallbackValue</code>
+
+
+<a href="#caret_analyze.value_objects.TimerCallbackValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.callback.CallbackValue" href="#caret_analyze.value_objects.CallbackValue">CallbackValue</a></code></p>
+
+  
+      <p>Value object class for representing a timer.</p>
+<p>This class has minimal information and no structure,
+and used as the return value of ArchitectureReader.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.TimerStructValue" class="doc doc-heading">
+        <code>TimerStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.TimerStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>Timer info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.TimerValue" class="doc doc-heading">
+        <code>TimerValue</code>
+
+
+<a href="#caret_analyze.value_objects.TimerValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>Timer info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.UseLatestMessage" class="doc doc-heading">
+        <code>UseLatestMessage</code>
+
+
+<a href="#caret_analyze.value_objects.UseLatestMessage" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.message_context.MessageContext" href="#caret_analyze.value_objects.MessageContext">MessageContext</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.message_context.UseLatestMessage.TYPE_NAME" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">TYPE_NAME</span> <span class="o">=</span> <span class="s1">&#39;use_latest_message&#39;</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.message_context.UseLatestMessage.TYPE_NAME" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Use message context</p>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.ValueObject" class="doc doc-heading">
+        <code>ValueObject</code>
+
+
+<a href="#caret_analyze.value_objects.ValueObject" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Value object base class.</p>
+<p>Classes that inherit from this class will become immutable ValueObjects,
+and <strong>eq</strong> and <strong>hash</strong> will be calculated based on public properties.</p>
+<h4 id="caret_analyze.value_objects.ValueObject--note">Note:<a class="headerlink" href="#caret_analyze.value_objects.ValueObject--note" title="Permanent link">#</a></h4>
+<p>Since the hash value is immutable, inherited classes can be used as a dictionary type key.
+It is also suitable for cache use and does not unintentionally change properties.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.value_object.ValueObject.__eq__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__eq__</span><span class="p">(</span><span class="n">right</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.value_objects.value_object.ValueObject.__eq__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check whether self object equals to given instance [override].</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>right</code></td>
+          <td>
+                <code><span title="typing.Any">Any</span></code>
+          </td>
+          <td><p>Comparison target.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Recursively compares the values of the published properties and
+returns True only if they all match. False otherwise.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.value_object.ValueObject.__hash__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__hash__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.value_objects.value_object.ValueObject.__hash__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculate hash value.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>A hash value calculated from all of the publicly available
+property values by recursively referencing them.</p></td>
+        </tr>
+    </tbody>
+  </table>
+      <h5 id="caret_analyze.value_objects.value_object.ValueObject.__hash__--references">References<a class="headerlink" href="#caret_analyze.value_objects.value_object.ValueObject.__hash__--references" title="Permanent link">#</a></h5>
+<div class="codehilite"><pre><span></span><code>https://www.baeldung.com/java-hashcode
+</code></pre></div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.value_objects.value_object.ValueObject.__str__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__str__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.value_objects.value_object.ValueObject.__str__" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert to string.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Yaml format strings created by recursively access properties.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.VariablePassingStructValue" class="doc doc-heading">
+        <code>VariablePassingStructValue</code>
+
+
+<a href="#caret_analyze.value_objects.VariablePassingStructValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code>, <code><a class="autorefs autorefs-internal" title="caret_analyze.common.Summarizable" href="../common/#caret_analyze.common.Summarizable">Summarizable</a></code></p>
+
+  
+      <p>variable passing info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_read" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_name_read</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_read" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get read-side callback name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>[str]</code>
+          </td>
+          <td><p>read-side callback name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_write" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_name_write</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.callback_name_write" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get write-side callback name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>[str]</code>
+          </td>
+          <td><p>write-side callback name.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.variable_passing.VariablePassingStructValue.node_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.variable_passing.VariablePassingStructValue.node_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>node name</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="caret_analyze.value_objects.VariablePassingValue" class="doc doc-heading">
+        <code>VariablePassingValue</code>
+
+
+<a href="#caret_analyze.value_objects.VariablePassingValue" class="headerlink" title="Permanent link">#</a></h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.value_object.ValueObject" href="#caret_analyze.value_objects.ValueObject">ValueObject</a></code></p>
+
+  
+      <p>variable passing info.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_read" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_id_read</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_read" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get read-side callback id.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>[str]</code>
+          </td>
+          <td><p>read-side callback id.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_write" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">callback_id_write</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.callback_id_write" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get write-side callback id.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>[str]</code>
+          </td>
+          <td><p>write-side callback id.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.value_objects.variable_passing.VariablePassingValue.node_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.value_objects.variable_passing.VariablePassingValue.node_name" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get node name.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>node name</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 TIER IV, Inc.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.4b2c34cd.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      
+    
+  </body>
+</html>
