@@ -22,7 +22,7 @@ logger = getLogger(__name__)
 
 
 class Range:
-    """Range class."""
+    """Class that calculates minimum/maximum timestamps from a list of records."""
 
     def __init__(self, records_list: Sequence[RecordsInterface]) -> None:
         self._records_list = records_list
