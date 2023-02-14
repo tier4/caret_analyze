@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import WARNING
+
 from caret_analyze.record import ColumnValue, Range
 from caret_analyze.record.record_factory import RecordsFactory
 
@@ -86,15 +88,21 @@ class TestRange:
         record_range = Range(records_list)
         assert record_range.get_range() == (0, 11)
 
-    def test_get_range_no_input(self):
+    def test_get_range_no_input(self, caplog):
         record_range = Range([])
-        assert record_range.get_range() == (0, 1)
 
-    def test_get_range_only_empty_records(self):
+        assert record_range.get_range() == (0, 1)
+        assert 'No valid' in caplog.text
+        assert caplog.records[0].levelno == WARNING
+
+    def test_get_range_only_empty_records(self, caplog):
         records_raw1 = [
         ]
         records_raw2 = [
         ]
         records_list = [create_records(records_raw1), create_records(records_raw2)]
         record_range = Range(records_list)
+
         assert record_range.get_range() == (0, 1)
+        assert 'No valid' in caplog.text
+        assert caplog.records[0].levelno == WARNING
