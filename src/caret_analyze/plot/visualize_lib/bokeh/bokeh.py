@@ -355,3 +355,16 @@ class Bokeh(VisualizeLibInterface):
 
         datetime_s = datetime.datetime.fromtimestamp(offset_s).strftime('%Y-%m-%d %H:%M:%S')
         fig.xaxis.major_label_overrides = {0: datetime_s}
+
+        # # Code to display hhmmss for x-axis
+        # from bokeh.models import FuncTickFormatter
+        # fig.xaxis.formatter = FuncTickFormatter(
+        #     code = '''
+        #     let time_ms = (tick + offset_s) * 1e3;
+        #     let date_time = new Date(time_ms);
+        #     let hh = date_time.getHours();
+        #     let mm = date_time.getMinutes();
+        #     let ss = date_time.getSeconds();
+        #     return hh + ":" + mm + ":" + ss;
+        #     ''',
+        #     args={"offset_s": offset_s})
