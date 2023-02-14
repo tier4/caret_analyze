@@ -29,7 +29,7 @@ def create_records(records_raw):
 
 class TestRange:
 
-    def test_get_range_normal(self, mocker):
+    def test_get_range_normal(self):
         records_raw1 = [
             {'start': 0, 'end': 2},
             {'start': 3, 'end': 4},
@@ -44,7 +44,7 @@ class TestRange:
         record_range = Range(records_list)
         assert record_range.get_range() == (0, 12)
 
-    def test_get_range_drop_other_column(self, mocker):
+    def test_get_range_drop_other_column(self):
         records_raw1 = [
             {'start': 0, 'end': 2},
             {'start': 3, 'end': 4},
@@ -59,7 +59,7 @@ class TestRange:
         record_range = Range(records_list)
         assert record_range.get_range() == (0, 12)
 
-    def test_get_range_drop_target_column(self, mocker):
+    def test_get_range_drop_target_column(self):
         records_raw1 = [
             {'end': 2},
             {'start': 3, 'end': 4},
@@ -74,7 +74,7 @@ class TestRange:
         record_range = Range(records_list)
         assert record_range.get_range() == (1, 11)
 
-    def test_get_range_exist_empty_records(self, mocker):
+    def test_get_range_exist_empty_records(self):
         records_raw1 = [
             {'start': 0, 'end': 2},
             {'start': 3, 'end': 4},
@@ -86,11 +86,11 @@ class TestRange:
         record_range = Range(records_list)
         assert record_range.get_range() == (0, 11)
 
-    def test_get_range_no_input(self, mocker):
+    def test_get_range_no_input(self):
         record_range = Range([])
         assert record_range.get_range() == (0, 1)
 
-    def test_get_range_only_empty_records(self, mocker):
+    def test_get_range_only_empty_records(self):
         records_raw1 = [
         ]
         records_raw2 = [
