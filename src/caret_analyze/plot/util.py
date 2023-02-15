@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 from logging import getLogger
 from typing import Sequence, Tuple, Union
 
-from bokeh.models import LinearAxis, Range1d, SingleIntervalTicker
+from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
 from bokeh.plotting import Figure
 
 import numpy as np
@@ -72,7 +73,7 @@ def apply_x_axis_offset(
     xaxis = LinearAxis(x_range_name=x_range_name)
     xaxis.visible = False  # type: ignore
 
-    ticker = SingleIntervalTicker(interval=1, num_minor_ticks=10)
+    ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
     fig.xaxis.ticker = ticker
     fig.add_layout(xaxis, 'below')
 
@@ -81,7 +82,8 @@ def apply_x_axis_offset(
     fig.xgrid.minor_grid_line_color = 'black'
     fig.xgrid.minor_grid_line_alpha = 0.1
 
-    fig.xaxis.major_label_overrides = {0: f'0+{offset_s}'}
+    datetime_s = datetime.datetime.fromtimestamp(offset_s).strftime('%Y-%m-%d %H:%M:%S')
+    fig.xaxis.major_label_overrides = {0: datetime_s}
 
 
 # TODO: Duplication of source code. Use visualize_lib
