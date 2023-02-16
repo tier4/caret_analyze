@@ -54,7 +54,7 @@ class Range:
                 min_series.append(min(series))
                 max_series.append(max(series))
 
-        has_valid_data = len(min_series) > 0 or len(max_series) > 0
+        has_valid_data = len(min_series) > 0 and len(max_series) > 0
         if has_valid_data:
             range_min = min(min_series)
             range_max = max(max_series)
