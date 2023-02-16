@@ -85,6 +85,8 @@ class Bokeh(VisualizeLibInterface):
             fig_args['y_axis_label'] = y_axis_label + ' [Hz]'
         elif y_axis_label in ['period', 'latency']:
             fig_args['y_axis_label'] = y_axis_label + ' [ms]'
+        else:
+            raise NotImplementedError()
 
         if xaxis_type == 'system_time':
             fig_args['x_axis_label'] = 'system time [s]'
