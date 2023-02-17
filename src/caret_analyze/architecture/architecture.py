@@ -377,6 +377,17 @@ class Architecture(Summarizable):
                               AssignContextReader(node)))
 
     def rename_callback(self, src: str, dst: str) -> None:
+        """
+        Update callback name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current callback name
+        dst : str
+            updated callback name
+
+        """
         cb_s: List[CallbackStruct] =\
             Util.flatten(cb_g.callbacks for cb_g in
                          Util.flatten([e.callback_groups for e in self._executors]))
@@ -384,6 +395,17 @@ class Architecture(Summarizable):
         c.callback_name = dst
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Update node name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current node name
+        dst : str
+            updated node name
+
+        """
         for n in self._nodes:
             n.rename_node(src, dst)
 
@@ -394,14 +416,47 @@ class Architecture(Summarizable):
             c.rename_node(src, dst)
 
     def rename_path(self, src: str, dst: str) -> None:
+        """
+        Update path name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current path name
+        dst : str
+            updated path name
+
+        """
         p: PathStruct = Util.find_similar_one(src, self._paths, lambda x: x.path_name)
         p.path_name = dst
 
     def rename_executor(self, src: str, dst: str) -> None:
+        """
+        Update executor name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current executor name
+        dst : str
+            updated executor name
+
+        """
         e: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
         e.executor_name = dst
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Update topic name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current topic name
+        dst : str
+            updated topic name
+
+        """
         for n in self._nodes:
             n.rename_topic(src, dst)
 
