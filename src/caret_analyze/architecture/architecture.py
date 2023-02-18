@@ -307,7 +307,7 @@ class Diff:
     ):
         pass
 
-    @staticmethod
+    
     def _diff_node_names(
         arch1: Architecture,
         arch2: Architecture
