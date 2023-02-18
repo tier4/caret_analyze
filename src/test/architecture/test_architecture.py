@@ -16,6 +16,7 @@
 from logging import WARNING
 
 from caret_analyze.architecture import Architecture
+from caret_analyze.architecture.architecture import Diff
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
 from caret_analyze.architecture.architecture_reader_factory import \
     ArchitectureReaderFactory
@@ -312,3 +313,24 @@ class TestArchitecture:
         caplog.clear()
         Architecture._verify([node_mock])
         assert len(caplog.record_tuples) == 1
+
+
+class TestDiff:
+
+    def test_diff_node_names(self, mocker):
+        arcitecture_mock1 = mocker.Mock(spec=Architecture)
+        arcitecture_mock2 = mocker.Mock(spec=Architecture)
+        mocker.patch.object(arcitecture_mock1, 'node_names', '("hoge", )')
+        mocker.patch.object(arcitecture_mock2, 'node_names', '("fuga", )')
+        name1, name2 = Diff._diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        assert name1 != name2
+
+        mocker.patch.object(arcitecture_mock1, 'node_names', '("hoge", )')
+        mocker.patch.object(arcitecture_mock2, 'node_names', '()')
+        name1, name2 = Diff._diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        assert name1 != name2
+
+        mocker.patch.object(arcitecture_mock1, 'node_names', '()')
+        mocker.patch.object(arcitecture_mock2, 'node_names', '("fuga", )')
+        name1, name2 = Diff._diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        assert name1 != name2

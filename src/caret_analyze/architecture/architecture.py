@@ -297,3 +297,24 @@ class NamedPathManager():
 
         self.remove_named_path(path_info.path_name)
         self.add_named_path(path_name, path_info)
+
+
+class Diff:
+    def __init__(
+        self,
+        arch1: Architecture,
+        arch2: Architecture
+    ):
+        pass
+
+    @staticmethod
+    def _diff_node_names(
+        arch1: Architecture,
+        arch2: Architecture
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_arch1 = set(arch1.node_names)
+        set_arch2 = set(arch2.node_names)
+        common_node_name_arch1_arch2 = set_arch1 & set_arch2
+        arch1_node_names = tuple(set_arch1 - common_node_name_arch1_arch2)
+        arch2_node_names = tuple(set_arch2 - common_node_name_arch1_arch2)
+        return arch1_node_names, arch2_node_names
