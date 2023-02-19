@@ -240,6 +240,12 @@ class Bokeh(VisualizeLibInterface):
 
         # Initialize figure
         y_axis_label = timeseries_records_list[0].columns[1]
+        if y_axis_label == 'frequency':
+            y_axis_label = y_axis_label + ' [Hz]'
+        elif y_axis_label in ['period', 'latency']:
+            y_axis_label = y_axis_label + ' [ms]'
+        else:
+            raise NotImplementedError()
         fig_args = {'frame_height': 270,
                     'frame_width': 800,
                     'y_axis_label': y_axis_label}
