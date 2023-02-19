@@ -16,11 +16,10 @@ from __future__ import annotations
 
 import datetime
 from logging import getLogger
-from typing import List, Sequence, Tuple, Union
+from typing import List, Sequence, Union
 
 from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.plotting import Figure, figure
-import numpy as np
 import pandas as pd
 
 from .bokeh_source import (CallbackSchedBarSource, CallbackSchedRectSource, LegendManager,
@@ -29,7 +28,7 @@ from .color_selector import ColorSelectorFactory
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....common import Util
-from ....record import Clip
+from ....record import Clip, Range
 from ....runtime import (CallbackBase, CallbackGroup, Communication, Publisher, Subscription,
                          TimerCallback)
 
@@ -108,7 +107,8 @@ class Bokeh(VisualizeLibInterface):
         # Apply xaxis offset
         callbacks: List[CallbackBase] = Util.flatten(
             cbg.callbacks for cbg in callback_groups if len(cbg.callbacks) > 0)
-        range_min, range_max = self._get_range(callbacks)
+        records_range = Range([cb.to_records() for cb in callbacks])
+        range_min, range_max = records_range.get_range()
         clip_min = int(range_min + lstrip_s*1.0e9)
         clip_max = int(range_max - rstrip_s*1.0e9)
         clip = Clip(clip_min, clip_max)
@@ -267,7 +267,8 @@ class Bokeh(VisualizeLibInterface):
         p = figure(**fig_args)
 
         # Apply xaxis offset
-        frame_min, frame_max = self._get_range(target_objects)
+        records_range = Range([to.to_records() for to in target_objects])
+        frame_min, frame_max = records_range.get_range()
         if xaxis_type == 'system_time':
             self._apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
 
@@ -296,38 +297,6 @@ class Bokeh(VisualizeLibInterface):
         p.legend.click_policy = 'hide'
 
         return p
-
-    @staticmethod
-    def _get_range(target_objects: Sequence[TimeSeriesTypes]) -> Tuple[int, int]:
-        has_valid_data = False
-
-        try:
-            # NOTE:
-            # If remove_dropped=True,
-            # data in DataFrame may be lost due to drops in columns other than the first column.
-            to_dfs = [to.to_dataframe(remove_dropped=False) for to in target_objects]
-            to_dfs_valid = [to_df for to_df in to_dfs if len(to_df) > 0]
-
-            # NOTE:
-            # The first column is system time for now.
-            # The other columns could be other than system time.
-            # Only the system time is picked out here.
-            base_series = [df.iloc[:, 0] for df in to_dfs_valid]
-            min_series = [series.min() for series in base_series]
-            max_series = [series.max() for series in base_series]
-            valid_min_series = [value for value in min_series if not np.isnan(value)]
-            valid_max_series = [value for value in max_series if not np.isnan(value)]
-
-            has_valid_data = len(valid_max_series) > 0 or len(valid_min_series) > 0
-            to_min = min(valid_min_series)
-            to_max = max(valid_max_series)
-            return to_min, to_max
-        except Exception:
-            msg = 'Failed to calculate interval of measurement time.'
-            if not has_valid_data:
-                msg += ' No valid measurement data.'
-            logger.warning(msg)
-            return 0, 1
 
     @staticmethod
     def _apply_x_axis_offset(

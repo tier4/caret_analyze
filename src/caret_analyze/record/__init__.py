@@ -22,7 +22,7 @@ from .record import (merge,
                      Records,
                      RecordsInterface)
 from .record_factory import RecordFactory, RecordsFactory
-from .records_service import Frequency, Latency, Period, ResponseTime
+from .records_service import Frequency, Latency, Period, Range, ResponseTime
 
 __all__ = [
     'Clip',
@@ -37,6 +37,7 @@ __all__ = [
     'RecordFactory',
     'RecordInterface',
     'Records',
+    'Range',
     'RecordsFactory',
     'RecordsInterface',
     'ResponseTime',
