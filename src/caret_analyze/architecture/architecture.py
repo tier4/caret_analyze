@@ -261,6 +261,10 @@ class Architecture(Summarizable):
 
     """
 
+    @staticmethod
+    def diff_node_names(left_arch: Architecture, right_arch: Architecture):
+        return Diff(left_arch, right_arch).diff_node_names()
+
 
 class NamedPathManager():
 
@@ -299,3 +303,20 @@ class NamedPathManager():
         self.add_named_path(path_name, path_info)
 
 
+class Diff:
+    def __init__(
+        self,
+        left_arch: Architecture,
+        right_arch: Architecture
+    ):
+        self._left_arch = left_arch
+        self._right_arch = right_arch
+
+
+    def diff_node_names(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_arch = set(self._left_arch.node_names)
+        set_right_arch = set(self._right_arch.node_names)
+        common_node_name_arch1_arch2 = set_left_arch & set_right_arch
+        arch1_node_names = tuple(set_left_arch - common_node_name_arch1_arch2)
+        arch2_node_names = tuple(set_right_arch - common_node_name_arch1_arch2)
+        return arch1_node_names, arch2_node_names
