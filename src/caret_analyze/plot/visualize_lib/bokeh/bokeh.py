@@ -22,9 +22,9 @@ from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.plotting import Figure, figure
 import pandas as pd
 
-from .bokeh_source import (CallbackSchedBarSource, CallbackSchedRectSource, LegendManager,
-                           LineSource)
+from .bokeh_source import CallbackSchedBarSource, CallbackSchedRectSource, LegendManager
 from .color_selector import ColorSelectorFactory
+from .timeseries_source import LineSource
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....common import Util
