@@ -19,6 +19,7 @@ from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
                                                      NodeValueLttng,
                                                      PublisherValueLttng,
+                                                     ServiceCallbackValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
 from caret_analyze.infra.trace_point_data import TracePointData
@@ -167,6 +168,7 @@ class TestLttngInfo:
         callback_group_addr = 14
         timer_handle = 15
         symbol = 'symbol'
+        construction_order = 0
 
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
@@ -181,7 +183,8 @@ class TestLttngInfo:
                     'callback_group_addr': callback_group_addr,
                     'period_ns': period_ns,
                     'symbol': symbol,
-                    'callback_id': 'timer_callback_0'
+                    'callback_id': 'timer_callback_0',
+                    'construction_order': 0
                 }
             ]
         ))
@@ -214,7 +217,8 @@ class TestLttngInfo:
             period_ns,
             timer_handle,
             None,
-            callback_object=callback_object
+            callback_object=callback_object,
+            construction_order=construction_order
         )
 
         assert timer_cbs_info == [timer_cb_info_expect]
@@ -250,7 +254,8 @@ class TestLttngInfo:
                     'topic_name': topic_name[0],
                     'symbol': symbol[0],
                     'callback_id': 'subscription_callback_0',
-                    'depth': depth[0]
+                    'depth': depth[0],
+                    'construction_order': 0,
                 },
                 {
                     'callback_object': callback_object[1],
@@ -260,7 +265,8 @@ class TestLttngInfo:
                     'topic_name': topic_name[1],
                     'symbol': symbol[1],
                     'callback_id': 'subscription_callback_1',
-                    'depth': depth[1]
+                    'depth': depth[1],
+                    'construction_order': 0,
                 }
             ]
         ).convert_dtypes())
@@ -315,7 +321,8 @@ class TestLttngInfo:
             None,
             callback_object=callback_object[0],
             callback_object_intra=callback_object_intra[0],
-            tilde_subscription=tilde_subscription[0]
+            tilde_subscription=tilde_subscription[0],
+            construction_order=0
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
@@ -330,12 +337,105 @@ class TestLttngInfo:
             None,
             callback_object[1],
             None,
-            tilde_subscription=tilde_subscription[1]
+            tilde_subscription=tilde_subscription[1],
+            construction_order=0
         )
         assert sub_cbs_info == [sub_cb_info_expect]
 
         sub_cbs_info = info.get_subscription_callbacks(NodeValue('/', '/'))
         assert sub_cbs_info == []
+
+    def test_get_service_callbacks_info(self, mocker):
+        callback_object = [2, 3]
+        node_handle = [7, 8]
+
+        service_name = ['/service1', '/service2']
+        node_name = ['/node1', '/node2']
+        symbol = ['symbol0', 'symbol1']
+        service_handle = [11, 12]
+        cbg_addr = [13, 14]
+
+        formatted_mock = mocker.Mock(spec=DataFrameFormatted)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
+                     return_value=formatted_mock)
+
+        srv = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object[0],
+                    'node_handle': node_handle[0],
+                    'service_handle': service_handle[0],
+                    'callback_group_addr': cbg_addr[0],
+                    'service_name': service_name[0],
+                    'symbol': symbol[0],
+                    'callback_id': 'service_callback_0',
+                    'construction_order': 0,
+                },
+                {
+                    'callback_object': callback_object[1],
+                    'node_handle': node_handle[1],
+                    'service_handle': service_handle[1],
+                    'callback_group_addr': cbg_addr[1],
+                    'service_name': service_name[1],
+                    'symbol': symbol[1],
+                    'callback_id': 'service_callback_1',
+                    'construction_order': 0,
+                }
+            ]
+        ).convert_dtypes())
+        mocker.patch.object(
+            formatted_mock, 'service_callbacks', srv)
+
+        node = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'node_id': 'node_id',
+                    'node_handle': node_handle[0],
+                    'node_name': node_name[0]
+                },
+                {
+                    'node_id': 'node_id_2',
+                    'node_handle': node_handle[1],
+                    'node_name': node_name[1]
+                }
+            ]
+        ).convert_dtypes())
+        mocker.patch.object(formatted_mock, 'nodes', node)
+
+        data = Ros2DataModel()
+        data.finalize()
+        info = LttngInfo(data)
+
+        srv_cbs_info = info.get_service_callbacks(NodeValue('/node1', 'node_id'))
+        srv_cb_info_expect = ServiceCallbackValueLttng(
+            'service_callback_0',
+            'node_id',
+            node_name[0],
+            symbol[0],
+            service_name[0],
+            service_handle[0],
+            None,
+            callback_object=callback_object[0],
+            construction_order=0
+        )
+        assert srv_cbs_info == [srv_cb_info_expect]
+
+        srv_cbs_info = info.get_service_callbacks(NodeValue('/node2', 'node_id_2'))
+        srv_cb_info_expect = ServiceCallbackValueLttng(
+            'service_callback_1',
+            'node_id_2',
+            node_name[1],
+            symbol[1],
+            service_name[1],
+            service_handle[1],
+            None,
+            callback_object[1],
+            construction_order=0
+        )
+        assert srv_cbs_info == [srv_cb_info_expect]
+
+        srv_cbs_info = info.get_service_callbacks(NodeValue('/', '/'))
+        assert srv_cbs_info == []
 
     def test_get_callback_groups_info(self, mocker):
         node_handle = 3
@@ -381,6 +481,22 @@ class TestLttngInfo:
         mocker.patch.object(
             formatted_mock, 'subscription_callbacks', sub)
 
+        srv = TracePointData(pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_object': callback_object,
+                    'node_handle': node_handle,
+                    'service_handle': 0,
+                    'callback_group_addr': cbg_addr,
+                    'service_name': 'service',
+                    'symbol': 'symbol',
+                    'callback_id': 'service_callback_0'
+                },
+            ]
+        ))
+        mocker.patch.object(
+            formatted_mock, 'service_callbacks', srv)
+
         node = TracePointData(pd.DataFrame.from_dict(
             [
                 {
@@ -413,7 +529,7 @@ class TestLttngInfo:
             CallbackGroupType.REENTRANT.type_name,
             '/node1',
             'node_id',
-            ('timer_callback_0', 'subscription_callback_0'),
+            ('timer_callback_0', 'subscription_callback_0', 'service_callback_0'),
             'callback_group_id',
             callback_group_addr=cbg_addr,
             executor_addr=exec_addr,
@@ -496,6 +612,7 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr,
                     'period_ns': period_ns,
                     'symbol': symbol,
+                    'construction_order': 0,
                 },
             ]
         ).convert_dtypes()
@@ -541,7 +658,8 @@ class TestDataFrameFormatted:
         topic_name = ['topic1', 'topic2']
         callback_group_addr = [15, 16]
 
-        data.add_node(0, node_handle, 0, rmw_handle, 'node1', '/')
+        data.add_node(0, node_handle[0], 0, rmw_handle[0], 'node1', '/')
+        data.add_node(0, node_handle[1], 0, rmw_handle[1], 'node2', '/')
 
         # When intra-process communication is set, add_rclcpp_subscription is called twice.
         # The first one will be the record of intra-process communication.
@@ -586,7 +704,8 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr[0],
                     'topic_name': topic_name[0],
                     'symbol': symbol[0],
-                    'depth': depth[0]
+                    'depth': depth[0],
+                    'construction_order': 0,
                 },
                 {
                     'callback_id': f'subscription_callback_{callback_object_inter[1]}',
@@ -597,10 +716,74 @@ class TestDataFrameFormatted:
                     'topic_name': topic_name[1],
                     'symbol': symbol[1],
                     'depth': depth[1],
+                    'construction_order': 0,
                 },
             ]
         ).convert_dtypes()
         assert sub.df.equals(expect)
+
+    def test_build_service_callbacks_df(self, mocker):
+        data = Ros2DataModel()
+
+        node_handle = [0, 1]
+        rmw_handle = [2, 3]
+        service_handle = [4, 5]
+        callback_object_inter = [8, 9]
+        symbol = ['symbol_', 'symbol__']
+        node_name = ['node1', 'node2']
+        service_name = ['service1', 'service2']
+        callback_group_addr = [15, 16]
+
+        data.add_node(0, node_handle[0], 0, rmw_handle[0], node_name[0], '/')
+        data.add_node(0, node_handle[1], 0, rmw_handle[1], node_name[1], '/')
+
+        data.add_service(
+            service_handle[0], 0, node_handle[0], rmw_handle[0], service_name[0])
+        data.add_service(
+            service_handle[1], 0, node_handle[1], rmw_handle[1], service_name[1])
+
+        data.add_callback_object(service_handle[0], 0, callback_object_inter[0])
+        data.add_callback_object(service_handle[1], 0, callback_object_inter[1])
+
+        data.add_callback_symbol(callback_object_inter[0], 0, symbol[0])
+        data.add_callback_symbol(callback_object_inter[1], 0, symbol[1])
+
+        data.callback_group_add_service(
+            callback_group_addr[0], 0, service_handle[0]
+        )
+        data.callback_group_add_service(
+            callback_group_addr[1], 0, service_handle[1]
+        )
+
+        data.finalize()
+
+        srv = DataFrameFormatted._build_srv_callbacks(data)
+
+        expect = pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_id': f'service_callback_{callback_object_inter[0]}',
+                    'callback_object': callback_object_inter[0],
+                    'node_handle': node_handle[0],
+                    'service_handle': service_handle[0],
+                    'callback_group_addr': callback_group_addr[0],
+                    'service_name': service_name[0],
+                    'symbol': symbol[0],
+                    'construction_order': 0,
+                },
+                {
+                    'callback_id': f'service_callback_{callback_object_inter[1]}',
+                    'callback_object': callback_object_inter[1],
+                    'node_handle': node_handle[1],
+                    'service_handle': service_handle[1],
+                    'callback_group_addr': callback_group_addr[1],
+                    'service_name': service_name[1],
+                    'symbol': symbol[1],
+                    'construction_order': 0,
+                },
+            ]
+        ).convert_dtypes()
+        assert srv.df.equals(expect)
 
     def test_executor_df(self):
         data = Ros2DataModel()
@@ -823,7 +1006,7 @@ class TestDataFrameFormatted:
         assert formatted.timer_controls == timer_control_mock
         assert formatted.subscription_callbacks == sub_mock
         assert formatted.callback_groups == cbg_mock
-        assert formatted.services == srv_mock
+        assert formatted.service_callbacks == srv_mock
         assert formatted.publishers == pub_mock
 
     def test_tilde_subscription(self, mocker):
@@ -839,239 +1022,3 @@ class TestDataFrameFormatted:
         ]
         df_expect = pd.DataFrame(columns=columns, dtype='Int64')
         assert data.df.equals(df_expect)
-
-    # def test_build_subscription_callbacks_df(self):
-
-    #     data = Ros2DataModel()
-
-    #     node_handle = [0, 1]
-    #     rmw_handle = [2, 3]
-    #     subscription_handle = [4, 5, 6]
-    #     callback_object_intra = [7]
-    #     callback_object_inter = [8, 9, 10]
-    #     depth = [11, 12, 13]
-    #     symbol = ['symbol1', 'symbol2', 'symbol3']
-    #     topic_name = ['topic_name1', 'topic_name2', 'topic_name3']
-
-    #     data.add_node(node_handle[0], 0, 0, rmw_handle[0], 'node1', '/')
-
-    #     # node_handle[0] intra / inter
-    #     data.add_rclcpp_subscription(
-    #         callback_object_intra[0], 0, subscription_handle[0])
-    #     data.add_rclcpp_subscription(
-    #         callback_object_inter[0], 0, subscription_handle[0])
-    #     data.add_rcl_subscription(
-    #         subscription_handle[0], 0, node_handle[0], rmw_handle[0], topic_name[0], depth[0])
-    #     data.add_callback_object(
-    #         subscription_handle[0], 0, callback_object_intra[0])
-    #     data.add_callback_object(
-    #         subscription_handle[0], 0, callback_object_inter[0])
-    #     data.add_callback_symbol(callback_object_intra[0], 0, symbol[0])
-
-    #     # node_handle[0] inter
-    #     data.add_rclcpp_subscription(
-    #         callback_object_inter[1], 0, subscription_handle[1])
-    #     data.add_rcl_subscription(
-    #         subscription_handle[1], 0, node_handle[0], rmw_handle[0], topic_name[1], depth[1])
-    #     data.add_callback_object(
-    #         subscription_handle[1], 0, callback_object_inter[1])
-    #     data.add_callback_symbol(callback_object_inter[1], 0, symbol[1])
-
-    #     data.add_node(node_handle[1], 0, 0, rmw_handle[1], 'node2', '/')
-
-    #     # node_handle[1] inter
-    #     data.add_rclcpp_subscription(
-    #         callback_object_inter[2], 0, subscription_handle[2])
-    #     data.add_rcl_subscription(
-    #         subscription_handle[2], 0, node_handle[1], rmw_handle[1], topic_name[2], depth[2])
-    #     data.add_callback_object(
-    #         subscription_handle[2], 0, callback_object_inter[2])
-    #     data.add_callback_symbol(callback_object_inter[2], 0, symbol[2])
-
-    #     data.finalize()
-
-    #     df = formatted.timer_callbacks_df
-    #     expect = pd.DataFrame.from_dict(
-    #         [
-    #             {
-    #                 'subscription_handle': subscription_handle[0],
-    #                 'topic_name': topic_name[0],
-    #                 'symbol': symbol[0],
-    #                 'callback_object_inter': callback_object_inter[0],
-    #                 'callback_object_intra': callback_object_intra[0],
-    #                 'callback_id': '/node1/subscription_callback_1',
-    #             },
-    #             {
-    #                 'subscription_handle': subscription_handle[1],
-    #                 'topic_name': topic_name[1],
-    #                 'symbol': symbol[1],
-    #                 'callback_object_inter': callback_object_inter[1],
-    #                 'callback_object_intra': None,
-    #                 'callback_id': '/node1/subscription_callback_1',
-    #             },
-    #             {
-    #                 'subscription_handle': subscription_handle[2],
-    #                 'topic_name': topic_name[2],
-    #                 'symbol': symbol[2],
-    #                 'callback_object_inter': callback_object_inter[2],
-    #                 'callback_object_intra': None,
-    #                 'callback_id': '/node2/subscription_callback_0',
-    #             },
-    #         ]
-    #     )
-    #     assert df.equals(expect)
-
-    # def test_subscription_callbacks_full_df(self):
-
-    #     data = Ros2DataModel()
-
-    #     node_handle = [0, 1]
-    #     rmw_handle = [2, 3]
-    #     subscription_handle = [4, 5, 6]
-    #     callback_object_intra = [7]
-    #     callback_object_inter = [8, 9, 10]
-    #     depth = [11, 12, 13]
-    #     symbol = ['symbol1', 'symbol2', 'symbol3']
-    #     topic_name = ['topic_name1', 'topic_name2', 'topic_name3']
-
-    #     data.add_node(node_handle[0], 0, 0, rmw_handle[0], 'node1', '/')
-
-    #     # node_handle[0] intra / inter
-    #     data.add_rclcpp_subscription(
-    #         callback_object_intra[0], 0, subscription_handle[0])
-    #     data.add_rclcpp_subscription(
-    #         callback_object_inter[0], 0, subscription_handle[0])
-    #     data.add_rcl_subscription(
-    #         subscription_handle[0], 0, node_handle[0], rmw_handle[0], topic_name[0], depth[0])
-    #     data.add_callback_object(
-    #         subscription_handle[0], 0, callback_object_intra[0])
-    #     data.add_callback_object(
-    #         subscription_handle[0], 0, callback_object_inter[0])
-    #     data.add_callback_symbol(callback_object_intra[0], 0, symbol[0])
-
-    #     # node_handle[0] inter
-    #     data.add_rclcpp_subscription(
-    #         callback_object_inter[1], 0, subscription_handle[1])
-    #     data.add_rcl_subscription(
-    #         subscription_handle[1], 0, node_handle[0], rmw_handle[0], topic_name[1], depth[1])
-    #     data.add_callback_object(
-    #         subscription_handle[1], 0, callback_object_inter[1])
-    #     data.add_callback_symbol(callback_object_inter[1], 0, symbol[1])
-
-    #     data.add_node(node_handle[1], 0, 0, rmw_handle[1], 'node2', '/')
-
-    #     # node_handle[1] inter
-    #     data.add_rclcpp_subscription(
-    #         callback_object_inter[2], 0, subscription_handle[2])
-    #     data.add_rcl_subscription(
-    #         subscription_handle[2], 0, node_handle[1], rmw_handle[1], topic_name[2], depth[2])
-    #     data.add_callback_object(
-    #         subscription_handle[2], 0, callback_object_inter[2])
-    #     data.add_callback_symbol(callback_object_inter[2], 0, symbol[2])
-
-    #     data.finalize()
-
-    #     formatted = DataFrameFormatted(data)
-
-    #     df = formatted.timer_callbacks_df
-    #     expect = pd.DataFrame.from_dict(
-    #         [
-    #             {
-    #                 'node_name': '/node1',
-    #                 'node_handle': node_handle[0],
-    #                 'subscription_handle': subscription_handle[0],
-    #                 'topic_name': topic_name[0],
-    #                 'symbol': symbol[0],
-    #                 'callback_object_inter': callback_object_inter[0],
-    #                 'callback_object_intra': callback_object_intra[0],
-    #                 'callback_id': '/node1/subscription_callback_1',
-    #             },
-    #             {
-    #                 'node_name': '/node1',
-    #                 'node_handle': node_handle[0],
-    #                 'subscription_handle': subscription_handle[1],
-    #                 'topic_name': topic_name[1],
-    #                 'symbol': symbol[1],
-    #                 'callback_object_inter': callback_object_inter[1],
-    #                 'callback_object_intra': None,
-    #                 'callback_id': '/node1/subscription_callback_1',
-    #             },
-    #             {
-    #                 'node_name': '/node2',
-    #                 'node_handle': node_handle[1],
-    #                 'subscription_handle': subscription_handle[2],
-    #                 'topic_name': topic_name[2],
-    #                 'symbol': symbol[2],
-    #                 'callback_object_inter': callback_object_inter[2],
-    #                 'callback_object_intra': None,
-    #                 'callback_id': '/node2/subscription_callback_0',
-    #             },
-    #         ]
-    #     )
-    #     assert df.equals(expect)
-
-    # def test_timer_callbacks_df(self):
-    #     data = Ros2DataModel()
-
-    #     node_handle = [1, 2]
-    #     timer_handle = [3, 4, 5]
-    #     rmw_handle = [6,  7]
-    #     period_ns = [8, 9, 10]
-    #     callback_object = [11, 12, 13]
-    #     symbol = ['symbol1', 'symbol2', 'symbol3']
-
-    #     data.add_node(node_handle[0], 0, 0, rmw_handle[0], 'node1', '/')
-    #     data.add_node(node_handle[1], 0, 0, rmw_handle[1], 'node2', '/')
-
-    #     data.add_timer(timer_handle[0], 0, period_ns[0], 0)
-    #     data.add_callback_object(timer_handle[0], 0, callback_object[0])
-    #     data.add_timer_node_link(timer_handle[0], 0, node_handle[0])
-    #     data.add_callback_symbol(callback_object[0], 0, symbol[0])
-
-    #     data.add_timer(timer_handle[1], 0, period_ns[1], 0)
-    #     data.add_callback_object(timer_handle[1], 0, callback_object[1])
-    #     data.add_timer_node_link(timer_handle[1], 0, node_handle[0])
-    #     data.add_callback_symbol(callback_object[1], 0, symbol[1])
-
-    #     data.add_timer(timer_handle[2], 0, period_ns[2], tid=0)
-    #     data.add_callback_object(timer_handle[2], 0, callback_object[2])
-    #     data.add_timer_node_link(timer_handle[2], 0, node_handle[1])
-    #     data.add_callback_symbol(callback_object[2], 0, symbol[2])
-
-    #     data.finalize()
-
-    #     formatted = DataFrameFormatted(data)
-
-    #     df = formatted.timer_callbacks_df
-    #     expect = pd.DataFrame.from_dict(
-    #         [
-    #             {
-    #                 'node_name': '/node1',
-    #                 'node_handle': node_handle[0],
-    #                 'timer_handle': timer_handle[0],
-    #                 'period': period_ns[0],
-    #                 'symbol': symbol[0],
-    #                 'callback_object': callback_object[0],
-    #                 'callback_id': '/node1/timer_callback_0',
-    #             },
-    #             {
-    #                 'node_name': '/node1',
-    #                 'node_handle': node_handle[0],
-    #                 'timer_handle': timer_handle[1],
-    #                 'period': period_ns[1],
-    #                 'symbol': symbol[1],
-    #                 'callback_object': callback_object[1],
-    #                 'callback_id': '/node1/timer_callback_1',
-    #             },
-    #             {
-    #                 'node_name': '/node2',
-    #                 'node_handle': node_handle[1],
-    #                 'timer_handle': timer_handle[2],
-    #                 'period': period_ns[2],
-    #                 'symbol': symbol[2],
-    #                 'callback_object': callback_object[2],
-    #                 'callback_id': '/node2/timer_callback_0',
-    #             },
-    #         ]
-    #     )
-    #     assert df.equals(expect)

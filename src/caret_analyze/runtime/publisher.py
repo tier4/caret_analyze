@@ -114,6 +114,23 @@ class Publisher(PathBase, Summarizable):
             return self._provider.get_qos(self._val)
         return None
 
+    @property
+    def value(self) -> PublisherStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        PublisherStructValue
+            publisher value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
     def _to_records_core(self) -> RecordsInterface:
         """
         Calculate records.

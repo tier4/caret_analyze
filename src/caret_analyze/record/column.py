@@ -87,7 +87,6 @@ class Column():
         self,
         value: ColumnValue,
     ) -> None:
-        assert isinstance(value, ColumnValue)
         self._value = value
 
     def __str__(self) -> str:
@@ -106,7 +105,6 @@ class Column():
 
     @staticmethod
     def from_str(column_name: str) -> Column:
-        assert isinstance(column_name, str)
         return Column(ColumnValue(column_name))
 
 
@@ -120,7 +118,6 @@ class Columns(UserList):
         super().__init__([Column(value) for value in uniq_init])
 
     def append(self, item: Column) -> None:
-        assert isinstance(item, Column)
         super().append(item)
 
     def as_list(self) -> List[Column]:
@@ -207,9 +204,6 @@ class Columns(UserList):
 
     @staticmethod
     def from_str(column_names: Sequence[str]) -> Columns:
-        for column_name in column_names:
-            assert isinstance(column_name, str)
-
         return Columns(
             [ColumnValue(c) for c in column_names]
         )

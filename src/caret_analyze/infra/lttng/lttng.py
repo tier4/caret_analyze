@@ -33,6 +33,7 @@ from .ros2_tracing.data_model_service import DataModelService
 from .ros2_tracing.processor import get_field, Ros2Handler
 from .value_objects import (CallbackGroupId,
                             PublisherValueLttng,
+                            ServiceCallbackValueLttng,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
@@ -199,8 +200,11 @@ class CtfEventCollection(IterableEvents):
                     begin_msg = msg  # store first one
                 end_msg = msg  # store last one
 
+        # Ensure that trace data includes one at least.
+        # If there is no message in trace data, assertion failed.
         assert begin_msg is not None
         assert end_msg is not None
+
         # NOTE: Begin_time and end_time should be the same time as the PickleEventCollection.
         self._begin_time: int = begin_msg.default_clock_snapshot.ns_from_origin
         self._end_time: int = end_msg.default_clock_snapshot.ns_from_origin
@@ -234,7 +238,7 @@ class CtfEventCollection(IterableEvents):
         msg_it = bt2.TraceCollectionMessageIterator(trace_dir)
         events = []
         acceptable_tracepoints = set(Ros2Handler.get_trace_points())
-        for msg in tqdm(msg_it, total=count, desc='converting'):
+        for msg in tqdm(msg_it, total=count, desc='converting', mininterval=1.0):
             if type(msg) is not bt2._EventMessageConst:
                 continue
             if msg.event.name not in acceptable_tracepoints:
@@ -300,11 +304,12 @@ class Lttng(InfraBase):
     ) -> Tuple[Ros2DataModel, Optional[List[Dict]], int, int]:
 
         data = Ros2DataModel()
-        handler = Ros2Handler(data)
+        offset: Optional[int] = None
         events = []
         begin: int
         end: int
 
+        # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events, str):
             event_collection = EventCollection(
                 trace_dir_or_events, force_conversion)
@@ -314,11 +319,21 @@ class Lttng(InfraBase):
             begin, end = event_collection.time_range()
             common.start_time, common.end_time = begin, end
 
+            # Offset is obtained for conversion from the monotonic clock time to the system time.
+            for event in event_collection:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name == 'ros2_caret:caret_init':
+                    offset = Ros2Handler.get_monotonic_to_system_offset(event)
+                    break
+
+            handler = Ros2Handler(data, offset)
+
             filtered_event_count = 0
             for event in tqdm(
                     iter(event_collection),
                     total=len(event_collection),
-                    desc='loading'):
+                    desc='loading',
+                    mininterval=1.0):
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
                     continue
@@ -337,9 +352,18 @@ class Lttng(InfraBase):
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
             # Note: giving events as arguments is used only for debugging.
-            assert isinstance(trace_dir_or_events, List)
             filtered_event_count = 0
             events = trace_dir_or_events
+
+            # Offset is obtained for conversion from the monotonic clock time to the system time.
+            for event in events:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name == 'ros2_caret:caret_init':
+                    offset = Ros2Handler.get_monotonic_to_system_offset(event)
+                    break
+
+            handler = Ros2Handler(data, offset)
+
             begin = events[0][LttngEventFilter.TIMESTAMP]
             end = events[-1][LttngEventFilter.TIMESTAMP]
 
@@ -504,6 +528,25 @@ class Lttng(InfraBase):
 
         """
         return self._info.get_subscription_callbacks(node)
+
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValueLttng]:
+        """
+        Get service callbacks information.
+
+        Parameters
+        ----------
+        node : NodeValue
+            target node name.
+
+        Returns
+        -------
+        Sequence[ServiceCallbackInfoLttng]
+
+        """
+        return self._info.get_service_callbacks(node)
 
     def get_publisher_qos(
         self,

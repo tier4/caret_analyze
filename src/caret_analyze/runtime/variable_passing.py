@@ -100,3 +100,20 @@ class VariablePassing(PathBase, Summarizable):
 
         """
         return self._val.callback_name_read
+
+    @property
+    def value(self) -> VariablePassingStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        VariablePassingStructValue
+            variable passing value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val

@@ -114,12 +114,12 @@ class Records(RecordsInterface):
 
         columns_set = set(columns)
         for record in init:
-            unknown_column = set(record.columns) - columns_set
-            if len(unknown_column) > 0:
-                msg = 'Contains an unknown columns. '
-                msg += f'{unknown_column}'
-                raise InvalidArgumentError(msg)
+            Records.__validate_unknown_columns(set(record.columns), columns_set)
 
+        Records.__validate_duplicated_columns(columns)
+
+    @staticmethod
+    def __validate_duplicated_columns(columns: Sequence[str]):
         if len(set(columns)) != len(columns):
             from itertools import groupby
             msg = 'columns must be unique. '
@@ -130,6 +130,33 @@ class Records(RecordsInterface):
                     msg += f'{key}, '
 
             raise InvalidArgumentError(msg)
+
+    @staticmethod
+    def __validate_unknown_columns(
+        selected_columns: Set[str],
+        columns: Set[str]
+    ) -> None:
+        unknown_column = selected_columns - columns
+        if len(unknown_column) > 0:
+            msg = 'Contains an unknown columns. '
+            msg += f'{unknown_column}'
+            raise InvalidArgumentError(msg)
+
+    @staticmethod
+    def _validate_merge_records(
+        columns: Optional[List[str]],
+        *records_args: RecordsInterface,
+    ) -> None:
+        columns = columns or []
+
+        columns_set = set(columns)
+        columns_set_ = set()
+        for records in records_args:
+            columns_set_ |= set(records.columns)
+
+        Records.__validate_unknown_columns(columns_set, columns_set_)
+
+        Records.__validate_duplicated_columns(columns)
 
     def __len__(self) -> int:
         return len(self.data)
@@ -260,7 +287,7 @@ class Records(RecordsInterface):
                 return False
 
         # TODO(hsgwa): fix protected variable accessing.
-        if self._columns.to_value() != records._columns.to_value():
+        if self._columns.to_value() != records._columns.to_value():  # type: ignore
             return False
 
         return True
@@ -360,7 +387,6 @@ class Records(RecordsInterface):
         progress_label: Optional[str] = None  # unused
     ) -> Records:
         maxsize = 2**64 - 1
-        self._validate(None, columns)
 
         left_records = self.clone()
         merge_left = how in ['left', 'outer']

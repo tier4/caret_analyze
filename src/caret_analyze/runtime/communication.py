@@ -242,6 +242,23 @@ class Communication(PathBase, Summarizable):
         records = self.to_records()
         return records.columns
 
+    @property
+    def value(self) -> CommunicationStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        CommunicationStructValue
+            communication value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
     def verify(self) -> bool:
         """
         Verify whether latency can be generated.

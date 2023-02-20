@@ -14,13 +14,16 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from .reader_interface import UNDEFINED_STR
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
-from ..value_objects import (CallbackStructValue, ExecutorStructValue,
+from ..value_objects import (CallbackStructValue,
+                             CallbackType,
+                             ExecutorStructValue,
                              NodePathStructValue, NodeStructValue,
                              PathStructValue, PublisherStructValue,
+                             ServiceCallbackStructValue,
                              SubscriptionCallbackStructValue,
                              SubscriptionStructValue, TimerCallbackStructValue,
                              VariablePassingStructValue)
@@ -93,31 +96,44 @@ class CallbackDicts:
         self,
         callback_values: Tuple[CallbackStructValue, ...]
     ) -> None:
-        callbacks_dicts = [self._cb_to_dict(c) for c in callback_values]
+        # Processes related to services are implemented later.
+        def _is_ignore_callback(callback: CallbackStructValue):
+            ignore_callback_types = (ServiceCallbackStructValue, )
+            return isinstance(callback, ignore_callback_types)
+
+        callbacks_dicts = [self._cb_to_dict(c) for c in callback_values
+                           if not _is_ignore_callback(c)]
         self._data = sorted(callbacks_dicts, key=lambda x: x['callback_name'])
 
     def _timer_cb_to_dict(
         self,
         timer_callback: TimerCallbackStructValue
     ) -> Dict:
-        return  \
-            {
+        d = {
                 'callback_name': timer_callback.callback_name,
-                'callback_type': 'timer_callback',
+                'callback_type': str(CallbackType.TIMER),
                 'period_ns': timer_callback.period_ns,
                 'symbol': timer_callback.symbol,
             }
+        if timer_callback.construction_order > 0:
+            d['construction_order'] = timer_callback.construction_order
+        return d
 
     def _sub_cb_to_dict(
         self,
         subscription_callback: SubscriptionCallbackStructValue
     ) -> Dict:
-        return {
+        d: Dict[str, Union[str, int]]
+        d = {
             'callback_name': subscription_callback.callback_name,
-            'callback_type': 'subscription_callback',
+            'callback_type': str(CallbackType.SUBSCRIPTION),
             'topic_name': subscription_callback.subscribe_topic_name,
             'symbol': subscription_callback.symbol,
         }
+        if subscription_callback.construction_order > 0:
+            d['construction_order'] = subscription_callback.construction_order
+
+        return d
 
     def _cb_to_dict(
         self,

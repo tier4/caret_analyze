@@ -86,6 +86,23 @@ class Executor(Summarizable):
         cbs = Util.flatten([cbg.callbacks for cbg in self._callback_groups])
         return sorted(cbs, key=lambda x: x.callback_name)
 
+    @property
+    def value(self) -> ExecutorStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        ExecutorStructValue
+            executor value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
     def get_callback_group(
         self,
         callback_group_name: str

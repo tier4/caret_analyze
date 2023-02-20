@@ -23,6 +23,7 @@ from ...exceptions import InvalidYamlFormatError
 from ...value_objects import (CallbackGroupValue, CallbackType, ExecutorValue,
                               NodePathValue, NodeValue, NodeValueWithId,
                               PathValue, PublisherValue,
+                              ServiceCallbackValue, ServiceValue,
                               SubscriptionCallbackValue, SubscriptionValue,
                               TimerCallbackValue, TimerValue, VariablePassingValue)
 
@@ -112,6 +113,8 @@ class ArchitectureReaderYaml(ArchitectureReader):
             publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
+            construction_order = self._get_value_with_default(info, 'construction_order', 0)
+
             callbacks.append(
                 TimerCallbackValue(
                     callback_id=callback_id,
@@ -120,8 +123,8 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     symbol=self._get_value(info, 'symbol'),
                     period_ns=self._get_value(info, 'period_ns'),
                     publish_topic_names=tuple(publish_topic_names),
-                    callback_name=callback_name
-                )
+                    construction_order=construction_order,
+                    callback_name=callback_name)
             )
         return callbacks
 
@@ -245,6 +248,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
             publish_topic_names = self._get_publish_topic_names(node.node_name, callback_name)
             callback_id = callback_name
             node_name = self._get_value(node_dict, 'node_name')
+            construction_order = self._get_value_with_default(val, 'construction_order', 0)
             callbacks.append(
                 SubscriptionCallbackValue(
                     callback_id=callback_id,
@@ -253,11 +257,15 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     symbol=self._get_value(val, 'symbol'),
                     subscribe_topic_name=self._get_value(val, 'topic_name'),
                     publish_topic_names=tuple(publish_topic_names),
-                    callback_name=callback_name
+                    callback_name=callback_name,
+                    construction_order=construction_order
                 )
             )
 
         return callbacks
+
+    def get_service_callbacks(self, node: NodeValue) -> Sequence[ServiceCallbackValue]:
+        return []
 
     def get_publishers(
         self,
@@ -324,6 +332,9 @@ class ArchitectureReaderYaml(ArchitectureReader):
                 )
             )
         return subscriptions
+
+    def get_services(self, node: NodeValue) -> Sequence[ServiceValue]:
+        return []
 
     def _get_node_dict(
         self,
