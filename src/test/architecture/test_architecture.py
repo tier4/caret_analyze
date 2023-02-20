@@ -1024,22 +1024,22 @@ nodes:
 class TestDiff:
 
     def test_diff_node_names(self, mocker):
-        arcitecture_mock1 = mocker.Mock(spec=Architecture)
-        arcitecture_mock2 = mocker.Mock(spec=Architecture)
-        mocker.patch.object(arcitecture_mock1, 'node_names', ('drive_node', 'actuator_dummy_node'))
-        mocker.patch.object(arcitecture_mock2, 'node_names', ('drive_node', 'filter_node'))
-        name1, name2 = Architecture.diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        architecture_mock1 = mocker.Mock(spec=Architecture)
+        architecture_mock2 = mocker.Mock(spec=Architecture)
+        mocker.patch.object(architecture_mock1, 'node_names', ('drive_node', 'actuator_dummy_node'))
+        mocker.patch.object(architecture_mock2, 'node_names', ('drive_node', 'filter_node'))
+        name1, name2 = Architecture.diff_node_names(architecture_mock1, architecture_mock2)
         assert name1 == ('actuator_dummy_node',)
         assert name2 == ('filter_node',)
 
-        mocker.patch.object(arcitecture_mock1, 'node_names', ('drive_node', ))
-        mocker.patch.object(arcitecture_mock2, 'node_names', ())
-        name1, name2 = Architecture.diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        mocker.patch.object(architecture_mock1, 'node_names', ('drive_node', ))
+        mocker.patch.object(architecture_mock2, 'node_names', ())
+        name1, name2 = Architecture.diff_node_names(architecture_mock1, architecture_mock2)
         assert name1 == ('drive_node',)
         assert name2 == ()
 
-        mocker.patch.object(arcitecture_mock1, 'node_names', ())
-        mocker.patch.object(arcitecture_mock2, 'node_names', ('drive_node', ))
-        name1, name2 = Architecture.diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        mocker.patch.object(architecture_mock1, 'node_names', ())
+        mocker.patch.object(architecture_mock2, 'node_names', ('drive_node', ))
+        name1, name2 = Architecture.diff_node_names(architecture_mock1, architecture_mock2)
         assert name1 == ()
         assert name2 == ('drive_node',)
