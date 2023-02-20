@@ -86,7 +86,7 @@ class Bokeh(VisualizeLibInterface):
         # Initialize figure
         title = ('Callback Scheduling in '
                  f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}].")
-        p = self._init_figure(title, ywheel_zoom, xaxis_type)
+        fig = self._init_figure(title, ywheel_zoom, xaxis_type)
 
         # Apply xaxis offset
         callbacks: List[CallbackBase] = Util.flatten(
@@ -106,7 +106,7 @@ class Bokeh(VisualizeLibInterface):
             frame_min = clip.min_ns
             frame_max = clip.max_ns
         x_range_name = 'x_plot_axis'
-        self._apply_x_axis_offset(p, x_range_name, frame_min, frame_max)
+        self._apply_x_axis_offset(fig, x_range_name, frame_min, frame_max)
 
         # Draw callback scheduling
         color_selector = ColorSelectorFactory.create_instance(coloring_rule)
@@ -122,7 +122,7 @@ class Bokeh(VisualizeLibInterface):
                     callback.callback_name
                 )
                 rect_source = rect_source_gen.generate(callback)
-                rect = p.rect(
+                rect = fig.rect(
                     'x', 'y', 'width', 'height',
                     source=rect_source,
                     color=color,
@@ -132,10 +132,10 @@ class Bokeh(VisualizeLibInterface):
                     x_range_name=x_range_name
                 )
                 legend_manager.add_legend(callback, rect)
-                p.add_tools(rect_source_gen.create_hover(
+                fig.add_tools(rect_source_gen.create_hover(
                     {'attachment': 'above', 'renderers': [rect]}
                 ))
-                bar = p.rect(
+                bar = fig.rect(
                     'x', 'y', 'width', 'height',
                     source=bar_source_gen.generate(callback, rect_source_gen.rect_y_base),
                     fill_color=color,
@@ -145,7 +145,7 @@ class Bokeh(VisualizeLibInterface):
                     level='underlay',
                     x_range_name=x_range_name
                 )
-                p.add_tools(bar_source_gen.create_hover(
+                fig.add_tools(bar_source_gen.create_hover(
                     {'attachment': 'below', 'renderers': [bar]}
                 ))
 
@@ -161,7 +161,7 @@ class Bokeh(VisualizeLibInterface):
                         response_time = callback_start - timer_stamp
                         if pd.isna(response_time):
                             continue
-                        p.add_layout(Arrow(
+                        fig.add_layout(Arrow(
                             end=NormalHead(
                                 fill_color='red' if response_time > delay_threshold else 'white',
                                 line_width=1, size=10
@@ -180,13 +180,13 @@ class Bokeh(VisualizeLibInterface):
         """
         legends = legend_manager.create_legends(num_legend_threshold, full_legends)
         for legend in legends:
-            p.add_layout(legend, 'right')
-        p.legend.click_policy = 'hide'
+            fig.add_layout(legend, 'right')
+        fig.legend.click_policy = 'hide'
 
-        p.ygrid.grid_line_alpha = 0
-        p.yaxis.visible = False
+        fig.ygrid.grid_line_alpha = 0
+        fig.yaxis.visible = False
 
-        return p
+        return fig
 
     def timeseries(
         self,
@@ -236,21 +236,21 @@ class Bokeh(VisualizeLibInterface):
             title = f'Time-line of communications {y_axis_label}'
         else:
             title = f'Time-line of publishes/subscribes {y_axis_label}'
-        p = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
+        fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
 
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
         frame_min, frame_max = records_range.get_range()
         if xaxis_type == 'system_time':
-            self._apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
+            self._apply_x_axis_offset(fig, 'x_axis_plot', frame_min, frame_max)
 
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
         line_source = LineSource(legend_manager, target_objects[0], frame_min, xaxis_type)
-        p.add_tools(line_source.create_hover())
+        fig.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
-            renderer = p.line(
+            renderer = fig.line(
                 'x', 'y',
                 source=line_source.generate(to, timeseries),
                 color=color_selector.get_color()
@@ -265,10 +265,10 @@ class Bokeh(VisualizeLibInterface):
         """
         legends = legend_manager.create_legends(num_legend_threshold, full_legends)
         for legend in legends:
-            p.add_layout(legend, 'right')
-        p.legend.click_policy = 'hide'
+            fig.add_layout(legend, 'right')
+        fig.legend.click_policy = 'hide'
 
-        return p
+        return fig
 
     def _init_figure(
         self,
