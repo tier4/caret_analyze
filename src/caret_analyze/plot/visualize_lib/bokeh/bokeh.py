@@ -86,7 +86,7 @@ class Bokeh(VisualizeLibInterface):
         # Initialize figure
         title = ('Callback Scheduling in '
                  f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}].")
-        p = self._init_figure('callback_scheduling', title, ywheel_zoom, xaxis_type)
+        p = self._init_figure(title, ywheel_zoom, xaxis_type)
 
         # Apply xaxis offset
         callbacks: List[CallbackBase] = Util.flatten(
@@ -236,7 +236,7 @@ class Bokeh(VisualizeLibInterface):
             title = f'Time-line of communications {y_axis_label}'
         else:
             title = f'Time-line of publishes/subscribes {y_axis_label}'
-        p = self._init_figure('timeseries', title, ywheel_zoom, xaxis_type, y_axis_label)
+        p = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
 
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
@@ -272,14 +272,14 @@ class Bokeh(VisualizeLibInterface):
 
     def _init_figure(
         self,
-        graph_type: str,
         title: str,
         ywheel_zoom: bool,
         xaxis_type: str,
         yaxis_label: Optional[str] = None,
     ) -> Figure:
-        # Common process
         fig_args: Dict[str, Any] = {
+            'frame_height': 270,
+            'frame_width': 800,
             'title': title,
             'y_axis_label': yaxis_label or ''
         }
@@ -297,18 +297,7 @@ class Bokeh(VisualizeLibInterface):
             fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
             fig_args['active_scroll'] = 'xwheel_zoom'
 
-        # Time-series
-        if graph_type == 'timeseries':
-            fig_args['frame_height'] = 270
-            fig_args['frame_width'] = 800
-            return figure(**fig_args)
-
-        # Callback scheduling
-        elif graph_type == 'callback_scheduling':
-            fig_args['width'] = 1200
-            p = figure(**fig_args)
-            p.sizing_mode = 'stretch_width'  # type: ignore
-            return p
+        return figure(**fig_args)
 
     @staticmethod
     def _apply_x_axis_offset(
