@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from bokeh.models import GlyphRenderer, HoverTool, Legend
 from bokeh.plotting import ColumnDataSource
 
-import numpy as np
+from .util import RectValues
 
 from ....common import ClockConverter
 from ....exceptions import InvalidArgumentError
@@ -175,34 +175,6 @@ class LegendSource:
             raise NotImplementedError()
 
         return description
-
-
-class RectValues:
-    def __init__(
-        self,
-        callback_start: float,
-        callback_end: float,
-        y_min: float,
-        y_max: float
-    ) -> None:
-        self._y = [y_min, y_max]
-        self._x = [callback_start, callback_end]
-
-    @property
-    def x(self) -> float:
-        return float(np.mean(self._x))
-
-    @property
-    def y(self) -> float:
-        return float(np.mean(self._y))
-
-    @property
-    def width(self) -> float:
-        return abs(self._x[0] - self._x[1])
-
-    @property
-    def height(self) -> float:
-        return abs(self._y[0] - self._y[1])
 
 
 class CallbackSchedRectSource:
