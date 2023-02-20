@@ -19,7 +19,7 @@ from typing import Optional
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
 
-from .bokeh_source import HoverCreator, LegendKeys, LegendManager, LegendSource
+from .legend import HoverCreator, LegendKeys, LegendManager, LegendSource
 from .util import RectValues
 
 from ....common import ClockConverter
