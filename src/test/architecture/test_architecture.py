@@ -322,15 +322,15 @@ class TestDiff:
         arcitecture_mock2 = mocker.Mock(spec=Architecture)
         mocker.patch.object(arcitecture_mock1, 'node_names', '("hoge", )')
         mocker.patch.object(arcitecture_mock2, 'node_names', '("fuga", )')
-        name1, name2 = Diff._diff_node_names(arcitecture_mock1, arcitecture_mock2)
-        assert name1 != name2
+        name1, name2 = Diff.diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        assert name1 == ("hoge", )
 
         mocker.patch.object(arcitecture_mock1, 'node_names', '("hoge", )')
         mocker.patch.object(arcitecture_mock2, 'node_names', '()')
-        name1, name2 = Diff._diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        name1, name2 = Diff.diff_node_names(arcitecture_mock1, arcitecture_mock2)
         assert name1 != name2
 
         mocker.patch.object(arcitecture_mock1, 'node_names', '()')
         mocker.patch.object(arcitecture_mock2, 'node_names', '("fuga", )')
-        name1, name2 = Diff._diff_node_names(arcitecture_mock1, arcitecture_mock2)
+        name1, name2 = Diff.diff_node_names(arcitecture_mock1, arcitecture_mock2)
         assert name1 != name2

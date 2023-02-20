@@ -195,7 +195,7 @@ class Architecture(Summarizable):
             )
             msg += msg_detail_page
             print(msg)
-
+        
         # Search
         path_searcher = NodePathSearcher(
             self._nodes, self._communications, node_filter, communication_filter)
@@ -213,6 +213,7 @@ class Architecture(Summarizable):
         print(msg)
 
         return paths
+    
 
     @staticmethod
     def _verify(nodes: Collection[NodeStruct]) -> None:
@@ -309,6 +310,7 @@ class Diff:
 
     
     def _diff_node_names(
+        self,
         arch1: Architecture,
         arch2: Architecture
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
