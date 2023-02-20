@@ -1026,7 +1026,8 @@ class TestDiff:
     def test_diff_node_names(self, mocker):
         architecture_mock1 = mocker.Mock(spec=Architecture)
         architecture_mock2 = mocker.Mock(spec=Architecture)
-        mocker.patch.object(architecture_mock1, 'node_names', ('drive_node', 'actuator_dummy_node'))
+        mocker.patch.object(architecture_mock1, 'node_names',
+                                                ('drive_node', 'actuator_dummy_node'))
         mocker.patch.object(architecture_mock2, 'node_names', ('drive_node', 'filter_node'))
         name1, name2 = Architecture.diff_node_names(architecture_mock1, architecture_mock2)
         assert name1 == ('actuator_dummy_node',)
