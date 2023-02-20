@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import Tuple
+from typing import List
 
 from .callback import CallbackStruct
 
@@ -29,7 +29,7 @@ class CallbackGroupStruct():
         self,
         callback_group_type: CallbackGroupType,
         node_name: str,
-        callbacks: Tuple[CallbackStruct, ...],
+        callbacks: List[CallbackStruct],
         callback_group_name: str
     ) -> None:
         """
@@ -98,14 +98,25 @@ class CallbackGroupStruct():
         return self._node_name
 
     @property
-    def callbacks(self) -> Tuple[CallbackStruct, ...]:
+    def callbacks(self) -> List[CallbackStruct]:
         return self._callbacks
 
     @property
-    def callback_names(self) -> Tuple[str, ...]:
-        return tuple(i.callback_name for i in self._callbacks)
+    def callback_names(self) -> List[str]:
+        return [i.callback_name for i in self._callbacks]
 
     def to_value(self) -> CallbackGroupStructValue:
         return CallbackGroupStructValue(self.callback_group_type, self.node_name,
                                         tuple(v.to_value() for v in self.callbacks),
                                         self.callback_group_name)
+
+    def rename_node(self, src: str, dst: str) -> None:
+        if self.node_name == src:
+            self._node_name = dst
+
+        for c in self._callbacks:
+            c.rename_node(src, dst)
+
+    def rename_topic(self, src: str, dst: str) -> None:
+        for c in self._callbacks:
+            c.rename_topic(src, dst)

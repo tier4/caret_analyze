@@ -97,6 +97,23 @@ class Timer(PathBase, Summarizable):
         """
         return self._val.callback_name
 
+    @property
+    def value(self) -> TimerStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        TimerStructValue
+            timer value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
     def _to_records_core(self) -> RecordsInterface:
         """
         Calculate records.

@@ -243,9 +243,7 @@ class Architecture(Summarizable):
                      f'node_name: {node.node_name}, '
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
-
-
-"""
+    """
     def rename_callback(src: str, dest: str):
         raise NotImplementedError('')
 
@@ -260,7 +258,8 @@ class Architecture(Summarizable):
 
     def rename_topic(src: str, dest: str):
         raise NotImplementedError('')
-"""
+
+    """
 
 
 class NamedPathManager():
@@ -300,23 +299,3 @@ class NamedPathManager():
         self.add_named_path(path_name, path_info)
 
 
-class Diff:
-    def __init__(
-        self,
-        arch1: Architecture,
-        arch2: Architecture
-    ):
-        pass
-
-    
-    def _diff_node_names(
-        self,
-        arch1: Architecture,
-        arch2: Architecture
-    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        set_arch1 = set(arch1.node_names)
-        set_arch2 = set(arch2.node_names)
-        common_node_name_arch1_arch2 = set_arch1 & set_arch2
-        arch1_node_names = tuple(set_arch1 - common_node_name_arch1_arch2)
-        arch2_node_names = tuple(set_arch2 - common_node_name_arch1_arch2)
-        return arch1_node_names, arch2_node_names

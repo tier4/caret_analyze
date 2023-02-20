@@ -362,6 +362,23 @@ class Path(PathBase, Summarizable):
         """
         return self._value.path_name
 
+    @property
+    def value(self) -> PathStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        PathStructValue
+            path value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._value
+
     def clear_cache(self) -> None:
         """Clear to_records/to_dataframe cache."""
         self._columns_cache = None

@@ -15,6 +15,8 @@
 
 from typing import Dict, Optional, Sequence
 
+from multimethod import multimethod as singledispatchmethod
+
 from .column import ColumnValue
 from .record import Record, RecordInterface, Records, RecordsInterface
 
@@ -55,8 +57,18 @@ class RecordsFactory:
     def is_cpp_impl_valid() -> bool:
         return use_cpp_impl
 
+    @singledispatchmethod
+    def create_instance(args) -> RecordsInterface:
+        raise NotImplementedError('Not implemented arguments type')
+
     @staticmethod
-    def create_instance(
+    @create_instance.register
+    def _create_instance() -> RecordsInterface:
+        return RecordsFactory._create_instance_record([], [])
+
+    @staticmethod
+    @create_instance.register
+    def _create_instance_record(
         init: Optional[Sequence[RecordInterface]] = None,
         columns: Optional[Sequence[ColumnValue]] = None
     ) -> RecordsInterface:
@@ -64,6 +76,23 @@ class RecordsFactory:
             return RecordsFactory._create_cpp_instance(init, columns)
         else:
             return Records(init, columns)
+
+    @staticmethod
+    @create_instance.register
+    def _create_instance_dict(
+        init: Optional[Sequence[Dict[str, int]]] = None,
+        columns: Optional[Sequence[ColumnValue]] = None
+    ) -> RecordsInterface:
+        records: Sequence[RecordInterface] = [
+                    RecordFactory.create_instance(record)
+                    for record
+                    in init or []
+        ]
+
+        if use_cpp_impl:
+            return RecordsFactory._create_cpp_instance(records, columns)
+        else:
+            return Records(records, columns)
 
     @staticmethod
     def _create_cpp_instance(

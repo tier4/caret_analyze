@@ -18,6 +18,7 @@ from caret_analyze.infra.lttng.architecture_reader_lttng import \
     ArchitectureReaderLttng
 from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
                                          NodeValueWithId, PublisherValue,
+                                         ServiceCallbackValue,
                                          SubscriptionCallbackValue,
                                          TimerCallbackValue)
 
@@ -82,6 +83,22 @@ class TestArchitectureReaderLttng:
         reader = ArchitectureReaderLttng('trace_dir')
         assert reader.get_subscription_callbacks(node) == [subscription_cb_mock]
 
+    def test_get_service_callbacks(self, mocker):
+        lttng_mock = mocker.Mock(spec=Lttng)
+
+        mocker.patch.object(lttng_mock, 'get_service_callbacks', return_value=[])
+        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
+        reader = ArchitectureReaderLttng('trace_dir')
+        node = NodeValueWithId('node_name', 'node_id')
+        assert reader.get_service_callbacks(node) == []
+
+        service_cb_mock = mocker.Mock(spec=ServiceCallbackValue)
+        mocker.patch.object(
+            lttng_mock, 'get_service_callbacks', return_value=[service_cb_mock])
+        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
+        reader = ArchitectureReaderLttng('trace_dir')
+        assert reader.get_service_callbacks(node) == [service_cb_mock]
+
     def test_get_executors(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
 
@@ -128,9 +145,9 @@ class TestArchitectureReaderLttng:
         callback_id = ['callback0', 'callback1']
 
         sub_cb_0 = SubscriptionCallbackValue(
-            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None)
+            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
         sub_cb_1 = SubscriptionCallbackValue(
-            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None)
+            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None, None)
 
         mocker.patch.object(
             lttng_mock,

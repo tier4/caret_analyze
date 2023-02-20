@@ -1,0 +1,33 @@
+version: 1
+
+formatters:
+  caret_fmt:
+    format: "%(levelname)-8s: %(asctime)s | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+handlers:
+  stream_handler:
+    class: logging.StreamHandler
+    level: WARN
+    formatter: caret_fmt
+  file_handler:
+    class: logging.FileHandler
+    level: WARN
+    formatter: caret_fmt
+    filename: ./caret.log
+    mode: w
+    encoding: utf-8
+  null_handler:
+    class: logging.NullHandler
+
+loggers:
+  caret_analyze.architecture.architecture_loaded:
+    level: WARN
+    # handlers: [file_handler]   # if you need to output warnings to a file.
+    # propagate: false           # if you need to not propagate log
+
+root:
+  level: DEBUG
+  handlers: [stream_handler]
+
+disable_existing_loggers: false

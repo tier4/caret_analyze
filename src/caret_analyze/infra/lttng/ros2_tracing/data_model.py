@@ -16,7 +16,7 @@
 """Module for ROS 2 data model."""
 
 from caret_analyze.record.column import ColumnValue
-from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
+from caret_analyze.record.record_factory import RecordsFactory
 
 from ...trace_point_data import TracePointIntermediateData
 
@@ -32,7 +32,7 @@ class Ros2DataModel():
         """Create a Ros2DataModel."""
         # Objects (one-time events, usually when something is created)
         self._contexts = TracePointIntermediateData(
-            ['context_handle', 'timestamp', 'pid', 'version'])
+            ['context_handle', 'timestamp', 'pid'])
         self._nodes = TracePointIntermediateData(
             ['node_handle', 'timestamp', 'tid', 'rmw_handle', 'namespace', 'name'])
         self._publishers = TracePointIntermediateData(
@@ -48,6 +48,8 @@ class Ros2DataModel():
             ['client_handle', 'timestamp', 'node_handle', 'rmw_handle', 'service_name'])
         self._timers = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'period', 'tid'])
+        self._caret_init = TracePointIntermediateData(
+            ['timestamp', 'clock_offset'])
         self._timer_node_links = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'node_handle'])
         self._callback_objects = TracePointIntermediateData(
@@ -209,12 +211,11 @@ class Ros2DataModel():
             ]
         )
 
-    def add_context(self, pid, context_handle, timestamp, version) -> None:
+    def add_context(self, pid, context_handle, timestamp) -> None:
         record = {
             'context_handle': context_handle,
             'timestamp': timestamp,
             'pid': pid,
-            'version': version,  # Comment out to align with Dict[str: int64_t]
         }
         self._contexts.append(record)
 
@@ -370,19 +371,18 @@ class Ros2DataModel():
     def add_callback_start_instance(
         self, timestamp: int, callback: int, is_intra_process: bool
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
+        record = {
                 'callback_start_timestamp': timestamp,
                 'callback_object': callback,
                 'is_intra_process': is_intra_process,
             }
-        )
         self.callback_start_instances.append(record)
 
     def add_callback_end_instance(self, timestamp: int, callback: int) -> None:
-        record = RecordFactory.create_instance(
-            {'callback_end_timestamp': timestamp, 'callback_object': callback}
-        )
+        record = {
+            'callback_end_timestamp': timestamp,
+            'callback_object': callback
+        }
         self.callback_end_instances.append(record)
 
     def add_rclcpp_intra_publish_instance(
@@ -393,15 +393,13 @@ class Ros2DataModel():
         message: int,
         message_timestamp: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'tid': tid,
-                'rclcpp_intra_publish_timestamp': timestamp,
-                'publisher_handle': publisher_handle,
-                'message': message,
-                'message_timestamp': message_timestamp,
-            }
-        )
+        record = {
+            'tid': tid,
+            'rclcpp_intra_publish_timestamp': timestamp,
+            'publisher_handle': publisher_handle,
+            'message': message,
+            'message_timestamp': message_timestamp,
+        }
         self.rclcpp_intra_publish_instances.append(record)
 
     def add_rclcpp_publish_instance(
@@ -412,15 +410,13 @@ class Ros2DataModel():
         message: int,
         message_timestamp: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'tid': tid,
-                'rclcpp_publish_timestamp': timestamp,
-                'publisher_handle': publisher_handle,
-                'message': message,
-                'message_timestamp': message_timestamp,
-            }
-        )
+        record = {
+            'tid': tid,
+            'rclcpp_publish_timestamp': timestamp,
+            'publisher_handle': publisher_handle,
+            'message': message,
+            'message_timestamp': message_timestamp,
+        }
         self.rclcpp_publish_instances.append(record)
 
     def add_rcl_publish_instance(
@@ -430,14 +426,12 @@ class Ros2DataModel():
         publisher_handle: int,
         message: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'tid': tid,
-                'rcl_publish_timestamp': timestamp,
-                'publisher_handle': publisher_handle,
-                'message': message,
-            }
-        )
+        record = {
+            'tid': tid,
+            'rcl_publish_timestamp': timestamp,
+            'publisher_handle': publisher_handle,
+            'message': message,
+        }
         self.rcl_publish_instances.append(record)
 
     def add_dds_write_instance(
@@ -446,13 +440,11 @@ class Ros2DataModel():
         timestamp: int,
         message: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'tid': tid,
-                'dds_write_timestamp': timestamp,
-                'message': message,
-            }
-        )
+        record = {
+            'tid': tid,
+            'dds_write_timestamp': timestamp,
+            'message': message,
+        }
         self.dds_write_instances.append(record)
 
     def add_dds_bind_addr_to_addr(
@@ -461,13 +453,11 @@ class Ros2DataModel():
         addr_from: int,
         addr_to: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'dds_bind_addr_to_addr_timestamp': timestamp,
-                'addr_from': addr_from,
-                'addr_to': addr_to,
-            }
-        )
+        record = {
+            'dds_bind_addr_to_addr_timestamp': timestamp,
+            'addr_from': addr_from,
+            'addr_to': addr_to,
+        }
         self.dds_bind_addr_to_addr.append(record)
 
     def add_dds_bind_addr_to_stamp(
@@ -477,14 +467,12 @@ class Ros2DataModel():
         addr: int,
         source_timestamp: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'tid': tid,
-                'dds_bind_addr_to_stamp_timestamp': timestamp,
-                'addr': addr,
-                'source_timestamp': source_timestamp,
-            }
-        )
+        record = {
+            'tid': tid,
+            'dds_bind_addr_to_stamp_timestamp': timestamp,
+            'addr': addr,
+            'source_timestamp': source_timestamp,
+        }
         self.dds_bind_addr_to_stamp.append(record)
 
     def add_on_data_available_instance(
@@ -492,24 +480,20 @@ class Ros2DataModel():
         timestamp: int,
         source_timestamp: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'on_data_available_timestamp': timestamp,
-                'source_timestamp': source_timestamp,
-            }
-        )
+        record = {
+            'on_data_available_timestamp': timestamp,
+            'source_timestamp': source_timestamp,
+        }
         self.on_data_available_instances.append(record)
 
     def add_message_construct_instance(
         self, timestamp: int, original_message: int, constructed_message: int
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'message_construct_timestamp': timestamp,
-                'original_message': original_message,
-                'constructed_message': constructed_message,
-            }
-        )
+        record = {
+            'message_construct_timestamp': timestamp,
+            'original_message': original_message,
+            'constructed_message': constructed_message,
+        }
         self.message_construct_instances.append(record)
 
     def add_dispatch_subscription_callback_instance(
@@ -520,15 +504,13 @@ class Ros2DataModel():
         source_timestamp: int,
         message_timestamp: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'dispatch_subscription_callback_timestamp': timestamp,
-                'callback_object': callback_object,
-                'message': message,
-                'source_timestamp': source_timestamp,
-                'message_timestamp': message_timestamp,
-            }
-        )
+        record = {
+            'dispatch_subscription_callback_timestamp': timestamp,
+            'callback_object': callback_object,
+            'message': message,
+            'source_timestamp': source_timestamp,
+            'message_timestamp': message_timestamp,
+        }
         self.dispatch_subscription_callback_instances.append(record)
 
     def add_sim_time(
@@ -536,12 +518,10 @@ class Ros2DataModel():
         timestamp: int,
         sim_time: int
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'system_time': timestamp,
-                'sim_time': sim_time
-            }
-        )
+        record = {
+            'system_time': timestamp,
+            'sim_time': sim_time
+        }
         self.sim_time.append(record)
 
     def add_rmw_implementation(self, rmw_impl: str):
@@ -555,14 +535,12 @@ class Ros2DataModel():
         message: int,
         message_timestamp: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'dispatch_intra_process_subscription_callback_timestamp': timestamp,
-                'callback_object': callback_object,
-                'message': message,
-                'message_timestamp': message_timestamp
-            }
-        )
+        record = {
+            'dispatch_intra_process_subscription_callback_timestamp': timestamp,
+            'callback_object': callback_object,
+            'message': message,
+            'message_timestamp': message_timestamp
+        }
         self.dispatch_intra_process_subscription_callback_instances.append(
             record)
 
@@ -572,13 +550,11 @@ class Ros2DataModel():
         subscription: int,
         tilde_message_id: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'tilde_subscribe_timestamp': timestamp,
-                'subscription': subscription,
-                'tilde_message_id': tilde_message_id
-            }
-        )
+        record = {
+            'tilde_subscribe_timestamp': timestamp,
+            'subscription': subscription,
+            'tilde_message_id': tilde_message_id
+        }
         self.tilde_subscribe.append(record)
 
     def add_tilde_publish(
@@ -588,14 +564,12 @@ class Ros2DataModel():
         subscription_id: int,
         tilde_message_id: int,
     ) -> None:
-        record = RecordFactory.create_instance(
-            {
-                'tilde_publish_timestamp': timestamp,
-                'publisher': publisher,
-                'subscription_id': subscription_id,
-                'tilde_message_id': tilde_message_id,
-            }
-        )
+        record = {
+            'tilde_publish_timestamp': timestamp,
+            'publisher': publisher,
+            'subscription_id': subscription_id,
+            'tilde_message_id': tilde_message_id,
+        }
         self.tilde_publish.append(record)
 
     def add_executor(
@@ -708,9 +682,23 @@ class Ros2DataModel():
         }
         self._callback_group_client.append(record)
 
+    def add_caret_init(
+        self,
+        clock_offset: int,
+        timestamp: int
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'clock_offset': clock_offset,
+        }
+        self._caret_init.append(record)
+
     def finalize(self) -> None:
         self.contexts = self._contexts.get_finalized('context_handle')
         del self._contexts
+
+        self.caret_init = self._caret_init.get_finalized()
+        del self._caret_init
 
         self.nodes = self._nodes.get_finalized('node_handle')
         del self._nodes

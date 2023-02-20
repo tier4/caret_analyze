@@ -486,6 +486,17 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         timer_events_factory = self._lttng.create_timer_events_factory(timer_lttng_cb)
         callback_records = self.callback_records(timer.callback)
+        if len(callback_records) == 0:
+            records = RecordsFactory.create_instance(
+                None,
+                columns=[
+                    ColumnValue(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
+                ]
+            )
+            self._rename_column(records, timer.callback_name, None)
+            return records
         last_record = callback_records.data[-1]
         last_callback_start = last_record.get(callback_records.columns[0])
         timer_events = timer_events_factory.create(last_callback_start)
@@ -1364,6 +1375,7 @@ class FilteredRecordsSource:
             return RecordsFactory.create_instance(
                 None,
                 [
+                    ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                     ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
@@ -1434,6 +1446,10 @@ class FilteredRecordsSource:
         drop = list(set(merged.columns) - set(columns))
         merged.drop_columns(drop)
         merged.reindex(columns)
+
+        # NOTE: After merge, the dropped data are aligned at the end
+        # regardless of the time of publish.
+        merged.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
 
         return merged
 
@@ -1513,13 +1529,14 @@ class FilteredRecordsSource:
 
         Columns
 
+        - publisher_handle
         - rclcpp_publish_timestamp
         - rcl_publish_timestamp (Optional)
         - dds_write_timestamp (Optional)
         - message_timestamp
         - source_timestamp
-        - tilde_publish_timestamp
-        - tilde_message_id
+        - tilde_publish_timestamp (Optional)
+        - tilde_message_id (Optional)
 
         """
         grouped_records = self._grouped_publish_records
@@ -1527,11 +1544,10 @@ class FilteredRecordsSource:
             return RecordsFactory.create_instance(
                 None,
                 [
+                    ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
                     ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.TILDE_PUBLISH_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.TILDE_MESSAGE_ID),
                 ]
             )
         sample_records = list(grouped_records.values())[0]
@@ -1542,6 +1558,8 @@ class FilteredRecordsSource:
             if publisher_handle in grouped_records:
                 inter_pub_records = grouped_records[publisher_handle].clone()
                 pub_records.concat(inter_pub_records)
+
+        pub_records.sort(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP)
 
         return pub_records
 

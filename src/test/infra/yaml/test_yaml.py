@@ -167,17 +167,30 @@ nodes:
     callback_type: timer_callback
     period_ns: 1
     symbol: timer_symbol
+  - callback_name: timer_callback_1
+    callback_type: timer_callback
+    period_ns: 1
+    symbol: timer_symbol
+    construction_order: 1
   - callback_name: subscription_callback_0
     callback_type: subscription_callback
     topic_name: /chatter
     symbol: sub_symbol
+  - callback_name: subscription_callback_1
+    callback_type: subscription_callback
+    topic_name: /chatter
+    symbol: sub_symbol
+    construction_order: 1
   publishes:
   - topic_name: /chatter
     callback_names:
     - timer_callback_0
+    - timer_callback_1
   subscribes:
   - topic_name: /chatter
     callback_name: subscription_callback_0
+  - topic_name: /chatter
+    callback_name: subscription_callback_1
         """
 
         mocker.patch('builtins.open', mocker.mock_open(
@@ -185,24 +198,24 @@ nodes:
         reader = ArchitectureReaderYaml('file_name')
 
         timer_cbs = reader.get_timer_callbacks(NodeValue('/node', None))
-        assert len(timer_cbs) == 1
-        timer_cb = timer_cbs[0]
-        assert isinstance(timer_cb, TimerCallbackValue)
-        assert timer_cb.callback_type == CallbackType.TIMER
-        assert timer_cb.symbol == 'timer_symbol'
-        assert timer_cb.node_id == '/node'
-        assert timer_cb.subscribe_topic_name is None
-        assert timer_cb.publish_topic_names == ('/chatter',)
-        assert timer_cb.period_ns == 1
+        assert len(timer_cbs) == 2
+        for timer_cb in timer_cbs:
+            assert isinstance(timer_cb, TimerCallbackValue)
+            assert timer_cb.callback_type == CallbackType.TIMER
+            assert timer_cb.symbol == 'timer_symbol'
+            assert timer_cb.node_id == '/node'
+            assert timer_cb.subscribe_topic_name is None
+            assert timer_cb.publish_topic_names == ('/chatter',)
+            assert timer_cb.period_ns == 1
 
         sub_cbs = reader.get_subscription_callbacks(NodeValue('/node', None))
-        assert len(sub_cbs) == 1
-        sub_cb = sub_cbs[0]
-        assert isinstance(sub_cb, SubscriptionCallbackValue)
-        assert sub_cb.callback_type == CallbackType.SUBSCRIPTION
-        assert sub_cb.symbol == 'sub_symbol'
-        assert sub_cb.node_id == '/node'
-        assert sub_cb.subscribe_topic_name == '/chatter'
+        assert len(sub_cbs) == 2
+        for sub_cb in sub_cbs:
+            assert isinstance(sub_cb, SubscriptionCallbackValue)
+            assert sub_cb.callback_type == CallbackType.SUBSCRIPTION
+            assert sub_cb.symbol == 'sub_symbol'
+            assert sub_cb.node_id == '/node'
+            assert sub_cb.subscribe_topic_name == '/chatter'
 
     def test_message_contexts(self, mocker):
         architecture_text = """

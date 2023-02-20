@@ -23,6 +23,8 @@ from ...value_objects import (
     NodeValueWithId,
     PathValue,
     PublisherValue,
+    ServiceCallbackValue,
+    ServiceValue,
     SubscriptionCallbackValue,
     SubscriptionValue,
     TimerCallbackValue,
@@ -79,6 +81,12 @@ class ArchitectureReaderLttng(ArchitectureReader):
     ) -> Sequence[SubscriptionCallbackValue]:
         return self._lttng.get_subscription_callbacks(node)
 
+    def get_service_callbacks(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceCallbackValue]:
+        return self._lttng.get_service_callbacks(node)
+
     def get_publishers(
         self,
         node: NodeValue
@@ -109,11 +117,25 @@ class ArchitectureReaderLttng(ArchitectureReader):
         info: List[SubscriptionValue] = []
         for sub_cb in self.get_subscription_callbacks(node):
             topic_name = sub_cb.subscribe_topic_name
-            assert topic_name is not None
             info.append(SubscriptionValue(
                 topic_name,
                 sub_cb.node_name,
                 sub_cb.node_id,
                 sub_cb.callback_id
+            ))
+        return info
+
+    def get_services(
+        self,
+        node: NodeValue
+    ) -> Sequence[ServiceValue]:
+        info: List[ServiceValue] = []
+        for srv_cb in self.get_service_callbacks(node):
+            service_name = srv_cb.service_name
+            info.append(ServiceValue(
+                service_name,
+                srv_cb.node_name,
+                srv_cb.node_id,
+                srv_cb.callback_id
             ))
         return info

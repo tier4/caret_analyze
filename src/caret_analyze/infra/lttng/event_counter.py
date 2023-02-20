@@ -43,7 +43,14 @@ class EventCounter:
         return count_df
 
     def _validate(self):
-        count_df = self.get_count(['trace_point'])
+        # The record containing ignored_topics can records trace_points_added_by_ld_preload
+        # and trace_points_added_by_fork_rclcpp.
+        # Exclude these records as they interfere with validation.
+        record_df = self.get_count(['trace_point', 'topic_name']).reset_index()
+        ignored_topics = ['caret/start_record', '/caret/end_record']
+        ignored_df = record_df[~record_df['topic_name'].isin(ignored_topics)]
+
+        count_df = ignored_df.groupby('trace_point').sum([['size']])
         count_df_recorded = count_df[count_df['size'] > 0]
         recorded_trace_points = list(count_df_recorded.index)
 
@@ -92,6 +99,7 @@ class EventCounter:
 
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
+        # TODO(hsgwa): Definitions on tracepoint types are scattered. Refactor required.
         trace_point_and_df = {
             'ros2:rcl_init': data.contexts.df,
             'ros2:rcl_node_init': data.nodes.df,
@@ -138,6 +146,7 @@ class EventCounter:
             'ros2_caret:tilde_subscribe': data.tilde_subscribe.to_dataframe(),
             'ros2_caret:sim_time': data.sim_time.to_dataframe(),
             'ros2_caret:on_data_available': data.on_data_available_instances.to_dataframe(),
+            'ros2_caret:caret_init': data.caret_init.df,
         }
         #  'ros2_caret:rmw_implementation': ,
 

@@ -189,6 +189,23 @@ class CallbackBase(PathBase, Summarizable):
         return self.__val.subscribe_topic_name
 
     @property
+    def value(self) -> CallbackStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        CallbackStructValue
+            callback group value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self.__val
+
+    @property
     def summary(self) -> Summary:
         """
         Get summary [override].

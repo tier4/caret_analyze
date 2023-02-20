@@ -113,6 +113,23 @@ class CallbackGroup(Summarizable):
         return sorted(self._callbacks, key=lambda x: x.callback_name)
 
     @property
+    def value(self) -> CallbackGroupStructValue:
+        """
+        Get StructValue object.
+
+        Returns
+        -------
+        CallbackGroupStructValue
+            callback group value.
+
+        Notes
+        -----
+        This property is for CARET debugging purposes.
+
+        """
+        return self._val
+
+    @property
     def summary(self) -> Summary:
         """
         Get summary [override].
