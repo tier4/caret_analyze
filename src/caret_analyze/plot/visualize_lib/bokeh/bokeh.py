@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import datetime
 from logging import getLogger
-from typing import List, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.plotting import Figure, figure
@@ -84,25 +84,9 @@ class Bokeh(VisualizeLibInterface):
 
         """
         # Initialize figure
-        fig_args = {
-            'y_axis_label': '', 'width': 1200,
-            'title': 'Callback Scheduling in '
-                     f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}]."
-        }
-
-        if xaxis_type == 'system_time':
-            fig_args['x_axis_label'] = 'system time [s]'
-        elif xaxis_type == 'sim_time':
-            fig_args['x_axis_label'] = 'simulation time [s]'
-
-        if ywheel_zoom:
-            fig_args['active_scroll'] = 'wheel_zoom'
-        else:
-            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
-            fig_args['active_scroll'] = 'xwheel_zoom'
-
-        p = figure(**fig_args)
-        p.sizing_mode = 'stretch_width'  # type: ignore
+        title = ('Callback Scheduling in '
+                 f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}].")
+        p = self._init_figure('callback_scheduling', title, ywheel_zoom, xaxis_type)
 
         # Apply xaxis offset
         callbacks: List[CallbackBase] = Util.flatten(
@@ -246,31 +230,13 @@ class Bokeh(VisualizeLibInterface):
             y_axis_label = y_axis_label + ' [ms]'
         else:
             raise NotImplementedError()
-        fig_args = {'frame_height': 270,
-                    'frame_width': 800,
-                    'y_axis_label': y_axis_label}
-
-        if xaxis_type == 'system_time':
-            fig_args['x_axis_label'] = 'system time [s]'
-        elif xaxis_type == 'sim_time':
-            fig_args['x_axis_label'] = 'simulation time [s]'
-        else:
-            fig_args['x_axis_label'] = xaxis_type
-
-        if ywheel_zoom:
-            fig_args['active_scroll'] = 'wheel_zoom'
-        else:
-            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
-            fig_args['active_scroll'] = 'xwheel_zoom'
-
         if isinstance(target_objects[0], CallbackBase):
-            fig_args['title'] = f'Time-line of callbacks {y_axis_label}'
+            title = f'Time-line of callbacks {y_axis_label}'
         elif isinstance(target_objects[0], Communication):
-            fig_args['title'] = f'Time-line of communications {y_axis_label}'
+            title = f'Time-line of communications {y_axis_label}'
         else:
-            fig_args['title'] = f'Time-line of publishes/subscribes {y_axis_label}'
-
-        p = figure(**fig_args)
+            title = f'Time-line of publishes/subscribes {y_axis_label}'
+        p = self._init_figure('timeseries', title, ywheel_zoom, xaxis_type, y_axis_label)
 
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
@@ -303,6 +269,46 @@ class Bokeh(VisualizeLibInterface):
         p.legend.click_policy = 'hide'
 
         return p
+
+    def _init_figure(
+        self,
+        graph_type: str,
+        title: str,
+        ywheel_zoom: bool,
+        xaxis_type: str,
+        yaxis_label: Optional[str] = None,
+    ) -> Figure:
+        # Common process
+        fig_args: Dict[str, Any] = {
+            'title': title,
+            'y_axis_label': yaxis_label or ''
+        }
+
+        if xaxis_type == 'system_time':
+            fig_args['x_axis_label'] = 'system time [s]'
+        elif xaxis_type == 'sim_time':
+            fig_args['x_axis_label'] = 'simulation time [s]'
+        else:
+            fig_args['x_axis_label'] = xaxis_type
+
+        if ywheel_zoom:
+            fig_args['active_scroll'] = 'wheel_zoom'
+        else:
+            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
+            fig_args['active_scroll'] = 'xwheel_zoom'
+
+        # Time-series
+        if graph_type == 'timeseries':
+            fig_args['frame_height'] = 270
+            fig_args['frame_width'] = 800
+            return figure(**fig_args)
+
+        # Callback scheduling
+        elif graph_type == 'callback_scheduling':
+            fig_args['width'] = 1200
+            p = figure(**fig_args)
+            p.sizing_mode = 'stretch_width'  # type: ignore
+            return p
 
     @staticmethod
     def _apply_x_axis_offset(
