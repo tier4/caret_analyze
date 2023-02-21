@@ -261,4 +261,3 @@ class StackedBar:
     @property
     def records(self) -> RecordsInterface:
         return self._stacked_bar_records
-
