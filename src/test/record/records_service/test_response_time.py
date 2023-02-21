@@ -653,3 +653,108 @@ class TestResponseTimeseries:
         latency_expect = [4, 3]
         assert list(t) == t_expect
         assert list(latency) == latency_expect
+
+    class TestMultiColumnCase:
+        records_raw = [
+            {'column0': 5, 'column1': 10, 'column2': 15},  # flow 1 [used as first data]
+            {'column0': 5, 'column1': 12, 'column2': 17},  # flow 2 [used]
+            {'column0': 6, 'column1': 15},  # flow 3. Dropped case [ignored]
+            {'column0': 7, 'column2': 20},  # flow 4. Crossed & dropped case [ignored]
+            {'column0': 8, 'column1': 21, 'column2': 50},  # flow 5, too old output [ignored]
+            {'column0': 9, 'column1': 25, 'column2': 30},  # flow  6. too early input [ignored]
+            {'column0': 20, 'column1': 25, 'column2': 30},  # flow  7. [used]
+            {'column0': 35, 'column1': 40, 'column2': 45},  # flow  8. [used]
+        ]
+
+        columns = [
+            ColumnValue('column0'),
+            ColumnValue('column1'),
+            ColumnValue('column2'),
+        ]
+        column_names = ['column0', 'column1', 'column2']
+
+        def test_to_response_records(self):
+            response = ResponseTime(
+                create_records(self.records_raw, self.columns),
+                columns=self.column_names
+            )
+
+            records = response.to_response_records()
+
+            expect = [
+                # flow 1 input ~ flow 7 output
+                {'column0_min': 5, 'column0_max': 20, 'column1': 25, 'column2': 30},
+                # flow 7 input ~ flow 8 output
+                {'column0_min': 20, 'column0_max': 35, 'column1': 40, 'column2': 45},
+            ]
+
+            d = to_dict(records)
+            assert d == expect
+
+        def test_to_records(self):
+            response = ResponseTime(
+                create_records(self.records_raw, self.columns),
+                columns=self.column_names
+            )
+            records = response.to_records(all_pattern=False)
+
+            expect = [
+                #  flow 1 input ~ flow 7 output
+                {'column0': 5, 'column1': 25, 'column2': 30},
+                #  flow 7 input
+                {'column0': 20, 'column1': 25, 'column2': 30},
+                #  flow 7 input ~ flow 8 output
+                {'column0': 20, 'column1': 40, 'column2': 45},
+                #  flow 8 input
+                {'column0': 35, 'column1': 40, 'column2': 45},
+            ]
+
+            d = to_dict(records)
+            assert d == expect
+
+        def test_to_records_all_pattern(self):
+            response = ResponseTime(
+                create_records(self.records_raw, self.columns),
+                columns=self.column_names
+            )
+            records = response.to_records(all_pattern=True)
+
+            expect = [
+                # flow 1 flow ~ flow1 output
+                {'column0': 5, 'column1': 10, 'column2': 15},
+                # flow 1 flow ~ flow2 output
+                {'column0': 5, 'column1': 12, 'column2': 17},
+                # flow 1 flow ~ flow 5 output
+                {'column0': 5, 'column1': 21, 'column2': 50},
+                # flow 1 flow ~ flow 7 output
+                {'column0': 5, 'column1': 25, 'column2': 30},
+                # flow 1 flow ~ flow 8 output
+                {'column0': 5, 'column1': 40, 'column2': 45},
+                # flow 5 flow ~ flow 5 output
+                {'column0': 8, 'column1': 21, 'column2': 50},
+                # flow 7 flow ~ flow 7 output
+                {'column0': 20, 'column1': 25, 'column2': 30},
+                # flow 8 flow ~ flow 8 output
+                {'column0': 35, 'column1': 40, 'column2': 45},
+            ]
+
+            d = to_dict(records)
+            assert d == expect
+
+        def test_to_best_case_timeseries(self):
+            response = ResponseTime(
+                create_records(self.records_raw, self.columns),
+                columns=self.column_names
+            )
+            t, latency = response.to_best_case_timeseries()
+            assert list(t) == [20, 35]
+            assert list(latency) == [10, 10]
+
+        def test_to_worst_case_timeseries(self):
+            response = ResponseTime(
+                create_records(self.records_raw, self.columns),
+                columns=self.column_names
+            )
+            t, latency = response.to_worst_case_timeseries()
+            assert list(t) == [5, 20]
+            assert list(latency) == [25, 25]
