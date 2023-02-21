@@ -14,13 +14,13 @@
 
 import math
 
-from typing import Iterator, Optional, Sequence, Tuple
+from typing import Dict, Iterator, List, Optional, Sequence, Tuple
 
 import numpy as np
 
 from ..column import ColumnValue
-from ..interface import RecordsInterface
-from ..record_factory import RecordsFactory
+from ..interface import RecordsInterface, RecordInterface
+from ..record_factory import RecordsFactory, RecordFactory
 from ...exceptions import InvalidRecordsError
 
 
@@ -30,7 +30,8 @@ class TimeRange:
     def __init__(
         self,
         min_value: int,
-        max_value: int
+        record: RecordInterface,
+        input_column: str
     ) -> None:
         """
         Construct an instance.
@@ -44,7 +45,8 @@ class TimeRange:
 
         """
         self._min = min_value
-        self._max = max_value
+        self._record = record
+        self._column = input_column
 
     @property
     def max_value(self) -> int:
@@ -57,7 +59,7 @@ class TimeRange:
             maximum value.
 
         """
-        return self._max
+        return self._record.get(self._column)
 
     @property
     def min_value(self) -> int:
@@ -72,7 +74,7 @@ class TimeRange:
         """
         return self._min
 
-    def update(self, value: int) -> None:
+    def update(self, record: RecordInterface) -> None:
         """
         Update range.
 
@@ -82,7 +84,13 @@ class TimeRange:
             value to apply.
 
         """
-        self._max = max(self._max, value)
+        input_value = record.get(self._column)
+        if self.max_value < input_value:
+            self._record = record
+
+    @property
+    def record(self) -> RecordInterface:
+        return self._record
 
 
 class ResponseMap():
@@ -91,8 +99,7 @@ class ResponseMap():
     def __init__(
         self,
         records: RecordsInterface,
-        input_column: str,
-        output_column: str
+        columns: List[str]
     ):
         """
         Construct an instance.
@@ -101,33 +108,32 @@ class ResponseMap():
         ----------
         records : RecordsInterface
             records to calculate response time.
-        input_column : str
-            column name which is input.
-        output_column : str
-            column name which is output.
+        columns: List[str]
+            List of column names to be used.
+            first column name is used as input.
+            last column name is used as output.
 
         """
+        self._columns = columns
         d = {}
 
         input_min_time = None
 
         for data in records.data:
-            if input_column not in data.columns or output_column not in data.columns:
+            if not set(self._columns) <= set(data.columns):
                 continue
 
-            input_time, output_time = data.get(input_column), data.get(output_column)
+            input_time, output_time = data.get(self.input_column), data.get(self.output_column)
 
             if input_min_time is None:
                 input_min_time = input_time
 
             if output_time not in d:
-                d[output_time] = TimeRange(input_min_time, input_time)
-
-            d[output_time].update(input_time)
+                d[output_time] = TimeRange(input_min_time, data, self.input_column)
+            else:
+                d[output_time].update(data)
 
         self._d = d
-        self._input_column = input_column
-        self._output_column = output_column
 
     def sorted_iter(self) -> Iterator[int]:
         """
@@ -181,7 +187,7 @@ class ResponseMap():
             input column name.
 
         """
-        return self._input_column
+        return self._columns[0]
 
     @property
     def output_column(self) -> str:
@@ -194,7 +200,11 @@ class ResponseMap():
             output column name.
 
         """
-        return self._output_column
+        return self._columns[-1]
+
+    @property
+    def columns(self) -> List[str]:
+        return self._columns
 
 
 class ResponseTime:
@@ -205,10 +215,9 @@ class ResponseTime:
     ----------
     records : RecordsInterface
         records to calculate response time.
-    input_column : str
-        column name for input time.
-    output_column : str
-        column name for output time.
+    columns : str
+        List of column names to be used in return value.
+        If None, the first and last columns are used.
 
     Examples
     --------
@@ -243,8 +252,7 @@ class ResponseTime:
         self,
         records: RecordsInterface,
         *,
-        input_column: Optional[str] = None,
-        output_column: Optional[str] = None
+        columns: Optional[List[str]] = None
     ) -> None:
         """
         Construct an instance.
@@ -253,17 +261,13 @@ class ResponseTime:
         ----------
         records : RecordsInterface
             records to calculate response time.
-        input_column : Optional[str], optional
-            column name which is input, by default None
-            If None, the first column of records is selected.
-        output_column : Optional[str], optional
-            column name which is output, by default None
-            If None, the last column of records is selected.
+        columns : Optional[str]
+            List of column names to be used in return value.
+            If None, only first and last columns are used.
 
         """
-        input_column = input_column or records.columns[0]
-        output_column = output_column or records.columns[-1]
-        response_map = ResponseMap(records, input_column, output_column)
+        columns = columns or [records.columns[0], records.columns[-1]]
+        response_map = ResponseMap(records, columns)
         self._records = ResponseRecords(response_map)
         self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records, self._timeseries)
@@ -283,24 +287,35 @@ class ResponseTime:
             response time records.
             The best and worst cases alternate line by line.
             Columns
-            - {input_column}
-            - {output_column}
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
 
         """
         return self._records.to_records(all_pattern)
 
-    def to_response_records(self) -> RecordsInterface:
+    def to_response_records(self, columns: Optional[List[str]] = None) -> RecordsInterface:
         """
         Calculate response records.
+
+        Parameters
+        ----------
+        columns : Optional[List[str]]
+            List of column names to be used in return value.
+            If None, the first and last columns are used.
 
         Returns
         -------
         RecordsInterface
             The best and worst cases are separated into separate columns.
+
             Columns
-            - {input_column}_min
-            - {input_column}_max
-            - {output_column}
+            - {columns[0]}_min
+            - {columns[0]}_max
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
 
         """
         return self._records.to_range_records()
@@ -437,8 +452,10 @@ class ResponseRecords:
             response time.
             The best and worst cases alternate line by line.
             Columns
-            - {input_column}
-            - {output_column}
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
 
         """
         if len(self._response_map) == 0:
@@ -458,25 +475,29 @@ class ResponseRecords:
         RecordsInterface
             The best and worst cases are separated into separate columns.
             Columns
-            - {input_column}_min
-            - {input_column}_max
-            - {output_column}
+            - {columns[0]}_min
+            - {columns[0]}_max
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
 
         """
         columns = [
             ColumnValue(f'{self._input_column}_min'),
             ColumnValue(f'{self._input_column}_max'),
-            ColumnValue(self._response_map.output_column),
         ]
+        columns += [ColumnValue(column) for column in self._columns[1:]]
 
         records = self._create_empty_records(columns)
 
-        def add_records(output_time, input_time_min, input_time_max):
-            record = {
-                self._response_map.output_column: output_time,
-                f'{self._input_column}_min': input_time_min,
-                f'{self._input_column}_max': input_time_max,
-            }
+        def add_records(
+            input_time_min: int,
+            record: RecordInterface
+        ):
+            record = self._create_worst_to_best_case_record(
+                record, self._columns, input_time_min
+            )
+
             records.append(record)
 
         self._create_response_records_core(add_records)
@@ -493,23 +514,20 @@ class ResponseRecords:
         -------
         RecordsInterface
             Columns
-            - {input_column}
-            - {output_column}
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
 
         """
-        columns = [
-            ColumnValue(f'{self._input_column}'),
-            ColumnValue(self._response_map.output_column),
-        ]
+        records = self._create_empty_records()
 
-        records = self._create_empty_records(columns)
-
-        def add_records(output_time, input_time_min, input_time_max):
-            record = {
-                self._response_map.output_column: output_time,
-                f'{self._input_column}': input_time_max,
-            }
-            records.append(record)
+        def add_records(
+            _: int,
+            record: RecordInterface
+        ):
+            record_best_case = self._create_best_case_record(record, self._columns)
+            records.append(record_best_case)
 
         self._create_response_records_core(add_records)
 
@@ -525,23 +543,21 @@ class ResponseRecords:
         -------
         RecordsInterface
             Columns
-            - {input_column}
-            - {output_column}
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
 
         """
-        columns = [
-            ColumnValue(f'{self._input_column}'),
-            ColumnValue(self._response_map.output_column),
-        ]
+        records = self._create_empty_records()
 
-        records = self._create_empty_records(columns)
-
-        def add_records(output_time, input_time_min, input_time_max):
-            record = {
-                    self._response_map.output_column: output_time,
-                    f'{self._input_column}': input_time_min,
-            }
-            records.append(record)
+        def add_records(
+            input_time_min: int,
+            record: RecordInterface
+        ):
+            record_worst_case = self._create_worst_case_record(
+                record, self._columns, input_time_min)
+            records.append(record_worst_case)
 
         self._create_response_records_core(add_records)
 
@@ -557,11 +573,15 @@ class ResponseRecords:
     def _output_column(self):
         return self._response_map.output_column
 
+    @property
+    def _columns(self) -> List[str]:
+        return self._response_map.columns
+
     def _create_empty_records(
         self,
         columns: Optional[Sequence[ColumnValue]] = None
     ) -> RecordsInterface:
-        columns = columns or [ColumnValue(self._input_column), ColumnValue(self._output_column)]
+        columns = columns or [ColumnValue(column) for column in self._columns]
         return RecordsFactory.create_instance(
             None,
             columns
@@ -572,21 +592,17 @@ class ResponseRecords:
 
         for output_time in self._response_map.sorted_iter():
             input_time_range = self._response_map.at(output_time)
+            record = input_time_range.record
 
-            record = {
-                self._input_column: input_time_range.min_value,
-                self._output_column: output_time
-            }
-            records.append(record)
+            record_worst_case = self._create_worst_case_record(
+                record, self._columns, input_time_range.min_value)
+            records.append(record_worst_case)
 
             if input_time_range.min_value == input_time_range.max_value:
                 continue
 
-            record = {
-                self._input_column: input_time_range.max_value,
-                self._output_column: output_time
-            }
-            records.append(record)
+            record_best_case = self._create_best_case_record(record, self._columns)
+            records.append(record_best_case)
 
         records.sort_column_order()
 
@@ -595,18 +611,16 @@ class ResponseRecords:
     def _create_response_records(self) -> RecordsInterface:
         records = self._create_empty_records()
 
-        def add_records(output_time, input_time_min, input_time_max):
-            record = {
-                self._input_column: input_time_min,
-                self._output_column: output_time
-            }
-            records.append(record)
+        def add_records(
+            input_time_min: int,
+            record: RecordInterface
+        ) -> None:
+            record_worst_case = self._create_worst_case_record(
+                record, self._columns, input_time_min)
+            records.append(record_worst_case)
 
-            record = {
-                self._input_column: input_time_max,
-                self._output_column: output_time
-            }
-            records.append(record)
+            record_best_case = self._create_best_case_record(record, self._columns)
+            records.append(record_best_case)
 
         self._create_response_records_core(add_records)
 
@@ -631,11 +645,50 @@ class ResponseRecords:
             if input_min_time == input_max_time:
                 continue
 
-            callback(output_time, input_min_time, input_max_time)
+            callback(input_min_time, input_time_range.record)
 
         records.sort_column_order()
 
         return records
+
+    @staticmethod
+    def _create_best_case_record(
+        record: RecordInterface,
+        columns: List[str]
+    ) -> RecordInterface:
+        record_dict: Dict[str, int] = {}
+        for column in columns:
+            record_dict[column] = record.get(column)
+        return RecordFactory.create_instance(record_dict)
+
+    @staticmethod
+    def _create_worst_case_record(
+        record: RecordInterface,
+        columns: List[str],
+        input_time_min: int
+    ) -> RecordInterface:
+        record_dict: Dict[str, int] = {}
+
+        record_dict[columns[0]] = input_time_min
+        for column in columns[1:]:
+            record_dict[column] = record.get(column)
+        return RecordFactory.create_instance(record_dict)
+
+    @staticmethod
+    def _create_worst_to_best_case_record(
+        record: RecordInterface,
+        columns: List[str],
+        input_time_min: int
+    ) -> RecordInterface:
+        record_dict: Dict[str, int] = {}
+
+        input_min_column = f'{columns[0]}_min'
+        input_max_column = f'{columns[0]}_max'
+        record_dict[input_min_column] = input_time_min
+        record_dict[input_max_column] = record.get(columns[0])
+        for column in columns[1:]:
+            record_dict[column] = record.get(column)
+        return RecordFactory.create_instance(record_dict)
 
 
 class ResponseTimeseries:
@@ -649,13 +702,13 @@ class ResponseTimeseries:
     def to_best_case_timeseries(self):
         records = self._records.to_range_records()
         input_column = records.columns[1]
-        output_column = records.columns[2]
+        output_column = records.columns[-1]
         return self._to_timeseries(input_column, output_column)
 
     def to_worst_case_timeseries(self):
         records = self._records.to_range_records()
         input_column = records.columns[0]
-        output_column = records.columns[2]
+        output_column = records.columns[-1]
         return self._to_timeseries(input_column, output_column)
 
     def _to_timeseries(self, input_column, output_column):
