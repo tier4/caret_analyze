@@ -467,8 +467,39 @@ class Architecture(Summarizable):
             c.rename_topic(src, dst)
 
     @staticmethod
-    def diff_node_names(left_arch: Architecture, right_arch: Architecture):
-        return Diff(left_arch, right_arch).diff_node_names()
+    def diff_node_names(
+            left_arch: Architecture,
+            right_arch: Architecture
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        return DiffArchitecture(left_arch, right_arch).diff_node_names()
+
+    @staticmethod
+    def diff_node_topics(
+        left_arch: Architecture,
+        right_arch: Architecture
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        return DiffArchitecture(left_arch, right_arch).diff_node_topics()
+
+    @staticmethod
+    def diff_node_pubs(
+        left_node: NodeStructValue,
+        right_node: NodeStructValue
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        return DiffNode(left_node, right_node).diff_node_pubs()
+
+    @staticmethod
+    def diff_node_subs(
+        left_node: NodeStructValue,
+        right_node: NodeStructValue
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        return DiffNode(left_node, right_node).diff_node_subs()
+
+    @staticmethod
+    def diff_node_callbacks(
+        left_node: NodeStructValue,
+        right_node: NodeStructValue
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        return DiffNode(left_node, right_node).diff_node_callbacks()
 
 
 class AssignContextReader(ArchitectureReader):
@@ -524,7 +555,8 @@ class AssignContextReader(ArchitectureReader):
         pass
 
 
-class Diff:
+class DiffArchitecture:
+
     def __init__(
         self,
         left_arch: Architecture,
@@ -534,9 +566,59 @@ class Diff:
         self._right_arch = right_arch
 
     def diff_node_names(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        set_left_arch = set(self._left_arch.node_names)
-        set_right_arch = set(self._right_arch.node_names)
-        common_node_name_arch1_arch2 = set_left_arch & set_right_arch
-        arch1_node_names = tuple(set_left_arch - common_node_name_arch1_arch2)
-        arch2_node_names = tuple(set_right_arch - common_node_name_arch1_arch2)
-        return arch1_node_names, arch2_node_names
+        set_left_node_names = set(self._left_arch.node_names)
+        set_right_node_names = set(self._right_arch.node_names)
+        common_node_names = set_left_node_names & set_right_node_names
+        left_only_names = tuple(set_left_node_names - common_node_names)
+        right_only_names = tuple(set_right_node_names - common_node_names)
+        return left_only_names, right_only_names
+
+    def diff_node_topics(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_topics = set(self._left_arch.topic_names)
+        set_right_topics = set(self._right_arch.topic_names)
+        common_node_topics = set_left_topics & set_right_topics
+        left_only_topics = tuple(set_left_topics - common_node_topics)
+        right_only_topics = tuple(set_right_topics - common_node_topics)
+        return left_only_topics, right_only_topics
+
+
+class DiffNode:
+
+    def __init__(
+        self,
+        left_node: NodeStructValue,
+        right_node: NodeStructValue
+    ):
+        self._left_node = left_node
+        self._right_node = right_node
+
+    def diff_node_pubs(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_pubs = set(self._left_node.publish_topic_names)
+        set_right_pubs = set(self._right_node.publish_topic_names)
+        common_node_pubs = set_left_pubs & set_right_pubs
+        left_only_pubs = tuple(set_left_pubs - common_node_pubs)
+        right_only_pubs = tuple(set_right_pubs - common_node_pubs)
+        return left_only_pubs, right_only_pubs
+
+    def diff_node_subs(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_subs = set(self._left_node.subscribe_topic_names)
+        set_right_subs = set(self._right_node.subscribe_topic_names)
+        common_node_subs = set_left_subs & set_right_subs
+        left_only_subs = tuple(set_left_subs - common_node_subs)
+        right_only_subs = tuple(set_right_subs - common_node_subs)
+        return left_only_subs, right_only_subs
+
+    def diff_node_callbacks(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        if self._left_node.callback_names is None:
+            set_left_callbacks = set()
+        else:
+            set_left_callbacks = set(self._left_node.callback_names)
+        if self._right_node.callback_names is None:
+            set_right_callbacks = set()
+        else:
+            set_right_callbacks = set(self._right_node.callback_names)
+
+        common_node_callbacks = set_left_callbacks & set_right_callbacks
+        left_only_callbacks = tuple(set_left_callbacks - common_node_callbacks)
+        right_only_callbacks = tuple(set_right_callbacks - common_node_callbacks)
+        return left_only_callbacks, right_only_callbacks
