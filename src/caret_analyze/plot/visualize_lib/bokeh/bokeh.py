@@ -275,13 +275,13 @@ class Bokeh(VisualizeLibInterface):
         title: str,
         ywheel_zoom: bool,
         xaxis_type: str,
-        yaxis_label: Optional[str] = None,
+        y_axis_label: Optional[str] = None,
     ) -> Figure:
         fig_args: Dict[str, Any] = {
             'frame_height': 270,
             'frame_width': 800,
             'title': title,
-            'y_axis_label': yaxis_label or ''
+            'y_axis_label': y_axis_label or ''
         }
 
         if xaxis_type == 'system_time':
