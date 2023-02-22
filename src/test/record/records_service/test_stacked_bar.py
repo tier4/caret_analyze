@@ -23,8 +23,10 @@ def create_records(data, columns):
     records = RecordsFactory.create_instance(data, [ColumnValue(column) for column in columns])
     return records
 
+
 def to_dict(records):
     return [record.data for record in records]
+
 
 def get_data_set():
     columns = [
@@ -47,11 +49,11 @@ def get_data_set():
     # #         | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
 
     expect_dict = {
-        '[worst - best] response time' : [1, 1, 1], # c1 - c0
-        '/columns_1'                   : [3, 3, 3], # c4 - c1
-        '/columns_4/callback_0'        : [1, 1, 1], # c5 - c4
-        '/columns_5'                   : [3, 3, 3], # c8 - c5
-        'start time'                   : [0, 1, 2], # c0
+        '[worst - best] response time': [1, 1, 1],  # c1 - c0
+        '/columns_1':                   [3, 3, 3],  # c4 - c1
+        '/columns_4/callback_0':        [1, 1, 1],  # c5 - c4
+        '/columns_5':                   [3, 3, 3],  # c8 - c5
+        'start time':                   [0, 1, 2],  # c0
     }
     expect_columns = [
         '[worst - best] response time',

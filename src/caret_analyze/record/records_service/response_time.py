@@ -19,8 +19,8 @@ from typing import Dict, Iterator, List, Optional, Sequence, Tuple
 import numpy as np
 
 from ..column import ColumnValue
-from ..interface import RecordsInterface, RecordInterface
-from ..record_factory import RecordsFactory, RecordFactory
+from ..interface import RecordInterface, RecordsInterface
+from ..record_factory import RecordFactory, RecordsFactory
 from ...exceptions import InvalidRecordsError
 
 

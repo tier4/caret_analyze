@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ..interface import RecordsInterface
-from ..record_factory import RecordsFactory
-from ..record import ColumnValue
-from .latency import Latency
-
-
 from typing import Dict, List
+
+from .latency import Latency
+from ..interface import RecordsInterface
+from ..record import ColumnValue
+from ..record_factory import RecordsFactory
+
 
 class StackedBar:
     def __init__(
@@ -38,7 +38,6 @@ class StackedBar:
         ValueError
             Error occurs if the records are empty.
         """
-
         # rename columns to nodes and topics granularity
         self._records = records
         self._diff_response_time_name = '[worst - best] response time'
@@ -52,7 +51,8 @@ class StackedBar:
 
         # add stacked bar data
         xlabel: str = 'start time'
-        x_axis_values: RecordsInterface = self._get_x_axis_values(renamed_records, self._diff_response_time_name, xlabel)
+        x_axis_values: RecordsInterface = \
+            self._get_x_axis_values(renamed_records, self._diff_response_time_name, xlabel)
         stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
         stacked_bar_records = \
             self._append_column_series(
@@ -83,9 +83,8 @@ class StackedBar:
         RecordsInterface
             Renamed records
         """
-
         for before, after in rename_map.items():
-            records.rename_columns({before : after})
+            records.rename_columns({before: after})
         return records
 
     def _get_rename_column_map(
@@ -105,7 +104,6 @@ class StackedBar:
         Dict[str, str]
             Names before and after changed.
         """
-
         rename_map: Dict[str, str] = {}
         end_word: str = '_min'
         for column in raw_columns:
@@ -143,10 +141,10 @@ class StackedBar:
         RecordsInterface
             Target column's records.
         """
-
         series = records.get_column_series(column)
-        record_dict = [{xlabel : _ } for _ in series]
-        record: RecordsInterface = RecordsFactory.create_instance(record_dict, [ColumnValue(xlabel)])
+        record_dict = [{xlabel: _} for _ in series]
+        record: RecordsInterface = \
+            RecordsFactory.create_instance(record_dict, [ColumnValue(xlabel)])
         return record
 
     def _to_stacked_bar_records(
@@ -169,7 +167,6 @@ class StackedBar:
         RecordsInterface
             Stacked bar records.
         """
-
         output_records: RecordsInterface = RecordsFactory.create_instance()
         record_size = len(records.data)
         for column in columns[:-1]:
@@ -209,8 +206,7 @@ class StackedBar:
         RecordsInterface
             Appended records.
         """
-
-        record_dict = [{column : t} for t in series]
+        record_dict = [{column: t} for t in series]
 
         if len(records.data) == 0:
             new_records: RecordsInterface = \
@@ -229,7 +225,6 @@ class StackedBar:
         Dict[str, List[int]]
             Stacked bar dict data.
         """
-
         return self._to_dict(self._stacked_bar_records)
 
     @staticmethod
