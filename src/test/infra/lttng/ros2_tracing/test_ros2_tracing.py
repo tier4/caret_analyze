@@ -34,7 +34,7 @@ class TestLttngInfo:
         data.add_callback_symbol(0, 0, 'symbol')
         data.add_lifecycle_state_machine(0, 0)
         data.add_lifecycle_state_transition(0, 'start', 'goal', 0)
-        data.add_callback_start_instance(0, 0, True)
+        data.add_callback_start_instance(0, 0, 0, True)
         data.add_callback_end_instance(0, 0)
         data.add_rclcpp_intra_publish_instance(0, 0, 0, 0, 0)
         data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)

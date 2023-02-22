@@ -465,6 +465,7 @@ class RecordsSource():
         )
         if 1 in self._grouped_callback_start:
             intra_callback_start = self._grouped_callback_start[1].clone()
+            intra_callback_start.drop_columns([COLUMN_NAME.TID])
             intra_proc_subscribe.concat(intra_callback_start)
         return intra_proc_subscribe
 
@@ -480,6 +481,7 @@ class RecordsSource():
         )
         if 0 in self._grouped_callback_start:
             intra_callback_start = self._grouped_callback_start[0].clone()
+            intra_callback_start.drop_columns([COLUMN_NAME.TID])
             intra_proc_subscribe.concat(intra_callback_start)
         return intra_proc_subscribe
 
