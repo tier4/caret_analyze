@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import datetime
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import List, Optional, Sequence, Union
 
 from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.plotting import Figure, figure
@@ -277,27 +277,24 @@ class Bokeh(VisualizeLibInterface):
         xaxis_type: str,
         y_axis_label: Optional[str] = None,
     ) -> Figure:
-        fig_args: Dict[str, Any] = {
-            'frame_height': 270,
-            'frame_width': 800,
-            'title': title,
-            'y_axis_label': y_axis_label or ''
-        }
-
         if xaxis_type == 'system_time':
-            fig_args['x_axis_label'] = 'system time [s]'
+            x_axis_label = 'system time [s]'
         elif xaxis_type == 'sim_time':
-            fig_args['x_axis_label'] = 'simulation time [s]'
+            x_axis_label = 'simulation time [s]'
         else:
-            fig_args['x_axis_label'] = xaxis_type
+            x_axis_label = xaxis_type
 
         if ywheel_zoom:
-            fig_args['active_scroll'] = 'wheel_zoom'
+            tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']
+            active_scroll = 'wheel_zoom'
         else:
-            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
-            fig_args['active_scroll'] = 'xwheel_zoom'
+            tools = ['xwheel_zoom', 'xpan', 'save', 'reset']
+            active_scroll = 'xwheel_zoom'
 
-        return figure(**fig_args)
+        return figure(
+            frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
+            x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
+        )
 
     @staticmethod
     def _apply_x_axis_offset(
