@@ -153,7 +153,7 @@ class StackedBar:
         columns: List[str],
     ) -> RecordsInterface:
         """
-        Caluculate stacked bar data.
+        Calculate stacked bar data.
 
         Parameters
         ----------
@@ -199,7 +199,7 @@ class StackedBar:
         series : List[int]
             Data to append.
         column : str
-            The column with appneded data.
+            The column with appended data.
 
         Returns
         -------
