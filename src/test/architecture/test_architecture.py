@@ -1026,133 +1026,136 @@ class TestDiff:
     def test_diff_node_names(self, mocker):
         architecture_mock1 = mocker.Mock(spec=Architecture)
         architecture_mock2 = mocker.Mock(spec=Architecture)
-        mocker.patch.object(architecture_mock1,
-                            'node_names',
-                            ('drive_node', 'actuator_dummy_node'))
-        mocker.patch.object(architecture_mock2,
-                            'node_names',
-                            ('drive_node', 'filter_node', 'message_driven_node'))
-        name1, name2 = Architecture.diff_node_names(architecture_mock1, architecture_mock2)
-        assert name1 == ('actuator_dummy_node',)
-        assert name2 == ('filter_node', 'message_driven_node') or \
-               name2 == ('message_driven_node', 'filter_node')
+        mocker.patch.object(architecture_mock1, 'node_names', ('node1', 'node2'))
+        mocker.patch.object(architecture_mock2, 'node_names', ('node1', 'node3', 'node4'))
+        node_names_in_mock1, node_names_in_mock2 = \
+            Architecture.diff_node_names(architecture_mock1, architecture_mock2)
+        assert node_names_in_mock1 == ('node2',)
+        assert sorted(node_names_in_mock2) == sorted(('node3', 'node4'))
 
-        mocker.patch.object(architecture_mock1, 'node_names', ('drive_node',))
+        mocker.patch.object(architecture_mock1, 'node_names', ('node1',))
         mocker.patch.object(architecture_mock2, 'node_names', ())
-        name1, name2 = Architecture.diff_node_names(architecture_mock1, architecture_mock2)
-        assert name1 == ('drive_node',)
-        assert name2 == ()
+        node_names_in_mock1, node_names_in_mock2 = \
+            Architecture.diff_node_names(architecture_mock1, architecture_mock2)
+        assert node_names_in_mock1 == ('node1',)
+        assert node_names_in_mock2 == ()
 
         mocker.patch.object(architecture_mock1, 'node_names', ())
-        mocker.patch.object(architecture_mock2, 'node_names', ('drive_node', ))
-        name1, name2 = Architecture.diff_node_names(architecture_mock1, architecture_mock2)
-        assert name1 == ()
-        assert name2 == ('drive_node',)
+        mocker.patch.object(architecture_mock2, 'node_names', ('node1',))
+        node_names_in_mock1, node_names_in_mock2 = \
+            Architecture.diff_node_names(architecture_mock1, architecture_mock2)
+        assert node_names_in_mock1 == ()
+        assert node_names_in_mock2 == ('node1',)
 
-    def test_diff_node_topics(self, mocker):
+    def test_diff_topic_names(self, mocker):
         architecture_mock1 = mocker.Mock(spec=Architecture)
         architecture_mock2 = mocker.Mock(spec=Architecture)
         mocker.patch.object(architecture_mock1, 'topic_names', ('topic1', 'topic2'))
         mocker.patch.object(architecture_mock2, 'topic_names', ('topic1', 'topic3', 'topic4'))
-        topic_1, topic_2 = Architecture.diff_node_topics(architecture_mock1, architecture_mock2)
-        assert topic_1 == ('topic2',)
-        assert topic_2 == ('topic3', 'topic4') or \
-               topic_2 == ('topic4', 'topic3')
+        topics_in_mock1, topics_in_mock2 = \
+            Architecture.diff_topic_names(architecture_mock1, architecture_mock2)
+        assert topics_in_mock1 == ('topic2',)
+        assert sorted(topics_in_mock2) == sorted(('topic3', 'topic4'))
 
         mocker.patch.object(architecture_mock1, 'topic_names', ('topic1',))
         mocker.patch.object(architecture_mock2, 'topic_names', ())
-        topic_1, topic_2 = Architecture.diff_node_topics(architecture_mock1, architecture_mock2)
-        assert topic_1 == ('topic1',)
-        assert topic_2 == ()
+        topics_in_mock1, topics_in_mock2 = \
+            Architecture.diff_topic_names(architecture_mock1, architecture_mock2)
+        assert topics_in_mock1 == ('topic1',)
+        assert topics_in_mock2 == ()
 
         mocker.patch.object(architecture_mock1, 'topic_names', ())
         mocker.patch.object(architecture_mock2, 'topic_names', ('topic1',))
-        topic_1, topic_2 = Architecture.diff_node_topics(architecture_mock1, architecture_mock2)
-        assert topic_1 == ()
-        assert topic_2 == ('topic1',)
+        topics_in_mock1, topics_in_mock2 = \
+            Architecture.diff_topic_names(architecture_mock1, architecture_mock2)
+        assert topics_in_mock1 == ()
+        assert topics_in_mock2 == ('topic1',)
 
     def test_diff_node_pubs(self, mocker):
         node_mock1 = mocker.Mock(spec=NodeStructValue)
         node_mock2 = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock1, 'publish_topic_names', ('topic1', 'topic2'))
         mocker.patch.object(node_mock2, 'publish_topic_names', ('topic1', 'topic3', 'topic4'))
-        pub1, pub2 = Architecture.diff_node_pubs(node_mock1, node_mock2)
-        assert pub1 == ('topic2',)
-        assert pub2 == ('topic3', 'topic4') or \
-               pub2 == ('topic4', 'topic3')
+        pubs_in_mock1, pubs_in_mock2 = Architecture.diff_node_pubs(node_mock1, node_mock2)
+        assert pubs_in_mock1 == ('topic2',)
+        assert sorted(pubs_in_mock2) == sorted(('topic3', 'topic4'))
 
         mocker.patch.object(node_mock1, 'publish_topic_names', ('topic1',))
         mocker.patch.object(node_mock2, 'publish_topic_names', ())
-        pub1, pub2 = Architecture.diff_node_pubs(node_mock1, node_mock2)
-        assert pub1 == ('topic1',)
-        assert pub2 == ()
+        pubs_in_mock1, pubs_in_mock2 = Architecture.diff_node_pubs(node_mock1, node_mock2)
+        assert pubs_in_mock1 == ('topic1',)
+        assert pubs_in_mock2 == ()
 
         mocker.patch.object(node_mock1, 'publish_topic_names', ())
         mocker.patch.object(node_mock2, 'publish_topic_names', ('topic1',))
-        pub1, pub2 = Architecture.diff_node_pubs(node_mock1, node_mock2)
-        assert pub1 == ()
-        assert pub2 == ('topic1',)
+        pubs_in_mock1, pubs_in_mock2 = Architecture.diff_node_pubs(node_mock1, node_mock2)
+        assert pubs_in_mock1 == ()
+        assert pubs_in_mock2 == ('topic1',)
 
     def test_diff_node_subs(self, mocker):
         node_mock1 = mocker.Mock(spec=NodeStructValue)
         node_mock2 = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_mock1, 'subscribe_topic_names', ('topic1', 'topic2'))
         mocker.patch.object(node_mock2, 'subscribe_topic_names', ('topic1', 'topic3', 'topic4'))
-        sub1, sub2 = Architecture.diff_node_subs(node_mock1, node_mock2)
-        assert sub1 == ('topic2',)
-        assert sub2 == ('topic3', 'topic4') or \
-               sub2 == ('topic4', 'topic3')
+        subs_in_mock1, subs_in_mock2 = Architecture.diff_node_subs(node_mock1, node_mock2)
+        assert subs_in_mock1 == ('topic2',)
+        assert sorted(subs_in_mock2) == sorted(('topic3', 'topic4'))
 
         mocker.patch.object(node_mock1, 'subscribe_topic_names', ('topic1',))
         mocker.patch.object(node_mock2, 'subscribe_topic_names', ())
-        sub1, sub2 = Architecture.diff_node_subs(node_mock1, node_mock2)
-        assert sub1 == ('topic1',)
-        assert sub2 == ()
+        subs_in_mock1, subs_in_mock2 = Architecture.diff_node_subs(node_mock1, node_mock2)
+        assert subs_in_mock1 == ('topic1',)
+        assert subs_in_mock2 == ()
 
         mocker.patch.object(node_mock1, 'subscribe_topic_names', ())
         mocker.patch.object(node_mock2, 'subscribe_topic_names', ('topic1',))
-        sub1, sub2 = Architecture.diff_node_subs(node_mock1, node_mock2)
-        assert sub1 == ()
-        assert sub2 == ('topic1',)
+        subs_in_mock1, subs_in_mock2 = Architecture.diff_node_subs(node_mock1, node_mock2)
+        assert subs_in_mock1 == ()
+        assert subs_in_mock2 == ('topic1',)
 
     def test_diff_node_callbacks(self, mocker):
         node_mock1 = mocker.Mock(spec=NodeStructValue)
         node_mock2 = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_mock1, 'callback_names', ('callback_0', 'callback_1'))
+        mocker.patch.object(node_mock1, 'callback_names', ('callback1', 'callback2'))
         mocker.patch.object(node_mock2,
                             'callback_names',
-                            ('callback_0', 'callback_2', 'callback_3'))
-        cb1, cb2 = Architecture.diff_node_callbacks(node_mock1, node_mock2)
-        assert cb1 == ('callback_1',)
-        assert cb2 == ('callback_2', 'callback_3') or \
-               cb2 == ('callback_3', 'callback_2')
+                            ('callback1', 'callback3', 'callback4'))
+        callbacks_in_mock1, callbacks_in_mock2 = \
+            Architecture.diff_node_callbacks(node_mock1, node_mock2)
+        assert callbacks_in_mock1 == ('callback2',)
+        assert sorted(callbacks_in_mock2) == sorted(('callback3', 'callback4'))
 
-        mocker.patch.object(node_mock1, 'callback_names', ('callback_0',))
+        mocker.patch.object(node_mock1, 'callback_names', ('callback1',))
         mocker.patch.object(node_mock2, 'callback_names', ())
-        cb1, cb2 = Architecture.diff_node_callbacks(node_mock1, node_mock2)
-        assert cb1 == ('callback_0',)
-        assert cb2 == ()
+        callbacks_in_mock1, callbacks_in_mock2 = \
+            Architecture.diff_node_callbacks(node_mock1, node_mock2)
+        assert callbacks_in_mock1 == ('callback1',)
+        assert callbacks_in_mock2 == ()
 
         mocker.patch.object(node_mock1, 'callback_names', ())
-        mocker.patch.object(node_mock2, 'callback_names', ('callback_0',))
-        cb1, cb2 = Architecture.diff_node_callbacks(node_mock1, node_mock2)
-        assert cb1 == ()
-        assert cb2 == ('callback_0',)
+        mocker.patch.object(node_mock2, 'callback_names', ('callback1',))
+        callbacks_in_mock1, callbacks_in_mock2 = \
+            Architecture.diff_node_callbacks(node_mock1, node_mock2)
+        assert callbacks_in_mock1 == ()
+        assert callbacks_in_mock2 == ('callback1',)
 
-        mocker.patch.object(node_mock1, 'callback_names', ('callback_0',))
+        mocker.patch.object(node_mock1, 'callback_names', ('callback1',))
         mocker.patch.object(node_mock2, 'callback_names', None)
-        cb1, cb2 = Architecture.diff_node_callbacks(node_mock1, node_mock2)
-        assert cb1 == ('callback_0',)
-        assert cb2 == ()
+        callbacks_in_mock1, callbacks_in_mock2 = \
+            Architecture.diff_node_callbacks(node_mock1, node_mock2)
+        assert callbacks_in_mock1 == ('callback1',)
+        assert callbacks_in_mock2 == ()
 
         mocker.patch.object(node_mock1, 'callback_names', None)
-        mocker.patch.object(node_mock2, 'callback_names', ('callback_0',))
-        cb1, cb2 = Architecture.diff_node_callbacks(node_mock1, node_mock2)
-        assert cb1 == ()
-        assert cb2 == ('callback_0',)
+        mocker.patch.object(node_mock2, 'callback_names', ('callback1',))
+        callbacks_in_mock1, callbacks_in_mock2 = \
+            Architecture.diff_node_callbacks(node_mock1, node_mock2)
+        assert callbacks_in_mock1 == ()
+        assert callbacks_in_mock2 == ('callback1',)
 
         mocker.patch.object(node_mock1, 'callback_names', None)
         mocker.patch.object(node_mock2, 'callback_names', None)
-        cb1, cb2 = Architecture.diff_node_callbacks(node_mock1, node_mock2)
-        assert cb1 == ()
-        assert cb2 == ()
+        callbacks_in_mock1, callbacks_in_mock2 = \
+            Architecture.diff_node_callbacks(node_mock1, node_mock2)
+        assert callbacks_in_mock1 == ()
+        assert callbacks_in_mock2 == ()

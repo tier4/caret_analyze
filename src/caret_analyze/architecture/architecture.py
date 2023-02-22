@@ -468,17 +468,17 @@ class Architecture(Summarizable):
 
     @staticmethod
     def diff_node_names(
-            left_arch: Architecture,
-            right_arch: Architecture
+        left_arch: Architecture,
+        right_arch: Architecture
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
         return DiffArchitecture(left_arch, right_arch).diff_node_names()
 
     @staticmethod
-    def diff_node_topics(
+    def diff_topic_names(
         left_arch: Architecture,
         right_arch: Architecture
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        return DiffArchitecture(left_arch, right_arch).diff_node_topics()
+        return DiffArchitecture(left_arch, right_arch).diff_topic_names()
 
     @staticmethod
     def diff_node_pubs(
@@ -573,7 +573,7 @@ class DiffArchitecture:
         right_only_names = tuple(set_right_node_names - common_node_names)
         return left_only_names, right_only_names
 
-    def diff_node_topics(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    def diff_topic_names(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
         set_left_topics = set(self._left_arch.topic_names)
         set_right_topics = set(self._right_arch.topic_names)
         common_node_topics = set_left_topics & set_right_topics
