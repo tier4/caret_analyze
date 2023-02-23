@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 from .latency import Latency
 from ..interface import RecordsInterface
@@ -37,6 +37,7 @@ class StackedBar:
         ------
         ValueError
             Error occurs if the records are empty.
+
         """
         # rename columns to nodes and topics granularity
         self._records = records
@@ -54,10 +55,12 @@ class StackedBar:
         x_axis_values: RecordsInterface = \
             self._get_x_axis_values(renamed_records, self._diff_response_time_name, xlabel)
         stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
+        series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
+        series_list: List[int] = self._convert_sequence_to_list(series_seq)
         stacked_bar_records = \
             self._append_column_series(
                 stacked_bar_records,
-                x_axis_values.get_column_series(xlabel),
+                series_list,
                 xlabel,
             )
         self._stacked_bar_records = stacked_bar_records
@@ -82,6 +85,7 @@ class StackedBar:
         -------
         RecordsInterface
             Renamed records
+
         """
         for before, after in rename_map.items():
             records.rename_columns({before: after})
@@ -103,6 +107,7 @@ class StackedBar:
         -------
         Dict[str, str]
             Names before and after changed.
+
         """
         rename_map: Dict[str, str] = {}
         end_word: str = '_min'
@@ -140,6 +145,7 @@ class StackedBar:
         -------
         RecordsInterface
             Target column's records.
+
         """
         series = records.get_column_series(column)
         record_dict = [{xlabel: _} for _ in series]
@@ -166,6 +172,7 @@ class StackedBar:
         -------
         RecordsInterface
             Stacked bar records.
+
         """
         output_records: RecordsInterface = RecordsFactory.create_instance()
         record_size = len(records.data)
@@ -177,9 +184,10 @@ class StackedBar:
             assert record_size == len(latency_handler.to_records())
 
             latency_records = latency_handler.to_records()
-            latency = latency_records.get_column_series('latency')
+            latency_seq: Sequence[int | None] = latency_records.get_column_series('latency')
+            latency_list: List[int] = self._convert_sequence_to_list(latency_seq)
 
-            output_records = self._append_column_series(output_records, list(latency), column_from)
+            output_records = self._append_column_series(output_records, latency_list, column_from)
 
         return output_records
 
@@ -205,6 +213,7 @@ class StackedBar:
         -------
         RecordsInterface
             Appended records.
+
         """
         record_dict = [{column: t} for t in series]
 
@@ -224,11 +233,11 @@ class StackedBar:
         -------
         Dict[str, List[int]]
             Stacked bar dict data.
+
         """
         return self._to_dict(self._stacked_bar_records)
 
-    @staticmethod
-    def _to_dict(records: RecordsInterface) -> Dict[str, List[int]]:
+    def _to_dict(self, records: RecordsInterface) -> Dict[str, List[int]]:
         """
         Generate dict from records.
 
@@ -246,8 +255,17 @@ class StackedBar:
         columns = records.columns
         output_dict: Dict[str, List[int]] = {}
         for column in columns:
-            output_dict[column] = records.get_column_series(column)
+            series_seq: Sequence[int | None] = records.get_column_series(column)
+            series_list: List[int] = self._convert_sequence_to_list(series_seq)
+            output_dict[column] = series_list
         return output_dict
+
+    @staticmethod
+    def _convert_sequence_to_list(
+        seq: Sequence[int | None],
+    ) -> List[int]:
+        assert not any(x is None for x in seq)
+        return [x for x in seq if x is not None]
 
     @property
     def columns(self) -> List[str]:

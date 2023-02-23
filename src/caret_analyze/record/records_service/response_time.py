@@ -25,7 +25,7 @@ from ...exceptions import InvalidRecordsError
 
 
 class TimeRange:
-    """Class that holds minimum and maximum values."""
+    """Class that holds records and minimum values."""
 
     def __init__(
         self,
@@ -40,8 +40,10 @@ class TimeRange:
         ----------
         min_value : int
             minimum value.
-        max_value : int
-            maximum value.
+        record : RecordInterface
+            target record.
+        input_column : str
+            input column (first column).
 
         """
         self._min = min_value
@@ -80,8 +82,9 @@ class TimeRange:
 
         Parameters
         ----------
-        value : int
-            value to apply.
+        record : RecordInterface
+            record to apply.
+            latest reroced is valid.
 
         """
         input_value = record.get(self._column)
