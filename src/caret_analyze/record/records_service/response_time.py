@@ -84,7 +84,7 @@ class TimeRange:
         ----------
         record : RecordInterface
             record to apply.
-            latest reroced is valid.
+            latest record is valid.
 
         """
         input_value = record.get(self._column)
