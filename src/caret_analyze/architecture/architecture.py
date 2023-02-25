@@ -471,6 +471,18 @@ class Architecture(Summarizable):
         left_arch: Architecture,
         right_arch: Architecture
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two architecture objects (: left_arch, right_arch) and returns\
+        the node names that exist only in the respective architectures.
+
+        Parameters
+        ----------
+        left_arch : Architecture
+            Architecture object
+        right_arch : Architecture
+            Architecture object
+
+        """
         return DiffArchitecture(left_arch, right_arch).diff_node_names()
 
     @staticmethod
@@ -478,6 +490,18 @@ class Architecture(Summarizable):
         left_arch: Architecture,
         right_arch: Architecture
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two architecture objects (: left_arch, right_arch) and returns\
+        pub/sub topic names that exist only in the respective architectures.
+
+        Parameters
+        ----------
+        left_arch : Architecture
+            Architecture object
+        right_arch : Architecture
+            Architecture object
+
+        """
         return DiffArchitecture(left_arch, right_arch).diff_topic_names()
 
     @staticmethod
@@ -485,6 +509,18 @@ class Architecture(Summarizable):
         left_node: NodeStructValue,
         right_node: NodeStructValue
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two node objects (: left_node, right_node) and returns\
+        the publish topic names that exists only in the respective nodes.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture
+        right_node : NodeStructValue
+            Node in architecture
+
+        """
         return DiffNode(left_node, right_node).diff_node_pubs()
 
     @staticmethod
@@ -492,6 +528,18 @@ class Architecture(Summarizable):
         left_node: NodeStructValue,
         right_node: NodeStructValue
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two node objects (: left_node, right_node) and returns\
+        the subscribe topic names that exists only in the respective nodes.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture
+        right_node : NodeStructValue
+            Node in architecture
+
+        """
         return DiffNode(left_node, right_node).diff_node_subs()
 
     @staticmethod
@@ -499,6 +547,18 @@ class Architecture(Summarizable):
         left_node: NodeStructValue,
         right_node: NodeStructValue
     ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two node objects (: left_node, right_node) and returns\
+        the callback names that exists only in the respective nodes.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture
+        right_node : NodeStructValue
+            Node in architecture
+
+        """
         return DiffNode(left_node, right_node).diff_node_callbacks()
 
 
