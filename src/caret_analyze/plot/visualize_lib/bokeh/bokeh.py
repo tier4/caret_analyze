@@ -22,9 +22,10 @@ from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.plotting import Figure, figure
 import pandas as pd
 
-from .bokeh_source import (CallbackSchedBarSource, CallbackSchedRectSource, LegendManager,
-                           LineSource)
+from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
 from .color_selector import ColorSelectorFactory
+from .legend import LegendManager
+from .timeseries_source import LineSource
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....common import Util
@@ -122,7 +123,7 @@ class Bokeh(VisualizeLibInterface):
             frame_min = clip.min_ns
             frame_max = clip.max_ns
         x_range_name = 'x_plot_axis'
-        self._apply_x_axis_offset(p, x_range_name, frame_min, frame_max)
+        self._apply_x_axis_offset(p, frame_min, frame_max, x_range_name)
 
         # Draw callback scheduling
         color_selector = ColorSelectorFactory.create_instance(coloring_rule)
@@ -270,7 +271,7 @@ class Bokeh(VisualizeLibInterface):
         records_range = Range([to.to_records() for to in target_objects])
         frame_min, frame_max = records_range.get_range()
         if xaxis_type == 'system_time':
-            self._apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
+            self._apply_x_axis_offset(p, frame_min, frame_max)
 
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
@@ -301,27 +302,49 @@ class Bokeh(VisualizeLibInterface):
     @staticmethod
     def _apply_x_axis_offset(
         fig: Figure,
-        x_range_name: str,
         min_ns: float,
-        max_ns: float
+        max_ns: float,
+        x_range_name: str = ''
     ) -> None:
+        """
+        Apply an offset to the x-axis of the graph.
+
+        Datetime is displayed instead of UNIX time for zero point.
+
+        Parameters
+        ----------
+        fig : Figure
+            Target figure.
+        min_ns : float
+            Minimum UNIX time.
+        max_ns : float
+            Maximum UNIX time.
+        x_range_name : str, optional
+            Name of the actual range, by default ''.
+            Specify this if you want to refer to the actual range later.
+
+        """
+        # Initialize variables
         offset_s = min_ns*1.0e-9
         end_s = (max_ns-min_ns)*1.0e-9
+        actual_range = Range1d(start=min_ns, end=max_ns)
+        applied_range = Range1d(start=0, end=end_s)
 
-        fig.extra_x_ranges = {x_range_name: Range1d(start=min_ns, end=max_ns)}
+        # Set ranges
+        fig.extra_x_ranges = {x_range_name: actual_range}
+        fig.x_range = applied_range
 
+        # Add xaxis for actual_range
         xaxis = LinearAxis(x_range_name=x_range_name)
         xaxis.visible = False  # type: ignore
-
-        ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
-        fig.xaxis.ticker = ticker
         fig.add_layout(xaxis, 'below')
+        fig.xaxis.ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
 
-        fig.x_range = Range1d(start=0, end=end_s)
-
+        # Add xgrid
         fig.xgrid.minor_grid_line_color = 'black'
         fig.xgrid.minor_grid_line_alpha = 0.1
 
+        # Replace 0 with datetime of offset_s
         datetime_s = datetime.datetime.fromtimestamp(offset_s).strftime('%Y-%m-%d %H:%M:%S')
         fig.xaxis.major_label_overrides = {0: datetime_s}
 
