@@ -67,7 +67,7 @@ class NodePath(PathBase, Summarizable):
         self._pub = publisher
         self._sub = subscription
         self._callbacks = callbacks
-        self._pub_partial_records_cache: Optional[RecordsInterface] = None
+        self._path_beginning_records_cache: Optional[RecordsInterface] = None
 
     @property
     def node_name(self) -> str:
@@ -210,10 +210,10 @@ class NodePath(PathBase, Summarizable):
         return self._val.subscribe_topic_name
 
     def clear_cache(self) -> None:
-        self._pub_partial_records_cache = None
+        self._path_beginning_records_cache = None
         return super().clear_cache()
 
-    def to_pub_partial_records(self) -> RecordsInterface:
+    def to_path_beginning_records(self) -> RecordsInterface:
         """
         Calculate records from last callback to publish.
 
@@ -223,19 +223,19 @@ class NodePath(PathBase, Summarizable):
             Execution time of each operation.
 
         """
-        return self._pub_partial_records.clone()
+        return self._path_beginning_records.clone()
 
     @property
-    def _pub_partial_records(self) -> RecordsInterface:
-        if self._pub_partial_records_cache is None:
+    def _path_beginning_records(self) -> RecordsInterface:
+        if self._path_beginning_records_cache is None:
             try:
-                self._pub_partial_records_cache = self._to_pub_partial_records_core()
+                self._path_beginning_records_cache = self._to_pub_partial_records_core()
             except Error as e:
                 logger.warning(e)
-                self._pub_partial_records_cache = RecordsFactory.create_instance()
+                self._path_beginning_records_cache = RecordsFactory.create_instance()
 
-        assert self._pub_partial_records_cache is not None
-        return self._pub_partial_records_cache
+        assert self._path_beginning_records_cache is not None
+        return self._path_beginning_records_cache
 
     def _to_pub_partial_records_core(self) -> RecordsInterface:
         """

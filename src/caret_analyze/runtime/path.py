@@ -120,7 +120,7 @@ class RecordsMerged:
 
         column_merger = ColumnMerger()
         if isinstance(targets[0], NodePath):
-            first_element = targets[0].to_pub_partial_records()
+            first_element = targets[0].to_path_beginning_records()
         else:
             if len(targets[0].to_records().data) == 0:
                 targets = targets[1:]

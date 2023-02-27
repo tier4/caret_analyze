@@ -230,7 +230,7 @@ class TestRecordsMerged:
     def test_merge_partial_records(self, mocker):
         node_path = mocker.Mock(spec=NodePath)
         mocker.patch.object(
-            node_path, 'to_pub_partial_records',
+            node_path, 'to_path_beginning_records',
             return_value=Records(
                 [
                     Record({
@@ -313,7 +313,7 @@ class TestRecordsMerged:
         node_path = mocker.Mock(spec=NodePath)
 
         mocker.patch.object(
-            node_path, 'to_pub_partial_records',
+            node_path, 'to_path_beginning_records',
             return_value=Records(
                 [
                     Record({
@@ -437,7 +437,7 @@ class TestRecordsMerged:
             return_value=cb_records.clone()
         )
         mocker.patch.object(
-            node_path_0, 'to_pub_partial_records',
+            node_path_0, 'to_path_beginning_records',
             return_value=cb_records.clone()
         )
         node_path_1 = mocker.Mock(spec=NodePath)
