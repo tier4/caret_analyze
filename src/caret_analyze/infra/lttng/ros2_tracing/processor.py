@@ -496,7 +496,7 @@ class Ros2Handler():
 
         # Add to dict
         callback = get_field(event, 'callback')
-        tid = get_field(event, 'tid')
+        tid = get_field(event, '_vtid')
         timestamp = get_field(event, '_timestamp')
         is_intra_process = get_field(event, 'is_intra_process')
         self.data.add_callback_start_instance(

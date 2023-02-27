@@ -721,3 +721,8 @@ class Lttng(InfraBase):
         self,
     ) -> RecordsInterface:
         return self._source.tilde_subscribe_records.clone()
+
+    def compose_callback_start_to_publish_records(
+        self
+    ) -> RecordsInterface:
+        return self._source.callback_start_to_publish_records.clone()

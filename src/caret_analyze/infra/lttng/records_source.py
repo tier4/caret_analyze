@@ -668,5 +668,49 @@ class RecordsSource():
         return records
 
     @cached_property
+    def callback_start_to_publish_records(self) -> RecordsInterface:
+        """
+        Compose callback records.
+
+        Used tracepoints
+        - callback_start
+        - rclcpp_publish
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - callback_start_timestamp
+            - rclcpp_publish_timestamp
+            - callback_object
+            - publisher_object
+
+        """
+        records: RecordsInterface
+
+        records = merge_sequential(
+            left_records=self._data.callback_start_instances,
+            right_records=self._data.rclcpp_publish_instances,
+            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            columns=[
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_OBJECT,
+                COLUMN_NAME.PUBLISHER_HANDLE,
+            ],
+            how='left_use_latest',
+            progress_label='binding: callback_start and rclcpp_publish'
+        )
+
+        records.rename_columns(
+            {COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}
+        )
+
+        return records
+
+    @cached_property
     def system_and_sim_times(self) -> RecordsInterface:
         return self._data.sim_time

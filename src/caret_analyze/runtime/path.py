@@ -119,10 +119,14 @@ class RecordsMerged:
         logger.info('Started merging path records.')
 
         column_merger = ColumnMerger()
-        if len(targets[0].to_records().data) == 0:
-            targets = targets[1:]
+        if isinstance(targets[0], NodePath):
+            first_element = targets[0].to_pub_partial_records()
+        else:
+            if len(targets[0].to_records().data) == 0:
+                targets = targets[1:]
 
-        first_element = targets[0].to_records()
+            first_element = targets[0].to_records()
+
         left_records = first_element
 
         rename_rule = column_merger.append_columns_and_return_rename_rule(
@@ -153,7 +157,7 @@ class RecordsMerged:
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
-            right_records.drop_columns([left_records.columns[0]])
+            right_records.drop_columns([left_records.columns[0]])  # avoid conflict column name?
             right_stamp_key = right_records.columns[0]
 
             logger.info(

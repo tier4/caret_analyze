@@ -145,10 +145,92 @@ class TestRecordsMerged:
         with pytest.raises(InvalidArgumentError):
             RecordsMerged([])
 
-    def test_merge_two_records(self, mocker):
+    # def test_merge_two_records(self, mocker):
+    #     node_path = mocker.Mock(spec=NodePath)
+    #     mocker.patch.object(
+    #         node_path, 'to_records',
+    #         return_value=Records(
+    #             [
+    #                 Record({
+    #                     'callback_start': 0, 'xxx': 1, 'pub': 2
+    #                 }),
+    #             ],
+    #             [
+    #                 ColumnValue('callback_start'),
+    #                 ColumnValue('xxx'),
+    #                 ColumnValue('pub'),
+    #             ]
+    #         )
+    #     )
+
+    #     comm_path = mocker.Mock(spec=Communication)
+    #     mocker.patch.object(
+    #         comm_path, 'to_records',
+    #         return_value=Records(
+    #             [
+    #                 Record({'pub': 2, 'write': 4,
+    #                         'read': 5, 'callback_start': 6}),
+    #             ],
+    #             [
+    #                 ColumnValue('pub'),
+    #                 ColumnValue('write'),
+    #                 ColumnValue('read'),
+    #                 ColumnValue('callback_start'),
+    #             ]
+    #         )
+    #     )
+
+    #     # cb_mock = mocker.Mock(spec=Records)
+    #     # comm_mock = mocker.Mock(spec=PathElement)
+
+    #     # mocker.patch.object(cb_mock, 'to_records', side_effect=lambda: cb_records.clone())
+    #     # mocker.patch.object(comm_mock, 'to_records', side_effect=lambda: comm_records.clone())
+
+    #     merger_mock = mocker.Mock(spec=ColumnMerger)
+    #     mocker.patch('caret_analyze.runtime.path.ColumnMerger',
+    #                  return_value=merger_mock)
+
+    #     def append_columns_and_return_rename_rule(records):
+    #         if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
+    #             return {
+    #                 'callback_start': 'callback_start/0', 'xxx': 'xxx/0', 'pub': 'pub/0'
+    #             }
+    #         if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
+    #             return {
+    #                 'pub': 'pub/0',
+    #                 'write': 'write/0',
+    #                 'read': 'read/0',
+    #                 'callback_start': 'callback_start/1'
+    #             }
+    #     mocker.patch.object(
+    #         merger_mock, 'append_columns_and_return_rename_rule',
+    #         side_effect=append_columns_and_return_rename_rule)
+
+    #     merged = RecordsMerged([node_path, comm_path])
+    #     records = merged.data
+    #     expected = Records(
+    #         [
+    #             Record({
+    #                 'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
+    #                 'write/0': 4, 'read/0': 5, 'callback_start/1': 6
+    #             }),
+    #         ],
+    #         [
+    #             ColumnValue('callback_start/0'),
+    #             ColumnValue('xxx/0'),
+    #             ColumnValue('pub/0'),
+    #             ColumnValue('write/0'),
+    #             ColumnValue('read/0'),
+    #             ColumnValue('callback_start/1'),
+    #         ]
+    #     )
+
+    #     assert records.equals(expected)
+
+    def test_merge_partial_records(self, mocker):
         node_path = mocker.Mock(spec=NodePath)
         mocker.patch.object(
-            node_path, 'to_records',
+            node_path, 'to_pub_partial_records',
             return_value=Records(
                 [
                     Record({
@@ -227,6 +309,113 @@ class TestRecordsMerged:
 
         assert records.equals(expected)
 
+    def test_merge_records(self, mocker):
+        node_path = mocker.Mock(spec=NodePath)
+
+        mocker.patch.object(
+            node_path, 'to_pub_partial_records',
+            return_value=Records(
+                [
+                    Record({
+                        'callback_start': 0, 'xxx': 1, 'pub': 2
+                    }),
+                ],
+                [
+                    ColumnValue('callback_start'),
+                    ColumnValue('xxx'),
+                    ColumnValue('pub'),
+                ]
+            )
+        )
+
+        mocker.patch.object(
+            node_path, 'to_records',
+            return_value=Records(
+                [
+                    Record({
+                        'callback_start': 6, 'xxx': 7, 'pub': 8
+                    }),
+                ],
+                [
+                    ColumnValue('callback_start'),
+                    ColumnValue('xxx'),
+                    ColumnValue('pub'),
+                ]
+            )
+        )
+
+        comm_path = mocker.Mock(spec=Communication)
+        mocker.patch.object(
+            comm_path, 'to_records',
+            return_value=Records(
+                [
+                    Record({'pub': 2, 'write': 4,
+                            'read': 5, 'callback_start': 6}),
+                ],
+                [
+                    ColumnValue('pub'),
+                    ColumnValue('write'),
+                    ColumnValue('read'),
+                    ColumnValue('callback_start'),
+                ]
+            )
+        )
+
+        # cb_mock = mocker.Mock(spec=Records)
+        # comm_mock = mocker.Mock(spec=PathElement)
+
+        # mocker.patch.object(cb_mock, 'to_records', side_effect=lambda: cb_records.clone())
+        # mocker.patch.object(comm_mock, 'to_records', side_effect=lambda: comm_records.clone())
+
+        merger_mock = mocker.Mock(spec=ColumnMerger)
+        mocker.patch('caret_analyze.runtime.path.ColumnMerger',
+                     return_value=merger_mock)
+
+        def append_columns_and_return_rename_rule(records):
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 1:
+                return {
+                    'callback_start': 'callback_start/0', 'xxx': 'xxx/0', 'pub': 'pub/0'
+                }
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 2:
+                return {
+                    'pub': 'pub/0',
+                    'write': 'write/0',
+                    'read': 'read/0',
+                    'callback_start': 'callback_start/1'
+                }
+            if merger_mock.append_columns_and_return_rename_rule.call_count == 3:
+                return {
+                    'callback_start': 'callback_start/1', 'xxx': 'xxx/1', 'pub': 'pub/1'
+                }
+        mocker.patch.object(
+            merger_mock, 'append_columns_and_return_rename_rule',
+            side_effect=append_columns_and_return_rename_rule)
+
+        merged = RecordsMerged([node_path, comm_path, node_path])
+        records = merged.data
+        expected = Records(
+            [
+                Record({
+                    'callback_start/0': 0, 'xxx/0': 1, 'pub/0': 2,
+                    'write/0': 4, 'read/0': 5,
+                    'callback_start/1': 6, 'xxx/1': 7, 'pub/1': 8,
+                }),
+            ],
+            [
+                ColumnValue('callback_start/0'),
+                ColumnValue('xxx/0'),
+                ColumnValue('pub/0'),
+                ColumnValue('write/0'),
+                ColumnValue('read/0'),
+                ColumnValue('callback_start/1'),
+                ColumnValue('xxx/1'),
+                ColumnValue('pub/1'),
+            ]
+        )
+
+        assert records.equals(expected)
+
+
     def test_loop_case(self, mocker):
         cb_records = Records(
             [
@@ -246,6 +435,10 @@ class TestRecordsMerged:
         node_path_0 = mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path_0, 'to_records',
+            return_value=cb_records.clone()
+        )
+        mocker.patch.object(
+            node_path_0, 'to_pub_partial_records',
             return_value=cb_records.clone()
         )
         node_path_1 = mocker.Mock(spec=NodePath)

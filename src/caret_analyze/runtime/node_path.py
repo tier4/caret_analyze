@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from logging import getLogger
 from typing import List, Optional
 
 from .callback import CallbackBase
@@ -19,9 +20,12 @@ from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
 from ..common import Summarizable, Summary
+from ..exceptions import Error
 from ..infra import RecordsProvider
 from ..record import RecordsFactory, RecordsInterface
 from ..value_objects import MessageContext, NodePathStructValue
+
+logger = getLogger(__name__)
 
 
 class NodePath(PathBase, Summarizable):
@@ -63,6 +67,7 @@ class NodePath(PathBase, Summarizable):
         self._pub = publisher
         self._sub = subscription
         self._callbacks = callbacks
+        self._pub_partial_records_cache: Optional[RecordsInterface] = None
 
     @property
     def node_name(self) -> str:
@@ -203,3 +208,47 @@ class NodePath(PathBase, Summarizable):
 
         """
         return self._val.subscribe_topic_name
+
+    def clear_cache(self) -> None:
+        self._pub_partial_records_cache = None
+        return super().clear_cache()
+
+    def to_pub_partial_records(self) -> RecordsInterface:
+        """
+        Calculate records from last callback to publish.
+
+        Returns
+        -------
+        RecordsInterface
+            Execution time of each operation.
+
+        """
+        return self._pub_partial_records.clone()
+
+    @property
+    def _pub_partial_records(self) -> RecordsInterface:
+        if self._pub_partial_records_cache is None:
+            try:
+                self._pub_partial_records_cache = self._to_pub_partial_records_core()
+            except Error as e:
+                logger.warning(e)
+                self._pub_partial_records_cache = RecordsFactory.create_instance()
+
+        assert self._pub_partial_records_cache is not None
+        return self._pub_partial_records_cache
+
+    def _to_pub_partial_records_core(self) -> RecordsInterface:
+        """
+        Calculate records from last callback_start to publish.
+
+        Returns
+        -------
+        RecordsInterface
+            node partial latency (callback_start-publish).
+
+        """
+        if self._val.publisher is None:
+            return RecordsFactory.create_instance()
+
+        records = self._provider.callback_start_to_publish_records(self._val.publisher)
+        return records
