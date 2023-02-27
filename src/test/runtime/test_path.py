@@ -415,7 +415,6 @@ class TestRecordsMerged:
 
         assert records.equals(expected)
 
-
     def test_loop_case(self, mocker):
         cb_records = Records(
             [

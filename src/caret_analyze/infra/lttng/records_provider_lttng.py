@@ -151,7 +151,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             COLUMN_NAME.CALLBACK_END_TIMESTAMP
         ]
         self._format(callback_records, columns)
-        self._rename_column(callback_records, callback.callback_name, None)
+        self._rename_column(callback_records, callback.callback_name, None, None)
         callback_records.drop_columns([COLUMN_NAME.CALLBACK_OBJECT])
 
         return callback_records
@@ -240,7 +240,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(
             sub_records,
             callback.callback_name,
-            subscription.topic_name
+            subscription.topic_name,
+            None
         )
 
         return sub_records
@@ -316,7 +317,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(
             sub_records,
             callback.callback_name,
-            subscription.topic_name
+            subscription.topic_name,
+            None
         )
 
         return sub_records
@@ -358,7 +360,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
 
         self._format(pub_records, columns)
-        self._rename_column(pub_records, None, publisher.topic_name)
+        self._rename_column(pub_records, None, publisher.topic_name, None)
 
         return pub_records
 
@@ -458,7 +460,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
 
         self._format(pub_records, columns)
-        self._rename_column(pub_records, None, publisher.topic_name)
+        self._rename_column(pub_records, None, publisher.topic_name, None)
 
         return pub_records
 
@@ -495,7 +497,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
                     ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
                 ]
             )
-            self._rename_column(records, timer.callback_name, None)
+            self._rename_column(records, timer.callback_name, None, None)
             return records
         last_record = callback_records.data[-1]
         last_callback_start = last_record.get(callback_records.columns[0])
@@ -520,7 +522,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         ]
 
         self._format(timer_records, columns)
-        self._rename_column(timer_records, timer.callback_name, None)
+        self._rename_column(timer_records, timer.callback_name, None, None)
 
         return timer_records
 
@@ -675,7 +677,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
         ]
         self._format(records, columns)
-        self._rename_column(records, None, publisher.topic_name)
+        self._rename_column(records, None, publisher.topic_name, publisher.node_name)
         return records
 
     def _verify_trace_points(
@@ -763,7 +765,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         ]
         self._format(records, columns)
 
-        self._rename_column(records, comm_info.subscribe_callback_name, comm_info.topic_name)
+        self._rename_column(records, comm_info.subscribe_callback_name, comm_info.topic_name, None)
 
         return records
 
@@ -810,7 +812,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         self._format(records, columns)
 
-        self._rename_column(records, comm_value.subscribe_callback_name, comm_value.topic_name)
+        self._rename_column(records, comm_value.subscribe_callback_name,
+                            comm_value.topic_name, None)
 
         return records
 
@@ -824,7 +827,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
     def _rename_column(
         records: RecordsInterface,
         callback_name: Optional[str],
-        topic_name: Optional[str]
+        topic_name: Optional[str],
+        node_name: Optional[str]
     ) -> None:
         rename_dict = {}
 
@@ -837,8 +841,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 f'{callback_name}/{COLUMN_NAME.TIMER_EVENT_TIMESTAMP}'
 
         if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
-            rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
-                f'{callback_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
+            if callback_name is None:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
+                    f'{node_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
+            else:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
+                    f'{callback_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
 
         if COLUMN_NAME.CALLBACK_END_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.CALLBACK_END_TIMESTAMP] = \

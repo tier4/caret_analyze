@@ -45,7 +45,7 @@ class TestRecordsProviderLttng:
 
         records_mock = mocker.Mock(spec=RecordsInterface)
 
-        def _rename_column(records, callback_name, topic_name):
+        def _rename_column(records, callback_name, topic_name, node_name):
             return records
         mocker.patch.object(
             RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
@@ -106,7 +106,7 @@ class TestRecordsProviderLttng:
         cb_object = 5
         pub_handle = 6
 
-        def _rename_column(records, callback_name, topic_name):
+        def _rename_column(records, callback_name, topic_name, node_name):
             return records
         mocker.patch.object(
             RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
@@ -173,7 +173,7 @@ class TestRecordsProviderLttng:
 
         pub_handle = 6
 
-        def _rename_column(records, callback_name, topic_name):
+        def _rename_column(records, callback_name, topic_name, node_name):
             return records
         mocker.patch.object(
             RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
@@ -226,7 +226,7 @@ class TestRecordsProviderLttng:
         cb_object = 5
         pub_handle = 6
 
-        def _rename_column(records, callback_name, topic_name):
+        def _rename_column(records, callback_name, topic_name, node_name):
             return records
         mocker.patch.object(
             RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
