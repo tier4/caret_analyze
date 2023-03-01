@@ -87,8 +87,7 @@ class TimeRange:
             latest record is valid.
 
         """
-        input_value = record.get(self._column)
-        if self.max_value < input_value:
+        if self.max_value < record.get(self._column):
             self._record = record
 
     @property
