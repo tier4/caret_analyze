@@ -117,7 +117,7 @@ class ResponseMap():
 
         """
         self._columns = columns
-        d = {}
+        new_data = {}
 
         input_min_time = None
 
@@ -130,12 +130,12 @@ class ResponseMap():
             if input_min_time is None:
                 input_min_time = input_time
 
-            if output_time not in d:
-                d[output_time] = TimeRange(input_min_time, data, self.input_column)
+            if output_time not in new_data:
+                new_data[output_time] = TimeRange(input_min_time, data, self.input_column)
             else:
-                d[output_time].update(data)
+                new_data[output_time].update(data)
 
-        self._d = d
+        self._data = new_data
 
     def sorted_iter(self) -> Iterator[int]:
         """
@@ -147,7 +147,7 @@ class ResponseMap():
             iterator which returns output time.
 
         """
-        return iter(sorted(self._d))
+        return iter(sorted(self._data))
 
     def __len__(self) -> int:
         """
@@ -159,7 +159,7 @@ class ResponseMap():
             number of output time. It is same as number of TimeRange.
 
         """
-        return len(self._d)
+        return len(self._data)
 
     def at(self, end_time: int) -> TimeRange:
         """
@@ -176,7 +176,7 @@ class ResponseMap():
             TimeRange that matches the output time.
 
         """
-        return self._d[end_time]
+        return self._data[end_time]
 
     @property
     def input_column(self) -> str:

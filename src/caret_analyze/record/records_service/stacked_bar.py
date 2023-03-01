@@ -58,7 +58,7 @@ class StackedBar:
         series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
         series_list: List[int] = self._convert_sequence_to_list(series_seq)
         stacked_bar_records = \
-            self._append_column_series(
+            self._merge_column_series(
                 stacked_bar_records,
                 series_list,
                 xlabel,
@@ -187,12 +187,12 @@ class StackedBar:
             latency_seq: Sequence[int | None] = latency_records.get_column_series('latency')
             latency_list: List[int] = self._convert_sequence_to_list(latency_seq)
 
-            output_records = self._append_column_series(output_records, latency_list, column_from)
+            output_records = self._merge_column_series(output_records, latency_list, column_from)
 
         return output_records
 
     @staticmethod
-    def _append_column_series(
+    def _merge_column_series(
         records: RecordsInterface,
         series: List[int],
         column: str,

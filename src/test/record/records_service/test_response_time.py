@@ -36,8 +36,8 @@ def to_dict(records):
 def check(records_raw, expect_raw, columns):
     records = create_records(records_raw, columns)
     response = ResponseTime(records).to_records()
-    d = to_dict(response)
-    assert d == expect_raw
+    output_dict = to_dict(response)
+    assert output_dict == expect_raw
 
 
 class TestResponseRecords:
@@ -688,8 +688,8 @@ class TestResponseTimeseries:
                 {'column0_min': 20, 'column0_max': 35, 'column1': 40, 'column2': 45},
             ]
 
-            d = to_dict(records)
-            assert d == expect
+            output_dict = to_dict(records)
+            assert output_dict == expect
 
         def test_to_records(self):
             response = ResponseTime(
@@ -709,8 +709,8 @@ class TestResponseTimeseries:
                 {'column0': 35, 'column1': 40, 'column2': 45},
             ]
 
-            d = to_dict(records)
-            assert d == expect
+            output_dict = to_dict(records)
+            assert output_dict == expect
 
         def test_to_records_all_pattern(self):
             response = ResponseTime(
@@ -738,16 +738,16 @@ class TestResponseTimeseries:
                 {'column0': 35, 'column1': 40, 'column2': 45},
             ]
 
-            d = to_dict(records)
-            assert d == expect
+            output_dict = to_dict(records)
+            assert output_dict == expect
 
         def test_to_best_case_timeseries(self):
             response = ResponseTime(
                 create_records(self.records_raw, self.columns),
                 columns=self.column_names
             )
-            t, latency = response.to_best_case_timeseries()
-            assert list(t) == [20, 35]
+            best_case_input_time, latency = response.to_best_case_timeseries()
+            assert list(best_case_input_time) == [20, 35]
             assert list(latency) == [10, 10]
 
         def test_to_worst_case_timeseries(self):
@@ -755,6 +755,6 @@ class TestResponseTimeseries:
                 create_records(self.records_raw, self.columns),
                 columns=self.column_names
             )
-            t, latency = response.to_worst_case_timeseries()
-            assert list(t) == [5, 20]
+            worst_case_input_time, latency = response.to_worst_case_timeseries()
+            assert list(worst_case_input_time) == [5, 20]
             assert list(latency) == [25, 25]
