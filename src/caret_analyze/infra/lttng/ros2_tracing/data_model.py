@@ -100,6 +100,7 @@ class Ros2DataModel():
         )
         self.callback_end_instances = RecordsFactory.create_instance(
             None, [
+                ColumnValue('tid'),
                 ColumnValue('callback_end_timestamp'),
                 ColumnValue('callback_object'),
             ]

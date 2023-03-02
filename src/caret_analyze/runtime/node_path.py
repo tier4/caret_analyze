@@ -68,6 +68,7 @@ class NodePath(PathBase, Summarizable):
         self._sub = subscription
         self._callbacks = callbacks
         self._path_beginning_records_cache: Optional[RecordsInterface] = None
+        self._path_end_records_cache: Optional[RecordsInterface] = None
 
     @property
     def node_name(self) -> str:
@@ -211,6 +212,7 @@ class NodePath(PathBase, Summarizable):
 
     def clear_cache(self) -> None:
         self._path_beginning_records_cache = None
+        self._path_end_records_cache = None
         return super().clear_cache()
 
     def to_path_beginning_records(self) -> RecordsInterface:
@@ -225,11 +227,23 @@ class NodePath(PathBase, Summarizable):
         """
         return self._path_beginning_records.clone()
 
+    def to_path_end_records(self) -> RecordsInterface:
+        """
+        Calculate records from last callback_start to callback_end.
+
+        Returns
+        -------
+        RecordsInterface
+            Execution time of each operation.
+
+        """
+        return self._path_end_records.clone()
+
     @property
     def _path_beginning_records(self) -> RecordsInterface:
         if self._path_beginning_records_cache is None:
             try:
-                self._path_beginning_records_cache = self._to_pub_partial_records_core()
+                self._path_beginning_records_cache = self._to_path_beginning_records_core()
             except Error as e:
                 logger.warning(e)
                 self._path_beginning_records_cache = RecordsFactory.create_instance()
@@ -237,7 +251,19 @@ class NodePath(PathBase, Summarizable):
         assert self._path_beginning_records_cache is not None
         return self._path_beginning_records_cache
 
-    def _to_pub_partial_records_core(self) -> RecordsInterface:
+    @property
+    def _path_end_records(self) -> RecordsInterface:
+        if self._path_end_records_cache is None:
+            try:
+                self._path_end_records_cache = self._to_path_end_records_core()
+            except Error as e:
+                logger.warning(e)
+                self._path_end_records_cache = RecordsFactory.create_instance()
+
+        assert self._path_end_records_cache is not None
+        return self._path_end_records_cache
+
+    def _to_path_beginning_records_core(self) -> RecordsInterface:
         """
         Calculate records from last callback_start to publish.
 
@@ -250,5 +276,20 @@ class NodePath(PathBase, Summarizable):
         if self._val.publisher is None:
             return RecordsFactory.create_instance()
 
-        records = self._provider.callback_start_to_publish_records(self._val.publisher)
+        records = self._provider.path_beginning_records(self._val.publisher)
         return records
+
+    def _to_path_end_records_core(self) -> RecordsInterface:
+        """
+        Calculate records from last callback_start to publish.
+
+        Returns
+        -------
+        RecordsInterface
+            node partial latency (callback_start-publish).
+
+        """
+
+        records = self._provider.path_end_records(self._val.subscription_callback)
+        return records
+

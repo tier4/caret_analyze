@@ -23,6 +23,7 @@ from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
 from ..exceptions import InvalidArgumentError, InvalidRecordsError
+from ..infra.lttng.column_names import COLUMN_NAME
 from ..record import Columns
 from ..record.record import merge, merge_sequential, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
@@ -195,6 +196,40 @@ class RecordsMerged:
                     ).column_names,
                     how='left'
                 )
+
+
+        if isinstance(targets[-1], NodePath):
+            last_element = targets[-1].to_path_end_records()
+
+        right_records = last_element
+
+        rename_rule = column_merger.append_columns_and_return_rename_rule(
+            right_records)
+
+        right_records.rename_columns(rename_rule)
+        left_records = merge(
+            left_records=left_records,
+            right_records=right_records,
+            join_left_key=left_records.columns[-1],
+            join_right_key=right_records.columns[0],
+            columns=Columns.from_str(
+                left_records.columns + right_records.columns
+            ).column_names,
+            how='left'
+        )
+        # left_records = merge_sequential(
+        #         left_records=left_records,
+        #         right_records=right_records,
+        #         join_left_key=None,
+        #         join_right_key=None,
+        #         left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #         right_stamp_key=COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+        #         columns=Columns.from_str(
+        #             left_records.columns + right_records.columns
+        #         ).column_names,
+        #         how='left_use_latest',
+        #         progress_label='binding: node records'
+        #     )
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
