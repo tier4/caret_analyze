@@ -19,7 +19,7 @@ from typing import Optional
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
 
-from .legend import HoverCreator, LegendKeys, LegendManager, LegendSource
+from .legend import HoverCreator, HoverKeys, LegendManager, HoverSource
 from .util import RectValues
 
 from ....common import ClockConverter
@@ -40,9 +40,9 @@ class CallbackSchedRectSource:
         clip: Clip,
         converter: Optional[ClockConverter] = None
     ) -> None:
-        self._legend_keys = LegendKeys('callback_scheduling_rect', target_object)
+        self._legend_keys = HoverKeys('callback_scheduling_rect', target_object)
         self._hover = HoverCreator(self._legend_keys)
-        self._legend_source = LegendSource(legend_manager, self._legend_keys)
+        self._legend_source = HoverSource(legend_manager, self._legend_keys)
         self._clip = clip
         self._converter = converter
         self._rect_y_base = 0.0
@@ -123,9 +123,9 @@ class CallbackSchedBarSource:
         frame_min: float,
         frame_max: float
     ) -> None:
-        self._legend_keys = LegendKeys('callback_scheduling_bar', target_object)
+        self._legend_keys = HoverKeys('callback_scheduling_bar', target_object)
         self._hover = HoverCreator(self._legend_keys)
-        self._legend_source = LegendSource(legend_manager, self._legend_keys)
+        self._legend_source = HoverSource(legend_manager, self._legend_keys)
         self._frame_min = frame_min
         self._frame_max = frame_max
 
