@@ -69,7 +69,7 @@ class HoverKeys:
         """
         if self._graph_type == 'callback_scheduling_bar':
             hover_keys = ['legend_label', 'node_name', 'callback_name',
-                           'callback_type', 'callback_param', 'symbol']
+                          'callback_type', 'callback_param', 'symbol']
 
         if self._graph_type == 'callback_scheduling_rect':
             hover_keys = ['legend_label', 'callback_start', 'callback_end', 'latency']
@@ -77,10 +77,10 @@ class HoverKeys:
         if self._graph_type == 'timeseries':
             if isinstance(self._target_object, CallbackBase):
                 hover_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
-                               'callback_param', 'symbol']
+                              'callback_param', 'symbol']
             elif isinstance(self._target_object, Communication):
                 hover_keys = ['legend_label', 'topic_name',
-                               'publish_node_name', 'subscribe_node_name']
+                              'publish_node_name', 'subscribe_node_name']
             elif isinstance(self._target_object, (Publisher, Subscription)):
                 hover_keys = ['legend_label', 'node_name', 'topic_name']
 
