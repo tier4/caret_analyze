@@ -1021,7 +1021,7 @@ nodes:
         assert set(arch.executors) == set(arch_expected.executors)
 
 
-class TestDiff:
+class TestArchitectureDiff:
 
     def test_diff_node_names(self, mocker):
         architecture_mock1 = mocker.Mock(spec=Architecture)
