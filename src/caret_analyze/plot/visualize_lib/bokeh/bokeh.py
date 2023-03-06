@@ -16,15 +16,16 @@ from __future__ import annotations
 
 import datetime
 from logging import getLogger
-from typing import List, Sequence, Union
+from typing import List, Optional, Sequence, Union
 
 from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.plotting import Figure, figure
 import pandas as pd
 
-from .bokeh_source import (CallbackSchedBarSource, CallbackSchedRectSource, LegendManager,
-                           LineSource)
+from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
 from .color_selector import ColorSelectorFactory
+from .legend import LegendManager
+from .timeseries_source import LineSource
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....common import Util
@@ -84,25 +85,9 @@ class Bokeh(VisualizeLibInterface):
 
         """
         # Initialize figure
-        fig_args = {
-            'y_axis_label': '', 'width': 1200,
-            'title': 'Callback Scheduling in '
-                     f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}]."
-        }
-
-        if xaxis_type == 'system_time':
-            fig_args['x_axis_label'] = 'system time [s]'
-        elif xaxis_type == 'sim_time':
-            fig_args['x_axis_label'] = 'simulation time [s]'
-
-        if ywheel_zoom:
-            fig_args['active_scroll'] = 'wheel_zoom'
-        else:
-            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
-            fig_args['active_scroll'] = 'xwheel_zoom'
-
-        p = figure(**fig_args)
-        p.sizing_mode = 'stretch_width'  # type: ignore
+        title = ('Callback Scheduling in '
+                 f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}].")
+        fig = self._init_figure(title, ywheel_zoom, xaxis_type)
 
         # Apply xaxis offset
         callbacks: List[CallbackBase] = Util.flatten(
@@ -122,7 +107,7 @@ class Bokeh(VisualizeLibInterface):
             frame_min = clip.min_ns
             frame_max = clip.max_ns
         x_range_name = 'x_plot_axis'
-        self._apply_x_axis_offset(p, x_range_name, frame_min, frame_max)
+        self._apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
 
         # Draw callback scheduling
         color_selector = ColorSelectorFactory.create_instance(coloring_rule)
@@ -138,7 +123,7 @@ class Bokeh(VisualizeLibInterface):
                     callback.callback_name
                 )
                 rect_source = rect_source_gen.generate(callback)
-                rect = p.rect(
+                rect = fig.rect(
                     'x', 'y', 'width', 'height',
                     source=rect_source,
                     color=color,
@@ -148,10 +133,10 @@ class Bokeh(VisualizeLibInterface):
                     x_range_name=x_range_name
                 )
                 legend_manager.add_legend(callback, rect)
-                p.add_tools(rect_source_gen.create_hover(
+                fig.add_tools(rect_source_gen.create_hover(
                     {'attachment': 'above', 'renderers': [rect]}
                 ))
-                bar = p.rect(
+                bar = fig.rect(
                     'x', 'y', 'width', 'height',
                     source=bar_source_gen.generate(callback, rect_source_gen.rect_y_base),
                     fill_color=color,
@@ -161,7 +146,7 @@ class Bokeh(VisualizeLibInterface):
                     level='underlay',
                     x_range_name=x_range_name
                 )
-                p.add_tools(bar_source_gen.create_hover(
+                fig.add_tools(bar_source_gen.create_hover(
                     {'attachment': 'below', 'renderers': [bar]}
                 ))
 
@@ -177,7 +162,7 @@ class Bokeh(VisualizeLibInterface):
                         response_time = callback_start - timer_stamp
                         if pd.isna(response_time):
                             continue
-                        p.add_layout(Arrow(
+                        fig.add_layout(Arrow(
                             end=NormalHead(
                                 fill_color='red' if response_time > delay_threshold else 'white',
                                 line_width=1, size=10
@@ -196,13 +181,13 @@ class Bokeh(VisualizeLibInterface):
         """
         legends = legend_manager.create_legends(num_legend_threshold, full_legends)
         for legend in legends:
-            p.add_layout(legend, 'right')
-        p.legend.click_policy = 'hide'
+            fig.add_layout(legend, 'right')
+        fig.legend.click_policy = 'hide'
 
-        p.ygrid.grid_line_alpha = 0
-        p.yaxis.visible = False
+        fig.ygrid.grid_line_alpha = 0
+        fig.yaxis.visible = False
 
-        return p
+        return fig
 
     def timeseries(
         self,
@@ -240,45 +225,33 @@ class Bokeh(VisualizeLibInterface):
 
         # Initialize figure
         y_axis_label = timeseries_records_list[0].columns[1]
-        fig_args = {'frame_height': 270,
-                    'frame_width': 800,
-                    'y_axis_label': y_axis_label}
-
-        if xaxis_type == 'system_time':
-            fig_args['x_axis_label'] = 'system time [s]'
-        elif xaxis_type == 'sim_time':
-            fig_args['x_axis_label'] = 'simulation time [s]'
+        if y_axis_label == 'frequency':
+            y_axis_label = y_axis_label + ' [Hz]'
+        elif y_axis_label in ['period', 'latency']:
+            y_axis_label = y_axis_label + ' [ms]'
         else:
-            fig_args['x_axis_label'] = xaxis_type
-
-        if ywheel_zoom:
-            fig_args['active_scroll'] = 'wheel_zoom'
-        else:
-            fig_args['tools'] = ['xwheel_zoom', 'xpan', 'save', 'reset']
-            fig_args['active_scroll'] = 'xwheel_zoom'
-
+            raise NotImplementedError()
         if isinstance(target_objects[0], CallbackBase):
-            fig_args['title'] = f'Time-line of callbacks {y_axis_label}'
+            title = f'Time-line of callbacks {y_axis_label}'
         elif isinstance(target_objects[0], Communication):
-            fig_args['title'] = f'Time-line of communications {y_axis_label}'
+            title = f'Time-line of communications {y_axis_label}'
         else:
-            fig_args['title'] = f'Time-line of publishes/subscribes {y_axis_label}'
-
-        p = figure(**fig_args)
+            title = f'Time-line of publishes/subscribes {y_axis_label}'
+        fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
 
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
         frame_min, frame_max = records_range.get_range()
         if xaxis_type == 'system_time':
-            self._apply_x_axis_offset(p, 'x_axis_plot', frame_min, frame_max)
+            self._apply_x_axis_offset(fig, frame_min, frame_max)
 
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
         line_source = LineSource(legend_manager, target_objects[0], frame_min, xaxis_type)
-        p.add_tools(line_source.create_hover())
+        fig.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
-            renderer = p.line(
+            renderer = fig.line(
                 'x', 'y',
                 source=line_source.generate(to, timeseries),
                 color=color_selector.get_color()
@@ -293,35 +266,83 @@ class Bokeh(VisualizeLibInterface):
         """
         legends = legend_manager.create_legends(num_legend_threshold, full_legends)
         for legend in legends:
-            p.add_layout(legend, 'right')
-        p.legend.click_policy = 'hide'
+            fig.add_layout(legend, 'right')
+        fig.legend.click_policy = 'hide'
 
-        return p
+        return fig
+
+    def _init_figure(
+        self,
+        title: str,
+        ywheel_zoom: bool,
+        xaxis_type: str,
+        y_axis_label: Optional[str] = None,
+    ) -> Figure:
+        if xaxis_type == 'system_time':
+            x_axis_label = 'system time [s]'
+        elif xaxis_type == 'sim_time':
+            x_axis_label = 'simulation time [s]'
+        else:
+            x_axis_label = xaxis_type
+
+        if ywheel_zoom:
+            tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']
+            active_scroll = 'wheel_zoom'
+        else:
+            tools = ['xwheel_zoom', 'xpan', 'save', 'reset']
+            active_scroll = 'xwheel_zoom'
+
+        return figure(
+            frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
+            x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
+        )
 
     @staticmethod
     def _apply_x_axis_offset(
         fig: Figure,
-        x_range_name: str,
         min_ns: float,
-        max_ns: float
+        max_ns: float,
+        x_range_name: str = ''
     ) -> None:
+        """
+        Apply an offset to the x-axis of the graph.
+
+        Datetime is displayed instead of UNIX time for zero point.
+
+        Parameters
+        ----------
+        fig : Figure
+            Target figure.
+        min_ns : float
+            Minimum UNIX time.
+        max_ns : float
+            Maximum UNIX time.
+        x_range_name : str, optional
+            Name of the actual range, by default ''.
+            Specify this if you want to refer to the actual range later.
+
+        """
+        # Initialize variables
         offset_s = min_ns*1.0e-9
         end_s = (max_ns-min_ns)*1.0e-9
+        actual_range = Range1d(start=min_ns, end=max_ns)
+        applied_range = Range1d(start=0, end=end_s)
 
-        fig.extra_x_ranges = {x_range_name: Range1d(start=min_ns, end=max_ns)}
+        # Set ranges
+        fig.extra_x_ranges = {x_range_name: actual_range}
+        fig.x_range = applied_range
 
+        # Add xaxis for actual_range
         xaxis = LinearAxis(x_range_name=x_range_name)
         xaxis.visible = False  # type: ignore
-
-        ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
-        fig.xaxis.ticker = ticker
         fig.add_layout(xaxis, 'below')
+        fig.xaxis.ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
 
-        fig.x_range = Range1d(start=0, end=end_s)
-
+        # Add xgrid
         fig.xgrid.minor_grid_line_color = 'black'
         fig.xgrid.minor_grid_line_alpha = 0.1
 
+        # Replace 0 with datetime of offset_s
         datetime_s = datetime.datetime.fromtimestamp(offset_s).strftime('%Y-%m-%d %H:%M:%S')
         fig.xaxis.major_label_overrides = {0: datetime_s}
 
