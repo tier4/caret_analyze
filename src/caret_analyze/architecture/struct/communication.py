@@ -84,6 +84,18 @@ class CommunicationStruct():
         return self._subscription_value
 
     @property
+    def publisher_construction_order(self) -> Optional[int]:
+        if self.publisher:
+            return self.publisher.construction_order
+        return None
+
+    @property
+    def subscription_construction_order(self) -> Optional[int]:
+        if self.subscription:
+            return self.subscription.construction_order
+        return None
+
+    @property
     def publish_callbacks(self) -> Optional[List[CallbackStruct]]:
         return self._publish_callbacks_value
 

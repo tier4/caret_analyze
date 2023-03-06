@@ -26,10 +26,12 @@ class SubscriptionStruct():
         node_name: str,
         topic_name: str,
         callback_info: Optional[SubscriptionCallbackStruct],
+        construction_order: int,
     ) -> None:
         self._node_name: str = node_name
         self._topic_name: str = topic_name
         self._callback_value = callback_info
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -50,9 +52,17 @@ class SubscriptionStruct():
     def callback(self) -> Optional[SubscriptionCallbackStruct]:
         return self._callback_value
 
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
+
     def to_value(self) -> SubscriptionStructValue:
-        return SubscriptionStructValue(self.node_name, self.topic_name,
-                                       None if self.callback is None else self.callback.to_value())
+        return SubscriptionStructValue(
+            node_name=self.node_name,
+            topic_name=self.topic_name,
+            callback_info=None if self.callback is None else self.callback.to_value(),
+            construction_order=self.construction_order
+        )
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:

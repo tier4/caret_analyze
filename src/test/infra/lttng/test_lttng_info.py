@@ -27,6 +27,7 @@ from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
                                          ExecutorValue)
 
 from caret_analyze.value_objects.node import NodeValue
+from caret_analyze.value_objects.timer import TimerValue
 
 
 import pandas as pd
@@ -110,7 +111,8 @@ class TestLttngInfo:
                     'publisher_handle': publisher_handle,
                     'node_handle': node_handle,
                     'topic_name': '/topic_name',
-                    'depth': depth
+                    'depth': depth,
+                    'construction_order': 0
                 }
             ]
         ))
@@ -144,6 +146,7 @@ class TestLttngInfo:
             node_id='node_id',
             callback_ids=None,
             publisher_handle=publisher_handle,
+            construction_order=0,
             tilde_publisher=None
         )
 
@@ -574,6 +577,39 @@ class TestLttngInfo:
 
         assert execs_info == [exec_info_expect]
 
+    def test_get_timers_construction_order(self, mocker):
+        data = Ros2DataModel()
+        data.finalize()
+        info = LttngInfo(data)
+
+        timer_cb_info_expect = TimerCallbackValueLttng(
+            'timer_callback_0',
+            'node_id',
+            '/node1',
+            'symbol',
+            8,
+            15,
+            None,
+            callback_object=11,
+            construction_order=1
+        )
+        mocker.patch.object(
+            LttngInfo,
+            'get_timer_callbacks',
+            return_value=[timer_cb_info_expect])
+
+        timer_value_expect = TimerValue(
+            period=8,
+            node_name='/node1',
+            node_id='node_id',
+            callback_id='timer_callback_0',
+            construction_order=1
+        )
+
+        timers_info = info.get_timers(NodeValue('/node1', 'node_id'))
+        assert len(timers_info) == 1
+        assert timers_info[0] == timer_value_expect
+
 
 class TestDataFrameFormatted:
 
@@ -943,6 +979,7 @@ class TestDataFrameFormatted:
         rmw_handle = 3
         topic_name = 'topic'
         depth = 5
+        construction_order = 0
 
         data = Ros2DataModel()
         data.add_publisher(pub_handle, 0, node_handle,
@@ -957,7 +994,8 @@ class TestDataFrameFormatted:
                 'publisher_handle': pub_handle,
                 'node_handle': node_handle,
                 'topic_name': topic_name,
-                'depth': depth
+                'depth': depth,
+                'construction_order': construction_order
             }]
         ).convert_dtypes()
         assert pub.df.equals(expect)

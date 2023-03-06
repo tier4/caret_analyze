@@ -555,8 +555,8 @@ class TestTopicIgnoreReader:
         reader = TopicIgnoredReader(reader_mock, ['/ignore'])
         node = NodeValueWithId('node_name', 'node_id')
 
-        pub = PublisherValue('/topic_name', node.node_name, node.node_id, None)
-        pub_ignored = PublisherValue('/ignore', node.node_name, node.node_id, None)
+        pub = PublisherValue('/topic_name', node.node_name, node.node_id, None, 0)
+        pub_ignored = PublisherValue('/ignore', node.node_name, node.node_id, None, 0)
         mocker.patch.object(reader_mock, 'get_publishers',
                             return_value=[pub, pub_ignored])
 
@@ -572,8 +572,8 @@ class TestTopicIgnoreReader:
         reader = TopicIgnoredReader(reader_mock, ['/ignore'])
         node = NodeValue('node_name', 'node_id')
 
-        sub = SubscriptionValue('/topic_name', node.node_name, node.node_id, None)
-        sub_ignored = SubscriptionValue('/ignore', node.node_name, node.node_id, None)
+        sub = SubscriptionValue('/topic_name', node.node_name, node.node_id, None, 0)
+        sub_ignored = SubscriptionValue('/ignore', node.node_name, node.node_id, None, 0)
         mocker.patch.object(reader_mock, 'get_subscriptions',
                             return_value=[sub, sub_ignored])
 
@@ -726,7 +726,7 @@ class TestPublishersLoaded:
         reader_mock = mocker.Mock(spec=ArchitectureReader)
         callback_id = '5'
         publisher_info = PublisherValue(
-            'topic_name', 'node_name', 'node_id', (callback_id,)
+            'topic_name', 'node_name', 'node_id', (callback_id,), 0
         )
         mocker.patch.object(reader_mock, 'get_publishers',
                             return_value=[publisher_info])
@@ -774,7 +774,7 @@ class TestSubscriptionsLoaded:
         callback_id = '5'
 
         subscription_info = SubscriptionValue(
-            'topic_name', 'node_name', 'node_id',  callback_id
+            'topic_name', 'node_name', 'node_id',  callback_id, 0
         )
         mocker.patch.object(reader_mock, 'get_subscriptions',
                             return_value=[subscription_info])
@@ -804,13 +804,13 @@ class TestSubscriptionsLoaded:
         callback_id_b = '6'
 
         subscript_info_a = SubscriptionValue(
-            'topic_name', 'node_name', 'node_id',  callback_id_a
+            'topic_name', 'node_name', 'node_id',  callback_id_a, 0
         )
         subscript_info_b = SubscriptionValue(
-            'topic_name', 'node_name', 'node_id',  callback_id_b
+            'topic_name', 'node_name', 'node_id',  callback_id_b, 0
         )
         subscript_info_c = SubscriptionValue(
-            'topic_name', 'node_name', 'node_id',  callback_id_a
+            'topic_name', 'node_name', 'node_id',  callback_id_a, 0
         )
         mocker.patch.object(reader_mock, 'get_subscriptions',
                             return_value=[subscript_info_a, subscript_info_b, subscript_info_c])
@@ -847,7 +847,7 @@ class TestServicesLoaded:
         callback_id = '5'
 
         service_info = ServiceValue(
-            'service_name', 'node_name', 'node_id',  callback_id
+            'service_name', 'node_name', 'node_id',  callback_id, 0
         )
         mocker.patch.object(reader_mock, 'get_services',
                             return_value=[service_info])
@@ -877,13 +877,13 @@ class TestServicesLoaded:
         callback_id_b = '6'
 
         service_info_a = ServiceValue(
-            'service_name', 'node_name', 'node_id',  callback_id_a
+            'service_name', 'node_name', 'node_id',  callback_id_a, 0
         )
         service_info_b = ServiceValue(
-            'service_name', 'node_name', 'node_id',  callback_id_b
+            'service_name', 'node_name', 'node_id',  callback_id_b, 0
         )
         service_info_c = ServiceValue(
-            'service_name', 'node_name', 'node_id',  callback_id_a
+            'service_name', 'node_name', 'node_id',  callback_id_a, 0
         )
         mocker.patch.object(reader_mock, 'get_services',
                             return_value=[service_info_a, service_info_b, service_info_c])
@@ -1569,8 +1569,8 @@ class TestCommunicationInfoLoaded:
         loaded = CommValuesLoaded(nodes_loaded_mock)
         assert len(loaded.data) == 0
 
-        pub_info = PublisherValue('topic_a', 'pub_node', 'pub_node_id', None)
-        sub_info = SubscriptionValue('topic_b', 'sub_node', 'sub_node_id', None)
+        pub_info = PublisherValue('topic_a', 'pub_node', 'pub_node_id', None, 0)
+        sub_info = SubscriptionValue('topic_b', 'sub_node', 'sub_node_id', None, 0)
 
         node_info_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_info_mock, 'publishers', [pub_info])
@@ -1582,8 +1582,8 @@ class TestCommunicationInfoLoaded:
     def test_get_data(self, mocker):
         node_info_mock = mocker.Mock(spec=NodeStruct)
 
-        pub_info = PublisherValue('topic_a', 'pub_node', 'pub_node_id', None)
-        sub_info = SubscriptionValue('topic_a', 'sub_node', 'sub_node_id', None)
+        pub_info = PublisherValue('topic_a', 'pub_node', 'pub_node_id', None, 0)
+        sub_info = SubscriptionValue('topic_a', 'sub_node', 'sub_node_id', None, 0)
 
         node_info_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_info_mock, 'publishers', [pub_info])
@@ -1801,13 +1801,13 @@ class TestTimersLoaded:
         period_ns = 4
 
         timer_info_a = TimerValue(
-            period_ns, 'node_name', 'node_id',  callback_id_a
+            period_ns, 'node_name', 'node_id',  callback_id_a, 0
         )
         timer_info_b = TimerValue(
-            period_ns, 'node_name', 'node_id',  callback_id_b
+            period_ns, 'node_name', 'node_id',  callback_id_b, 0
         )
         timer_info_c = TimerValue(
-            period_ns, 'node_name', 'node_id',  callback_id_a
+            period_ns, 'node_name', 'node_id',  callback_id_a, 0
         )
         mocker.patch.object(reader_mock, 'get_timers',
                             return_value=[timer_info_a, timer_info_b, timer_info_c])

@@ -80,13 +80,20 @@ class NamedPathsDicts:
         obj['path_name'] = path_value.path_name
         node_chain = []
         for node_path in path_value.node_paths:
-            node_chain.append(
-                {
-                    'node_name': node_path.node_name,
-                    'publish_topic_name': node_path.publish_topic_name or UNDEFINED_STR,
-                    'subscribe_topic_name': node_path.subscribe_topic_name or UNDEFINED_STR
-                }
-            )
+            d = {
+                'node_name': node_path.node_name,
+                'publish_topic_name': node_path.publish_topic_name or UNDEFINED_STR,
+                'subscribe_topic_name': node_path.subscribe_topic_name or UNDEFINED_STR
+            }
+
+            if 0 < (node_path.publisher_construction_order or 0):
+                d['publisher_construction_order'] = \
+                    node_path.publisher_construction_order  # type: ignore
+            if 0 < (node_path.subscription_construction_order or 0):
+                d['subscription_construction_order'] = \
+                    node_path.subscription_construction_order  # type: ignore
+            node_chain.append(d)
+
         obj['node_chain'] = node_chain
         return obj
 
@@ -201,10 +208,15 @@ class PubDicts:
         else:
             callback_names = list(publisher_value.callback_names)
 
-        return {
+        d = {
             'topic_name': publisher_value.topic_name,
             'callback_names': callback_names,
         }
+
+        if 0 < publisher_value.construction_order:
+            d['construction_order'] = publisher_value.construction_order    # type: ignore
+
+        return d
 
     @property
     def data(self) -> List[Dict]:
@@ -218,10 +230,14 @@ class SubDicts:
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
     def _to_dict(self, subscription_value: SubscriptionStructValue):
-        return {
+        d = {
             'topic_name': subscription_value.topic_name,
             'callback_name': subscription_value.callback_name or UNDEFINED_STR
         }
+        if 0 < subscription_value.construction_order:
+            d['construction_order'] = subscription_value.construction_order  # type: ignore
+
+        return d
 
     @property
     def data(self) -> List[Dict]:
@@ -280,18 +296,30 @@ class MessageContextDicts:
         paths: Tuple[NodePathStructValue, ...],
     ) -> None:
         self._data = []
+
+        def sort_key(path: NodePathStructValue) -> Tuple:
+            return path.subscribe_topic_name or '', path.publish_topic_name or ''
+
+        paths = tuple(sorted(paths, key=sort_key))
+
         for path in paths:
             if path.publish_topic_name is None or path.subscribe_topic_name is None:
                 continue
             message_context = path.message_context
             if message_context is None:
-                self._data.append(
-                    {
+                d = {
                         'context_type': UNDEFINED_STR,
                         'subscription_topic_name': path.subscribe_topic_name,
                         'publisher_topic_name': path.publish_topic_name
                     }
-                )
+                if (path.publisher_construction_order or 0) > 0:
+                    d['publisher_construction_order'] = \
+                        path.publisher_construction_order  # type: ignore
+                if (path.subscription_construction_order or 0) > 0:
+                    d['subscription_construction_order'] = \
+                        path.subscription_construction_order  # type: ignore
+
+                self._data.append(d)
             else:
                 self._data.append(message_context.to_dict())
 

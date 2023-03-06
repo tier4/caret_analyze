@@ -27,7 +27,7 @@ import pytest
 @pytest.fixture
 def create_publisher():
     def _create_publisher(node_name: str, topic_name: str) -> PublisherStructValue:
-        pub = PublisherStructValue(node_name, topic_name, None)
+        pub = PublisherStructValue(node_name, topic_name, None, 0)
         return pub
     return _create_publisher
 
@@ -35,7 +35,7 @@ def create_publisher():
 @pytest.fixture
 def create_subscription():
     def _create_subscription(node_name: str, topic_name: str):
-        sub = SubscriptionStructValue(node_name, topic_name, None)
+        sub = SubscriptionStructValue(node_name, topic_name, None, 0)
         return sub
     return _create_subscription
 

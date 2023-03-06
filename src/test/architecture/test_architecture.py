@@ -41,7 +41,7 @@ import pytest
 @pytest.fixture
 def create_publisher():
     def _create_publisher(node_name: str, topic_name: str) -> PublisherStructValue:
-        pub = PublisherStructValue(node_name, topic_name, None)
+        pub = PublisherStructValue(node_name, topic_name, None, 0)
         return pub
     return _create_publisher
 
@@ -49,7 +49,7 @@ def create_publisher():
 @pytest.fixture
 def create_subscription():
     def _create_subscription(node_name: str, topic_name: str):
-        sub = SubscriptionStructValue(node_name, topic_name, None)
+        sub = SubscriptionStructValue(node_name, topic_name, None, 0)
         return sub
     return _create_subscription
 
@@ -378,18 +378,24 @@ class TestArchitecture:
         mocker.patch.object(node_path_mock_0, 'subscribe_topic_name', None)
         mocker.patch.object(node_path_mock_0, 'node_name', '0')
         mocker.patch.object(node_path_mock_0, 'publish_topic_name', '0->1')
+        mocker.patch.object(node_path_mock_0, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_mock_0, 'publisher_construction_order', 0)
         node_path_struct_mock_0 = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(node_path_mock_0, 'to_value', return_value=node_path_struct_mock_0)
         node_path_mock_1 = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
         mocker.patch.object(node_path_mock_1, 'node_name', '1')
         mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
+        mocker.patch.object(node_path_mock_1, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_mock_1, 'publisher_construction_order', 0)
         node_path_struct_mock_1 = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(node_path_mock_1, 'to_value', return_value=node_path_struct_mock_1)
         node_path_mock_2 = mocker.Mock(spec=NodePathStruct)
         mocker.patch.object(node_path_mock_2, 'subscribe_topic_name', '1->2')
         mocker.patch.object(node_path_mock_2, 'node_name', '2')
         mocker.patch.object(node_path_mock_2, 'publish_topic_name', None)
+        mocker.patch.object(node_path_mock_2, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_mock_2, 'publisher_construction_order', 0)
         node_path_struct_mock_2 = mocker.Mock(spec=NodePathStructValue)
         mocker.patch.object(node_path_mock_2, 'to_value', return_value=node_path_struct_mock_2)
 
@@ -403,12 +409,16 @@ class TestArchitecture:
         mocker.patch.object(comm_mock_0, 'publish_node_name', '0')
         mocker.patch.object(comm_mock_0, 'subscribe_node_name', '1')
         mocker.patch.object(comm_mock_0, 'topic_name', '0->1')
+        mocker.patch.object(comm_mock_0, 'subscription_construction_order', 0)
+        mocker.patch.object(comm_mock_0, 'publisher_construction_order', 0)
         comm_mock_struct_0 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_0, 'to_value', return_value=comm_mock_struct_0)
 
         mocker.patch.object(comm_mock_1, 'publish_node_name', '1')
         mocker.patch.object(comm_mock_1, 'subscribe_node_name', '2')
         mocker.patch.object(comm_mock_1, 'topic_name', '1->2')
+        mocker.patch.object(comm_mock_1, 'subscription_construction_order', 0)
+        mocker.patch.object(comm_mock_1, 'publisher_construction_order', 0)
         comm_mock_struct_1 = mocker.Mock(spec=CommunicationStructValue)
         mocker.patch.object(comm_mock_1, 'to_value', return_value=comm_mock_struct_1)
 

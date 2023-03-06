@@ -496,18 +496,26 @@ class NodeValuesLoaded():
         subs = node.subscriptions
         node_path_pub_sub_pairs = NodePathCreated(subs, pubs).data
         for node_path in node_path_pub_sub_pairs:
-            added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
-                                   for n in node_paths]
-            pub_sub_pair = (node_path.publish_topic_name,
-                            node_path.subscribe_topic_name)
+            added_pub_sub_construction_order_pairs = [(
+                n.publish_topic_name,
+                n.publisher_construction_order,
+                n.subscribe_topic_name,
+                n.subscription_construction_order,
+            ) for n in node_paths]
+            pub_sub_construction_order_pair = (node_path.publish_topic_name,
+                                               node_path.publisher_construction_order,
+                                               node_path.subscribe_topic_name,
+                                               node_path.subscription_construction_order)
 
-            if pub_sub_pair not in added_pub_sub_pairs:
+            if pub_sub_construction_order_pair not in added_pub_sub_construction_order_pairs:
                 node_paths.append(node_path)
 
                 logger.info(
                     'Path Added: '
                     f'subscribe: {node_path.subscribe_topic_name}, '
+                    f'subscription_order: {node_path.subscription_construction_order}, '
                     f'publish: {node_path.publish_topic_name}, '
+                    f'publisher_order: {node_path.publisher_construction_order}, '
                 )
 
         # add dummy node paths
@@ -753,6 +761,7 @@ class PublishersLoaded:
             publisher_value.node_name,
             publisher_value.topic_name,
             callback_values=pub_callbacks,
+            construction_order=publisher_value.construction_order
         )
 
     @staticmethod
@@ -834,9 +843,10 @@ class SubscriptionsLoaded:
             assert isinstance(sub_callback, SubscriptionCallbackStruct)
 
         return SubscriptionStruct(
-            subscription_value.node_name,
-            subscription_value.topic_name,
-            sub_callback
+            node_name=subscription_value.node_name,
+            topic_name=subscription_value.topic_name,
+            callback_info=sub_callback,
+            construction_order=subscription_value.construction_order
         )
 
     @property
@@ -905,9 +915,10 @@ class ServicesLoaded:
             assert isinstance(srv_callback, ServiceCallbackStruct)
 
         return ServiceStruct(
-            service_value.node_name,
-            service_value.service_name,
-            srv_callback
+            node_name=service_value.node_name,
+            service_name=service_value.service_name,
+            callback_info=srv_callback,
+            construction_order=service_value.construction_order
         )
 
     @property
@@ -976,9 +987,10 @@ class TimersLoaded:
                 timer_value.callback_id)  # type: ignore
 
         return TimerStruct(
-            timer_value.node_name,
-            timer_value.period,
-            timer_callback
+            node_name=timer_value.node_name,
+            period_ns=timer_value.period,
+            callback_info=timer_callback,
+            construction_order=timer_value.construction_order
         )
 
     @property
@@ -1062,8 +1074,11 @@ class CallbackGroupsLoaded():
                     cbg_name = cbg.callback_group_name
             else:
                 cbg_name = cbg.callback_group_name  \
-                    or f'{node.node_name}/service_only_callback_group_' \
-                    + '{len(_srv_only_cbg_dict)}'
+                    or f'{node.node_name}/service_only_callback_group_{len(_srv_only_cbg_dict)}'
+                # MYK これはたぶん既存のバグ
+                # cbg_name = cbg.callback_group_name  \
+                #     or f'{node.node_name}/service_only_callback_group_' \
+                #     + '{len(_srv_only_cbg_dict)}'
                 _srv_only_cbg_dict[cbg] = len(_srv_only_cbg_dict)
 
             cbg_struct = CallbackGroupStruct(
@@ -1558,7 +1573,7 @@ class CallbackPathSearched():
 
         if callbacks is not None:
             for write_callback, read_callback in product(callbacks, callbacks):
-                searched_paths = searcher.search(write_callback, read_callback)
+                searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
                     msg = 'Path Added: '
                     msg += f'subscribe: {path.subscribe_topic_name}, '

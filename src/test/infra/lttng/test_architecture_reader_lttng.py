@@ -18,7 +18,7 @@ from caret_analyze.infra.lttng.architecture_reader_lttng import \
     ArchitectureReaderLttng
 from caret_analyze.value_objects import (CallbackGroupValue, ExecutorValue,
                                          NodeValueWithId, PublisherValue,
-                                         ServiceCallbackValue,
+                                         ServiceCallbackValue, ServiceStructValue,
                                          SubscriptionCallbackValue,
                                          TimerCallbackValue)
 
@@ -143,6 +143,7 @@ class TestArchitectureReaderLttng:
         topic = ['topic0', 'topic1']
         symbol = ['symbol0', 'symbol1']
         callback_id = ['callback0', 'callback1']
+        construction_order = [0, 0]
 
         sub_cb_0 = SubscriptionCallbackValue(
             callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
@@ -160,6 +161,7 @@ class TestArchitectureReaderLttng:
             assert sub.node_id == node_id[i]
             assert sub.topic_name == topic[i]
             assert sub.callback_id == callback_id[i]
+            assert sub.construction_order == construction_order[i]
 
     def test_get_callback_groups(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
@@ -178,3 +180,92 @@ class TestArchitectureReaderLttng:
 
         callback_groups = reader.get_callback_groups(node_)
         assert callback_groups == [cbg]
+
+    def test_get_subscriptions_construction_order(self, mocker):
+        lttng_mock = mocker.Mock(spec=Lttng)
+        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
+        reader = ArchitectureReaderLttng('trace_dir')
+
+        node = ['node0', 'node0']
+        node_id = ['node0_id', 'node1_id']
+        topic = ['topic0', 'topic0']
+        symbol = ['symbol0', 'symbol1']
+        callback_id = ['callback0', 'callback1']
+        construction_order = [0, 1]
+
+        sub_cb_0 = SubscriptionCallbackValue(
+            callback_id[0], node[0], node_id[0], symbol[0], topic[0], None, None)
+        sub_cb_1 = SubscriptionCallbackValue(
+            callback_id[1], node[1], node_id[1], symbol[1], topic[1], None, None)
+
+        mocker.patch.object(
+            lttng_mock,
+            'get_subscription_callbacks',
+            return_value=[sub_cb_0, sub_cb_1])
+
+        node_ = NodeValueWithId('node_name', 'node_id')
+        subs = reader.get_subscriptions(node_)
+        for i, sub in enumerate(subs):
+            assert sub.node_name == node[i]
+            assert sub.node_id == node_id[i]
+            assert sub.topic_name == topic[i]
+            assert sub.callback_id == callback_id[i]
+            assert sub.construction_order == construction_order[i]
+
+    def test_get_services_construction_order(self, mocker):
+        lttng_mock = mocker.Mock(spec=Lttng)
+        mocker.patch('caret_analyze.infra.lttng.lttng.Lttng', return_value=lttng_mock)
+        reader = ArchitectureReaderLttng('trace_dir')
+
+        ssv = ServiceStructValue('node0', 'service0', None, 1)
+        assert ssv.node_name == 'node0'
+        assert ssv.service_name == 'service0'
+        assert ssv.construction_order == 1
+
+        node = ['node0', 'node1']
+        node_id = ['node0_id', 'node1_id']
+        service = ['service0', 'service1']
+        symbol = ['symbol0', 'symbol1']
+        callback_id = ['callback0', 'callback1']
+        construction_order = [0, 0]
+
+        sub_cb_0 = ServiceCallbackValue(
+            callback_id[0], node[0], node_id[0], symbol[0], service[0], None, None)
+        sub_cb_1 = ServiceCallbackValue(
+            callback_id[1], node[1], node_id[1], symbol[1], service[1], None, None)
+
+        mocker.patch.object(
+            lttng_mock,
+            'get_service_callbacks',
+            return_value=[sub_cb_0, sub_cb_1])
+
+        node_ = NodeValueWithId('node_name', 'node_id')
+        subs = reader.get_services(node_)
+        for i, sub in enumerate(subs):
+            assert sub.node_name == node[i]
+            assert sub.node_id == node_id[i]
+            assert sub.service_name == service[i]
+            assert sub.callback_id == callback_id[i]
+            assert sub.construction_order == construction_order[i]
+
+        node = ['node0', 'node0']
+        service = ['service0', 'service0']
+        construction_order = [0, 1]
+
+        sub_cb_0 = ServiceCallbackValue(
+            callback_id[0], node[0], node_id[0], symbol[0], service[0], None, None)
+        sub_cb_1 = ServiceCallbackValue(
+            callback_id[1], node[1], node_id[1], symbol[1], service[1], None, None)
+
+        mocker.patch.object(
+            lttng_mock,
+            'get_service_callbacks',
+            return_value=[sub_cb_0, sub_cb_1])
+
+        subs = reader.get_services(node_)
+        for i, sub in enumerate(subs):
+            assert sub.node_name == node[i]
+            assert sub.node_id == node_id[i]
+            assert sub.service_name == service[i]
+            assert sub.callback_id == callback_id[i]
+            assert sub.construction_order == construction_order[i]

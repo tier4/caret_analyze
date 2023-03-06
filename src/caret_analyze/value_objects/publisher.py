@@ -28,11 +28,13 @@ class PublisherValue(ValueObject):
         node_name: str,
         node_id: str,
         callback_ids: Optional[Tuple[str, ...]],
+        construction_order: int
     ) -> None:
         self._node_id = node_id
         self._node_name = node_name
         self._topic_name = topic_name
         self._callback_ids = callback_ids
+        self._construction_order = construction_order
 
     @property
     def node_id(self) -> str:
@@ -56,6 +58,10 @@ class PublisherValue(ValueObject):
         msg += f'topic_name: {self.topic_name}, '
         return msg
 
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
+
 
 class PublisherStructValue(ValueObject, Summarizable):
     """Structured publisher value."""
@@ -65,10 +71,12 @@ class PublisherStructValue(ValueObject, Summarizable):
         node_name: str,
         topic_name: str,
         callback_values: Optional[Tuple[CallbackStructValue, ...]],
+        construction_order: int
     ) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
         self._callbacks = callback_values
+        self._construction_order = construction_order
 
     def __str__(self) -> str:
         msg = ''
@@ -93,6 +101,10 @@ class PublisherStructValue(ValueObject, Summarizable):
         if self._callbacks is None:
             return None
         return tuple(c.callback_name for c in self._callbacks)
+
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
 
     @property
     def summary(self) -> Summary:

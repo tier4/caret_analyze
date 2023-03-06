@@ -26,10 +26,12 @@ class PublisherStruct():
         node_name: str,
         topic_name: str,
         callback_values: Optional[List[CallbackStruct]],
+        construction_order: int,
     ) -> None:
         self._node_name = node_name
         self._topic_name = topic_name
         self._callbacks = callback_values
+        self._construction_order = construction_order
 
     def __str__(self) -> str:
         msg = ''
@@ -55,10 +57,18 @@ class PublisherStruct():
             return None
         return [c.callback_name for c in self._callbacks]
 
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
+
     def to_value(self) -> PublisherStructValue:
         return PublisherStructValue(
-            self.node_name, self.topic_name,
-            None if self.callbacks is None else tuple(v.to_value() for v in self.callbacks))
+            node_name=self.node_name,
+            topic_name=self.topic_name,
+            callback_values=(
+                None if self.callbacks is None
+                else tuple(v.to_value() for v in self.callbacks)),
+            construction_order=self.construction_order)
 
     def assign_callback(self, callback: CallbackStruct):
         if self._callbacks is None:

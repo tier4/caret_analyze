@@ -89,11 +89,15 @@ nodes: []
         assert talker_path.node_name == '/talker'
         assert talker_path.publish_topic_name == '/chatter'
         assert talker_path.subscribe_topic_name is None
+        assert talker_path.publisher_construction_order == 0
+        assert talker_path.subscription_construction_order == 0
 
         listener_path = path_info.node_path_values[1]
         assert listener_path.node_name == '/listener'
         assert listener_path.publish_topic_name is None
         assert listener_path.subscribe_topic_name == '/chatter'
+        assert listener_path.publisher_construction_order == 0
+        assert listener_path.subscription_construction_order == 0
 
     def test_executors(self, mocker):
         architecture_text = """
@@ -266,6 +270,7 @@ nodes:
         assert timer_pub.callback_ids == (
             '/listener/timer_callback_0',
             '/listener/timer_callback_1')
+        assert timer_pub.construction_order == 0
 
     def test_subscriptions_info(self, mocker):
         architecture_text = """
@@ -288,6 +293,46 @@ nodes:
         assert sub.node_name == '/listener'
         assert sub.topic_name == '/xxx'
         assert sub.callback_id == '/listener/timer_callback_0'
+        assert sub.construction_order == 0
+
+    def test_timers_info(self, mocker):
+        architecture_text = """
+path_name_aliases: []
+executors: []
+nodes:
+- node_name: /node
+  callbacks:
+  - callback_name: timer_callback_0
+    callback_type: timer_callback
+    period_ns: 1
+    symbol: timer_symbol
+  - callback_name: timer_callback_1
+    callback_type: timer_callback
+    period_ns: 1
+    symbol: timer_symbol
+    construction_order: 1
+  publishes:
+  - topic_name: /chatter
+    callback_names:
+    - timer_callback_0
+    - timer_callback_1
+        """
+        mocker.patch('builtins.open', mocker.mock_open(
+            read_data=architecture_text))
+        reader = ArchitectureReaderYaml('file_name')
+
+        timers = reader.get_timers(NodeValue('/node', None))
+        assert len(timers) == 2
+        timer = timers[0]
+        assert timer.period == 1
+        assert timer.node_name == '/node'
+        assert timer.callback_id == 'timer_callback_0'
+        assert timer.construction_order == 0
+        timer = timers[1]
+        assert timer.period == 1
+        assert timer.node_name == '/node'
+        assert timer.callback_id == 'timer_callback_1'
+        assert timer.construction_order == 1
 
     def test_nodes(self, mocker):
         architecture_text = """
