@@ -297,15 +297,9 @@ class ResponseTime:
         """
         return self._records.to_records(all_pattern)
 
-    def to_response_records(self, columns: Optional[List[str]] = None) -> RecordsInterface:
+    def to_response_records(self) -> RecordsInterface:
         """
         Calculate response records.
-
-        Parameters
-        ----------
-        columns : Optional[List[str]]
-            List of column names to be used in return value.
-            If None, the first and last columns are used.
 
         Returns
         -------
@@ -321,6 +315,31 @@ class ResponseTime:
 
         """
         return self._records.to_range_records()
+
+    def to_best_case_response_records(self) -> RecordsInterface:
+        """
+        Calculate response records.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the best cases response time.
+
+            Columns
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
+
+        """
+        return self._records.to_range_records('best')
+
+    def to_worst_case_response_records(self) -> RecordsInterface:
+        # NOTE:
+        # We think this function is unnecessary.
+        # If nessary, please contact us.
+        raise NotImplementedError()
+
 
     def to_best_case_timeseries(self) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -468,7 +487,10 @@ class ResponseRecords:
 
         return self._create_response_records()
 
-    def to_range_records(self) -> RecordsInterface:
+    def to_range_records(
+        self,
+        case: str = 'worst',
+    ) -> RecordsInterface:
         """
         Calculate response time records.
 
@@ -484,10 +506,15 @@ class ResponseRecords:
             - {columns[n-1]}
 
         """
-        columns = [
-            ColumnValue(f'{self._input_column}_min'),
-            ColumnValue(f'{self._input_column}_max'),
-        ]
+        columns = []
+        if case == 'best':
+            columns = [ColumnValue(self._columns[0])]
+        else:  # worst
+            columns = [
+                ColumnValue(f'{self._input_column}_min'),
+                ColumnValue(f'{self._input_column}_max'),
+            ]
+
         columns += [ColumnValue(column) for column in self._columns[1:]]
 
         records = self._create_empty_records(columns)
@@ -496,9 +523,14 @@ class ResponseRecords:
             input_time_min: int,
             record: RecordInterface
         ):
-            record = self._create_worst_to_best_case_record(
-                record, self._columns, input_time_min
-            )
+            if case == 'best':
+                record = self._create_best_case_record(
+                    record, self._columns
+                )
+            else:  # worst
+                record = self._create_worst_to_best_case_record(
+                    record, self._columns, input_time_min
+                )
 
             records.append(record)
 

@@ -41,7 +41,7 @@ class StackedBar:
         """
         # rename columns to nodes and topics granularity
         self._records = records
-        self._diff_response_time_name = '[worst - best] response time'
+        self._first_latency_name = '[worst - best] response time'
         rename_map: Dict[str, str] = \
             self._get_rename_column_map(self._records.columns)
         renamed_records: RecordsInterface = \
@@ -53,7 +53,7 @@ class StackedBar:
         # add stacked bar data
         xlabel: str = 'start time'
         x_axis_values: RecordsInterface = \
-            self._get_x_axis_values(renamed_records, self._diff_response_time_name, xlabel)
+            self._get_x_axis_values(renamed_records, columns[0], xlabel)
         stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
         series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
         series_list: List[int] = self._convert_sequence_to_list(series_seq)
@@ -113,7 +113,7 @@ class StackedBar:
         end_word: str = '_min'
         for column in raw_columns:
             if column.endswith(end_word):
-                rename_map[column] = self._diff_response_time_name
+                rename_map[column] = self._first_latency_name
             elif 'rclcpp_publish' in column:
                 topic_name = column.split('/')[:-2]
                 rename_map[column] = '/'.join(topic_name)

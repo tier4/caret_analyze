@@ -116,6 +116,12 @@ class TestResponseRecords:
         result = to_dict(response.to_records(all_pattern=True))
         assert result == expect_raw
 
+        expect_raw = [
+            {'start': 2, 'end': 3},
+        ]
+        result = to_dict(response.to_best_case_response_records())
+        assert result == expect_raw
+
     def test_cross_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 10},
