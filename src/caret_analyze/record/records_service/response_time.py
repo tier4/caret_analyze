@@ -337,9 +337,8 @@ class ResponseTime:
     def to_worst_case_response_records(self) -> RecordsInterface:
         # NOTE:
         # We think this function is unnecessary.
-        # If nessary, please contact us.
+        # If necessary, please contact us.
         raise NotImplementedError()
-
 
     def to_best_case_timeseries(self) -> Tuple[np.ndarray, np.ndarray]:
         """
