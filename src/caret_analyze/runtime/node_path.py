@@ -289,7 +289,8 @@ class NodePath(PathBase, Summarizable):
             node partial latency (callback_start-publish).
 
         """
+        if self._val.subscription_callback is None:
+            return RecordsFactory.create_instance()
 
         records = self._provider.path_end_records(self._val.subscription_callback)
         return records
-

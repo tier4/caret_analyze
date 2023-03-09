@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Union
 
@@ -22,9 +23,8 @@ from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, InvalidRecordsError
-from ..infra.lttng.column_names import COLUMN_NAME
-from ..record import Columns
+from ..exceptions import Error, InvalidArgumentError, InvalidRecordsError
+from ..record import Columns, RecordsFactory
 from ..record.record import merge, merge_sequential, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
 
@@ -104,10 +104,12 @@ class RecordsMerged:
     def __init__(
         self,
         merge_targets: List[Union[NodePath, Communication]],
+        enable_beginning: bool = False,
+        enable_end: bool = False
     ) -> None:
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')
-        self._data = self._merge_records(merge_targets)
+        self._data = self._merge_records(merge_targets, enable_beginning, enable_end)
 
     @property
     def data(self) -> RecordsInterface:
@@ -115,12 +117,14 @@ class RecordsMerged:
 
     @staticmethod
     def _merge_records(
-        targets: List[Union[NodePath, Communication]]
+        targets: List[Union[NodePath, Communication]],
+        enable_beginning: bool = False,
+        enable_end: bool = False
     ) -> RecordsInterface:
         logger.info('Started merging path records.')
 
         column_merger = ColumnMerger()
-        if isinstance(targets[0], NodePath):
+        if enable_beginning and isinstance(targets[0], NodePath):
             first_element = targets[0].to_path_beginning_records()
         else:
             if len(targets[0].to_records().data) == 0:
@@ -197,39 +201,24 @@ class RecordsMerged:
                     how='left'
                 )
 
+        main_records = left_records
 
-        if isinstance(targets[-1], NodePath):
-            last_element = targets[-1].to_path_end_records()
+        if enable_end and isinstance(targets[-1], NodePath):
+            left_records = main_records
+            right_records = targets[-1].to_path_end_records()
 
-        right_records = last_element
-
-        rename_rule = column_merger.append_columns_and_return_rename_rule(
-            right_records)
-
-        right_records.rename_columns(rename_rule)
-        left_records = merge(
-            left_records=left_records,
-            right_records=right_records,
-            join_left_key=left_records.columns[-1],
-            join_right_key=right_records.columns[0],
-            columns=Columns.from_str(
-                left_records.columns + right_records.columns
-            ).column_names,
-            how='left'
-        )
-        # left_records = merge_sequential(
-        #         left_records=left_records,
-        #         right_records=right_records,
-        #         join_left_key=None,
-        #         join_right_key=None,
-        #         left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-        #         right_stamp_key=COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-        #         columns=Columns.from_str(
-        #             left_records.columns + right_records.columns
-        #         ).column_names,
-        #         how='left_use_latest',
-        #         progress_label='binding: node records'
-        #     )
+            rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
+            right_records.rename_columns(rename_rule)
+            left_records = merge(
+                left_records=left_records,
+                right_records=right_records,
+                join_left_key=left_records.columns[-1],
+                join_right_key=right_records.columns[0],
+                columns=Columns.from_str(
+                    left_records.columns + right_records.columns
+                ).column_names,
+                how='left'
+            )
 
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
@@ -248,7 +237,9 @@ class Path(PathBase, Summarizable):
         self,
         path: PathStructValue,
         child: List[Union[NodePath, Communication]],
-        callbacks: Optional[List[CallbackBase]]
+        callbacks: Optional[List[CallbackBase]],
+        enable_beginning: bool = False,
+        enable_end: bool = False
     ) -> None:
         """
         Construct an instance.
@@ -262,6 +253,10 @@ class Path(PathBase, Summarizable):
         callbacks : Optional[List[CallbackBase]]
             callbacks that compose the path.
             return None except for all of node paths are not callback-chain.
+        enable_beginning : bool
+            Flags for extend path in the starting direction.
+        enable_end : bool
+            Flags for extend path in the end direction.
 
         """
         super().__init__()
@@ -271,11 +266,46 @@ class Path(PathBase, Summarizable):
         self._child = child
         self._columns_cache: Optional[List[str]] = None
         self._callbacks = callbacks
+        self._enable_beginning = enable_beginning
+        self._enable_end = enable_end
+        self.__records_cache: Dict = {}
         return None
+
+    def enable_beginning(self, enable_beginning: bool):
+        self._enable_beginning = enable_beginning
+
+    def enable_end(self, enable_end: bool):
+        self._enable_end = enable_end
+
+    def to_records(self) -> RecordsInterface:
+        if (self._enable_beginning, self._enable_end) not in self.__records_cache.keys():
+            try:
+                self.__records_cache[(self._enable_beginning, self._enable_end)] \
+                    = self._to_records_core()
+            except Error as e:
+                logger.warning(e)
+                self.__records_cache[(self._enable_beginning, self._enable_end)] \
+                    = RecordsFactory.create_instance()
+
+        assert (self._enable_beginning, self._enable_end) in self.__records_cache.keys()
+        return self.__records_cache[(self._enable_beginning, self._enable_end)].clone()
 
     def _to_records_core(self) -> RecordsInterface:
         self._verify_path(self.node_paths)
-        return RecordsMerged(self.child).data
+        return RecordsMerged(self.child, self._enable_beginning, self._enable_end).data
+
+    @property
+    def column_names(self) -> List[str]:
+        """
+        Get column names.
+
+        Returns
+        -------
+        List[str]
+            column names
+
+        """
+        return deepcopy(self.to_records().columns)
 
     @staticmethod
     def _verify_path(

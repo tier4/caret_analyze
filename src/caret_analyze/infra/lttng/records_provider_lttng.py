@@ -689,21 +689,19 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         Parameters
         ----------
-        publisher : PublisherStructValue
-            target publisher
+        callback : SubscriptionCallbackStructValue
+            target subscription callback
 
         Returns
         -------
         RecordsInterface
             Columns
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/rclcpp_publish_timestamp
+            - [callback_name]/callback_name
 
         """
         callback_objects = self._helper.get_callback_objects(callback)
         records = self._source.callback_records(*callback_objects)
-        # records = self._source.callback_records(callback, None)
-        # records = self._source.path_end_records(callback_object)
 
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
@@ -1809,8 +1807,7 @@ class FilteredRecordsSource:
         - publisher_handle
 
         """
-        # grouped_records = self._path_end_records
-        grouped_records = self.path_end_records
+        grouped_records = self._path_end_records
         if len(grouped_records) == 0:
             return RecordsFactory.create_instance(
                 None,
@@ -1883,4 +1880,3 @@ class FilteredRecordsSource:
         records = self._lttng.compose_path_end_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         return self._expand_key_tuple(group)
-
