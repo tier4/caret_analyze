@@ -55,7 +55,7 @@ class TestEventCounter:
         data.add_tilde_subscription(0, 0, 0, 0)
         data.add_tilde_publisher(0, 0, 0, 0)
         data.add_callback_start_instance(0, 0, 0, False)
-        data.add_callback_end_instance(0, 0)
+        data.add_callback_end_instance(0, 0, 0)
         data.add_rclcpp_intra_publish_instance(0, 0, 0, 0, 0)
         data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)
         data.add_rcl_publish_instance(0, 0, 0, 0)
