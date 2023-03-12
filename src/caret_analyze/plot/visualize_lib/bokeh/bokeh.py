@@ -55,7 +55,7 @@ class Bokeh(VisualizeLibInterface):
         full_legends: bool,  # NOTE: unused because LegendManager not apply stacked bar.
     ) -> Figure:
 
-        # NOTE: relation betwenn stacked bar graph and data struct
+        # NOTE: relation between stacked bar graph and data struct
         # # data = {
         # #     a : [a1, a2, a3],
         # #     b : [b1, b2, b3],
@@ -148,7 +148,7 @@ class Bokeh(VisualizeLibInterface):
         x_label: str,
     ) -> Tuple[Dict[str, List[float]],  List[float]]:
         """
-        Caluclate stacked bar data.
+        Calculate stacked bar data.
 
         Parameters
         ----------
@@ -186,10 +186,10 @@ class Bokeh(VisualizeLibInterface):
             output_data[x_label] = self._update_timestamps_to_offset_time(output_data[x_label])
 
             x_width_list = self._get_x_width_list(output_data[x_label])
-            harf_width_list = [x / 2 for x in x_width_list]
+            half_width_list = [x / 2 for x in x_width_list]
 
             # Slide x axis values so that the bottom left of bars are the start time.
-            output_data[x_label] = self._add_shift_value(output_data[x_label], harf_width_list)
+            output_data[x_label] = self._add_shift_value(output_data[x_label], half_width_list)
         elif xaxis_type == 'sim_time':
             raise NotImplementedError()
         else:  # index
