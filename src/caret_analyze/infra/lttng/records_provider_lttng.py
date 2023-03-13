@@ -1784,7 +1784,7 @@ class FilteredRecordsSource:
 
     def path_end_records(self, publisher_handles: List[int]):
         """
-        Compose callback_start to publish records.
+        Compose callback_start to callback_end records.
 
         Parameters
         ----------

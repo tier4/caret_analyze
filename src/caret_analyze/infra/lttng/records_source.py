@@ -676,6 +676,7 @@ class RecordsSource():
     def path_beginning_records(self) -> RecordsInterface:
         """
         Compose callback records.
+        Used to evaluate the beginning node of a path.
 
         Used tracepoints
         - callback_start
@@ -720,19 +721,19 @@ class RecordsSource():
     def path_end_records(self) -> RecordsInterface:
         """
         Compose callback records.
+        Used to evaluate the end node of a path.
 
         Used tracepoints
         - callback_start
-        - rclcpp_publish
+        - callback_end
 
         Returns
         -------
         RecordsInterface
             columns:
             - callback_start_timestamp
-            - rclcpp_publish_timestamp
+            - callback_end_timestamp
             - callback_object
-            - publisher_object
 
         """
         records: RecordsInterface
@@ -742,20 +743,16 @@ class RecordsSource():
             right_records=self._data.callback_end_instances,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-            join_left_key=COLUMN_NAME.TID,
-            join_right_key=COLUMN_NAME.TID,
+            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
+            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
             columns=[
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 COLUMN_NAME.CALLBACK_END_TIMESTAMP,
                 COLUMN_NAME.CALLBACK_OBJECT
             ],
             how='left_use_latest',
-            progress_label='binding: callback_start and rclcpp_publish'
+            progress_label='binding: callback_start and callback_end'
         )
-
-        # records.rename_columns(
-        #     {COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}
-        # )
 
         return records
 

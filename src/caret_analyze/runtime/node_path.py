@@ -241,6 +241,15 @@ class NodePath(PathBase, Summarizable):
 
     @property
     def _path_beginning_records(self) -> RecordsInterface:
+        """
+        Calculate partial records for beginning of path.
+
+        Returns
+        -------
+        RecordsInterface
+            Execution time of each operation.
+
+        """
         if self._path_beginning_records_cache is None:
             try:
                 self._path_beginning_records_cache = self._to_path_beginning_records_core()
@@ -253,6 +262,15 @@ class NodePath(PathBase, Summarizable):
 
     @property
     def _path_end_records(self) -> RecordsInterface:
+        """
+        Calculate partial records for end of path.
+
+        Returns
+        -------
+        RecordsInterface
+            Execution time of each operation.
+
+        """
         if self._path_end_records_cache is None:
             try:
                 self._path_end_records_cache = self._to_path_end_records_core()
@@ -281,12 +299,12 @@ class NodePath(PathBase, Summarizable):
 
     def _to_path_end_records_core(self) -> RecordsInterface:
         """
-        Calculate records from last callback_start to publish.
+        Calculate records from last callback_start to callback_end.
 
         Returns
         -------
         RecordsInterface
-            node partial latency (callback_start-publish).
+            node partial latency (callback_start-callback_end).
 
         """
         if self._val.subscription_callback is None:
