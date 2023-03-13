@@ -727,12 +727,14 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         """
         Compose callback records.
+
         Used to evaluate the beginning node of a path.
 
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_start_timestamp
             - rclcpp_publish_timestamp
             - callback_object
@@ -746,12 +748,14 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         """
         Compose callback records.
+
         Used to evaluate the end node of a path.
 
         Returns
         -------
         RecordsInterface
-            columns:
+            Columns
+
             - callback_start_timestamp
             - callback_end_timestamp
             - callback_object

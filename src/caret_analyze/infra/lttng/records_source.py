@@ -676,6 +676,7 @@ class RecordsSource():
     def path_beginning_records(self) -> RecordsInterface:
         """
         Compose callback records.
+
         Used to evaluate the beginning node of a path.
 
         Used tracepoints
@@ -721,6 +722,7 @@ class RecordsSource():
     def path_end_records(self) -> RecordsInterface:
         """
         Compose callback records.
+
         Used to evaluate the end node of a path.
 
         Used tracepoints
