@@ -642,9 +642,14 @@ class RecordsSource():
         """
         records: RecordsInterface
 
+        left_records=self._data.callback_start_instances.clone()
+        left_records.drop_columns([COLUMN_NAME.TID])
+        right_records=self._data.callback_end_instances.clone()
+        right_records.drop_columns([COLUMN_NAME.TID])
+
         records = merge_sequential(
-            left_records=self._data.callback_start_instances,
-            right_records=self._data.callback_end_instances,
+            left_records=left_records,
+            right_records=right_records,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.CALLBACK_END_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
