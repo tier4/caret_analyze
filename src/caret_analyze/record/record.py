@@ -661,6 +661,14 @@ class Records(RecordsInterface):
         left_records.drop_columns(temporary_columns)
         right_records.drop_columns(temporary_columns)
 
+        # [TODO]
+        # There are some differences in implementation between
+        # Records and RecordsCppImpl.
+        # The following process is a provisional process to
+        # absorb the above differences.
+        extra_columns = list(set(merged_records.columns) - set(columns))
+        merged_records.drop_columns(extra_columns)
+
         merged_records.reindex(columns)
 
         return merged_records

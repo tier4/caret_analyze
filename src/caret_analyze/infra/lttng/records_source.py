@@ -643,9 +643,7 @@ class RecordsSource():
         records: RecordsInterface
 
         left_records = self._data.callback_start_instances
-        left_records.drop_columns([COLUMN_NAME.TID])
         right_records = self._data.callback_end_instances
-        right_records.drop_columns([COLUMN_NAME.TID])
 
         records = merge_sequential(
             left_records=left_records,
