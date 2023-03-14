@@ -543,25 +543,6 @@ class Architecture(Summarizable):
         """
         return DiffNode(left_node, right_node).diff_node_subs()
 
-    @staticmethod
-    def diff_node_callbacks(
-        left_node: NodeStructValue,
-        right_node: NodeStructValue
-    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        """
-        Compare two node objects (: left_node, right_node) and returns\
-        the callback names that exists only in the respective nodes.
-
-        Parameters
-        ----------
-        left_node : NodeStructValue
-            Node in architecture
-        right_node : NodeStructValue
-            Node in architecture
-
-        """
-        return DiffNode(left_node, right_node).diff_node_callbacks()
-
 
 class AssignContextReader(ArchitectureReader):
     """MessageContext of NodeStruct implemented version of ArchitectureReader."""

@@ -297,18 +297,3 @@ class DiffNode:
         left_only_subs = tuple(set_left_subs - common_node_subs)
         right_only_subs = tuple(set_right_subs - common_node_subs)
         return left_only_subs, right_only_subs
-
-    def diff_node_callbacks(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        if self._left_node.callback_names is None:
-            set_left_callbacks = set()
-        else:
-            set_left_callbacks = set(self._left_node.callback_names)
-        if self._right_node.callback_names is None:
-            set_right_callbacks = set()
-        else:
-            set_right_callbacks = set(self._right_node.callback_names)
-
-        common_node_callbacks = set_left_callbacks & set_right_callbacks
-        left_only_callbacks = tuple(set_left_callbacks - common_node_callbacks)
-        right_only_callbacks = tuple(set_right_callbacks - common_node_callbacks)
-        return left_only_callbacks, right_only_callbacks
