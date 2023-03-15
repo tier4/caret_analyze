@@ -266,33 +266,41 @@ class Path(PathBase, Summarizable):
         self._child = child
         self._columns_cache: Optional[List[str]] = None
         self._callbacks = callbacks
-        self._enable_beginning = enable_beginning
-        self._enable_end = enable_end
+        self._include_first_callback = enable_beginning
+        self._include_last_callback = enable_end
         self.__records_cache: Dict = {}
         return None
 
-    def enable_beginning(self, enable_beginning: bool):
-        self._enable_beginning = enable_beginning
+    @property
+    def enable_beginning(self):
+        return self._include_first_callback
 
-    def enable_end(self, enable_end: bool):
-        self._enable_end = enable_end
+    @property
+    def enable_end(self):
+        return self._include_last_callback
+
+    def include_first_callback(self, enable_beginning: bool):
+        self._include_first_callback = enable_beginning
+
+    def include_last_callback(self, enable_end: bool):
+        self._include_last_callback = enable_end
 
     def to_records(self) -> RecordsInterface:
-        if (self._enable_beginning, self._enable_end) not in self.__records_cache.keys():
+        if (self._include_first_callback, self._include_last_callback) not in self.__records_cache.keys():
             try:
-                self.__records_cache[(self._enable_beginning, self._enable_end)] \
+                self.__records_cache[(self._include_first_callback, self._include_last_callback)] \
                     = self._to_records_core()
             except Error as e:
                 logger.warning(e)
-                self.__records_cache[(self._enable_beginning, self._enable_end)] \
+                self.__records_cache[(self._include_first_callback, self._include_last_callback)] \
                     = RecordsFactory.create_instance()
 
-        assert (self._enable_beginning, self._enable_end) in self.__records_cache.keys()
-        return self.__records_cache[(self._enable_beginning, self._enable_end)].clone()
+        assert (self._include_first_callback, self._include_last_callback) in self.__records_cache.keys()
+        return self.__records_cache[(self._include_first_callback, self._include_last_callback)].clone()
 
     def _to_records_core(self) -> RecordsInterface:
         self._verify_path(self.node_paths)
-        return RecordsMerged(self.child, self._enable_beginning, self._enable_end).data
+        return RecordsMerged(self.child, self._include_first_callback, self._include_last_callback).data
 
     @property
     def column_names(self) -> List[str]:

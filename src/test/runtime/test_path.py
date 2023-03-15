@@ -16,6 +16,7 @@ from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.record import Record, Records
 from caret_analyze.record.column import ColumnValue
 from caret_analyze.record.interface import RecordsInterface
+from caret_analyze.runtime.callback import CallbackBase
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import ColumnMerger, Path, RecordsMerged
@@ -78,6 +79,36 @@ class TestPath:
         path_info_mock = mocker.Mock(spec=PathStructValue)
         with pytest.raises(InvalidArgumentError):
             Path(path_info_mock, [node_mock_0, node_mock_1], None)
+
+    def test_include_first_callback(self, mocker):
+        path_struct = mocker.Mock(spec=PathStructValue)
+        child = mocker.Mock(spec=NodePath)
+        callbacks = mocker.Mock(spec=CallbackBase)
+        path = Path(
+            path_struct,
+            [child],
+            [callbacks]
+        )
+        assert not path.enable_beginning
+        path.include_first_callback(True)
+        assert path.enable_beginning
+        path.include_first_callback(False)
+        assert not path.enable_beginning
+
+    def test_include_last_callback(self, mocker):
+        path_struct = mocker.Mock(spec=PathStructValue)
+        child = mocker.Mock(spec=NodePath)
+        callbacks = mocker.Mock(spec=CallbackBase)
+        path = Path(
+            path_struct,
+            [child],
+            [callbacks]
+        )
+        assert not path.enable_end
+        path.include_last_callback(True)
+        assert path.enable_end
+        path.include_last_callback(False)
+        assert not path.enable_end
 
 
 class TestColumnMerged:
@@ -248,10 +279,7 @@ class TestRecordsMerged:
             node_path_0, 'to_records',
             return_value=cb_records.clone()
         )
-        mocker.patch.object(
-            node_path_0, 'to_path_beginning_records',
-            return_value=cb_records.clone()
-        )
+
         node_path_1 = mocker.Mock(spec=NodePath)
         mocker.patch.object(
             node_path_1, 'to_records',
