@@ -100,7 +100,7 @@ class Bokeh(VisualizeLibInterface):
         stacked_bar_source = StackedBarSource(legend_manager, target_objects, 0.0, xaxis_type)
         fig.add_tools(stacked_bar_source.create_hover())
         stacked_bar_data, x_width_list = \
-            self._get_stacked_bar_data(data, y_labels, xaxis_type, x_label)
+            Bokeh._get_stacked_bar_data(data, y_labels, xaxis_type, x_label)
         bottom_labels = Bokeh._get_bottom_labels(y_labels)
         bottom_labels = bottom_labels[1:]
         source = stacked_bar_source.generate(
@@ -140,8 +140,8 @@ class Bokeh(VisualizeLibInterface):
 
         return fig
 
+    @staticmethod
     def _get_stacked_bar_data(
-        self,
         data: Dict[str, List[int]],
         y_labels: List[str],
         xaxis_type: str,
@@ -176,7 +176,7 @@ class Bokeh(VisualizeLibInterface):
         x_width_list: List[float] = []
 
         # Convert the data unit to second
-        output_data = Bokeh._update_data_unit(data, 1e-9)
+        output_data = Bokeh._updated_with_unit(data, 1e-9)
 
         # Calculate the stacked y values
         output_data = Bokeh._stacked_y_values(output_data, y_labels)
@@ -199,7 +199,7 @@ class Bokeh(VisualizeLibInterface):
         return output_data, x_width_list
 
     @staticmethod
-    def _update_data_unit(
+    def _updated_with_unit(
         data: Dict[str, List[int]],
         unit: float,
     ) -> Dict[str, List[float]]:
