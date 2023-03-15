@@ -1682,7 +1682,7 @@ class TestVarPassRecords:
         data.add_callback_start_instance(tid, 7, callback_obj, False)
         data.add_callback_end_instance(tid, 8, callback_obj)
         data.add_callback_start_instance(tid_, 9, callback_obj_, False)
-        data.add_callback_end_instance(tid, 10, callback_obj_)
+        data.add_callback_end_instance(tid_, 10, callback_obj_)
         data.finalize()
 
         var_pass = mocker.Mock(spec=VariablePassingStructValue)
