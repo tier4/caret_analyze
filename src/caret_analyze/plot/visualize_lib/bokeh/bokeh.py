@@ -79,7 +79,7 @@ class Bokeh(VisualizeLibInterface):
         title: str = 'Stacked bar graph'
         y_axis_label = 'latency [ms]'
         target_objects = metrics.target_objects
-        data, y_labels = metrics.to_stacked_bar_dict()
+        data, y_labels = metrics.to_stacked_bar_data()
 
         fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
         records_range = Range([target_objects.to_records()])
@@ -98,7 +98,7 @@ class Bokeh(VisualizeLibInterface):
         fig.add_tools(stacked_bar_source.create_hover())
         stacked_bar_data, x_width_list = \
             self._get_stacked_bar_data(data, y_labels, xaxis_type, x_label)
-        bottom_labels = self._get_bottom_labels(y_labels)
+        bottom_labels = Bokeh._get_bottom_labels(y_labels)
         bottom_labels = bottom_labels[1:]
         source = stacked_bar_source.generate(
             target_objects,
@@ -173,25 +173,25 @@ class Bokeh(VisualizeLibInterface):
         x_width_list: List[float] = []
 
         # Convert the data unit to second
-        output_data = self._update_data_unit(data, 1e-9)
+        output_data = Bokeh._update_data_unit(data, 1e-9)
 
         # Calculate the stacked y values
-        output_data = self._stacked_y_values(output_data, y_labels)
+        output_data = Bokeh._stacked_y_values(output_data, y_labels)
 
         if xaxis_type == 'system_time':
             # Update the timestamps from absolutely time to offset time
-            output_data[x_label] = self._update_timestamps_to_offset_time(output_data[x_label])
+            output_data[x_label] = Bokeh._update_timestamps_to_offset_time(output_data[x_label])
 
-            x_width_list = self._get_x_width_list(output_data[x_label])
+            x_width_list = Bokeh._get_x_width_list(output_data[x_label])
             half_width_list = [x / 2 for x in x_width_list]
 
             # Slide x axis values so that the bottom left of bars are the start time.
-            output_data[x_label] = self._add_shift_value(output_data[x_label], half_width_list)
+            output_data[x_label] = Bokeh._add_shift_value(output_data[x_label], half_width_list)
         elif xaxis_type == 'sim_time':
             raise NotImplementedError()
         else:  # index
             output_data[x_label] = list(range(0, len(output_data[y_labels[0]])))
-            x_width_list = self._get_x_width_list(output_data[x_label])
+            x_width_list = Bokeh._get_x_width_list(output_data[x_label])
 
         return output_data, x_width_list
 

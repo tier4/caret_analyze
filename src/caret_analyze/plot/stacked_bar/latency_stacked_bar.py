@@ -52,7 +52,7 @@ class LatencyStackedBar:
         """
         # NOTE: returned columns aren't used because they don't include 'start time'
         # TODO: delete 1e-6
-        stacked_bar_dict, _ = self.to_stacked_bar_dict()
+        stacked_bar_dict, _ = self.to_stacked_bar_data()
         millisecond_dict: Dict[str, List[float]] = {}
         if xaxis_type == 'system_time':
             for column in stacked_bar_dict:
@@ -65,7 +65,7 @@ class LatencyStackedBar:
         else:  # sim_time
             raise NotImplementedError()
 
-    def to_stacked_bar_dict(
+    def to_stacked_bar_data(
         self,
     ) -> Tuple[Dict[str, List[int]], List[str]]:
         """
