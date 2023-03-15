@@ -55,6 +55,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         metrics,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool
+        full_legends: bool,
+        case: str,
     ) -> Figure:
         raise NotImplementedError()
