@@ -182,7 +182,7 @@ class Bokeh(VisualizeLibInterface):
 
         if xaxis_type == 'system_time':
             # Update the timestamps from absolutely time to offset time
-            output_data[x_label] = Bokeh._update_timestamps_to_offset_time(output_data[x_label])
+            output_data[x_label] = Bokeh._updated_timestamps_to_offset_time(output_data[x_label])
 
             x_width_list = Bokeh._get_x_width_list(output_data[x_label])
             half_width_list = [x / 2 for x in x_width_list]
@@ -219,7 +219,7 @@ class Bokeh(VisualizeLibInterface):
         return data
 
     @staticmethod
-    def _update_timestamps_to_offset_time(
+    def _updated_timestamps_to_offset_time(
         x_values: List[float]
     ):
         new_values: List[float] = []
