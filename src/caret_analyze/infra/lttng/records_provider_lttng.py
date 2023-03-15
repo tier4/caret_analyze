@@ -665,7 +665,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         -------
         RecordsInterface
             Columns
-            - [callback_name]/callback_start_timestamp
+            - [node_name]/callback_start_timestamp
             - [topic_name]/rclcpp_publish_timestamp
 
         """
@@ -1750,7 +1750,7 @@ class FilteredRecordsSource:
         -------
         RecordsInterface
             Equivalent to the following process.
-            records = lttng.compose_callback_start_to_publish_records()
+            records = lttng.compose_path_beginning_records()
             records.filter_if(
                 lambda x: x.get('publisher_handle') in publisher_handles
                 ]
