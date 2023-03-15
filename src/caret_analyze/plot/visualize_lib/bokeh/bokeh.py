@@ -116,19 +116,16 @@ class Bokeh(VisualizeLibInterface):
                 width='x_width_list',
                 source=source,
                 color=color,
-                bottom=bottom,
-                # legend_label=y_label,
+                bottom=bottom
             )
             legend_manager.add_legend(y_label, renderer, y_label)
-            # color = next(color_generator)
         color = color_selector.get_color(y_labels[-1])
         renderer = fig.vbar(
             x=x_label,
             top=y_labels[-1],
             width='x_width_list',
             source=source,
-            color=color,
-            # legend_label=y_labels[-1],
+            color=color
         )
         legend_manager.add_legend(y_labels[-1], renderer, y_labels[-1])
 

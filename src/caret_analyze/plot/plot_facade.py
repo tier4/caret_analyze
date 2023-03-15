@@ -65,10 +65,9 @@ class Plot:
 
     @staticmethod
     def create_response_time_stacked_bar_plot(
-        # self,
         target_object: Path,
         metrics: str = 'latency',
-        case: str = 'worst',
+        case: str = 'worst'
     ):
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = StackedBarPlotFactory.create_instance(
