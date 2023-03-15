@@ -19,7 +19,6 @@ from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
-from bokeh.plotting import ColumnDataSource  # TODO: delete
 from bokeh.plotting import Figure, figure
 
 import pandas as pd
@@ -52,7 +51,7 @@ class Bokeh(VisualizeLibInterface):
         metrics,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool,  # NOTE: unused because LegendManager not apply stacked bar.
+        full_legends: bool,
         case: str,  # best or worst
     ) -> Figure:
 
@@ -223,7 +222,6 @@ class Bokeh(VisualizeLibInterface):
     def _update_timestamps_to_offset_time(
         x_values: List[float]
     ):
-        # TODO: merge to '_apply_x_axis_offset' function.
         new_values: List[float] = []
         first_time = x_values[0]
         for time in x_values:
