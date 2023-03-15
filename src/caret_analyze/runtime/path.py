@@ -162,7 +162,7 @@ class RecordsMerged:
             left_stamp_key = left_records.columns[-1]
             right_stamp_key = right_records.columns[0]
 
-            right_records.drop_columns([left_records.columns[0]])  # avoid conflict column name?
+            right_records.drop_columns([left_records.columns[0]])
             right_stamp_key = right_records.columns[0]
 
             logger.info(
@@ -201,10 +201,7 @@ class RecordsMerged:
                     how='left'
                 )
 
-        main_records = left_records
-
         if enable_end and isinstance(targets[-1], NodePath):
-            left_records = main_records
             right_records = targets[-1].to_path_end_records()
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
@@ -459,6 +456,7 @@ class Path(PathBase, Summarizable):
     def clear_cache(self) -> None:
         """Clear to_records/to_dataframe cache."""
         self._columns_cache = None
+        self.__records_cache = {}
         return super().clear_cache()
 
     def __str__(self) -> str:
