@@ -682,15 +682,15 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def path_end_records(
         self,
-        callback: SubscriptionCallbackStructValue
+        callback: CallbackStructValue
     ) -> RecordsInterface:
         """
-        Return records from callback_start to publish.
+        Return records from callback_start to callback_end.
 
         Parameters
         ----------
-        callback : SubscriptionCallbackStructValue
-            target subscription callback
+        callback : CallbackStructValue
+            target callback
 
         Returns
         -------
@@ -708,7 +708,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             COLUMN_NAME.CALLBACK_END_TIMESTAMP,
         ]
         self._format(records, columns)
-        self._rename_column(records, callback._callback_name, None, None)
+        self._rename_column(records, callback.callback_name, None, None)
         return records
 
     def _verify_trace_points(
@@ -1734,7 +1734,10 @@ class FilteredRecordsSource:
 
         return callback_records
 
-    def path_beginning_records(self, publisher_handles: List[int]):
+    def path_beginning_records(
+        self,
+        publisher_handles: List[int]
+    ) -> RecordsInterface:
         """
         Compose callback_start to publish records.
 
@@ -1777,53 +1780,6 @@ class FilteredRecordsSource:
         for publisher_handle in publisher_handles:
             if publisher_handle in grouped_records:
                 records.concat(grouped_records[publisher_handle].clone())
-
-        records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
-
-        return records
-
-    def path_end_records(self, publisher_handles: List[int]):
-        """
-        Compose callback_start to callback_end records.
-
-        Parameters
-        ----------
-        publisher_handles : List[int]
-            publisher handles
-
-        Returns
-        -------
-        RecordsInterface
-            Equivalent to the following process.
-            records = lttng.compose_callback_start_to_publish_records()
-            records.filter_if(
-                lambda x: x.get('publisher_handle') in publisher_handles
-                ]
-            )
-        Columns
-        - callback_start_timestamp
-        - rclcpp_publish_timestamp
-        - callback_handle
-        - publisher_handle
-
-        """
-        grouped_records = self._path_end_records
-        if len(grouped_records) == 0:
-            return RecordsFactory.create_instance(
-                None,
-                [
-                    ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.IS_INTRA_PROCESS)
-                ]
-            )
-        sample_records = list(grouped_records.values())[0]
-        column_values = Columns.from_str(sample_records.columns).to_value()
-        records = RecordsFactory.create_instance(None, column_values)
-
-        for publisher in publisher_handles:
-            if publisher in grouped_records:
-                records.concat(grouped_records[publisher].clone())
 
         records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
 
