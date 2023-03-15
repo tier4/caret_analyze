@@ -52,7 +52,7 @@ class StackedBarPlotFactory:
         """
         if metrics == 'latency':
             metrics_ = LatencyStackedBar(target_objects, case)
-            return StackedBarPlot(metrics_, visualize_lib)
+            return StackedBarPlot(metrics_, visualize_lib, case)
         elif metrics == 'percentage':
             # TODO
             raise NotImplementedError()

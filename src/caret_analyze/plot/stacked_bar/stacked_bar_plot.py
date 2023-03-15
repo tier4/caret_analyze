@@ -30,9 +30,11 @@ class StackedBarPlot(PlotBase):
         self,
         metrics: LatencyStackedBar,
         visualize_lib: VisualizeLibInterface,
+        case: str = 'worst',
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
+        self._case = case
 
     def figure(
         self,
@@ -51,6 +53,7 @@ class StackedBarPlot(PlotBase):
             xaxis_type,
             ywheel_zoom,
             full_legends,
+            self._case,
         )
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:

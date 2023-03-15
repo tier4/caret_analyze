@@ -53,6 +53,7 @@ class Bokeh(VisualizeLibInterface):
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool,  # NOTE: unused because LegendManager not apply stacked bar.
+        case: str,  # best or worst
     ) -> Figure:
 
         # NOTE: relation between stacked bar graph and data struct
@@ -93,6 +94,8 @@ class Bokeh(VisualizeLibInterface):
             raise NotImplementedError()
 
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
+        if case == 'best':
+            color_selector.get_color()
         legend_manager = LegendManager()
         stacked_bar_source = StackedBarSource(legend_manager, target_objects, 0.0, xaxis_type)
         fig.add_tools(stacked_bar_source.create_hover())
