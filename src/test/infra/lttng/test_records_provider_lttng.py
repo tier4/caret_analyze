@@ -276,6 +276,74 @@ class TestRecordsProviderLttng:
 
         assert provider.is_intra_process_communication(comm_info_mock) is True
 
+    def test_path_beginning_records(self, mocker):
+
+        records_mock = mocker.Mock(spec=RecordsInterface)
+
+        def _rename_column(records, callback_name, topic_name, node_name):
+            return records
+        mocker.patch.object(
+            RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
+
+        def _format(records, columns):
+            return records
+        mocker.patch.object(
+            RecordsProviderLttng, '_format', side_effect=_format)
+
+        lttng_mock = mocker.Mock(spec=Lttng)
+
+        helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
+                     return_value=helper_mock)
+
+        source_mock = mocker.Mock(spec=FilteredRecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.FilteredRecordsSource',
+                     return_value=source_mock)
+
+        publisher = (1, 2)
+        mocker.patch.object(helper_mock, 'get_publisher_handles', return_value=publisher)
+        mocker.patch.object(source_mock, 'path_beginning_records', return_value=records_mock)
+
+        provider = RecordsProviderLttng(lttng_mock)
+        publisher_handles = mocker.Mock(spec=PublisherStructValue)
+        records = provider.path_beginning_records(publisher_handles)
+
+        assert records == records_mock
+
+    def test_path_end_records(self, mocker):
+
+        records_mock = mocker.Mock(spec=RecordsInterface)
+
+        def _rename_column(records, callback_name, topic_name, node_name):
+            return records
+        mocker.patch.object(
+            RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
+
+        def _format(records, columns):
+            return records
+        mocker.patch.object(
+            RecordsProviderLttng, '_format', side_effect=_format)
+
+        lttng_mock = mocker.Mock(spec=Lttng)
+
+        helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
+                     return_value=helper_mock)
+
+        source_mock = mocker.Mock(spec=FilteredRecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_provider_lttng.FilteredRecordsSource',
+                     return_value=source_mock)
+
+        callback_objects = (1, 2)
+        mocker.patch.object(helper_mock, 'get_callback_objects', return_value=callback_objects)
+        mocker.patch.object(source_mock, 'callback_records', return_value=records_mock)
+
+        provider = RecordsProviderLttng(lttng_mock)
+        callback_mock = mocker.Mock(spec=CallbackStructValue)
+        records = provider.path_end_records(callback_mock)
+
+        assert records == records_mock
+
 
 class TestRecordsProviderLttngHelper:
 
