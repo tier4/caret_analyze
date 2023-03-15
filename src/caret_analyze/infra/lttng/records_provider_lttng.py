@@ -697,7 +697,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         RecordsInterface
             Columns
             - [callback_name]/callback_start_timestamp
-            - [callback_name]/callback_name
+            - [callback_name]/callback_end_timestamp
 
         """
         callback_objects = self._helper.get_callback_objects(callback)
