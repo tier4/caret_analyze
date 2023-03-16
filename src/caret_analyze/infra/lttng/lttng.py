@@ -761,4 +761,4 @@ class Lttng(InfraBase):
             - callback_object
 
         """
-        return self._source.path_end_records.clone()
+        return self._source.callback_records.clone()

@@ -737,45 +737,5 @@ class RecordsSource():
         return concat_records
 
     @cached_property
-    def path_end_records(self) -> RecordsInterface:
-        """
-        Compose callback records.
-
-        Used to evaluate the end node of a path.
-
-        Used tracepoints
-        - callback_start
-        - callback_end
-
-        Returns
-        -------
-        RecordsInterface
-            columns:
-            - callback_start_timestamp
-            - callback_end_timestamp
-            - callback_object
-
-        """
-        records: RecordsInterface
-
-        records = merge_sequential(
-            left_records=self._data.callback_start_instances,
-            right_records=self._data.callback_end_instances,
-            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
-            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=[
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_END_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_OBJECT
-            ],
-            how='left_use_latest',
-            progress_label='binding: callback_start and callback_end'
-        )
-
-        return records
-
-    @cached_property
     def system_and_sim_times(self) -> RecordsInterface:
         return self._data.sim_time

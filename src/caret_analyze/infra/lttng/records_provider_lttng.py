@@ -1833,6 +1833,6 @@ class FilteredRecordsSource:
 
     @cached_property
     def _path_end_records(self) -> Dict[int, RecordsInterface]:
-        records = self._lttng.compose_path_end_records()
+        records = self._lttng.compose_callback_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         return self._expand_key_tuple(group)
