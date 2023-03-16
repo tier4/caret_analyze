@@ -283,7 +283,8 @@ class Path(PathBase, Summarizable):
         self._include_last_callback = enable_end
 
     def to_records(self) -> RecordsInterface:
-        if (self._include_first_callback, self._include_last_callback) not in self.__records_cache.keys():
+        if (self._include_first_callback, self._include_last_callback) \
+                not in self.__records_cache.keys():
             try:
                 self.__records_cache[(self._include_first_callback, self._include_last_callback)] \
                     = self._to_records_core()
@@ -292,12 +293,15 @@ class Path(PathBase, Summarizable):
                 self.__records_cache[(self._include_first_callback, self._include_last_callback)] \
                     = RecordsFactory.create_instance()
 
-        assert (self._include_first_callback, self._include_last_callback) in self.__records_cache.keys()
-        return self.__records_cache[(self._include_first_callback, self._include_last_callback)].clone()
+        assert (self._include_first_callback, self._include_last_callback) \
+            in self.__records_cache.keys()
+        return self.__records_cache[(self._include_first_callback,
+                                     self._include_last_callback)].clone()
 
     def _to_records_core(self) -> RecordsInterface:
         self._verify_path(self.node_paths)
-        return RecordsMerged(self.child, self._include_first_callback, self._include_last_callback).data
+        return RecordsMerged(self.child,
+                             self._include_first_callback, self._include_last_callback).data
 
     @property
     def column_names(self) -> List[str]:
