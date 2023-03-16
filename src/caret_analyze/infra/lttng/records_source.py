@@ -687,9 +687,11 @@ class RecordsSource():
             - publisher_object
 
         """
-        records: RecordsInterface
+        records_inter: RecordsInterface
+        records_intra: RecordsInterface
+        concat_records: RecordsInterface
 
-        records = merge_sequential(
+        records_inter = merge_sequential(
             left_records=self._data.callback_start_instances,
             right_records=self._data.rclcpp_publish_instances,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
@@ -700,17 +702,39 @@ class RecordsSource():
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.PUBLISHER_HANDLE,
+                COLUMN_NAME.PUBLISHER_HANDLE
             ],
             how='left_use_latest',
             progress_label='binding: callback_start and rclcpp_publish'
         )
-
-        records.rename_columns(
+        records_inter.rename_columns(
             {COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}
         )
 
-        return records
+        records_intra = merge_sequential(
+            left_records=self._data.callback_start_instances,
+            right_records=self._data.rclcpp_intra_publish_instances,
+            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            columns=[
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_OBJECT,
+                COLUMN_NAME.PUBLISHER_HANDLE
+            ],
+            how='left_use_latest',
+            progress_label='binding: callback_start and rclcpp_intra_publish'
+        )
+        records_intra.rename_columns(
+            {COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP}
+        )
+
+        records_inter.concat(records_intra)
+        concat_records = records_inter
+
+        return concat_records
 
     @cached_property
     def path_end_records(self) -> RecordsInterface:
