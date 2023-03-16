@@ -175,7 +175,8 @@ class Bokeh(VisualizeLibInterface):
         x_width_list: List[float] = []
 
         # Convert the data unit to second
-        output_data = Bokeh._updated_with_unit(data, 1e-9)
+        output_data = Bokeh._updated_with_unit(data, y_labels, 1e-6)
+        output_data = Bokeh._updated_with_unit(output_data, ['start time'], 1e-9)
 
         # Calculate the stacked y values
         output_data = Bokeh._stacked_y_values(output_data, y_labels)
@@ -199,14 +200,20 @@ class Bokeh(VisualizeLibInterface):
 
     @staticmethod
     def _updated_with_unit(
-        data: Dict[str, List[int]],
+        data: Dict[str, List[Union[int, float]]],
+        columns: Optional[List[str]],
         unit: float,
     ) -> Dict[str, List[float]]:
         # TODO: make timeseries and callback scheduling function use this function.
         #       create bokeh_util.py
-        output_data: Dict[str, List[float]] = {}
-        for key in data.keys():
-            output_data[key] = [d * unit for d in data[key]]
+        if columns == None:
+            output_data: Dict[str, List[float]] = {}
+            for key in data.keys():
+                output_data[key] = [d * unit for d in data[key]]
+        else:
+            output_data: Dict[str, List[float]] = data
+            for key in columns:
+                output_data[key] = [d * unit for d in data[key]]
         return output_data
 
     @staticmethod
