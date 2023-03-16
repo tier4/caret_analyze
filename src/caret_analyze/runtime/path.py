@@ -268,17 +268,17 @@ class Path(PathBase, Summarizable):
         return None
 
     @property
-    def enable_beginning(self):
+    def enable_beginning(self) -> bool:
         return self._include_first_callback
 
     @property
-    def enable_end(self):
+    def enable_end(self) -> bool:
         return self._include_last_callback
 
-    def include_first_callback(self, enable_beginning: bool):
+    def include_first_callback(self, enable_beginning: bool) -> None:
         self._include_first_callback = enable_beginning
 
-    def include_last_callback(self, enable_end: bool):
+    def include_last_callback(self, enable_end: bool) -> None:
         self._include_last_callback = enable_end
 
     def to_records(self) -> RecordsInterface:
