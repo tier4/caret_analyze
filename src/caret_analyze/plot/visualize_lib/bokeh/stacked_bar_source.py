@@ -63,7 +63,6 @@ class StackedBarSource:
         x_width_list: List[float],
     ) -> ColumnDataSource:
         source = ColumnDataSource(data)
-        source.add(y_labels, 'legend')
         source.add(x_width_list, 'x_width_list')
         hover_source = self._hover_source.generate(target_object)
 
