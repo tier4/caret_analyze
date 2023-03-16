@@ -74,7 +74,7 @@ class Bokeh(VisualizeLibInterface):
         # # +-------s1------s2------s3---------->
 
         # # get stacked bar data
-        data: Dict[str, list[int]] = {}
+        data: Dict[str, list[int | float]] = {}
         y_labels: List[str] = []
         title: str = 'Stacked bar graph'
         y_axis_label = 'latency [ms]'
@@ -141,7 +141,7 @@ class Bokeh(VisualizeLibInterface):
 
     @staticmethod
     def _get_stacked_bar_data(
-        data: Dict[str, List[int]],
+        data: Dict[str, List[int | float]],
         y_labels: List[str],
         xaxis_type: str,
         x_label: str,
@@ -206,12 +206,12 @@ class Bokeh(VisualizeLibInterface):
     ) -> Dict[str, List[float]]:
         # TODO: make timeseries and callback scheduling function use this function.
         #       create bokeh_util.py
-        if columns == None:
+        if columns is None:
             output_data: Dict[str, List[float]] = {}
             for key in data.keys():
                 output_data[key] = [d * unit for d in data[key]]
         else:
-            output_data: Dict[str, List[float]] = data
+            output_data = data
             for key in columns:
                 output_data[key] = [d * unit for d in data[key]]
         return output_data
