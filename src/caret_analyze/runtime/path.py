@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Union
 
@@ -302,19 +301,6 @@ class Path(PathBase, Summarizable):
         self._verify_path(self.node_paths)
         return RecordsMerged(self.child,
                              self._include_first_callback, self._include_last_callback).data
-
-    @property
-    def column_names(self) -> List[str]:
-        """
-        Get column names.
-
-        Returns
-        -------
-        List[str]
-            column names
-
-        """
-        return deepcopy(self.to_records().columns)
 
     @staticmethod
     def _verify_path(
