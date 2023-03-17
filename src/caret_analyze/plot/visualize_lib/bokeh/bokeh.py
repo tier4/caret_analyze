@@ -84,7 +84,6 @@ class Bokeh(VisualizeLibInterface):
         fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
         frame_max = data['start time'][-1]
-        print(frame_min, frame_max)
         x_label = 'start time'
         if xaxis_type == 'system_time':
             self._apply_x_axis_offset(fig, frame_min, frame_max)
