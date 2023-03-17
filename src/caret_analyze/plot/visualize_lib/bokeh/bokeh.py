@@ -82,8 +82,9 @@ class Bokeh(VisualizeLibInterface):
         data, y_labels = metrics.to_stacked_bar_data()
 
         fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
-        records_range = Range([target_objects.to_records()])
-        frame_min, frame_max = records_range.get_range()
+        frame_min = data['start time'][0]
+        frame_max = data['start time'][-1]
+        print(frame_min, frame_max)
         x_label = 'start time'
         if xaxis_type == 'system_time':
             self._apply_x_axis_offset(fig, frame_min, frame_max)
