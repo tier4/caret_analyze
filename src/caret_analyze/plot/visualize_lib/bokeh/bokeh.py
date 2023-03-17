@@ -76,10 +76,10 @@ class Bokeh(VisualizeLibInterface):
         # # get stacked bar data
         data: Dict[str, list[int | float]] = {}
         y_labels: List[str] = []
-        title: str = 'Stacked bar graph'
         y_axis_label = 'latency [ms]'
         target_objects = metrics.target_objects
         data, y_labels = metrics.to_stacked_bar_data()
+        title: str = f"Stacked bar of '{getattr(target_objects, 'path_name')}'"
 
         fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
