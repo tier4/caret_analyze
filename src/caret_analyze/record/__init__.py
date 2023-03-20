@@ -22,7 +22,7 @@ from .record import (merge,
                      Records,
                      RecordsInterface)
 from .record_factory import RecordFactory, RecordsFactory
-from .records_service import Frequency, Latency, Period, Range, ResponseTime
+from .records_service import Frequency, Latency, Period, Range, ResponseTime, StackedBar
 
 __all__ = [
     'Clip',
@@ -41,6 +41,7 @@ __all__ = [
     'RecordsFactory',
     'RecordsInterface',
     'ResponseTime',
+    'StackedBar',
     'Strip',
     'merge',
     'merge_sequential',
