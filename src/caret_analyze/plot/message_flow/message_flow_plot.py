@@ -55,14 +55,13 @@ class MessageFlowPlot(PlotBase):
         self,
         xaxis_type: Optional[str] = None,
         ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None
+        full_legends: Optional[bool] = None  # FIXME: not used in message flow
     ) -> Figure:
         # Set default value
         xaxis_type = xaxis_type or 'system_time'
         ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else False
-        full_legends = full_legends if full_legends is not None else False
 
         return self._visualize_lib.message_flow(
-            self._target_path, xaxis_type, ywheel_zoom, full_legends,
+            self._target_path, xaxis_type, ywheel_zoom,
             self._granularity, self._treat_drop_as_delay, self._lstrip_s, self._rstrip_s
         )

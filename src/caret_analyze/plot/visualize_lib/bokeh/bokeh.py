@@ -55,7 +55,6 @@ class Bokeh(VisualizeLibInterface):
         target_path: Path,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool,
         granularity: str,
         treat_drop_as_delay: bool,
         lstrip_s: float,
@@ -66,31 +65,28 @@ class Bokeh(VisualizeLibInterface):
             f'Message flow of {target_path.path_name}', ywheel_zoom, xaxis_type)
         fig.add_tools(CrosshairTool(line_alpha=0.4))
 
+        # Strip
         df = target_path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
-
-        converter: Optional[ClockConverter] = None
-        if xaxis_type == 'sim_time':
-            assert len(target_path.child) > 0
-            child = target_path.child[0]
-            # TODO(hsgwa): refactor
-            converter = child._provider.get_sim_time_converter()  # type: ignore
-
         strip = Strip(lstrip_s, rstrip_s)
         clip = strip.to_clip(df)
         df = clip.execute(df)
-
-        frame_min: float = clip.min_ns
-        frame_max: float = clip.max_ns
-
         offset = Offset(clip.min_ns)
 
+        # Apply xaxis offset
+        frame_min: float = clip.min_ns
+        frame_max: float = clip.max_ns
+        converter: Optional[ClockConverter] = None
+        if xaxis_type == 'sim_time':
+            assert len(target_path.child) > 0
+            # TODO(hsgwa): refactor
+            converter = target_path.child[0]._provider.get_sim_time_converter()  # type: ignore
         if converter:
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
-
         x_range_name = 'x_plot_axis'
         self._apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
 
+        # Format
         formatter = FormatterFactory.create(target_path, granularity)
         formatter.remove_columns(df)
         formatter.rename_columns(df, target_path)
@@ -100,6 +96,7 @@ class Bokeh(VisualizeLibInterface):
         fig.yaxis.ticker = yaxis_property.values
         fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
+        # Draw callback rect
         rect_source = get_callback_rect_list(
             target_path, yaxis_values, granularity, clip, converter, offset)
         fig.rect(
@@ -115,10 +112,11 @@ class Bokeh(VisualizeLibInterface):
             x_range_name=x_range_name
         )
 
+        # Draw message flow
         color_selector = ColorSelectorFactory.create_instance('unique')
         flow_source = MessageFlowSource(target_path)
         fig.add_tools(flow_source.create_hover())
-        for i, source in enumerate(flow_source.generate(df, converter, offset)):
+        for source in flow_source.generate(df, converter, offset):
             fig.line(
                 x='x',
                 y='y',

@@ -32,7 +32,6 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         target_path: Path,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool,
         granularity: str,
         treat_drop_as_delay: bool,
         lstrip_s: float,
