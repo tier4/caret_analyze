@@ -19,6 +19,7 @@ from typing import Optional
 from .message_flow_plot import MessageFlowPlot
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
+from ...exceptions import InvalidArgumentError
 from ...runtime import Path
 
 
@@ -35,6 +36,10 @@ class MessageFlowPlotFactory:
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> MessageFlowPlot:
+        granularity = granularity or 'raw'
+        if granularity not in ['raw', 'node']:
+            raise InvalidArgumentError('granularity must be [ raw / node ]')
+
         return MessageFlowPlot(
             target_path, visualize_lib, granularity, treat_drop_as_delay, lstrip_s, rstrip_s
         )
