@@ -35,12 +35,17 @@ class MessageFlowPlot(PlotBase):
         self,
         target_path: Path,
         visualize_lib: VisualizeLibInterface,
-        granularity: Optional[str],
+        granularity: str,
         treat_drop_as_delay: bool,
         lstrip_s: float,
         rstrip_s: float,
     ) -> None:
-        pass
+        self._target_path = target_path
+        self._visualize_lib = visualize_lib
+        self._granularity = granularity
+        self._treat_drop_as_delay = treat_drop_as_delay
+        self._lstrip_s = lstrip_s
+        self._rstrip_s = rstrip_s
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
         logger.warning("'to_dataframe' method is not implemented in MessageFlowPlot.")
@@ -52,4 +57,12 @@ class MessageFlowPlot(PlotBase):
         ywheel_zoom: Optional[bool] = None,
         full_legends: Optional[bool] = None
     ) -> Figure:
-        pass
+        # Set default value
+        xaxis_type = xaxis_type or 'system_time'
+        ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else False
+        full_legends = full_legends if full_legends is not None else False
+
+        return self._visualize_lib.message_flow(
+            self._target_path, xaxis_type, ywheel_zoom, full_legends,
+            self._granularity, self._treat_drop_as_delay, self._lstrip_s, self._rstrip_s
+        )
