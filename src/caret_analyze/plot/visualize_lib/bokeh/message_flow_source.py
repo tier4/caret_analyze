@@ -19,10 +19,13 @@ from datetime import datetime
 from functools import cached_property
 from typing import Dict, List, Optional
 
+from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
 
 import numpy as np
 import pandas as pd
+
+from .legend import HoverCreator, HoverKeys
 
 from ...util import get_callback_param_desc, RectValues
 from ....common import ClockConverter
@@ -133,41 +136,6 @@ def get_callback_rect_list(
         'height': height
     })
     return rect_source
-
-
-def get_flow_lines(
-    df: pd.DataFrame,
-    converter: Optional[ClockConverter],
-    offset: Offset
-) -> ColumnDataSource:
-    tick_labels = YAxisProperty(df)
-    line_sources = []
-
-    for i, row in df.iterrows():
-        row_values = row.dropna().values
-        if converter:
-            row_values = [converter.convert(_) for _ in row_values]
-        x_min = min(row_values)
-        x_max = max(row_values)
-        width = x_max - x_min
-
-        t_start_s = to_format_str(x_min-offset.value)
-        t_end_s = to_format_str(x_max-offset.value)
-        line_source = ColumnDataSource({
-            'x': row_values,
-            'y': tick_labels.values[:len(row_values)],
-            't_start': [t_start_s]*len(row_values),
-            't_end': [t_end_s]*len(row_values),
-            't_offset': [str(offset)]*len(row_values),
-            'width': [width]*len(row_values),
-            'height': [0]*len(row_values),
-            'latency': [width*1.0e-6]*len(row_values),
-            'desc': [f'index: {i}']*len(row_values),
-        })
-
-        line_sources.append(line_source)
-
-    return line_sources
 
 
 class DataFrameColumnNameParsed:
@@ -339,3 +307,51 @@ class NodeLevelFormatter(DataFrameFormatter):
                 renames[column_name] = column_name[:idx]
 
         df.rename(columns=renames, inplace=True)
+
+
+class MessageFlowSource:
+
+    def __init__(
+        self,
+        target_path: Path
+    ) -> None:
+        self._hover_keys = HoverKeys('message_flow', target_path)
+        self._hover = HoverCreator(self._hover_keys)
+
+    def create_hover(self,) -> HoverTool:
+        return self._hover.create()
+
+    def generate(
+        self,
+        df: pd.DataFrame,
+        converter: Optional[ClockConverter],
+        offset: Offset
+    ) -> ColumnDataSource:
+        tick_labels = YAxisProperty(df)
+        line_sources = []
+
+        for i, row in df.iterrows():
+            row_values = row.dropna().values
+            if converter:
+                row_values = [converter.convert(_) for _ in row_values]
+            x_min = min(row_values)
+            x_max = max(row_values)
+            width = x_max - x_min
+
+            t_start_s = to_format_str(x_min-offset.value)
+            t_end_s = to_format_str(x_max-offset.value)
+            line_source = ColumnDataSource({
+                'x': row_values,
+                'y': tick_labels.values[:len(row_values)],
+                'width': [width]*len(row_values),
+                'height': [0]*len(row_values),
+                't_start': [f't_start = {t_start_s} [s]']*len(row_values),
+                't_end': [f't_end = {t_end_s} [s]']*len(row_values),
+                't_offset': [f't_offset = {offset}']*len(row_values),
+                'latency': [f'latency = {width*1.0e-6} [ms]']*len(row_values),
+                'desc': [f'index: {i}']*len(row_values),
+            })
+
+            line_sources.append(line_source)
+
+        return line_sources
