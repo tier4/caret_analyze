@@ -21,10 +21,10 @@ from typing import Any, Dict, List, Tuple, Union
 from bokeh.models import GlyphRenderer, HoverTool, Legend
 
 from ....exceptions import InvalidArgumentError
-from ....runtime import (CallbackBase, Communication, Publisher, Subscription,
+from ....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
                          SubscriptionCallback, TimerCallback)
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscription]]
 
 logger = getLogger(__name__)
 
@@ -32,9 +32,11 @@ logger = getLogger(__name__)
 class HoverKeys:
     """Hover keys."""
 
-    _SUPPORTED_GRAPH_TYPE = ['callback_scheduling_bar', 'callback_scheduling_rect', 'timeseries']
+    _SUPPORTED_GRAPH_TYPE = [
+        'callback_scheduling_bar', 'callback_scheduling_rect', 'timeseries', 'message_flow'
+    ]
 
-    def __init__(self, graph_type: str, target_object: TimeSeriesTypes) -> None:
+    def __init__(self, graph_type: str, target_object: TargetTypes) -> None:
         self._validate(graph_type, target_object)
         self._graph_type = graph_type
         self._target_object = target_object
@@ -55,6 +57,11 @@ class HoverKeys:
             raise InvalidArgumentError(
                 "'target_object' must be [CallbackBase/Communication/Publisher/Subscription]"
                 'in timeseries graph.'
+            )
+
+        if graph_type == 'message_flow' and not isinstance(target_object, Path):
+            raise InvalidArgumentError(
+                "'target_object' must be Path in message flow."
             )
 
     def to_list(self) -> List[str]:
@@ -83,6 +90,9 @@ class HoverKeys:
                               'publish_node_name', 'subscribe_node_name']
             elif isinstance(self._target_object, (Publisher, Subscription)):
                 hover_keys = ['legend_label', 'node_name', 'topic_name']
+
+        if self._graph_type == 'message_flow':
+            hover_keys = ['t_start', 't_end', 'latency', 't_offset', 'desc']
 
         return hover_keys
 
