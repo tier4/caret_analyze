@@ -29,9 +29,8 @@ from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRec
 from .color_selector import ColorSelectorFactory
 from .legend import LegendManager
 from .message_flow_source import (
-    ColorPalette, FormatterFactory, get_callback_rect_list, get_flow_lines, Offset, YAxisProperty,
-    YAxisValues
-)
+    ColorPalette, FormatterFactory, get_callback_rect_list, MessageFlowSource,
+    Offset, YAxisProperty, YAxisValues)
 from .timeseries_source import LineSource
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
@@ -63,27 +62,9 @@ class Bokeh(VisualizeLibInterface):
         lstrip_s: float,
         rstrip_s: float
     ) -> Figure:
-        TOOLTIPS = """
-        <div style="width:400px; word-wrap: break-word;">
-        t_start = @t_start [s] <br>
-        t_end = @t_end [s] <br>
-        latency = @latency [ms] <br>
-        t_offset = @t_offset <br>
-
-        <br>
-        @desc
-        </div>
-        """
-
-        fig = figure(
-            x_axis_label='Time [s]',
-            y_axis_label='',
-            title=f'Message flow of {target_path.path_name}',
-            plot_width=1000,
-            plot_height=400,
-            active_scroll='wheel_zoom',
-            tooltips=TOOLTIPS,
-        )
+        # Initialize figure
+        fig = self._init_figure(
+            f'Message flow of {target_path.path_name}', ywheel_zoom, xaxis_type)
         fig.add_tools(CrosshairTool(line_alpha=0.4))
 
         color_palette = ColorPalette(Bokeh8)
@@ -137,15 +118,16 @@ class Bokeh(VisualizeLibInterface):
             x_range_name=x_range_name
         )
 
-        line_sources = get_flow_lines(df, converter, offset)
-        for i, line_source in enumerate(line_sources):
+        flow_source = MessageFlowSource(target_path)
+        fig.add_tools(flow_source.create_hover())
+        for i, source in enumerate(flow_source.generate(df, converter, offset)):
             fig.line(
                 x='x',
                 y='y',
                 line_width=1.5,
                 line_color=color_palette.get_index_color(i),
                 line_alpha=1,
-                source=line_source,
+                source=source,
                 x_range_name=x_range_name
             )
 
