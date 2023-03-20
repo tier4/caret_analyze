@@ -271,9 +271,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
         return d
 
-# TODO: Methods in DiffNode should be integrated to NodeStructValue object.
-
-
+# NOTE: DiffNode may be changed when it is refactored.
 class DiffNode:
 
     def __init__(

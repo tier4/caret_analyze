@@ -597,6 +597,7 @@ class AssignContextReader(ArchitectureReader):
         pass
 
 
+# NOTE: DiffArchitecture may be changed when it is refactored.
 class DiffArchitecture:
 
     def __init__(
