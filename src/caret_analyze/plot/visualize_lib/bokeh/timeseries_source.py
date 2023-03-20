@@ -20,7 +20,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
 
-from .legend import HoverCreator, LegendKeys, LegendManager, LegendSource
+from .legend import HoverCreator, HoverKeys, HoverSource, LegendManager
 
 from ....record import RecordsInterface
 from ....runtime import CallbackBase, Communication, Publisher, Subscription
@@ -38,9 +38,9 @@ class LineSource:
         frame_min,
         xaxis_type: str,
     ) -> None:
-        self._legend_keys = LegendKeys('timeseries', target_object)
+        self._legend_keys = HoverKeys('timeseries', target_object)
         self._hover = HoverCreator(self._legend_keys)
-        self._legend_source = LegendSource(legend_manager, self._legend_keys)
+        self._legend_source = HoverSource(legend_manager, self._legend_keys)
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 

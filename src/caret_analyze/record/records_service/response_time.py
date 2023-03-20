@@ -213,7 +213,7 @@ class ResponseTime:
     Examples
     --------
     >>> from caret_analyze import Application, Architecture, Lttng
-    >>> from caret_analyze.experiment import ResponseTime
+    >>> from caret_analyze.record import ResponseTime
 
     >>> # Load results
     >>> arch = Architecture('yaml', '/path/to/yaml')

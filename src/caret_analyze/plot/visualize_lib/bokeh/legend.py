@@ -29,8 +29,8 @@ TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscripti
 logger = getLogger(__name__)
 
 
-class LegendKeys:
-    """Legend keys."""
+class HoverKeys:
+    """Hover keys."""
 
     _SUPPORTED_GRAPH_TYPE = ['callback_scheduling_bar', 'callback_scheduling_rect', 'timeseries']
 
@@ -59,43 +59,43 @@ class LegendKeys:
 
     def to_list(self) -> List[str]:
         """
-        Get legend keys as a list.
+        Get hover keys as a list.
 
         Returns
         -------
         List[str]
-            Legend keys.
+            Hover keys.
 
         """
         if self._graph_type == 'callback_scheduling_bar':
-            legend_keys = ['legend_label', 'node_name', 'callback_name',
-                           'callback_type', 'callback_param', 'symbol']
+            hover_keys = ['legend_label', 'node_name', 'callback_name',
+                          'callback_type', 'callback_param', 'symbol']
 
         if self._graph_type == 'callback_scheduling_rect':
-            legend_keys = ['legend_label', 'callback_start', 'callback_end', 'latency']
+            hover_keys = ['legend_label', 'callback_start', 'callback_end', 'latency']
 
         if self._graph_type == 'timeseries':
             if isinstance(self._target_object, CallbackBase):
-                legend_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
-                               'callback_param', 'symbol']
+                hover_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
+                              'callback_param', 'symbol']
             elif isinstance(self._target_object, Communication):
-                legend_keys = ['legend_label', 'topic_name',
-                               'publish_node_name', 'subscribe_node_name']
+                hover_keys = ['legend_label', 'topic_name',
+                              'publish_node_name', 'subscribe_node_name']
             elif isinstance(self._target_object, (Publisher, Subscription)):
-                legend_keys = ['legend_label', 'node_name', 'topic_name']
+                hover_keys = ['legend_label', 'node_name', 'topic_name']
 
-        return legend_keys
+        return hover_keys
 
 
 class HoverCreator:
     """Class to create HoverTool for bokeh graph."""
 
-    def __init__(self, legend_keys: LegendKeys) -> None:
-        self._legend_keys = legend_keys
+    def __init__(self, hover_keys: HoverKeys) -> None:
+        self._hover_keys = hover_keys
 
     def create(self, options: dict = {}) -> HoverTool:
         """
-        Create HoverTool based on the legend keys.
+        Create HoverTool based on the hover keys.
 
         Parameters
         ----------
@@ -108,7 +108,7 @@ class HoverCreator:
 
         """
         tips_str = '<div style="width:400px; word-wrap: break-word;">'
-        for k in self._legend_keys.to_list():
+        for k in self._hover_keys.to_list():
             tips_str += f'@{k} <br>'
         tips_str += '</div>'
 
@@ -117,22 +117,22 @@ class HoverCreator:
         )
 
 
-class LegendSource:
-    """Legend source."""
+class HoverSource:
+    """Hover source."""
 
-    def __init__(self, legend_manager: LegendManager, legend_keys: LegendKeys) -> None:
+    def __init__(self, legend_manager: LegendManager, hover_keys: HoverKeys) -> None:
         self._legend_manager = legend_manager
-        self._legend_keys = legend_keys
+        self._hover_keys = hover_keys
 
     def generate(self, target_object: Any) -> Dict[str, str]:
-        legend_values: Dict[str, Any] = {}
-        for k in self._legend_keys.to_list():
+        hover_values: Dict[str, Any] = {}
+        for k in self._hover_keys.to_list():
             if hasattr(target_object, k):
-                legend_values[k] = [f'{k} = {getattr(target_object, k)}']
+                hover_values[k] = [f'{k} = {getattr(target_object, k)}']
             else:
-                legend_values[k] = [self.get_non_property_data(target_object, k)]
+                hover_values[k] = [self.get_non_property_data(target_object, k)]
 
-        return legend_values
+        return hover_values
 
     def get_non_property_data(self, target_object: Any, key: str) -> str:
         """
@@ -143,7 +143,7 @@ class LegendSource:
         target_object : Any
             Target object.
         key : str
-            Legend key.
+            Hover key.
 
         Returns
         -------
