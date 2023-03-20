@@ -12,22 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .callback_sched import callback_sched
-from .graphviz.callback_graph import callback_graph
-from .graphviz.chain_latency import chain_latency
-from .graphviz.node_graph import node_graph
-from .message_flow import message_flow
-from .plot_base import PlotBase
-from .plot_facade import Plot
-from .stacked_bar import LatencyStackedBar
+from .latency_stacked_bar import LatencyStackedBar
+from .stacked_bar_plot import StackedBarPlot
+from .stacked_bar_plot_factory import StackedBarPlotFactory
 
 __all__ = [
-    'Plot',
-    'PlotBase',
-    'callback_graph',
-    'callback_sched',
-    'chain_latency',
-    'node_graph',
-    'message_flow',
     'LatencyStackedBar',
+    'StackedBarPlot',
+    'StackedBarPlotFactory',
 ]
