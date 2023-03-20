@@ -19,18 +19,26 @@ from logging import getLogger
 from typing import List, Optional, Sequence, Union
 
 from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
+from bokeh.models import CrosshairTool
+from bokeh.palettes import Bokeh8
 from bokeh.plotting import Figure, figure
+
 import pandas as pd
 
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
 from .color_selector import ColorSelectorFactory
 from .legend import LegendManager
+from .message_flow_source import (
+    ColorPalette, FormatterFactory, get_callback_rect_list, get_flow_lines, Offset, YAxisProperty,
+    YAxisValues
+)
 from .timeseries_source import LineSource
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
-from ....common import Util
+from ....common import ClockConverter, Util
 from ....record import Clip, Range
-from ....runtime import (CallbackBase, CallbackGroup, Communication, Publisher, Subscription,
+from ....record.data_frame_shaper import Strip
+from ....runtime import (CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription,
                          TimerCallback)
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
@@ -43,6 +51,105 @@ class Bokeh(VisualizeLibInterface):
 
     def __init__(self) -> None:
         pass
+
+    def message_flow(
+        self,
+        target_path: Path,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+        granularity: str,
+        treat_drop_as_delay: bool,
+        lstrip_s: float,
+        rstrip_s: float
+    ) -> Figure:
+        TOOLTIPS = """
+        <div style="width:400px; word-wrap: break-word;">
+        t_start = @t_start [s] <br>
+        t_end = @t_end [s] <br>
+        latency = @latency [ms] <br>
+        t_offset = @t_offset <br>
+
+        <br>
+        @desc
+        </div>
+        """
+
+        fig = figure(
+            x_axis_label='Time [s]',
+            y_axis_label='',
+            title=f'Message flow of {target_path.path_name}',
+            plot_width=1000,
+            plot_height=400,
+            active_scroll='wheel_zoom',
+            tooltips=TOOLTIPS,
+        )
+        fig.add_tools(CrosshairTool(line_alpha=0.4))
+
+        color_palette = ColorPalette(Bokeh8)
+
+        df = target_path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
+
+        converter: Optional[ClockConverter] = None
+        if xaxis_type == 'sim_time':
+            assert len(target_path.child) > 0
+            child = target_path.child[0]
+            # TODO(hsgwa): refactor
+            converter = child._provider.get_sim_time_converter()  # type: ignore
+
+        strip = Strip(lstrip_s, rstrip_s)
+        clip = strip.to_clip(df)
+        df = clip.execute(df)
+
+        frame_min: float = clip.min_ns
+        frame_max: float = clip.max_ns
+
+        offset = Offset(clip.min_ns)
+
+        if converter:
+            frame_min = converter.convert(frame_min)
+            frame_max = converter.convert(frame_max)
+
+        x_range_name = 'x_plot_axis'
+        self._apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
+
+        formatter = FormatterFactory.create(target_path, granularity)
+        formatter.remove_columns(df)
+        formatter.rename_columns(df, target_path)
+
+        yaxis_property = YAxisProperty(df)
+        yaxis_values = YAxisValues(df)
+        fig.yaxis.ticker = yaxis_property.values
+        fig.yaxis.major_label_overrides = yaxis_property.labels_dict
+
+        rect_source = get_callback_rect_list(
+            target_path, yaxis_values, granularity, clip, converter, offset)
+        fig.rect(
+            'x',
+            'y',
+            'width',
+            'height',
+            source=rect_source,
+            color='black',
+            alpha=0.15,
+            hover_fill_color='black',
+            hover_alpha=0.4,
+            x_range_name=x_range_name
+        )
+
+        line_sources = get_flow_lines(df, converter, offset)
+        for i, line_source in enumerate(line_sources):
+            fig.line(
+                x='x',
+                y='y',
+                line_width=1.5,
+                line_color=color_palette.get_index_color(i),
+                line_alpha=1,
+                source=line_source,
+                x_range_name=x_range_name
+            )
+
+        return fig
 
     def callback_scheduling(
         self,
