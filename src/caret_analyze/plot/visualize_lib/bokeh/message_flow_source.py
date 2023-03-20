@@ -125,11 +125,11 @@ def get_callback_rect_list(
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
                 x.append(rect.x)
                 y.append(rect.y)
-                t_offset.append(str(offset))
-                t_start.append(to_format_str(callback_start - offset.value))
-                t_end.append(to_format_str(callback_end - offset.value))
+                t_offset.append(f't_offset = {offset}')
+                t_start.append(f't_start = {to_format_str(callback_start - offset.value)} [s]')
+                t_end.append(f't_end = {to_format_str(callback_end - offset.value)} [s]')
                 width.append(rect.width)
-                latency.append((callback_end-callback_start)*1.0e-6)
+                latency.append(f'latency = {(callback_end-callback_start)*1.0e-6} [ms]')
                 height.append(rect.height)
 
                 desc_str = f'callback_type: {callback.callback_type}' + \
