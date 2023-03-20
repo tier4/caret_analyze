@@ -169,16 +169,6 @@ class DataFrameColumnNameParsed:
         return False
 
 
-class ColorPalette:
-
-    def __init__(self, color_palette):
-        self._color_palette = color_palette
-        self._palette_size = len(color_palette)
-
-    def get_index_color(self, i: int):
-        return self._color_palette[i % self._palette_size]
-
-
 class YAxisProperty:
 
     def __init__(self, df) -> None:

@@ -20,7 +20,6 @@ from typing import List, Optional, Sequence, Union
 
 from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
 from bokeh.models import CrosshairTool
-from bokeh.palettes import Bokeh8
 from bokeh.plotting import Figure, figure
 
 import pandas as pd
@@ -29,7 +28,7 @@ from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRec
 from .color_selector import ColorSelectorFactory
 from .legend import LegendManager
 from .message_flow_source import (
-    ColorPalette, FormatterFactory, get_callback_rect_list, MessageFlowSource,
+    FormatterFactory, get_callback_rect_list, MessageFlowSource,
     Offset, YAxisProperty, YAxisValues)
 from .timeseries_source import LineSource
 from ..visualize_lib_interface import VisualizeLibInterface
@@ -66,8 +65,6 @@ class Bokeh(VisualizeLibInterface):
         fig = self._init_figure(
             f'Message flow of {target_path.path_name}', ywheel_zoom, xaxis_type)
         fig.add_tools(CrosshairTool(line_alpha=0.4))
-
-        color_palette = ColorPalette(Bokeh8)
 
         df = target_path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
 
@@ -118,6 +115,7 @@ class Bokeh(VisualizeLibInterface):
             x_range_name=x_range_name
         )
 
+        color_selector = ColorSelectorFactory.create_instance('unique')
         flow_source = MessageFlowSource(target_path)
         fig.add_tools(flow_source.create_hover())
         for i, source in enumerate(flow_source.generate(df, converter, offset)):
@@ -125,7 +123,7 @@ class Bokeh(VisualizeLibInterface):
                 x='x',
                 y='y',
                 line_width=1.5,
-                line_color=color_palette.get_index_color(i),
+                line_color=color_selector.get_color(),
                 line_alpha=1,
                 source=source,
                 x_range_name=x_range_name
