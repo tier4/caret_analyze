@@ -16,7 +16,7 @@ from .callback_sched import callback_sched
 from .graphviz.callback_graph import callback_graph
 from .graphviz.chain_latency import chain_latency
 from .graphviz.node_graph import node_graph
-from .message_flow import message_flow
+from .message_flow_old import message_flow
 from .plot_base import PlotBase
 from .plot_facade import Plot
 
