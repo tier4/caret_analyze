@@ -272,6 +272,8 @@ class NodeStructValue(ValueObject, Summarizable):
         return d
 
 # NOTE: DiffNode may be changed when it is refactored.
+
+
 class DiffNode:
 
     def __init__(
