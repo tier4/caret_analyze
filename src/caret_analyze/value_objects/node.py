@@ -271,6 +271,8 @@ class NodeStructValue(ValueObject, Summarizable):
 
         return d
 
+# TODO: Methods in DiffNode should be integrated to NodeStructValue object.
+
 
 class DiffNode:
 
