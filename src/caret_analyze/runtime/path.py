@@ -205,6 +205,8 @@ class RecordsMerged:
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
             right_records.rename_columns(rename_rule)
+            if left_records.columns[-1] != right_records.columns[0]:
+                raise InvalidRecordsError('left columns[-1] != right columns[0]')
             left_records = merge(
                 left_records=left_records,
                 right_records=right_records,
