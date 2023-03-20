@@ -20,6 +20,7 @@ from multimethod import multimethod as singledispatchmethod
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import ResponseTimePlot
 from .plot_base import PlotBase
+from .stacked_bar import StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
@@ -59,6 +60,21 @@ class Plot:
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             list(target_objects), 'period', visualize_lib
+        )
+        return plot
+
+    @staticmethod
+    def create_response_time_stacked_bar_plot(
+        target_object: Path,
+        metrics: str = 'latency',
+        case: str = 'worst'
+    ):
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = StackedBarPlotFactory.create_instance(
+            target_object,
+            visualize_lib,
+            metrics,
+            case,
         )
         return plot
 
