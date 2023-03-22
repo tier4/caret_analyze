@@ -408,6 +408,34 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_node_names" class="md-nav__link">
+    diff_node_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_node_pubs" class="md-nav__link">
+    diff_node_pubs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_node_subs" class="md-nav__link">
+    diff_node_subs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_topic_names" class="md-nav__link">
+    diff_topic_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.architecture.architecture.Architecture.rename_callback" class="md-nav__link">
     rename_callback()
   </a>
@@ -645,6 +673,34 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_node_names" class="md-nav__link">
+    diff_node_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_node_pubs" class="md-nav__link">
+    diff_node_pubs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_node_subs" class="md-nav__link">
+    diff_node_subs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.diff_topic_names" class="md-nav__link">
+    diff_topic_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.architecture.architecture.Architecture.rename_callback" class="md-nav__link">
     rename_callback()
   </a>
@@ -750,6 +806,302 @@
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.diff_node_names" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">diff_node_names</span><span class="p">(</span><span class="n">left_arch</span><span class="p">,</span> <span class="n">right_arch</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.diff_node_names" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compare two architecture objects and return the difference of nodes name.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>left_arch</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.architecture.architecture.Architecture" href="#caret_analyze.architecture.Architecture">Architecture</a></code>
+          </td>
+          <td><p>Architecture object</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>right_arch</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.architecture.architecture.Architecture" href="#caret_analyze.architecture.Architecture">Architecture</a></code>
+          </td>
+          <td><p>Architecture object</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Tuple">Tuple</span>[str, ...], <span title="typing.Tuple">Tuple</span>[str, ...]]</code>
+          </td>
+          <td><p>Returns node names that exist only in the respective architectures.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.diff_node_pubs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">diff_node_pubs</span><span class="p">(</span><span class="n">left_node</span><span class="p">,</span> <span class="n">right_node</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.diff_node_pubs" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compare two nodes of architecture objects and return the difference of publish topic names.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>left_node</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeStructValue" href="../value_objects/#caret_analyze.value_objects.NodeStructValue">NodeStructValue</a></code>
+          </td>
+          <td><p>Node in architecture</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>right_node</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeStructValue" href="../value_objects/#caret_analyze.value_objects.NodeStructValue">NodeStructValue</a></code>
+          </td>
+          <td><p>Node in architecture</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Tuple">Tuple</span>[str, ...], <span title="typing.Tuple">Tuple</span>[str, ...]]</code>
+          </td>
+          <td><p>Returns publish topic names that exist only in the respective nodes.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.diff_node_subs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">diff_node_subs</span><span class="p">(</span><span class="n">left_node</span><span class="p">,</span> <span class="n">right_node</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.diff_node_subs" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compare two nodes of architecture objects and return the difference of         subscribe topic names.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>left_node</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeStructValue" href="../value_objects/#caret_analyze.value_objects.NodeStructValue">NodeStructValue</a></code>
+          </td>
+          <td><p>Node in architecture</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>right_node</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.value_objects.NodeStructValue" href="../value_objects/#caret_analyze.value_objects.NodeStructValue">NodeStructValue</a></code>
+          </td>
+          <td><p>Node in architecture</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Tuple">Tuple</span>[str, ...], <span title="typing.Tuple">Tuple</span>[str, ...]]</code>
+          </td>
+          <td><p>Returns subscribe topic names that exist only in the respective nodes.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.diff_topic_names" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">diff_topic_names</span><span class="p">(</span><span class="n">left_arch</span><span class="p">,</span> <span class="n">right_arch</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.diff_topic_names" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compare two architecture objects and return the difference of pub/sub topic names.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>left_arch</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.architecture.architecture.Architecture" href="#caret_analyze.architecture.Architecture">Architecture</a></code>
+          </td>
+          <td><p>Architecture object</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>right_arch</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.architecture.architecture.Architecture" href="#caret_analyze.architecture.Architecture">Architecture</a></code>
+          </td>
+          <td><p>Architecture object</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Tuple">Tuple</span>[str, ...], <span title="typing.Tuple">Tuple</span>[str, ...]]</code>
+          </td>
+          <td><p>Returns pub/sub topic names that exist only in the respective architectures.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
