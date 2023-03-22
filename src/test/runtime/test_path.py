@@ -350,7 +350,7 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=rename_rules)
 
-        merged = RecordsMerged([node_path, comm_path], enable_beginning=True)
+        merged = RecordsMerged([node_path, comm_path], include_first_callback=True)
         records = merged.data
         expected = Records(
             [
@@ -431,7 +431,7 @@ class TestRecordsMerged:
             merger_mock, 'append_columns_and_return_rename_rule',
             side_effect=rename_rules)
 
-        merged = RecordsMerged([comm_path, node_path], enable_end=True)
+        merged = RecordsMerged([comm_path, node_path], include_last_callback=True)
         records = merged.data
         expected = Records(
             [
