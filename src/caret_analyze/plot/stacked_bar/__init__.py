@@ -12,20 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Functions in the experimental phase.
-
-Functions for which much of the implementation is done,
-but the use cases, interfaces, etc. are not yet organized.
-See docstring of each class for usage.
-
-ResponseTime:
-Convert message flow to response time and calculate histogram.
-
-"""
-
-from ..record import ResponseTime
+from .latency_stacked_bar import LatencyStackedBar
+from .stacked_bar_plot import StackedBarPlot
+from .stacked_bar_plot_factory import StackedBarPlotFactory
 
 __all__ = [
-    'ResponseTime'
+    'LatencyStackedBar',
+    'StackedBarPlot',
+    'StackedBarPlotFactory',
 ]

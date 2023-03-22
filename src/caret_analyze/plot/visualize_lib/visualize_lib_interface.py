@@ -48,3 +48,14 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         full_legends: bool
     ) -> Figure:
         raise NotImplementedError()
+
+    @abstractmethod
+    def stacked_bar(
+        self,
+        metrics,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+        case: str,
+    ) -> Figure:
+        raise NotImplementedError()
