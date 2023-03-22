@@ -715,7 +715,7 @@ class RecordsSource():
             left_records=self._data.callback_start_instances,
             right_records=self._data.rclcpp_intra_publish_instances,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.TID,
             join_right_key=COLUMN_NAME.TID,
             columns=[
