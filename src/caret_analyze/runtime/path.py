@@ -103,12 +103,12 @@ class RecordsMerged:
     def __init__(
         self,
         merge_targets: List[Union[NodePath, Communication]],
-        enable_beginning: bool = False,
-        enable_end: bool = False
+        include_first_callback: bool = False,
+        include_last_callback: bool = False
     ) -> None:
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')
-        self._data = self._merge_records(merge_targets, enable_beginning, enable_end)
+        self._data = self._merge_records(merge_targets, include_first_callback, include_last_callback)
 
     @property
     def data(self) -> RecordsInterface:
@@ -117,13 +117,13 @@ class RecordsMerged:
     @staticmethod
     def _merge_records(
         targets: List[Union[NodePath, Communication]],
-        enable_beginning: bool = False,
-        enable_end: bool = False
+        include_first_callback: bool = False,
+        include_last_callback: bool = False
     ) -> RecordsInterface:
         logger.info('Started merging path records.')
 
         column_merger = ColumnMerger()
-        if enable_beginning and isinstance(targets[0], NodePath):
+        if include_first_callback and isinstance(targets[0], NodePath):
             first_element = targets[0].to_path_beginning_records()
         else:
             if len(targets[0].to_records().data) == 0:
@@ -200,7 +200,7 @@ class RecordsMerged:
                     how='left'
                 )
 
-        if enable_end and isinstance(targets[-1], NodePath):
+        if include_last_callback and isinstance(targets[-1], NodePath):
             right_records = targets[-1].to_path_end_records()
 
             rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
