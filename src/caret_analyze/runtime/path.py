@@ -108,7 +108,10 @@ class RecordsMerged:
     ) -> None:
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')
-        self._data = self._merge_records(merge_targets, include_first_callback, include_last_callback)
+        self._data = self._merge_records(
+            merge_targets,
+            include_first_callback,
+            include_last_callback)
 
     @property
     def data(self) -> RecordsInterface:
