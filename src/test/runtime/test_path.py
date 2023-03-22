@@ -90,11 +90,11 @@ class TestPath:
             [child],
             [callbacks]
         )
-        assert not path.enable_beginning
-        path.include_first_callback(True)
-        assert path.enable_beginning
-        path.include_first_callback(False)
-        assert not path.enable_beginning
+        assert not path.include_first_callback
+        path.include_first_callback = True
+        assert path.include_first_callback
+        path.include_first_callback = False
+        assert not path.include_first_callback
 
     def test_include_last_callback(self, mocker):
         path_struct = mocker.Mock(spec=PathStructValue)
@@ -105,11 +105,11 @@ class TestPath:
             [child],
             [callbacks]
         )
-        assert not path.enable_end
-        path.include_last_callback(True)
-        assert path.enable_end
-        path.include_last_callback(False)
-        assert not path.enable_end
+        assert not path.include_last_callback
+        path.include_last_callback = True
+        assert path.include_last_callback
+        path.include_last_callback = False
+        assert not path.include_last_callback
 
     def test_cache(self, mocker):
         path_struct_value = mocker.Mock(spec=PathStructValue)

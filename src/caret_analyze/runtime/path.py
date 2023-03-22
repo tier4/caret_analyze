@@ -236,8 +236,8 @@ class Path(PathBase, Summarizable):
         path: PathStructValue,
         child: List[Union[NodePath, Communication]],
         callbacks: Optional[List[CallbackBase]],
-        enable_beginning: bool = False,
-        enable_end: bool = False
+        include_first_callback: bool = False,
+        include_last_callback: bool = False
     ) -> None:
         """
         Construct an instance.
@@ -251,10 +251,10 @@ class Path(PathBase, Summarizable):
         callbacks : Optional[List[CallbackBase]]
             callbacks that compose the path.
             return None except for all of node paths are not callback-chain.
-        enable_beginning : bool
-            Flags for extend path in the starting direction.
-        enable_end : bool
-            Flags for extend path in the end direction.
+        include_first_callback : bool
+            Flags for including the processing time of the first callback in the path analysis.
+        include_last_callback : bool
+            Flags for including the processing time of the last callback in the path analysis.
 
         """
         super().__init__()
@@ -264,24 +264,26 @@ class Path(PathBase, Summarizable):
         self._child = child
         self._columns_cache: Optional[List[str]] = None
         self._callbacks = callbacks
-        self._include_first_callback = enable_beginning
-        self._include_last_callback = enable_end
+        self._include_first_callback = include_first_callback
+        self._include_last_callback = include_last_callback
         self.__records_cache: Dict = {}
         return None
 
     @property
-    def enable_beginning(self) -> bool:
+    def include_first_callback(self) -> bool:
         return self._include_first_callback
 
+    @include_first_callback.setter
+    def include_first_callback(self, include_first_callback: bool) -> None:
+        self._include_first_callback = include_first_callback
+
     @property
-    def enable_end(self) -> bool:
+    def include_last_callback(self) -> bool:
         return self._include_last_callback
 
-    def include_first_callback(self, enable_beginning: bool) -> None:
-        self._include_first_callback = enable_beginning
-
-    def include_last_callback(self, enable_end: bool) -> None:
-        self._include_last_callback = enable_end
+    @include_last_callback.setter
+    def include_last_callback(self, include_last_callback: bool) -> None:
+        self._include_last_callback = include_last_callback
 
     def to_records(self) -> RecordsInterface:
         if (self._include_first_callback, self._include_last_callback) \
