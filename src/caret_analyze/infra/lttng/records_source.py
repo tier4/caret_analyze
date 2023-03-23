@@ -689,7 +689,6 @@ class RecordsSource():
         """
         records_inter: RecordsInterface
         records_intra: RecordsInterface
-        concat_records: RecordsInterface
 
         records_inter = merge_sequential(
             left_records=self._data.callback_start_instances,
@@ -732,9 +731,8 @@ class RecordsSource():
         )
 
         records_inter.concat(records_intra)
-        concat_records = records_inter
 
-        return concat_records
+        return records_inter
 
     @cached_property
     def system_and_sim_times(self) -> RecordsInterface:
