@@ -259,15 +259,16 @@ class LegendManager:
         full_legends: bool = False
     ) -> List[Legend]:
         legends: List[Legend] = []
-    
+
         if not full_legends and len(self._legend_items) >= max_legends:
             logger.warning(
                 f'The maximum number of legends drawn by default is {max_legends}. '
                 'If you want all legends to be displayed, '
                 'please specify the `full_legends` option to True.'
             )
+            return legends
         else:
-            legends.append(Legend(items=self._legend_items, location="bottom_left"))
+            legends.append(Legend(items=self._legend_items, location='bottom_left'))
             return legends
 
     def get_label(
