@@ -259,7 +259,7 @@ class LegendManager:
         full_legends: bool = False
     ) -> List[Legend]:
         legends: List[Legend] = []
-    
+
         if not full_legends and len(self._legend_items) >= max_legends:
             logger.warning(
                 f'The maximum number of legends drawn by default is {max_legends}. '
