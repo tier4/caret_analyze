@@ -251,8 +251,24 @@ class LegendManager:
                 )
                 break
             legends.append(Legend(items=self._legend_items[i:i+10]))
-
         return legends
+
+    def create_legends_for_stacked_bar(
+        self,
+        max_legends: int = 20,
+        full_legends: bool = False
+    ) -> List[Legend]:
+        legends: List[Legend] = []
+    
+        if not full_legends and len(self._legend_items) >= max_legends:
+            logger.warning(
+                f'The maximum number of legends drawn by default is {max_legends}. '
+                'If you want all legends to be displayed, '
+                'please specify the `full_legends` option to True.'
+            )
+        else:
+            legends.append(Legend(items=self._legend_items, location="bottom_left"))
+            return legends
 
     def get_label(
         self,
