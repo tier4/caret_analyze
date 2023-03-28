@@ -134,13 +134,32 @@ class TestPath:
 
         path.to_records()
         assert path._to_records_core.call_count == 1  # type: ignore
-
         path.to_records()
         assert path._to_records_core.call_count == 1  # type: ignore
 
-        path.clear_cache()
+        path.include_first_callback = True
         path.to_records()
         assert path._to_records_core.call_count == 2  # type: ignore
+        path.to_records()
+        assert path._to_records_core.call_count == 2  # type: ignore
+
+        path.include_first_callback = False
+        path.include_last_callback = True
+        path.to_records()
+        assert path._to_records_core.call_count == 3  # type: ignore
+        path.to_records()
+        assert path._to_records_core.call_count == 3  # type: ignore
+
+        path.include_first_callback = True
+        path.include_last_callback = True
+        path.to_records()
+        assert path._to_records_core.call_count == 4  # type: ignore
+        path.to_records()
+        assert path._to_records_core.call_count == 4  # type: ignore
+
+        path.clear_cache()
+        path.to_records()
+        assert path._to_records_core.call_count == 5  # type: ignore
 
 
 class TestColumnMerged:
