@@ -1753,7 +1753,6 @@ class FilteredRecordsSource:
             records = lttng.compose_path_beginning_records()
             records.filter_if(
                 lambda x: x.get('publisher_handle') in publisher_handles
-                ]
             )
         Columns
         - callback_start_timestamp
