@@ -253,11 +253,27 @@ class LegendManager:
             legends.append(Legend(items=self._legend_items[i:i+10]))
         return legends
 
-    def create_legends_for_stacked_bar(
+    def create_legends_bottom(
         self,
         max_legends: int = 20,
         full_legends: bool = False
     ) -> List[Legend]:
+        """
+        Create legends in the bottom (Precisely, bottom_left) position.
+
+        Parameters
+        ----------
+        max_legends : int, optional
+            Maximum number of legends to display, by default 20.
+        full_legends : bool, optional
+            Display all legends even if they exceed max_legends, by default False.
+
+        Returns
+        -------
+        List[Legend]
+            List of legend instances that are not separated and in bottom position.
+
+        """
         legends: List[Legend] = []
 
         if not full_legends and len(self._legend_items) >= max_legends:
@@ -266,7 +282,7 @@ class LegendManager:
                 'If you want all legends to be displayed, '
                 'please specify the `full_legends` option to True.'
             )
-            return legends
+            return self._legend_items[:max_legends]
         else:
             legends.append(Legend(items=self._legend_items, location='bottom_left'))
             return legends
