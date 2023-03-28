@@ -156,9 +156,12 @@ class TestNodePath:
         )
 
         records_mock = mocker.Mock(spec=Records)
-        mocker.patch.object(node_path, '_to_records_core', return_value=records_mock)
-        mocker.patch.object(node_path, '_to_path_beginning_records_core', return_value=records_mock)
-        mocker.patch.object(node_path, '_to_path_end_records_core', return_value=records_mock)
+        mocker.patch.object(node_path,
+                            '_to_records_core', return_value=records_mock)
+        mocker.patch.object(node_path,
+                            '_to_path_beginning_records_core', return_value=records_mock)
+        mocker.patch.object(node_path,
+                            '_to_path_end_records_core', return_value=records_mock)
 
         node_path.to_records()
         assert node_path._to_records_core.call_count == 1  # type: ignore
@@ -174,12 +177,13 @@ class TestNodePath:
         assert node_path._to_path_beginning_records_core.call_count == 1  # type: ignore
 
         node_path.to_path_beginning_records()
-        assert node_path._to_path_beginning_records_core.call_count == 1  # type: ignore
+        assert \
+            node_path._to_path_beginning_records_core.call_count == 1  # type: ignore
 
         node_path.clear_cache()
         node_path.to_path_beginning_records()
-        assert node_path._to_path_beginning_records_core.call_count == 2  # type: ignore
-
+        assert \
+            node_path._to_path_beginning_records_core.call_count == 2  # type: ignore
 
         node_path.to_path_end_records()
         assert node_path._to_path_end_records_core.call_count == 1  # type: ignore
