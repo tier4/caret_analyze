@@ -132,7 +132,9 @@ class Bokeh(VisualizeLibInterface):
         legend_manager.add_legend(y_labels[-1], renderer, y_labels[-1])
 
         num_legend_threshold = 20
-        legends = legend_manager.create_legends_bottom(num_legend_threshold, full_legends)
+        legends = legend_manager.create_legends(num_legend_threshold,
+                                                full_legends,
+                                                location='bottom_left')
         for legend in legends:
             fig.add_layout(legend, 'below')
         fig.legend.click_policy = 'mute'

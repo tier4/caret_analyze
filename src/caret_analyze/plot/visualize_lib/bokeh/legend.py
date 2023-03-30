@@ -223,7 +223,8 @@ class LegendManager:
     def create_legends(
         self,
         max_legends: int = 20,
-        full_legends: bool = False
+        full_legends: bool = False,
+        location: str = 'top_right'
     ) -> List[Legend]:
         """
         Create legends.
@@ -234,6 +235,9 @@ class LegendManager:
             Maximum number of legends to display, by default 20.
         full_legends : bool, optional
             Display all legends even if they exceed max_legends, by default False.
+        location : str
+            Specify the position where you want the legend to be displayed.
+            Specify bottom_left only if you want it to appear at the bottom left.
 
         Returns
         -------
@@ -242,50 +246,29 @@ class LegendManager:
 
         """
         legends: List[Legend] = []
-        for i in range(0, len(self._legend_items)+10, 10):
-            if not full_legends and i >= max_legends:
+        if location == 'top_right':
+            for i in range(0, len(self._legend_items)+10, 10):
+                if not full_legends and i >= max_legends:
+                    logger.warning(
+                        f'The maximum number of legends drawn by default is {max_legends}. '
+                        'If you want all legends to be displayed, '
+                        'please specify the `full_legends` option to True.'
+                    )
+                    break
+                legends.append(Legend(items=self._legend_items[i:i+10]))
+            return legends
+
+        else:
+            if not full_legends and len(self._legend_items) >= max_legends:
                 logger.warning(
                     f'The maximum number of legends drawn by default is {max_legends}. '
                     'If you want all legends to be displayed, '
                     'please specify the `full_legends` option to True.'
                 )
-                break
-            legends.append(Legend(items=self._legend_items[i:i+10]))
-        return legends
-
-    def create_legends_bottom(
-        self,
-        max_legends: int = 20,
-        full_legends: bool = False
-    ) -> List[Legend]:
-        """
-        Create legends in the bottom (Precisely, bottom_left) position.
-
-        Parameters
-        ----------
-        max_legends : int, optional
-            Maximum number of legends to display, by default 20.
-        full_legends : bool, optional
-            Display all legends even if they exceed max_legends, by default False.
-
-        Returns
-        -------
-        List[Legend]
-            List of legend instances that are not separated and in bottom position.
-
-        """
-        legends: List[Legend] = []
-
-        if not full_legends and len(self._legend_items) >= max_legends:
-            logger.warning(
-                f'The maximum number of legends drawn by default is {max_legends}. '
-                'If you want all legends to be displayed, '
-                'please specify the `full_legends` option to True.'
-            )
-            return self._legend_items[:max_legends]
-        else:
-            legends.append(Legend(items=self._legend_items, location='bottom_left'))
-            return legends
+                return self._legend_items[:max_legends]
+            else:
+                legends.append(Legend(items=self._legend_items, location='bottom_left'))
+                return legends
 
     def get_label(
         self,
