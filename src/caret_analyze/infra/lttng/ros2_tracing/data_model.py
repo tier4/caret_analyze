@@ -92,6 +92,7 @@ class Ros2DataModel():
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
             None, [
+                ColumnValue('tid'),
                 ColumnValue('callback_start_timestamp'),
                 ColumnValue('callback_object'),
                 ColumnValue('is_intra_process'),
@@ -99,6 +100,7 @@ class Ros2DataModel():
         )
         self.callback_end_instances = RecordsFactory.create_instance(
             None, [
+                ColumnValue('tid'),
                 ColumnValue('callback_end_timestamp'),
                 ColumnValue('callback_object'),
             ]
@@ -369,17 +371,19 @@ class Ros2DataModel():
         self._tilde_publishers.append(record)
 
     def add_callback_start_instance(
-        self, timestamp: int, callback: int, is_intra_process: bool
+        self, tid: int, timestamp: int, callback: int, is_intra_process: bool
     ) -> None:
         record = {
-                'callback_start_timestamp': timestamp,
-                'callback_object': callback,
-                'is_intra_process': is_intra_process,
+            'tid': tid,
+            'callback_start_timestamp': timestamp,
+            'callback_object': callback,
+            'is_intra_process': is_intra_process,
             }
         self.callback_start_instances.append(record)
 
-    def add_callback_end_instance(self, timestamp: int, callback: int) -> None:
+    def add_callback_end_instance(self, tid: int, timestamp: int, callback: int) -> None:
         record = {
+            'tid': tid,
             'callback_end_timestamp': timestamp,
             'callback_object': callback
         }

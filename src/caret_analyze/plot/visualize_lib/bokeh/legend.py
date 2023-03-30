@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from logging import getLogger
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from bokeh.models import GlyphRenderer, HoverTool, Legend
 
@@ -33,7 +33,11 @@ class HoverKeys:
     """Hover keys."""
 
     _SUPPORTED_GRAPH_TYPE = [
-        'callback_scheduling_bar', 'callback_scheduling_rect', 'timeseries', 'message_flow'
+        'callback_scheduling_bar',
+        'callback_scheduling_rect',
+        'timeseries',
+        'stacked_bar',
+        'message_flow'
     ]
 
     def __init__(self, graph_type: str, target_object: TargetTypes) -> None:
@@ -61,7 +65,11 @@ class HoverKeys:
 
         if graph_type == 'message_flow' and not isinstance(target_object, Path):
             raise InvalidArgumentError(
-                "'target_object' must be Path in message flow."
+                "'target_object' must be Path in message flow.")
+
+        if (graph_type == 'stacked_bar' and not isinstance(target_object, Path)):
+            raise InvalidArgumentError(
+                "'target_object' must be Path in stacked bar graph."
             )
 
     def to_list(self) -> List[str]:
@@ -93,6 +101,9 @@ class HoverKeys:
 
         if self._graph_type == 'message_flow':
             hover_keys = ['t_start', 't_end', 'latency', 't_offset', 'desc']
+
+        if self._graph_type == 'stacked_bar':
+            hover_keys = ['legend_label', 'path_name']
 
         return hover_keys
 
@@ -193,7 +204,8 @@ class LegendManager:
     def add_legend(
         self,
         target_object: Any,
-        renderer: GlyphRenderer
+        renderer: GlyphRenderer,
+        legend_word: Optional[str] = None,
     ) -> None:
         """
         Store a legend of the input object internally.
@@ -204,9 +216,13 @@ class LegendManager:
             Instance of any class.
         renderer : bokeh.models.GlyphRenderer
             Instance of renderer.
+        legend_word : Optional[str]
+            Sentence of the legend.
+            If None, the class name of
+            the target object is used.
 
         """
-        label = self.get_label(target_object)
+        label = self.get_label(target_object, legend_word)
         self._legend_items.append((label, [renderer]))
         self._legend[target_object] = label
 
@@ -244,7 +260,11 @@ class LegendManager:
 
         return legends
 
-    def get_label(self, target_object: Any) -> str:
+    def get_label(
+        self,
+        target_object: Any,
+        word: Optional[str] = None,
+    ) -> str:
         """
         Get label name of target object.
 
@@ -252,6 +272,10 @@ class LegendManager:
         ----------
         target_object : Any
             Target object.
+        word : Optional[str]
+            Sentence of the legend.
+            If None, the class name of
+            the target object is used.
 
         Returns
         -------
@@ -259,6 +283,11 @@ class LegendManager:
             Label name of target object.
 
         """
+        if word is not None:
+            label = word
+            self._legend[target_object] = label
+            return label
+
         if target_object in self._legend:
             return self._legend[target_object]
 
