@@ -245,30 +245,22 @@ class LegendManager:
             List of Legend instances separated by 10.
 
         """
-        legends: List[Legend] = []
         if location == 'top_right':
-            for i in range(0, len(self._legend_items)+10, 10):
-                if not full_legends and i >= max_legends:
-                    logger.warning(
-                        f'The maximum number of legends drawn by default is {max_legends}. '
-                        'If you want all legends to be displayed, '
-                        'please specify the `full_legends` option to True.'
-                    )
-                    break
-                legends.append(Legend(items=self._legend_items[i:i+10]))
-            return legends
-
+            separate_num = 10
         else:
-            if not full_legends and len(self._legend_items) >= max_legends:
+            separate_num = len(self._legend_items)
+
+        legends: List[Legend] = []
+        for i in range(0, len(self._legend_items)+separate_num, separate_num):
+            if not full_legends and i >= max_legends:
                 logger.warning(
                     f'The maximum number of legends drawn by default is {max_legends}. '
                     'If you want all legends to be displayed, '
                     'please specify the `full_legends` option to True.'
                 )
-                return self._legend_items[:max_legends]
-            else:
-                legends.append(Legend(items=self._legend_items, location='bottom_left'))
-                return legends
+                break
+            legends.append(Legend(items=self._legend_items[i:i+separate_num], location=location))
+        return legends
 
     def get_label(
         self,
