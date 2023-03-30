@@ -874,7 +874,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
             if callback_name is None:
                 rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
-                    f'{node_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
+                    f'{node_name}/callback_x/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
             else:
                 rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
                     f'{callback_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
