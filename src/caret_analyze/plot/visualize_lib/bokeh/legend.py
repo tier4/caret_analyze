@@ -229,7 +229,8 @@ class LegendManager:
     def create_legends(
         self,
         max_legends: int = 20,
-        full_legends: bool = False
+        full_legends: bool = False,
+        location: str = 'top_right'
     ) -> List[Legend]:
         """
         Create legends.
@@ -240,15 +241,23 @@ class LegendManager:
             Maximum number of legends to display, by default 20.
         full_legends : bool, optional
             Display all legends even if they exceed max_legends, by default False.
+        location : str
+            Specify the position where you want the legend to be displayed.
+            Specify bottom_left only if you want it to appear at the bottom left.
 
         Returns
         -------
         List[Legend]
-            List of Legend instances separated by 10.
+            List of Legend instances separated by location argument.
 
         """
+        if location == 'top_right':
+            separate_num = 10
+        else:
+            separate_num = len(self._legend_items)
+
         legends: List[Legend] = []
-        for i in range(0, len(self._legend_items)+10, 10):
+        for i in range(0, len(self._legend_items)+separate_num, separate_num):
             if not full_legends and i >= max_legends:
                 logger.warning(
                     f'The maximum number of legends drawn by default is {max_legends}. '
@@ -256,8 +265,7 @@ class LegendManager:
                     'please specify the `full_legends` option to True.'
                 )
                 break
-            legends.append(Legend(items=self._legend_items[i:i+10]))
-
+            legends.append(Legend(items=self._legend_items[i:i+separate_num], location=location))
         return legends
 
     def get_label(
