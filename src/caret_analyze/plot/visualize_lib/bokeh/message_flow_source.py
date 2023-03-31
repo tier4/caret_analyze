@@ -19,127 +19,19 @@ from datetime import datetime
 from functools import cached_property
 from typing import Dict, List, Optional
 
-from bokeh.io import save, show
-from bokeh.models import CrosshairTool
-from bokeh.palettes import Bokeh8
-from bokeh.plotting import ColumnDataSource, Figure, figure
-from bokeh.resources import CDN
+from bokeh.models import HoverTool
+from bokeh.plotting import ColumnDataSource
+
 import numpy as np
 import pandas as pd
 
-from .util import apply_x_axis_offset, get_callback_param_desc, RectValues
-from ..common import ClockConverter, type_check_decorator
-from ..exceptions import InvalidArgumentError
-from ..record.data_frame_shaper import Clip, Strip
-from ..runtime.path import Path
+from .legend import HoverCreator, HoverKeys
+from .util import RectValues
 
-
-# TODO: Migrate drawing process to visualize_lib
-@type_check_decorator
-def message_flow(
-    path: Path,
-    export_path: Optional[str] = None,
-    granularity: Optional[str] = None,
-    treat_drop_as_delay=False,
-    lstrip_s: float = 0,
-    rstrip_s: float = 0,
-    use_sim_time: bool = False
-) -> Figure:
-    granularity = granularity or 'raw'
-    if granularity not in ['raw', 'node']:
-        raise InvalidArgumentError('granularity must be [ raw / node ]')
-
-    TOOLTIPS = """
-    <div style="width:400px; word-wrap: break-word;">
-    t_start = @t_start [s] <br>
-    t_end = @t_end [s] <br>
-    latency = @latency [ms] <br>
-    t_offset = @t_offset <br>
-
-    <br>
-    @desc
-    </div>
-    """
-
-    fig = figure(
-        x_axis_label='Time [s]',
-        y_axis_label='',
-        title=f'Message flow of {path.path_name}',
-        plot_width=1000,
-        plot_height=400,
-        active_scroll='wheel_zoom',
-        tooltips=TOOLTIPS,
-    )
-    fig.add_tools(CrosshairTool(line_alpha=0.4))
-
-    color_palette = ColorPalette(Bokeh8)
-
-    df = path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
-
-    converter: Optional[ClockConverter] = None
-    if use_sim_time:
-        assert len(path.child) > 0
-        child = path.child[0]
-        # TODO(hsgwa): refactor
-        converter = child._provider.get_sim_time_converter()  # type: ignore
-
-    strip = Strip(lstrip_s, rstrip_s)
-    clip = strip.to_clip(df)
-    df = clip.execute(df)
-
-    frame_min: float = clip.min_ns
-    frame_max: float = clip.max_ns
-
-    offset = Offset(clip.min_ns)
-
-    if converter:
-        frame_min = converter.convert(frame_min)
-        frame_max = converter.convert(frame_max)
-
-    x_range_name = 'x_plot_axis'
-    apply_x_axis_offset(fig, x_range_name, frame_min, frame_max)
-
-    formatter = FormatterFactory.create(path, granularity)
-    formatter.remove_columns(df)
-    formatter.rename_columns(df, path)
-
-    yaxis_property = YAxisProperty(df)
-    yaxis_values = YAxisValues(df)
-    fig.yaxis.ticker = yaxis_property.values
-    fig.yaxis.major_label_overrides = yaxis_property.labels_dict
-
-    rect_source = get_callback_rect_list(path, yaxis_values, granularity, clip, converter, offset)
-    fig.rect(
-        'x',
-        'y',
-        'width',
-        'height',
-        source=rect_source,
-        color='black',
-        alpha=0.15,
-        hover_fill_color='black',
-        hover_alpha=0.4,
-        x_range_name=x_range_name
-    )
-
-    line_sources = get_flow_lines(df, converter, offset)
-    for i, line_source in enumerate(line_sources):
-        fig.line(
-            x='x',
-            y='y',
-            line_width=1.5,
-            line_color=color_palette.get_index_color(i),
-            line_alpha=1,
-            source=line_source,
-            x_range_name=x_range_name
-        )
-
-    if export_path is None:
-        show(fig)
-    else:
-        save(fig, export_path, title='time vs tracepoint', resources=CDN)
-
-    return fig
+from ....common import ClockConverter
+from ....exceptions import UnsupportedTypeError
+from ....record.data_frame_shaper import Clip
+from ....runtime import CallbackBase, Path, SubscriptionCallback, TimerCallback
 
 
 class Offset:
@@ -165,6 +57,17 @@ class Offset:
 def to_format_str(ns: int) -> str:
     s = (ns) * 10**-9
     return '{:.3f}'.format(s)
+
+
+def get_callback_param_desc(callback: CallbackBase):
+    if isinstance(callback, TimerCallback):
+        return f'period_ns: {callback.period_ns}'
+
+    if isinstance(callback, SubscriptionCallback):
+        return f'topic_name: {callback.subscribe_topic_name}'
+
+    raise UnsupportedTypeError('callback type must be '
+                               '[ TimerCallback/ SubscriptionCallback]')
 
 
 def get_callback_rect_list(
@@ -222,11 +125,11 @@ def get_callback_rect_list(
                 rect = RectValues(callback_start, callback_end, y_min, y_max)
                 x.append(rect.x)
                 y.append(rect.y)
-                t_offset.append(str(offset))
-                t_start.append(to_format_str(callback_start - offset.value))
-                t_end.append(to_format_str(callback_end - offset.value))
+                t_offset.append(f't_offset = {offset}')
+                t_start.append(f't_start = {to_format_str(callback_start - offset.value)} [s]')
+                t_end.append(f't_end = {to_format_str(callback_end - offset.value)} [s]')
                 width.append(rect.width)
-                latency.append((callback_end-callback_start)*1.0e-6)
+                latency.append(f'latency = {(callback_end-callback_start)*1.0e-6} [ms]')
                 height.append(rect.height)
 
                 desc_str = f'callback_type: {callback.callback_type}' + \
@@ -245,41 +148,6 @@ def get_callback_rect_list(
         'height': height
     })
     return rect_source
-
-
-def get_flow_lines(
-    df: pd.DataFrame,
-    converter: Optional[ClockConverter],
-    offset: Offset
-) -> ColumnDataSource:
-    tick_labels = YAxisProperty(df)
-    line_sources = []
-
-    for i, row in df.iterrows():
-        row_values = row.dropna().values
-        if converter:
-            row_values = [converter.convert(_) for _ in row_values]
-        x_min = min(row_values)
-        x_max = max(row_values)
-        width = x_max - x_min
-
-        t_start_s = to_format_str(x_min-offset.value)
-        t_end_s = to_format_str(x_max-offset.value)
-        line_source = ColumnDataSource({
-            'x': row_values,
-            'y': tick_labels.values[:len(row_values)],
-            't_start': [t_start_s]*len(row_values),
-            't_end': [t_end_s]*len(row_values),
-            't_offset': [str(offset)]*len(row_values),
-            'width': [width]*len(row_values),
-            'height': [0]*len(row_values),
-            'latency': [width*1.0e-6]*len(row_values),
-            'desc': [f'index: {i}']*len(row_values),
-        })
-
-        line_sources.append(line_source)
-
-    return line_sources
 
 
 class DataFrameColumnNameParsed:
@@ -311,16 +179,6 @@ class DataFrameColumnNameParsed:
             if topic_name in column_name:
                 return True
         return False
-
-
-class ColorPalette:
-
-    def __init__(self, color_palette):
-        self._color_palette = color_palette
-        self._palette_size = len(color_palette)
-
-    def get_index_color(self, i: int):
-        return self._color_palette[i % self._palette_size]
 
 
 class YAxisProperty:
@@ -451,3 +309,51 @@ class NodeLevelFormatter(DataFrameFormatter):
                 renames[column_name] = column_name[:idx]
 
         df.rename(columns=renames, inplace=True)
+
+
+class MessageFlowSource:
+
+    def __init__(
+        self,
+        target_path: Path
+    ) -> None:
+        self._hover_keys = HoverKeys('message_flow', target_path)
+        self._hover = HoverCreator(self._hover_keys)
+
+    def create_hover(self,) -> HoverTool:
+        return self._hover.create()
+
+    def generate(
+        self,
+        df: pd.DataFrame,
+        converter: Optional[ClockConverter],
+        offset: Offset
+    ) -> ColumnDataSource:
+        tick_labels = YAxisProperty(df)
+        line_sources = []
+
+        for i, row in df.iterrows():
+            row_values = row.dropna().values
+            if converter:
+                row_values = [converter.convert(_) for _ in row_values]
+            x_min = min(row_values)
+            x_max = max(row_values)
+            width = x_max - x_min
+
+            t_start_s = to_format_str(x_min-offset.value)
+            t_end_s = to_format_str(x_max-offset.value)
+            line_source = ColumnDataSource({
+                'x': row_values,
+                'y': tick_labels.values[:len(row_values)],
+                'width': [width]*len(row_values),
+                'height': [0]*len(row_values),
+                't_start': [f't_start = {t_start_s} [s]']*len(row_values),
+                't_end': [f't_end = {t_end_s} [s]']*len(row_values),
+                't_offset': [f't_offset = {offset}']*len(row_values),
+                'latency': [f'latency = {width*1.0e-6} [ms]']*len(row_values),
+                'desc': [f'index: {i}']*len(row_values),
+            })
+
+            line_sources.append(line_source)
+
+        return line_sources

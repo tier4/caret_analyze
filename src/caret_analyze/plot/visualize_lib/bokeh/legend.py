@@ -21,12 +21,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from bokeh.models import GlyphRenderer, HoverTool, Legend
 
 from ....exceptions import InvalidArgumentError
-from ....runtime import (CallbackBase, Communication, Publisher, Subscription,
+from ....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
                          SubscriptionCallback, TimerCallback)
 
-from ....runtime import Path
-
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscription]]
 
 logger = getLogger(__name__)
 
@@ -39,9 +37,10 @@ class HoverKeys:
         'callback_scheduling_rect',
         'timeseries',
         'stacked_bar',
+        'message_flow'
     ]
 
-    def __init__(self, graph_type: str, target_object: TimeSeriesTypes) -> None:
+    def __init__(self, graph_type: str, target_object: TargetTypes) -> None:
         self._validate(graph_type, target_object)
         self._graph_type = graph_type
         self._target_object = target_object
@@ -63,6 +62,10 @@ class HoverKeys:
                 "'target_object' must be [CallbackBase/Communication/Publisher/Subscription]"
                 'in timeseries graph.'
             )
+
+        if graph_type == 'message_flow' and not isinstance(target_object, Path):
+            raise InvalidArgumentError(
+                "'target_object' must be Path in message flow.")
 
         if (graph_type == 'stacked_bar' and not isinstance(target_object, Path)):
             raise InvalidArgumentError(
@@ -95,6 +98,9 @@ class HoverKeys:
                               'publish_node_name', 'subscribe_node_name']
             elif isinstance(self._target_object, (Publisher, Subscription)):
                 hover_keys = ['legend_label', 'node_name', 'topic_name']
+
+        if self._graph_type == 'message_flow':
+            hover_keys = ['t_start', 't_end', 'latency', 't_offset', 'desc']
 
         if self._graph_type == 'stacked_bar':
             hover_keys = ['legend_label', 'path_name']

@@ -18,13 +18,26 @@ from typing import Sequence, Union
 from bokeh.plotting import Figure
 
 from ..metrics_base import MetricsBase
-from ...runtime import CallbackBase, CallbackGroup, Communication, Publisher, Subscription
+from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
     """Interface class for VisualizeLib."""
+
+    @abstractmethod
+    def message_flow(
+        self,
+        target_path: Path,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        granularity: str,
+        treat_drop_as_delay: bool,
+        lstrip_s: float,
+        rstrip_s: float
+    ) -> Figure:
+        raise NotImplementedError()
 
     @abstractmethod
     def callback_scheduling(
