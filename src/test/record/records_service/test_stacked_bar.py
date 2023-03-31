@@ -39,20 +39,22 @@ def get_data_set():
         '/columns_6/rcl_publish_timestamp/0',
         '/columns_7/dds_write_timestamp/0',
         '/columns_8/callback_0/callback_start_timestamp/0',
+        '/columns_9/callback_0/callback_end_timestamp/0',
     ]
 
     # create input and expect data
-    # # columns | c0 | c1 | c2 | c3 | c4 | c5 | c6 | c7 | c8 |
-    # # ======================================================
-    # # data    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  |
-    # #         | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  |
-    # #         | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+    # # columns | c0 | c1 | c2 | c3 | c4 | c5 | c6 | c7 | c8 | c9 |
+    # # ===========================================================
+    # # data    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  |
+    # #         | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+    # #         | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 | 11 |
 
     expect_dict = {
         '[worst - best] response time': [1, 1, 1],  # c1 - c0
         '/columns_1':                   [3, 3, 3],  # c4 - c1
         '/columns_4/callback_0':        [1, 1, 1],  # c5 - c4
         '/columns_5':                   [3, 3, 3],  # c8 - c5
+        '/columns_8/callback_0':        [1, 1, 1],  # c9 - c8
         'start time':                   [0, 1, 2],  # c0
     }
     expect_columns = [
@@ -60,6 +62,7 @@ def get_data_set():
         '/columns_1',
         '/columns_4/callback_0',
         '/columns_5',
+        '/columns_8/callback_0',
     ]
 
     data_num = 3
