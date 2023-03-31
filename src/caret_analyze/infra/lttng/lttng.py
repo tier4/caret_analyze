@@ -721,3 +721,24 @@ class Lttng(InfraBase):
         self,
     ) -> RecordsInterface:
         return self._source.tilde_subscribe_records.clone()
+
+    def compose_path_beginning_records(
+        self
+    ) -> RecordsInterface:
+        """
+        Compose callback records.
+
+        Used to evaluate the beginning node of a path.
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+
+            - callback_start_timestamp
+            - rclcpp_publish_timestamp
+            - callback_object
+            - publisher_object
+
+        """
+        return self._source.path_beginning_records.clone()

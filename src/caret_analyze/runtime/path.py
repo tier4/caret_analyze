@@ -22,8 +22,8 @@ from .communication import Communication
 from .node_path import NodePath
 from .path_base import PathBase
 from ..common import Summarizable, Summary, Util
-from ..exceptions import InvalidArgumentError, InvalidRecordsError
-from ..record import Columns
+from ..exceptions import Error, InvalidArgumentError, InvalidRecordsError
+from ..record import Columns, RecordsFactory
 from ..record.record import merge, merge_sequential, RecordsInterface
 from ..value_objects import CallbackChain, PathStructValue
 
@@ -103,10 +103,15 @@ class RecordsMerged:
     def __init__(
         self,
         merge_targets: List[Union[NodePath, Communication]],
+        include_first_callback: bool = False,
+        include_last_callback: bool = False
     ) -> None:
         if len(merge_targets) == 0:
             raise InvalidArgumentError('There are no records to be merged.')
-        self._data = self._merge_records(merge_targets)
+        self._data = self._merge_records(
+            merge_targets,
+            include_first_callback,
+            include_last_callback)
 
     @property
     def data(self) -> RecordsInterface:
@@ -114,15 +119,21 @@ class RecordsMerged:
 
     @staticmethod
     def _merge_records(
-        targets: List[Union[NodePath, Communication]]
+        targets: List[Union[NodePath, Communication]],
+        include_first_callback: bool = False,
+        include_last_callback: bool = False
     ) -> RecordsInterface:
         logger.info('Started merging path records.')
 
         column_merger = ColumnMerger()
-        if len(targets[0].to_records().data) == 0:
-            targets = targets[1:]
+        if include_first_callback and isinstance(targets[0], NodePath):
+            first_element = targets[0].to_path_beginning_records()
+        else:
+            if len(targets[0].to_records().data) == 0:
+                targets = targets[1:]
 
-        first_element = targets[0].to_records()
+            first_element = targets[0].to_records()
+
         left_records = first_element
 
         rename_rule = column_merger.append_columns_and_return_rename_rule(
@@ -192,6 +203,24 @@ class RecordsMerged:
                     how='left'
                 )
 
+        if include_last_callback and isinstance(targets[-1], NodePath):
+            right_records = targets[-1].to_path_end_records()
+
+            rename_rule = column_merger.append_columns_and_return_rename_rule(right_records)
+            right_records.rename_columns(rename_rule)
+            if left_records.columns[-1] != right_records.columns[0]:
+                raise InvalidRecordsError('left columns[-1] != right columns[0]')
+            left_records = merge(
+                left_records=left_records,
+                right_records=right_records,
+                join_left_key=left_records.columns[-1],
+                join_right_key=right_records.columns[0],
+                columns=Columns.from_str(
+                    left_records.columns + right_records.columns
+                ).column_names,
+                how='left'
+            )
+
         logger.info('Finished merging path records.')
         left_records.sort(first_column)
 
@@ -209,7 +238,9 @@ class Path(PathBase, Summarizable):
         self,
         path: PathStructValue,
         child: List[Union[NodePath, Communication]],
-        callbacks: Optional[List[CallbackBase]]
+        callbacks: Optional[List[CallbackBase]],
+        include_first_callback: bool = False,
+        include_last_callback: bool = False
     ) -> None:
         """
         Construct an instance.
@@ -223,6 +254,10 @@ class Path(PathBase, Summarizable):
         callbacks : Optional[List[CallbackBase]]
             callbacks that compose the path.
             return None except for all of node paths are not callback-chain.
+        include_first_callback : bool
+            Flags for including the processing time of the first callback in the path analysis.
+        include_last_callback : bool
+            Flags for including the processing time of the last callback in the path analysis.
 
         """
         super().__init__()
@@ -232,11 +267,47 @@ class Path(PathBase, Summarizable):
         self._child = child
         self._columns_cache: Optional[List[str]] = None
         self._callbacks = callbacks
+        self._include_first_callback = include_first_callback
+        self._include_last_callback = include_last_callback
+        self.__records_cache: Dict = {}
         return None
+
+    @property
+    def include_first_callback(self) -> bool:
+        return self._include_first_callback
+
+    @include_first_callback.setter
+    def include_first_callback(self, include_first_callback: bool) -> None:
+        self._include_first_callback = include_first_callback
+
+    @property
+    def include_last_callback(self) -> bool:
+        return self._include_last_callback
+
+    @include_last_callback.setter
+    def include_last_callback(self, include_last_callback: bool) -> None:
+        self._include_last_callback = include_last_callback
+
+    def to_records(self) -> RecordsInterface:
+        if (self._include_first_callback, self._include_last_callback) \
+                not in self.__records_cache.keys():
+            try:
+                self.__records_cache[(self._include_first_callback, self._include_last_callback)] \
+                    = self._to_records_core()
+            except Error as e:
+                logger.warning(e)
+                self.__records_cache[(self._include_first_callback, self._include_last_callback)] \
+                    = RecordsFactory.create_instance()
+
+        assert (self._include_first_callback, self._include_last_callback) \
+            in self.__records_cache.keys()
+        return self.__records_cache[(self._include_first_callback,
+                                     self._include_last_callback)].clone()
 
     def _to_records_core(self) -> RecordsInterface:
         self._verify_path(self.node_paths)
-        return RecordsMerged(self.child).data
+        return RecordsMerged(self.child,
+                             self._include_first_callback, self._include_last_callback).data
 
     @staticmethod
     def _verify_path(
@@ -382,6 +453,7 @@ class Path(PathBase, Summarizable):
     def clear_cache(self) -> None:
         """Clear to_records/to_dataframe cache."""
         self._columns_cache = None
+        self.__records_cache = {}
         return super().clear_cache()
 
     def __str__(self) -> str:
