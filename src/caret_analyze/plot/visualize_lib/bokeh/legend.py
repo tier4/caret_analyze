@@ -242,7 +242,7 @@ class LegendManager:
         Returns
         -------
         List[Legend]
-            List of Legend instances separated by 10.
+            List of Legend instances separated by location argument.
 
         """
         if location == 'top_right':
