@@ -151,7 +151,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
             COLUMN_NAME.CALLBACK_END_TIMESTAMP
         ]
         self._format(callback_records, columns)
-        self._rename_column(callback_records, callback.callback_name, None)
+        self._rename_column(callback_records, callback.callback_name, None, None)
         callback_records.drop_columns([COLUMN_NAME.CALLBACK_OBJECT])
 
         return callback_records
@@ -240,7 +240,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(
             sub_records,
             callback.callback_name,
-            subscription.topic_name
+            subscription.topic_name,
+            None
         )
 
         return sub_records
@@ -316,7 +317,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
         self._rename_column(
             sub_records,
             callback.callback_name,
-            subscription.topic_name
+            subscription.topic_name,
+            None
         )
 
         return sub_records
@@ -358,7 +360,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         columns.append(COLUMN_NAME.SOURCE_TIMESTAMP)
 
         self._format(pub_records, columns)
-        self._rename_column(pub_records, None, publisher.topic_name)
+        self._rename_column(pub_records, None, publisher.topic_name, None)
 
         return pub_records
 
@@ -458,7 +460,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         columns.append(COLUMN_NAME.TILDE_MESSAGE_ID)
 
         self._format(pub_records, columns)
-        self._rename_column(pub_records, None, publisher.topic_name)
+        self._rename_column(pub_records, None, publisher.topic_name, None)
 
         return pub_records
 
@@ -495,7 +497,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
                     ColumnValue(COLUMN_NAME.CALLBACK_END_TIMESTAMP),
                 ]
             )
-            self._rename_column(records, timer.callback_name, None)
+            self._rename_column(records, timer.callback_name, None, None)
             return records
         last_record = callback_records.data[-1]
         last_callback_start = last_record.get(callback_records.columns[0])
@@ -520,7 +522,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         ]
 
         self._format(timer_records, columns)
-        self._rename_column(timer_records, timer.callback_name, None)
+        self._rename_column(timer_records, timer.callback_name, None, None)
 
         return timer_records
 
@@ -647,6 +649,68 @@ class RecordsProviderLttng(RuntimeDataProvider):
         intra_record = self._compose_intra_proc_comm_records(communication_value)
         return len(intra_record) > 0
 
+    def path_beginning_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        """
+        Return records from callback_start to publish.
+
+        Parameters
+        ----------
+        publisher : PublisherStructValue
+            target publisher
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - [node_name]/callback_start_timestamp
+            - [topic_name]/rclcpp_publish_timestamp
+
+        """
+        publisher_handles = self._helper.get_publisher_handles(publisher)
+        records = self._source.path_beginning_records(publisher_handles)
+
+        columns = [
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP,
+        ]
+        self._format(records, columns)
+        self._rename_column(records, None, publisher.topic_name, publisher.node_name)
+        return records
+
+    def path_end_records(
+        self,
+        callback: CallbackStructValue
+    ) -> RecordsInterface:
+        """
+        Return records from callback_start to callback_end.
+
+        Parameters
+        ----------
+        callback : CallbackStructValue
+            target callback
+
+        Returns
+        -------
+        RecordsInterface
+            Columns
+            - [callback_name]/callback_start_timestamp
+            - [callback_name]/callback_end_timestamp
+
+        """
+        callback_objects = self._helper.get_callback_objects(callback)
+        records = self._source.callback_records(*callback_objects)
+
+        columns = [
+            COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            COLUMN_NAME.CALLBACK_END_TIMESTAMP,
+        ]
+        self._format(records, columns)
+        self._rename_column(records, callback.callback_name, None, None)
+        return records
+
     def _verify_trace_points(
         self,
         node_name: str,
@@ -732,7 +796,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         ]
         self._format(records, columns)
 
-        self._rename_column(records, comm_info.subscribe_callback_name, comm_info.topic_name)
+        self._rename_column(records, comm_info.subscribe_callback_name, comm_info.topic_name, None)
 
         return records
 
@@ -779,7 +843,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         self._format(records, columns)
 
-        self._rename_column(records, comm_value.subscribe_callback_name, comm_value.topic_name)
+        self._rename_column(records, comm_value.subscribe_callback_name,
+                            comm_value.topic_name, None)
 
         return records
 
@@ -793,7 +858,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
     def _rename_column(
         records: RecordsInterface,
         callback_name: Optional[str],
-        topic_name: Optional[str]
+        topic_name: Optional[str],
+        node_name: Optional[str]
     ) -> None:
         rename_dict = {}
 
@@ -806,8 +872,12 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 f'{callback_name}/{COLUMN_NAME.TIMER_EVENT_TIMESTAMP}'
 
         if COLUMN_NAME.CALLBACK_START_TIMESTAMP in records.columns:
-            rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
-                f'{callback_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
+            if callback_name is None:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
+                    f'{node_name}/callback_x/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
+            else:
+                rename_dict[COLUMN_NAME.CALLBACK_START_TIMESTAMP] = \
+                    f'{callback_name}/{COLUMN_NAME.CALLBACK_START_TIMESTAMP}'
 
         if COLUMN_NAME.CALLBACK_END_TIMESTAMP in records.columns:
             rename_dict[COLUMN_NAME.CALLBACK_END_TIMESTAMP] = \
@@ -1664,6 +1734,56 @@ class FilteredRecordsSource:
 
         return callback_records
 
+    def path_beginning_records(
+        self,
+        publisher_handles: List[int]
+    ) -> RecordsInterface:
+        """
+        Compose callback_start to publish records.
+
+        Parameters
+        ----------
+        publisher_handles : List[int]
+            publisher handles
+
+        Returns
+        -------
+        RecordsInterface
+            Equivalent to the following process.
+            records = lttng.compose_path_beginning_records()
+            records.filter_if(
+                lambda x: x.get('publisher_handle') in publisher_handles
+            )
+        Columns
+        - callback_start_timestamp
+        - rclcpp_publish_timestamp
+        - callback_handle
+        - publisher_handle
+
+        """
+        grouped_records = self._path_beginning_records
+        if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                [
+                    ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
+                    ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE)
+                ]
+            )
+        sample_records = list(grouped_records.values())[0]
+        column_values = Columns.from_str(sample_records.columns).to_value()
+        records = RecordsFactory.create_instance(None, column_values)
+
+        for publisher_handle in publisher_handles:
+            if publisher_handle in grouped_records:
+                records.concat(grouped_records[publisher_handle].clone())
+
+        records.sort(COLUMN_NAME.CALLBACK_START_TIMESTAMP)
+
+        return records
+
     @cached_property
     def _grouped_callback_records(self) -> Dict[int, RecordsInterface]:
         records = self._lttng.compose_callback_records()
@@ -1702,4 +1822,10 @@ class FilteredRecordsSource:
     def _grouped_tilde_sub_records(self) -> Dict[int, RecordsInterface]:
         records = self._lttng.compose_tilde_subscribe_records()
         group = records.groupby([COLUMN_NAME.TILDE_SUBSCRIPTION])
+        return self._expand_key_tuple(group)
+
+    @cached_property
+    def _path_beginning_records(self) -> Dict[int, RecordsInterface]:
+        records = self._lttng.compose_path_beginning_records()
+        group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         return self._expand_key_tuple(group)
