@@ -292,7 +292,9 @@ class NodeLevelFormatter(DataFrameFormatter):
             # the last publish column of the node.
             if parsed_before.node_name is not None and parsed.node_name is not None and \
                     parsed_before.node_name == parsed.node_name and \
-                    'rclcpp_publish' not in parsed.tracepoint_name:
+                    'rclcpp_publish' not in parsed.tracepoint_name and \
+                    not ('callback_start' in parsed_before.tracepoint_name and
+                         'callback_end' in parsed.tracepoint_name):
                 drop_columns.append(column_name)
 
             if parsed_before.topic_name is not None and parsed.topic_name is not None and \
