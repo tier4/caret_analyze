@@ -275,3 +275,32 @@ class NodeStructValue(ValueObject, Summarizable):
         d['paths'] = [_.summary for _ in self.paths]
 
         return d
+
+# NOTE: DiffNode may be changed when it is refactored.
+
+
+class DiffNode:
+
+    def __init__(
+        self,
+        left_node: NodeStructValue,
+        right_node: NodeStructValue
+    ):
+        self._left_node = left_node
+        self._right_node = right_node
+
+    def diff_node_pubs(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_pubs = set(self._left_node.publish_topic_names)
+        set_right_pubs = set(self._right_node.publish_topic_names)
+        common_node_pubs = set_left_pubs & set_right_pubs
+        left_only_pubs = tuple(set_left_pubs - common_node_pubs)
+        right_only_pubs = tuple(set_right_pubs - common_node_pubs)
+        return left_only_pubs, right_only_pubs
+
+    def diff_node_subs(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_subs = set(self._left_node.subscribe_topic_names)
+        set_right_subs = set(self._right_node.subscribe_topic_names)
+        common_node_subs = set_left_subs & set_right_subs
+        left_only_subs = tuple(set_left_subs - common_node_subs)
+        right_only_subs = tuple(set_right_subs - common_node_subs)
+        return left_only_subs, right_only_subs

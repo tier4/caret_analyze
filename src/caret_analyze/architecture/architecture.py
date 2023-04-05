@@ -32,6 +32,7 @@ from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
                              CommunicationStructValue, ExecutorStructValue,
                              NodePathStructValue, NodeStructValue, PathStructValue,
                              PublisherStructValue, ServiceStructValue, SubscriptionStructValue)
+from ..value_objects.node import DiffNode
 
 logger = logging.getLogger(__name__)
 
@@ -394,6 +395,17 @@ class Architecture(Summarizable):
                               AssignContextReader(node)))
 
     def rename_callback(self, src: str, dst: str) -> None:
+        """
+        Update callback name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current callback name
+        dst : str
+            updated callback name
+
+        """
         cb_s: List[CallbackStruct] =\
             Util.flatten(cb_g.callbacks for cb_g in
                          Util.flatten([e.callback_groups for e in self._executors]))
@@ -401,6 +413,17 @@ class Architecture(Summarizable):
         c.callback_name = dst
 
     def rename_node(self, src: str, dst: str) -> None:
+        """
+        Update node name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current node name
+        dst : str
+            updated node name
+
+        """
         for n in self._nodes:
             n.rename_node(src, dst)
 
@@ -411,14 +434,47 @@ class Architecture(Summarizable):
             c.rename_node(src, dst)
 
     def rename_path(self, src: str, dst: str) -> None:
+        """
+        Update path name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current path name
+        dst : str
+            updated path name
+
+        """
         p: PathStruct = Util.find_similar_one(src, self._paths, lambda x: x.path_name)
         p.path_name = dst
 
     def rename_executor(self, src: str, dst: str) -> None:
+        """
+        Update executor name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current executor name
+        dst : str
+            updated executor name
+
+        """
         e: ExecutorStruct = Util.find_similar_one(src, self._executors, lambda x: x.executor_name)
         e.executor_name = dst
 
     def rename_topic(self, src: str, dst: str) -> None:
+        """
+        Update topic name from "src" to "dst" in architecture.
+
+        Parameters
+        ----------
+        src : str
+            current topic name
+        dst : str
+            updated topic name
+
+        """
         for n in self._nodes:
             n.rename_topic(src, dst)
 
@@ -427,6 +483,99 @@ class Architecture(Summarizable):
 
         for c in self._communications:
             c.rename_topic(src, dst)
+
+    @staticmethod
+    def diff_node_names(
+        left_arch: Architecture,
+        right_arch: Architecture
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two architecture objects and return the difference of nodes name.
+
+        Parameters
+        ----------
+        left_arch : Architecture
+            Architecture object
+        right_arch : Architecture
+            Architecture object
+
+        Returns
+        -------
+        Tuple[Tuple[str,...], Tuple[str,...]]
+            Returns node names that exist only in the respective architectures.
+
+        """
+        return DiffArchitecture(left_arch, right_arch).diff_node_names()
+
+    @staticmethod
+    def diff_topic_names(
+        left_arch: Architecture,
+        right_arch: Architecture
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two architecture objects and return the difference of pub/sub topic names.
+
+        Parameters
+        ----------
+        left_arch : Architecture
+            Architecture object
+        right_arch : Architecture
+            Architecture object
+
+        Returns
+        -------
+        Tuple[Tuple[str,...], Tuple[str,...]]
+            Returns pub/sub topic names that exist only in the respective architectures.
+
+        """
+        return DiffArchitecture(left_arch, right_arch).diff_topic_names()
+
+    @staticmethod
+    def diff_node_pubs(
+        left_node: NodeStructValue,
+        right_node: NodeStructValue
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of publish topic names.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture
+        right_node : NodeStructValue
+            Node in architecture
+
+        Returns
+        -------
+        Tuple[Tuple[str,...], Tuple[str,...]]
+            Returns publish topic names that exist only in the respective nodes.
+
+        """
+        return DiffNode(left_node, right_node).diff_node_pubs()
+
+    @staticmethod
+    def diff_node_subs(
+        left_node: NodeStructValue,
+        right_node: NodeStructValue
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of \
+        subscribe topic names.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture
+        right_node : NodeStructValue
+            Node in architecture
+
+        Returns
+        -------
+        Tuple[Tuple[str,...], Tuple[str,...]]
+            Returns subscribe topic names that exist only in the respective nodes.
+
+        """
+        return DiffNode(left_node, right_node).diff_node_subs()
 
 
 class AssignContextReader(ArchitectureReader):
@@ -480,3 +629,31 @@ class AssignContextReader(ArchitectureReader):
 
     def get_variable_passings(self):
         pass
+
+
+# NOTE: DiffArchitecture may be changed when it is refactored.
+class DiffArchitecture:
+
+    def __init__(
+        self,
+        left_arch: Architecture,
+        right_arch: Architecture
+    ):
+        self._left_arch = left_arch
+        self._right_arch = right_arch
+
+    def diff_node_names(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_node_names = set(self._left_arch.node_names)
+        set_right_node_names = set(self._right_arch.node_names)
+        common_node_names = set_left_node_names & set_right_node_names
+        left_only_names = tuple(set_left_node_names - common_node_names)
+        right_only_names = tuple(set_right_node_names - common_node_names)
+        return left_only_names, right_only_names
+
+    def diff_topic_names(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        set_left_topics = set(self._left_arch.topic_names)
+        set_right_topics = set(self._right_arch.topic_names)
+        common_node_topics = set_left_topics & set_right_topics
+        left_only_topics = tuple(set_left_topics - common_node_topics)
+        right_only_topics = tuple(set_right_topics - common_node_topics)
+        return left_only_topics, right_only_topics

@@ -215,7 +215,7 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
-    def update_node_path(self, paths: list[NodePathStruct]):
+    def update_node_path(self, paths: List[NodePathStruct]):
         self._node_paths = paths
 
     # def assign_message_context(self, node_name: str, context_type: str,

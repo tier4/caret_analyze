@@ -15,35 +15,34 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import List, Optional, Union
+from typing import Optional
 
 from bokeh.plotting import Figure
 
 from .plot_facade import Plot
-from ..runtime import (Application, CallbackGroup,
-                       Executor, Node, Path)
+
+from ..runtime.path import Path
 
 logger = getLogger(__name__)
 
-CallbackGroupTypes = Union[Application, Executor, Path, Node,
-                           CallbackGroup, List[CallbackGroup]]
 
-
-def callback_sched(
-    target: CallbackGroupTypes,
+def message_flow(
+    path: Path,
+    export_path: Optional[str] = None,
+    granularity: Optional[str] = None,
+    treat_drop_as_delay=False,
     lstrip_s: float = 0,
     rstrip_s: float = 0,
-    coloring_rule: str = 'callback',
-    use_sim_time: bool = False,
-    export_path: Optional[str] = None
+    use_sim_time: bool = False
 ) -> Figure:
-    logger.warning("The 'callback_sched' method is deprecated, "
-                   "please use 'Plot.create_callback_scheduling_plot()' method.")
+    logger.warning("The 'message_flow' method is deprecated, "
+                   "please use 'Plot.create_message_flow_plot()' method.")
 
-    plot = Plot.create_callback_scheduling_plot(target)
+    plot = Plot.create_message_flow_plot(
+        path, granularity, treat_drop_as_delay, lstrip_s, rstrip_s)
     xaxis_type = 'sim_time' if use_sim_time else 'system_time'
-    p = plot.show(xaxis_type=xaxis_type, coloring_rule=coloring_rule)
+    p = plot.show(xaxis_type=xaxis_type)
     if export_path:
-        plot.save(export_path=export_path, xaxis_type=xaxis_type, coloring_rule=coloring_rule)
+        plot.save(export_path=export_path, xaxis_type=xaxis_type)
 
     return p

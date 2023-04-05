@@ -21,6 +21,7 @@ from ..common import ClockConverter
 from ..record.interface import RecordsInterface
 from ..value_objects import (CallbackStructValue, CommunicationStructValue,
                              NodePathStructValue, PublisherStructValue, Qos,
+                             SubscriptionCallbackStructValue,
                              SubscriptionStructValue,
                              TimerStructValue,
                              VariablePassingStructValue)
@@ -126,6 +127,20 @@ class RecordsProvider(metaclass=ABCMeta):
         self,
         communication: CommunicationStructValue
     ) -> bool:
+        pass
+
+    @abstractmethod
+    def path_beginning_records(
+        self,
+        publisher: PublisherStructValue
+    ) -> RecordsInterface:
+        pass
+
+    @abstractmethod
+    def path_end_records(
+        self,
+        callback: SubscriptionCallbackStructValue
+    ) -> RecordsInterface:
         pass
 
 

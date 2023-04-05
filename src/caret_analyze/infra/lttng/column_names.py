@@ -52,6 +52,7 @@ class ColumnName(NamedTuple):
     NODE_NAME: str = 'node_name'
     SYMBOL: str = 'symbol'
     CALLBACK_NAME: str = 'callback_name'
+    TID: str = 'tid'
 
     TILDE_PUBLISHER: str = 'tilde_publisher'
     TILDE_SUBSCRIPTION: str = 'tilde_subscription'
