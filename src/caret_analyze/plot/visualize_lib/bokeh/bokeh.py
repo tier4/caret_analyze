@@ -26,7 +26,7 @@ import pandas as pd
 
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
 from .color_selector import ColorSelectorFactory
-from .legend import LegendManager
+from .util import LegendManager
 from .message_flow_source import (
     FormatterFactory, get_callback_rect_list, MessageFlowSource,
     Offset, YAxisProperty, YAxisValues)

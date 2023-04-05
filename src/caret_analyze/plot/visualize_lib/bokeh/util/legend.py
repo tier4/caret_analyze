@@ -20,9 +20,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from bokeh.models import GlyphRenderer, HoverTool, Legend
 
-from ....exceptions import InvalidArgumentError
-from ....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
-                         SubscriptionCallback, TimerCallback)
+from .....exceptions import InvalidArgumentError
+from .....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
+                          SubscriptionCallback, TimerCallback)
 
 TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscription]]
 
