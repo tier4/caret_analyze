@@ -25,13 +25,12 @@ from bokeh.plotting import Figure, figure
 import pandas as pd
 
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
-from .color_selector import ColorSelectorFactory
-from .util import LegendManager
 from .message_flow_source import (
     FormatterFactory, get_callback_rect_list, MessageFlowSource,
     Offset, YAxisProperty, YAxisValues)
 from .stacked_bar_source import StackedBarSource
 from .timeseries_source import LineSource
+from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....common import ClockConverter, Util
