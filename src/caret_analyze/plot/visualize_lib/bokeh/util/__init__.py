@@ -3,10 +3,10 @@ from .legend import HoverCreator, HoverKeys, HoverSource, LegendManager
 from .util import RectValues
 
 __all__ = [
-    "ColorSelectorFactory",
-    "HoverCreator",
-    "HoverKeys",
-    "HoverSource",
-    "LegendManager",
-    "RectValues"
+    'ColorSelectorFactory',
+    'HoverCreator',
+    'HoverKeys',
+    'HoverSource',
+    'LegendManager',
+    'RectValues'
 ]
