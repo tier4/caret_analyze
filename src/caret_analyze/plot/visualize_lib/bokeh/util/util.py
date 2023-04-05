@@ -14,6 +14,13 @@
 
 from __future__ import annotations
 
+import datetime
+
+from typing import Optional
+
+from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
+from bokeh.plotting import Figure, figure
+
 import numpy as np
 
 
@@ -43,3 +50,91 @@ class RectValues:
     @property
     def height(self) -> float:
         return abs(self._y[0] - self._y[1])
+
+
+def init_figure(
+    title: str,
+    ywheel_zoom: bool,
+    xaxis_type: str,
+    y_axis_label: Optional[str] = None,
+) -> Figure:
+    if xaxis_type == 'system_time':
+        x_axis_label = 'system time [s]'
+    elif xaxis_type == 'sim_time':
+        x_axis_label = 'simulation time [s]'
+    else:
+        x_axis_label = xaxis_type
+
+    if ywheel_zoom:
+        tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']
+        active_scroll = 'wheel_zoom'
+    else:
+        tools = ['xwheel_zoom', 'xpan', 'save', 'reset']
+        active_scroll = 'xwheel_zoom'
+
+    return figure(
+        frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
+        x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
+    )
+
+
+def apply_x_axis_offset(
+    fig: Figure,
+    min_ns: float,
+    max_ns: float,
+    x_range_name: str = ''
+) -> None:
+    """
+    Apply an offset to the x-axis of the graph.
+
+    Datetime is displayed instead of UNIX time for zero point.
+
+    Parameters
+    ----------
+    fig : Figure
+        Target figure.
+    min_ns : float
+        Minimum UNIX time.
+    max_ns : float
+        Maximum UNIX time.
+    x_range_name : str, optional
+        Name of the actual range, by default ''.
+        Specify this if you want to refer to the actual range later.
+
+    """
+    # Initialize variables
+    offset_s = min_ns*1.0e-9
+    end_s = (max_ns-min_ns)*1.0e-9
+    actual_range = Range1d(start=min_ns, end=max_ns)
+    applied_range = Range1d(start=0, end=end_s)
+
+    # Set ranges
+    fig.extra_x_ranges = {x_range_name: actual_range}
+    fig.x_range = applied_range
+
+    # Add xaxis for actual_range
+    xaxis = LinearAxis(x_range_name=x_range_name)
+    xaxis.visible = False  # type: ignore
+    fig.add_layout(xaxis, 'below')
+    fig.xaxis.ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
+
+    # Add xgrid
+    fig.xgrid.minor_grid_line_color = 'black'
+    fig.xgrid.minor_grid_line_alpha = 0.1
+
+    # Replace 0 with datetime of offset_s
+    datetime_s = datetime.datetime.fromtimestamp(offset_s).strftime('%Y-%m-%d %H:%M:%S')
+    fig.xaxis.major_label_overrides = {0: datetime_s}
+
+    # # Code to display hhmmss for x-axis
+    # from bokeh.models import FuncTickFormatter
+    # fig.xaxis.formatter = FuncTickFormatter(
+    #     code = '''
+    #     let time_ms = (tick + offset_s) * 1e3;
+    #     let date_time = new Date(time_ms);
+    #     let hh = date_time.getHours();
+    #     let mm = date_time.getMinutes();
+    #     let ss = date_time.getSeconds();
+    #     return hh + ":" + mm + ":" + ss;
+    #     ''',
+    #     args={"offset_s": offset_s})
