@@ -59,7 +59,7 @@ class MessageFlowPlot(PlotBase):
     ) -> Figure:
         # Set default value
         xaxis_type = xaxis_type or 'system_time'
-        ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else False
+        ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else True
 
         return self._visualize_lib.message_flow(
             self._target_path, xaxis_type, ywheel_zoom,
