@@ -472,9 +472,19 @@ class TestNodesInfoLoaded():
                             'publish_topic_name', 'pub_topic')
         mocker.patch.object(node_path_info_mock,
                             'subscribe_topic_name', 'sub_topic')
-        mocker.patch.object(node_path_mock, 'publish_topic_name', 'pub_topic')
+        mocker.patch.object(
+            node_path_info_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(
+            node_path_info_mock, 'subscription_construction_order', 0)
+
+        mocker.patch.object(
+            node_path_mock, 'publish_topic_name', 'pub_topic')
         mocker.patch.object(
             node_path_mock, 'subscribe_topic_name', 'sub_topic')
+        mocker.patch.object(
+            node_path_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(
+            node_path_mock, 'subscription_construction_order', 0)
 
         mocker.patch.object(node_mock, 'paths', (node_path_mock,))
         node_path = nodes_loaded.find_node_path(node_path_info_mock)
@@ -1656,14 +1666,14 @@ class TestCommunicationInfoLoaded:
 
         mocker.patch.object(Util, 'find_one', return_value=comm_mock)
         comm = comm_loaded.find_communication(
-            'topic_name', 'pub_node_name', 'sub_node_name')
+            'topic_name', 'pub_node_name', 0, 'sub_node_name', 0)
         assert comm == comm_mock
 
         mocker.patch.object(
             Util, 'find_one', side_effect=ItemNotFoundError(''))
         with pytest.raises(ItemNotFoundError):
             comm_loaded.find_communication(
-                'topic_name', 'pub_node_name', 'sub_node_name')
+                'topic_name', 'pub_node_name', 0, 'sub_node_name', 0)
 
     def test_to_struct(self, mocker):
         topic_name = '/chatter'

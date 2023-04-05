@@ -1036,7 +1036,7 @@ class DataFrameFormatted:
     ) -> None:
 
         data.sort(timestamp_column)
-        order: defaultdict[DataFrameFormatted.KeyType, int] = defaultdict(int)
+        order: Dict[DataFrameFormatted.KeyType, int] = defaultdict(int)
 
         def construct_order(row: pd.Series) -> int:
             node = row[node_handle_column]
@@ -1061,7 +1061,7 @@ class DataFrameFormatted:
     ) -> None:
 
         data.sort(timestamp_column)
-        order: defaultdict[DataFrameFormatted.KeyTypePubSub, int] = defaultdict(int)
+        order: Dict[DataFrameFormatted.KeyTypePubSub, int] = defaultdict(int)
 
         def construct_order(row: pd.Series) -> int:
             node = row[node_handle_column]

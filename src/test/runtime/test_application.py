@@ -84,6 +84,10 @@ class TestApplication:
             comm_mock, 'subscribe_node_name', 'subscribe_node_name_')
         mocker.patch.object(
             comm_mock, 'topic_name', 'topic_name')
+        mocker.patch.object(
+            comm_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(
+            comm_mock, 'subscription_construction_order', 0)
 
         mocker.patch('caret_analyze.runtime.runtime_loaded.RuntimeLoaded',
                      return_value=records_assigned_mock)

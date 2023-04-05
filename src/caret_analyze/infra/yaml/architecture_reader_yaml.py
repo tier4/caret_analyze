@@ -142,6 +142,15 @@ class ArchitectureReaderYaml(ArchitectureReader):
             self._get_value(context, 'context_type')
             self._get_value(context, 'publisher_topic_name')
             self._get_value(context, 'subscription_topic_name')
+            try:
+                self._get_value(context, 'subscription_construction_order')
+            except InvalidYamlFormatError:
+                pass
+            try:
+                self._get_value(context, 'publisher_construction_order')
+            except InvalidYamlFormatError:
+                pass
+
         return context_dicts
 
     def get_callback_groups(
@@ -182,15 +191,17 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_path_value, 'publish_topic_name', None)
                 sub_topic = self._get_value_with_default(
                     node_path_value, 'subscribe_topic_name', None)
-                publisher_construction_order = \
-                    self._get_value_with_default(node_path_value, 'construction_order', 0)
-                subscription_construction_order = \
-                    self._get_value_with_default(node_path_value, 'construction_order', 0)
+                publisher_construction_order = self._get_value_with_default(
+                    node_path_value, 'publisher_construction_order', 0)
+                subscription_construction_order = self._get_value_with_default(
+                    node_path_value, 'subscription_construction_order', 0)
 
-                if pub_topic == UNDEFINED_STR:
+                if pub_topic == UNDEFINED_STR or pub_topic is None:
                     pub_topic = None
-                if sub_topic == UNDEFINED_STR:
+                    publisher_construction_order = None
+                if sub_topic == UNDEFINED_STR or sub_topic is None:
                     sub_topic = None
+                    subscription_construction_order = None
                 if publisher_construction_order == UNDEFINED_STR:
                     publisher_construction_order = None
                 if subscription_construction_order == UNDEFINED_STR:

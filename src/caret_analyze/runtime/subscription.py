@@ -43,6 +43,7 @@ class Subscription(PathBase, Summarizable):
         super().__init__()
         self._val = val
         self._provider = data_provider
+        self._construction_order = val.construction_order
 
     @property
     def node_name(self) -> str:
@@ -99,6 +100,19 @@ class Subscription(PathBase, Summarizable):
 
         """
         return self._val.topic_name
+
+    @property
+    def construction_order(self) -> int:
+        """
+        Get a construction order.
+
+        Returns
+        -------
+        int
+            A construction order to which the subscription subscribes.
+
+        """
+        return self._construction_order
 
     @property
     def callback_name(self) -> Optional[str]:

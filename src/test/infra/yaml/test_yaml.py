@@ -90,13 +90,13 @@ nodes: []
         assert talker_path.publish_topic_name == '/chatter'
         assert talker_path.subscribe_topic_name is None
         assert talker_path.publisher_construction_order == 0
-        assert talker_path.subscription_construction_order == 0
+        assert talker_path.subscription_construction_order is None
 
         listener_path = path_info.node_path_values[1]
         assert listener_path.node_name == '/listener'
         assert listener_path.publish_topic_name is None
         assert listener_path.subscribe_topic_name == '/chatter'
-        assert listener_path.publisher_construction_order == 0
+        assert listener_path.publisher_construction_order is None
         assert listener_path.subscription_construction_order == 0
 
     def test_executors(self, mocker):

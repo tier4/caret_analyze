@@ -231,15 +231,20 @@ class NodeStructValue(ValueObject, Summarizable):
 
     def get_publisher(
         self,
-        publish_topic_name: str
+        publish_topic_name: str,
+        construction_order: Optional[int]
     ) -> PublisherStructValue:
         try:
-            return Util.find_one(
-                lambda x: x.topic_name == publish_topic_name,
-                self._publishers)
+            def is_target_publisher(publisher: PublisherStructValue):
+                return publisher.topic_name == publish_topic_name and \
+                    publisher.construction_order == construction_order
+
+            return Util.find_one(is_target_publisher, self._publishers)
+
         except ItemNotFoundError:
             msg = 'Failed to find publisher info. '
-            msg += f'topic_name: {publish_topic_name}'
+            msg += f'topic_name: {publish_topic_name}, '
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     def get_timer(

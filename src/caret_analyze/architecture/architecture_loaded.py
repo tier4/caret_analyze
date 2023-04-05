@@ -219,14 +219,18 @@ class CommValuesLoaded():
         self,
         topic_name: str,
         publish_node_name: str,
+        publisher_construction_order: Optional[int],
         subscribe_node_name: str,
+        subscription_construction_order: Optional[int],
     ) -> CommunicationStruct:
         from ..common import Util
 
         def is_target(comm: CommunicationStruct):
             return comm.publish_node_name == publish_node_name and \
                 comm.subscribe_node_name == subscribe_node_name and \
-                comm.topic_name == topic_name
+                comm.topic_name == topic_name and \
+                comm.publisher_construction_order == publisher_construction_order and \
+                comm.subscription_construction_order == subscription_construction_order
         try:
             return Util.find_one(is_target, self.data)
         except ItemNotFoundError:
@@ -366,8 +370,13 @@ class NodeValuesLoaded():
         from ..common import Util
 
         def is_target(value: NodePathStruct):
-            return value.publish_topic_name == node_path_value.publish_topic_name and \
-                value.subscribe_topic_name == node_path_value.subscribe_topic_name
+            return (value.publish_topic_name == node_path_value.publish_topic_name and
+                    value.subscribe_topic_name == node_path_value.subscribe_topic_name and
+                    value.publisher_construction_order ==
+                    node_path_value.publisher_construction_order and
+                    value.subscription_construction_order ==
+                    node_path_value.subscription_construction_order
+                    )
 
         node_value = self.find_node(node_path_value.node_name)
         try:
@@ -630,9 +639,17 @@ class MessageContextsLoaded:
                 if context_type == UNDEFINED_STR:
                     logger.info(f'message context is UNDEFINED. {context_dict}')
                     continue
+                publisher_topic_name = context_dict['publisher_topic_name']
+                subscription_topic_name = context_dict['subscription_topic_name']
+                subscription_construction_order = 0 if 'subscription_construction_order' \
+                    not in context_dict else context_dict['subscription_construction_order']
+                publisher_construction_order = 0 if 'publisher_construction_order' \
+                    not in context_dict else context_dict['publisher_construction_order']
                 node_path = self.get_node_path(node_paths,
-                                               context_dict['publisher_topic_name'],
-                                               context_dict['subscription_topic_name'])
+                                               publisher_topic_name,
+                                               subscription_topic_name,
+                                               subscription_construction_order,
+                                               publisher_construction_order)
                 data.append(self._to_struct(context_dict, node_path))
                 pair = (node_path.publish_topic_name, node_path.subscribe_topic_name)
                 pub_sub_pairs.append(pair)
@@ -650,11 +667,15 @@ class MessageContextsLoaded:
     def get_node_path(
         node_paths: Sequence[NodePathStruct],
         publisher_topic_name: str,
-        subscription_topic_name: str
+        subscription_topic_name: str,
+        subscription_construction_order: int,
+        publisher_construction_order: int
     ) -> NodePathStruct:
         def is_target(path: NodePathValue):
             return path.publish_topic_name == publisher_topic_name and \
-                path.subscribe_topic_name == subscription_topic_name
+                path.subscribe_topic_name == subscription_topic_name and \
+                path.subscription_construction_order == subscription_construction_order and \
+                path.publisher_construction_order == publisher_construction_order
         return Util.find_one(is_target, node_paths)
 
     @property
@@ -1538,7 +1559,9 @@ class PathValuesLoaded():
             comm_info = comms_loaded.find_communication(
                 topic_name,
                 pub_node_path.node_name,
-                sub_node_path.node_name
+                pub_node_path.publisher_construction_order,
+                sub_node_path.node_name,
+                sub_node_path.subscription_construction_order
             )
 
             child.append(comm_info)

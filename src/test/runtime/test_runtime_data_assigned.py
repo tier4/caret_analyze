@@ -437,6 +437,7 @@ class TestCommunicationsLoaded:
         mocker.patch.object(comm_info_mock, 'topic_name', topic_name)
         mocker.patch.object(comm_info_mock, 'publish_node_name', pub_node_name)
         mocker.patch.object(comm_info_mock, 'subscribe_node_name', sub_node_name)
+        mocker.patch.object(comm_info_mock, 'subscription_construction_order', 0)
 
         mocker.patch.object(comm_info_mock, 'subscribe_callback_name', None)
         mocker.patch.object(comm_info_mock, 'publish_callback_names', None)
@@ -452,6 +453,8 @@ class TestCommunicationsLoaded:
         sub_mock = mocker.Mock(Subscription)
         pub_mock = mocker.Mock(Publisher)
         mocker.patch.object(node_sub_mock, 'get_subscription', return_value=sub_mock)
+        mocker.patch.object(
+            node_sub_mock, 'get_subscription_from_construction_order', return_value=sub_mock)
         mocker.patch.object(node_pub_mock, 'get_publisher', return_value=pub_mock)
 
         comm = CommunicationsLoaded._to_runtime(
@@ -666,8 +669,10 @@ class TestNodePathsLoaded:
         pub_mock = mocker.Mock(spec=Publisher)
         sub_mock = mocker.Mock(spec=Subscription)
 
-        mocker.patch.object(pub_loaded_mock, 'get_publisher', return_value=pub_mock)
-        mocker.patch.object(sub_loaded_mock, 'get_subscription', return_value=sub_mock)
+        mocker.patch.object(pub_loaded_mock,
+                            'get_publisher_from_construction_order', return_value=pub_mock)
+        mocker.patch.object(sub_loaded_mock,
+                            'get_subscription_from_construction_order', return_value=sub_mock)
 
         mocker.patch.object(node_path_info_mock, 'node_name', node_name)
 

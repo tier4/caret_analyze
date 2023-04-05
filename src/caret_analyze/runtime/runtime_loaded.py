@@ -253,11 +253,15 @@ class NodesLoaded:
         node_name: str,
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
+        publisher_construction_order: Optional[int],
+        subscription_construction_order: Optional[int],
     ) -> NodePath:
         def is_target(node_path: NodePath):
             return node_path.publish_topic_name == publish_topic_name and \
                 node_path.subscribe_topic_name == subscribe_topic_name and \
-                node_path.node_name == node_name
+                node_path.node_name == node_name and \
+                node_path.publisher_construction_order == publisher_construction_order and \
+                node_path.subscription_construction_order == subscription_construction_order
 
         try:
             node_paths = Util.flatten([n.paths for n in self._nodes])
@@ -267,6 +271,8 @@ class NodesLoaded:
             msg += f'node_name: {node_name}. '
             msg += f'publish_topic_name: {publish_topic_name}. '
             msg += f'subscribe_topic_name: {subscribe_topic_name}. '
+            msg += f'publisher_construction_order: {publisher_construction_order}. '
+            msg += f'subscription_construction_order: {subscription_construction_order}. '
             raise ItemNotFoundError(msg)
 
 
@@ -319,6 +325,24 @@ class PublishersLoaded:
             msg += f'topic_name: {topic_name}, '
             raise ItemNotFoundError(msg)
 
+    def get_publisher_from_construction_order(
+        self,
+        node_name: Optional[str],
+        callback_name: Optional[str],
+        topic_name: Optional[str],
+        construction_order: Optional[int] = None
+    ) -> Publisher:
+        try:
+            is_target = PublishersLoaded.IsTargetWithConstructionOrder(
+                node_name, callback_name, topic_name, construction_order)
+            return Util.find_one(is_target, self._pubs)
+        except ItemNotFoundError:
+            msg = 'Failed to find publisher. '
+            msg += f'node_name: {node_name}, '
+            msg += f'callback_name: {callback_name}, '
+            msg += f'topic_name: {topic_name}, '
+            raise ItemNotFoundError(msg)
+
     class IsTarget:
         def __init__(
             self,
@@ -346,6 +370,46 @@ class PublishersLoaded:
                 else:
                     callback_match = self._callback_name in pub.callback_names
             return topic_match and node_match and callback_match
+
+    class IsTargetWithConstructionOrder:
+        def __init__(
+            self,
+            node_name: Optional[str],
+            callback_name: Optional[str],
+            topic_name: Optional[str],
+            construction_order: Optional[int] = None
+        ) -> None:
+            self._node_name = node_name
+            self._callback_name = callback_name
+            self._topic_name = topic_name
+            self._construction_order = construction_order
+
+        def __call__(self, pub: Publisher) -> bool:
+            topic_match = True
+            if self._topic_name is not None:
+                topic_match = self._topic_name == pub.topic_name
+            else:
+                topic_match = pub.topic_name is None
+
+            node_match = True
+            if self._node_name is not None:
+                node_match = self._node_name == pub.node_name
+            else:
+                node_match = pub.node_name is None
+
+            callback_match = True
+            if self._callback_name is not None:
+                if pub.callback_names is None:
+                    callback_match = False
+                else:
+                    callback_match = self._callback_name in pub.callback_names
+
+            construction_order_match = True
+            if self._construction_order is not None:
+                construction_order_match = self._construction_order == pub.construction_order
+            else:
+                construction_order_match = pub.construction_order is None
+            return topic_match and node_match and callback_match and construction_order_match
 
 
 class SubscriptionsLoaded:
@@ -403,6 +467,32 @@ class SubscriptionsLoaded:
             msg += f'topic_name: {topic_name}, '
             raise ItemNotFoundError(msg)
 
+    def get_subscription_from_construction_order(
+        self,
+        node_name: Optional[str],
+        callback_name: Optional[str],
+        topic_name: Optional[str],
+        construction_order: Optional[int] = None
+    ) -> Subscription:
+        try:
+            is_target = SubscriptionsLoaded.IsTargetWithConstructionOrder(node_name,
+                                                                          callback_name,
+                                                                          topic_name,
+                                                                          construction_order)
+            return Util.find_one(is_target, self._subs)
+        except ItemNotFoundError:
+            msg = 'Failed to find subscription. '
+            msg += f'node_name: {node_name}, '
+            msg += f'callback_name: {callback_name}, '
+            msg += f'topic_name: {topic_name}, '
+            raise ItemNotFoundError(msg)
+        except MultipleItemFoundError:
+            msg = 'Multiple item found. '
+            msg += f'node_name: {node_name}, '
+            msg += f'callback_name: {callback_name}, '
+            msg += f'topic_name: {topic_name}, '
+            raise ItemNotFoundError(msg)
+
     class IsTarget:
         def __init__(
             self,
@@ -427,6 +517,43 @@ class SubscriptionsLoaded:
             if self._callback_name is not None:
                 callback_match = self._callback_name == sub.callback_name
             return topic_match and node_match and callback_match
+
+    class IsTargetWithConstructionOrder:
+        def __init__(
+            self,
+            node_name: Optional[str],
+            callback_name: Optional[str],
+            topic_name: Optional[str],
+            construction_order: Optional[int] = None
+        ) -> None:
+            self._node_name = node_name
+            self._callback_name = callback_name
+            self._topic_name = topic_name
+            self._construction_order = construction_order
+
+        def __call__(self, sub: Subscription) -> bool:
+            topic_match = True
+            if self._topic_name is not None:
+                topic_match = self._topic_name == sub.topic_name
+            else:
+                topic_match = sub.topic_name is None
+
+            node_match = True
+            if self._node_name is not None:
+                node_match = self._node_name == sub.node_name
+            else:
+                node_match = sub.node_name is None
+
+            callback_match = True
+            if self._callback_name is not None:  # callback is only None
+                callback_match = self._callback_name == sub.callback_name
+
+            construction_order_match = True
+            if self._construction_order is not None:
+                construction_order_match = self._construction_order == sub.construction_order
+            else:
+                construction_order_match = sub.construction_order is None
+            return topic_match and node_match and callback_match and construction_order_match
 
 
 class TimersLoaded:
@@ -533,10 +660,11 @@ class NodePathsLoaded:
         subscription: Optional[Subscription] = None
 
         try:
-            publisher = publisher_loaded.get_publisher(
+            publisher = publisher_loaded.get_publisher_from_construction_order(
                 node_path_value.node_name,
                 None,
-                node_path_value.publish_topic_name
+                node_path_value.publish_topic_name,
+                node_path_value.publisher_construction_order
             )
         except ItemNotFoundError:
             pass
@@ -544,10 +672,11 @@ class NodePathsLoaded:
             pass
 
         try:
-            subscription = subscription_loaded.get_subscription(
+            subscription = subscription_loaded.get_subscription_from_construction_order(
                 node_path_value.node_name,
                 None,
-                node_path_value.subscribe_topic_name
+                node_path_value.subscribe_topic_name,
+                node_path_value.subscription_construction_order
             )
         except ItemNotFoundError:
             pass
@@ -633,14 +762,18 @@ class PathsLoaded:
             return nodes_loaded.find_node_path(
                 path_element.node_name,
                 path_element.subscribe_topic_name,
-                path_element.publish_topic_name
+                path_element.publish_topic_name,
+                path_element.publisher_construction_order,
+                path_element.subscription_construction_order
             )
 
         if isinstance(path_element, CommunicationStructValue):
             return comms_loaded.find_communication(
                 path_element.topic_name,
                 path_element.publish_node_name,
-                path_element.subscribe_node_name
+                path_element.subscribe_node_name,
+                path_element.publisher_construction_order,
+                path_element.subscription_construction_order
             )
 
         msg = 'Given type is neither NodePathStructValue nor CommunicationStructValue.'
@@ -694,8 +827,11 @@ class CommunicationsLoaded:
             cb_sub = nodes_loaded.find_callback(cb_name)
 
         topic_name = communication_value.topic_name
-        subscription = node_sub.get_subscription(topic_name)
-        publisher = node_pub.get_publisher(topic_name)
+        subscription_construction_order = communication_value.subscription_construction_order
+        publisher_construction_order = communication_value.publisher_construction_order
+        subscription = node_sub.get_subscription_from_construction_order(
+            topic_name, subscription_construction_order)
+        publisher = node_pub.get_publisher(topic_name, publisher_construction_order)
 
         return Communication(
             node_pub, node_sub,
@@ -707,11 +843,15 @@ class CommunicationsLoaded:
         topic_name: str,
         publish_node_name: str,
         subscribe_node_name: str,
+        publisher_construction_order: int,
+        subscription_construction_order: int,
     ) -> Communication:
         def is_target(comm: Communication):
             return comm.publish_node_name == publish_node_name and \
                 comm.subscribe_node_name == subscribe_node_name and \
-                comm.topic_name == topic_name
+                comm.topic_name == topic_name and \
+                comm.publisher_construction_order == publisher_construction_order and \
+                comm.subscription_construction_order == subscription_construction_order
 
         return Util.find_one(is_target, self._data)
 

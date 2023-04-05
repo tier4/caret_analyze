@@ -100,11 +100,11 @@ class CommunicationStructValue(ValueObject, Summarizable):
         return self._node_pub.node_name
 
     @property
-    def publisher_construction_order(self) -> Optional[int]:
+    def publisher_construction_order(self) -> int:
         return self._publisher_value.construction_order
 
     @property
-    def subscription_construction_order(self) -> Optional[int]:
+    def subscription_construction_order(self) -> int:
         return self._subscription_value.construction_order
 
     @property

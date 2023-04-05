@@ -116,7 +116,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
         node: NodeValue
     ) -> Sequence[SubscriptionValue]:
         info: List[SubscriptionValue] = []
-        construction_order_counter: defaultdict[Tuple[str, str], int] = defaultdict(int)
+        construction_order_counter: Dict[Tuple[str, str], int] = defaultdict(int)
 
         for sub_cb in self.get_subscription_callbacks(node):
             topic_name = sub_cb.subscribe_topic_name
@@ -138,7 +138,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
         node: NodeValue
     ) -> Sequence[ServiceValue]:
         info: List[ServiceValue] = []
-        construction_order_counter: defaultdict[Tuple[str, str], int] = defaultdict(int)
+        construction_order_counter: Dict[Tuple[str, str], int] = defaultdict(int)
         for srv_cb in self.get_service_callbacks(node):
             service_name = srv_cb.service_name
             node_name = srv_cb.node_name

@@ -288,3 +288,33 @@ class Communication(PathBase, Summarizable):
         records = self._records_provider.communication_records(self._val)
 
         return records
+
+    @property
+    def subscription_construction_order(self) -> Optional[int]:
+        """
+        Get subscription construction order.
+
+        Returns
+        -------
+        Optional[int]
+            A construction order that subscription this communication.
+
+        """
+        if self.subscription:
+            return self.subscription.construction_order
+        return None
+
+    @property
+    def publisher_construction_order(self) -> Optional[int]:
+        """
+        Get publisher construction order.
+
+        Returns
+        -------
+        Optional[int]
+            A construction order that publisher this communication.
+
+        """
+        if self.publisher:
+            return self.publisher.construction_order
+        return None

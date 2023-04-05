@@ -203,3 +203,33 @@ class NodePath(PathBase, Summarizable):
 
         """
         return self._val.subscribe_topic_name
+
+    @property
+    def publisher_construction_order(self) -> Optional[int]:
+        """
+        Get a construction order to publisher to.
+
+        Returns
+        -------
+        Optional[int]
+            construction order to publisher to.
+
+        """
+        if self.publisher:
+            return self.publisher.construction_order
+        return None
+
+    @property
+    def subscription_construction_order(self) -> Optional[int]:
+        """
+        Get a construction order to subscription to.
+
+        Returns
+        -------
+        Optional[int]
+            construction order to subscription to.
+
+        """
+        if self.subscription:
+            return self.subscription.construction_order
+        return None

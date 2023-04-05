@@ -396,7 +396,7 @@ class CallbackPathSearcher:
     ) -> List[NodePathStruct]:
 
         if subscription is None and len(end_callback_publishers or []) == 0:
-            return []  # subかpubのどちらかすら無い場合はパスとして算出しない
+            return []  # If there is no sub or pub, it is not calculated as a path
 
         if end_callback_publishers is None or len(end_callback_publishers) == 0:
             return [self._to_path(callback_graph_path, subscription, None)]
@@ -407,7 +407,7 @@ class CallbackPathSearcher:
                           publisher)
             for publisher
             in end_callback_publishers
-            # publisher側にはconstruction_orderを入れない
+            # Do not include construction_order on the publisher side
         ]
 
     def _to_path(
@@ -576,9 +576,9 @@ class NodePathSearcher:
                 duplicated_comms[key] = comm
                 continue
 
-            # 同じpublish_node_nameとsubscribe_node_nameでも、
-            # labelが異なれば別のパスとして探索する。
-            # @を区切り文字として、各情報を追加する。
+            # Even with the same publish_node_name and subscribe_node_name,
+            # if the label is different, it will be searched as a different path.
+            # Add each piece of information with @ as the delimiter.
             edge_label = f'{comm.topic_name}'\
                 f'@{comm.subscription_construction_order}@{comm.publisher_construction_order}'
             self._graph.add_edge(
@@ -603,7 +603,7 @@ class NodePathSearcher:
             comm.publisher_construction_order)
 
     @staticmethod
-    def _comm_key_(
+    def _create_comm_key(
         publish_node_name: str,
         subscribe_node_name: str,
         topic_name: str,
@@ -745,12 +745,12 @@ class NodePathSearcher:
             topic_name,
             pub_const_order
         )
-        child.append(head_node_path)  # 最初の、ダミーNodePath を追加
+        child.append(head_node_path)  # add first dummy NodePath
 
         for edge_, edge in zip(node_graph_path.edges[:-1], node_graph_path.edges[1:]):
 
-            topic_name_, sub_const_, pub_const_ = parse_comm_edge(edge_.label)  # 手前のedge
-            topic_name, sub_const, pub_const = parse_comm_edge(edge.label)  # 一つ後のedge
+            topic_name_, sub_const_, pub_const_ = parse_comm_edge(edge_.label)
+            topic_name, sub_const, pub_const = parse_comm_edge(edge.label)
 
             comm = self._find_comm(
                 edge_.node_from.node_name,
@@ -758,7 +758,7 @@ class NodePathSearcher:
                 topic_name_,
                 sub_const_,
                 pub_const_)
-            child.append(comm)  # Commを追加
+            child.append(comm)  # add Communication
 
             node = self._find_node_path(
                 topic_name_,
@@ -768,9 +768,9 @@ class NodePathSearcher:
                 pub_const,
             )
 
-            child.append(node)  # 次のNodePathを追加
+            child.append(node)  # add next NodePath
 
-        # add tail comm
+        # add tail Communication
         tail_edge = node_graph_path.edges[-1]
         topic_name, sub_const, pub_const = parse_comm_edge(tail_edge.label)
         comm = self._find_comm(
@@ -781,7 +781,7 @@ class NodePathSearcher:
             pub_const)
         child.append(comm)
 
-        # add tail node path
+        # add tail NodePath
         tail_node_path = self._create_tail_dummy_node_path(
             self._nodes,
             tail_edge.node_name_to,
@@ -804,7 +804,7 @@ class NodePathSearcher:
         subscription_construction_order: Optional[int],
         publisher_construction_order: Optional[int]
     ) -> CommunicationStruct:
-        key = self._comm_key_(
+        key = self._create_comm_key(
             node_from, node_to, topic_name,
             subscription_construction_order,
             publisher_construction_order)

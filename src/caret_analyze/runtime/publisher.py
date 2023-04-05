@@ -43,6 +43,7 @@ class Publisher(PathBase, Summarizable):
         super().__init__()
         self._val = publisher
         self._provider = provider
+        self._construction_order = publisher.construction_order
 
     @property
     def node_name(self) -> str:
@@ -82,6 +83,19 @@ class Publisher(PathBase, Summarizable):
 
         """
         return self._val.topic_name
+
+    @property
+    def construction_order(self) -> int:
+        """
+        Get a construction order.
+
+        Returns
+        -------
+        int
+            A construction order to which the publisher publishes.
+
+        """
+        return self._construction_order
 
     @property
     def callback_names(self) -> Optional[List[str]]:

@@ -130,13 +130,21 @@ class Architecture(Summarizable):
                 node_name = c.node_name
                 publish_topic_name = c.publish_topic_name
                 subscribe_topic_name = c.subscribe_topic_name
+                publisher_construction_order = c.publisher_construction_order
+                subscription_construction_order = c.subscription_construction_order
 
                 def is_target_node(node: NodeStruct):
                     return node_name == node.node_name
 
                 def is_target_node_path(node_path: NodePathStruct):
-                    return publish_topic_name == node_path.publish_topic_name and \
-                        subscribe_topic_name == node_path.subscribe_topic_name
+                    return (
+                        publish_topic_name == node_path.publish_topic_name and
+                        subscribe_topic_name == node_path.subscribe_topic_name and
+                        publisher_construction_order ==
+                        node_path.publisher_construction_order and
+                        subscription_construction_order ==
+                        node_path.subscription_construction_order
+                    )
 
                 node: NodeStruct = Util.find_one(is_target_node, self._nodes)
                 node_path: NodePathStruct = Util.find_one(is_target_node_path, node.paths)
@@ -146,11 +154,15 @@ class Architecture(Summarizable):
                 publish_node_name = c.publish_node_name
                 subscribe_node_name = c.subscribe_node_name
                 topic_name = c.topic_name
+                publisher_construction_order = c.publisher_construction_order
+                subscription_construction_order = c.subscription_construction_order
 
                 def is_target_comm(comm: CommunicationStruct):
                     return publish_node_name == comm.publish_node_name and \
                         subscribe_node_name == comm.subscribe_node_name and \
-                        topic_name == comm.topic_name
+                        topic_name == comm.topic_name and \
+                        publisher_construction_order == comm.publisher_construction_order and \
+                        subscription_construction_order == comm.subscription_construction_order
 
                 comm: CommunicationStruct = \
                     Util.find_one(is_target_comm, self._communications)

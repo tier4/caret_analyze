@@ -267,6 +267,77 @@ class Util:
             raise ItemNotFoundError('Failed find item.')
 
     @staticmethod
+    def find_similar_one_multi_keys_with_int(
+        target_names: Dict[str, Any],
+        items: Collection[Any],
+        keys: Callable[[Any], Dict[str, str]] = lambda x: x,
+        th: float = 0.6
+    ) -> Any:
+        """
+        Get a single item that matches the multi conditions.
+
+        Parameters
+        ----------
+        target_names: Dict[str, Any]
+            target_names
+        items: Collection[Any]
+            Items to be searched.
+        keys: Callable[[Any], Dict[str, str]]
+            key
+        th: float
+            Similarity judgment threshold.
+            A candidate is mentioned only if it is higher than the threshold.
+
+        Returns
+        -------
+        Any
+            conditions matched single item.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Failed to find an item that matches the conditions.
+        MultipleItemFoundError
+            Failed to identify an item that matches the conditions.
+
+        """
+        max_similarity = 0.0
+        for item in items:
+            each_similarity = []
+            keys_dict = keys(item)
+            for target_name in target_names:
+                if(keys_dict[target_name] is None):
+                    each_similarity.append(0.0)
+                    continue
+                if type(keys_dict[target_name]) is not str:
+                    if keys_dict[target_name] == target_names[target_name]:
+                        distance = 1.0
+                    else:
+                        distance = 0.0
+                    each_similarity.append(distance)
+                    continue
+                distance = difflib.SequenceMatcher(None,
+                                                   keys_dict[target_name],
+                                                   str(target_names[target_name])).ratio()
+                each_similarity.append(distance)
+            if (mean(each_similarity) > max_similarity):
+                max_similarity = mean(each_similarity)
+                most_similar_item = item
+
+        assert 0.0 <= max_similarity <= 1.0
+        if (max_similarity == 1.0):
+            return most_similar_item
+        elif (max_similarity > th):
+            msg = 'Arguments may be wrong. '
+            msg += "Aren't they bellow?\n"
+            keys_dict = keys(most_similar_item)
+            for k, v in keys_dict.items():
+                msg += k + "='" + v + "'\n"
+            raise ItemNotFoundError(msg)
+        else:
+            raise ItemNotFoundError('Failed find item.')
+
+    @staticmethod
     def ns_to_ms(x: float) -> float:
         """
         Convert nanosecond to millisecond.

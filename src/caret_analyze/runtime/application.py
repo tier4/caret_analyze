@@ -311,7 +311,10 @@ class Application(Summarizable):
         self,
         publisher_node_name: str,
         subscription_node_name: str,
-        topic_name: str
+        topic_name: str,
+        *,
+        publisher_construction_order: int = 0,
+        subscription_construction_order: int = 0
     ) -> Communication:
         """
         Get communication that matches the condition.
@@ -324,6 +327,10 @@ class Application(Summarizable):
             node name that subscribes to the topic.
         topic_name : str
             topic name.
+        publisher_construction_order : int
+            A construction order that publisher this communication.
+        subscription_construction_order : int
+            A construction order that subscription this communication.
 
         Returns
         -------
@@ -345,18 +352,31 @@ class Application(Summarizable):
                 not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
+        # target_names = {'publisher_node_name': publisher_node_name,
+        #                 'subscription_node_name': subscription_node_name,
+        #                 'topic_name': topic_name}
+
+        # def get_names(x):
+        #     return {'publisher_node_name': x.publish_node_name,
+        #             'subscription_node_name': x.subscribe_node_name,
+        #             'topic_name': x.topic_name}
+
         target_names = {'publisher_node_name': publisher_node_name,
                         'subscription_node_name': subscription_node_name,
-                        'topic_name': topic_name}
+                        'topic_name': topic_name,
+                        'publisher_construction_order': publisher_construction_order,
+                        'subscription_construction_order': subscription_construction_order}
 
         def get_names(x):
             return {'publisher_node_name': x.publish_node_name,
                     'subscription_node_name': x.subscribe_node_name,
-                    'topic_name': x.topic_name}
+                    'topic_name': x.topic_name,
+                    'publisher_construction_order': x.publisher_construction_order,
+                    'subscription_construction_order': x.subscription_construction_order}
 
-        return Util.find_similar_one_multi_keys(target_names,
-                                                self.communications,
-                                                get_names)
+        return Util.find_similar_one_multi_keys_with_int(target_names,
+                                                         self.communications,
+                                                         get_names)
 
     @property
     def topic_names(self) -> List[str]:
