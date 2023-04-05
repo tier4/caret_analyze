@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from .color_selector import ColorSelectorFactory
-from .legend import HoverCreator, HoverKeys, HoverSource, LegendManager
+from .hover import HoverCreator, HoverKeys, HoverSource
+from .legend import LegendManager
 from .util import apply_x_axis_offset, init_figure, RectValues
 
 __all__ = [
