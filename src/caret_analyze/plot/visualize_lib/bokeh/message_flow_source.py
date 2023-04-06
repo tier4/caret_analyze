@@ -25,7 +25,7 @@ from bokeh.plotting import ColumnDataSource
 import numpy as np
 import pandas as pd
 
-from .util import HoverCreator, HoverKeysFactory, RectValues
+from .util import HoverKeysFactory, RectValues
 
 from ....common import ClockConverter
 from ....exceptions import UnsupportedTypeError
@@ -319,10 +319,9 @@ class MessageFlowSource:
         target_path: Path
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instace('message_flow', target_path)
-        self._hover = HoverCreator(self._hover_keys)
 
     def create_hover(self,) -> HoverTool:
-        return self._hover.create()
+        return self._hover_keys.create_hover()
 
     def generate(
         self,

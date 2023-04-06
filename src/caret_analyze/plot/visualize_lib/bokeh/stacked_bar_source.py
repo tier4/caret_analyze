@@ -19,7 +19,7 @@ from typing import Dict, List
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
 
-from .util import HoverCreator, HoverKeysFactory, HoverSource, LegendManager
+from .util import HoverKeysFactory, HoverSource, LegendManager
 
 
 class StackedBarSource:
@@ -33,7 +33,6 @@ class StackedBarSource:
         xaxis_type: str,
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instace('stacked_bar', target_object)
-        self._hover = HoverCreator(self._hover_keys)
         self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
@@ -52,7 +51,7 @@ class StackedBarSource:
         HoverTool
 
         """
-        return self._hover.create(options)
+        return self._hover_keys.create_hover(options)
 
     def generate(
         self,

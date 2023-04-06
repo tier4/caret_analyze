@@ -82,6 +82,29 @@ class HoverKeysBase(metaclass=ABCMeta):
     def to_list(self) -> List[str]:
         raise NotImplementedError()
 
+    def create_hover(self, options: dict = {}) -> HoverTool:
+        """
+        Create HoverTool based on the hover keys.
+
+        Parameters
+        ----------
+        options : dict, optional
+            Additional options, by default {}
+
+        Returns
+        -------
+        HoverTool
+
+        """
+        tips_str = '<div style="width:400px; word-wrap: break-word;">'
+        for k in self.to_list():
+            tips_str += f'@{k} <br>'
+        tips_str += '</div>'
+
+        return HoverTool(
+            tooltips=tips_str, point_policy='follow_mouse', toggleable=False, **options
+        )
+
 
 class CallbackSchedBarKeys(HoverKeysBase):
 
@@ -163,36 +186,6 @@ class StackedBarKeys(HoverKeysBase):
 
     def to_list(self) -> List[str]:
         return ['legend_label', 'path_name']
-
-
-class HoverCreator:
-    """Class to create HoverTool for bokeh graph."""
-
-    def __init__(self, hover_keys: HoverKeysBase) -> None:
-        self._hover_keys = hover_keys
-
-    def create(self, options: dict = {}) -> HoverTool:
-        """
-        Create HoverTool based on the hover keys.
-
-        Parameters
-        ----------
-        options : dict, optional
-            Additional options, by default {}
-
-        Returns
-        -------
-        HoverTool
-
-        """
-        tips_str = '<div style="width:400px; word-wrap: break-word;">'
-        for k in self._hover_keys.to_list():
-            tips_str += f'@{k} <br>'
-        tips_str += '</div>'
-
-        return HoverTool(
-            tooltips=tips_str, point_policy='follow_mouse', toggleable=False, **options
-        )
 
 
 class HoverSource:
