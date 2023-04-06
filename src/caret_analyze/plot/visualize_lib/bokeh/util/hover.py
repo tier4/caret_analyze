@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from bokeh.models import HoverTool
 
@@ -195,11 +195,17 @@ class HoverSource:
         self._legend_manager = legend_manager
         self._hover_keys = hover_keys
 
-    def generate(self, target_object: Any) -> Dict[str, str]:
+    def generate(
+        self,
+        target_object: Any,
+        additional_hover_dict: Optional[Dict[str, str]] = None
+    ) -> Dict[str, str]:
         hover_values: Dict[str, Any] = {}
         for k in self._hover_keys.to_list():
             if hasattr(target_object, k):
                 hover_values[k] = [f'{k} = {getattr(target_object, k)}']
+            elif additional_hover_dict and k in additional_hover_dict.keys():
+                hover_values[k] = [additional_hover_dict[k]]
             else:
                 hover_values[k] = [self.get_non_property_data(target_object, k)]
 

@@ -93,16 +93,17 @@ class CallbackSchedRectSource:
                 (self._rect_y_base+self.RECT_HEIGHT)
             )
             rect_source.stream({
-                'legend_label': [
-                    self._hover_source.get_non_property_data(callback, 'legend_label')
-                ],
-                'x': [rect.x],
-                'y': [rect.y],
-                'width': [rect.width],
-                'height': [rect.height],
-                'callback_start': [f'callback_start = {callback_start} [ns]'],
-                'callback_end': [f'callback_end = {callback_end} [ns]'],
-                'latency': [f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]']
+                **{
+                    'x': [rect.x],
+                    'y': [rect.y],
+                    'width': [rect.width],
+                    'height': [rect.height],
+                },
+                **self._hover_source.generate(callback, {
+                    'callback_start': f'callback_start = {callback_start} [ns]',
+                    'callback_end': f'callback_end = {callback_end} [ns]',
+                    'latency': f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]'
+                })  # type: ignore
             })
 
         return rect_source
@@ -165,11 +166,11 @@ class CallbackSchedBarSource:
             rect_y_base - 0.5,
             rect_y_base + 0.5
         )
-        legend_source = self._hover_source.generate(callback)
+        hover_source = self._hover_source.generate(callback)
         bar_source = ColumnDataSource(data={
             **{'x': [rect.x], 'y': [rect.y],
                'width': [rect.width], 'height': [rect.height]},
-            **legend_source  # type: ignore
+            **hover_source  # type: ignore
         })
 
         return bar_source

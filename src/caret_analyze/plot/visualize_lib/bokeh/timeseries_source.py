@@ -85,10 +85,10 @@ class LineSource:
         line_source = ColumnDataSource(data={
             k: [] for k in (['x', 'y'] + self._hover_keys.to_list())
         })
-        legend_source = self._hover_source.generate(target_object)
+        hover_source = self._hover_source.generate(target_object)
         x_item, y_item = self._get_x_y(timeseries_records)
         for x, y in zip(x_item, y_item):
-            line_source.stream({**{'x': [x], 'y': [y]}, **legend_source})  # type: ignore
+            line_source.stream({**{'x': [x], 'y': [y]}, **hover_source})  # type: ignore
 
         return line_source
 
