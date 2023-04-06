@@ -69,7 +69,7 @@ class MetricsBase(metaclass=ABCMeta):
             # TODO: Refactor after Records class supports quadrature operations.
             values = [
                 RecordFactory.create_instance({
-                    # NOTE: Loss of accuracy may be occered with sim_time due to rounding process.
+                    # NOTE: Loss of accuracy may be occured with sim_time due to rounding process.
                     k: v if k != ts_column_name else round(converter.convert(record.get(k)))
                     for k, v
                     in record.data.items()
