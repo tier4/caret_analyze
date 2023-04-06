@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from abc import ABCMeta, abstractmethod
 from logging import getLogger
 from typing import Any, Dict, List, Union
 
@@ -29,8 +30,7 @@ TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscrip
 logger = getLogger(__name__)
 
 
-class HoverKeys:
-    """Hover keys."""
+class HoverKeysFactory:
 
     _SUPPORTED_GRAPH_TYPE = [
         'callback_scheduling_bar',
@@ -40,78 +40,135 @@ class HoverKeys:
         'message_flow'
     ]
 
-    def __init__(self, graph_type: str, target_object: TargetTypes) -> None:
-        self._validate(graph_type, target_object)
-        self._graph_type = graph_type
-        self._target_object = target_object
-
-    def _validate(self, graph_type: str, target_object: Any) -> None:
-        if graph_type not in self._SUPPORTED_GRAPH_TYPE:
+    @staticmethod
+    def create_instace(graph_type: str, target_object: TargetTypes) -> HoverKeysBase:
+        # Validate
+        if graph_type not in HoverKeysFactory._SUPPORTED_GRAPH_TYPE:
             raise InvalidArgumentError(
-                f"'graph_type' must be [{'/'.join(self._SUPPORTED_GRAPH_TYPE)}]."
+                f"'graph_type' must be [{'/'.join(HoverKeysFactory._SUPPORTED_GRAPH_TYPE)}]."
             )
 
-        if graph_type == 'callback_scheduling' and not isinstance(target_object, CallbackBase):
+        # Create HoverKeys instance
+        hover_keys: HoverKeysBase
+        if graph_type == 'callback_scheduling_bar':
+            hover_keys = CallbackSchedBarKeys(target_object)
+
+        elif graph_type == 'callback_scheduling_rect':
+            hover_keys = CallbackSchedRectKeys(target_object)
+
+        elif graph_type == 'timeseries':
+            hover_keys = TimeSeriesKeys(target_object)
+
+        elif graph_type == 'stacked_bar':
+            hover_keys = StackedBarKeys(target_object)
+
+        elif graph_type == 'message_flow':
+            hover_keys = MessageFlowKeys(target_object)
+
+        return hover_keys
+
+
+class HoverKeysBase(metaclass=ABCMeta):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        self._validate(target_object)
+        self._target_object = target_object
+
+    @abstractmethod
+    def _validate(self, target_object: Any) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def to_list(self) -> List[str]:
+        raise NotImplementedError()
+
+
+class CallbackSchedBarKeys(HoverKeysBase):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        super().__init__(target_object)
+
+    def _validate(self, target_object: Any) -> None:
+        if not isinstance(target_object, CallbackBase):
             raise InvalidArgumentError(
                 "'target_object' must be CallbackBase in callback scheduling graph."
             )
 
-        if (graph_type == 'timeseries' and not isinstance(
-                target_object, (CallbackBase, Communication, Publisher, Subscription))):
+    def to_list(self) -> List[str]:
+        return ['legend_label', 'node_name', 'callback_name',
+                'callback_type', 'callback_param', 'symbol']
+
+
+class CallbackSchedRectKeys(HoverKeysBase):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        super().__init__(target_object)
+
+    def _validate(self, target_object: Any) -> None:
+        if not isinstance(target_object, CallbackBase):
+            raise InvalidArgumentError(
+                "'target_object' must be CallbackBase in callback scheduling graph."
+            )
+
+    def to_list(self) -> List[str]:
+        return ['legend_label', 'callback_start', 'callback_end', 'latency']
+
+
+class TimeSeriesKeys(HoverKeysBase):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        super().__init__(target_object)
+
+    def _validate(self, target_object: Any) -> None:
+        if not isinstance(target_object, (CallbackBase, Communication, Publisher, Subscription)):
             raise InvalidArgumentError(
                 "'target_object' must be [CallbackBase/Communication/Publisher/Subscription]"
                 'in timeseries graph.'
             )
 
-        if graph_type == 'message_flow' and not isinstance(target_object, Path):
-            raise InvalidArgumentError(
-                "'target_object' must be Path in message flow.")
-
-        if (graph_type == 'stacked_bar' and not isinstance(target_object, Path)):
-            raise InvalidArgumentError(
-                "'target_object' must be Path in stacked bar graph."
-            )
-
     def to_list(self) -> List[str]:
-        """
-        Get hover keys as a list.
-
-        Returns
-        -------
-        List[str]
-            Hover keys.
-
-        """
-        if self._graph_type == 'callback_scheduling_bar':
-            hover_keys = ['legend_label', 'node_name', 'callback_name',
-                          'callback_type', 'callback_param', 'symbol']
-
-        if self._graph_type == 'callback_scheduling_rect':
-            hover_keys = ['legend_label', 'callback_start', 'callback_end', 'latency']
-
-        if self._graph_type == 'timeseries':
-            if isinstance(self._target_object, CallbackBase):
-                hover_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
-                              'callback_param', 'symbol']
-            elif isinstance(self._target_object, Communication):
-                hover_keys = ['legend_label', 'topic_name',
-                              'publish_node_name', 'subscribe_node_name']
-            elif isinstance(self._target_object, (Publisher, Subscription)):
-                hover_keys = ['legend_label', 'node_name', 'topic_name']
-
-        if self._graph_type == 'message_flow':
-            hover_keys = ['t_start', 't_end', 'latency', 't_offset', 'desc']
-
-        if self._graph_type == 'stacked_bar':
-            hover_keys = ['legend_label', 'path_name']
+        if isinstance(self._target_object, CallbackBase):
+            hover_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
+                          'callback_param', 'symbol']
+        elif isinstance(self._target_object, Communication):
+            hover_keys = ['legend_label', 'topic_name',
+                          'publish_node_name', 'subscribe_node_name']
+        elif isinstance(self._target_object, (Publisher, Subscription)):
+            hover_keys = ['legend_label', 'node_name', 'topic_name']
 
         return hover_keys
+
+
+class MessageFlowKeys(HoverKeysBase):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        super().__init__(target_object)
+
+    def _validate(self, target_object: Any) -> None:
+        if not isinstance(target_object, Path):
+            raise InvalidArgumentError("'target_object' must be Path in message flow.")
+
+    def to_list(self) -> List[str]:
+        return ['t_start', 't_end', 'latency', 't_offset', 'desc']
+
+
+class StackedBarKeys(HoverKeysBase):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        super().__init__(target_object)
+
+    def _validate(self, target_object: Any) -> None:
+        if not isinstance(target_object, Path):
+            raise InvalidArgumentError("'target_object' must be Path in stacked bar graph.")
+
+    def to_list(self) -> List[str]:
+        return ['legend_label', 'path_name']
 
 
 class HoverCreator:
     """Class to create HoverTool for bokeh graph."""
 
-    def __init__(self, hover_keys: HoverKeys) -> None:
+    def __init__(self, hover_keys: HoverKeysBase) -> None:
         self._hover_keys = hover_keys
 
     def create(self, options: dict = {}) -> HoverTool:
@@ -141,7 +198,7 @@ class HoverCreator:
 class HoverSource:
     """Hover source."""
 
-    def __init__(self, legend_manager: LegendManager, hover_keys: HoverKeys) -> None:
+    def __init__(self, legend_manager: LegendManager, hover_keys: HoverKeysBase) -> None:
         self._legend_manager = legend_manager
         self._hover_keys = hover_keys
 
