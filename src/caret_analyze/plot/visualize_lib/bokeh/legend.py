@@ -21,12 +21,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from bokeh.models import GlyphRenderer, HoverTool, Legend
 
 from ....exceptions import InvalidArgumentError
-from ....runtime import (CallbackBase, Communication, Publisher, Subscription,
+from ....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
                          SubscriptionCallback, TimerCallback)
 
-from ....runtime import Path
-
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscription]]
 
 logger = getLogger(__name__)
 
@@ -39,9 +37,10 @@ class HoverKeys:
         'callback_scheduling_rect',
         'timeseries',
         'stacked_bar',
+        'message_flow'
     ]
 
-    def __init__(self, graph_type: str, target_object: TimeSeriesTypes) -> None:
+    def __init__(self, graph_type: str, target_object: TargetTypes) -> None:
         self._validate(graph_type, target_object)
         self._graph_type = graph_type
         self._target_object = target_object
@@ -63,6 +62,10 @@ class HoverKeys:
                 "'target_object' must be [CallbackBase/Communication/Publisher/Subscription]"
                 'in timeseries graph.'
             )
+
+        if graph_type == 'message_flow' and not isinstance(target_object, Path):
+            raise InvalidArgumentError(
+                "'target_object' must be Path in message flow.")
 
         if (graph_type == 'stacked_bar' and not isinstance(target_object, Path)):
             raise InvalidArgumentError(
@@ -95,6 +98,9 @@ class HoverKeys:
                               'publish_node_name', 'subscribe_node_name']
             elif isinstance(self._target_object, (Publisher, Subscription)):
                 hover_keys = ['legend_label', 'node_name', 'topic_name']
+
+        if self._graph_type == 'message_flow':
+            hover_keys = ['t_start', 't_end', 'latency', 't_offset', 'desc']
 
         if self._graph_type == 'stacked_bar':
             hover_keys = ['legend_label', 'path_name']
@@ -223,7 +229,8 @@ class LegendManager:
     def create_legends(
         self,
         max_legends: int = 20,
-        full_legends: bool = False
+        full_legends: bool = False,
+        location: str = 'top_right'
     ) -> List[Legend]:
         """
         Create legends.
@@ -234,15 +241,23 @@ class LegendManager:
             Maximum number of legends to display, by default 20.
         full_legends : bool, optional
             Display all legends even if they exceed max_legends, by default False.
+        location : str
+            Specify the position where you want the legend to be displayed.
+            Specify bottom_left only if you want it to appear at the bottom left.
 
         Returns
         -------
         List[Legend]
-            List of Legend instances separated by 10.
+            List of Legend instances separated by location argument.
 
         """
+        if location == 'top_right':
+            separate_num = 10
+        else:
+            separate_num = len(self._legend_items)
+
         legends: List[Legend] = []
-        for i in range(0, len(self._legend_items)+10, 10):
+        for i in range(0, len(self._legend_items)+separate_num, separate_num):
             if not full_legends and i >= max_legends:
                 logger.warning(
                     f'The maximum number of legends drawn by default is {max_legends}. '
@@ -250,8 +265,7 @@ class LegendManager:
                     'please specify the `full_legends` option to True.'
                 )
                 break
-            legends.append(Legend(items=self._legend_items[i:i+10]))
-
+            legends.append(Legend(items=self._legend_items[i:i+separate_num], location=location))
         return legends
 
     def get_label(
