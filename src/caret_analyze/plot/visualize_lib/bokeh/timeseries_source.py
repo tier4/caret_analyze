@@ -20,7 +20,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
 
-from .legend import HoverCreator, HoverKeys, HoverSource, LegendManager
+from .util import HoverCreator, HoverKeys, HoverSource, LegendManager
 
 from ....record import RecordsInterface
 from ....runtime import CallbackBase, Communication, Publisher, Subscription

@@ -14,15 +14,15 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Union
 
-from bokeh.models import GlyphRenderer, HoverTool, Legend
+from bokeh.models import HoverTool
 
-from ....exceptions import InvalidArgumentError
-from ....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
-                         SubscriptionCallback, TimerCallback)
+from .legend import LegendManager
+from .....exceptions import InvalidArgumentError
+from .....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
+                          SubscriptionCallback, TimerCallback)
 
 TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscription]]
 
@@ -191,117 +191,3 @@ class HoverSource:
             raise NotImplementedError()
 
         return description
-
-
-class LegendManager:
-    """Class that manages legend in Bokeh figure."""
-
-    def __init__(self) -> None:
-        self._legend_count_map: Dict[str, int] = defaultdict(int)
-        self._legend_items: List[Tuple[str, List[GlyphRenderer]]] = []
-        self._legend: Dict[Any, str] = {}
-
-    def add_legend(
-        self,
-        target_object: Any,
-        renderer: GlyphRenderer,
-        legend_word: Optional[str] = None,
-    ) -> None:
-        """
-        Store a legend of the input object internally.
-
-        Parameters
-        ----------
-        target_object : Any
-            Instance of any class.
-        renderer : bokeh.models.GlyphRenderer
-            Instance of renderer.
-        legend_word : Optional[str]
-            Sentence of the legend.
-            If None, the class name of
-            the target object is used.
-
-        """
-        label = self.get_label(target_object, legend_word)
-        self._legend_items.append((label, [renderer]))
-        self._legend[target_object] = label
-
-    def create_legends(
-        self,
-        max_legends: int = 20,
-        full_legends: bool = False,
-        location: str = 'top_right'
-    ) -> List[Legend]:
-        """
-        Create legends.
-
-        Parameters
-        ----------
-        max_legends : int, optional
-            Maximum number of legends to display, by default 20.
-        full_legends : bool, optional
-            Display all legends even if they exceed max_legends, by default False.
-        location : str
-            Specify the position where you want the legend to be displayed.
-            Specify bottom_left only if you want it to appear at the bottom left.
-
-        Returns
-        -------
-        List[Legend]
-            List of Legend instances separated by location argument.
-
-        """
-        if location == 'top_right':
-            separate_num = 10
-        else:
-            separate_num = len(self._legend_items)
-
-        legends: List[Legend] = []
-        for i in range(0, len(self._legend_items)+separate_num, separate_num):
-            if not full_legends and i >= max_legends:
-                logger.warning(
-                    f'The maximum number of legends drawn by default is {max_legends}. '
-                    'If you want all legends to be displayed, '
-                    'please specify the `full_legends` option to True.'
-                )
-                break
-            legends.append(Legend(items=self._legend_items[i:i+separate_num], location=location))
-        return legends
-
-    def get_label(
-        self,
-        target_object: Any,
-        word: Optional[str] = None,
-    ) -> str:
-        """
-        Get label name of target object.
-
-        Parameters
-        ----------
-        target_object : Any
-            Target object.
-        word : Optional[str]
-            Sentence of the legend.
-            If None, the class name of
-            the target object is used.
-
-        Returns
-        -------
-        str
-            Label name of target object.
-
-        """
-        if word is not None:
-            label = word
-            self._legend[target_object] = label
-            return label
-
-        if target_object in self._legend:
-            return self._legend[target_object]
-
-        class_name = type(target_object).__name__
-        label = f'{class_name.lower()}{self._legend_count_map[class_name]}'
-        self._legend_count_map[class_name] += 1
-        self._legend[target_object] = label
-
-        return label

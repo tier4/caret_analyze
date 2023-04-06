@@ -14,24 +14,22 @@
 
 from __future__ import annotations
 
-import datetime
 from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
-from bokeh.models import AdaptiveTicker, Arrow, LinearAxis, NormalHead, Range1d
+from bokeh.models import Arrow, NormalHead
 from bokeh.models import CrosshairTool
-from bokeh.plotting import Figure, figure
+from bokeh.plotting import Figure
 
 import pandas as pd
 
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
-from .color_selector import ColorSelectorFactory
-from .legend import LegendManager
 from .message_flow_source import (
     FormatterFactory, get_callback_rect_list, MessageFlowSource,
     Offset, YAxisProperty, YAxisValues)
 from .stacked_bar_source import StackedBarSource
 from .timeseries_source import LineSource
+from .util import apply_x_axis_offset, ColorSelectorFactory, init_figure, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....common import ClockConverter, Util
@@ -62,7 +60,7 @@ class Bokeh(VisualizeLibInterface):
         rstrip_s: float
     ) -> Figure:
         # Initialize figure
-        fig = self._init_figure(
+        fig = init_figure(
             f'Message flow of {target_path.path_name}', ywheel_zoom, xaxis_type)
         fig.add_tools(CrosshairTool(line_alpha=0.4))
 
@@ -85,7 +83,7 @@ class Bokeh(VisualizeLibInterface):
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
         x_range_name = 'x_plot_axis'
-        self._apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
+        apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
 
         # Format
         formatter = FormatterFactory.create(target_path, granularity)
@@ -165,12 +163,12 @@ class Bokeh(VisualizeLibInterface):
         data, y_labels = metrics.to_stacked_bar_data()
         title: str = f"Stacked bar of '{getattr(target_objects, 'path_name')}'"
 
-        fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
+        fig = init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
         frame_max = data['start time'][-1]
         x_label = 'start time'
         if xaxis_type == 'system_time':
-            self._apply_x_axis_offset(fig, frame_min, frame_max)
+            apply_x_axis_offset(fig, frame_min, frame_max)
         elif xaxis_type == 'index':
             x_label = 'index'
         else:  # sim_time
@@ -415,7 +413,7 @@ class Bokeh(VisualizeLibInterface):
         # Initialize figure
         title = ('Callback Scheduling in '
                  f"[{'/'.join([cbg.callback_group_name for cbg in callback_groups])}].")
-        fig = self._init_figure(title, ywheel_zoom, xaxis_type)
+        fig = init_figure(title, ywheel_zoom, xaxis_type)
 
         # Apply xaxis offset
         callbacks: List[CallbackBase] = Util.flatten(
@@ -435,7 +433,7 @@ class Bokeh(VisualizeLibInterface):
             frame_min = clip.min_ns
             frame_max = clip.max_ns
         x_range_name = 'x_plot_axis'
-        self._apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
+        apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
 
         # Draw callback scheduling
         color_selector = ColorSelectorFactory.create_instance(coloring_rule)
@@ -565,13 +563,13 @@ class Bokeh(VisualizeLibInterface):
             title = f'Time-line of communications {y_axis_label}'
         else:
             title = f'Time-line of publishes/subscribes {y_axis_label}'
-        fig = self._init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
+        fig = init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
 
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
         frame_min, frame_max = records_range.get_range()
         if xaxis_type == 'system_time':
-            self._apply_x_axis_offset(fig, frame_min, frame_max)
+            apply_x_axis_offset(fig, frame_min, frame_max)
 
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
@@ -598,91 +596,3 @@ class Bokeh(VisualizeLibInterface):
         fig.legend.click_policy = 'hide'
 
         return fig
-
-    def _init_figure(
-        self,
-        title: str,
-        ywheel_zoom: bool,
-        xaxis_type: str,
-        y_axis_label: Optional[str] = None,
-    ) -> Figure:
-        if xaxis_type == 'system_time':
-            x_axis_label = 'system time [s]'
-        elif xaxis_type == 'sim_time':
-            x_axis_label = 'simulation time [s]'
-        else:
-            x_axis_label = xaxis_type
-
-        if ywheel_zoom:
-            tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']
-            active_scroll = 'wheel_zoom'
-        else:
-            tools = ['xwheel_zoom', 'xpan', 'save', 'reset']
-            active_scroll = 'xwheel_zoom'
-
-        return figure(
-            frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
-            x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
-        )
-
-    @staticmethod
-    def _apply_x_axis_offset(
-        fig: Figure,
-        min_ns: float,
-        max_ns: float,
-        x_range_name: str = ''
-    ) -> None:
-        """
-        Apply an offset to the x-axis of the graph.
-
-        Datetime is displayed instead of UNIX time for zero point.
-
-        Parameters
-        ----------
-        fig : Figure
-            Target figure.
-        min_ns : float
-            Minimum UNIX time.
-        max_ns : float
-            Maximum UNIX time.
-        x_range_name : str, optional
-            Name of the actual range, by default ''.
-            Specify this if you want to refer to the actual range later.
-
-        """
-        # Initialize variables
-        offset_s = min_ns*1.0e-9
-        end_s = (max_ns-min_ns)*1.0e-9
-        actual_range = Range1d(start=min_ns, end=max_ns)
-        applied_range = Range1d(start=0, end=end_s)
-
-        # Set ranges
-        fig.extra_x_ranges = {x_range_name: actual_range}
-        fig.x_range = applied_range
-
-        # Add xaxis for actual_range
-        xaxis = LinearAxis(x_range_name=x_range_name)
-        xaxis.visible = False  # type: ignore
-        fig.add_layout(xaxis, 'below')
-        fig.xaxis.ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
-
-        # Add xgrid
-        fig.xgrid.minor_grid_line_color = 'black'
-        fig.xgrid.minor_grid_line_alpha = 0.1
-
-        # Replace 0 with datetime of offset_s
-        datetime_s = datetime.datetime.fromtimestamp(offset_s).strftime('%Y-%m-%d %H:%M:%S')
-        fig.xaxis.major_label_overrides = {0: datetime_s}
-
-        # # Code to display hhmmss for x-axis
-        # from bokeh.models import FuncTickFormatter
-        # fig.xaxis.formatter = FuncTickFormatter(
-        #     code = '''
-        #     let time_ms = (tick + offset_s) * 1e3;
-        #     let date_time = new Date(time_ms);
-        #     let hh = date_time.getHours();
-        #     let mm = date_time.getMinutes();
-        #     let ss = date_time.getSeconds();
-        #     return hh + ":" + mm + ":" + ss;
-        #     ''',
-        #     args={"offset_s": offset_s})

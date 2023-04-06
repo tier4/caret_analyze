@@ -25,8 +25,7 @@ from bokeh.plotting import ColumnDataSource
 import numpy as np
 import pandas as pd
 
-from .legend import HoverCreator, HoverKeys
-from .util import RectValues
+from .util import HoverCreator, HoverKeys, RectValues
 
 from ....common import ClockConverter
 from ....exceptions import UnsupportedTypeError
