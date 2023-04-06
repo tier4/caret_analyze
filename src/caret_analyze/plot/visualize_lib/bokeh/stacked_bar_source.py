@@ -32,7 +32,7 @@ class StackedBarSource:
         frame_min: float,
         xaxis_type: str,
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instace('stacked_bar', target_object)
+        self._hover_keys = HoverKeysFactory.create_instance('stacked_bar', target_object)
         self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type

@@ -318,7 +318,7 @@ class MessageFlowSource:
         self,
         target_path: Path
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instace('message_flow', target_path)
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow', target_path)
 
     def create_hover(self,) -> HoverTool:
         return self._hover_keys.create_hover()

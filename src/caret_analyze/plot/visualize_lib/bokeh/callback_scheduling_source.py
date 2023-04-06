@@ -39,7 +39,7 @@ class CallbackSchedRectSource:
         clip: Clip,
         converter: Optional[ClockConverter] = None
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instace(
+        self._hover_keys = HoverKeysFactory.create_instance(
             'callback_scheduling_rect', target_object)
         self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._clip = clip
@@ -123,7 +123,7 @@ class CallbackSchedBarSource:
         frame_min: float,
         frame_max: float
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instace(
+        self._hover_keys = HoverKeysFactory.create_instance(
             'callback_scheduling_bar', target_object)
         self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._frame_min = frame_min

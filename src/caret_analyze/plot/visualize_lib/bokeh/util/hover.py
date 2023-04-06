@@ -41,7 +41,7 @@ class HoverKeysFactory:
     ]
 
     @staticmethod
-    def create_instace(graph_type: str, target_object: TargetTypes) -> HoverKeysBase:
+    def create_instance(graph_type: str, target_object: TargetTypes) -> HoverKeysBase:
         # Validate
         if graph_type not in HoverKeysFactory._SUPPORTED_GRAPH_TYPE:
             raise InvalidArgumentError(
