@@ -31,6 +31,7 @@ logger = getLogger(__name__)
 
 
 class HoverKeysFactory:
+    """Factory class to create an instace of HoverKeysBase."""
 
     _SUPPORTED_GRAPH_TYPE = [
         'callback_scheduling_bar',
@@ -42,6 +43,28 @@ class HoverKeysFactory:
 
     @staticmethod
     def create_instance(graph_type: str, target_object: TargetTypes) -> HoverKeysBase:
+        """
+        Create HoverKeysBase instance.
+
+        Parameters
+        ----------
+        graph_type : str
+            graph type to be plotted.
+        target_object : TargetTypes
+            target object.
+
+        Returns
+        -------
+        HoverKeysBase
+            HoverKeys instances according to graph type.
+
+        Raises
+        ------
+        InvalidArgumentError
+            graph type not in
+            [callback_scheduling_bar/callback_scheduling_rect/timeseries/stacked_bar/message_flow]
+
+        """
         # Validate
         if graph_type not in HoverKeysFactory._SUPPORTED_GRAPH_TYPE:
             raise InvalidArgumentError(
@@ -69,6 +92,7 @@ class HoverKeysFactory:
 
 
 class HoverKeysBase(metaclass=ABCMeta):
+    """Base class for HoverKeys"""
 
     def __init__(self, target_object: TargetTypes) -> None:
         self._validate(target_object)
@@ -76,10 +100,33 @@ class HoverKeysBase(metaclass=ABCMeta):
 
     @abstractmethod
     def _validate(self, target_object: Any) -> None:
+        """
+        Validate target object.
+
+        Parameters
+        ----------
+        target_object : Any
+            target object
+
+        Raises
+        ------
+        InvalidArgumentError
+            type of target object is invalid
+
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def to_list(self) -> List[str]:
+        """
+        Returns all hover keys as a list of strings.
+
+        Returns
+        -------
+        List[str]
+            all hover keys
+
+        """
         raise NotImplementedError()
 
     def create_hover(self, options: dict = {}) -> HoverTool:
@@ -200,6 +247,23 @@ class HoverSource:
         target_object: Any,
         additional_hover_dict: Optional[Dict[str, str]] = None
     ) -> Dict[str, str]:
+        """
+        Generate hover source for ColumnDataSouce.
+
+        Parameters
+        ----------
+        target_object : Any
+            target object
+        additional_hover_dict : Optional[Dict[str, str]], optional
+            values corresponding to HoverKeys when you enter the hover values yourself,
+            by default None
+
+        Returns
+        -------
+        Dict[str, str]
+            hover source
+
+        """
         hover_values: Dict[str, Any] = {}
         for k in self._hover_keys.to_list():
             if hasattr(target_object, k):
