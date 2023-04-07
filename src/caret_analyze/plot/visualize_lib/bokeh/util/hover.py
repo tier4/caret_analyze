@@ -31,7 +31,7 @@ logger = getLogger(__name__)
 
 
 class HoverKeysFactory:
-    """Factory class to create an instace of HoverKeysBase."""
+    """Factory class to create an instance of HoverKeysBase."""
 
     _SUPPORTED_GRAPH_TYPE = [
         'callback_scheduling_bar',
@@ -248,7 +248,7 @@ class HoverSource:
         additional_hover_dict: Optional[Dict[str, str]] = None
     ) -> Dict[str, str]:
         """
-        Generate hover source for ColumnDataSouce.
+        Generate hover source for ColumnDataSource.
 
         Parameters
         ----------
