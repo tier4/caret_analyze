@@ -92,7 +92,7 @@ class HoverKeysFactory:
 
 
 class HoverKeysBase(metaclass=ABCMeta):
-    """Base class for HoverKeys"""
+    """Base class for HoverKeys."""
 
     def __init__(self, target_object: TargetTypes) -> None:
         self._validate(target_object)
@@ -119,7 +119,7 @@ class HoverKeysBase(metaclass=ABCMeta):
     @abstractmethod
     def to_list(self) -> List[str]:
         """
-        Returns all hover keys as a list of strings.
+        Return all hover keys as a list of strings.
 
         Returns
         -------
