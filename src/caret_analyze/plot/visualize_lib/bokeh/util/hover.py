@@ -129,7 +129,7 @@ class HoverKeysBase(metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the hover keys.
 
