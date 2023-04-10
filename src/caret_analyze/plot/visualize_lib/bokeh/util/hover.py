@@ -135,7 +135,7 @@ class HoverKeysBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        options : dict, optional
+        options : Dict[str, Any], optional
             Additional options, by default {}
 
         Returns
@@ -197,6 +197,7 @@ class TimeSeriesKeys(HoverKeysBase):
             )
 
     def to_list(self) -> List[str]:
+        hover_keys: List[str]
         if isinstance(self._target_object, CallbackBase):
             hover_keys = ['legend_label', 'node_name', 'callback_name', 'callback_type',
                           'callback_param', 'symbol']
