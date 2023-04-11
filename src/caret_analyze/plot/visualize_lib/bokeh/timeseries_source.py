@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
@@ -43,7 +43,7 @@ class LineSource:
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 

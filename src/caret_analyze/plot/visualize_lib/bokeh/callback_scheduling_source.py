@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
@@ -50,7 +50,7 @@ class CallbackSchedRectSource:
     def rect_y_base(self) -> float:
         return self._rect_y_base
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 
@@ -129,7 +129,7 @@ class CallbackSchedBarSource:
         self._frame_min = frame_min
         self._frame_max = frame_max
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
@@ -37,7 +37,7 @@ class StackedBarSource:
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the hover keys.
 
