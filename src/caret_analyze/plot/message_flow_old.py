@@ -41,7 +41,7 @@ def message_flow(
     plot = Plot.create_message_flow_plot(
         path, granularity, treat_drop_as_delay, lstrip_s, rstrip_s)
     xaxis_type = 'sim_time' if use_sim_time else 'system_time'
-    p = plot.show(xaxis_type=xaxis_type)
+    p = plot.figure(xaxis_type=xaxis_type)
     if export_path:
         plot.save(export_path=export_path, xaxis_type=xaxis_type)
 
