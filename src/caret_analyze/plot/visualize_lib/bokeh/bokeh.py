@@ -25,7 +25,7 @@ import pandas as pd
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
 from .message_flow import BokehMessageFlow
 from .stacked_bar_source import StackedBarSource
-from .timeseries import LineSource
+from .timeseries import BokehTimeSeries
 from .util import apply_x_axis_offset, ColorSelectorFactory, init_figure, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
@@ -479,53 +479,5 @@ class Bokeh(VisualizeLibInterface):
             Figure of timeseries.
 
         """
-        target_objects = metrics.target_objects
-        timeseries_records_list = metrics.to_timeseries_records_list(xaxis_type)
-
-        # Initialize figure
-        y_axis_label = timeseries_records_list[0].columns[1]
-        if y_axis_label == 'frequency':
-            y_axis_label = y_axis_label + ' [Hz]'
-        elif y_axis_label in ['period', 'latency']:
-            y_axis_label = y_axis_label + ' [ms]'
-        else:
-            raise NotImplementedError()
-        if isinstance(target_objects[0], CallbackBase):
-            title = f'Time-line of callbacks {y_axis_label}'
-        elif isinstance(target_objects[0], Communication):
-            title = f'Time-line of communications {y_axis_label}'
-        else:
-            title = f'Time-line of publishes/subscribes {y_axis_label}'
-        fig = init_figure(title, ywheel_zoom, xaxis_type, y_axis_label)
-
-        # Apply xaxis offset
-        records_range = Range([to.to_records() for to in target_objects])
-        frame_min, frame_max = records_range.get_range()
-        if xaxis_type == 'system_time':
-            apply_x_axis_offset(fig, frame_min, frame_max)
-
-        # Draw lines
-        color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
-        legend_manager = LegendManager()
-        line_source = LineSource(legend_manager, target_objects[0], frame_min, xaxis_type)
-        fig.add_tools(line_source.create_hover())
-        for to, timeseries in zip(target_objects, timeseries_records_list):
-            renderer = fig.line(
-                'x', 'y',
-                source=line_source.generate(to, timeseries),
-                color=color_selector.get_color()
-            )
-            legend_manager.add_legend(to, renderer)
-
-        # Draw legends
-        num_legend_threshold = 20
-        """
-        In Autoware, the number of callbacks in a node is less than 20.
-        Here, num_legend_threshold is set to 20 as the maximum value.
-        """
-        legends = legend_manager.create_legends(num_legend_threshold, full_legends)
-        for legend in legends:
-            fig.add_layout(legend, 'right')
-        fig.legend.click_policy = 'hide'
-
-        return fig
+        timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends)
+        return timeseries.create_figure()
