@@ -24,7 +24,7 @@ from bokeh.plotting import Figure
 import pandas as pd
 
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
-from .message_flow_source import (
+from .message_flow import (
     FormatterFactory, get_callback_rect_list, MessageFlowSource,
     Offset, YAxisProperty, YAxisValues)
 from .stacked_bar_source import StackedBarSource
