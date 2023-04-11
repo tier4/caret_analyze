@@ -22,7 +22,7 @@ from bokeh.plotting import Figure
 
 import pandas as pd
 
-from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
+from .callback_scheduling import CallbackSchedBarSource, CallbackSchedRectSource
 from .message_flow import BokehMessageFlow
 from .stacked_bar import BokehStackedBar
 from .timeseries import BokehTimeSeries
