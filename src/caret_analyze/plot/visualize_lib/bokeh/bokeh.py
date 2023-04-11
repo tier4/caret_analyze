@@ -18,23 +18,19 @@ from logging import getLogger
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.models import Arrow, NormalHead
-from bokeh.models import CrosshairTool
 from bokeh.plotting import Figure
 
 import pandas as pd
 
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
-from .message_flow import (
-    FormatterFactory, get_callback_rect_list, MessageFlowSource,
-    Offset, YAxisProperty, YAxisValues)
+from .message_flow import BokehMessageFlow
 from .stacked_bar_source import StackedBarSource
 from .timeseries_source import LineSource
 from .util import apply_x_axis_offset, ColorSelectorFactory, init_figure, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
-from ....common import ClockConverter, Util
+from ....common import Util
 from ....record import Clip, Range
-from ....record.data_frame_shaper import Strip
 from ....runtime import (CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription,
                          TimerCallback)
 
@@ -59,74 +55,11 @@ class Bokeh(VisualizeLibInterface):
         lstrip_s: float,
         rstrip_s: float
     ) -> Figure:
-        # Initialize figure
-        fig = init_figure(
-            f'Message flow of {target_path.path_name}', ywheel_zoom, xaxis_type)
-        fig.add_tools(CrosshairTool(line_alpha=0.4))
-
-        # Strip
-        df = target_path.to_dataframe(treat_drop_as_delay=treat_drop_as_delay)
-        strip = Strip(lstrip_s, rstrip_s)
-        clip = strip.to_clip(df)
-        df = clip.execute(df)
-        offset = Offset(clip.min_ns)
-
-        # Apply xaxis offset
-        frame_min: float = clip.min_ns
-        frame_max: float = clip.max_ns
-        converter: Optional[ClockConverter] = None
-        if xaxis_type == 'sim_time':
-            assert len(target_path.child) > 0
-            # TODO(hsgwa): refactor
-            converter = target_path.child[0]._provider.get_sim_time_converter()  # type: ignore
-        if converter:
-            frame_min = converter.convert(frame_min)
-            frame_max = converter.convert(frame_max)
-        x_range_name = 'x_plot_axis'
-        apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
-
-        # Format
-        formatter = FormatterFactory.create(target_path, granularity)
-        formatter.remove_columns(df)
-        formatter.rename_columns(df, target_path)
-
-        yaxis_property = YAxisProperty(df)
-        yaxis_values = YAxisValues(df)
-        fig.yaxis.ticker = yaxis_property.values
-        fig.yaxis.major_label_overrides = yaxis_property.labels_dict
-
-        # Draw callback rect
-        rect_source = get_callback_rect_list(
-            target_path, yaxis_values, granularity, clip, converter, offset)
-        fig.rect(
-            'x',
-            'y',
-            'width',
-            'height',
-            source=rect_source,
-            color='black',
-            alpha=0.15,
-            hover_fill_color='black',
-            hover_alpha=0.4,
-            x_range_name=x_range_name
+        message_flow = BokehMessageFlow(
+            target_path, xaxis_type, ywheel_zoom, granularity,
+            treat_drop_as_delay, lstrip_s, rstrip_s,
         )
-
-        # Draw message flow
-        color_selector = ColorSelectorFactory.create_instance('unique')
-        flow_source = MessageFlowSource(target_path)
-        fig.add_tools(flow_source.create_hover())
-        for source in flow_source.generate(df, converter, offset):
-            fig.line(
-                x='x',
-                y='y',
-                line_width=1.5,
-                line_color=color_selector.get_color(),
-                line_alpha=1,
-                source=source,
-                x_range_name=x_range_name
-            )
-
-        return fig
+        return message_flow.create_figure()
 
     def stacked_bar(
         self,
