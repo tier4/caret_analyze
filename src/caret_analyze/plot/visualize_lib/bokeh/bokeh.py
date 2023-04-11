@@ -24,7 +24,7 @@ import pandas as pd
 
 from .callback_scheduling_source import CallbackSchedBarSource, CallbackSchedRectSource
 from .message_flow import BokehMessageFlow
-from .stacked_bar_source import StackedBarSource
+from .stacked_bar import StackedBarSource
 from .timeseries import BokehTimeSeries
 from .util import apply_x_axis_offset, ColorSelectorFactory, init_figure, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
