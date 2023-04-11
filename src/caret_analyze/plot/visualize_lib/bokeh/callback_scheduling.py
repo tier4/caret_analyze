@@ -14,16 +14,145 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional, Sequence
 
-from bokeh.models import HoverTool
-from bokeh.plotting import ColumnDataSource
+from bokeh.models import Arrow, HoverTool, NormalHead
+from bokeh.plotting import ColumnDataSource, Figure
 
-from .util import HoverCreator, HoverKeys, HoverSource, LegendManager, RectValues
+import pandas as pd
 
-from ....common import ClockConverter
-from ....record import Clip
-from ....runtime import CallbackBase
+from .util import (apply_x_axis_offset, ColorSelectorFactory, HoverCreator,
+                   HoverKeys, HoverSource, init_figure, LegendManager, RectValues)
+from ....common import ClockConverter, Util
+from ....record import Clip, Range
+from ....runtime import CallbackBase, CallbackGroup, TimerCallback
+
+
+class BokehCallbackSched:
+
+    def __init__(
+        self,
+        callback_groups: Sequence[CallbackGroup],
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+        coloring_rule: str,
+        lstrip_s: float,
+        rstrip_s: float
+    ) -> None:
+        self._callback_groups = callback_groups
+        self._xaxis_type = xaxis_type
+        self._ywheel_zoom = ywheel_zoom
+        self._full_legends = full_legends
+        self._coloring_rule = coloring_rule
+        self._lstrip_s = lstrip_s
+        self._rstrip_s = rstrip_s
+
+    def create_figure(self) -> Figure:
+        # Initialize figure
+        title = ('Callback Scheduling in '
+                 f"[{'/'.join([cbg.callback_group_name for cbg in self._callback_groups])}].")
+        fig = init_figure(title, self._ywheel_zoom, self._xaxis_type)
+
+        # Apply xaxis offset
+        callbacks: List[CallbackBase] = Util.flatten(
+            cbg.callbacks for cbg in self._callback_groups if len(cbg.callbacks) > 0)
+        records_range = Range([cb.to_records() for cb in callbacks])
+        range_min, range_max = records_range.get_range()
+        clip_min = int(range_min + self._lstrip_s*1.0e9)
+        clip_max = int(range_max - self._rstrip_s*1.0e9)
+        clip = Clip(clip_min, clip_max)
+        if self._xaxis_type == 'sim_time':
+            # TODO(hsgwa): refactor
+            converter = callbacks[0]._provider.get_sim_time_converter()
+            frame_min = converter.convert(clip.min_ns)
+            frame_max = converter.convert(clip.max_ns)
+        else:
+            converter = None
+            frame_min = clip.min_ns
+            frame_max = clip.max_ns
+        x_range_name = 'x_plot_axis'
+        apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
+
+        # Draw callback scheduling
+        color_selector = ColorSelectorFactory.create_instance(self._coloring_rule)
+        legend_manager = LegendManager()
+        rect_source_gen = CallbackSchedRectSource(legend_manager, callbacks[0], clip, converter)
+        bar_source_gen = CallbackSchedBarSource(legend_manager, callbacks[0], frame_min, frame_max)
+
+        for cbg in self._callback_groups:
+            for callback in cbg.callbacks:
+                color = color_selector.get_color(
+                    callback.node_name,
+                    cbg.callback_group_name,
+                    callback.callback_name
+                )
+                rect_source = rect_source_gen.generate(callback)
+                rect = fig.rect(
+                    'x', 'y', 'width', 'height',
+                    source=rect_source,
+                    color=color,
+                    alpha=1.0,
+                    hover_fill_color=color,
+                    hover_alpha=1.0,
+                    x_range_name=x_range_name
+                )
+                legend_manager.add_legend(callback, rect)
+                fig.add_tools(rect_source_gen.create_hover(
+                    {'attachment': 'above', 'renderers': [rect]}
+                ))
+                bar = fig.rect(
+                    'x', 'y', 'width', 'height',
+                    source=bar_source_gen.generate(callback, rect_source_gen.rect_y_base),
+                    fill_color=color,
+                    hover_fill_color=color,
+                    hover_alpha=0.1,
+                    fill_alpha=0.1,
+                    level='underlay',
+                    x_range_name=x_range_name
+                )
+                fig.add_tools(bar_source_gen.create_hover(
+                    {'attachment': 'below', 'renderers': [bar]}
+                ))
+
+                if isinstance(callback, TimerCallback) and len(rect_source.data['y']) > 1:
+                    # If the response time exceeds this value, it is considered a delay.
+                    delay_threshold = 500000
+                    y_start = rect_source.data['y'][1]+0.9
+                    y_end = rect_source.data['y'][1]+rect_source_gen.RECT_HEIGHT
+                    timer_df = callback.timer.to_dataframe()  # type: ignore
+                    for row in timer_df.itertuples():
+                        timer_stamp = row[1]
+                        callback_start = row[2]
+                        response_time = callback_start - timer_stamp
+                        if pd.isna(response_time):
+                            continue
+                        fig.add_layout(Arrow(
+                            end=NormalHead(
+                                fill_color='red' if response_time > delay_threshold else 'white',
+                                line_width=1, size=10
+                            ),
+                            x_start=(timer_stamp - frame_min) * 1.0e-9, y_start=y_start,
+                            x_end=(timer_stamp - frame_min) * 1.0e-9, y_end=y_end
+                        ))
+
+                rect_source_gen.update_rect_y_base()
+
+        # Draw legends
+        num_legend_threshold = 20
+        """
+        In Autoware, the number of callbacks in a node is less than 20.
+        Here, num_legend_threshold is set to 20 as the maximum value.
+        """
+        legends = legend_manager.create_legends(num_legend_threshold, self._full_legends)
+        for legend in legends:
+            fig.add_layout(legend, 'right')
+        fig.legend.click_policy = 'hide'
+
+        fig.ygrid.grid_line_alpha = 0
+        fig.yaxis.visible = False
+
+        return fig
 
 
 class CallbackSchedRectSource:
