@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
-                   HoverCreator, HoverKeys, init_figure, RectValues)
+                   HoverKeysFactory, init_figure, RectValues)
 from ....common import ClockConverter
 from ....exceptions import UnsupportedTypeError
 from ....record.data_frame_shaper import Clip, Strip
@@ -411,11 +411,10 @@ class MessageFlowSource:
         self,
         target_path: Path
     ) -> None:
-        self._hover_keys = HoverKeys('message_flow', target_path)
-        self._hover = HoverCreator(self._hover_keys)
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow', target_path)
 
     def create_hover(self,) -> HoverTool:
-        return self._hover.create()
+        return self._hover_keys.create_hover()
 
     def generate(
         self,

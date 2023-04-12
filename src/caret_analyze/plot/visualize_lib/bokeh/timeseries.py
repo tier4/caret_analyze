@@ -15,13 +15,13 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
 
-from .util import (apply_x_axis_offset, ColorSelectorFactory, HoverCreator,
-                   HoverKeys, HoverSource, init_figure, LegendManager)
+from .util import (apply_x_axis_offset, ColorSelectorFactory,
+                   HoverKeysFactory, HoverSource, init_figure, LegendManager)
 from ...metrics_base import MetricsBase
 from ....record import Range, RecordsInterface
 from ....runtime import CallbackBase, Communication, Publisher, Subscription
@@ -106,13 +106,12 @@ class LineSource:
         frame_min,
         xaxis_type: str,
     ) -> None:
-        self._legend_keys = HoverKeys('timeseries', target_object)
-        self._hover = HoverCreator(self._legend_keys)
-        self._legend_source = HoverSource(legend_manager, self._legend_keys)
+        self._hover_keys = HoverKeysFactory.create_instance('timeseries', target_object)
+        self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 
@@ -126,7 +125,7 @@ class LineSource:
         HoverTool
 
         """
-        return self._hover.create(options)
+        return self._hover_keys.create_hover(options)
 
     def generate(
         self,
@@ -152,12 +151,12 @@ class LineSource:
 
         """
         line_source = ColumnDataSource(data={
-            k: [] for k in (['x', 'y'] + self._legend_keys.to_list())
+            k: [] for k in (['x', 'y'] + self._hover_keys.to_list())
         })
-        legend_source = self._legend_source.generate(target_object)
+        hover_source = self._hover_source.generate(target_object)
         x_item, y_item = self._get_x_y(timeseries_records)
         for x, y in zip(x_item, y_item):
-            line_source.stream({**{'x': [x], 'y': [y]}, **legend_source})  # type: ignore
+            line_source.stream({**{'x': [x], 'y': [y]}, **hover_source})  # type: ignore
 
         return line_source
 

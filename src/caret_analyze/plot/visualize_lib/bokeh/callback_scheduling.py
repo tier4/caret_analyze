@@ -14,15 +14,15 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 from bokeh.models import Arrow, HoverTool, NormalHead
 from bokeh.plotting import ColumnDataSource, Figure
 
 import pandas as pd
 
-from .util import (apply_x_axis_offset, ColorSelectorFactory, HoverCreator,
-                   HoverKeys, HoverSource, init_figure, LegendManager, RectValues)
+from .util import (apply_x_axis_offset, ColorSelectorFactory, HoverKeysFactory,
+                   HoverSource, init_figure, LegendManager, RectValues)
 from ....common import ClockConverter, Util
 from ....record import Clip, Range
 from ....runtime import CallbackBase, CallbackGroup, TimerCallback
@@ -168,9 +168,9 @@ class CallbackSchedRectSource:
         clip: Clip,
         converter: Optional[ClockConverter] = None
     ) -> None:
-        self._legend_keys = HoverKeys('callback_scheduling_rect', target_object)
-        self._hover = HoverCreator(self._legend_keys)
-        self._legend_source = HoverSource(legend_manager, self._legend_keys)
+        self._hover_keys = HoverKeysFactory.create_instance(
+            'callback_scheduling_rect', target_object)
+        self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._clip = clip
         self._converter = converter
         self._rect_y_base = 0.0
@@ -179,7 +179,7 @@ class CallbackSchedRectSource:
     def rect_y_base(self) -> float:
         return self._rect_y_base
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 
@@ -193,7 +193,7 @@ class CallbackSchedRectSource:
         HoverTool
 
         """
-        return self._hover.create(options)
+        return self._hover_keys.create_hover(options)
 
     def generate(self, callback: CallbackBase) -> ColumnDataSource:
         """
@@ -210,7 +210,7 @@ class CallbackSchedRectSource:
 
         """
         rect_source = ColumnDataSource(data={
-            k: [] for k in (['x', 'y', 'width', 'height'] + self._legend_keys.to_list())
+            k: [] for k in (['x', 'y', 'width', 'height'] + self._hover_keys.to_list())
         })
         latency_table = callback.to_dataframe(shaper=self._clip)
         for row in latency_table.itertuples():
@@ -222,16 +222,17 @@ class CallbackSchedRectSource:
                 (self._rect_y_base+self.RECT_HEIGHT)
             )
             rect_source.stream({
-                'legend_label': [
-                    self._legend_source.get_non_property_data(callback, 'legend_label')
-                ],
-                'x': [rect.x],
-                'y': [rect.y],
-                'width': [rect.width],
-                'height': [rect.height],
-                'callback_start': [f'callback_start = {callback_start} [ns]'],
-                'callback_end': [f'callback_end = {callback_end} [ns]'],
-                'latency': [f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]']
+                **{
+                    'x': [rect.x],
+                    'y': [rect.y],
+                    'width': [rect.width],
+                    'height': [rect.height],
+                },
+                **self._hover_source.generate(callback, {
+                    'callback_start': f'callback_start = {callback_start} [ns]',
+                    'callback_end': f'callback_end = {callback_end} [ns]',
+                    'latency': f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]'
+                })  # type: ignore
             })
 
         return rect_source
@@ -251,13 +252,13 @@ class CallbackSchedBarSource:
         frame_min: float,
         frame_max: float
     ) -> None:
-        self._legend_keys = HoverKeys('callback_scheduling_bar', target_object)
-        self._hover = HoverCreator(self._legend_keys)
-        self._legend_source = HoverSource(legend_manager, self._legend_keys)
+        self._hover_keys = HoverKeysFactory.create_instance(
+            'callback_scheduling_bar', target_object)
+        self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._frame_min = frame_min
         self._frame_max = frame_max
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 
@@ -271,7 +272,7 @@ class CallbackSchedBarSource:
         HoverTool
 
         """
-        return self._hover.create(options)
+        return self._hover_keys.create_hover(options)
 
     def generate(self, callback: CallbackBase, rect_y_base: float) -> ColumnDataSource:
         """
@@ -294,11 +295,11 @@ class CallbackSchedBarSource:
             rect_y_base - 0.5,
             rect_y_base + 0.5
         )
-        legend_source = self._legend_source.generate(callback)
+        hover_source = self._hover_source.generate(callback)
         bar_source = ColumnDataSource(data={
             **{'x': [rect.x], 'y': [rect.y],
                'width': [rect.width], 'height': [rect.height]},
-            **legend_source  # type: ignore
+            **hover_source  # type: ignore
         })
 
         return bar_source
