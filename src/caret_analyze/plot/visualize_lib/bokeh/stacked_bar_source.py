@@ -14,12 +14,12 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource
 
-from .util import HoverCreator, HoverKeys, HoverSource, LegendManager
+from .util import HoverKeysFactory, HoverSource, LegendManager
 
 
 class StackedBarSource:
@@ -32,13 +32,12 @@ class StackedBarSource:
         frame_min: float,
         xaxis_type: str,
     ) -> None:
-        self._hover_keys = HoverKeys('stacked_bar', target_object)
-        self._hover = HoverCreator(self._hover_keys)
+        self._hover_keys = HoverKeysFactory.create_instance('stacked_bar', target_object)
         self._hover_source = HoverSource(legend_manager, self._hover_keys)
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 
-    def create_hover(self, options: dict = {}) -> HoverTool:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the hover keys.
 
@@ -52,7 +51,7 @@ class StackedBarSource:
         HoverTool
 
         """
-        return self._hover.create(options)
+        return self._hover_keys.create_hover(options)
 
     def generate(
         self,
