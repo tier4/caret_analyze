@@ -120,6 +120,10 @@ class StackedBar:
             elif 'callback_start' in column:
                 node_name = column.split('/')[:-2]
                 rename_map[column] = '/'.join(node_name)
+            elif 'callback_end' in column:
+                node_name = column.split('/')[:-2]
+                rename_map[column] = '/'.join(node_name)
+                rename_map[column] += '_end'
 
         return rename_map
 

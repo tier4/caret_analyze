@@ -13,12 +13,13 @@
 # limitations under the License.
 
 from logging import getLogger
-from typing import Collection, Union
+from typing import Collection, Optional, Union
 
 from multimethod import multimethod as singledispatchmethod
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import ResponseTimePlot
+from .message_flow import MessageFlowPlot, MessageFlowPlotFactory
 from .plot_base import PlotBase
 from .stacked_bar import StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
@@ -240,5 +241,19 @@ class Plot:
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = CallbackSchedulingPlotFactory.create_instance(
             list(target_objects), visualize_lib, lstrip_s, rstrip_s
+        )
+        return plot
+
+    @staticmethod
+    def create_message_flow_plot(
+        target_path: Path,
+        granularity: Optional[str] = None,
+        treat_drop_as_delay: bool = False,
+        lstrip_s: float = 0,
+        rstrip_s: float = 0
+    ) -> MessageFlowPlot:
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = MessageFlowPlotFactory.create_instance(
+            target_path, visualize_lib, granularity, treat_drop_as_delay, lstrip_s, rstrip_s
         )
         return plot

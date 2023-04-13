@@ -21,7 +21,7 @@ from bokeh.colors import Color, RGB
 
 import colorcet as cc
 
-from ....exceptions import InvalidArgumentError
+from .....exceptions import InvalidArgumentError
 
 
 class ColorSelectorFactory:
