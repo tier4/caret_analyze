@@ -252,6 +252,28 @@ class Plot:
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> MessageFlowPlot:
+        """
+        Get MessageFlowPlot instance.
+
+        Parameters
+        ----------
+        target_path : Path
+            Target path to be plotted.
+        granularity : Optional[str], optional
+            Granularity of chain with two value; [raw/node], by default None.
+        treat_drop_as_delay : bool, optional
+            If there is a drop, the flow is drawn by connecting it to the next one,
+            by default False.
+        lstrip_s : float, optional
+            Start time of cropping range, by default 0.
+        rstrip_s: float, optional
+            End point of cropping range, by default 0.
+
+        Returns
+        -------
+        MessageFlowPlot
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = MessageFlowPlotFactory.create_instance(
             target_path, visualize_lib, granularity, treat_drop_as_delay, lstrip_s, rstrip_s

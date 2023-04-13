@@ -32,6 +32,19 @@ class PlotBase(metaclass=ABCMeta):
         self,
         xaxis_type: str
     ) -> pd.DataFrame:
+        """
+        Get data in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+
+        Returns
+        -------
+        pd.DataFrame
+
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -41,6 +54,23 @@ class PlotBase(metaclass=ABCMeta):
         ywheel_zoom: Optional[bool],
         full_legends: Optional[bool]
     ) -> Figure:
+        """
+        Get bokeh.plotting.Figure object.
+
+        Parameters
+        ----------
+        xaxis_type : Optional[str]
+            Type of time for timestamp.
+        ywheel_zoom : Optional[bool]
+            If True, the drawn graph can be expanded in the y-axis direction.
+        full_legends : Optional[bool]
+            If True, all legends are drawn even if the number of legends exceeds the threshold.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+
+        """
         raise NotImplementedError()
 
     def show(
