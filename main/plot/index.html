@@ -497,6 +497,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_facade.Plot.create_message_flow_plot" class="md-nav__link">
+    create_message_flow_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_facade.Plot.create_period_timeseries_plot" class="md-nav__link">
     create_period_timeseries_plot()
   </a>
@@ -524,6 +531,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_base.PlotBase.figure" class="md-nav__link">
+    figure()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_base.PlotBase.save" class="md-nav__link">
     save()
   </a>
@@ -533,6 +547,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_base.PlotBase.show" class="md-nav__link">
     show()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_base.PlotBase.to_dataframe" class="md-nav__link">
+    to_dataframe()
   </a>
   
 </li>
@@ -773,6 +794,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_facade.Plot.create_message_flow_plot" class="md-nav__link">
+    create_message_flow_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_facade.Plot.create_period_timeseries_plot" class="md-nav__link">
     create_period_timeseries_plot()
   </a>
@@ -800,6 +828,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_base.PlotBase.figure" class="md-nav__link">
+    figure()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_base.PlotBase.save" class="md-nav__link">
     save()
   </a>
@@ -809,6 +844,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.plot.plot_base.PlotBase.show" class="md-nav__link">
     show()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_base.PlotBase.to_dataframe" class="md-nav__link">
+    to_dataframe()
   </a>
   
 </li>
@@ -1223,6 +1265,111 @@ This also accepts multiple inputs by unpacking.</p></td>
 
 
 
+<h3 id="caret_analyze.plot.plot_facade.Plot.create_message_flow_plot" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">create_message_flow_plot</span><span class="p">(</span><span class="n">target_path</span><span class="p">,</span> <span class="n">granularity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">treat_drop_as_delay</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.plot.plot_facade.Plot.create_message_flow_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get MessageFlowPlot instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>target_path</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.Path" href="../runtime/#caret_analyze.runtime.Path">Path</a></code>
+          </td>
+          <td><p>Target path to be plotted.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>granularity</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str], optional</code>
+          </td>
+          <td><p>Granularity of chain with two value; [raw/node], by default None.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>treat_drop_as_delay</code></td>
+          <td>
+                <code>bool, optional</code>
+          </td>
+          <td><p>If there is a drop, the flow is drawn by connecting it to the next one,
+by default False.</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>lstrip_s</code></td>
+          <td>
+                <code>float, optional</code>
+          </td>
+          <td><p>Start time of cropping range, by default 0.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>rstrip_s</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>End point of cropping range, by default 0.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="caret_analyze.plot.message_flow.MessageFlowPlot">MessageFlowPlot</span></code>
+          </td>
+          <td></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="caret_analyze.plot.plot_facade.Plot.create_period_timeseries_plot" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">create_period_timeseries_plot</span><span class="p">(</span><span class="n">target_objects</span><span class="p">)</span></code>
 
@@ -1407,6 +1554,90 @@ supported case: [best-to-worst/best/worst].</p></td>
 
 
 
+<h3 id="caret_analyze.plot.plot_base.PlotBase.figure" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">figure</span><span class="p">(</span><span class="n">xaxis_type</span><span class="p">,</span> <span class="n">ywheel_zoom</span><span class="p">,</span> <span class="n">full_legends</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.plot.plot_base.PlotBase.figure" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get bokeh.plotting.Figure object.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>xaxis_type</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Type of time for timestamp.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ywheel_zoom</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td><p>If True, the drawn graph can be expanded in the y-axis direction.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>full_legends</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td><p>If True, all legends are drawn even if the number of legends exceeds the threshold.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>bokeh.<span title="bokeh.plotting">plotting</span>.<span title="bokeh.plotting.Figure">Figure</span></code>
+          </td>
+          <td></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="caret_analyze.plot.plot_base.PlotBase.save" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">save</span><span class="p">(</span><span class="n">export_path</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xaxis_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ywheel_zoom</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_legends</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
@@ -1581,6 +1812,70 @@ even if the number of legends exceeds the threshold.</p></td>
                 <code>UnsupportedTypeError</code>
           </td>
           <td><p>Argument xaxis_type is not "system_time", "index", or "sim_time".</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.plot.plot_base.PlotBase.to_dataframe" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_dataframe</span><span class="p">(</span><span class="n">xaxis_type</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.plot.plot_base.PlotBase.to_dataframe" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get data in pandas DataFrame format.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>xaxis_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Type of time for timestamp.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
+          </td>
+          <td></td>
         </tr>
     </tbody>
   </table>
