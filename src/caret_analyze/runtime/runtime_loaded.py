@@ -286,12 +286,12 @@ class NodesLoaded:
             self._publisher_construction_order = publisher_construction_order
             self._subscription_construction_order = subscription_construction_order
 
-        def __call__(self, npath: NodePath) -> bool:
+        def __call__(self, node_path: NodePath) -> bool:
             # If None, both must be None.
             # If it is only one side, it will find multiple matches.
-            node_match = self._node_name == npath.node_name
-            pub_topic_match = self._publish_topic_name == npath.publish_topic_name
-            sub_topic_match = self._subscribe_topic_name == npath.subscribe_topic_name
+            node_match = self._node_name == node_path.node_name
+            pub_topic_match = self._publish_topic_name == node_path.publish_topic_name
+            sub_topic_match = self._subscribe_topic_name == node_path.subscribe_topic_name
 
             # If the topic name is None, construction_order does not need to be checked
             # because it is 0, checking it will result in a mismatch
@@ -300,13 +300,13 @@ class NodesLoaded:
                 if self._publisher_construction_order is not None:
                     pub_construction_order_match = \
                         self._publisher_construction_order == \
-                        npath.publisher_construction_order
+                        node_path.publisher_construction_order
             sub_construction_order_match = True
             if self._subscribe_topic_name is not None:
                 if self._subscription_construction_order is not None:
                     sub_construction_order_match = \
                         self._subscription_construction_order == \
-                        npath.subscription_construction_order
+                        node_path.subscription_construction_order
 
             return node_match and pub_topic_match and sub_topic_match and \
                 pub_construction_order_match and sub_construction_order_match

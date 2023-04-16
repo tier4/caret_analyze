@@ -72,19 +72,19 @@ class TestApplication:
         comm_mock = mocker.Mock(spec=Communication)
         callback_mock = mocker.Mock(spec=CallbackBase)
         records_assigned_mock = mocker.Mock(spec=RuntimeLoaded)
-        nodepath_mock = mocker.Mock(spec=NodePath)
+        node_path_mock = mocker.Mock(spec=NodePath)
 
         # patch mocks
-        mocker.patch.object(nodepath_mock, 'node_name', 'node_name_')
-        mocker.patch.object(nodepath_mock, 'publish_topic_name', 'publish_topic_name_')
-        mocker.patch.object(nodepath_mock, 'subscribe_topic_name', 'subscribe_topic_name_')
-        mocker.patch.object(nodepath_mock, 'publisher_construction_order', 0)
-        mocker.patch.object(nodepath_mock, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_mock, 'node_name', 'node_name_')
+        mocker.patch.object(node_path_mock, 'publish_topic_name', 'publish_topic_name_')
+        mocker.patch.object(node_path_mock, 'subscribe_topic_name', 'subscribe_topic_name_')
+        mocker.patch.object(node_path_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_mock, 'subscription_construction_order', 0)
         mocker.patch.object(
             callback_mock, 'callback_name', 'callback_name_')
         mocker.patch.object(node_mock, 'node_name', 'node_name_')
         mocker.patch.object(node_mock, 'callbacks', [callback_mock])
-        mocker.patch.object(node_mock, 'paths', [nodepath_mock])
+        mocker.patch.object(node_mock, 'paths', [node_path_mock])
         mocker.patch.object(path_mock, 'path_name', 'path_name_')
         mocker.patch.object(comm_mock, 'publish_node_name',
                             'publish_node_name_')
@@ -135,15 +135,15 @@ class TestApplication:
         assert 'publisher_construction_order' in str(e.value)
 
         assert app.get_node_path(
-            nodepath_mock.node_name,
-            nodepath_mock.subscribe_topic_name,
-            nodepath_mock.publish_topic_name) == nodepath_mock
+            node_path_mock.node_name,
+            node_path_mock.subscribe_topic_name,
+            node_path_mock.publish_topic_name) == node_path_mock
 
         with pytest.raises(ItemNotFoundError) as e:
             app.get_node_path(
-                nodepath_mock.node_name,
-                nodepath_mock.subscribe_topic_name,
-                nodepath_mock.publish_topic_name,
+                node_path_mock.node_name,
+                node_path_mock.subscribe_topic_name,
+                node_path_mock.publish_topic_name,
                 subscription_construction_order=0,
                 publisher_construction_order=1)
         assert 'publisher_construction_order' in str(e.value)

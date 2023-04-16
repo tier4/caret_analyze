@@ -224,34 +224,34 @@ class TestNodesLoaded:
     def test_find_node_path(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)
         node_info_mock = mocker.Mock(spec=NodeStructValue)
-        npath_info_mock1 = mocker.Mock(spec=NodePath)
-        npath_info_mock2 = mocker.Mock(spec=NodePath)
+        node_path_info_mock1 = mocker.Mock(spec=NodePath)
+        node_path_info_mock2 = mocker.Mock(spec=NodePath)
 
-        mocker.patch.object(npath_info_mock1, 'node_name', 'node_name')
-        mocker.patch.object(npath_info_mock1, 'publish_topic_name', 'pub_name1')
-        mocker.patch.object(npath_info_mock1, 'subscribe_topic_name', 'sub_name1')
-        mocker.patch.object(npath_info_mock1, 'publisher_construction_order', 0)
-        mocker.patch.object(npath_info_mock1, 'subscription_construction_order', 0)
-        mocker.patch.object(npath_info_mock2, 'node_name', 'node_name')
-        mocker.patch.object(npath_info_mock2, 'publish_topic_name', 'pub_name1')
-        mocker.patch.object(npath_info_mock2, 'subscribe_topic_name', 'sub_name1')
-        mocker.patch.object(npath_info_mock2, 'publisher_construction_order', 1)
-        mocker.patch.object(npath_info_mock2, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_info_mock1, 'node_name', 'node_name')
+        mocker.patch.object(node_path_info_mock1, 'publish_topic_name', 'pub_name1')
+        mocker.patch.object(node_path_info_mock1, 'subscribe_topic_name', 'sub_name1')
+        mocker.patch.object(node_path_info_mock1, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_info_mock1, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_info_mock2, 'node_name', 'node_name')
+        mocker.patch.object(node_path_info_mock2, 'publish_topic_name', 'pub_name1')
+        mocker.patch.object(node_path_info_mock2, 'subscribe_topic_name', 'sub_name1')
+        mocker.patch.object(node_path_info_mock2, 'publisher_construction_order', 1)
+        mocker.patch.object(node_path_info_mock2, 'subscription_construction_order', 0)
 
         node_mock = mocker.Mock(spec=Node)
         mocker.patch.object(node_mock, 'node_name', 'node_name')
-        mocker.patch.object(node_mock, 'paths', [npath_info_mock1, npath_info_mock2])
+        mocker.patch.object(node_mock, 'paths', [node_path_info_mock1, node_path_info_mock2])
         mocker.patch.object(NodesLoaded, '_to_runtime', return_value=node_mock)
 
-        nodeloaded = NodesLoaded((node_info_mock,), provider_mock)
+        node_loaded = NodesLoaded((node_info_mock,), provider_mock)
 
-        assert nodeloaded.find_node_path(
-            'node_name', 'sub_name1', 'pub_name1', 0, 0) == npath_info_mock1
-        assert nodeloaded.find_node_path(
-            'node_name', 'sub_name1', 'pub_name1', 1, 0) == npath_info_mock2
+        assert node_loaded.find_node_path(
+            'node_name', 'sub_name1', 'pub_name1', 0, 0) == node_path_info_mock1
+        assert node_loaded.find_node_path(
+            'node_name', 'sub_name1', 'pub_name1', 1, 0) == node_path_info_mock2
 
         with pytest.raises(ItemNotFoundError) as e:
-            nodeloaded.find_node_path('node_name', 'sub_name1', 'pub_name1', 2, 0)
+            node_loaded.find_node_path('node_name', 'sub_name1', 'pub_name1', 2, 0)
         assert 'construction_order: 2' in str(e.value)
 
 
@@ -607,13 +607,13 @@ class TestCommunicationsLoaded:
         mocker.patch.object(comm_mock, 'publisher_construction_order', 0)
         mocker.patch.object(CommunicationsLoaded, '_to_runtime', return_value=comm_mock)
 
-        commloaded = CommunicationsLoaded((comm_info_mock,), provider_mock, nodes_loaded_mock)
+        comm_loaded = CommunicationsLoaded((comm_info_mock,), provider_mock, nodes_loaded_mock)
 
-        assert commloaded.find_communication(
+        assert comm_loaded.find_communication(
             'topic_name', 'pub_name', 'sub_name', 0, 0) == comm_mock
 
         with pytest.raises(ItemNotFoundError) as e:
-            commloaded.find_communication('topic_name', 'sub_name', 'pub_name', 1, 0)
+            comm_loaded.find_communication('topic_name', 'sub_name', 'pub_name', 1, 0)
         assert 'publisher_construction_order: 1' in str(e.value)
 
 
