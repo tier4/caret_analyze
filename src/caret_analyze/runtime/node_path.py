@@ -213,12 +213,12 @@ class NodePath(PathBase, Summarizable):
     @property
     def publisher_construction_order(self) -> Optional[int]:
         """
-        Get a construction order to publisher to.
+        Get a construction order of publisher.
 
         Returns
         -------
         Optional[int]
-            construction order to publisher to.
+            construction order of publisher.
 
         """
         if self.publisher:
@@ -228,12 +228,12 @@ class NodePath(PathBase, Summarizable):
     @property
     def subscription_construction_order(self) -> Optional[int]:
         """
-        Get a construction order to subscription to.
+        Get a construction order of subscription.
 
         Returns
         -------
         Optional[int]
-            construction order to subscription to.
+            construction order of subscription.
 
         """
         if self.subscription:

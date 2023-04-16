@@ -402,36 +402,7 @@ class Node(Summarizable):
 
         return callbacks
 
-    def get_subscription(self, topic_name: str) -> Subscription:
-        """
-        Get subscription.
-
-        Parameters
-        ----------
-        topic_name : str
-            topic name to get.
-
-        Returns
-        -------
-        Subscription
-            Subscription instance that matches the condition.
-
-        Raises
-        ------
-        InvalidArgumentError
-            Occurs when the given argument type is invalid.
-        ItemNotFoundError
-            Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
-
-        """
-        if not isinstance(topic_name, str):
-            raise InvalidArgumentError('Argument type is invalid.')
-
-        return Util.find_one(lambda x: x.topic_name == topic_name, self._subscriptions)
-
-    def get_subscription_from_construction_order(
+    def get_subscription(
         self,
         topic_name: str,
         construction_order: Optional[int] = None

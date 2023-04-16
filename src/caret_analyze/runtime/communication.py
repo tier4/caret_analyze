@@ -297,7 +297,7 @@ class Communication(PathBase, Summarizable):
         Returns
         -------
         Optional[int]
-            A construction order that subscription this communication.
+            A construction order of subscription.
 
         """
         if self.subscription:
@@ -312,7 +312,7 @@ class Communication(PathBase, Summarizable):
         Returns
         -------
         Optional[int]
-            A construction order that publisher this communication.
+            A construction order of publisher.
 
         """
         if self.publisher:

@@ -126,11 +126,15 @@ class MessageContext(ValueObject, Summarizable):
 
     @property
     def publisher_construction_order(self) -> Optional[int]:
-        return None
+        if self._pub is None:
+            return None
+        return self._pub.construction_order
 
     @property
     def subscription_construction_order(self) -> Optional[int]:
-        return None
+        if self._sub is None:
+            return None
+        return self._sub.construction_order
 
     @property
     def summary(self) -> Summary:

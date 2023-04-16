@@ -202,10 +202,6 @@ class ArchitectureReaderYaml(ArchitectureReader):
                 if sub_topic == UNDEFINED_STR or sub_topic is None:
                     sub_topic = None
                     subscription_construction_order = None
-                if publisher_construction_order == UNDEFINED_STR:
-                    publisher_construction_order = None
-                if subscription_construction_order == UNDEFINED_STR:
-                    subscription_construction_order = None
 
                 node_path_value = NodePathValue(
                     node_name, sub_topic, pub_topic,
@@ -324,7 +320,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
         for cb_dict in cbs_dict:
             if self._get_value(cb_dict, 'callback_type') != 'timer_callback':
                 continue
-            # timerのconstruction_orderはコールバックを使用。
+            # construction_order of timer uses callback
             timers.append(
                 TimerValue(
                     period=int(self._get_value(cb_dict, 'period_ns')),

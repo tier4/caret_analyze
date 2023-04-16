@@ -238,6 +238,8 @@ class CommValuesLoaded():
             msg += f'topic_name: {topic_name}, '
             msg += f'publish_node_name: {publish_node_name}, '
             msg += f'subscribe_node_name: {subscribe_node_name}, '
+            msg += f'publisher_construction_order: {publisher_construction_order}, '
+            msg += f'subscription_construction_order: {subscription_construction_order}, '
 
             raise ItemNotFoundError(msg)
 
@@ -386,6 +388,10 @@ class NodeValuesLoaded():
             msg += f' node_name: {node_path_value.node_name}'
             msg += f' publish_topic_name: {node_path_value.publish_topic_name}'
             msg += f' subscribe_topic_name: {node_path_value.subscribe_topic_name}'
+            msg += f' publisher_construction_order: \
+                {node_path_value.publisher_construction_order}'
+            msg += f' subscription_construction_order: \
+                {node_path_value.subscription_construction_order}'
             raise ItemNotFoundError(msg)
         except MultipleItemFoundError as e:
             raise MultipleItemFoundError(
@@ -1096,10 +1102,6 @@ class CallbackGroupsLoaded():
             else:
                 cbg_name = cbg.callback_group_name  \
                     or f'{node.node_name}/service_only_callback_group_{len(_srv_only_cbg_dict)}'
-                # MYK これはたぶん既存のバグ
-                # cbg_name = cbg.callback_group_name  \
-                #     or f'{node.node_name}/service_only_callback_group_' \
-                #     + '{len(_srv_only_cbg_dict)}'
                 _srv_only_cbg_dict[cbg] = len(_srv_only_cbg_dict)
 
             cbg_struct = CallbackGroupStruct(

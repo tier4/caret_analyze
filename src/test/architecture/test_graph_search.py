@@ -861,7 +861,8 @@ class TestNodePathSearcher:
         path = searcher._to_path(graph_path_mock)
         assert path.to_value() == expected.to_value()
 
-        # 同じtopic_nameでも、subscription_construction_order、publisher_construction_orderが違えば別のパスとなる
+        # Even if the topic_name is the same, if the subscription_construction_order and
+        # publisher_construction_order are different, the paths will be different.
         mocker.patch.object(node_path_mock_3, 'publish_topic_name', '0->1')
         mocker.patch.object(node_path_mock_3, 'subscribe_topic_name', None)
         mocker.patch.object(node_path_mock_3, 'node_name', node_name_3)

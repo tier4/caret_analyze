@@ -80,19 +80,19 @@ class NamedPathsDicts:
         obj['path_name'] = path_value.path_name
         node_chain = []
         for node_path in path_value.node_paths:
-            d = {
+            dict_item = {
                 'node_name': node_path.node_name,
                 'publish_topic_name': node_path.publish_topic_name or UNDEFINED_STR,
                 'subscribe_topic_name': node_path.subscribe_topic_name or UNDEFINED_STR
             }
 
             if 0 < (node_path.publisher_construction_order or 0):
-                d['publisher_construction_order'] = \
+                dict_item['publisher_construction_order'] = \
                     node_path.publisher_construction_order  # type: ignore
             if 0 < (node_path.subscription_construction_order or 0):
-                d['subscription_construction_order'] = \
+                dict_item['subscription_construction_order'] = \
                     node_path.subscription_construction_order  # type: ignore
-            node_chain.append(d)
+            node_chain.append(dict_item)
 
         obj['node_chain'] = node_chain
         return obj

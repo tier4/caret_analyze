@@ -57,9 +57,9 @@ class NodePathValue(ValueObject):
         publish_topic_name : Optional[str]
             Topic name which the node-path publishes.
         publisher_construction_order : Optional[int]
-            construction order which the node-path publishes.
+            construction order of publisher.
         subscription_construction_order : Optional[int]
-            construction order which the node-path subscribes.
+            construction order of subscription.
 
         """
         self._node_name = node_name

@@ -465,6 +465,7 @@ class TestNodesInfoLoaded():
         mocker.patch.object(nodes_loaded, 'find_node',
                             return_value=node_mock)
         node_path_info_mock = mocker.Mock(spec=NodePathValue)
+        node_path_err_mock = mocker.Mock(spec=NodePathValue)
 
         node_path_mock = mocker.Mock(spec=NodePathStruct)
 
@@ -476,6 +477,15 @@ class TestNodesInfoLoaded():
             node_path_info_mock, 'publisher_construction_order', 0)
         mocker.patch.object(
             node_path_info_mock, 'subscription_construction_order', 0)
+
+        mocker.patch.object(node_path_err_mock,
+                            'publish_topic_name', 'pub_topic')
+        mocker.patch.object(node_path_err_mock,
+                            'subscribe_topic_name', 'sub_topic')
+        mocker.patch.object(
+            node_path_err_mock, 'publisher_construction_order', 1)
+        mocker.patch.object(
+            node_path_err_mock, 'subscription_construction_order', 0)
 
         mocker.patch.object(
             node_path_mock, 'publish_topic_name', 'pub_topic')
@@ -489,6 +499,9 @@ class TestNodesInfoLoaded():
         mocker.patch.object(node_mock, 'paths', (node_path_mock,))
         node_path = nodes_loaded.find_node_path(node_path_info_mock)
         assert node_path == node_path_mock
+
+        with pytest.raises(ItemNotFoundError):
+            nodes_loaded.find_node_path(node_path_err_mock)
 
         mocker.patch.object(
             Util, 'find_one', side_effect=ItemNotFoundError(''))
@@ -1674,6 +1687,42 @@ class TestCommunicationInfoLoaded:
         with pytest.raises(ItemNotFoundError):
             comm_loaded.find_communication(
                 'topic_name', 'pub_node_name', 0, 'sub_node_name', 0)
+
+    def test_find_communication_find_one(self, mocker):
+        node_info_mock = mocker.Mock(spec=NodeStruct)
+
+        pub_info = PublisherValue('topic_a', 'pub_node', 'pub_node_id', None, 0)
+        sub_info = SubscriptionValue('topic_a', 'sub_node', 'sub_node_id', None, 0)
+        mocker.patch.object(node_info_mock, 'publishers', [pub_info])
+        mocker.patch.object(node_info_mock, 'subscriptions', [sub_info])
+
+        comm_mock = mocker.Mock(spec=CommunicationStruct)
+        mocker.patch.object(
+            comm_mock, 'topic_name', 'topic_name')
+        mocker.patch.object(
+            comm_mock, 'publish_node_name', 'pub_node_name')
+        mocker.patch.object(
+            comm_mock, 'subscribe_node_name', 'sub_node_name')
+        mocker.patch.object(
+            comm_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(
+            comm_mock, 'subscription_construction_order', 0)
+
+        mocker.patch.object(CommValuesLoaded,
+                            '_to_struct', return_value=comm_mock)
+
+        nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)
+        mocker.patch.object(nodes_loaded_mock, 'data', [node_info_mock])
+
+        comm_loaded = CommValuesLoaded(nodes_loaded_mock)
+
+        comm = comm_loaded.find_communication(
+            'topic_name', 'pub_node_name', 0, 'sub_node_name', 0)
+        assert comm == comm_mock
+
+        with pytest.raises(ItemNotFoundError):
+            comm_loaded.find_communication(
+                'topic_name', 'pub_node_name', 1, 'sub_node_name', 0)
 
     def test_to_struct(self, mocker):
         topic_name = '/chatter'
