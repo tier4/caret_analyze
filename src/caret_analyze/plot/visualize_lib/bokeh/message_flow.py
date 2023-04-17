@@ -125,31 +125,6 @@ class BokehMessageFlow:
         return fig
 
 
-class Offset:
-    def __init__(
-        self,
-        offset_ns: int
-    ) -> None:
-        self._offset = offset_ns
-
-    def __str__(self) -> str:
-        return self._str
-
-    @cached_property
-    def _str(self) -> str:
-        t_offset = datetime.fromtimestamp(self._offset * 10**-9)
-        return t_offset.isoformat(sep=' ', timespec='seconds')
-
-    @property
-    def value(self) -> int:
-        return self._offset
-
-
-def to_format_str(ns: int) -> str:
-    s = (ns) * 10**-9
-    return '{:.3f}'.format(s)
-
-
 class MessageFlowRectSource:
     def __init__(
         self,
@@ -212,6 +187,53 @@ class MessageFlowRectSource:
                          })
 
         return rect_source
+
+
+class MessageFlowLineSource:
+
+    def __init__(
+        self,
+        target_path: Path
+    ) -> None:
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow_line', target_path)
+
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+        return self._hover_keys.create_hover(options)
+
+    def generate(
+        self,
+        df: pd.DataFrame,
+        converter: Optional[ClockConverter],
+        offset: Offset
+    ) -> ColumnDataSource:
+        tick_labels = YAxisProperty(df)
+        line_sources = []
+
+        for i, row in df.iterrows():
+            row_values = row.dropna().values
+            if converter:
+                row_values = [converter.convert(_) for _ in row_values]
+            x_min = min(row_values)
+            x_max = max(row_values)
+            width = x_max - x_min
+
+            t_start_s = to_format_str(x_min-offset.value)
+            t_end_s = to_format_str(x_max-offset.value)
+            line_source = ColumnDataSource({
+                'x': row_values,
+                'y': tick_labels.values[:len(row_values)],
+                'width': [width]*len(row_values),
+                'height': [0]*len(row_values),
+                't_start': [f't_start = {t_start_s} [s]']*len(row_values),
+                't_end': [f't_end = {t_end_s} [s]']*len(row_values),
+                't_offset': [f't_offset = {offset}']*len(row_values),
+                'latency': [f'latency = {width*1.0e-6} [ms]']*len(row_values),
+                'index': [f'index: {i}']*len(row_values),
+            })
+
+            line_sources.append(line_source)
+
+        return line_sources
 
 
 class DataFrameColumnNameParsed:
@@ -377,48 +399,26 @@ class NodeLevelFormatter(DataFrameFormatter):
         df.rename(columns=renames, inplace=True)
 
 
-class MessageFlowLineSource:
-
+class Offset:
     def __init__(
         self,
-        target_path: Path
+        offset_ns: int
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instance('message_flow_line', target_path)
+        self._offset = offset_ns
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
-        return self._hover_keys.create_hover(options)
+    def __str__(self) -> str:
+        return self._str
 
-    def generate(
-        self,
-        df: pd.DataFrame,
-        converter: Optional[ClockConverter],
-        offset: Offset
-    ) -> ColumnDataSource:
-        tick_labels = YAxisProperty(df)
-        line_sources = []
+    @cached_property
+    def _str(self) -> str:
+        t_offset = datetime.fromtimestamp(self._offset * 10**-9)
+        return t_offset.isoformat(sep=' ', timespec='seconds')
 
-        for i, row in df.iterrows():
-            row_values = row.dropna().values
-            if converter:
-                row_values = [converter.convert(_) for _ in row_values]
-            x_min = min(row_values)
-            x_max = max(row_values)
-            width = x_max - x_min
+    @property
+    def value(self) -> int:
+        return self._offset
 
-            t_start_s = to_format_str(x_min-offset.value)
-            t_end_s = to_format_str(x_max-offset.value)
-            line_source = ColumnDataSource({
-                'x': row_values,
-                'y': tick_labels.values[:len(row_values)],
-                'width': [width]*len(row_values),
-                'height': [0]*len(row_values),
-                't_start': [f't_start = {t_start_s} [s]']*len(row_values),
-                't_end': [f't_end = {t_end_s} [s]']*len(row_values),
-                't_offset': [f't_offset = {offset}']*len(row_values),
-                'latency': [f'latency = {width*1.0e-6} [ms]']*len(row_values),
-                'index': [f'index: {i}']*len(row_values),
-            })
 
-            line_sources.append(line_source)
-
-        return line_sources
+def to_format_str(ns: int) -> str:
+    s = (ns) * 10**-9
+    return '{:.3f}'.format(s)
