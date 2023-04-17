@@ -126,6 +126,8 @@ class BokehMessageFlow:
 
 
 class MessageFlowRectSource:
+    """Class to generate message flow rect sources."""
+
     def __init__(
         self,
         target_path: Path
@@ -139,12 +141,33 @@ class MessageFlowRectSource:
 
     def generate(
         self,
-        y_axi_values: YAxisValues,
+        y_axis_values: YAxisValues,
         granularity: str,
         clip: Optional[Clip],
         converter: Optional[ClockConverter],
         offset: Offset
     ) -> ColumnDataSource:
+        """
+        Generate message flow rect source.
+
+        Parameters
+        ----------
+        y_axis_values : YAxisValues
+            Y-axis values.
+        granularity : str
+            Granularity of chain with two value; [raw/node].
+        clip : Optional[Clip]
+            Clip the first and last few seconds.
+        converter : Optional[ClockConverter]
+            Converter to simulation time
+        offset : Offset
+            Offset of x-axis
+
+        Returns
+        -------
+        ColumnDataSource
+
+        """
         rect_source = ColumnDataSource(data={
             k: [] for k in (['x', 'y', 'width', 'height'] + self._hover_keys.to_list())
         })
@@ -158,7 +181,7 @@ class MessageFlowRectSource:
             elif granularity == 'node':
                 search_name = callback.node_name
 
-            y_max_list = np.array(y_axi_values.get_start_indexes(search_name))
+            y_max_list = np.array(y_axis_values.get_start_indexes(search_name))
             y_mins = y_max_list - 1
 
             for y_min, y_max in zip(y_mins, y_max_list):
@@ -170,26 +193,26 @@ class MessageFlowRectSource:
                         callback_start = converter.convert(callback_start)
                         callback_end = converter.convert(callback_end)
                     rect = RectValues(callback_start, callback_end, y_min, y_max)
-                    rect_source.stream(
-                        {**
-                         {'x': [rect.x],
-                          'y': [rect.y],
-                          'width': [rect.width],
-                          'height': [rect.height]},
-                         **self._hover_source.generate(callback, {
-                             't_start':
-                             f't_start = {to_format_str(callback_start - offset.value)} [s]',
-                             't_end': f't_end = {to_format_str(callback_end - offset.value)} [s]',
-                             't_offset': f't_offset = {offset}',
-                             'latency': f'latency = {(callback_end-callback_start)*1.0e-6} [ms]',
-                             'callback_param': get_callback_param_desc(callback)
-                         })  # type: ignore
-                         })
+                    rect_source.stream({
+                        **{'x': [rect.x],
+                           'y': [rect.y],
+                           'width': [rect.width],
+                           'height': [rect.height]},
+                        **self._hover_source.generate(callback, {
+                            't_start':
+                            f't_start = {to_format_str(callback_start - offset.value)} [s]',
+                            't_end': f't_end = {to_format_str(callback_end - offset.value)} [s]',
+                            't_offset': f't_offset = {offset}',
+                            'latency': f'latency = {(callback_end-callback_start)*1.0e-6} [ms]',
+                            'callback_param': get_callback_param_desc(callback)
+                        })  # type: ignore
+                    })
 
         return rect_source
 
 
 class MessageFlowLineSource:
+    """Class to generate message flow line sources."""
 
     def __init__(
         self,
@@ -206,6 +229,23 @@ class MessageFlowLineSource:
         converter: Optional[ClockConverter],
         offset: Offset
     ) -> ColumnDataSource:
+        """
+        Generate message flow line source.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Formatted latency table for the target path.
+        converter : Optional[ClockConverter]
+            Converter to simulation time
+        offset : Offset
+            Offset of x-axis
+
+        Returns
+        -------
+        ColumnDataSource
+
+        """
         tick_labels = YAxisProperty(df)
         line_sources = []
 
