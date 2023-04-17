@@ -23,6 +23,9 @@ from bokeh.plotting import Figure, figure
 
 import numpy as np
 
+from .....exceptions import UnsupportedTypeError
+from .....runtime import CallbackBase, SubscriptionCallback, TimerCallback
+
 
 class RectValues:
     def __init__(
@@ -138,3 +141,14 @@ def apply_x_axis_offset(
     #     return hh + ":" + mm + ":" + ss;
     #     ''',
     #     args={"offset_s": offset_s})
+
+
+def get_callback_param_desc(callback: CallbackBase):
+    if isinstance(callback, TimerCallback):
+        return f'period_ns: {callback.period_ns}'
+
+    if isinstance(callback, SubscriptionCallback):
+        return f'topic_name: {callback.subscribe_topic_name}'
+
+    raise UnsupportedTypeError('callback type must be '
+                               '[ TimerCallback/ SubscriptionCallback]')

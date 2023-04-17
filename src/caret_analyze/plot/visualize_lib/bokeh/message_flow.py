@@ -27,11 +27,10 @@ import numpy as np
 import pandas as pd
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
-                   HoverKeysFactory, init_figure, RectValues)
+                   get_callback_param_desc, HoverKeysFactory, init_figure, RectValues)
 from ....common import ClockConverter
-from ....exceptions import UnsupportedTypeError
 from ....record.data_frame_shaper import Clip, Strip
-from ....runtime import CallbackBase, Path, SubscriptionCallback, TimerCallback
+from ....runtime import Path
 
 
 class BokehMessageFlow:
@@ -149,17 +148,6 @@ class Offset:
 def to_format_str(ns: int) -> str:
     s = (ns) * 10**-9
     return '{:.3f}'.format(s)
-
-
-def get_callback_param_desc(callback: CallbackBase):
-    if isinstance(callback, TimerCallback):
-        return f'period_ns: {callback.period_ns}'
-
-    if isinstance(callback, SubscriptionCallback):
-        return f'topic_name: {callback.subscribe_topic_name}'
-
-    raise UnsupportedTypeError('callback type must be '
-                               '[ TimerCallback/ SubscriptionCallback]')
 
 
 def get_callback_rect_list(
