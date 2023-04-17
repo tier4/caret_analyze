@@ -20,7 +20,6 @@ from typing import Any, Dict, List, Optional, Union
 
 from bokeh.models import HoverTool
 
-from .legend import LegendManager
 from .....exceptions import InvalidArgumentError
 from .....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
                           SubscriptionCallback, TimerCallback)
@@ -233,14 +232,13 @@ class StackedBarKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in stacked bar graph.")
 
     def to_list(self) -> List[str]:
-        return ['legend_label', 'path_name']
+        return ['path_name']
 
 
 class HoverSource:
     """Hover source."""
 
-    def __init__(self, legend_manager: LegendManager, hover_keys: HoverKeysBase) -> None:
-        self._legend_manager = legend_manager
+    def __init__(self, hover_keys: HoverKeysBase) -> None:
         self._hover_keys = hover_keys
 
     def generate(
@@ -303,10 +301,6 @@ class HoverSource:
                 description = f'period_ns = {target_object.period_ns}'
             elif isinstance(target_object, SubscriptionCallback):
                 description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
-
-        elif key == 'legend_label':
-            label = self._legend_manager.get_label(target_object)
-            description = f'legend_label = {label}'
 
         else:
             raise NotImplementedError()

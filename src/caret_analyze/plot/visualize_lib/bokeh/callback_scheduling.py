@@ -170,7 +170,8 @@ class CallbackSchedRectSource:
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance(
             'callback_scheduling_rect', target_object)
-        self._hover_source = HoverSource(legend_manager, self._hover_keys)
+        self._hover_source = HoverSource(self._hover_keys)
+        self._legend_manager = legend_manager
         self._clip = clip
         self._converter = converter
         self._rect_y_base = 0.0
@@ -231,7 +232,8 @@ class CallbackSchedRectSource:
                 **self._hover_source.generate(callback, {
                     'callback_start': f'callback_start = {callback_start} [ns]',
                     'callback_end': f'callback_end = {callback_end} [ns]',
-                    'latency': f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]'
+                    'latency': f'latency = {(callback_end - callback_start) * 1.0e-6} [ms]',
+                    'legend_label': f'legend_label = {self._legend_manager.get_label(callback)}'
                 })  # type: ignore
             })
 
@@ -254,7 +256,8 @@ class CallbackSchedBarSource:
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance(
             'callback_scheduling_bar', target_object)
-        self._hover_source = HoverSource(legend_manager, self._hover_keys)
+        self._hover_source = HoverSource(self._hover_keys)
+        self._legend_manager = legend_manager
         self._frame_min = frame_min
         self._frame_max = frame_max
 
@@ -295,7 +298,10 @@ class CallbackSchedBarSource:
             rect_y_base - 0.5,
             rect_y_base + 0.5
         )
-        hover_source = self._hover_source.generate(callback)
+        hover_source = self._hover_source.generate(
+            callback,
+            {'legend_label': f'legend_label = {self._legend_manager.get_label(callback)}'}
+        )
         bar_source = ColumnDataSource(data={
             **{'x': [rect.x], 'y': [rect.y],
                'width': [rect.width], 'height': [rect.height]},

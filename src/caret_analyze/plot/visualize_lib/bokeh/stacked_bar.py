@@ -81,8 +81,7 @@ class BokehStackedBar:
         if self._case == 'best':
             color_selector.get_color()
         legend_manager = LegendManager()
-        stacked_bar_source = StackedBarSource(
-            legend_manager, target_objects, 0.0, self._xaxis_type)
+        stacked_bar_source = StackedBarSource(target_objects, 0.0, self._xaxis_type)
         fig.add_tools(stacked_bar_source.create_hover())
         stacked_bar_data, x_width_list = \
             self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
@@ -282,13 +281,12 @@ class StackedBarSource:
 
     def __init__(
         self,
-        legend_manager: LegendManager,
         target_object,
         frame_min: float,
         xaxis_type: str,
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance('stacked_bar', target_object)
-        self._hover_source = HoverSource(legend_manager, self._hover_keys)
+        self._hover_source = HoverSource(self._hover_keys)
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 

@@ -107,7 +107,8 @@ class LineSource:
         xaxis_type: str,
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance('timeseries', target_object)
-        self._hover_source = HoverSource(legend_manager, self._hover_keys)
+        self._hover_source = HoverSource(self._hover_keys)
+        self._legend_manager = legend_manager
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 
@@ -153,7 +154,9 @@ class LineSource:
         line_source = ColumnDataSource(data={
             k: [] for k in (['x', 'y'] + self._hover_keys.to_list())
         })
-        hover_source = self._hover_source.generate(target_object)
+        hover_source = self._hover_source.generate(
+            target_object,
+            {'legend_label': f'legend_label = {self._legend_manager.get_label(target_object)}'})
         x_item, y_item = self._get_x_y(timeseries_records)
         for x, y in zip(x_item, y_item):
             line_source.stream({**{'x': [x], 'y': [y]}, **hover_source})  # type: ignore
