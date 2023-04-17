@@ -21,8 +21,8 @@ from bokeh.plotting import ColumnDataSource, Figure
 
 import pandas as pd
 
-from .util import (apply_x_axis_offset, ColorSelectorFactory, HoverKeysFactory,
-                   HoverSource, init_figure, LegendManager, RectValues)
+from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
+                   HoverKeysFactory, HoverSource, init_figure, LegendManager, RectValues)
 from ....common import ClockConverter, Util
 from ....record import Clip, Range
 from ....runtime import CallbackBase, CallbackGroup, TimerCallback
@@ -300,7 +300,8 @@ class CallbackSchedBarSource:
         )
         hover_source = self._hover_source.generate(
             callback,
-            {'legend_label': f'legend_label = {self._legend_manager.get_label(callback)}'}
+            {'legend_label': f'legend_label = {self._legend_manager.get_label(callback)}',
+             'callback_param': get_callback_param_desc(callback)}
         )
         bar_source = ColumnDataSource(data={
             **{'x': [rect.x], 'y': [rect.y],

@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
 
-from .util import (apply_x_axis_offset, ColorSelectorFactory,
+from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager)
 from ...metrics_base import MetricsBase
 from ....record import Range, RecordsInterface
@@ -154,9 +154,11 @@ class LineSource:
         line_source = ColumnDataSource(data={
             k: [] for k in (['x', 'y'] + self._hover_keys.to_list())
         })
-        hover_source = self._hover_source.generate(
-            target_object,
-            {'legend_label': f'legend_label = {self._legend_manager.get_label(target_object)}'})
+        additional_hover_dict = {
+            'legend_label': f'legend_label = {self._legend_manager.get_label(target_object)}'}
+        if isinstance(target_object, CallbackBase):
+            additional_hover_dict['callback_param'] = get_callback_param_desc(target_object)
+        hover_source = self._hover_source.generate(target_object, additional_hover_dict)
         x_item, y_item = self._get_x_y(timeseries_records)
         for x, y in zip(x_item, y_item):
             line_source.stream({**{'x': [x], 'y': [y]}, **hover_source})  # type: ignore

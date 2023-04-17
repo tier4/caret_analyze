@@ -145,10 +145,10 @@ def apply_x_axis_offset(
 
 def get_callback_param_desc(callback: CallbackBase):
     if isinstance(callback, TimerCallback):
-        return f'period_ns: {callback.period_ns}'
+        return f'period_ns = {callback.period_ns}'
 
     if isinstance(callback, SubscriptionCallback):
-        return f'topic_name: {callback.subscribe_topic_name}'
+        return f'topic_name = {callback.subscribe_topic_name}'
 
     raise UnsupportedTypeError('callback type must be '
                                '[ TimerCallback/ SubscriptionCallback]')
