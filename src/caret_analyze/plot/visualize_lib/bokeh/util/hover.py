@@ -36,7 +36,8 @@ class HoverKeysFactory:
         'callback_scheduling_rect',
         'timeseries',
         'stacked_bar',
-        'message_flow'
+        'message_flow_line',
+        'message_flow_rect'
     ]
 
     @staticmethod
@@ -83,8 +84,11 @@ class HoverKeysFactory:
         elif graph_type == 'stacked_bar':
             hover_keys = StackedBarKeys(target_object)
 
-        elif graph_type == 'message_flow':
-            hover_keys = MessageFlowKeys(target_object)
+        elif graph_type == 'message_flow_line':
+            hover_keys = MessageFlowLineKeys(target_object)
+
+        elif graph_type == 'message_flow_rect':
+            hover_keys = MessageFlowRectKeys(target_object)
 
         return hover_keys
 
@@ -208,7 +212,7 @@ class TimeSeriesKeys(HoverKeysBase):
         return hover_keys
 
 
-class MessageFlowKeys(HoverKeysBase):
+class MessageFlowLineKeys(HoverKeysBase):
 
     def __init__(self, target_object: TargetTypes) -> None:
         super().__init__(target_object)
@@ -218,7 +222,21 @@ class MessageFlowKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in message flow.")
 
     def to_list(self) -> List[str]:
-        return ['t_start', 't_end', 'latency', 't_offset', 'desc']
+        return ['t_start', 't_end', 'latency', 't_offset', 'index']
+
+
+class MessageFlowRectKeys(HoverKeysBase):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        super().__init__(target_object)
+
+    def _validate(self, target_object: Any) -> None:
+        if not isinstance(target_object, Path):
+            raise InvalidArgumentError("'target_object' must be Path in message flow.")
+
+    def to_list(self) -> List[str]:
+        return ['t_start', 't_end', 'latency', 't_offset',
+                'callback_type', 'callback_param', 'symbol']
 
 
 class StackedBarKeys(HoverKeysBase):

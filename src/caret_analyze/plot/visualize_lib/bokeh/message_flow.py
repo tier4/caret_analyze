@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from functools import cached_property
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from bokeh.models import CrosshairTool, HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
@@ -26,8 +26,8 @@ import numpy as np
 
 import pandas as pd
 
-from .util import (apply_x_axis_offset, ColorSelectorFactory,
-                   get_callback_param_desc, HoverKeysFactory, init_figure, RectValues)
+from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
+                   HoverKeysFactory, HoverSource, init_figure, RectValues)
 from ....common import ClockConverter
 from ....record.data_frame_shaper import Clip, Strip
 from ....runtime import Path
@@ -92,27 +92,26 @@ class BokehMessageFlow:
         fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
         # Draw callback rect
-        rect_source = get_callback_rect_list(
-            self._target_path, yaxis_values, self._granularity, clip, converter, offset)
-        fig.rect(
+        rect_source = MessageFlowRectSource(self._target_path)
+        rect = fig.rect(
             'x',
             'y',
             'width',
             'height',
-            source=rect_source,
+            source=rect_source.generate(yaxis_values, self._granularity, clip, converter, offset),
             color='black',
             alpha=0.15,
             hover_fill_color='black',
             hover_alpha=0.4,
             x_range_name=x_range_name
         )
+        fig.add_tools(rect_source.create_hover({'renderers': [rect]}))
 
         # Draw message flow
         color_selector = ColorSelectorFactory.create_instance('unique')
-        flow_source = MessageFlowSource(self._target_path)
-        fig.add_tools(flow_source.create_hover())
+        flow_source = MessageFlowLineSource(self._target_path)
         for source in flow_source.generate(df, converter, offset):
-            fig.line(
+            line = fig.line(
                 x='x',
                 y='y',
                 line_width=1.5,
@@ -121,6 +120,7 @@ class BokehMessageFlow:
                 source=source,
                 x_range_name=x_range_name
             )
+            fig.add_tools(flow_source.create_hover({'renderers': [line]}))
 
         return fig
 
@@ -150,84 +150,68 @@ def to_format_str(ns: int) -> str:
     return '{:.3f}'.format(s)
 
 
-def get_callback_rect_list(
-    path: Path,
-    y_axi_values: YAxisValues,
-    granularity: str,
-    clip: Optional[Clip],
-    converter: Optional[ClockConverter],
-    offset: Offset
-) -> ColumnDataSource:
-    rect_source = ColumnDataSource(data={
-        'x': [],
-        'y': [],
-        't_start': [],
-        't_end': [],
-        't_offset': [],
-        'desc': [],
-        'width': [],
-        'latency': [],
-        'height': []
-    })
+class MessageFlowRectSource:
+    def __init__(
+        self,
+        target_path: Path
+    ) -> None:
+        self._target_path = target_path
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow_rect', target_path)
+        self._hover_source = HoverSource(self._hover_keys)
 
-    if path.callback_chain is None:
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+        return self._hover_keys.create_hover(options)
+
+    def generate(
+        self,
+        y_axi_values: YAxisValues,
+        granularity: str,
+        clip: Optional[Clip],
+        converter: Optional[ClockConverter],
+        offset: Offset
+    ) -> ColumnDataSource:
+        rect_source = ColumnDataSource(data={
+            k: [] for k in (['x', 'y', 'width', 'height'] + self._hover_keys.to_list())
+        })
+
+        if self._target_path.callback_chain is None:
+            return rect_source
+
+        for callback in self._target_path.callback_chain:
+            if granularity == 'raw':
+                search_name = callback.callback_name
+            elif granularity == 'node':
+                search_name = callback.node_name
+
+            y_max_list = np.array(y_axi_values.get_start_indexes(search_name))
+            y_mins = y_max_list - 1
+
+            for y_min, y_max in zip(y_mins, y_max_list):
+                df = callback.to_dataframe(shaper=clip)
+                for _, row in df.iterrows():
+                    callback_start = row.to_list()[0]
+                    callback_end = row.to_list()[-1]
+                    if converter:
+                        callback_start = converter.convert(callback_start)
+                        callback_end = converter.convert(callback_end)
+                    rect = RectValues(callback_start, callback_end, y_min, y_max)
+                    rect_source.stream(
+                        {**
+                         {'x': [rect.x],
+                          'y': [rect.y],
+                          'width': [rect.width],
+                          'height': [rect.height]},
+                         **self._hover_source.generate(callback, {
+                             't_start':
+                             f't_start = {to_format_str(callback_start - offset.value)} [s]',
+                             't_end': f't_end = {to_format_str(callback_end - offset.value)} [s]',
+                             't_offset': f't_offset = {offset}',
+                             'latency': f'latency = {(callback_end-callback_start)*1.0e-6} [ms]',
+                             'callback_param': get_callback_param_desc(callback)
+                         })  # type: ignore
+                         })
+
         return rect_source
-
-    x = []
-    y = []
-    t_start = []
-    t_end = []
-    t_offset = []
-    desc = []
-    width = []
-    latency = []
-    height = []
-
-    for callback in path.callback_chain:
-        if granularity == 'raw':
-            search_name = callback.callback_name
-        elif granularity == 'node':
-            search_name = callback.node_name
-
-        y_max_list = np.array(y_axi_values.get_start_indexes(search_name))
-        y_mins = y_max_list - 1
-
-        callback_desc = get_callback_param_desc(callback)
-
-        for y_min, y_max in zip(y_mins, y_max_list):
-            df = callback.to_dataframe(shaper=clip)
-            for _, row in df.iterrows():
-                callback_start = row.to_list()[0]
-                callback_end = row.to_list()[-1]
-                if converter:
-                    callback_start = converter.convert(callback_start)
-                    callback_end = converter.convert(callback_end)
-                rect = RectValues(callback_start, callback_end, y_min, y_max)
-                x.append(rect.x)
-                y.append(rect.y)
-                t_offset.append(f't_offset = {offset}')
-                t_start.append(f't_start = {to_format_str(callback_start - offset.value)} [s]')
-                t_end.append(f't_end = {to_format_str(callback_end - offset.value)} [s]')
-                width.append(rect.width)
-                latency.append(f'latency = {(callback_end-callback_start)*1.0e-6} [ms]')
-                height.append(rect.height)
-
-                desc_str = f'callback_type: {callback.callback_type}' + \
-                    f', {callback_desc}, symbol: {callback.symbol}'
-                desc.append(desc_str)
-
-    rect_source = ColumnDataSource(data={
-        'x': x,
-        'y': y,
-        't_start': t_start,
-        't_end': t_end,
-        't_offset': t_offset,
-        'desc': desc,
-        'width': width,
-        'latency': latency,
-        'height': height
-    })
-    return rect_source
 
 
 class DataFrameColumnNameParsed:
@@ -393,16 +377,16 @@ class NodeLevelFormatter(DataFrameFormatter):
         df.rename(columns=renames, inplace=True)
 
 
-class MessageFlowSource:
+class MessageFlowLineSource:
 
     def __init__(
         self,
         target_path: Path
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instance('message_flow', target_path)
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow_line', target_path)
 
-    def create_hover(self,) -> HoverTool:
-        return self._hover_keys.create_hover()
+    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+        return self._hover_keys.create_hover(options)
 
     def generate(
         self,
@@ -432,7 +416,7 @@ class MessageFlowSource:
                 't_end': [f't_end = {t_end_s} [s]']*len(row_values),
                 't_offset': [f't_offset = {offset}']*len(row_values),
                 'latency': [f'latency = {width*1.0e-6} [ms]']*len(row_values),
-                'desc': [f'index: {i}']*len(row_values),
+                'index': [f'index: {i}']*len(row_values),
             })
 
             line_sources.append(line_source)
