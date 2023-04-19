@@ -108,7 +108,6 @@ class FrequencyTimeSeries(MetricsBase):
                 base_timestamp=min_time, until_timestamp=max_time
             ))
 
-
         return frequency_timeseries_list
 
     # TODO: Migrate into record.

@@ -65,14 +65,13 @@ class MetricsBase(metaclass=ABCMeta):
 
         # convert
         converted_records_list: List[RecordsInterface] = []
-        ts_column_name = timeseries_records_list[0].columns[0]
         for records in timeseries_records_list:
             # TODO: Refactor after Records class supports quadrature operations.
             values = [
                 RecordFactory.create_instance({
-                    # NOTE: Loss of accuracy may be occurred with sim_time due to rounding process.'
+                    # NOTE: Loss of accuracy may be occurred with sim_time due to rounding process.
                     # TODO: 'tid' is magic number
-                    k: v if k == 'tid' else round(converter.convert(record.get(k)))
+                    k: v if k == 'tid' else round(converter.convert(v))
                     for k, v
                     in record.data.items()
                 })
@@ -80,14 +79,13 @@ class MetricsBase(metaclass=ABCMeta):
                 in records
             ]
 
-            columns = [
-                ColumnValue(column)
-                for column
-                in values[0].columns
-            ]
+            columns: List[ColumnValue] = []
+            for value in values:
+                columns.extend([ColumnValue(_) for _ in value.columns])
+            columns = list(set(columns))
 
             converted_records_list.append(RecordsFactory.create_instance(values, columns))
-        
+
         return converted_records_list
 
     # TODO: Multi-column DataFrame are difficult for users to handle,
