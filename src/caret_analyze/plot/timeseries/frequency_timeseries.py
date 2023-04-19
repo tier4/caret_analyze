@@ -91,28 +91,34 @@ class FrequencyTimeSeries(MetricsBase):
             Frequency records list of all target objects.
 
         """
-        min_time, max_time = self._get_timestamp_range(self._target_objects)
-        timeseries_records_list: List[RecordsInterface] = []
-        for target_object in self._target_objects:
-            frequency = Frequency(target_object.to_records())
-            timeseries_records_list.append(frequency.to_records(
+        timeseries_records_list: List[RecordsInterface] = [
+            _.to_records() for _ in self._target_objects
+        ]
+
+        if xaxis_type == 'sim_time':
+            timeseries_records_list = \
+                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+
+        min_time, max_time = self._get_timestamp_range(timeseries_records_list)
+
+        frequency_timeseries_list: List[RecordsInterface] = []
+        for records in timeseries_records_list:
+            frequency = Frequency(records)
+            frequency_timeseries_list.append(frequency.to_records(
                 base_timestamp=min_time, until_timestamp=max_time
             ))
 
-        if xaxis_type == 'sim_time':
-            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
-        return timeseries_records_list
+        return frequency_timeseries_list
 
     # TODO: Migrate into record.
     @staticmethod
     def _get_timestamp_range(
-        target_objects: Sequence[TimeSeriesTypes]
+        timeseries_records_list: List[RecordsInterface]
     ) -> Tuple[int, int]:
         first_timestamps = []
         last_timestamps = []
-        for to in target_objects:
-            records = to.to_records()
+        for records in timeseries_records_list:
             if len(records) == 0:
                 continue
             first_timestamp = records.get_column_series(records.columns[0])[0]

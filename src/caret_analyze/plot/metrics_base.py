@@ -51,7 +51,7 @@ class MetricsBase(metaclass=ABCMeta):
     def _convert_timeseries_records_to_sim_time(
         self,
         timeseries_records_list: List[RecordsInterface]
-    ) -> None:
+    ) -> List[RecordsInterface]:
         # get converter
         if isinstance(self._target_objects[0], Communication):
             for comm in self._target_objects:
@@ -64,25 +64,31 @@ class MetricsBase(metaclass=ABCMeta):
             converter = self._target_objects[0]._provider.get_sim_time_converter()
 
         # convert
+        converted_records_list: List[RecordsInterface] = []
         ts_column_name = timeseries_records_list[0].columns[0]
         for records in timeseries_records_list:
             # TODO: Refactor after Records class supports quadrature operations.
             values = [
                 RecordFactory.create_instance({
-                    # NOTE: Loss of accuracy may be occurred with sim_time due to rounding process.
-                    k: v if k != ts_column_name else round(converter.convert(record.get(k)))
+                    # NOTE: Loss of accuracy may be occurred with sim_time due to rounding process.'
+                    # TODO: 'tid' is magic number
+                    k: v if k == 'tid' else round(converter.convert(record.get(k)))
                     for k, v
                     in record.data.items()
                 })
                 for record
                 in records
             ]
+
             columns = [
                 ColumnValue(column)
                 for column
-                in records.columns
+                in values[0].columns
             ]
-            records = RecordsFactory.create_instance(values, columns)
+
+            converted_records_list.append(RecordsFactory.create_instance(values, columns))
+        
+        return converted_records_list
 
     # TODO: Multi-column DataFrame are difficult for users to handle,
     #       so this function is unnecessary.
