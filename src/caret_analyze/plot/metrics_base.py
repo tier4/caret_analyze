@@ -87,7 +87,7 @@ class MetricsBase(metaclass=ABCMeta):
             ]
 
             converted_records_list.append(RecordsFactory.create_instance(values, columns))
-        
+
         return converted_records_list
 
     # TODO: Multi-column DataFrame are difficult for users to handle,
