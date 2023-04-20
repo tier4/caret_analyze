@@ -15,7 +15,6 @@
 from caret_analyze.plot.timeseries.frequency_timeseries import FrequencyTimeSeries
 from caret_analyze.record import ColumnValue
 from caret_analyze.record.record_factory import RecordFactory, RecordsFactory
-from caret_analyze.runtime.callback import CallbackBase
 
 
 def create_expect_records(records_raw):
@@ -33,86 +32,61 @@ def create_expect_records(records_raw):
 class TestFrequencyTimeSeries:
 
     def test_get_timestamp_range_normal(self, mocker):
-        object_mock0 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock0, 'to_records',
-            return_value=create_expect_records([
+        records0 = create_expect_records([
                 {'first': 1, 'last': 2},
                 {'first': 2, 'last': 3}
-            ])
-        )
-        object_mock1 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock1, 'to_records',
-            return_value=create_expect_records([
+        ])
+        records1 = create_expect_records([
                 {'first': 4, 'last': 5},
                 {'first': 5, 'last': 6}
-            ])
-        )
-        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
-            [object_mock0, object_mock1])
+        ])
+
+        min_ts, max_ts = \
+            FrequencyTimeSeries._get_timestamp_range([records0, records1])
+
         assert min_ts == 1
         assert max_ts == 5
 
     def test_get_timestamp_range_empty_input(self):
         min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range([])
+
         assert min_ts == 0
         assert max_ts == 1
 
     def test_get_timestamp_range_exist_empty_records(self, mocker):
-        object_mock0 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock0, 'to_records',
-            return_value=create_expect_records([
+        records0 = create_expect_records([
                 {'first': 1, 'last': 2},
                 {'first': 2, 'last': 3}
-            ])
-        )
-        object_mock1 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock1, 'to_records',
-            return_value=create_expect_records([{}])
-        )
-        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
-            [object_mock0, object_mock1])
+        ])
+        records1 = create_expect_records([{}])
+
+        min_ts, max_ts = \
+            FrequencyTimeSeries._get_timestamp_range([records0, records1])
+
         assert min_ts == 1
         assert max_ts == 2
 
     def test_get_timestamp_range_drop(self, mocker):
-        object_mock0 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock0, 'to_records',
-            return_value=create_expect_records([
+        records0 = create_expect_records([
                 {'first': 1, 'last': 2},
                 {'first': 2, 'last': 3}
-            ])
-        )
-        object_mock1 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock1, 'to_records',
-            return_value=create_expect_records([
+        ])
+        records1 = create_expect_records([
                 {'last': 5},
                 {'first': 5, 'last': 6}
-            ])
-        )
-        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
-            [object_mock0, object_mock1])
+        ])
+
+        min_ts, max_ts = \
+            FrequencyTimeSeries._get_timestamp_range([records0, records1])
+
         assert min_ts == 1
         assert max_ts == 5
 
     def test_get_timestamp_range_len_timestamp_is_0(self, mocker):
-        object_mock0 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock0, 'to_records',
-            return_value=create_expect_records([{}])
-        )
-        object_mock1 = mocker.Mock(spec=CallbackBase)
-        mocker.patch.object(
-            object_mock1, 'to_records',
-            return_value=create_expect_records([{}])
-        )
-        min_ts, max_ts = FrequencyTimeSeries._get_timestamp_range(
-            [object_mock0, object_mock1])
+        records0 = create_expect_records([{}])
+        records1 = create_expect_records([{}])
+        min_ts, max_ts = \
+            FrequencyTimeSeries._get_timestamp_range([records0, records1])
 
         assert min_ts == 0
         assert max_ts == 1
