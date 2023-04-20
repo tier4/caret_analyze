@@ -237,9 +237,9 @@ class MessageFlowLineSource:
         df : pd.DataFrame
             Formatted latency table for the target path.
         converter : Optional[ClockConverter]
-            Converter to simulation time
+            Converter to simulation time.
         offset : Offset
-            Offset of x-axis
+            Offset of x-axis.
 
         Returns
         -------
