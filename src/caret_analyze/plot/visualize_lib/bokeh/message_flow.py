@@ -19,19 +19,111 @@ from datetime import datetime
 from functools import cached_property
 from typing import Dict, List, Optional
 
-from bokeh.models import HoverTool
-from bokeh.plotting import ColumnDataSource
+from bokeh.models import CrosshairTool, HoverTool
+from bokeh.plotting import ColumnDataSource, Figure
 
 import numpy as np
+
 import pandas as pd
 
-from .legend import HoverCreator, HoverKeys
-from .util import RectValues
-
+from .util import (apply_x_axis_offset, ColorSelectorFactory,
+                   HoverKeysFactory, init_figure, RectValues)
 from ....common import ClockConverter
 from ....exceptions import UnsupportedTypeError
-from ....record.data_frame_shaper import Clip
+from ....record.data_frame_shaper import Clip, Strip
 from ....runtime import CallbackBase, Path, SubscriptionCallback, TimerCallback
+
+
+class BokehMessageFlow:
+
+    def __init__(
+        self,
+        target_path: Path,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        granularity: str,
+        treat_drop_as_delay: bool,
+        lstrip_s: float,
+        rstrip_s: float
+    ) -> None:
+        self._target_path = target_path
+        self._xaxis_type = xaxis_type
+        self._ywheel_zoom = ywheel_zoom
+        self._granularity = granularity
+        self._treat_drop_as_delay = treat_drop_as_delay
+        self._lstrip_s = lstrip_s
+        self._rstrip_s = rstrip_s
+
+    def create_figure(self) -> Figure:
+        # Initialize figure
+        fig = init_figure(
+            f'Message flow of {self._target_path.path_name}', self._ywheel_zoom, self._xaxis_type)
+        fig.add_tools(CrosshairTool(line_alpha=0.4))
+
+        # Strip
+        df = self._target_path.to_dataframe(treat_drop_as_delay=self._treat_drop_as_delay)
+        strip = Strip(self._lstrip_s, self._rstrip_s)
+        clip = strip.to_clip(df)
+        df = clip.execute(df)
+        offset = Offset(clip.min_ns)
+
+        # Apply xaxis offset
+        frame_min: float = clip.min_ns
+        frame_max: float = clip.max_ns
+        converter: Optional[ClockConverter] = None
+        if self._xaxis_type == 'sim_time':
+            assert len(self._target_path.child) > 0
+            # TODO(hsgwa): refactor
+            converter = \
+                self._target_path.child[0]._provider.get_sim_time_converter()  # type: ignore
+        if converter:
+            frame_min = converter.convert(frame_min)
+            frame_max = converter.convert(frame_max)
+        x_range_name = 'x_plot_axis'
+        apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
+
+        # Format
+        formatter = FormatterFactory.create(self._target_path, self._granularity)
+        formatter.remove_columns(df)
+        formatter.rename_columns(df, self._target_path)
+
+        yaxis_property = YAxisProperty(df)
+        yaxis_values = YAxisValues(df)
+        fig.yaxis.ticker = yaxis_property.values
+        fig.yaxis.major_label_overrides = yaxis_property.labels_dict
+
+        # Draw callback rect
+        rect_source = get_callback_rect_list(
+            self._target_path, yaxis_values, self._granularity, clip, converter, offset)
+        fig.rect(
+            'x',
+            'y',
+            'width',
+            'height',
+            source=rect_source,
+            color='black',
+            alpha=0.15,
+            hover_fill_color='black',
+            hover_alpha=0.4,
+            x_range_name=x_range_name
+        )
+
+        # Draw message flow
+        color_selector = ColorSelectorFactory.create_instance('unique')
+        flow_source = MessageFlowSource(self._target_path)
+        fig.add_tools(flow_source.create_hover())
+        for source in flow_source.generate(df, converter, offset):
+            fig.line(
+                x='x',
+                y='y',
+                line_width=1.5,
+                line_color=color_selector.get_color(),
+                line_alpha=1,
+                source=source,
+                x_range_name=x_range_name
+            )
+
+        return fig
 
 
 class Offset:
@@ -319,11 +411,10 @@ class MessageFlowSource:
         self,
         target_path: Path
     ) -> None:
-        self._hover_keys = HoverKeys('message_flow', target_path)
-        self._hover = HoverCreator(self._hover_keys)
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow', target_path)
 
     def create_hover(self,) -> HoverTool:
-        return self._hover.create()
+        return self._hover_keys.create_hover()
 
     def generate(
         self,

@@ -1101,7 +1101,8 @@ class CallbackGroupsLoaded():
                     cbg_name = cbg.callback_group_name
             else:
                 cbg_name = cbg.callback_group_name  \
-                    or f'{node.node_name}/service_only_callback_group_{len(_srv_only_cbg_dict)}'
+                    or f'{node.node_name}/service_only_callback_group_' \
+                    + f'{len(_srv_only_cbg_dict)}'
                 _srv_only_cbg_dict[cbg] = len(_srv_only_cbg_dict)
 
             cbg_struct = CallbackGroupStruct(
