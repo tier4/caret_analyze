@@ -204,9 +204,9 @@ class Util:
 
     @staticmethod
     def find_similar_one_multi_keys(
-        target_names: Dict[str, Any],
+        target_names: Dict[str, str | int],
         items: Collection[Any],
-        keys: Callable[[Any], Dict[str, str]] = lambda x: x,
+        keys: Callable[[Any], Dict[str, str | int]] = lambda x: x,
         th: float = 0.6
     ) -> Any:
         """
@@ -214,11 +214,11 @@ class Util:
 
         Parameters
         ----------
-        target_names: Dict[str, Any]
+        target_names: Dict[str, str | int]
             target_names
         items: Collection[Any]
             Items to be searched.
-        keys: Callable[[Any], Dict[str, str]]
+        keys: Callable[[Any], Dict[str, str | int]]
             key
         th: float
             Similarity judgment threshold.
@@ -253,7 +253,7 @@ class Util:
                     each_similarity.append(distance)
                     continue
                 distance = difflib.SequenceMatcher(None,
-                                                   keys_dict[target_name],
+                                                   str(keys_dict[target_name]),
                                                    str(target_names[target_name])).ratio()
                 each_similarity.append(distance)
             if (mean(each_similarity) > max_similarity):
@@ -268,10 +268,11 @@ class Util:
             msg += "Aren't they bellow?\n"
             keys_dict = keys(most_similar_item)
             for k, v in keys_dict.items():
-                if type(keys_dict[k]) is not str:
-                    msg += k + "='" + str(v) + "'\n"
-                else:
-                    msg += k + "='" + v + "'\n"
+                msg += k + "='" + str(v) + "'\n"
+                # if type(keys_dict[k]) is not str:
+                #     msg += k + "='" + str(v) + "'\n"
+                # else:
+                #     msg += k + "='" + v + "'\n"
             raise ItemNotFoundError(msg)
         else:
             raise ItemNotFoundError('Failed find item.')

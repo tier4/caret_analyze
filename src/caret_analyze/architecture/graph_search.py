@@ -391,19 +391,19 @@ class CallbackPathSearcher:
         callback_graph_path: GraphPath,
         start_callback: CallbackStruct,
         end_callback: CallbackStruct,
-        start_callback_subscriptions: Optional[SubscriptionStruct],
+        start_callback_subscription: Optional[SubscriptionStruct],
         end_callback_publishers: Optional[List[PublisherStruct]]
     ) -> List[NodePathStruct]:
 
-        if start_callback_subscriptions is None and len(end_callback_publishers or []) == 0:
+        if start_callback_subscription is None and len(end_callback_publishers or []) == 0:
             return []  # If there is no sub or pub, it is not calculated as a path
 
         if end_callback_publishers is None or len(end_callback_publishers) == 0:
-            return [self._to_path(callback_graph_path, start_callback_subscriptions, None)]
+            return [self._to_path(callback_graph_path, start_callback_subscription, None)]
 
         return [
             self._to_path(callback_graph_path,
-                          start_callback_subscriptions,
+                          start_callback_subscription,
                           publisher)
             for publisher
             in end_callback_publishers

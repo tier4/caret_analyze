@@ -18,7 +18,7 @@ import fnmatch
 
 from logging import getLogger
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -352,11 +352,12 @@ class Application(Summarizable):
                 not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        target_names = {'publisher_node_name': publisher_node_name,
-                        'subscription_node_name': subscription_node_name,
-                        'topic_name': topic_name,
-                        'publisher_construction_order': publisher_construction_order,
-                        'subscription_construction_order': subscription_construction_order}
+        target_names: Dict[str, Union[str, int]] = \
+            {'publisher_node_name': publisher_node_name,
+             'subscription_node_name': subscription_node_name,
+             'topic_name': topic_name,
+             'publisher_construction_order': publisher_construction_order,
+             'subscription_construction_order': subscription_construction_order}
 
         def get_names(x):
             return {'publisher_node_name': x.publish_node_name,
@@ -481,11 +482,12 @@ class Application(Summarizable):
                 not isinstance(publish_topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        target_name = {'node_name': node_name,
-                       'subscribe_topic_name': subscribe_topic_name,
-                       'publish_topic_name': publish_topic_name,
-                       'publisher_construction_order': publisher_construction_order,
-                       'subscription_construction_order': subscription_construction_order}
+        target_name: Dict[str, Union[str, int]] = \
+            {'node_name': node_name,
+             'subscribe_topic_name': subscribe_topic_name,
+             'publish_topic_name': publish_topic_name,
+             'publisher_construction_order': publisher_construction_order,
+             'subscription_construction_order': subscription_construction_order}
 
         def get_names(x):
             return {'node_name': x.node_name,

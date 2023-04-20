@@ -408,7 +408,7 @@ class Node(Summarizable):
         construction_order: Optional[int] = None
     ) -> Subscription:
         """
-        Get subscription from construction order.
+        Get subscription.
 
         Parameters
         ----------

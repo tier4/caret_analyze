@@ -191,7 +191,7 @@ class Ros2Handler():
             self._create_handler(self._handle_rcl_lifecycle_state_machine_init)
 
         self._monotonic_to_system_offset: Optional[int] = monotonic_to_system_time_offset
-        self._caret_init_recorded: Dict[int, bool] = defaultdict(lambda: False)
+        self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
         self.handler_map = handler_map
 
         # Temporary buffers

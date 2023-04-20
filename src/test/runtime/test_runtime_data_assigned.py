@@ -334,20 +334,18 @@ class TestSubscriptionsLoaded:
         mocker.patch.object(sub_mock, 'callback_name', 'callback')
         mocker.patch.object(sub_mock, 'node_name', 'node_name')
         mocker.patch.object(sub_mock, 'topic_name', 'topic_name')
-        mocker.patch.object(sub_mock, 'construction_order', 1)
         mocker.patch.object(SubscriptionsLoaded, '_to_runtime', return_value=sub_mock)
 
         loaded = SubscriptionsLoaded((sub_info_mock,), provider_mock)
 
-        loaded.get_subscriptions(None, None, None, None) == [sub_info_mock]
+        loaded.get_subscriptions(None, None, None) == [sub_info_mock]
         assert loaded.get_subscriptions(
             callback_name='callback',
             node_name='node_name',
-            topic_name='topic_name',
-            construction_order=1
+            topic_name='topic_name'
         ) == [sub_mock]
 
-        assert loaded.get_subscriptions('not_exist', None, None, 0) == []
+        assert loaded.get_subscriptions('not_exist', None, None) == []
 
     def test_get_subscription(self, mocker):
         provider_mock = mocker.Mock(spec=RecordsProvider)

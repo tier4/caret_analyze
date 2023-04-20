@@ -428,10 +428,8 @@ class SubscriptionsLoaded:
         node_name: Optional[str],
         callback_name: Optional[str],
         topic_name: Optional[str],
-        construction_order: Optional[int] = None
     ) -> List[Subscription]:
-        is_target = SubscriptionsLoaded.IsTarget(
-            node_name, callback_name, topic_name, construction_order)
+        is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
         return Util.filter_items(is_target, self._subs)
 
     def get_subscription(
@@ -791,7 +789,7 @@ class CommunicationsLoaded:
         try:
             return Util.find_one(is_target, self._data)
         except ItemNotFoundError:
-            msg = 'Failed to find node path. '
+            msg = 'Failed to find communication. '
             msg += f'topic_name: {topic_name}. '
             msg += f'publish_node_name: {publish_node_name}. '
             msg += f'subscribe_node_name: {subscribe_node_name}. '
