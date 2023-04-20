@@ -182,9 +182,9 @@ class MessageFlowRectSource:
                 search_name = callback.node_name
 
             y_max_list = np.array(y_axis_values.get_start_indexes(search_name))
-            y_mins = y_max_list - 1
+            y_min_list = y_max_list - 1
 
-            for y_min, y_max in zip(y_mins, y_max_list):
+            for y_min, y_max in zip(y_min_list, y_max_list):
                 df = callback.to_dataframe(shaper=clip)
                 for _, row in df.iterrows():
                     callback_start = row.to_list()[0]
