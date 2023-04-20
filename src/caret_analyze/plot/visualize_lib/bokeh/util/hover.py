@@ -20,10 +20,8 @@ from typing import Any, Dict, List, Optional, Union
 
 from bokeh.models import HoverTool
 
-from .legend import LegendManager
 from .....exceptions import InvalidArgumentError
-from .....runtime import (CallbackBase, Communication, Path, Publisher, Subscription,
-                          SubscriptionCallback, TimerCallback)
+from .....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
 TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscription]]
 
@@ -38,7 +36,8 @@ class HoverKeysFactory:
         'callback_scheduling_rect',
         'timeseries',
         'stacked_bar',
-        'message_flow'
+        'message_flow_line',
+        'message_flow_rect'
     ]
 
     @staticmethod
@@ -85,8 +84,11 @@ class HoverKeysFactory:
         elif graph_type == 'stacked_bar':
             hover_keys = StackedBarKeys(target_object)
 
-        elif graph_type == 'message_flow':
-            hover_keys = MessageFlowKeys(target_object)
+        elif graph_type == 'message_flow_line':
+            hover_keys = MessageFlowLineKeys(target_object)
+
+        elif graph_type == 'message_flow_rect':
+            hover_keys = MessageFlowRectKeys(target_object)
 
         return hover_keys
 
@@ -210,7 +212,7 @@ class TimeSeriesKeys(HoverKeysBase):
         return hover_keys
 
 
-class MessageFlowKeys(HoverKeysBase):
+class MessageFlowLineKeys(HoverKeysBase):
 
     def __init__(self, target_object: TargetTypes) -> None:
         super().__init__(target_object)
@@ -220,7 +222,21 @@ class MessageFlowKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in message flow.")
 
     def to_list(self) -> List[str]:
-        return ['t_start', 't_end', 'latency', 't_offset', 'desc']
+        return ['t_start', 't_end', 'latency', 't_offset', 'index']
+
+
+class MessageFlowRectKeys(HoverKeysBase):
+
+    def __init__(self, target_object: TargetTypes) -> None:
+        super().__init__(target_object)
+
+    def _validate(self, target_object: Any) -> None:
+        if not isinstance(target_object, Path):
+            raise InvalidArgumentError("'target_object' must be Path in message flow.")
+
+    def to_list(self) -> List[str]:
+        return ['t_start', 't_end', 'latency', 't_offset',
+                'callback_type', 'callback_param', 'symbol']
 
 
 class StackedBarKeys(HoverKeysBase):
@@ -233,14 +249,13 @@ class StackedBarKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in stacked bar graph.")
 
     def to_list(self) -> List[str]:
-        return ['legend_label', 'path_name']
+        return ['path_name']
 
 
 class HoverSource:
     """Hover source."""
 
-    def __init__(self, legend_manager: LegendManager, hover_keys: HoverKeysBase) -> None:
-        self._legend_manager = legend_manager
+    def __init__(self, hover_keys: HoverKeysBase) -> None:
         self._hover_keys = hover_keys
 
     def generate(
@@ -271,44 +286,5 @@ class HoverSource:
                 hover_values[k] = [f'{k} = {getattr(target_object, k)}']
             elif additional_hover_dict and k in additional_hover_dict.keys():
                 hover_values[k] = [additional_hover_dict[k]]
-            else:
-                hover_values[k] = [self.get_non_property_data(target_object, k)]
 
         return hover_values
-
-    def get_non_property_data(self, target_object: Any, key: str) -> str:
-        """
-        Get non-property data from target object.
-
-        Parameters
-        ----------
-        target_object : Any
-            Target object.
-        key : str
-            Hover key.
-
-        Returns
-        -------
-        str
-            Non-property data.
-
-        Raises
-        ------
-        NotImplementedError
-            'key' not in [callback_param/legend_label].
-
-        """
-        if key == 'callback_param':
-            if isinstance(target_object, TimerCallback):
-                description = f'period_ns = {target_object.period_ns}'
-            elif isinstance(target_object, SubscriptionCallback):
-                description = f'subscribe_topic_name = {target_object.subscribe_topic_name}'
-
-        elif key == 'legend_label':
-            label = self._legend_manager.get_label(target_object)
-            description = f'legend_label = {label}'
-
-        else:
-            raise NotImplementedError()
-
-        return description

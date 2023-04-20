@@ -15,10 +15,11 @@
 from .color_selector import ColorSelectorFactory
 from .hover import HoverKeysFactory, HoverSource
 from .legend import LegendManager
-from .util import apply_x_axis_offset, init_figure, RectValues
+from .util import apply_x_axis_offset, get_callback_param_desc, init_figure, RectValues
 
 __all__ = [
     'apply_x_axis_offset',
+    'get_callback_param_desc',
     'init_figure',
     'ColorSelectorFactory',
     'HoverKeysFactory',
