@@ -159,9 +159,9 @@ class MessageFlowRectSource:
         clip : Optional[Clip]
             Clip the first and last few seconds.
         converter : Optional[ClockConverter]
-            Converter to simulation time
+            Converter to simulation time.
         offset : Offset
-            Offset of x-axis
+            Offset of x-axis.
 
         Returns
         -------
