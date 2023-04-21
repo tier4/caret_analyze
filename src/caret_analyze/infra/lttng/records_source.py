@@ -660,7 +660,8 @@ class RecordsSource():
 
         records.drop_columns(
             [
-                COLUMN_NAME.IS_INTRA_PROCESS
+                COLUMN_NAME.IS_INTRA_PROCESS,
+                COLUMN_NAME.TID
             ]
         )
 
