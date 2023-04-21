@@ -269,10 +269,6 @@ class Util:
             keys_dict = keys(most_similar_item)
             for k, v in keys_dict.items():
                 msg += k + "='" + str(v) + "'\n"
-                # if type(keys_dict[k]) is not str:
-                #     msg += k + "='" + str(v) + "'\n"
-                # else:
-                #     msg += k + "='" + v + "'\n"
             raise ItemNotFoundError(msg)
         else:
             raise ItemNotFoundError('Failed find item.')

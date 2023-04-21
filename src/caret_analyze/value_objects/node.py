@@ -209,8 +209,11 @@ class NodeStructValue(ValueObject, Summarizable):
 
         try:
             def is_target_subscribe(subscribe: SubscriptionStructValue):
-                return subscribe.topic_name == subscribe_topic_name and \
-                    subscribe.construction_order == construction_order
+                subscribe_topic_name_match = subscribe.topic_name == subscribe_topic_name
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = subscribe.construction_order == construction_order
+                return subscribe_topic_name_match and construction_order_match
 
             return Util.find_one(is_target_subscribe, self._subscriptions)
         except ItemNotFoundError:
@@ -227,8 +230,11 @@ class NodeStructValue(ValueObject, Summarizable):
 
         try:
             def is_target_service(service: ServiceStructValue):
-                return service.service_name == service_name and \
-                    service.construction_order == construction_order
+                service_name_match = service.service_name == service_name
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = service.construction_order == construction_order
+                return service_name_match and construction_order_match
 
             return Util.find_one(is_target_service, self._services)
         except ItemNotFoundError:
@@ -244,8 +250,11 @@ class NodeStructValue(ValueObject, Summarizable):
     ) -> PublisherStructValue:
         try:
             def is_target_publisher(publisher: PublisherStructValue):
-                return publisher.topic_name == publish_topic_name and \
-                    publisher.construction_order == construction_order
+                publish_topic_name_match = publisher.topic_name == publish_topic_name
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = publisher.construction_order == construction_order
+                return publish_topic_name_match and construction_order_match
 
             return Util.find_one(is_target_publisher, self._publishers)
         except ItemNotFoundError:
@@ -261,10 +270,13 @@ class NodeStructValue(ValueObject, Summarizable):
     ) -> TimerStructValue:
         try:
             def is_target_timer(timer: TimerStructValue):
-                return timer.node_name == timer_period and \
-                    timer.construction_order == construction_order
+                timer_node_name_match = timer.node_name == timer_period
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = timer.construction_order == construction_order
+                return timer_node_name_match and construction_order_match
 
-            return Util.find_one(is_target_timer, self._publishers)
+            return Util.find_one(is_target_timer, self._timers)
         except ItemNotFoundError:
             msg = 'Failed to find timer info. '
             msg += f'timer_period: {timer_period}'
