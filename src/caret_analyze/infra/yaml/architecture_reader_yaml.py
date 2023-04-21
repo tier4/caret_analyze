@@ -142,14 +142,6 @@ class ArchitectureReaderYaml(ArchitectureReader):
             self._get_value(context, 'context_type')
             self._get_value(context, 'publisher_topic_name')
             self._get_value(context, 'subscription_topic_name')
-            try:
-                self._get_value(context, 'subscription_construction_order')
-            except InvalidYamlFormatError:
-                pass
-            try:
-                self._get_value(context, 'publisher_construction_order')
-            except InvalidYamlFormatError:
-                pass
 
         return context_dicts
 
