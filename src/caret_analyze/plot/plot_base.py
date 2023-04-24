@@ -32,6 +32,19 @@ class PlotBase(metaclass=ABCMeta):
         self,
         xaxis_type: str
     ) -> pd.DataFrame:
+        """
+        Get data in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+
+        Returns
+        -------
+        pd.DataFrame
+
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -41,6 +54,23 @@ class PlotBase(metaclass=ABCMeta):
         ywheel_zoom: Optional[bool],
         full_legends: Optional[bool]
     ) -> Figure:
+        """
+        Get bokeh.plotting.Figure object.
+
+        Parameters
+        ----------
+        xaxis_type : Optional[str]
+            Type of time for timestamp.
+        ywheel_zoom : Optional[bool]
+            If True, the drawn graph can be expanded in the y-axis direction.
+        full_legends : Optional[bool]
+            If True, all legends are drawn even if the number of legends exceeds the threshold.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+
+        """
         raise NotImplementedError()
 
     def show(
@@ -48,9 +78,8 @@ class PlotBase(metaclass=ABCMeta):
         xaxis_type: Optional[str] = None,
         ywheel_zoom: Optional[bool] = None,
         full_legends: Optional[bool] = None,
-        export_path: Optional[str] = None,  # TODO: remove
         # TODO: add interactive option
-    ) -> Figure:
+    ) -> None:
         """
         Draw a graph using the bokeh library.
 
@@ -65,13 +94,6 @@ class PlotBase(metaclass=ABCMeta):
         full_legends : bool
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
-        export_path : str, optional
-            The graph will be saved as a file.
-            This option is deprecated, please use save method.
-
-        Returns
-        -------
-        bokeh.plotting.Figure
 
         Raises
         ------
@@ -80,14 +102,7 @@ class PlotBase(metaclass=ABCMeta):
 
         """
         p = self.figure(xaxis_type, ywheel_zoom, full_legends)
-        if export_path:
-            logger.warning("The 'export_path' option is deprecated, please use 'save' method.")
-            self.save(export_path=export_path, xaxis_type=xaxis_type,
-                      ywheel_zoom=ywheel_zoom, full_legends=full_legends)
-        else:
-            show(p)
-
-        return p
+        show(p)
 
     def save(
         self,

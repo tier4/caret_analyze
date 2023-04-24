@@ -105,7 +105,7 @@ class RecordsSource():
             progress_label='binding: message_addr and rclcpp_publish',
         )
 
-        rcl_publish_records = self._data.rcl_publish_instances
+        rcl_publish_records = self._data.rcl_publish_instances.clone()
         rcl_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
         if len(rcl_publish_records) > 0:
             publish = merge_sequential(
@@ -244,7 +244,7 @@ class RecordsSource():
         """
         inter_proc_publish = self._data.rclcpp_publish_instances
 
-        rcl_publish_records = self._data.rcl_publish_instances
+        rcl_publish_records = self._data.rcl_publish_instances.clone()
         rcl_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
         if len(rcl_publish_records) > 0:
             inter_proc_publish = merge_sequential(
@@ -423,7 +423,7 @@ class RecordsSource():
             - tilde_subscription
 
         """
-        records = self._data.tilde_publish
+        records = self._data.tilde_publish.clone()
         records.rename_columns({'publisher': 'tilde_publisher'})
 
         subscription: List[int] = []
@@ -660,7 +660,8 @@ class RecordsSource():
 
         records.drop_columns(
             [
-                COLUMN_NAME.IS_INTRA_PROCESS
+                COLUMN_NAME.IS_INTRA_PROCESS,
+                COLUMN_NAME.TID
             ]
         )
 

@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .graphviz.callback_graph import callback_graph
-from .graphviz.chain_latency import chain_latency
-from .graphviz.node_graph import node_graph
-from .plot_base import PlotBase
-from .plot_facade import Plot
-from .stacked_bar import LatencyStackedBar
+from .color_selector import ColorSelectorFactory
+from .hover import HoverKeysFactory, HoverSource
+from .legend import LegendManager
+from .util import apply_x_axis_offset, get_callback_param_desc, init_figure, RectValues
 
 __all__ = [
-    'Plot',
-    'PlotBase',
-    'callback_graph',
-    'chain_latency',
-    'node_graph',
-    'LatencyStackedBar',
+    'apply_x_axis_offset',
+    'get_callback_param_desc',
+    'init_figure',
+    'ColorSelectorFactory',
+    'HoverKeysFactory',
+    'HoverSource',
+    'LegendManager',
+    'RectValues'
 ]
