@@ -79,10 +79,8 @@ class MetricsBase(metaclass=ABCMeta):
                 in records
             ]
 
-            columns: List[ColumnValue] = []
-            for value in values:
-                columns.extend([ColumnValue(_) for _ in value.columns])
-            columns = list(set(columns))
+            columns: List[ColumnValue] = \
+                [ColumnValue(_) for _ in records.columns]
 
             converted_records_list.append(RecordsFactory.create_instance(values, columns))
 
