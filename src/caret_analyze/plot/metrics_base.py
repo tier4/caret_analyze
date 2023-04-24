@@ -70,8 +70,7 @@ class MetricsBase(metaclass=ABCMeta):
             values = [
                 RecordFactory.create_instance({
                     # NOTE: Loss of accuracy may be occurred with sim_time due to rounding process.
-                    # TODO: 'tid' is magic number
-                    k: v if k == 'tid' else round(converter.convert(v))
+                    k: round(converter.convert(v))
                     for k, v
                     in record.data.items()
                 })
