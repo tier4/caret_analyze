@@ -619,7 +619,7 @@ class Ros2Handler():
         if not self._is_valid_data(event):
             return
 
-        tid =  get_field(event, '_vtid')
+        tid = get_field(event, '_vtid')
         timestamp = get_field(event, '_timestamp')
         rmw_subscription_handle = get_field(event, 'rmw_subscription_handle')
         message = get_field(event, 'message')
