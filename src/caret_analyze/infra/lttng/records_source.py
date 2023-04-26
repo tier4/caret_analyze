@@ -471,7 +471,7 @@ class RecordsSource():
 
     @cached_property
     def inter_callback_records(self) -> RecordsInterface:
-        intra_proc_subscribe = RecordsFactory.create_instance(
+        inter_proc_subscribe = RecordsFactory.create_instance(
             None,
             [
                 ColumnValue('callback_start_timestamp'),
@@ -480,10 +480,10 @@ class RecordsSource():
             ]
         )
         if 0 in self._grouped_callback_start:
-            intra_callback_start = self._grouped_callback_start[0].clone()
-            intra_callback_start.drop_columns([COLUMN_NAME.TID])
-            intra_proc_subscribe.concat(intra_callback_start)
-        return intra_proc_subscribe
+            inter_callback_start = self._grouped_callback_start[0].clone()
+            inter_callback_start.drop_columns([COLUMN_NAME.TID])
+            inter_proc_subscribe.concat(inter_callback_start)
+        return inter_proc_subscribe
 
     @cached_property
     def subscribe_records(self) -> RecordsInterface:
