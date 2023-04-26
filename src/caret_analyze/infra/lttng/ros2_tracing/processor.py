@@ -107,6 +107,7 @@ class Ros2Handler():
         handler_map['ros2:rclcpp_intra_publish'] = self._handle_rclcpp_intra_publish
         handler_map['ros2:dispatch_subscription_callback'] = \
             self._handle_dispatch_subscription_callback
+        handler_map['ros2:rmw_take'] = self._handle_rmw_take
         handler_map['ros2:dispatch_intra_process_subscription_callback'] = \
             self._handle_dispatch_intra_process_subscription_callback
         handler_map['ros2_caret:on_data_available'] = self._handle_on_data_available
@@ -222,6 +223,7 @@ class Ros2Handler():
             'ros2:message_construct',
             'ros2:rclcpp_intra_publish',
             'ros2:dispatch_subscription_callback',
+            'ros2:rmw_take',
             'ros2:dispatch_intra_process_subscription_callback',
             'ros2_caret:on_data_available',
             'ros2:rcl_publish',
@@ -608,6 +610,22 @@ class Ros2Handler():
         message_timestamp = get_field(event, 'message_timestamp')
         self.data.add_dispatch_subscription_callback_instance(
             timestamp, callback_object, message, source_stamp, message_timestamp
+        )
+
+    def _handle_rmw_take(
+        self,
+        event: Dict,
+    ) -> None:
+        if not self._is_valid_data(event):
+            return
+
+        tid =  get_field(event, '_vtid')
+        timestamp = get_field(event, '_timestamp')
+        rmw_subscription_handle = get_field(event, 'rmw_subscription_handle')
+        message = get_field(event, 'message')
+        source_stamp = get_field(event, 'source_timestamp')
+        self.data.add_rmw_take_instance(
+            tid, timestamp, rmw_subscription_handle, message, source_stamp
         )
 
     def _handle_dispatch_intra_process_subscription_callback(
