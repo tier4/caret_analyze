@@ -26,5 +26,5 @@ class TestCommunicationStruct:
         mocker.patch.object(sub_mock, 'construction_order', 1)
         mocker.patch.object(pub_mock, 'construction_order', 2)
         com_struct = CommunicationStruct(None, None, pub_mock, sub_mock, None, None)
-        assert com_struct.publisher_construction_order == 1
-        assert com_struct.subscription_construction_order == 2
+        assert com_struct.subscription_construction_order == 1
+        assert com_struct.publisher_construction_order == 2
