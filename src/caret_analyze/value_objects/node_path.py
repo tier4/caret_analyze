@@ -150,21 +150,21 @@ class NodePathStructValue(ValueObject, Summarizable):
         context = None
         if self.message_context is not None:
             context = self.message_context.summary
-        d = {
+        dict_item = {
             'node': self.node_name,
             'message_context': context,
             'subscribe_topic_name': self.subscribe_topic_name,
             'publish_topic_name': self.publish_topic_name,
         }
         if self.publisher_construction_order or 0 > 0:
-            d['publisher_construction_order'] = \
+            dict_item['publisher_construction_order'] = \
                 self.publisher_construction_order  # type: ignore
 
         if self.subscription_construction_order or 0 > 0:
-            d['subscription_construction_order'] = \
+            dict_item['subscription_construction_order'] = \
                 self.subscription_construction_order  # type: ignore
 
-        return Summary(d)
+        return Summary(dict_item)
 
     @property
     def callback_names(self) -> Optional[Tuple[str, ...]]:

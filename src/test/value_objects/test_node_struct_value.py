@@ -38,42 +38,33 @@ class TestNodeStructValue:
         mocker.patch.object(timer_info_mock, 'node_name', 'node_name')
         mocker.patch.object(timer_info_mock, 'construction_order', 1)
 
-        node_info_mock = mocker.Mock(spec=NodeStructValue)
-        mocker.patch.object(node_info_mock, 'node_name', 'node')
-        mocker.patch.object(node_info_mock, 'callback_groups', None)
-        mocker.patch.object(node_info_mock, 'paths', ())
-        mocker.patch.object(node_info_mock, 'variable_passings', None)
-        mocker.patch.object(node_info_mock, 'timers', ())
-        mocker.patch.object(node_info_mock, 'publishers', pub_info_mock)
-        mocker.patch.object(node_info_mock, 'subscriptions', ())
-
-        NodeStructValue.__init__(node_info_mock, 'node_name', [pub_info_mock],
-                                 [sub_info_mock], [service_info_mock], [timer_info_mock],
-                                 None, None, None)
-        node = NodeStructValue.get_publisher(node_info_mock, 'pub_name', None)
+        node_info = NodeStructValue('node_name', [pub_info_mock],
+                                    [sub_info_mock], [service_info_mock], [timer_info_mock],
+                                    None, None, None)
+        node = node_info.get_publisher('pub_name', None)
         assert node == pub_info_mock
-        node = NodeStructValue.get_publisher(node_info_mock, 'pub_name', 1)
+        node = node_info.get_publisher('pub_name', 1)
         assert node == pub_info_mock
         with pytest.raises(ItemNotFoundError):
-            NodeStructValue.get_publisher(node_info_mock, 'pub_name', 0)
+            node_info.get_publisher('pub_name', 0)
 
-        node = NodeStructValue.get_subscription(node_info_mock, 'sub_name', None)
+        node = node_info.get_subscription('sub_name', None)
         assert node == sub_info_mock
-        node = NodeStructValue.get_subscription(node_info_mock, 'sub_name', 1)
+        node = node_info.get_subscription('sub_name', 1)
         assert node == sub_info_mock
         with pytest.raises(ItemNotFoundError):
-            NodeStructValue.get_subscription(node_info_mock, 'sub_name', 0)
+            node_info.get_subscription('sub_name', 0)
 
-        node = NodeStructValue.get_service(node_info_mock, 'service_name', None)
+        node = node_info.get_service('service_name', None)
         assert node == service_info_mock
-        node = NodeStructValue.get_service(node_info_mock, 'service_name', 1)
+        node = node_info.get_service('service_name', 1)
         assert node == service_info_mock
         with pytest.raises(ItemNotFoundError):
-            NodeStructValue.get_service(node_info_mock, 'service_name', 0)
+            node_info.get_service('service_name', 0)
 
-        node = NodeStructValue.get_timer(node_info_mock, 'node_name', None)
+        node = node_info.get_timer('node_name', None)
         assert node == timer_info_mock
-        node = NodeStructValue.get_timer(node_info_mock, 'node_name', 1)
+        node = node_info.get_timer('node_name', 1)
         assert node == timer_info_mock
         with pytest.raises(ItemNotFoundError):
-            NodeStructValue.get_timer(node_info_mock, 'node_name', 0)
+            node_info.get_timer('node_name', 0)

@@ -264,6 +264,8 @@ nodes:
         assert context['context_type'] == InheritUniqueStamp.TYPE_NAME
         assert context['publisher_topic_name'] == '/pong'
         assert context['subscription_topic_name'] == '/ping'
+        assert 'subscription_construction_order' not in context
+        assert 'publisher_construction_order' not in context
 
     def test_message_contexts_with_construction_order(self, mocker):
         architecture_text = """
@@ -304,6 +306,11 @@ nodes:
     callback_names:
     - /listener/timer_callback_0
     - /listener/timer_callback_1
+  - topic_name: /xxx
+    callback_names:
+    - /listener/timer_callback_2
+    - /listener/timer_callback_3
+    construction_order: 1
         """
 
         mocker.patch('builtins.open', mocker.mock_open(
@@ -311,7 +318,7 @@ nodes:
         reader = ArchitectureReaderYaml('file_name')
 
         timer_pubs = reader.get_publishers(NodeValue('/listener', None))
-        assert len(timer_pubs) == 1
+        assert len(timer_pubs) == 2
         timer_pub = timer_pubs[0]
         assert timer_pub.node_id == '/listener'
         assert timer_pub.topic_name == '/xxx'
@@ -319,6 +326,13 @@ nodes:
             '/listener/timer_callback_0',
             '/listener/timer_callback_1')
         assert timer_pub.construction_order == 0
+        timer_pub = timer_pubs[1]
+        assert timer_pub.node_id == '/listener'
+        assert timer_pub.topic_name == '/xxx'
+        assert timer_pub.callback_ids == (
+            '/listener/timer_callback_2',
+            '/listener/timer_callback_3')
+        assert timer_pub.construction_order == 1
 
     def test_subscriptions_info(self, mocker):
         architecture_text = """
@@ -329,6 +343,9 @@ nodes:
   subscribes:
   - topic_name: /xxx
     callback_name: /listener/timer_callback_0
+  - topic_name: /xxx
+    callback_name: /listener/timer_callback_2
+    construction_order: 1
         """
 
         mocker.patch('builtins.open', mocker.mock_open(
@@ -336,12 +353,17 @@ nodes:
         reader = ArchitectureReaderYaml('file_name')
 
         subs = reader.get_subscriptions(NodeValue('/listener', None))
-        assert len(subs) == 1
+        assert len(subs) == 2
         sub = subs[0]
         assert sub.node_name == '/listener'
         assert sub.topic_name == '/xxx'
         assert sub.callback_id == '/listener/timer_callback_0'
         assert sub.construction_order == 0
+        sub = subs[1]
+        assert sub.node_name == '/listener'
+        assert sub.topic_name == '/xxx'
+        assert sub.callback_id == '/listener/timer_callback_2'
+        assert sub.construction_order == 1
 
     def test_timers_info(self, mocker):
         architecture_text = """

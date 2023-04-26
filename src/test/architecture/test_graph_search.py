@@ -469,83 +469,64 @@ class TestCallbackPathSearcher:
     def test_to_paths(self, mocker):
         node_mock = mocker.Mock(spec=NodeStruct)
 
+        graph_path_mock = mocker.Mock(spec=GraphPath)
         sub_cb_mock = mocker.Mock(spec=CallbackStruct)
         pub_cb_mock = mocker.Mock(spec=CallbackStruct)
-        var_pas_mock = mocker.Mock(spec=VariablePassingStruct)
-
-        sub_topic_name = '/sub'
-        pub_topic_name1 = '/pub1'
-        pub_topic_name2 = '/pub2'
-
-        mocker.patch.object(node_mock, 'node_name', '/node')
-        mocker.patch.object(node_mock, 'callbacks', [pub_cb_mock, sub_cb_mock])
-        mocker.patch.object(node_mock, 'variable_passings', [var_pas_mock])
-
-        searcher = CallbackPathSearcher(node_mock)
 
         sub_info_mock = mocker.Mock(spec=SubscriptionStruct)
         pub_info_mock1 = mocker.Mock(spec=PublisherStruct)
         pub_info_mock2 = mocker.Mock(spec=PublisherStruct)
 
-        mocker.patch.object(sub_info_mock, 'topic_name', sub_topic_name)
-        mocker.patch.object(pub_info_mock1, 'topic_name', pub_topic_name1)
-        mocker.patch.object(pub_info_mock2, 'topic_name', pub_topic_name2)
+        node_path_mock1 = mocker.Mock(spec=NodePathStruct)
+        node_path_mock2 = mocker.Mock(spec=NodePathStruct)
+        node_path_mock3 = mocker.Mock(spec=NodePathStruct)
 
-        searcher_sub_info_mock = mocker.Mock(spec=SubscriptionStruct)
-        searcher_pub_info_mock1 = mocker.Mock(spec=PublisherStruct)
-        searcher_pub_info_mock2 = mocker.Mock(spec=PublisherStruct)
+        mocker.patch.object(node_mock, 'callbacks', [])
+        mocker.patch.object(node_mock, 'variable_passings', [])
 
-        mocker.patch.object(sub_cb_mock, 'callback_name', 'cb0')
-        mocker.patch.object(pub_cb_mock, 'callback_name', 'cb1')
-        mocker.patch.object(var_pas_mock, 'callback_name_read', 'cb1')
-        mocker.patch.object(var_pas_mock, 'callback_name_write', 'cb0')
+        def dummy_to_path(callbacks_graph_path, subscription, publisher):
+            assert callbacks_graph_path == graph_path_mock
+            assert subscription == sub_info_mock
+            if publisher is None:
+                return node_path_mock1
+            elif publisher == pub_info_mock1:
+                return node_path_mock2
+            elif publisher == pub_info_mock2:
+                return node_path_mock3
+            else:
+                assert False
 
-        graph_node_mock_0 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(sub_cb_mock.callback_name, 'read')
-        )
-        graph_node_mock_1 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(sub_cb_mock.callback_name, 'write')
-        )
-        graph_node_mock_2 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(pub_cb_mock.callback_name, 'read')
-        )
-        graph_node_mock_3 = GraphNode(
-            CallbackPathSearcher._to_node_point_name(pub_cb_mock.callback_name, 'write')
-        )
+        searcher = CallbackPathSearcher(node_mock)
+        mocker.patch.object(searcher, '_to_path', side_effect=dummy_to_path)
 
-        chain = [sub_cb_mock, var_pas_mock, pub_cb_mock]
-        graph_path_mock = mocker.Mock(spec=GraphPath)
-        mocker.patch.object(graph_path_mock, 'nodes',
-                            [
-                                graph_node_mock_0,
-                                graph_node_mock_1,
-                                graph_node_mock_2,
-                                graph_node_mock_3,
-                            ])
-
-        end_callback_publishers = [searcher_pub_info_mock1, searcher_pub_info_mock2]
-        node_path = searcher._to_paths(
+        node_paths = searcher._to_paths(
             graph_path_mock,
-            sub_cb_mock, pub_cb_mock, searcher_sub_info_mock, end_callback_publishers)
-        expected1 = NodePathStruct(
-            '/node', sub_info_mock, pub_info_mock1, tuple(chain), None)
-        expected2 = NodePathStruct(
-            '/node', sub_info_mock, pub_info_mock2, tuple(chain), None)
-        assert node_path[0].to_value() == expected1.to_value()
-        assert node_path[1].to_value() == expected2.to_value()
+            sub_cb_mock, pub_cb_mock, None, None)
+        assert len(node_paths) == 0
 
-        end_callback_publishers = []
-        node_path = searcher._to_paths(
+        node_paths = searcher._to_paths(
             graph_path_mock,
-            sub_cb_mock, pub_cb_mock, searcher_sub_info_mock, end_callback_publishers)
-        expected = NodePathStruct(
-            '/node', sub_info_mock, None, tuple(chain), None)
-        assert node_path[0].to_value() == expected.to_value()
+            sub_cb_mock, pub_cb_mock, None, [])
+        assert len(node_paths) == 0
 
-        end_callback_publishers = []
-        node_path = searcher._to_paths(
-            graph_path_mock, sub_cb_mock, pub_cb_mock, None, end_callback_publishers)
-        assert node_path == []
+        node_paths = searcher._to_paths(
+            graph_path_mock,
+            sub_cb_mock, pub_cb_mock, sub_info_mock, None)
+        assert len(node_paths) == 1
+        assert node_paths[0] == node_path_mock1
+
+        node_paths = searcher._to_paths(
+            graph_path_mock,
+            sub_cb_mock, pub_cb_mock, sub_info_mock, [])
+        assert len(node_paths) == 1
+        assert node_paths[0] == node_path_mock1
+
+        node_paths = searcher._to_paths(
+            graph_path_mock,
+            sub_cb_mock, pub_cb_mock, sub_info_mock, [pub_info_mock1, pub_info_mock2])
+        assert len(node_paths) == 2
+        assert node_paths[0] == node_path_mock2
+        assert node_paths[1] == node_path_mock3
 
 
 class TestNodePathSearcher:
@@ -777,10 +758,10 @@ class TestNodePathSearcher:
         mocker.patch.object(node_mock_2, 'paths', [node_path_mock_2])
         mocker.patch.object(node_mock_3, 'paths', [node_path_mock_3])
 
-        # already Already tested with test_search_paths_three_nodes()
+        # already tested with test_search_paths_three_nodes()
         mocker.patch.object(
             NodePathSearcher, '_create_head_dummy_node_path', return_value=node_path_mock_0)
-        # already Already tested with test_search_paths_three_nodes()
+        # already tested with test_search_paths_three_nodes()
         mocker.patch.object(
             NodePathSearcher, '_create_tail_dummy_node_path', return_value=node_path_mock_2)
 
@@ -816,10 +797,10 @@ class TestNodePathSearcher:
             graph_path_mock, 'edges', [edge_mock_0, edge_mock_1]
         )
 
-        # already Already tested with test_search_paths_three_nodes()
+        # already tested with test_search_paths_three_nodes()
         pub_mock = mocker.Mock(spec=PublisherStruct)
         mocker.patch.object(NodePathSearcher, '_get_publisher', return_value=pub_mock)
-        # already Already tested with test_search_paths_three_nodes()
+        # already tested with test_search_paths_three_nodes()
         sub_mock = mocker.Mock(spec=SubscriptionStruct)
         mocker.patch.object(NodePathSearcher, '_get_subscription', return_value=sub_mock)
         path = searcher._to_path(graph_path_mock)
@@ -827,38 +808,6 @@ class TestNodePathSearcher:
         expected = PathStruct(
             None, (node_path_mock_0, comm_mock_0, node_path_mock_1, comm_mock_1, node_path_mock_2)
         )
-        assert path.to_value() == expected.to_value()
-
-        # for CommunicationStruct construction_order test
-        mocker.patch.object(sub_mock, 'topic_name', 'topic')
-        mocker.patch.object(sub_mock, 'construction_order', 0)
-        mocker.patch.object(pub_mock, 'construction_order', 0)
-        com_struct = CommunicationStruct(None, None, pub_mock, sub_mock, None, None)
-        assert com_struct.publisher_construction_order == 0
-        assert com_struct.subscription_construction_order == 0
-
-        # for _find_comm error test
-        searcher = NodePathSearcher((node_mock_0, node_mock_1, node_mock_2,), (comm_mock_1,))
-        with pytest.raises(ItemNotFoundError):
-            searcher._to_path(graph_path_mock)
-
-        # for _find_node_path error test
-        searcher = NodePathSearcher((node_mock_0, node_mock_2,), (comm_mock_0, comm_mock_1))
-        with pytest.raises(ItemNotFoundError):
-            searcher._to_path(graph_path_mock)
-
-        # for __init__(duplicated node_path) error test
-        mocker.patch.object(node_path_mock_3, 'publish_topic_name', '0->1')
-        mocker.patch.object(node_path_mock_3, 'subscribe_topic_name', None)
-        mocker.patch.object(node_path_mock_3, 'node_name', node_name_0)
-        mocker.patch.object(node_path_mock_3, 'publisher_construction_order', 0)
-        mocker.patch.object(node_path_mock_3, 'subscription_construction_order', 0)
-        node_path_value_mock_3 = mocker.Mock(spec=NodePathStructValue)
-        mocker.patch.object(node_path_mock_3, 'to_value', return_value=node_path_value_mock_3)
-
-        searcher = NodePathSearcher(
-            (node_mock_0, node_mock_3, node_mock_1, node_mock_2,), (comm_mock_0, comm_mock_1))
-        path = searcher._to_path(graph_path_mock)
         assert path.to_value() == expected.to_value()
 
         # Even if the topic_name is the same, if the subscription_construction_order and
@@ -953,31 +902,76 @@ class TestNodePathSearcher:
         )
         assert path.to_value() == expected.to_value()
 
-    def test_get_sub_pub(self, mocker):
-        # for get_subscription_from_construction_order error test
-        pub_mock = mocker.Mock(spec=PublisherStruct)
-        sub_mock1 = mocker.Mock(spec=SubscriptionStruct)
-        sub_mock2 = mocker.Mock(spec=SubscriptionStruct)
-        sub_mock3 = mocker.Mock(spec=SubscriptionStruct)
-        pub_mock1 = mocker.Mock(spec=PublisherStruct)
-        pub_mock2 = mocker.Mock(spec=PublisherStruct)
+    def test_find_comm(self, mocker):
+        node_mock = mocker.Mock(spec=NodeStruct)
+        node_path_mock = mocker.Mock(spec=NodePathStruct)
+        node_path_value_mock = mocker.Mock(spec=NodePathStructValue)
+        comm_mock_1 = mocker.Mock(spec=CommunicationStruct)
+        comm_mock_2 = mocker.Mock(spec=CommunicationStruct)
+        comm_mock_struct = mocker.Mock(spec=CommunicationStructValue)
 
-        mocker.patch.object(pub_mock1, 'topic_name', 'topic1')
-        mocker.patch.object(pub_mock2, 'topic_name', 'topic2')
-        mocker.patch.object(pub_mock2, 'construction_order', 1)
-        mocker.patch.object(pub_mock, 'construction_order', 0)
-        mocker.patch.object(sub_mock1, 'topic_name', 'topic1')
-        mocker.patch.object(sub_mock2, 'topic_name', 'topic2')
-        mocker.patch.object(sub_mock2, 'construction_order', 0)
-        mocker.patch.object(sub_mock3, 'topic_name', 'topic2')
-        mocker.patch.object(sub_mock3, 'construction_order', 1)
-        sub_mock0 = [sub_mock1, sub_mock2, sub_mock3]
-        pub_mock0 = [pub_mock1, pub_mock2]
-        node_struct = NodeStruct(None, pub_mock0, sub_mock0, None, None, None, None, None)
-        pubs = node_struct.get_publisher('topic2', 1)
-        assert pubs.topic_name == 'topic2'
-        assert pubs.construction_order == 1
+        mocker.patch.object(node_path_mock, 'publish_topic_name', '0->1')
+        mocker.patch.object(node_path_mock, 'subscribe_topic_name', None)
+        mocker.patch.object(node_path_mock, 'node_name', '0')
+        mocker.patch.object(node_path_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_mock, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_mock, 'to_value', return_value=node_path_value_mock)
 
-        subs = node_struct.get_subscription_from_construction_order('topic2', 1)
-        assert subs.topic_name == 'topic2'
-        assert subs.construction_order == 1
+        mocker.patch.object(node_mock, 'node_name', '0')
+        mocker.patch.object(node_mock, 'paths', [node_path_mock])
+
+        mocker.patch.object(comm_mock_1, 'publish_node_name', '1')
+        mocker.patch.object(comm_mock_1, 'subscribe_node_name', '2')
+        mocker.patch.object(comm_mock_1, 'topic_name', '1->2')
+        mocker.patch.object(comm_mock_1, 'subscription_construction_order', 1)
+        mocker.patch.object(comm_mock_1, 'publisher_construction_order', 0)
+        mocker.patch.object(comm_mock_1, 'to_value', return_value=comm_mock_struct)
+        mocker.patch.object(comm_mock_2, 'publish_node_name', '3')
+        mocker.patch.object(comm_mock_2, 'subscribe_node_name', '4')
+        mocker.patch.object(comm_mock_2, 'topic_name', '0->1')
+        mocker.patch.object(comm_mock_2, 'subscription_construction_order', 1)
+        mocker.patch.object(comm_mock_2, 'publisher_construction_order', 1)
+        comm_mock_struct_2 = mocker.Mock(spec=CommunicationStructValue)
+        mocker.patch.object(comm_mock_2, 'to_value', return_value=comm_mock_struct_2)
+
+        searcher = NodePathSearcher((node_mock,), (comm_mock_1, comm_mock_2))
+        comm = searcher._find_comm('3', '4', '0->1', 1, 1)
+        assert comm == comm_mock_2
+
+        with pytest.raises(ItemNotFoundError):
+            searcher._find_comm('1', '2', '1->2', 0, 0)
+
+    def test_find_node_path(self, mocker):
+        node_mock_1 = mocker.Mock(spec=NodeStruct)
+        node_mock_2 = mocker.Mock(spec=NodeStruct)
+        node_path_mock_1 = mocker.Mock(spec=NodePathStruct)
+        node_path_mock_2 = mocker.Mock(spec=NodePathStruct)
+        node_path_value_mock_1 = mocker.Mock(spec=NodePathStructValue)
+        node_path_value_mock_2 = mocker.Mock(spec=NodePathStructValue)
+        comm_mock = mocker.Mock(spec=CommunicationStruct)
+
+        mocker.patch.object(node_path_mock_1, 'publish_topic_name', '1->2')
+        mocker.patch.object(node_path_mock_1, 'subscribe_topic_name', '0->1')
+        mocker.patch.object(node_path_mock_1, 'node_name', '0')
+        mocker.patch.object(node_path_mock_1, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_mock_1, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_mock_1, 'to_value', return_value=node_path_value_mock_1)
+
+        mocker.patch.object(node_path_mock_2, 'publish_topic_name', None)
+        mocker.patch.object(node_path_mock_2, 'subscribe_topic_name', '1->2')
+        mocker.patch.object(node_path_mock_2, 'node_name', '1')
+        mocker.patch.object(node_path_mock_2, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_mock_2, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_mock_2, 'to_value', return_value=node_path_value_mock_2)
+
+        mocker.patch.object(node_mock_1, 'node_name', '0')
+        mocker.patch.object(node_mock_1, 'paths', [node_path_mock_1])
+        mocker.patch.object(node_mock_2, 'node_name', '1')
+        mocker.patch.object(node_mock_2, 'paths', [node_path_mock_2])
+
+        searcher = NodePathSearcher((node_mock_1, node_mock_2), (comm_mock,))
+        node_path = searcher._find_node_path('0->1', '1->2', '0', 0, 0)
+        assert node_path == node_path_mock_1
+
+        with pytest.raises(ItemNotFoundError):
+            searcher._find_node_path('0->1', '1->2', '0', 1, 0)

@@ -120,10 +120,14 @@ class TestApplication:
         assert app.get_node(node_mock.node_name) == node_mock
         assert app.get_callback(
             callback_mock.callback_name) == callback_mock
+
         assert app.get_communication(
             comm_mock.publish_node_name,
             comm_mock.subscribe_node_name,
-            comm_mock.topic_name) == comm_mock
+            comm_mock.topic_name,
+            publisher_construction_order=comm_mock.publisher_construction_order,
+            subscription_construction_order=comm_mock.subscription_construction_order) == \
+            comm_mock
 
         with pytest.raises(ItemNotFoundError) as e:
             app.get_communication(
@@ -137,7 +141,10 @@ class TestApplication:
         assert app.get_node_path(
             node_path_mock.node_name,
             node_path_mock.subscribe_topic_name,
-            node_path_mock.publish_topic_name) == node_path_mock
+            node_path_mock.publish_topic_name,
+            subscription_construction_order=node_path_mock.subscription_construction_order,
+            publisher_construction_order=node_path_mock.publisher_construction_order) == \
+            node_path_mock
 
         with pytest.raises(ItemNotFoundError) as e:
             app.get_node_path(

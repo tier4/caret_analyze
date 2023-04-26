@@ -577,7 +577,7 @@ class TestLttngInfo:
 
         assert execs_info == [exec_info_expect]
 
-    def test_get_timers_construction_order(self, mocker):
+    def test_get_timers(self, mocker):
         data = Ros2DataModel()
         data.finalize()
         info = LttngInfo(data)

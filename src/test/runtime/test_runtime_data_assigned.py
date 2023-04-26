@@ -282,6 +282,27 @@ class TestPublishersLoaded:
         mocker.patch.object(pub_mock, 'callback_names', ['callback'])
         mocker.patch.object(pub_mock, 'node_name', 'node_name')
         mocker.patch.object(pub_mock, 'topic_name', 'topic_name')
+        mocker.patch.object(PublishersLoaded, '_to_runtime', return_value=pub_mock)
+
+        loaded = PublishersLoaded((pub_info_mock,), provider_mock)
+
+        loaded.get_publishers(None, None, None) == [pub_info_mock]
+        assert loaded.get_publishers(
+            'node_name',
+            'callback',
+            'topic_name'
+        ) == [pub_mock]
+
+        assert loaded.get_publishers('not_exist', None, None) == []
+
+    def test_get_publisher(self, mocker):
+        provider_mock = mocker.Mock(spec=RecordsProvider)
+        pub_info_mock = mocker.Mock(spec=PublisherStructValue)
+
+        pub_mock = mocker.Mock(spec=Publisher)
+        mocker.patch.object(pub_mock, 'callback_names', ['callback'])
+        mocker.patch.object(pub_mock, 'node_name', 'node_name')
+        mocker.patch.object(pub_mock, 'topic_name', 'topic_name')
         mocker.patch.object(pub_mock, 'construction_order', 1)
         mocker.patch.object(PublishersLoaded, '_to_runtime', return_value=pub_mock)
 
@@ -513,7 +534,6 @@ class TestCommunicationsLoaded:
         mocker.patch.object(comm_info_mock, 'topic_name', topic_name)
         mocker.patch.object(comm_info_mock, 'publish_node_name', pub_node_name)
         mocker.patch.object(comm_info_mock, 'subscribe_node_name', sub_node_name)
-        mocker.patch.object(comm_info_mock, 'subscription_construction_order', 0)
 
         mocker.patch.object(comm_info_mock, 'subscribe_callback_name', None)
         mocker.patch.object(comm_info_mock, 'publish_callback_names', None)
