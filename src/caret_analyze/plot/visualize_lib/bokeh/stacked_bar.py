@@ -282,10 +282,21 @@ class StackedBarSource:
         stacked_bar_data: Dict[str, List[float]],
         x_width_list: List[float],
     ) -> ColumnDataSource:
-        source = ColumnDataSource({y_label: stacked_bar_data[y_label]})
+        target_data = stacked_bar_data[y_label]
+        y_labels = list(stacked_bar_data.keys())
+        idx_one_below = y_labels.index(y_label) + 1
+        if idx_one_below < len(stacked_bar_data):
+            latencies = [
+                target - below for target, below in
+                zip(target_data, stacked_bar_data[y_labels[idx_one_below]])
+            ]
+        else:
+            latencies = target_data
+
+        source = ColumnDataSource({y_label: target_data})
         source.add(stacked_bar_data['start time'], 'start time')
         source.add(x_width_list, 'x_width_list')
         source.add([f'{y_label}'] * len(x_width_list), 'label')
-        source.add(['latency = ' + str(d) for d in stacked_bar_data[y_label]], 'latency')
+        source.add(['latency = ' + str(_) for _ in latencies], 'latency')
 
         return source
