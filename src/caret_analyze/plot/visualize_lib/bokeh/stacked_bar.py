@@ -89,10 +89,11 @@ class BokehStackedBar:
         for y_label in y_labels:
             vbar_stack = fig.vbar_stack(
                 [y_label],
-                x='start time', width='x_width_list', source=stacked_bar_source.generate(
-                    y_label, stacked_bar_data,
-                    x_width_list),
-                color=color_selector.get_color(y_label))
+                x='start time',
+                width='x_width_list',
+                source=stacked_bar_source.generate(y_label, stacked_bar_data, x_width_list),
+                color=color_selector.get_color(y_label)
+            )
             vbar_stacks.append((y_label, vbar_stack))
 
         legend = Legend(items=vbar_stacks, location='bottom_left')
