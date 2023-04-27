@@ -249,7 +249,7 @@ class StackedBarKeys(HoverKeysBase):
             raise InvalidArgumentError("'target_object' must be Path in stacked bar graph.")
 
     def to_list(self) -> List[str]:
-        return ['name', 'latency']
+        return ['label', 'latency']
 
 
 class HoverSource:

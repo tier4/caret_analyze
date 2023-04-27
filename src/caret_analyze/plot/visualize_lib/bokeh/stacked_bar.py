@@ -85,17 +85,17 @@ class BokehStackedBar:
         stacked_bar_data, x_width_list = \
             self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
 
-        vbars = []
+        vbar_stacks = []
         for y_label in y_labels:
-            vbar = fig.vbar_stack(
+            vbar_stack = fig.vbar_stack(
                 [y_label],
                 x='start time', width='x_width_list', source=stacked_bar_source.generate(
                     y_label, stacked_bar_data,
                     x_width_list),
                 color=color_selector.get_color(y_label))
-            vbars.append((y_label, vbar))
+            vbar_stacks.append((y_label, vbar_stack))
 
-        legend = Legend(items=vbars, location='bottom_left')
+        legend = Legend(items=vbar_stacks, location='bottom_left')
         fig.add_layout(legend, 'below')
         fig.legend.click_policy = 'mute'
 
@@ -278,14 +278,14 @@ class StackedBarSource:
 
     def generate(
         self,
-        key: str,
+        y_label: str,
         stacked_bar_data: Dict[str, List[float]],
         x_width_list: List[float],
     ) -> ColumnDataSource:
-        source = ColumnDataSource({key: stacked_bar_data[key]})
+        source = ColumnDataSource({y_label: stacked_bar_data[y_label]})
         source.add(stacked_bar_data['start time'], 'start time')
         source.add(x_width_list, 'x_width_list')
-        source.add([f'name = {key}'] * len(x_width_list), 'name')
-        source.add(['latency = ' + str(d) for d in stacked_bar_data[key]], 'latency')
+        source.add([f'{y_label}'] * len(x_width_list), 'label')
+        source.add(['latency = ' + str(d) for d in stacked_bar_data[y_label]], 'latency')
 
         return source
