@@ -286,7 +286,8 @@ class StackedBarSource:
         target_data = stacked_bar_data[y_label]
         y_labels = list(stacked_bar_data.keys())
         idx_one_below = y_labels.index(y_label) + 1
-        if idx_one_below < len(stacked_bar_data):
+        # HACK: This assumes that 'start time' is at the bottom of y_labels.
+        if y_labels[idx_one_below] != 'start time':
             latencies = [
                 target - below for target, below in
                 zip(target_data, stacked_bar_data[y_labels[idx_one_below]])
