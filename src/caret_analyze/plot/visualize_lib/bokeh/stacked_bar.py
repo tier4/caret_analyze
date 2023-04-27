@@ -16,11 +16,11 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from bokeh.models import HoverTool
+from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
-                   HoverKeysFactory, HoverSource, init_figure, LegendManager)
+                   HoverKeysFactory, HoverSource, init_figure)
 
 
 class BokehStackedBar:
@@ -80,49 +80,23 @@ class BokehStackedBar:
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         if self._case == 'best':
             color_selector.get_color()
-        legend_manager = LegendManager()
-        stacked_bar_source = StackedBarSource(target_objects, 0.0, self._xaxis_type)
+        stacked_bar_source = StackedBarSource(target_objects)
         fig.add_tools(stacked_bar_source.create_hover())
         stacked_bar_data, x_width_list = \
             self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
-        bottom_labels = self._get_bottom_labels(y_labels)
-        bottom_labels = bottom_labels[1:]
-        source = stacked_bar_source.generate(
-            target_objects,
-            stacked_bar_data,
-            y_labels,
-            bottom_labels,
-            x_width_list
-        )
 
-        for y_label, bottom in zip(y_labels[:-1], bottom_labels):
-            color = color_selector.get_color(y_label)
-            renderer = fig.vbar(
-                x=x_label,
-                top=y_label,
-                width='x_width_list',
-                source=source,
-                color=color,
-                bottom=bottom
-            )
-            legend_manager.add_legend(y_label, renderer, y_label)
-        color = color_selector.get_color(y_labels[-1])
-        renderer = fig.vbar(
-            x=x_label,
-            top=y_labels[-1],
-            width='x_width_list',
-            source=source,
-            color=color
-        )
-        legend_manager.add_legend(y_labels[-1], renderer, y_labels[-1])
+        vbars = []
+        for y_label in y_labels:
+            vbar = fig.vbar_stack(
+                [y_label],
+                x='start time', width='x_width_list', source=stacked_bar_source.generate(
+                    y_label, stacked_bar_data,
+                    x_width_list),
+                color=color_selector.get_color(y_label))
+            vbars.append((y_label, vbar))
 
-        num_legend_threshold = 20
-        legends = legend_manager.create_legends(num_legend_threshold,
-                                                self._full_legends,
-                                                location='bottom_left'
-                                                )
-        for legend in legends:
-            fig.add_layout(legend, 'below')
+        legend = Legend(items=vbars, location='bottom_left')
+        fig.add_layout(legend, 'below')
         fig.legend.click_policy = 'mute'
 
         return fig
@@ -282,13 +256,9 @@ class StackedBarSource:
     def __init__(
         self,
         target_object,
-        frame_min: float,
-        xaxis_type: str,
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance('stacked_bar', target_object)
         self._hover_source = HoverSource(self._hover_keys)
-        self._frame_min = frame_min
-        self._xaxis_type = xaxis_type
 
     def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
         """
@@ -308,18 +278,14 @@ class StackedBarSource:
 
     def generate(
         self,
-        target_object,
-        data: Dict[str, list[float]],
-        y_labels: List[str],
-        bottom_labels: List[str],
+        key: str,
+        stacked_bar_data: Dict[str, List[float]],
         x_width_list: List[float],
     ) -> ColumnDataSource:
-        source = ColumnDataSource(data)
+        source = ColumnDataSource({key: stacked_bar_data[key]})
+        source.add(stacked_bar_data['start time'], 'start time')
         source.add(x_width_list, 'x_width_list')
-        hover_source = self._hover_source.generate(target_object)
+        source.add([f'name = {key}'] * len(x_width_list), 'name')
+        source.add(['latency = ' + str(d) for d in stacked_bar_data[key]], 'latency')
 
-        for description in hover_source:
-            source.add(hover_source[description] * len(x_width_list), description)
-        for y_label, bottom_label in zip(y_labels[1:], bottom_labels):
-            source.add(data[y_label], bottom_label)
         return source
