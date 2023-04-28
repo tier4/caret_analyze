@@ -20,14 +20,14 @@ from multimethod import multimethod as singledispatchmethod
 from .column import ColumnValue
 from .record import Record, RecordInterface, Records, RecordsInterface
 
-try:
-    import caret_analyze.record.record_cpp_impl as cpp_impl
+# try:
+#     import caret_analyze.record.record_cpp_impl as cpp_impl
 
-    use_cpp_impl = True
-    print('Succeed to find record_cpp_impl. the C++ version will be used.')
-except ModuleNotFoundError:
-    use_cpp_impl = False
-    print('Failed to find record_cpp_impl. the Python version will be used.')
+#     use_cpp_impl = True
+#     print('Succeed to find record_cpp_impl. the C++ version will be used.')
+# except ModuleNotFoundError:
+use_cpp_impl = False
+print('Failed to find record_cpp_impl. the Python version will be used.')
 
 
 class RecordFactory:
