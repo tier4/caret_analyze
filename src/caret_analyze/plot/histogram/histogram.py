@@ -12,20 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from logging import getLogger
+from typing import Optional, Sequence
 
-from bokeh.plotting import figure, show
+from bokeh.plotting import Figure, figure
+
+import pandas as pd
 
 from caret_analyze.record import ResponseTime
 
-from .histogram_interface import HistPlot
+from ..plot_base import PlotBase
 from ..plot_util import PlotColorSelector
 from ..visualize_lib import VisualizeLibInterface
 from ...runtime import Path
 
+logger = getLogger(__name__)
+
 
 # TODO: Migrate drawing process to visualize_lib
-class ResponseTimeHistPlot(HistPlot):
+class ResponseTimeHistPlot(PlotBase):
 
     def __init__(
         self,
@@ -34,11 +39,25 @@ class ResponseTimeHistPlot(HistPlot):
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
     ) -> None:
+        self._visulize_lib = visualize_lib
         self._target = list(target)
         self._case = case
         self._binsize_ns = binsize_ns
 
-    def _show_core(self):
+    def to_dataframe(self, xaxis_type: str) -> pd.DataFrame:
+        logger.warning("'to_dataframe' method is not implemented in ResponseTimeHistPlot.")
+        return pd.DataFrame()
+
+    def figure(
+        self,
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None
+    ) -> Figure:
+        # Set default value
+        xaxis_type = xaxis_type or 'system_time'
+        ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else True
+
         p = figure(plot_width=600,
                    plot_height=400,
                    active_scroll='wheel_zoom',
@@ -62,5 +81,5 @@ class ResponseTimeHistPlot(HistPlot):
             color = color_selector.get_color(path.path_name)
             p.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:],
                    color=color, alpha=0.5, legend_label=f'{path.path_name}')
-        show(p)
+
         return p
