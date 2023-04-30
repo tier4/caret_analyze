@@ -20,7 +20,7 @@ from bokeh.plotting import Figure, figure
 
 from caret_analyze.record import ResponseTime
 
-from ...plot_util import PlotColorSelector
+from .util import ColorSelectorFactory
 from ....runtime import Path
 
 
@@ -48,7 +48,7 @@ class BokehResponseTimeHist:
                    active_scroll='wheel_zoom',
                    x_axis_label='Response Time [ms]',
                    y_axis_label='Probability')
-        color_selector = PlotColorSelector()
+        color_selector = ColorSelectorFactory.create_instance('unique')
         for _, path in enumerate(self._target_paths):
             records = path.to_records()
             response = ResponseTime(records)
@@ -63,7 +63,7 @@ class BokehResponseTimeHist:
             hist = hist / sum(hist)
 
             bins = bins*10**-6
-            color = color_selector.get_color(path.path_name)
+            color = color_selector.get_color()
             p.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:],
                    color=color, alpha=0.5, legend_label=f'{path.path_name}')
 
