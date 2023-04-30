@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from .histogram import ResponseTimeHistPlot
+from .histogram_factory import ResponseTimeHistPlotFactory
 
 __all__ = [
-    'ResponseTimeHistPlot'
+    'ResponseTimeHistPlot',
+    'ResponseTimeHistPlotFactory'
 ]

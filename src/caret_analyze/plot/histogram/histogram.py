@@ -16,14 +16,11 @@ from typing import Sequence
 
 from bokeh.plotting import figure, show
 
-from caret_analyze.exceptions import UnsupportedTypeError
-
 from caret_analyze.record import ResponseTime
 
 from .histogram_interface import HistPlot
-
 from ..plot_util import PlotColorSelector
-
+from ..visualize_lib import VisualizeLibInterface
 from ...runtime import Path
 
 
@@ -32,16 +29,12 @@ class ResponseTimeHistPlot(HistPlot):
 
     def __init__(
         self,
+        visualize_lib: VisualizeLibInterface,
         target: Sequence[Path],
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
-    ):
-        if case not in ['best-to-worst', 'best', 'worst']:
-            raise UnsupportedTypeError(
-                f'Unsupported "case". case = {case}.'
-                'supported "case": [best-to-worst/best/worst]'
-            )
-        super().__init__(target)
+    ) -> None:
+        self._target = list(target)
         self._case = case
         self._binsize_ns = binsize_ns
 
