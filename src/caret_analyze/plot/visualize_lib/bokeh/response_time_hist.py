@@ -43,12 +43,12 @@ class BokehResponseTimeHist:
         self._full_legends = full_legends
 
     def create_figure(self) -> Figure:
-        fig = init_figure('Histogram of Response Time', self._ywheel_zoom,
+        fig = init_figure('Histogram of response time [ms]', self._ywheel_zoom,
                           self._xaxis_type, 'Probability', 'Response Time [ms]')
+
         color_selector = ColorSelectorFactory.create_instance('unique')
-        for _, path in enumerate(self._target_paths):
-            records = path.to_records()
-            response = ResponseTime(records)
+        for path in self._target_paths:
+            response = ResponseTime(path.to_records())
 
             if self._case == 'best-to-worst':
                 hist, bins = response.to_histogram(self._binsize_ns)
@@ -58,10 +58,10 @@ class BokehResponseTimeHist:
                 hist, bins = response.to_worst_case_histogram(self._binsize_ns)
 
             hist = hist / sum(hist)
-
             bins = bins*10**-6
-            color = color_selector.get_color()
-            fig.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:],
-                     color=color, alpha=0.5, legend_label=f'{path.path_name}')
+            fig.quad(
+                top=hist, bottom=0, left=bins[:-1], right=bins[1:],
+                color=color_selector.get_color(), alpha=0.5, legend_label=f'{path.path_name}'
+            )
 
         return fig
