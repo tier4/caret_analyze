@@ -16,11 +16,11 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from bokeh.plotting import Figure, figure
+from bokeh.plotting import Figure
 
 from caret_analyze.record import ResponseTime
 
-from .util import ColorSelectorFactory
+from .util import ColorSelectorFactory, init_figure
 from ....runtime import Path
 
 
@@ -43,11 +43,8 @@ class BokehResponseTimeHist:
         self._full_legends = full_legends
 
     def create_figure(self) -> Figure:
-        p = figure(plot_width=600,
-                   plot_height=400,
-                   active_scroll='wheel_zoom',
-                   x_axis_label='Response Time [ms]',
-                   y_axis_label='Probability')
+        fig = init_figure('Histogram of Response Time', self._ywheel_zoom,
+                          self._xaxis_type, 'Probability', 'Response Time [ms]')
         color_selector = ColorSelectorFactory.create_instance('unique')
         for _, path in enumerate(self._target_paths):
             records = path.to_records()
@@ -64,7 +61,7 @@ class BokehResponseTimeHist:
 
             bins = bins*10**-6
             color = color_selector.get_color()
-            p.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:],
-                   color=color, alpha=0.5, legend_label=f'{path.path_name}')
+            fig.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:],
+                     color=color, alpha=0.5, legend_label=f'{path.path_name}')
 
-        return p
+        return fig
