@@ -18,7 +18,7 @@ from typing import Collection, Optional, Union
 from multimethod import multimethod as singledispatchmethod
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
-from .histogram import ResponseTimePlot
+from .histogram import ResponseTimeHistPlot
 from .message_flow import MessageFlowPlot, MessageFlowPlotFactory
 from .plot_base import PlotBase
 from .stacked_bar import StackedBarPlotFactory
@@ -171,7 +171,7 @@ class Plot:
         paths: Collection[Path],
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
-    ) -> ResponseTimePlot:
+    ) -> ResponseTimeHistPlot:
         """
         Get ResponseTimePlot instance.
 
@@ -191,7 +191,7 @@ class Plot:
         ResponseTimePlot
 
         """
-        return ResponseTimePlot(list(paths), case, int(binsize_ns))
+        return ResponseTimeHistPlot(list(paths), case, int(binsize_ns))
 
     @staticmethod
     @create_response_time_histogram_plot.register
@@ -199,8 +199,8 @@ class Plot:
         *paths: Path,
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
-    ) -> ResponseTimePlot:
-        return ResponseTimePlot(list(paths), case, int(binsize_ns))
+    ) -> ResponseTimeHistPlot:
+        return ResponseTimeHistPlot(list(paths), case, int(binsize_ns))
 
     @singledispatchmethod
     def create_callback_scheduling_plot(  # type: ignore

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .histogram import ResponseTimePlot
+from .histogram import ResponseTimeHistPlot
 
 __all__ = [
-    'ResponseTimePlot'
+    'ResponseTimeHistPlot'
 ]

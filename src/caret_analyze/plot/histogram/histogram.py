@@ -28,7 +28,7 @@ from ...runtime import Path
 
 
 # TODO: Migrate drawing process to visualize_lib
-class ResponseTimePlot(HistPlot):
+class ResponseTimeHistPlot(HistPlot):
 
     def __init__(
         self,
