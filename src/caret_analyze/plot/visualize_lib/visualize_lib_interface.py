@@ -27,6 +27,18 @@ class VisualizeLibInterface(metaclass=ABCMeta):
     """Interface class for VisualizeLib."""
 
     @abstractmethod
+    def response_time_hist(
+        self,
+        target_paths: Sequence[Path],
+        case: str,
+        binsize_ns: int,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+    ) -> Figure:
+        raise NotImplementedError()
+
+    @abstractmethod
     def message_flow(
         self,
         target_path: Path,

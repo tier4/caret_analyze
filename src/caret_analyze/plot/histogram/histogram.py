@@ -15,14 +15,11 @@
 from logging import getLogger
 from typing import Optional, Sequence
 
-from bokeh.plotting import Figure, figure
+from bokeh.plotting import Figure
 
 import pandas as pd
 
-from caret_analyze.record import ResponseTime
-
 from ..plot_base import PlotBase
-from ..plot_util import PlotColorSelector
 from ..visualize_lib import VisualizeLibInterface
 from ...runtime import Path
 
@@ -39,7 +36,7 @@ class ResponseTimeHistPlot(PlotBase):
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
     ) -> None:
-        self._visulize_lib = visualize_lib
+        self._visualize_lib = visualize_lib
         self._target = list(target)
         self._case = case
         self._binsize_ns = binsize_ns
@@ -57,29 +54,9 @@ class ResponseTimeHistPlot(PlotBase):
         # Set default value
         xaxis_type = xaxis_type or 'system_time'
         ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else True
+        full_legends = full_legends if full_legends is not None else True
 
-        p = figure(plot_width=600,
-                   plot_height=400,
-                   active_scroll='wheel_zoom',
-                   x_axis_label='Response Time [ms]',
-                   y_axis_label='Probability')
-        color_selector = PlotColorSelector()
-        for _, path in enumerate(self._target):
-            records = path.to_records()
-            response = ResponseTime(records)
-
-            if self._case == 'best-to-worst':
-                hist, bins = response.to_histogram(self._binsize_ns)
-            elif self._case == 'best':
-                hist, bins = response.to_best_case_histogram(self._binsize_ns)
-            elif self._case == 'worst':
-                hist, bins = response.to_worst_case_histogram(self._binsize_ns)
-
-            hist = hist / sum(hist)
-
-            bins = bins*10**-6
-            color = color_selector.get_color(path.path_name)
-            p.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:],
-                   color=color, alpha=0.5, legend_label=f'{path.path_name}')
-
-        return p
+        return self._visualize_lib.response_time_hist(
+            self._target, self._case, self._binsize_ns,
+            xaxis_type, ywheel_zoom, full_legends
+        )
