@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from caret_analyze.record import ColumnValue, Period
+from caret_analyze.record import ColumnValue, Period, RecordInterface
 from caret_analyze.record.record_factory import RecordsFactory
 
 
@@ -116,6 +116,54 @@ class TestPeriodRecords:
         records = create_records(records_raw, columns)
 
         period = Period(records)
+
+        expect_raw = [
+            {'timestamp1': 0, 'period': 11},
+            {'timestamp1': 11, 'period': 2}
+        ]
+        result = to_dict(period.to_records())
+        assert result == expect_raw
+
+    def test_two_column_drop_non_target_column_case(self):
+        records_raw = [
+            {'timestamp1': 0, 'timestamp2': 2},
+            {'timestamp1': 3},
+            {'timestamp1': 11, 'timestamp2': 12},
+            {'timestamp1': 13, 'timestamp2': 14}
+        ]
+        columns = [ColumnValue('timestamp1'), ColumnValue('timestamp2')]
+        records = create_records(records_raw, columns)
+
+        period = Period(records, target_column='timestamp1')
+
+        expect_raw = [
+            {'timestamp1': 0, 'period': 3},
+            {'timestamp1': 3, 'period': 8},
+            {'timestamp1': 11, 'period': 2}
+        ]
+        result = to_dict(period.to_records())
+        assert result == expect_raw
+
+    def test_two_column_apply_row_filter_case(self):
+        records_raw = [
+            {'timestamp1': 0, 'timestamp2': 2},
+            {'timestamp1': 3},
+            {'timestamp1': 11, 'timestamp2': 12},
+            {'timestamp1': 13, 'timestamp2': 14}
+        ]
+        columns = [ColumnValue('timestamp1'), ColumnValue('timestamp2')]
+        records = create_records(records_raw, columns)
+
+        def row_filter(record: RecordInterface) -> bool:
+            start_column = 'timestamp1'
+            end_column = 'timestamp2'
+            if (record.data.get(start_column) is not None
+                    and record.data.get(end_column) is not None):
+                return True
+            else:
+                return False
+
+        period = Period(records, row_filter=row_filter)
 
         expect_raw = [
             {'timestamp1': 0, 'period': 11},
