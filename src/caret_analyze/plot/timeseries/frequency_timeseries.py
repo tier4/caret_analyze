@@ -91,10 +91,29 @@ class FrequencyTimeSeries(MetricsBase):
             Frequency records list of all target objects.
 
         """
+        if isinstance(self._target_objects[0], Communication):
+            columns = self._target_objects[0].to_records().columns
+            start_column = columns[0]
+            end_column = columns[1]
+
+            def row_filter_communication(record) -> bool:
+                """Return True only if communication is established."""
+                comm_start_column = start_column
+                comm_end_column = end_column
+                if (record.data.get(comm_start_column) is not None
+                        and record.data.get(comm_end_column) is not None):
+                    return True
+                else:
+                    return False
+
         min_time, max_time = self._get_timestamp_range(self._target_objects)
         timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
-            frequency = Frequency(target_object.to_records())
+            frequency = Frequency(
+                target_object.to_records(),
+                row_filter=row_filter_communication
+                if isinstance(target_object, Communication) else None
+            )
             timeseries_records_list.append(frequency.to_records(
                 base_timestamp=min_time, until_timestamp=max_time
             ))
