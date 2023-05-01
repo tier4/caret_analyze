@@ -97,9 +97,28 @@ class PeriodTimeSeries(MetricsBase):
             Period records list of all target objects.
 
         """
+        if isinstance(self._target_objects[0], Communication):
+            columns = self._target_objects[0].to_records().columns
+            start_column = columns[0]
+            end_column = columns[1]
+
+            def row_filter_communication(record) -> bool:
+                """Return True only if communication is established."""
+                comm_start_column = start_column
+                comm_end_column = end_column
+                if (record.data.get(comm_start_column) is not None
+                        and record.data.get(comm_end_column) is not None):
+                    return True
+                else:
+                    return False
+
         timeseries_records_list: List[RecordsInterface] = []
         for target_object in self._target_objects:
-            period = Period(target_object.to_records())
+            period = Period(
+                target_object.to_records(),
+                row_filter=row_filter_communication
+                if isinstance(target_object, Communication) else None
+            )
             timeseries_records_list.append(period.to_records())
 
         if xaxis_type == 'sim_time':
