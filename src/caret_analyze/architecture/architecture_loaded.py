@@ -219,14 +219,18 @@ class CommValuesLoaded():
         self,
         topic_name: str,
         publish_node_name: str,
+        publisher_construction_order: Optional[int],
         subscribe_node_name: str,
+        subscription_construction_order: Optional[int],
     ) -> CommunicationStruct:
         from ..common import Util
 
         def is_target(comm: CommunicationStruct):
             return comm.publish_node_name == publish_node_name and \
                 comm.subscribe_node_name == subscribe_node_name and \
-                comm.topic_name == topic_name
+                comm.topic_name == topic_name and \
+                comm.publisher_construction_order == publisher_construction_order and \
+                comm.subscription_construction_order == subscription_construction_order
         try:
             return Util.find_one(is_target, self.data)
         except ItemNotFoundError:
@@ -234,6 +238,8 @@ class CommValuesLoaded():
             msg += f'topic_name: {topic_name}, '
             msg += f'publish_node_name: {publish_node_name}, '
             msg += f'subscribe_node_name: {subscribe_node_name}, '
+            msg += f'publisher_construction_order: {publisher_construction_order}, '
+            msg += f'subscription_construction_order: {subscription_construction_order}, '
 
             raise ItemNotFoundError(msg)
 
@@ -366,8 +372,13 @@ class NodeValuesLoaded():
         from ..common import Util
 
         def is_target(value: NodePathStruct):
-            return value.publish_topic_name == node_path_value.publish_topic_name and \
-                value.subscribe_topic_name == node_path_value.subscribe_topic_name
+            return (value.publish_topic_name == node_path_value.publish_topic_name and
+                    value.subscribe_topic_name == node_path_value.subscribe_topic_name and
+                    value.publisher_construction_order ==
+                    node_path_value.publisher_construction_order and
+                    value.subscription_construction_order ==
+                    node_path_value.subscription_construction_order
+                    )
 
         node_value = self.find_node(node_path_value.node_name)
         try:
@@ -377,6 +388,10 @@ class NodeValuesLoaded():
             msg += f' node_name: {node_path_value.node_name}'
             msg += f' publish_topic_name: {node_path_value.publish_topic_name}'
             msg += f' subscribe_topic_name: {node_path_value.subscribe_topic_name}'
+            msg += f' publisher_construction_order: \
+                {node_path_value.publisher_construction_order}'
+            msg += f' subscription_construction_order: \
+                {node_path_value.subscription_construction_order}'
             raise ItemNotFoundError(msg)
         except MultipleItemFoundError as e:
             raise MultipleItemFoundError(
@@ -496,18 +511,26 @@ class NodeValuesLoaded():
         subs = node.subscriptions
         node_path_pub_sub_pairs = NodePathCreated(subs, pubs).data
         for node_path in node_path_pub_sub_pairs:
-            added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
-                                   for n in node_paths]
-            pub_sub_pair = (node_path.publish_topic_name,
-                            node_path.subscribe_topic_name)
+            added_pub_sub_construction_order_pairs = [(
+                n.publish_topic_name,
+                n.publisher_construction_order,
+                n.subscribe_topic_name,
+                n.subscription_construction_order,
+            ) for n in node_paths]
+            pub_sub_construction_order_pair = (node_path.publish_topic_name,
+                                               node_path.publisher_construction_order,
+                                               node_path.subscribe_topic_name,
+                                               node_path.subscription_construction_order)
 
-            if pub_sub_pair not in added_pub_sub_pairs:
+            if pub_sub_construction_order_pair not in added_pub_sub_construction_order_pairs:
                 node_paths.append(node_path)
 
                 logger.info(
                     'Path Added: '
                     f'subscribe: {node_path.subscribe_topic_name}, '
+                    f'subscription_order: {node_path.subscription_construction_order}, '
                     f'publish: {node_path.publish_topic_name}, '
+                    f'publisher_order: {node_path.publisher_construction_order}, '
                 )
 
         # add dummy node paths
@@ -622,9 +645,17 @@ class MessageContextsLoaded:
                 if context_type == UNDEFINED_STR:
                     logger.info(f'message context is UNDEFINED. {context_dict}')
                     continue
+                publisher_topic_name = context_dict['publisher_topic_name']
+                subscription_topic_name = context_dict['subscription_topic_name']
+                subscription_construction_order = 0 if 'subscription_construction_order' \
+                    not in context_dict else context_dict['subscription_construction_order']
+                publisher_construction_order = 0 if 'publisher_construction_order' \
+                    not in context_dict else context_dict['publisher_construction_order']
                 node_path = self.get_node_path(node_paths,
-                                               context_dict['publisher_topic_name'],
-                                               context_dict['subscription_topic_name'])
+                                               publisher_topic_name,
+                                               subscription_topic_name,
+                                               subscription_construction_order,
+                                               publisher_construction_order)
                 data.append(self._to_struct(context_dict, node_path))
                 pair = (node_path.publish_topic_name, node_path.subscribe_topic_name)
                 pub_sub_pairs.append(pair)
@@ -642,11 +673,15 @@ class MessageContextsLoaded:
     def get_node_path(
         node_paths: Sequence[NodePathStruct],
         publisher_topic_name: str,
-        subscription_topic_name: str
+        subscription_topic_name: str,
+        subscription_construction_order: int,
+        publisher_construction_order: int
     ) -> NodePathStruct:
         def is_target(path: NodePathValue):
             return path.publish_topic_name == publisher_topic_name and \
-                path.subscribe_topic_name == subscription_topic_name
+                path.subscribe_topic_name == subscription_topic_name and \
+                path.subscription_construction_order == subscription_construction_order and \
+                path.publisher_construction_order == publisher_construction_order
         return Util.find_one(is_target, node_paths)
 
     @property
@@ -753,6 +788,7 @@ class PublishersLoaded:
             publisher_value.node_name,
             publisher_value.topic_name,
             callback_values=pub_callbacks,
+            construction_order=publisher_value.construction_order
         )
 
     @staticmethod
@@ -834,9 +870,10 @@ class SubscriptionsLoaded:
             assert isinstance(sub_callback, SubscriptionCallbackStruct)
 
         return SubscriptionStruct(
-            subscription_value.node_name,
-            subscription_value.topic_name,
-            sub_callback
+            node_name=subscription_value.node_name,
+            topic_name=subscription_value.topic_name,
+            callback_info=sub_callback,
+            construction_order=subscription_value.construction_order
         )
 
     @property
@@ -905,9 +942,10 @@ class ServicesLoaded:
             assert isinstance(srv_callback, ServiceCallbackStruct)
 
         return ServiceStruct(
-            service_value.node_name,
-            service_value.service_name,
-            srv_callback
+            node_name=service_value.node_name,
+            service_name=service_value.service_name,
+            callback_info=srv_callback,
+            construction_order=service_value.construction_order
         )
 
     @property
@@ -976,9 +1014,10 @@ class TimersLoaded:
                 timer_value.callback_id)  # type: ignore
 
         return TimerStruct(
-            timer_value.node_name,
-            timer_value.period,
-            timer_callback
+            node_name=timer_value.node_name,
+            period_ns=timer_value.period,
+            callback_info=timer_callback,
+            construction_order=timer_value.construction_order
         )
 
     @property
@@ -1523,7 +1562,9 @@ class PathValuesLoaded():
             comm_info = comms_loaded.find_communication(
                 topic_name,
                 pub_node_path.node_name,
-                sub_node_path.node_name
+                pub_node_path.publisher_construction_order,
+                sub_node_path.node_name,
+                sub_node_path.subscription_construction_order
             )
 
             child.append(comm_info)
@@ -1558,7 +1599,7 @@ class CallbackPathSearched():
 
         if callbacks is not None:
             for write_callback, read_callback in product(callbacks, callbacks):
-                searched_paths = searcher.search(write_callback, read_callback)
+                searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
                     msg = 'Path Added: '
                     msg += f'subscribe: {path.subscribe_topic_name}, '

@@ -204,9 +204,9 @@ class Util:
 
     @staticmethod
     def find_similar_one_multi_keys(
-        target_names: Dict[str, str],
+        target_names: Dict[str, str | int],
         items: Collection[Any],
-        keys: Callable[[Any], Dict[str, str]] = lambda x: x,
+        keys: Callable[[Any], Dict[str, str | int]] = lambda x: x,
         th: float = 0.6
     ) -> Any:
         """
@@ -214,11 +214,11 @@ class Util:
 
         Parameters
         ----------
-        target_names: Dict[str, str]
+        target_names: Dict[str, str | int]
             target_names
         items: Collection[Any]
             Items to be searched.
-        keys: Callable[[Any], Dict[str, str]]
+        keys: Callable[[Any], Dict[str, str | int]]
             key
         th: float
             Similarity judgment threshold.
@@ -245,9 +245,16 @@ class Util:
                 if(keys_dict[target_name] is None):
                     each_similarity.append(0.0)
                     continue
+                if type(keys_dict[target_name]) is not str:
+                    if keys_dict[target_name] == target_names[target_name]:
+                        distance = 1.0
+                    else:
+                        distance = 0.0
+                    each_similarity.append(distance)
+                    continue
                 distance = difflib.SequenceMatcher(None,
-                                                   keys_dict[target_name],
-                                                   target_names[target_name]).ratio()
+                                                   str(keys_dict[target_name]),
+                                                   str(target_names[target_name])).ratio()
                 each_similarity.append(distance)
             if (mean(each_similarity) > max_similarity):
                 max_similarity = mean(each_similarity)
@@ -261,7 +268,7 @@ class Util:
             msg += "Aren't they bellow?\n"
             keys_dict = keys(most_similar_item)
             for k, v in keys_dict.items():
-                msg += k + "='" + v + "'\n"
+                msg += k + "='" + str(v) + "'\n"
             raise ItemNotFoundError(msg)
         else:
             raise ItemNotFoundError('Failed find item.')

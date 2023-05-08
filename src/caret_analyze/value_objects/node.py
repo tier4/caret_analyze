@@ -203,56 +203,84 @@ class NodeStructValue(ValueObject, Summarizable):
 
     def get_subscription(
         self,
-        subscribe_topic_name: str
+        subscribe_topic_name: str,
+        construction_order: Optional[int]
     ) -> SubscriptionStructValue:
 
         try:
-            return Util.find_one(
-                lambda x: x.topic_name == subscribe_topic_name,
-                self._subscriptions)
+            def is_target_subscribe(subscribe: SubscriptionStructValue):
+                subscribe_topic_name_match = subscribe.topic_name == subscribe_topic_name
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = subscribe.construction_order == construction_order
+                return subscribe_topic_name_match and construction_order_match
+
+            return Util.find_one(is_target_subscribe, self._subscriptions)
         except ItemNotFoundError:
             msg = 'Failed to find subscription info. '
             msg += f'topic_name: {subscribe_topic_name}'
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     def get_service(
         self,
-        service_name: str
+        service_name: str,
+        construction_order: Optional[int]
     ) -> ServiceStructValue:
 
         try:
-            return Util.find_one(
-                lambda x: x.service_name == service_name,
-                self._services)
+            def is_target_service(service: ServiceStructValue):
+                service_name_match = service.service_name == service_name
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = service.construction_order == construction_order
+                return service_name_match and construction_order_match
+
+            return Util.find_one(is_target_service, self._services)
         except ItemNotFoundError:
             msg = 'Failed to find service info. '
             msg += f'service_name: {service_name}'
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     def get_publisher(
         self,
-        publish_topic_name: str
+        publish_topic_name: str,
+        construction_order: Optional[int]
     ) -> PublisherStructValue:
         try:
-            return Util.find_one(
-                lambda x: x.topic_name == publish_topic_name,
-                self._publishers)
+            def is_target_publisher(publisher: PublisherStructValue):
+                publish_topic_name_match = publisher.topic_name == publish_topic_name
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = publisher.construction_order == construction_order
+                return publish_topic_name_match and construction_order_match
+
+            return Util.find_one(is_target_publisher, self._publishers)
         except ItemNotFoundError:
             msg = 'Failed to find publisher info. '
-            msg += f'topic_name: {publish_topic_name}'
+            msg += f'topic_name: {publish_topic_name}, '
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     def get_timer(
         self,
-        timer_period: str
+        timer_period: str,
+        construction_order: Optional[int]
     ) -> TimerStructValue:
         try:
-            return Util.find_one(
-                lambda x: x.period == timer_period,
-                self._publishers)
+            def is_target_timer(timer: TimerStructValue):
+                timer_node_name_match = timer.node_name == timer_period
+                construction_order_match = True
+                if construction_order is not None:
+                    construction_order_match = timer.construction_order == construction_order
+                return timer_node_name_match and construction_order_match
+
+            return Util.find_one(is_target_timer, self._timers)
         except ItemNotFoundError:
             msg = 'Failed to find timer info. '
             msg += f'timer_period: {timer_period}'
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     @property

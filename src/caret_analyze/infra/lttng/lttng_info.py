@@ -420,7 +420,8 @@ class LttngInfo:
                     node_id=row['node_id'],
                     callback_ids=None,
                     publisher_handle=row['publisher_handle'],
-                    tilde_publisher=tilde_publisher
+                    tilde_publisher=tilde_publisher,
+                    construction_order=row['construction_order']
                 )
             )
 
@@ -575,6 +576,7 @@ class LttngInfo:
                             node_name=callback.node_name,
                             node_id=callback.node_id,
                             callback_id=callback.callback_id,
+                            construction_order=callback.construction_order
                         )
                     )
 
@@ -802,9 +804,15 @@ class DataFrameFormatted:
     def _build_publisher(
         data: Ros2DataModel,
     ) -> TracePointData:
-        columns = ['publisher_id', 'publisher_handle', 'node_handle', 'topic_name', 'depth']
+        columns = (
+                    ['publisher_id', 'publisher_handle', 'node_handle',
+                     'topic_name', 'depth', 'construction_order']
+                    )
         publishers = data.publishers.clone()
         publishers.reset_index()
+
+        DataFrameFormatted._add_construction_order_publisher_or_subscription(
+            publishers, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
 
         def to_publisher_id(row: pd.Series):
             publisher_handle = row['publisher_handle']
@@ -1028,13 +1036,36 @@ class DataFrameFormatted:
     ) -> None:
 
         data.sort(timestamp_column)
-        order: defaultdict[DataFrameFormatted.KeyType, int] = defaultdict(int)
+        order: Dict[DataFrameFormatted.KeyType, int] = defaultdict(int)
 
         def construct_order(row: pd.Series) -> int:
             node = row[node_handle_column]
             callback_param = row[callback_parameter_column]
             symbol = row[symbol_column]
             key: DataFrameFormatted.KeyType = node, callback_param, symbol
+            order_ = int(order[key])
+            order[key] += 1
+            return order_
+
+        data.add_column(column_name, construct_order)
+
+    KeyTypePubSub = Tuple[Union[int, str], Union[str, int]]
+
+    @staticmethod
+    def _add_construction_order_publisher_or_subscription(
+        data: TracePointData,
+        column_name: str,
+        timestamp_column: str,
+        node_handle_column: str,
+        topic_name: str
+    ) -> None:
+
+        data.sort(timestamp_column)
+        order: Dict[DataFrameFormatted.KeyTypePubSub, int] = defaultdict(int)
+
+        def construct_order(row: pd.Series) -> int:
+            node = row[node_handle_column]
+            key: DataFrameFormatted.KeyTypePubSub = node, row[topic_name]
             order_ = int(order[key])
             order[key] += 1
             return order_

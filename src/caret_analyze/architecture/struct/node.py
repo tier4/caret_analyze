@@ -119,6 +119,25 @@ class NodeStruct():
     def variable_passings(self) -> Optional[List[VariablePassingStruct]]:
         return self._variable_passings_info
 
+    def get_subscription_from_construction_order(
+        self,
+        subscribe_topic_name: str,
+        construction_order: Optional[int] = None
+    ) -> SubscriptionStruct:
+
+        def is_target(subscription: SubscriptionStruct):
+            match = subscription.topic_name == subscribe_topic_name
+            if construction_order is not None:
+                match &= subscription.construction_order == construction_order
+            return match
+
+        try:
+            return Util.find_one(is_target, self._subscriptions)
+        except ItemNotFoundError:
+            msg = 'Failed to find subscription info. '
+            msg += f'topic_name: {subscribe_topic_name}'
+            raise ItemNotFoundError(msg)
+
     def get_subscription(
         self,
         subscribe_topic_name: str,
@@ -154,15 +173,20 @@ class NodeStruct():
 
     def get_publisher(
         self,
-        publish_topic_name: str
+        publish_topic_name: str,
+        construction_order: Optional[int]
     ) -> PublisherStruct:
         try:
-            return Util.find_one(
-                lambda x: x.topic_name == publish_topic_name,
-                self._publishers)
+            def is_target_publisher(publisher: PublisherStruct):
+                return publisher.topic_name == publish_topic_name and \
+                    publisher.construction_order == construction_order
+
+            return Util.find_one(is_target_publisher, self._publishers)
+
         except ItemNotFoundError:
             msg = 'Failed to find publisher info. '
-            msg += f'topic_name: {publish_topic_name}'
+            msg += f'topic_name: {publish_topic_name}, '
+            msg += f'construction_order: {construction_order}'
             raise ItemNotFoundError(msg)
 
     def get_timer(
@@ -268,3 +292,16 @@ class NodeStruct():
         if self._variable_passings_info is not None:
             for v in self._variable_passings_info:
                 v.rename_topic(src, dst)
+
+    def get_publisher_from_callback(self, callback_name: str) -> List[PublisherStruct]:
+        l: List[PublisherStruct] = []
+        for publisher in self.publishers:
+            if publisher.callback_names and callback_name in publisher.callback_names:
+                l.append(publisher)
+        return l
+
+    def get_subscription_from_callback(self, callback_name: str) -> Optional[SubscriptionStruct]:
+        for subscription in self.subscriptions:
+            if subscription.callback_name == callback_name:
+                return subscription
+        return None

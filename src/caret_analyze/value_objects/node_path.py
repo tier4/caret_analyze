@@ -42,6 +42,8 @@ class NodePathValue(ValueObject):
         node_name: str,
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
+        publisher_construction_order: Optional[int],
+        subscription_construction_order: Optional[int],
     ) -> None:
         """
         Construct an instance.
@@ -54,11 +56,17 @@ class NodePathValue(ValueObject):
             Topic name which the node-path subscribes.
         publish_topic_name : Optional[str]
             Topic name which the node-path publishes.
+        publisher_construction_order : Optional[int]
+            construction order of publisher.
+        subscription_construction_order : Optional[int]
+            construction order of subscription.
 
         """
         self._node_name = node_name
         self._publish_topic_name = publish_topic_name
         self._subscribe_topic_name = subscribe_topic_name
+        self._publisher_construction_order = publisher_construction_order
+        self._subscription_construction_order = subscription_construction_order
 
     @property
     def node_name(self) -> str:
@@ -71,6 +79,14 @@ class NodePathValue(ValueObject):
     @property
     def subscribe_topic_name(self) -> Optional[str]:
         return self._subscribe_topic_name
+
+    @property
+    def publisher_construction_order(self) -> Optional[int]:
+        return self._publisher_construction_order
+
+    @property
+    def subscription_construction_order(self) -> Optional[int]:
+        return self._subscription_construction_order
 
 
 class NodePathStructValue(ValueObject, Summarizable):
@@ -134,12 +150,21 @@ class NodePathStructValue(ValueObject, Summarizable):
         context = None
         if self.message_context is not None:
             context = self.message_context.summary
-        return Summary({
+        dict_item = {
             'node': self.node_name,
             'message_context': context,
             'subscribe_topic_name': self.subscribe_topic_name,
             'publish_topic_name': self.publish_topic_name,
-        })
+        }
+        if self.publisher_construction_order or 0 > 0:
+            dict_item['publisher_construction_order'] = \
+                self.publisher_construction_order  # type: ignore
+
+        if self.subscription_construction_order or 0 > 0:
+            dict_item['subscription_construction_order'] = \
+                self.subscription_construction_order  # type: ignore
+
+        return Summary(dict_item)
 
     @property
     def callback_names(self) -> Optional[Tuple[str, ...]]:
@@ -204,3 +229,15 @@ class NodePathStructValue(ValueObject, Summarizable):
         if self._subscription is None:
             return None
         return self._subscription.topic_name
+
+    @property
+    def publisher_construction_order(self) -> Optional[int]:
+        if self.publisher:
+            return self.publisher.construction_order
+        return None
+
+    @property
+    def subscription_construction_order(self) -> Optional[int]:
+        if self.subscription:
+            return self.subscription.construction_order
+        return None

@@ -101,6 +101,19 @@ class Subscription(PathBase, Summarizable):
         return self._val.topic_name
 
     @property
+    def construction_order(self) -> int:
+        """
+        Get a construction order.
+
+        Returns
+        -------
+        int
+            A construction order of this subscription.
+
+        """
+        return self._val.construction_order
+
+    @property
     def callback_name(self) -> Optional[str]:
         """
         Get a subscription callback name.
