@@ -4513,7 +4513,7 @@ In CARET, the node path is defined as from subscribe to publish.</p>
 
 
 <h3 id="caret_analyze.value_objects.node_path.NodePathValue.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">subscribe_topic_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">subscribe_topic_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">,</span> <span class="n">publisher_construction_order</span><span class="p">,</span> <span class="n">subscription_construction_order</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.value_objects.node_path.NodePathValue.__init__" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -4559,6 +4559,26 @@ In CARET, the node path is defined as from subscribe to publish.</p>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>Topic name which the node-path publishes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publisher_construction_order</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>construction order of publisher.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subscription_construction_order</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>construction order of subscription.</p></td>
           <td>
               <em>required</em>
           </td>

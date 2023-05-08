@@ -920,6 +920,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.communication.Communication.publisher_construction_order" class="md-nav__link">
+    publisher_construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.communication.Communication.rmw_implementation" class="md-nav__link">
     rmw_implementation
   </a>
@@ -943,6 +950,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.runtime.communication.Communication.subscription" class="md-nav__link">
     subscription
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.communication.Communication.subscription_construction_order" class="md-nav__link">
+    subscription_construction_order
   </a>
   
 </li>
@@ -1327,6 +1341,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.node_path.NodePath.publisher_construction_order" class="md-nav__link">
+    publisher_construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.node_path.NodePath.subscribe_topic_name" class="md-nav__link">
     subscribe_topic_name
   </a>
@@ -1336,6 +1357,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.runtime.node_path.NodePath.subscription" class="md-nav__link">
     subscription
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.node_path.NodePath.subscription_construction_order" class="md-nav__link">
+    subscription_construction_order
   </a>
   
 </li>
@@ -1594,6 +1622,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.publisher.Publisher.construction_order" class="md-nav__link">
+    construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.publisher.Publisher.node_name" class="md-nav__link">
     node_name
   </a>
@@ -1664,6 +1699,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.runtime.subscription.Subscription.callback_name" class="md-nav__link">
     callback_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.subscription.Subscription.construction_order" class="md-nav__link">
+    construction_order
   </a>
   
 </li>
@@ -2531,6 +2573,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.communication.Communication.publisher_construction_order" class="md-nav__link">
+    publisher_construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.communication.Communication.rmw_implementation" class="md-nav__link">
     rmw_implementation
   </a>
@@ -2554,6 +2603,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.runtime.communication.Communication.subscription" class="md-nav__link">
     subscription
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.communication.Communication.subscription_construction_order" class="md-nav__link">
+    subscription_construction_order
   </a>
   
 </li>
@@ -2938,6 +2994,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.node_path.NodePath.publisher_construction_order" class="md-nav__link">
+    publisher_construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.node_path.NodePath.subscribe_topic_name" class="md-nav__link">
     subscribe_topic_name
   </a>
@@ -2947,6 +3010,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.runtime.node_path.NodePath.subscription" class="md-nav__link">
     subscription
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.node_path.NodePath.subscription_construction_order" class="md-nav__link">
+    subscription_construction_order
   </a>
   
 </li>
@@ -3205,6 +3275,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.publisher.Publisher.construction_order" class="md-nav__link">
+    construction_order
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.runtime.publisher.Publisher.node_name" class="md-nav__link">
     node_name
   </a>
@@ -3275,6 +3352,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.runtime.subscription.Subscription.callback_name" class="md-nav__link">
     callback_name
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.runtime.subscription.Subscription.construction_order" class="md-nav__link">
+    construction_order
   </a>
   
 </li>
@@ -4566,7 +4650,7 @@ to obtain the information they need for evaluation.</p>
 
 
 <h3 id="caret_analyze.runtime.application.Application.get_communication" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_communication</span><span class="p">(</span><span class="n">publisher_node_name</span><span class="p">,</span> <span class="n">subscription_node_name</span><span class="p">,</span> <span class="n">topic_name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_communication</span><span class="p">(</span><span class="n">publisher_node_name</span><span class="p">,</span> <span class="n">subscription_node_name</span><span class="p">,</span> <span class="n">topic_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">publisher_construction_order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">subscription_construction_order</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.runtime.application.Application.get_communication" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -4614,6 +4698,26 @@ to obtain the information they need for evaluation.</p>
           <td><p>topic name.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publisher_construction_order</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>A construction order of publisher.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subscription_construction_order</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>A construction order of subscription.</p></td>
+          <td>
+                <code>0</code>
           </td>
         </tr>
     </tbody>
@@ -4941,7 +5045,7 @@ The name is defined in the architecture file (ex: executor_0).</p></td>
 
 
 <h3 id="caret_analyze.runtime.application.Application.get_node_path" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_node_path</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">subscribe_topic_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_node_path</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">subscribe_topic_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">subscription_construction_order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">publisher_construction_order</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.runtime.application.Application.get_node_path" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -4989,6 +5093,26 @@ The name is defined in the architecture file (ex: executor_0).</p></td>
           <td><p>topic name which the node publishes.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subscription_construction_order</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>A construction order of subscription.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publisher_construction_order</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>A construction order of publisher.</p></td>
+          <td>
+                <code>0</code>
           </td>
         </tr>
     </tbody>
@@ -6708,6 +6832,45 @@ None except for timer callback.</p></td>
 
 
 
+<h3 id="caret_analyze.runtime.communication.Communication.publisher_construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">publisher_construction_order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.runtime.communication.Communication.publisher_construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get publisher construction order.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>A construction order of publisher.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="caret_analyze.runtime.communication.Communication.rmw_implementation" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">rmw_implementation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
   
@@ -6853,6 +7016,45 @@ None except for timer callback.</p></td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.subscription.Subscription" href="#caret_analyze.runtime.Subscription">Subscription</a></code>
           </td>
           <td><p>subscription to subscribe to this communication.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.runtime.communication.Communication.subscription_construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">subscription_construction_order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.runtime.communication.Communication.subscription_construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get subscription construction order.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>A construction order of subscription.</p></td>
         </tr>
     </tbody>
   </table>
@@ -8811,7 +9013,7 @@ None except for timer callback.</p></td>
 
 
 <h3 id="caret_analyze.runtime.node.Node.get_publisher" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_publisher</span><span class="p">(</span><span class="n">topic_name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_publisher</span><span class="p">(</span><span class="n">topic_name</span><span class="p">,</span> <span class="n">construction_order</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.runtime.node.Node.get_publisher" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -8839,6 +9041,16 @@ None except for timer callback.</p></td>
           <td><p>publisher topic name to get.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>construction_order</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>construction order to get.</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -8901,7 +9113,7 @@ None except for timer callback.</p></td>
 
 
 <h3 id="caret_analyze.runtime.node.Node.get_subscription" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_subscription</span><span class="p">(</span><span class="n">topic_name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_subscription</span><span class="p">(</span><span class="n">topic_name</span><span class="p">,</span> <span class="n">construction_order</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.runtime.node.Node.get_subscription" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -8929,6 +9141,16 @@ None except for timer callback.</p></td>
           <td><p>topic name to get.</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>construction_order</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>construction order to get.</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -9226,6 +9448,45 @@ None except for message context is callback chain.</p></td>
 
 
 
+<h3 id="caret_analyze.runtime.node_path.NodePath.publisher_construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">publisher_construction_order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.runtime.node_path.NodePath.publisher_construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a construction order of publisher.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>construction order of publisher.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="caret_analyze.runtime.node_path.NodePath.subscribe_topic_name" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">subscribe_topic_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
   
@@ -9293,6 +9554,45 @@ None except for message context is callback chain.</p></td>
                 <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.subscription.Subscription" href="#caret_analyze.runtime.Subscription">Subscription</a>]</code>
           </td>
           <td><p>subscription to subscribe to.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.runtime.node_path.NodePath.subscription_construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">subscription_construction_order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.runtime.node_path.NodePath.subscription_construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a construction order of subscription.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>construction order of subscription.</p></td>
         </tr>
     </tbody>
   </table>
@@ -10646,6 +10946,45 @@ len(time) == len(latency)</p></td>
 
 
 
+<h3 id="caret_analyze.runtime.publisher.Publisher.construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">construction_order</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.runtime.publisher.Publisher.construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a construction order.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>A construction order of this publisher.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="caret_analyze.runtime.publisher.Publisher.node_name" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">node_name</span><span class="p">:</span> <span class="nb">str</span></code>
   
@@ -10963,6 +11302,45 @@ len(time) == len(latency)</p></td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>callback name to which the subscription is attached.</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="caret_analyze.runtime.subscription.Subscription.construction_order" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">construction_order</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#caret_analyze.runtime.subscription.Subscription.construction_order" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a construction order.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>A construction order of this subscription.</p></td>
         </tr>
     </tbody>
   </table>
