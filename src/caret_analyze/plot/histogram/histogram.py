@@ -33,8 +33,8 @@ class ResponseTimeHistPlot(PlotBase):
         self,
         visualize_lib: VisualizeLibInterface,
         target: Sequence[Path],
-        case: str = 'best-to-worst',
-        binsize_ns: int = 10000000
+        case: str,
+        binsize_ns: int
     ) -> None:
         self._visualize_lib = visualize_lib
         self._target = list(target)
