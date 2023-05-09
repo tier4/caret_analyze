@@ -62,12 +62,13 @@ def init_figure(
     y_axis_label: Optional[str] = None,
     x_axis_label: Optional[str] = None,
 ) -> Figure:
-    if xaxis_type == 'system_time':
-        x_axis_label_ = 'system time [s]'
-    elif xaxis_type == 'sim_time':
-        x_axis_label_ = 'simulation time [s]'
-    else:
-        x_axis_label_ = xaxis_type
+    if x_axis_label is None:
+        if xaxis_type == 'system_time':
+            x_axis_label = 'system time [s]'
+        elif xaxis_type == 'sim_time':
+            x_axis_label = 'simulation time [s]'
+        else:
+            x_axis_label = xaxis_type
 
     if ywheel_zoom:
         tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']
@@ -78,7 +79,7 @@ def init_figure(
 
     return figure(
         frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
-        x_axis_label=x_axis_label or x_axis_label_, tools=tools, active_scroll=active_scroll
+        x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
     )
 
 
