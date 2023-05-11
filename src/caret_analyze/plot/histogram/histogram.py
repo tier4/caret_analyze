@@ -12,62 +12,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from logging import getLogger
+from typing import Optional, Sequence
 
-from bokeh.plotting import figure, show
+from bokeh.plotting import Figure
 
-from caret_analyze.exceptions import UnsupportedTypeError
+import pandas as pd
 
-from caret_analyze.record import ResponseTime
-
-from .histogram_interface import HistPlot
-
-from ..plot_util import PlotColorSelector
-
+from ..plot_base import PlotBase
+from ..visualize_lib import VisualizeLibInterface
 from ...runtime import Path
+
+logger = getLogger(__name__)
 
 
 # TODO: Migrate drawing process to visualize_lib
-class ResponseTimePlot(HistPlot):
+class ResponseTimeHistPlot(PlotBase):
 
     def __init__(
         self,
+        visualize_lib: VisualizeLibInterface,
         target: Sequence[Path],
-        case: str = 'best-to-worst',
-        binsize_ns: int = 10000000
-    ):
-        if case not in ['best-to-worst', 'best', 'worst']:
-            raise UnsupportedTypeError(
-                f'Unsupported "case". case = {case}.'
-                'supported "case": [best-to-worst/best/worst]'
-            )
-        super().__init__(target)
+        case: str,
+        binsize_ns: int
+    ) -> None:
+        self._visualize_lib = visualize_lib
+        self._target = list(target)
         self._case = case
         self._binsize_ns = binsize_ns
 
-    def _show_core(self):
-        p = figure(plot_width=600,
-                   plot_height=400,
-                   active_scroll='wheel_zoom',
-                   x_axis_label='Response Time [ms]',
-                   y_axis_label='Probability')
-        color_selector = PlotColorSelector()
-        for _, path in enumerate(self._target):
-            records = path.to_records()
-            response = ResponseTime(records)
+    def to_dataframe(self, xaxis_type: str) -> pd.DataFrame:
+        logger.warning("'to_dataframe' method is not implemented in ResponseTimeHistPlot.")
+        return pd.DataFrame()
 
-            if self._case == 'best-to-worst':
-                hist, bins = response.to_histogram(self._binsize_ns)
-            elif self._case == 'best':
-                hist, bins = response.to_best_case_histogram(self._binsize_ns)
-            elif self._case == 'worst':
-                hist, bins = response.to_worst_case_histogram(self._binsize_ns)
+    def figure(
+        self,
+        xaxis_type: Optional[str] = None,
+        ywheel_zoom: Optional[bool] = None,
+        full_legends: Optional[bool] = None
+    ) -> Figure:
+        # Set default value
+        xaxis_type = xaxis_type or 'system_time'
+        ywheel_zoom = ywheel_zoom if ywheel_zoom is not None else True
+        full_legends = full_legends if full_legends is not None else True
 
-            hist = hist / sum(hist)
-
-            bins = bins*10**-6
-            color = color_selector.get_color(path.path_name)
-            p.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:],
-                   color=color, alpha=0.5, legend_label=f'{path.path_name}')
-        show(p)
-        return p
+        return self._visualize_lib.response_time_hist(
+            self._target, self._case, self._binsize_ns,
+            xaxis_type, ywheel_zoom, full_legends
+        )
