@@ -91,7 +91,7 @@ class FrequencyTimeSeries(MetricsBase):
             Frequency records list of all target objects.
 
         """
-        if isinstance(self._target_objects[0], Communication):
+        if self._target_objects and isinstance(self._target_objects[0], Communication):
             columns = self._target_objects[0].to_records().columns
             start_column = columns[0]
             end_column = columns[1]
