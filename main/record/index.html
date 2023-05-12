@@ -1554,7 +1554,7 @@
 
 
 <h3 id="caret_analyze.record.records_service.frequency.Frequency.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">target_column</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">target_column</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.record.records_service.frequency.Frequency.__init__" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1591,6 +1591,26 @@
           </td>
           <td><p>Column name of timestamps used in the calculation, by default None
 If None, the first column of records is selected.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>row_filter</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>], optional</code>
+          </td>
+          <td><p>Filter function to select rows to calculate period, by default None.
+Example:
+<div class="highlight"><pre><span></span><code>def row_filter(record: RecordInterface) -&gt; bool:
+start_column = &#39;timestamp1&#39;
+end_column = &#39;timestamp2&#39;
+if (record.data.get(start_column) is not None
+and record.data.get(end_column) is not None):
+return True
+else:
+return False
+</code></pre></div></p></td>
           <td>
                 <code>None</code>
           </td>
@@ -1868,7 +1888,7 @@ Columns
 
 
 <h3 id="caret_analyze.record.records_service.period.Period.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">target_column</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">target_column</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">row_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#caret_analyze.record.records_service.period.Period.__init__" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1905,6 +1925,26 @@ Columns
           </td>
           <td><p>Column name of timestamps used in the calculation, by default None
 If None, the first column of records is selected.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>row_filter</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>], optional</code>
+          </td>
+          <td><p>Filter function to select rows to calculate period, by default None.
+Example:
+<div class="highlight"><pre><span></span><code>def row_filter(record: RecordInterface) -&gt; bool:
+start_column = &#39;timestamp1&#39;
+end_column = &#39;timestamp2&#39;
+if (record.data.get(start_column) is not None
+and record.data.get(end_column) is not None):
+return True
+else:
+return False
+</code></pre></div></p></td>
           <td>
                 <code>None</code>
           </td>
@@ -2079,8 +2119,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2119,8 +2159,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -2632,8 +2672,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2672,8 +2712,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">RecordInterface</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.data" class="headerlink" title="Permanent link">#</a></h3>
