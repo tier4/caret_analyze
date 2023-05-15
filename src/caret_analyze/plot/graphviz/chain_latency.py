@@ -99,14 +99,44 @@ def get_attr_node(
     lstrip_s: float,
     rstrip_s: float
 ) -> GraphAttr:
+    def calc_latency(target_df: pd.DataFrame) -> np.ndarray:
+        source_stamps_ns = np.array(target_df.iloc[:, 0].values)
+        dest_stamps_ns = np.array(target_df.iloc[:, -1].values)
+        latency_ns = dest_stamps_ns - source_stamps_ns
+        if remove_dropped:
+            latency_ns = latency_ns.astype('int64')
+        return latency_ns
+
     graph_nodes: List[GraphNode] = []
     remove_dropped = False
 
-    for node_path in path.node_paths:
+    for i, node_path in enumerate(path.node_paths):
         node_name = node_path.node_name
         label = node_name
 
-        if node_path.column_names != []:
+        if i == 0 and path.include_first_callback:
+            first_cb_columns = path.column_names[0:2]
+            first_cb_df = path.to_dataframe(
+                remove_dropped=remove_dropped,
+                treat_drop_as_delay=treat_drop_as_delay,
+                lstrip_s=lstrip_s,
+                rstrip_s=rstrip_s,
+            )[first_cb_columns]
+            latency = calc_latency(first_cb_df)
+            label += '\n' + to_label(latency)
+
+        elif i == len(path.node_paths)-1 and path.include_last_callback:
+            last_cb_columns = path.column_names[-2:]
+            last_cb_df = path.to_dataframe(
+                remove_dropped=remove_dropped,
+                treat_drop_as_delay=treat_drop_as_delay,
+                lstrip_s=lstrip_s,
+                rstrip_s=rstrip_s,
+            )[last_cb_columns]
+            latency = calc_latency(last_cb_df)
+            label += '\n' + to_label(latency)
+
+        elif node_path.column_names != []:
             _, latency = node_path.to_timeseries(
                 remove_dropped=remove_dropped,
                 treat_drop_as_delay=treat_drop_as_delay,
@@ -114,6 +144,7 @@ def get_attr_node(
                 rstrip_s=rstrip_s,
             )
             label += '\n' + to_label(latency)
+
         graph_nodes.append(GraphNode(node_name, label))
 
     graph_edges: List[GraphEdge] = []
