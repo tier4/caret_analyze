@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from .callback import SubscriptionCallbackStructValue
 from .value_object import ValueObject
@@ -26,8 +26,8 @@ class SubscriptionValue(ValueObject):
         self,
         topic_name: str,
         node_name: str,
-        node_id: Optional[str],
-        callback_id: Optional[str],
+        node_id: str | None,
+        callback_id: str | None,
         construction_order: int
     ) -> None:
         self._node_name = node_name
@@ -41,7 +41,7 @@ class SubscriptionValue(ValueObject):
         return self._node_name
 
     @property
-    def node_id(self) -> Optional[str]:
+    def node_id(self) -> str | None:
         return self._node_id
 
     @property
@@ -49,7 +49,7 @@ class SubscriptionValue(ValueObject):
         return self._topic_name
 
     @property
-    def callback_id(self) -> Optional[str]:
+    def callback_id(self) -> str | None:
         return self._callback_id
 
     @property
@@ -64,7 +64,7 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         self,
         node_name: str,
         topic_name: str,
-        callback_info: Optional[SubscriptionCallbackStructValue],
+        callback_info: SubscriptionCallbackStructValue | None,
         construction_order: int
     ) -> None:
         self._node_name: str = node_name
@@ -92,7 +92,7 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         return self._topic_name
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         if self._callback_value is None:
             return None
 
@@ -107,7 +107,7 @@ class SubscriptionStructValue(ValueObject, Summarizable):
         })
 
     @property
-    def callback(self) -> Optional[SubscriptionCallbackStructValue]:
+    def callback(self) -> SubscriptionCallbackStructValue | None:
         return self._callback_value
 
     @property

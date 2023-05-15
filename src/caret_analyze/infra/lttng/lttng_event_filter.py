@@ -16,10 +16,8 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 
-from typing import Dict, Optional
 
-
-Event = Dict[str, int]
+Event = dict[str, int]
 
 
 class LttngEventFilter(metaclass=ABCMeta):
@@ -39,7 +37,7 @@ class LttngEventFilter(metaclass=ABCMeta):
         return EventDurationFilter(duration_s, offset_s)
 
     @staticmethod
-    def strip_filter(lsplit_s: Optional[float], rsplit_s: Optional[float]) -> LttngEventFilter:
+    def strip_filter(lsplit_s: float | None, rsplit_s: float | None) -> LttngEventFilter:
         return EventStripFilter(lsplit_s, rsplit_s)
 
     @staticmethod
@@ -106,8 +104,8 @@ class InitEventPassFilter(LttngEventFilter):
 class EventStripFilter(LttngEventFilter):
     def __init__(
         self,
-        lstrip_s: Optional[float],
-        rstrip_s: Optional[float]
+        lstrip_s: float | None,
+        rstrip_s: float | None
     ) -> None:
         self._lstrip = lstrip_s
         self._rstrip = rstrip_s

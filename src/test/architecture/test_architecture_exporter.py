@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from __future__ import annotations
 
 from caret_analyze.architecture.architecture_exporter import (ArchitectureExporter,
                                                               CallbackDicts,
@@ -57,7 +57,7 @@ class TestArchitectureExporter:
                      return_value=node_mock)
         mocker.patch.object(node_mock, 'data', [])
 
-        expected: Dict[str, List] = {
+        expected: dict[str, list] = {
             'named_paths': [],
             'executors': [],
             'nodes': []

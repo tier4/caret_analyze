@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Sequence, Union
+from __future__ import annotations
 
+from collections.abc import Sequence
 
 from caret_analyze.infra.lttng import Lttng, RecordsProviderLttng
 from caret_analyze.infra.lttng.bridge import LttngBridge
@@ -78,7 +79,7 @@ def create_publisher_lttng(
 ):
     def _create_publisher_lttng(
         pub_handle: int,
-        tilde_pub: Optional[int] = None
+        tilde_pub: int | None = None
     ):
         publisher_lttng = mocker.Mock(spec=PublisherValueLttng)
         mocker.patch.object(
@@ -95,8 +96,8 @@ def create_subscription_lttng(
     def _create(
         callback_object: int,
         subscription_handle: int,
-        callback_object_intra: Optional[int] = None,
-        tilde_subscription: Optional[int] = None,
+        callback_object_intra: int | None = None,
+        tilde_subscription: int | None = None,
     ):
         sub_lttng = mocker.Mock(spec=SubscriptionCallbackValueLttng)
         mocker.patch.object(
@@ -207,7 +208,7 @@ def create_timer_struct(mocker):
 def create_timer_cb_lttng(mocker):
     def _create_timer_cb_lttng(
         callback_object: int,
-        timer_handle: Optional[int] = None
+        timer_handle: int | None = None
     ):
         callback_lttng = mocker.Mock(spec=TimerCallbackValueLttng)
         mocker.patch.object(callback_lttng, 'callback_object', callback_object)
@@ -222,7 +223,7 @@ def setup_bridge_get_publisher(
     mocker,
     bridge_mock,
 ):
-    pub_map: Dict[PublisherStructValue, Sequence[PublisherValueLttng]] = {}
+    pub_map: dict[PublisherStructValue, Sequence[PublisherValueLttng]] = {}
 
     def _setup(
         publisher: PublisherStructValue,
@@ -246,14 +247,14 @@ def bridge_setup_get_callback(
     bridge_mock,
 ):
 
-    cb_map: Dict[
+    cb_map: dict[
         CallbackStructValue,
-        Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
+        TimerCallbackValueLttng | SubscriptionCallbackValueLttng
     ] = {}
 
     def _setup(
         callback: CallbackStructValue,
-        callback_lttng: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng],
+        callback_lttng: TimerCallbackValueLttng | SubscriptionCallbackValueLttng,
     ):
         cb_map[callback] = callback_lttng
 

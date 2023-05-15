@@ -15,7 +15,8 @@
 from __future__ import annotations
 
 from collections import UserList
-from typing import Any, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Any
 
 
 class UniqueList(UserList):
@@ -23,7 +24,7 @@ class UniqueList(UserList):
 
     def __init__(
         self,
-        init: Optional[Iterable[Any]] = None,
+        init: Iterable[Any] | None = None,
     ) -> None:
         """
         Construct an instance.
@@ -92,13 +93,13 @@ class UniqueList(UserList):
             self.append(i)
         return self
 
-    def as_list(self) -> List[Any]:
+    def as_list(self) -> list[Any]:
         """
         Get data as Python list.
 
         Returns
         -------
-        List[Any]
+        list[Any]
             data
 
         """

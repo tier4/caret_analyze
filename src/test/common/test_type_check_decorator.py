@@ -12,12 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Union
+from __future__ import annotations
 
 from caret_analyze.common.type_check_decorator import type_check_decorator
 from caret_analyze.exceptions import UnsupportedTypeError
 
 import pytest
+
+
+class DummyCustom:
+
+    def __init__(self) -> None:
+        pass
 
 
 class TestTypeCheckDecorator:
@@ -32,22 +38,18 @@ class TestTypeCheckDecorator:
         assert "'b' must be 'bool'. The given argument type is 'int'" in str(e.value)
 
     def test_type_check_decorator_custom_type(self):
-        class Custom:
-
-            def __init__(self) -> None:
-                pass
 
         @type_check_decorator
-        def custom_arg(c: Custom):
+        def custom_arg(c: DummyCustom):
             pass
 
         with pytest.raises(UnsupportedTypeError) as e:
             custom_arg(10)
-        assert "'c' must be 'Custom'. The given argument type is 'int'" in str(e.value)
+        assert "'c' must be 'DummyCustom'. The given argument type is 'int'" in str(e.value)
 
     def test_type_check_decorator_union(self):
         @type_check_decorator
-        def union_arg(u: Union[bool, set]):
+        def union_arg(u: bool | set):
             pass
 
         with pytest.raises(UnsupportedTypeError) as e:
@@ -56,7 +58,7 @@ class TestTypeCheckDecorator:
 
     def test_type_check_decorator_iterable(self):
         @type_check_decorator
-        def iterable_arg(i: List[bool]):
+        def iterable_arg(i: list[bool]):
             pass
 
         with pytest.raises(UnsupportedTypeError) as e:
@@ -65,7 +67,7 @@ class TestTypeCheckDecorator:
 
     def test_type_check_decorator_dict(self):
         @type_check_decorator
-        def dict_arg(d: Dict[str, bool]):
+        def dict_arg(d: dict[str, bool]):
             pass
 
         with pytest.raises(UnsupportedTypeError) as e:

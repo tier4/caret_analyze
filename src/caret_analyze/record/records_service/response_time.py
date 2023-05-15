@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
+from __future__ import annotations
 
-from typing import Dict, Iterator, List, Optional, Sequence, Tuple
+from collections.abc import Iterator, Sequence
+
+import math
 
 import numpy as np
 
@@ -101,7 +103,7 @@ class ResponseMap():
     def __init__(
         self,
         records: RecordsInterface,
-        columns: List[str]
+        columns: list[str]
     ):
         """
         Construct an instance.
@@ -110,7 +112,7 @@ class ResponseMap():
         ----------
         records : RecordsInterface
             records to calculate response time.
-        columns: List[str]
+        columns: list[str]
             List of column names to be used.
             first column name is used as input.
             last column name is used as output.
@@ -205,7 +207,7 @@ class ResponseMap():
         return self._columns[-1]
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         return self._columns
 
 
@@ -254,7 +256,7 @@ class ResponseTime:
         self,
         records: RecordsInterface,
         *,
-        columns: Optional[List[str]] = None
+        columns: list[str] | None = None
     ) -> None:
         """
         Construct an instance.
@@ -263,7 +265,7 @@ class ResponseTime:
         ----------
         records : RecordsInterface
             records to calculate response time.
-        columns : Optional[str]
+        columns : str | None
             List of column names to be used in return value.
             If None, only first and last columns are used.
 
@@ -340,7 +342,7 @@ class ResponseTime:
         # If necessary, please contact us.
         raise NotImplementedError()
 
-    def to_best_case_timeseries(self) -> Tuple[np.ndarray, np.ndarray]:
+    def to_best_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate the best-case time series data for response time.
 
@@ -348,13 +350,13 @@ class ResponseTime:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             input time[ns], latency[ns]
 
         """
         return self._timeseries.to_best_case_timeseries()
 
-    def to_worst_case_timeseries(self) -> Tuple[np.ndarray, np.ndarray]:
+    def to_worst_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate the worst-case time series data for response time.
 
@@ -363,7 +365,7 @@ class ResponseTime:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             input time[ns], latency[ns]
 
         """
@@ -373,7 +375,7 @@ class ResponseTime:
         self,
         binsize_ns: int = 1000000,
         density: bool = False,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate response time histogram.
 
@@ -390,7 +392,7 @@ class ResponseTime:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
@@ -401,7 +403,7 @@ class ResponseTime:
         self,
         binsize_ns: int = 1000000,
         density: bool = False,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate the best-case histogram for response time.
 
@@ -409,7 +411,7 @@ class ResponseTime:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
@@ -420,7 +422,7 @@ class ResponseTime:
         self,
         binsize_ns: int = 1000000,
         density: bool = False,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate the worst-case histogram for response time.
 
@@ -429,7 +431,7 @@ class ResponseTime:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
@@ -607,12 +609,12 @@ class ResponseRecords:
         return self._response_map.output_column
 
     @property
-    def _columns(self) -> List[str]:
+    def _columns(self) -> list[str]:
         return self._response_map.columns
 
     def _create_empty_records(
         self,
-        columns: Optional[Sequence[ColumnValue]] = None
+        columns: Sequence[ColumnValue] | None = None
     ) -> RecordsInterface:
         columns = columns or [ColumnValue(column) for column in self._columns]
         return RecordsFactory.create_instance(
@@ -687,9 +689,9 @@ class ResponseRecords:
     @staticmethod
     def _create_best_case_record(
         record: RecordInterface,
-        columns: List[str]
+        columns: list[str]
     ) -> RecordInterface:
-        record_dict: Dict[str, int] = {}
+        record_dict: dict[str, int] = {}
         for column in columns:
             record_dict[column] = record.get(column)
         return RecordFactory.create_instance(record_dict)
@@ -697,10 +699,10 @@ class ResponseRecords:
     @staticmethod
     def _create_worst_case_record(
         record: RecordInterface,
-        columns: List[str],
+        columns: list[str],
         input_time_min: int
     ) -> RecordInterface:
-        record_dict: Dict[str, int] = {}
+        record_dict: dict[str, int] = {}
 
         record_dict[columns[0]] = input_time_min
         for column in columns[1:]:
@@ -710,10 +712,10 @@ class ResponseRecords:
     @staticmethod
     def _create_worst_to_best_case_record(
         record: RecordInterface,
-        columns: List[str],
+        columns: list[str],
         input_time_min: int
     ) -> RecordInterface:
-        record_dict: Dict[str, int] = {}
+        record_dict: dict[str, int] = {}
 
         input_min_column = f'{columns[0]}_min'
         input_max_column = f'{columns[0]}_max'
@@ -784,7 +786,7 @@ class ResponseHistogram:
         self,
         binsize_ns: int = 1000000,
         density: bool = False,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate histogram.
 
@@ -801,7 +803,7 @@ class ResponseHistogram:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
@@ -843,7 +845,7 @@ class ResponseHistogram:
         self,
         binsize_ns: int = 1000000,
         density: bool = False,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Return the histogram generated by only the best case of response time.
 
@@ -861,7 +863,7 @@ class ResponseHistogram:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 
@@ -878,7 +880,7 @@ class ResponseHistogram:
         self,
         binsize_ns: int = 1000000,
         density: bool = False,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Return the histogram generated by only the worst case of response time.
 
@@ -896,7 +898,7 @@ class ResponseHistogram:
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             frequency, latencies[ns].
             ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
 

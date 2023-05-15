@@ -18,8 +18,6 @@ import fnmatch
 
 from logging import getLogger
 
-from typing import Dict, List, Optional, Union
-
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
 from .communication import Communication
@@ -66,7 +64,7 @@ class Application(Summarizable):
         """
         from .runtime_loaded import RuntimeLoaded
 
-        provider: Union[RecordsProvider, RuntimeDataProvider]
+        provider: RecordsProvider | RuntimeDataProvider
 
         if isinstance(infra, Lttng):
             provider = RecordsProviderLttng(infra)
@@ -75,58 +73,58 @@ class Application(Summarizable):
 
         loaded = RuntimeLoaded(architecture, provider)
 
-        self._nodes: List[Node] = loaded.nodes
-        self._executors: List[Executor] = loaded.executors
-        self._communications: List[Communication] = loaded.communications
-        self._paths: List[Path] = loaded.paths
+        self._nodes: list[Node] = loaded.nodes
+        self._executors: list[Executor] = loaded.executors
+        self._communications: list[Communication] = loaded.communications
+        self._paths: list[Path] = loaded.paths
 
     @property
-    def executors(self) -> List[Executor]:
+    def executors(self) -> list[Executor]:
         """
         Get executors.
 
         Returns
         -------
-        List[Executor]
+        list[Executor]
             All executors defined in the architecture.
 
         """
         return sorted(self._executors, key=lambda x: x.executor_name)
 
     @property
-    def nodes(self) -> List[Node]:
+    def nodes(self) -> list[Node]:
         """
         Get nodes.
 
         Returns
         -------
-        List[Node]
+        list[Node]
             All nodes defined in the architecture.
 
         """
         return sorted(self._nodes, key=lambda x: x.node_name)
 
     @property
-    def communications(self) -> List[Communication]:
+    def communications(self) -> list[Communication]:
         """
         Get communications.
 
         Returns
         -------
-        List[Communication]
+        list[Communication]
             All communications defined in the architecture.
 
         """
         return sorted(self._communications, key=lambda x: x.topic_name)
 
     @property
-    def publishers(self) -> List[Publisher]:
+    def publishers(self) -> list[Publisher]:
         """
         Get publishers.
 
         Returns
         -------
-        List[Publisher]
+        list[Publisher]
             All publishers defined in the architecture.
 
         """
@@ -134,13 +132,13 @@ class Application(Summarizable):
         return sorted(publishers, key=lambda x: x.topic_name)
 
     @property
-    def subscriptions(self) -> List[Subscription]:
+    def subscriptions(self) -> list[Subscription]:
         """
         Get subscriptions.
 
         Returns
         -------
-        List[Subscription]
+        list[Subscription]
             All subscriptions defined in the architecture.
 
         """
@@ -148,30 +146,30 @@ class Application(Summarizable):
         return sorted(subscriptions, key=lambda x: x.topic_name)
 
     @property
-    def paths(self) -> List[Path]:
+    def paths(self) -> list[Path]:
         """
         Get paths.
 
         Returns
         -------
-        List[Path]
+        list[Path]
             All paths defined in the architecture.
 
         """
         return sorted(self._paths, key=lambda x: x.path_name or '')
 
     @property
-    def callbacks(self) -> List[CallbackBase]:
+    def callbacks(self) -> list[CallbackBase]:
         """
         Get callbacks.
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             All callbacks defined in the architecture.
 
         """
-        cbs: List[CallbackBase] = []
+        cbs: list[CallbackBase] = []
         for node in self.nodes:
             if node.callbacks is not None:
                 cbs += list(node.callbacks)
@@ -253,17 +251,17 @@ class Application(Summarizable):
     @property
     def callback_groups(
         self,
-    ) -> List[CallbackGroup]:
+    ) -> list[CallbackGroup]:
         """
         Get callback groups.
 
         Returns
         -------
-        List[CallbackGroup]
+        list[CallbackGroup]
             All callback groups defined in the architecture.
 
         """
-        callback_groups: List[CallbackGroup] = []
+        callback_groups: list[CallbackGroup] = []
         for node in self.nodes:
             if node.callback_groups is None:
                 continue
@@ -352,7 +350,7 @@ class Application(Summarizable):
                 not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        target_names: Dict[str, Union[str, int]] = \
+        target_names: dict[str, str | int] = \
             {'publisher_node_name': publisher_node_name,
              'subscription_node_name': subscription_node_name,
              'topic_name': topic_name,
@@ -371,13 +369,13 @@ class Application(Summarizable):
                                                 get_names)
 
     @property
-    def topic_names(self) -> List[str]:
+    def topic_names(self) -> list[str]:
         """
         Get topic names.
 
         Returns
         -------
-        List[str]
+        list[str]
             All topic names defined in architecture.
 
         """
@@ -386,52 +384,52 @@ class Application(Summarizable):
         return sorted(topic_names)
 
     @property
-    def executor_names(self) -> List[str]:
+    def executor_names(self) -> list[str]:
         """
         Get executor names.
 
         Returns
         -------
-        List[str]
+        list[str]
             All executor names defined in the architecture.
 
         """
         return sorted(_.executor_name for _ in self.executors)
 
     @property
-    def callback_group_names(self) -> List[str]:
+    def callback_group_names(self) -> list[str]:
         """
         Get callback group names.
 
         Returns
         -------
-        List[str]
+        list[str]
             All callback group names defined in the architecture.
 
         """
         return sorted(_.callback_group_name for _ in self.callback_groups)
 
     @property
-    def path_names(self) -> List[str]:
+    def path_names(self) -> list[str]:
         """
         Get path names.
 
         Returns
         -------
-        List[str]
+        list[str]
             App path names defined in the architecture.
 
         """
         return sorted(_.path_name for _ in self.paths)
 
     @property
-    def callback_names(self) -> List[str]:
+    def callback_names(self) -> list[str]:
         """
         Get callback names.
 
         Returns
         -------
-        List[str]
+        list[str]
             All callback names defined in the architecture.
 
         """
@@ -440,8 +438,8 @@ class Application(Summarizable):
     def get_node_path(
         self,
         node_name: str,
-        subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str],
+        subscribe_topic_name: str | None,
+        publish_topic_name: str | None,
         *,
         subscription_construction_order: int = 0,
         publisher_construction_order: int = 0
@@ -453,13 +451,13 @@ class Application(Summarizable):
         ----------
         node_name : str
             node name to get.
-        subscribe_topic_name : Optional[str]
+        subscribe_topic_name : str | None
             topic name which the node subscribes.
-        publish_topic_name : Optional[str]
+        publish_topic_name : str | None
             topic name which the node publishes.
-        subscription_construction_order : Optional[int]
+        subscription_construction_order : int | None
             A construction order of subscription.
-        publisher_construction_order : Optional[int]
+        publisher_construction_order : int | None
             A construction order of publisher.
 
         Returns
@@ -482,7 +480,7 @@ class Application(Summarizable):
                 not isinstance(publish_topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        target_name: Dict[str, Union[str, int]] = \
+        target_name: dict[str, str | int] = \
             {'node_name': node_name,
              'subscribe_topic_name': subscribe_topic_name,
              'publish_topic_name': publish_topic_name,
@@ -503,7 +501,7 @@ class Application(Summarizable):
     def get_communications(
         self,
         topic_name: str
-    ) -> List[Communication]:
+    ) -> list[Communication]:
         """
         Get communication that matches the condition.
 
@@ -514,7 +512,7 @@ class Application(Summarizable):
 
         Returns
         -------
-        List[Communication]
+        list[Communication]
             communications that match the condition.
 
         Raises
@@ -542,7 +540,7 @@ class Application(Summarizable):
     def get_publishers(
         self,
         topic_name: str
-    ) -> List[Publisher]:
+    ) -> list[Publisher]:
         """
         Get publishers that match the condition.
 
@@ -553,7 +551,7 @@ class Application(Summarizable):
 
         Returns
         -------
-        List[Publisher]
+        list[Publisher]
             publishers that match the condition.
 
         Raises
@@ -575,7 +573,7 @@ class Application(Summarizable):
     def get_subscriptions(
         self,
         topic_name: str
-    ) -> List[Subscription]:
+    ) -> list[Subscription]:
         """
         Get subscriptions that match the condition.
 
@@ -586,7 +584,7 @@ class Application(Summarizable):
 
         Returns
         -------
-        List[Publisher]
+        list[Publisher]
             subscriptions that match the condition.
 
         Raises
@@ -608,7 +606,7 @@ class Application(Summarizable):
     def get_node_paths(
         self,
         node_name: str,
-    ) -> List[NodePathStructValue]:
+    ) -> list[NodePathStructValue]:
         """
         Get node paths.
 
@@ -619,7 +617,7 @@ class Application(Summarizable):
 
         Returns
         -------
-        List[NodePathStructValue]
+        list[NodePathStructValue]
             node paths that match the condition.
 
         Raises
@@ -643,13 +641,13 @@ class Application(Summarizable):
         return sorted(node_paths, key=lambda x: x.node_name)
 
     @property
-    def node_paths(self) -> List[NodePathStructValue]:
+    def node_paths(self) -> list[NodePathStructValue]:
         """
         Get paths.
 
         Returns
         -------
-        List[NodePathStructValue]
+        list[NodePathStructValue]
             app node paths defined in the entire application.
 
         """
@@ -723,18 +721,18 @@ class Application(Summarizable):
                                      self.callbacks,
                                      get_name)
 
-    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: str) -> list[CallbackBase]:
         """
         Get callbacks that match the condition.
 
         Parameters
         ----------
-        callback_names : Tuple[str, ...]
+        callback_names : tuple[str, ...]
             callback names to get.
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             callbacks that match the condition.
 
         Raises
@@ -765,13 +763,13 @@ class Application(Summarizable):
         return callbacks
 
     @property
-    def node_names(self) -> List[str]:
+    def node_names(self) -> list[str]:
         """
         Get node names.
 
         Returns
         -------
-        List[str]
+        list[str]
             All node names defined in the architecture.
 
         """

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Tuple
+from __future__ import annotations
 
 from .callback import CallbackStructValue
 from .node import NodeStructValue
@@ -30,8 +30,8 @@ class CommunicationStructValue(ValueObject, Summarizable):
         node_subscription: NodeStructValue,
         publisher_value: PublisherStructValue,
         subscription_value: SubscriptionStructValue,
-        publish_callback_values: Optional[Tuple[CallbackStructValue, ...]],
-        subscription_callback_value: Optional[CallbackStructValue],
+        publish_callback_values: tuple[CallbackStructValue, ...] | None,
+        subscription_callback_value: CallbackStructValue | None,
     ) -> None:
         self._publisher_value = publisher_value
         self._subscription_value = subscription_value
@@ -64,13 +64,13 @@ class CommunicationStructValue(ValueObject, Summarizable):
         return self._topic_name
 
     @property
-    def publish_callback_names(self) -> Optional[Tuple[str, ...]]:
+    def publish_callback_names(self) -> tuple[str, ...] | None:
         if self._publish_callbacks_value is None:
             return None
         return tuple(p.callback_name for p in self._publish_callbacks_value)
 
     @property
-    def subscribe_callback_name(self) -> Optional[str]:
+    def subscribe_callback_name(self) -> str | None:
         if self._subscription_callback_value is None:
             return None
         return self._subscription_callback_value.callback_name
@@ -84,11 +84,11 @@ class CommunicationStructValue(ValueObject, Summarizable):
         return self._subscription_value
 
     @property
-    def publish_callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
+    def publish_callbacks(self) -> tuple[CallbackStructValue, ...] | None:
         return self._publish_callbacks_value
 
     @property
-    def subscribe_callback(self) -> Optional[CallbackStructValue]:
+    def subscribe_callback(self) -> CallbackStructValue | None:
         return self._subscription_callback_value
 
     @property

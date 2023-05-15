@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from functools import cached_property
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from bokeh.models import CrosshairTool, HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
@@ -69,7 +69,7 @@ class BokehMessageFlow:
         # Apply xaxis offset
         frame_min: float = clip.min_ns
         frame_max: float = clip.max_ns
-        converter: Optional[ClockConverter] = None
+        converter: ClockConverter | None = None
         if self._xaxis_type == 'sim_time':
             assert len(self._target_path.child) > 0
             # TODO(hsgwa): refactor
@@ -136,15 +136,15 @@ class MessageFlowRectSource:
         self._hover_keys = HoverKeysFactory.create_instance('message_flow_rect', target_path)
         self._hover_source = HoverSource(self._hover_keys)
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
         return self._hover_keys.create_hover(options)
 
     def generate(
         self,
         y_axis_values: YAxisValues,
         granularity: str,
-        clip: Optional[Clip],
-        converter: Optional[ClockConverter],
+        clip: Clip | None,
+        converter: ClockConverter | None,
         offset: Offset
     ) -> ColumnDataSource:
         """
@@ -156,9 +156,9 @@ class MessageFlowRectSource:
             Y-axis values.
         granularity : str
             Granularity of chain with two value; [raw/node].
-        clip : Optional[Clip]
+        clip : Clip | None
             Clip the first and last few seconds.
-        converter : Optional[ClockConverter]
+        converter : ClockConverter | None
             Converter to simulation time.
         offset : Offset
             Offset of x-axis.
@@ -220,13 +220,13 @@ class MessageFlowLineSource:
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance('message_flow_line', target_path)
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
         return self._hover_keys.create_hover(options)
 
     def generate(
         self,
         df: pd.DataFrame,
-        converter: Optional[ClockConverter],
+        converter: ClockConverter | None,
         offset: Offset
     ) -> ColumnDataSource:
         """
@@ -236,7 +236,7 @@ class MessageFlowLineSource:
         ----------
         df : pd.DataFrame
             Formatted latency table for the target path.
-        converter : Optional[ClockConverter]
+        converter : ClockConverter | None
             Converter to simulation time.
         offset : Offset
             Offset of x-axis.
@@ -310,7 +310,7 @@ class DataFrameColumnNameParsed:
 class YAxisProperty:
 
     def __init__(self, df) -> None:
-        self._tick_labels: Dict[int, str] = {}
+        self._tick_labels: dict[int, str] = {}
         y_axis_step = -1
 
         y_value = 0
@@ -329,7 +329,7 @@ class YAxisProperty:
         return list(self._tick_labels.values())
 
     @property
-    def labels_dict(self) -> Dict[int, str]:
+    def labels_dict(self) -> dict[int, str]:
         return self._tick_labels
 
 
@@ -347,11 +347,11 @@ class YAxisValues:
                 indexes = np.append(indexes, i)
         return indexes
 
-    def get_start_indexes(self, search_name) -> List[int]:
+    def get_start_indexes(self, search_name) -> list[int]:
         indexes = self._search_values(search_name)
         return list((indexes) * -1)
 
-    def get_end_values(self, search_name) -> List[int]:
+    def get_end_values(self, search_name) -> list[int]:
         indexes = self._search_values(search_name)
         return list((indexes + 1) * -0.5)
 

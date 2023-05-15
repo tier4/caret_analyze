@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from bokeh.models import HoverTool, Legend
 from bokeh.plotting import ColumnDataSource, Figure
@@ -59,8 +59,8 @@ class BokehStackedBar:
         # # +-------s1------s2------s3---------->
 
         # # get stacked bar data
-        data: Dict[str, list[int | float]]
-        y_labels: List[str] = []
+        data: dict[str, list[int | float]]
+        y_labels: list[str] = []
         y_axis_label = 'latency [ms]'
         target_objects = self._metrics.target_objects
         data, y_labels = self._metrics.to_stacked_bar_data()
@@ -104,19 +104,19 @@ class BokehStackedBar:
 
     @staticmethod
     def _get_stacked_bar_data(
-        data: Dict[str, List[int | float]],
-        y_labels: List[str],
+        data: dict[str, list[int | float]],
+        y_labels: list[str],
         xaxis_type: str,
         x_label: str,
-    ) -> Tuple[Dict[str, List[float]],  List[float]]:
+    ) -> tuple[dict[str, list[float]],  list[float]]:
         """
         Calculate stacked bar data.
 
         Parameters
         ----------
-        data : Dict[str, List[int]]
+        data : dict[str, list[int]]
             Source data.
-        y_labels : List[str]
+        y_labels : list[str]
             Y axis labels that are Node/Topic name.
         xaxis_type : str
             Type of x-axis of the line graph to be plotted.
@@ -128,14 +128,14 @@ class BokehStackedBar:
 
         Returns
         -------
-        Dict[str, List[float]]
+        dict[str, list[float]]
             Stacked bar data.
-        List[float]
+        list[float]
             Width list of bars.
 
         """
-        output_data: Dict[str, List[float]] = {}
-        x_width_list: List[float] = []
+        output_data: dict[str, list[float]] = {}
+        x_width_list: list[float] = []
 
         # Convert the data unit to second
         output_data = BokehStackedBar._updated_with_unit(data, y_labels, 1e-6)
@@ -165,14 +165,14 @@ class BokehStackedBar:
 
     @staticmethod
     def _updated_with_unit(
-        data: Dict[str, List[Union[int, float]]],
-        columns: Optional[List[str]],
+        data: dict[str, list[int | float]],
+        columns: list[str] | None,
         unit: float,
-    ) -> Dict[str, List[float]]:
+    ) -> dict[str, list[float]]:
         # TODO: make timeseries and callback scheduling function use this function.
         #       create bokeh_util.py
         if columns is None:
-            output_data: Dict[str, List[float]] = {}
+            output_data: dict[str, list[float]] = {}
             for key in data.keys():
                 output_data[key] = [d * unit for d in data[key]]
         else:
@@ -183,63 +183,63 @@ class BokehStackedBar:
 
     @staticmethod
     def _stacked_y_values(
-        data: Dict[str, List[float]],
-        y_values: List[str],
-    ) -> Dict[str, List[float]]:
+        data: dict[str, list[float]],
+        y_values: list[str],
+    ) -> dict[str, list[float]]:
         for prev_, next_ in zip(reversed(y_values[:-1]), reversed(y_values[1:])):
             data[prev_] = [data[prev_][i] + data[next_][i] for i in range(len(data[next_]))]
         return data
 
     @staticmethod
     def _updated_timestamps_to_offset_time(
-        x_values: List[float]
+        x_values: list[float]
     ):
-        new_values: List[float] = []
+        new_values: list[float] = []
         first_time = x_values[0]
         for time in x_values:
             new_values.append(time - first_time)
         return new_values
 
     @staticmethod
-    def _get_x_width_list(x_values: List[float]) -> List[float]:
+    def _get_x_width_list(x_values: list[float]) -> list[float]:
         """
         Get width between a x value and next x value.
 
         Parameters
         ----------
-        x_values : List[float]
+        x_values : list[float]
             X values list.
 
         Returns
         -------
-        List[float]
+        list[float]
             Width list.
 
         """
         # TODO: create bokeh_util.py and move this.
-        x_width_list: List[float] = \
+        x_width_list: list[float] = \
             [(x_values[i+1]-x_values[i]) * 0.99 for i in range(len(x_values)-1)]
         x_width_list.append(x_width_list[-1])
         return x_width_list
 
     @staticmethod
     def _add_shift_value(
-        values: List[float],
-        shift_values: List[float]
-    ) -> List[float]:
+        values: list[float],
+        shift_values: list[float]
+    ) -> list[float]:
         """
         Add shift values to target values.
 
         Parameters
         ----------
-        values : List[float]
+        values : list[float]
             Target values.
-        shift_values : List[float]
+        shift_values : list[float]
             Shift values
 
         Returns
         -------
-        List[float]
+        list[float]
             Updated values.
 
         """
@@ -247,7 +247,7 @@ class BokehStackedBar:
         return [values[i] + shift_values[i] for i in range(len(values))]
 
     @staticmethod
-    def _get_bottom_labels(labels: List[str]) -> List[str]:
+    def _get_bottom_labels(labels: list[str]) -> list[str]:
         return [label + '_bottom' for label in labels]
 
 
@@ -261,7 +261,7 @@ class StackedBarSource:
         self._hover_keys = HoverKeysFactory.create_instance('stacked_bar', target_object)
         self._hover_source = HoverSource(self._hover_keys)
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the hover keys.
 
@@ -280,8 +280,8 @@ class StackedBarSource:
     def generate(
         self,
         y_label: str,
-        stacked_bar_data: Dict[str, List[float]],
-        x_width_list: List[float],
+        stacked_bar_data: dict[str, list[float]],
+        x_width_list: list[float],
     ) -> ColumnDataSource:
         target_data = stacked_bar_data[y_label]
         y_labels = list(stacked_bar_data.keys())

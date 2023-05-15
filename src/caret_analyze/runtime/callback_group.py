@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from caret_analyze.value_objects import (CallbackGroupStructValue,
                                          CallbackGroupType)
 
@@ -30,7 +28,7 @@ class CallbackGroup(Summarizable):
     def __init__(
         self,
         callback_group_info: CallbackGroupStructValue,
-        callbacks: List[CallbackBase],
+        callbacks: list[CallbackBase],
     ) -> None:
         """
         Construct an instance.
@@ -39,12 +37,12 @@ class CallbackGroup(Summarizable):
         ----------
         callback_group_info : CallbackGroupStructValue
             static information.
-        callbacks : List[CallbackBase]
+        callbacks : list[CallbackBase]
             callbacks to be added to the callback group.
 
         """
         self._val = callback_group_info
-        self._callbacks: List[CallbackBase] = callbacks
+        self._callbacks: list[CallbackBase] = callbacks
 
     @property
     def callback_group_type(self) -> CallbackGroupType:
@@ -100,13 +98,13 @@ class CallbackGroup(Summarizable):
         return self._val.node_name
 
     @property
-    def callbacks(self) -> List[CallbackBase]:
+    def callbacks(self) -> list[CallbackBase]:
         """
         Get callbacks.
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             callbacks which are contained in this callback group.
 
         """
@@ -174,13 +172,13 @@ class CallbackGroup(Summarizable):
             self._callbacks
         )
 
-    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: str) -> list[CallbackBase]:
         """
         Get callbacks that match the condition.
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             callbacks that match the condition.
 
         """

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from .frequency_timeseries import FrequencyTimeSeries
 from .latency_timeseries import LatencyTimeSeries
@@ -24,7 +26,7 @@ from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesPlotTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class TimeSeriesPlotFactory:
@@ -43,9 +45,7 @@ class TimeSeriesPlotFactory:
         Parameters
         ----------
         target_objects : Sequence[TimeSeriesPlotTypes]
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+            TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription)
         metrics : str
             Metrics for timeseries data.
             supported metrics: [frequency/latency/period]

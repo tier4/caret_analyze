@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from __future__ import annotations
 
 from ..column import ColumnValue
 from ..interface import RecordsInterface
@@ -24,8 +24,8 @@ class Latency:
     def __init__(
         self,
         records: RecordsInterface,
-        start_column: Optional[str] = None,
-        end_column: Optional[str] = None
+        start_column: str | None = None,
+        end_column: str | None = None
     ) -> None:
         """
         Construct an instance.
@@ -34,10 +34,10 @@ class Latency:
         ----------
         records : RecordsInterface
             records to calculate latency.
-        start_column : Optional[str], optional
+        start_column : str | None, optional
             Column name of start timestamps used in the calculation, by default None
             If None, the first column of records is selected.
-        end_column : Optional[str], optional
+        end_column : str | None, optional
             Column name of end timestamps used in the calculation, by default None
             If None, the last column of records is selected.
 
@@ -45,8 +45,8 @@ class Latency:
         self._start_column = start_column or records.columns[0]
         self._end_column = end_column or records.columns[-1]
 
-        self._start_timestamps: List[int] = []
-        self._end_timestamps: List[int] = []
+        self._start_timestamps: list[int] = []
+        self._end_timestamps: list[int] = []
         for record in records:
             if (self._start_column not in record.columns or
                     self._end_column not in record.columns):

@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import Dict, List, Optional, Sequence, Tuple
+from collections.abc import Sequence
+
 
 from .lttng import LttngEventFilter
 from ...architecture.reader_interface import ArchitectureReader
@@ -47,7 +50,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
     def get_node_names_and_cb_symbols(
         self,
         callback_group_id: str
-    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+    ) -> Sequence[tuple[str | None, str | None]]:
         return self._lttng.get_node_names_and_cb_symbols(callback_group_id)
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
@@ -68,7 +71,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
     def get_message_contexts(
         self,
         node: NodeValue
-    ) -> Sequence[Dict]:
+    ) -> Sequence[dict]:
         return []
 
     def get_executors(
@@ -115,8 +118,8 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[SubscriptionValue]:
-        info: List[SubscriptionValue] = []
-        construction_order_counter: Dict[Tuple[str, str], int] = defaultdict(int)
+        info: list[SubscriptionValue] = []
+        construction_order_counter: dict[tuple[str, str], int] = defaultdict(int)
 
         for sub_cb in self.get_subscription_callbacks(node):
             topic_name = sub_cb.subscribe_topic_name
@@ -137,8 +140,8 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[ServiceValue]:
-        info: List[ServiceValue] = []
-        construction_order_counter: Dict[Tuple[str, str], int] = defaultdict(int)
+        info: list[ServiceValue] = []
+        construction_order_counter: dict[tuple[str, str], int] = defaultdict(int)
         for srv_cb in self.get_service_callbacks(node):
             service_name = srv_cb.service_name
             node_name = srv_cb.node_name

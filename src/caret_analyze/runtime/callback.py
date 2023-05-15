@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from .path_base import PathBase
 from .publisher import Publisher
 from .subscription import Subscription
@@ -36,9 +34,9 @@ class CallbackBase(PathBase, Summarizable):
         self,
         info: CallbackStructValue,
         records_provider: RecordsProvider,
-        subscription: Optional[Subscription],
-        publishers: Optional[List[Publisher]],
-        timer: Optional[Timer]
+        subscription: Subscription | None,
+        publishers: list[Publisher] | None,
+        timer: Timer | None
     ) -> None:
         """
         Construct an instance.
@@ -49,11 +47,11 @@ class CallbackBase(PathBase, Summarizable):
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.
-        subscription : Optional[Subscription]
+        subscription : Subscription | None
             None except for subscription callbacks.
-        publishers : Optional[List[Publisher]]
+        publishers : list[Publisher] | None
             publishers to which the callback publishes.
-        timer : Optional[Timer]
+        timer : Timer | None
             None except for timer callbacks.
 
         """
@@ -117,13 +115,13 @@ class CallbackBase(PathBase, Summarizable):
         return self.__val.callback_type
 
     @property
-    def subscription(self) -> Optional[Subscription]:
+    def subscription(self) -> Subscription | None:
         """
         Get subscription.
 
         Returns
         -------
-        Optional[Subscription]
+        Subscription | None
             subscription which the callback is attached.
             None except for subscription callback.
 
@@ -131,13 +129,13 @@ class CallbackBase(PathBase, Summarizable):
         return self._sub
 
     @property
-    def publishers(self) -> Optional[List[Publisher]]:
+    def publishers(self) -> list[Publisher] | None:
         """
         Get publishers.
 
         Returns
         -------
-        Optional[List[Publisher]]
+        list[Publisher] | None
             publishers to which the callback publishes.
 
         """
@@ -146,13 +144,13 @@ class CallbackBase(PathBase, Summarizable):
         return sorted(self._pubs, key=lambda x: x.topic_name)
 
     @property
-    def timer(self) -> Optional[Timer]:
+    def timer(self) -> Timer | None:
         """
         Get timer.
 
         Returns
         -------
-        Optional[Timer]
+        Timer | None
             timer which the callback is attached.
             None except for timer callback.
 
@@ -160,13 +158,13 @@ class CallbackBase(PathBase, Summarizable):
         return self._timer
 
     @property
-    def publish_topic_names(self) -> Optional[List[str]]:
+    def publish_topic_names(self) -> list[str] | None:
         """
         Get publisher topic names.
 
         Returns
         -------
-        Optional[List[str]]
+        list[str] | None
             topic name list to be published by the callback.
 
         """
@@ -175,13 +173,13 @@ class CallbackBase(PathBase, Summarizable):
         return sorted(self.__val.publish_topic_names)
 
     @property
-    def subscribe_topic_name(self) -> Optional[str]:
+    def subscribe_topic_name(self) -> str | None:
         """
         Get subscription topic name.
 
         Returns
         -------
-        Optional[str]
+        str | None
             topic name to be subscribed by the callback.
             None except for subscription callback.
 
@@ -240,7 +238,7 @@ class TimerCallback(CallbackBase):
         self,
         callback: TimerCallbackStructValue,
         records_provider: RecordsProvider,
-        publishers: Optional[List[Publisher]],
+        publishers: list[Publisher] | None,
         timer: Timer
     ) -> None:
         """
@@ -252,7 +250,7 @@ class TimerCallback(CallbackBase):
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.
-        publishers : Optional[List[Publisher]]
+        publishers : list[Publisher] | None
             publishers to which the callback publishers
         timer : Timer
             timer
@@ -283,7 +281,7 @@ class SubscriptionCallback(CallbackBase):
         callback_info: SubscriptionCallbackStructValue,
         records_provider: RecordsProvider,
         subscription: Subscription,
-        publishers: Optional[List[Publisher]] = None,
+        publishers: list[Publisher] | None = None,
     ) -> None:
         """
         Construct an instance.
@@ -296,7 +294,7 @@ class SubscriptionCallback(CallbackBase):
             provider to be evaluated.
         subscription : Subscription
             subscription to which callback subscribes.
-        publishers : Optional[List[Publisher]]
+        publishers : list[Publisher] | None
             publishers to which the callback publishers
 
         """

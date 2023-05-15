@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from collections.abc import Sequence
 from logging import getLogger
-from typing import Optional, Sequence
 
 from bokeh.plotting import Figure
 
@@ -47,9 +49,9 @@ class ResponseTimeHistPlot(PlotBase):
 
     def figure(
         self,
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None
     ) -> Figure:
         # Set default value
         xaxis_type = xaxis_type or 'system_time'

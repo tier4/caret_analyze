@@ -15,8 +15,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
 from ...common import Util
@@ -30,19 +28,19 @@ class ExecutorStruct():
     def __init__(
         self,
         executor_type: ExecutorType,
-        callback_groups: List[CallbackGroupStruct],
+        callback_groups: list[CallbackGroupStruct],
         executor_name: str,
     ) -> None:
         self._executor_type = executor_type
-        self._cbg_values: List[CallbackGroupStruct] = callback_groups
+        self._cbg_values: list[CallbackGroupStruct] = callback_groups
         self._executor_name = executor_name
 
     @property
-    def callbacks(self) -> List[CallbackStruct]:
+    def callbacks(self) -> list[CallbackStruct]:
         return list(Util.flatten([cbg.callbacks for cbg in self._cbg_values]))
 
     @property
-    def callback_names(self) -> List[str]:
+    def callback_names(self) -> list[str]:
         return [c.callback_name for c in self.callbacks]
 
     @property
@@ -62,11 +60,11 @@ class ExecutorStruct():
         self._executor_name = n
 
     @property
-    def callback_groups(self) -> List[CallbackGroupStruct]:
+    def callback_groups(self) -> list[CallbackGroupStruct]:
         return self._cbg_values
 
     @property
-    def callback_group_names(self) -> List[str]:
+    def callback_group_names(self) -> list[str]:
         cbg_names = [cbg.callback_group_name for cbg in self._cbg_values]
         return cbg_names
 

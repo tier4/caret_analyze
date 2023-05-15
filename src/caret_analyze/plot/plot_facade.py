@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from collections.abc import Collection
 from logging import getLogger
-from typing import Collection, Optional, Union
 
 from multimethod import multimethod as singledispatchmethod
 
@@ -29,9 +31,9 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 
 logger = getLogger(__name__)
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
-CallbackSchedTypes = Union[Application, Executor, Path,
-                           Node, CallbackGroup, Collection[CallbackGroup]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+CallbackSchedTypes = (Application | Executor | Path | Node |
+                      CallbackGroup | Collection[CallbackGroup])
 
 
 class Plot:
@@ -47,9 +49,7 @@ class Plot:
         Parameters
         ----------
         target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+            TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -100,9 +100,7 @@ class Plot:
         Parameters
         ----------
         target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+            TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -130,7 +128,7 @@ class Plot:
 
     @singledispatchmethod
     def create_latency_timeseries_plot(
-        target_objects: Collection[Union[CallbackBase, Communication]]
+        target_objects: Collection[CallbackBase | Communication]
     ) -> PlotBase:
         """
         Get latency timeseries plot instance.
@@ -138,9 +136,7 @@ class Plot:
         Parameters
         ----------
         target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+            TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -158,7 +154,7 @@ class Plot:
     @staticmethod
     @create_latency_timeseries_plot.register
     def _create_latency_timeseries_plot_tuple(
-        *target_objects: Union[CallbackBase, Communication]
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
@@ -255,7 +251,7 @@ class Plot:
     @staticmethod
     def create_message_flow_plot(
         target_path: Path,
-        granularity: Optional[str] = None,
+        granularity: str | None = None,
         treat_drop_as_delay: bool = False,
         lstrip_s: float = 0,
         rstrip_s: float = 0
@@ -267,7 +263,7 @@ class Plot:
         ----------
         target_path : Path
             Target path to be plotted.
-        granularity : Optional[str], optional
+        granularity : str | None, optional
             Granularity of chain with two value; [raw/node], by default None.
         treat_drop_as_delay : bool, optional
             If there is a drop, the flow is drawn by connecting it to the next one,

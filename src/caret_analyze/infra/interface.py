@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Union
 
 from ..common import ClockConverter
 from ..record.interface import RecordsInterface
@@ -149,19 +148,19 @@ class RuntimeDataProvider(RecordsProvider):
     @abstractmethod
     def get_rmw_implementation(
         self
-    ) -> Optional[str]:
+    ) -> str | None:
         pass
 
     @abstractmethod
     def is_intra_process_communication(
         self,
         communication_info: CommunicationStructValue
-    ) -> Optional[bool]:
+    ) -> bool | None:
         pass
 
     @abstractmethod
     def get_qos(
         self,
-        info: Union[PublisherStructValue, SubscriptionStructValue]
-    ) -> Optional[Qos]:
+        info: PublisherStructValue | SubscriptionStructValue
+    ) -> Qos | None:
         pass

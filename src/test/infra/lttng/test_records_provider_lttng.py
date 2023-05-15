@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from __future__ import annotations
 
 from caret_analyze.exceptions import UnsupportedNodeRecordsError
 from caret_analyze.infra.lttng import Lttng
@@ -433,7 +433,7 @@ class TestNodeRecordsCallbackChain:
         path_info_mock = mocker.Mock(spec=NodePathStructValue)
         cb_info_mock = mocker.Mock(spec=CallbackStructValue)
 
-        records_data: List[RecordInterface]
+        records_data: list[RecordInterface]
         records_data = [
             Record({
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP: 0,
@@ -477,17 +477,17 @@ class TestNodeRecordsCallbackChain:
         path_info_mock = mocker.Mock(spec=NodePathStructValue)
         vp_info_mock = mocker.Mock(spec=VariablePassingStructValue)
 
-        records_data: List[RecordInterface]
+        records_data: list[RecordInterface]
         records_data = [
-                Record({
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,
-                }),
-                Record({
-                    COLUMN_NAME.CALLBACK_END_TIMESTAMP: 3,
-                    COLUMN_NAME.CALLBACK_START_TIMESTAMP: 4,
-                }),
-            ]
+            Record({
+                COLUMN_NAME.CALLBACK_END_TIMESTAMP: 1,
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP: 2,
+            }),
+            Record({
+                COLUMN_NAME.CALLBACK_END_TIMESTAMP: 3,
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP: 4,
+            }),
+        ]
         vp_records = Records(
             records_data,
             [

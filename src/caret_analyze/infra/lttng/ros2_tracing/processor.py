@@ -15,9 +15,11 @@
 
 """Module for trace events processor and ROS 2 model creation."""
 
-from collections import defaultdict
+from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from collections import defaultdict
+from collections.abc import Callable
+from typing import Any
 
 
 import bt2
@@ -53,7 +55,7 @@ class Ros2Handler():
     def __init__(
         self,
         data: Ros2DataModel,
-        monotonic_to_system_time_offset: Optional[int]
+        monotonic_to_system_time_offset: int | None
     ) -> None:
         """
         Create Ros2Handler.
@@ -62,7 +64,7 @@ class Ros2Handler():
         ----------
         data : Ros2DataModel
             DataModel to be handles
-        monotonic_to_system_time_offset : Optional[int]
+        monotonic_to_system_time_offset : int | None
             Offset time to convert monotonic time to system time.
             This values should be valid number if a recording was done with runtime recording.
             None is given, if recording begins before launch of the application,
@@ -190,16 +192,16 @@ class Ros2Handler():
         handler_map['ros2_caret:rcl_lifecycle_state_machine_init'] = \
             self._create_handler(self._handle_rcl_lifecycle_state_machine_init)
 
-        self._monotonic_to_system_offset: Optional[int] = monotonic_to_system_time_offset
+        self._monotonic_to_system_offset: int | None = monotonic_to_system_time_offset
         self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
         self.handler_map = handler_map
 
         # Temporary buffers
-        self._callback_instances: Dict[int, Tuple[Dict, Any]] = {}
+        self._callback_instances: dict[int, tuple[dict, Any]] = {}
         self._data = data
 
     @staticmethod
-    def get_trace_points(include_wrapped_tracepoints=True) -> List[str]:
+    def get_trace_points(include_wrapped_tracepoints=True) -> list[str]:
         tracepoints = [
             'ros2:rcl_init',
             'ros2:rcl_node_init',
@@ -268,7 +270,7 @@ class Ros2Handler():
         return tracepoints
 
     @staticmethod
-    def required_events() -> Set[str]:
+    def required_events() -> set[str]:
         return {
             'ros2:rcl_init',
         }
@@ -298,7 +300,7 @@ class Ros2Handler():
 
     def _handle_rcl_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         context_handle = get_field(event, 'context_handle')
         timestamp = get_field(event, '_timestamp')
@@ -310,7 +312,7 @@ class Ros2Handler():
 
     def _handle_rcl_node_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'node_handle')
         timestamp = get_field(event, '_timestamp')
@@ -322,7 +324,7 @@ class Ros2Handler():
 
     def _handle_rcl_publisher_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'publisher_handle')
         timestamp = get_field(event, '_timestamp')
@@ -335,7 +337,7 @@ class Ros2Handler():
 
     def _handle_rcl_subscription_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'subscription_handle')
         timestamp = get_field(event, '_timestamp')
@@ -354,7 +356,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_subscription_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         subscription_pointer = get_field(event, 'subscription')
         timestamp = get_field(event, '_timestamp')
@@ -364,7 +366,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_subscription_callback_added(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         subscription_pointer = get_field(event, 'subscription')
         timestamp = get_field(event, '_timestamp')
@@ -374,7 +376,7 @@ class Ros2Handler():
 
     def _handle_rcl_service_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'service_handle')
         timestamp = get_field(event, '_timestamp')
@@ -386,7 +388,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_service_callback_added(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'service_handle')
         timestamp = get_field(event, '_timestamp')
@@ -395,7 +397,7 @@ class Ros2Handler():
 
     def _handle_rcl_client_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'client_handle')
         timestamp = get_field(event, '_timestamp')
@@ -407,7 +409,7 @@ class Ros2Handler():
 
     def _handle_rcl_timer_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'timer_handle')
         timestamp = get_field(event, '_timestamp')
@@ -420,7 +422,7 @@ class Ros2Handler():
         is_init_timestamp_optional=False
     ):
         def _handler(
-            event: Dict,
+            event: dict,
         ) -> None:
             if 'init_timestamp' not in event and is_init_timestamp_optional:
                 # init_timestamp is the value added in the record from the middle of the process.
@@ -443,7 +445,7 @@ class Ros2Handler():
 
     def _handle_caret_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         clock_offset = get_field(event, 'clock_offset')
@@ -454,7 +456,7 @@ class Ros2Handler():
 
     @staticmethod
     def get_monotonic_to_system_offset(
-        event: Dict,
+        event: dict,
     ) -> int:
         timestamp = get_field(event, '_timestamp')
         clock_offset = get_field(event, 'clock_offset')
@@ -462,7 +464,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_timer_callback_added(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'timer_handle')
         timestamp = get_field(event, '_timestamp')
@@ -471,7 +473,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_timer_link_node(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         handle = get_field(event, 'timer_handle')
         timestamp = get_field(event, '_timestamp')
@@ -480,7 +482,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_callback_register(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         callback_object = get_field(event, 'callback')
         timestamp = get_field(event, '_timestamp')
@@ -489,7 +491,7 @@ class Ros2Handler():
 
     def _handle_callback_start(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -504,7 +506,7 @@ class Ros2Handler():
 
     def _handle_callback_end(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -517,7 +519,7 @@ class Ros2Handler():
 
     def _handle_rcl_lifecycle_state_machine_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         node_handle = get_field(event, 'node_handle')
         state_machine = get_field(event, 'state_machine')
@@ -525,7 +527,7 @@ class Ros2Handler():
 
     def _handle_rcl_lifecycle_transition(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -539,7 +541,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_publish(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -554,7 +556,7 @@ class Ros2Handler():
 
     def _handle_rcl_publish(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -568,7 +570,7 @@ class Ros2Handler():
 
     def _handle_message_construct(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -581,7 +583,7 @@ class Ros2Handler():
 
     def _handle_rclcpp_intra_publish(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -596,7 +598,7 @@ class Ros2Handler():
 
     def _handle_dispatch_subscription_callback(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -612,7 +614,7 @@ class Ros2Handler():
 
     def _handle_dispatch_intra_process_subscription_callback(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -627,7 +629,7 @@ class Ros2Handler():
 
     def _handle_on_data_available(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -638,7 +640,7 @@ class Ros2Handler():
 
     def _handle_dds_write(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -650,7 +652,7 @@ class Ros2Handler():
 
     def _handle_dds_bind_addr_to_stamp(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -663,7 +665,7 @@ class Ros2Handler():
 
     def _handle_dds_bind_addr_to_addr(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -675,14 +677,14 @@ class Ros2Handler():
 
     def _handle_rmw_implementation(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         rmw_impl = get_field(event, 'rmw_impl')
         self.data.add_rmw_implementation(rmw_impl)
 
     def _handle_construct_executor(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         executor_addr = get_field(event, 'executor_addr')
@@ -691,7 +693,7 @@ class Ros2Handler():
 
     def _handle_construct_static_executor(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         executor_addr = get_field(event, 'executor_addr')
@@ -701,7 +703,7 @@ class Ros2Handler():
 
     def _handle_add_callback_group(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         executor_addr = get_field(event, 'executor_addr')
@@ -712,7 +714,7 @@ class Ros2Handler():
 
     def _handle_add_callback_group_static_executor(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         collector_addr = get_field(event, 'entities_collector_addr')
@@ -723,7 +725,7 @@ class Ros2Handler():
 
     def _handle_callback_group_add_timer(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
@@ -732,7 +734,7 @@ class Ros2Handler():
 
     def _handle_callback_group_add_subscription(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
@@ -742,7 +744,7 @@ class Ros2Handler():
 
     def _handle_callback_group_add_service(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
@@ -751,7 +753,7 @@ class Ros2Handler():
 
     def _handle_callback_group_add_client(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
@@ -760,7 +762,7 @@ class Ros2Handler():
 
     def _handle_tilde_subscription_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         subscription = get_field(event, 'subscription')
@@ -770,7 +772,7 @@ class Ros2Handler():
 
     def _handle_tilde_publisher_init(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         publisher = get_field(event, 'publisher')
@@ -780,7 +782,7 @@ class Ros2Handler():
 
     def _handle_tilde_subscribe(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -792,7 +794,7 @@ class Ros2Handler():
 
     def _handle_tilde_publish(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
@@ -809,7 +811,7 @@ class Ros2Handler():
 
     def _handle_tilde_subscribe_added(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         subscription_id = get_field(event, 'subscription_id')
@@ -819,7 +821,7 @@ class Ros2Handler():
 
     def _handle_sim_time(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         sim_time = get_field(event, 'stamp')

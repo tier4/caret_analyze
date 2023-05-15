@@ -15,8 +15,6 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 from .callback import CallbackStructValue
 from .callback_group import CallbackGroupStructValue
 from .value_object import ValueObject
@@ -59,19 +57,19 @@ class ExecutorStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         executor_type: ExecutorType,
-        callback_group_values: Tuple[CallbackGroupStructValue, ...],
+        callback_group_values: tuple[CallbackGroupStructValue, ...],
         executor_name: str,
     ) -> None:
         self._executor_type = executor_type
-        self._cbg_values: Tuple[CallbackGroupStructValue, ...] = callback_group_values
+        self._cbg_values: tuple[CallbackGroupStructValue, ...] = callback_group_values
         self._executor_name = executor_name
 
     @property
-    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
+    def callbacks(self) -> tuple[CallbackStructValue, ...]:
         return tuple(Util.flatten([cbg.callbacks for cbg in self._cbg_values]))
 
     @property
-    def callback_names(self) -> Tuple[str, ...]:
+    def callback_names(self) -> tuple[str, ...]:
         return tuple(c.callback_name for c in self.callbacks)
 
     @property
@@ -87,11 +85,11 @@ class ExecutorStructValue(ValueObject, Summarizable):
         return self._executor_name
 
     @property
-    def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
         return self._cbg_values
 
     @property
-    def callback_group_names(self) -> Tuple[str, ...]:
+    def callback_group_names(self) -> tuple[str, ...]:
         cbg_names = [cbg.callback_group_name for cbg in self._cbg_values]
         return tuple(cbg_names)
 
@@ -110,9 +108,9 @@ class ExecutorValue(ValueObject):
     def __init__(
         self,
         executor_type_name: str,
-        callback_group_ids: Tuple[str, ...],
+        callback_group_ids: tuple[str, ...],
         *,
-        executor_name: Optional[str] = None
+        executor_name: str | None = None
     ) -> None:
         self._executor_type = ExecutorType(executor_type_name)
         self._cbg_ids = callback_group_ids
@@ -123,9 +121,9 @@ class ExecutorValue(ValueObject):
         return self._executor_type
 
     @property
-    def callback_group_ids(self) -> Tuple[str, ...]:
+    def callback_group_ids(self) -> tuple[str, ...]:
         return self._cbg_ids
 
     @property
-    def executor_name(self) -> Optional[str]:
+    def executor_name(self) -> str | None:
         return self._executor_name
