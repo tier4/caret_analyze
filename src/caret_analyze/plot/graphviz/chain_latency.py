@@ -99,7 +99,13 @@ def get_attr_node(
     lstrip_s: float,
     rstrip_s: float
 ) -> GraphAttr:
-    def calc_latency(target_df: pd.DataFrame) -> np.ndarray:
+    def calc_latency_from_path_df(target_columns: list[str]) -> np.ndarray:
+        target_df = path.to_dataframe(
+            remove_dropped=remove_dropped,
+            treat_drop_as_delay=treat_drop_as_delay,
+            lstrip_s=lstrip_s,
+            rstrip_s=rstrip_s,
+        )[target_columns]
         source_stamps_ns = np.array(target_df.iloc[:, 0].values)
         dest_stamps_ns = np.array(target_df.iloc[:, -1].values)
         latency_ns = dest_stamps_ns - source_stamps_ns
@@ -116,24 +122,12 @@ def get_attr_node(
 
         if i == 0 and path.include_first_callback:
             first_cb_columns = path.column_names[0:2]
-            first_cb_df = path.to_dataframe(
-                remove_dropped=remove_dropped,
-                treat_drop_as_delay=treat_drop_as_delay,
-                lstrip_s=lstrip_s,
-                rstrip_s=rstrip_s,
-            )[first_cb_columns]
-            latency = calc_latency(first_cb_df)
+            latency = calc_latency_from_path_df(first_cb_columns)
             label += '\n' + to_label(latency)
 
         elif i == len(path.node_paths)-1 and path.include_last_callback:
             last_cb_columns = path.column_names[-2:]
-            last_cb_df = path.to_dataframe(
-                remove_dropped=remove_dropped,
-                treat_drop_as_delay=treat_drop_as_delay,
-                lstrip_s=lstrip_s,
-                rstrip_s=rstrip_s,
-            )[last_cb_columns]
-            latency = calc_latency(last_cb_df)
+            latency = calc_latency_from_path_df(last_cb_columns)
             label += '\n' + to_label(latency)
 
         elif node_path.column_names != []:
