@@ -706,6 +706,11 @@ class Lttng(InfraBase):
     ) -> RecordsInterface:
         return self._source.subscribe_records.clone()
 
+    def compose_subscribe_records_via_rmw_take(
+        self,
+    ) -> RecordsInterface:
+        return self._source.subscribe_records_via_rmw_take.clone()
+
     def create_timer_events_factory(
         self,
         timer_callback: TimerCallbackValueLttng
