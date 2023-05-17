@@ -97,12 +97,17 @@ class PeriodTimeSeries(MetricsBase):
             Period records list of all target objects.
 
         """
-        timeseries_records_list: List[RecordsInterface] = []
-        for target_object in self._target_objects:
-            period = Period(target_object.to_records())
-            timeseries_records_list.append(period.to_records())
+        timeseries_records_list: List[RecordsInterface] = [
+            _.to_records() for _ in self._target_objects
+        ]
 
         if xaxis_type == 'sim_time':
-            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+            timeseries_records_list = \
+                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
-        return timeseries_records_list
+        period_timeseries_list: List[RecordsInterface] = []
+        for records in timeseries_records_list:
+            period = Period(records)
+            period_timeseries_list.append(period.to_records())
+
+        return period_timeseries_list
