@@ -84,6 +84,19 @@ class Publisher(PathBase, Summarizable):
         return self._val.topic_name
 
     @property
+    def construction_order(self) -> int:
+        """
+        Get a construction order.
+
+        Returns
+        -------
+        int
+            A construction order of this publisher.
+
+        """
+        return self._val.construction_order
+
+    @property
     def callback_names(self) -> Optional[List[str]]:
         """
         Get callback names.

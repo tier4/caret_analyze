@@ -142,6 +142,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
             self._get_value(context, 'context_type')
             self._get_value(context, 'publisher_topic_name')
             self._get_value(context, 'subscription_topic_name')
+
         return context_dicts
 
     def get_callback_groups(
@@ -182,13 +183,21 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_path_value, 'publish_topic_name', None)
                 sub_topic = self._get_value_with_default(
                     node_path_value, 'subscribe_topic_name', None)
+                publisher_construction_order = self._get_value_with_default(
+                    node_path_value, 'publisher_construction_order', 0)
+                subscription_construction_order = self._get_value_with_default(
+                    node_path_value, 'subscription_construction_order', 0)
 
-                if pub_topic == UNDEFINED_STR:
+                if pub_topic == UNDEFINED_STR or pub_topic is None:
                     pub_topic = None
-                if sub_topic == UNDEFINED_STR:
+                    publisher_construction_order = None
+                if sub_topic == UNDEFINED_STR or sub_topic is None:
                     sub_topic = None
+                    subscription_construction_order = None
 
-                node_path_value = NodePathValue(node_name, sub_topic, pub_topic)
+                node_path_value = NodePathValue(
+                    node_name, sub_topic, pub_topic,
+                    publisher_construction_order, subscription_construction_order)
                 node_chain.append(node_path_value)
 
             paths_info.append(
@@ -284,6 +293,7 @@ class ArchitectureReaderYaml(ArchitectureReader):
                     node_name=node.node_name,
                     node_id=node.node_name,
                     callback_ids=tuple(self._get_value(pub, 'callback_names')),
+                    construction_order=self._get_value_with_default(pub, 'construction_order', 0)
                 )
             )
         return publishers
@@ -302,12 +312,15 @@ class ArchitectureReaderYaml(ArchitectureReader):
         for cb_dict in cbs_dict:
             if self._get_value(cb_dict, 'callback_type') != 'timer_callback':
                 continue
+            # construction_order of timer uses callback
             timers.append(
                 TimerValue(
                     period=int(self._get_value(cb_dict, 'period_ns')),
                     node_name=node.node_name,
                     node_id=node.node_id,
                     callback_id=self._get_value(cb_dict, 'callback_name'),
+                    construction_order=(
+                        self._get_value_with_default(cb_dict, 'construction_order', 0))
                 )
             )
         return timers
@@ -322,13 +335,14 @@ class ArchitectureReaderYaml(ArchitectureReader):
         if 'subscribes' not in node_dict.keys():
             return []
 
-        for pub in self._get_value(node_dict, 'subscribes'):
+        for sub in self._get_value(node_dict, 'subscribes'):
             subscriptions.append(
                 SubscriptionValue(
                     node_name=node.node_name,
                     node_id=node.node_name,
-                    topic_name=self._get_value(pub, 'topic_name'),
-                    callback_id=self._get_value(pub, 'callback_name'),
+                    topic_name=self._get_value(sub, 'topic_name'),
+                    callback_id=self._get_value(sub, 'callback_name'),
+                    construction_order=self._get_value_with_default(sub, 'construction_order', 0)
                 )
             )
         return subscriptions

@@ -60,13 +60,15 @@ def init_figure(
     ywheel_zoom: bool,
     xaxis_type: str,
     y_axis_label: Optional[str] = None,
+    x_axis_label: Optional[str] = None,
 ) -> Figure:
-    if xaxis_type == 'system_time':
-        x_axis_label = 'system time [s]'
-    elif xaxis_type == 'sim_time':
-        x_axis_label = 'simulation time [s]'
-    else:
-        x_axis_label = xaxis_type
+    if x_axis_label is None:
+        if xaxis_type == 'system_time':
+            x_axis_label = 'system time [s]'
+        elif xaxis_type == 'sim_time':
+            x_axis_label = 'simulation time [s]'
+        else:
+            x_axis_label = xaxis_type
 
     if ywheel_zoom:
         tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']

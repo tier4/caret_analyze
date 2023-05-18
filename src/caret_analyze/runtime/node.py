@@ -402,7 +402,11 @@ class Node(Summarizable):
 
         return callbacks
 
-    def get_subscription(self, topic_name: str) -> Subscription:
+    def get_subscription(
+        self,
+        topic_name: str,
+        construction_order: Optional[int] = None
+    ) -> Subscription:
         """
         Get subscription.
 
@@ -410,6 +414,8 @@ class Node(Summarizable):
         ----------
         topic_name : str
             topic name to get.
+        construction_order : Optional[int]
+            construction order to get.
 
         Returns
         -------
@@ -429,9 +435,19 @@ class Node(Summarizable):
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(lambda x: x.topic_name == topic_name, self._subscriptions)
+        def is_target(subscription: Subscription):
+            match = subscription.topic_name == topic_name
+            if construction_order is not None:
+                match &= subscription.construction_order == construction_order
+            return match
 
-    def get_publisher(self, topic_name: str) -> Publisher:
+        return Util.find_one(is_target, self._subscriptions)
+
+    def get_publisher(
+            self,
+            topic_name: str,
+            construction_order: Optional[int] = None
+    ) -> Publisher:
         """
         Get publisher.
 
@@ -439,6 +455,8 @@ class Node(Summarizable):
         ----------
         topic_name : str
             publisher topic name to get.
+        construction_order : Optional[int]
+            construction order to get.
 
         Returns
         -------
@@ -458,7 +476,13 @@ class Node(Summarizable):
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(lambda x: x.topic_name == topic_name, self._publishers)
+        def is_target_publisher(publishers: Publisher):
+            match = publishers.topic_name == topic_name
+            if construction_order is not None:
+                match &= publishers.construction_order == construction_order
+            return match
+
+        return Util.find_one(is_target_publisher, self._publishers)
 
     def get_timer(self, topic_name: str) -> Timer:
         # TODO(hsgwa): fix argument type.

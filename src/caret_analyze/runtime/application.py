@@ -18,7 +18,7 @@ import fnmatch
 
 from logging import getLogger
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
@@ -311,7 +311,10 @@ class Application(Summarizable):
         self,
         publisher_node_name: str,
         subscription_node_name: str,
-        topic_name: str
+        topic_name: str,
+        *,
+        publisher_construction_order: int = 0,
+        subscription_construction_order: int = 0
     ) -> Communication:
         """
         Get communication that matches the condition.
@@ -324,6 +327,10 @@ class Application(Summarizable):
             node name that subscribes to the topic.
         topic_name : str
             topic name.
+        publisher_construction_order : int
+            A construction order of publisher.
+        subscription_construction_order : int
+            A construction order of subscription.
 
         Returns
         -------
@@ -345,14 +352,19 @@ class Application(Summarizable):
                 not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        target_names = {'publisher_node_name': publisher_node_name,
-                        'subscription_node_name': subscription_node_name,
-                        'topic_name': topic_name}
+        target_names: Dict[str, Union[str, int]] = \
+            {'publisher_node_name': publisher_node_name,
+             'subscription_node_name': subscription_node_name,
+             'topic_name': topic_name,
+             'publisher_construction_order': publisher_construction_order,
+             'subscription_construction_order': subscription_construction_order}
 
         def get_names(x):
             return {'publisher_node_name': x.publish_node_name,
                     'subscription_node_name': x.subscribe_node_name,
-                    'topic_name': x.topic_name}
+                    'topic_name': x.topic_name,
+                    'publisher_construction_order': x.publisher_construction_order,
+                    'subscription_construction_order': x.subscription_construction_order}
 
         return Util.find_similar_one_multi_keys(target_names,
                                                 self.communications,
@@ -429,7 +441,10 @@ class Application(Summarizable):
         self,
         node_name: str,
         subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str]
+        publish_topic_name: Optional[str],
+        *,
+        subscription_construction_order: int = 0,
+        publisher_construction_order: int = 0
     ) -> NodePathStructValue:
         """
         Get a node path that matches the condition.
@@ -442,6 +457,10 @@ class Application(Summarizable):
             topic name which the node subscribes.
         publish_topic_name : Optional[str]
             topic name which the node publishes.
+        subscription_construction_order : Optional[int]
+            A construction order of subscription.
+        publisher_construction_order : Optional[int]
+            A construction order of publisher.
 
         Returns
         -------
@@ -463,14 +482,19 @@ class Application(Summarizable):
                 not isinstance(publish_topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        target_name = {'node_name': node_name,
-                       'subscribe_topic_name': subscribe_topic_name,
-                       'publish_topic_name': publish_topic_name}
+        target_name: Dict[str, Union[str, int]] = \
+            {'node_name': node_name,
+             'subscribe_topic_name': subscribe_topic_name,
+             'publish_topic_name': publish_topic_name,
+             'publisher_construction_order': publisher_construction_order,
+             'subscription_construction_order': subscription_construction_order}
 
         def get_names(x):
             return {'node_name': x.node_name,
                     'subscribe_topic_name': x.subscribe_topic_name,
-                    'publish_topic_name': x.publish_topic_name}
+                    'publish_topic_name': x.publish_topic_name,
+                    'publisher_construction_order': x.publisher_construction_order,
+                    'subscription_construction_order': x.subscription_construction_order}
 
         return Util.find_similar_one_multi_keys(target_name,
                                                 self.node_paths,

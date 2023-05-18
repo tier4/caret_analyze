@@ -19,11 +19,13 @@ class TestSubscriptionValueObject:
 
     def test_eq(self):
         # SubscriptionStructValue redefines __eq__ and __hash__ for speed.
-        assert SubscriptionStructValue('', '', None) == SubscriptionStructValue('', '', None)
-        assert SubscriptionStructValue('', '', None) != SubscriptionStructValue('x', '', None)
+        assert SubscriptionStructValue('', '', None, 0) == \
+            SubscriptionStructValue('', '', None, 0)
+        assert SubscriptionStructValue('', '', None, 0) != \
+            SubscriptionStructValue('x', '', None, 0)
 
     def test_hash(self):
-        assert hash(SubscriptionStructValue('', '', None)) ==  \
-            hash(SubscriptionStructValue('', '', None))
-        assert hash(SubscriptionStructValue('', '', None)) !=  \
-            hash(SubscriptionStructValue('x', '', None))
+        assert hash(SubscriptionStructValue('', '', None, 0)) ==  \
+            hash(SubscriptionStructValue('', '', None, 0))
+        assert hash(SubscriptionStructValue('', '', None, 0)) !=  \
+            hash(SubscriptionStructValue('x', '', None, 0))

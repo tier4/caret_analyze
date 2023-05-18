@@ -72,6 +72,12 @@ named_paths:
     publish_topic_name: /chatter
   - node_name: /listener
     subscribe_topic_name: /chatter
+  - node_name: /talker_con
+    publish_topic_name: /chatter
+    publisher_construction_order: 1
+  - node_name: /listener_con
+    subscribe_topic_name: /chatter
+    subscription_construction_order: 1
 executors: []
 nodes: []
         """
@@ -83,17 +89,35 @@ nodes: []
         assert len(paths_info) == 1
         path_info = paths_info[0]
         assert path_info.path_name == 'target_path'
-        assert len(path_info.node_path_values) == 2
+        assert len(path_info.node_path_values) == 4
 
         talker_path = path_info.node_path_values[0]
         assert talker_path.node_name == '/talker'
         assert talker_path.publish_topic_name == '/chatter'
         assert talker_path.subscribe_topic_name is None
+        assert talker_path.publisher_construction_order == 0
+        assert talker_path.subscription_construction_order is None
 
         listener_path = path_info.node_path_values[1]
         assert listener_path.node_name == '/listener'
         assert listener_path.publish_topic_name is None
         assert listener_path.subscribe_topic_name == '/chatter'
+        assert listener_path.publisher_construction_order is None
+        assert listener_path.subscription_construction_order == 0
+
+        talker_path = path_info.node_path_values[2]
+        assert talker_path.node_name == '/talker_con'
+        assert talker_path.publish_topic_name == '/chatter'
+        assert talker_path.subscribe_topic_name is None
+        assert talker_path.publisher_construction_order == 1
+        assert talker_path.subscription_construction_order is None
+
+        listener_path = path_info.node_path_values[3]
+        assert listener_path.node_name == '/listener_con'
+        assert listener_path.publish_topic_name is None
+        assert listener_path.subscribe_topic_name == '/chatter'
+        assert listener_path.publisher_construction_order is None
+        assert listener_path.subscription_construction_order == 1
 
     def test_executors(self, mocker):
         architecture_text = """
@@ -240,6 +264,36 @@ nodes:
         assert context['context_type'] == InheritUniqueStamp.TYPE_NAME
         assert context['publisher_topic_name'] == '/pong'
         assert context['subscription_topic_name'] == '/ping'
+        assert 'subscription_construction_order' not in context
+        assert 'publisher_construction_order' not in context
+
+    def test_message_contexts_with_construction_order(self, mocker):
+        architecture_text = """
+path_name_aliases: []
+executors: []
+nodes:
+- node_name: /ping_pong
+  message_contexts:
+  - context_type: inherit_unique_stamp
+    publisher_topic_name: /pong
+    subscription_topic_name: /ping
+    subscription_construction_order: 1
+    publisher_construction_order: 0
+        """
+
+        mocker.patch('builtins.open', mocker.mock_open(
+            read_data=architecture_text))
+        reader = ArchitectureReaderYaml('file_name')
+
+        contexts = reader.get_message_contexts(NodeValue('/ping_pong', None))
+        assert len(contexts) == 1
+
+        context = contexts[0]
+        assert context['context_type'] == InheritUniqueStamp.TYPE_NAME
+        assert context['publisher_topic_name'] == '/pong'
+        assert context['subscription_topic_name'] == '/ping'
+        assert context['subscription_construction_order'] == 1
+        assert context['publisher_construction_order'] == 0
 
     def test_publishers_info(self, mocker):
         architecture_text = """
@@ -252,6 +306,11 @@ nodes:
     callback_names:
     - /listener/timer_callback_0
     - /listener/timer_callback_1
+  - topic_name: /xxx
+    callback_names:
+    - /listener/timer_callback_2
+    - /listener/timer_callback_3
+    construction_order: 1
         """
 
         mocker.patch('builtins.open', mocker.mock_open(
@@ -259,13 +318,21 @@ nodes:
         reader = ArchitectureReaderYaml('file_name')
 
         timer_pubs = reader.get_publishers(NodeValue('/listener', None))
-        assert len(timer_pubs) == 1
+        assert len(timer_pubs) == 2
         timer_pub = timer_pubs[0]
         assert timer_pub.node_id == '/listener'
         assert timer_pub.topic_name == '/xxx'
         assert timer_pub.callback_ids == (
             '/listener/timer_callback_0',
             '/listener/timer_callback_1')
+        assert timer_pub.construction_order == 0
+        timer_pub = timer_pubs[1]
+        assert timer_pub.node_id == '/listener'
+        assert timer_pub.topic_name == '/xxx'
+        assert timer_pub.callback_ids == (
+            '/listener/timer_callback_2',
+            '/listener/timer_callback_3')
+        assert timer_pub.construction_order == 1
 
     def test_subscriptions_info(self, mocker):
         architecture_text = """
@@ -276,6 +343,9 @@ nodes:
   subscribes:
   - topic_name: /xxx
     callback_name: /listener/timer_callback_0
+  - topic_name: /xxx
+    callback_name: /listener/timer_callback_2
+    construction_order: 1
         """
 
         mocker.patch('builtins.open', mocker.mock_open(
@@ -283,11 +353,56 @@ nodes:
         reader = ArchitectureReaderYaml('file_name')
 
         subs = reader.get_subscriptions(NodeValue('/listener', None))
-        assert len(subs) == 1
+        assert len(subs) == 2
         sub = subs[0]
         assert sub.node_name == '/listener'
         assert sub.topic_name == '/xxx'
         assert sub.callback_id == '/listener/timer_callback_0'
+        assert sub.construction_order == 0
+        sub = subs[1]
+        assert sub.node_name == '/listener'
+        assert sub.topic_name == '/xxx'
+        assert sub.callback_id == '/listener/timer_callback_2'
+        assert sub.construction_order == 1
+
+    def test_timers_info(self, mocker):
+        architecture_text = """
+path_name_aliases: []
+executors: []
+nodes:
+- node_name: /node
+  callbacks:
+  - callback_name: timer_callback_0
+    callback_type: timer_callback
+    period_ns: 1
+    symbol: timer_symbol
+  - callback_name: timer_callback_1
+    callback_type: timer_callback
+    period_ns: 1
+    symbol: timer_symbol
+    construction_order: 1
+  publishes:
+  - topic_name: /chatter
+    callback_names:
+    - timer_callback_0
+    - timer_callback_1
+        """
+        mocker.patch('builtins.open', mocker.mock_open(
+            read_data=architecture_text))
+        reader = ArchitectureReaderYaml('file_name')
+
+        timers = reader.get_timers(NodeValue('/node', None))
+        assert len(timers) == 2
+        timer = timers[0]
+        assert timer.period == 1
+        assert timer.node_name == '/node'
+        assert timer.callback_id == 'timer_callback_0'
+        assert timer.construction_order == 0
+        timer = timers[1]
+        assert timer.period == 1
+        assert timer.node_name == '/node'
+        assert timer.callback_id == 'timer_callback_1'
+        assert timer.construction_order == 1
 
     def test_nodes(self, mocker):
         architecture_text = """

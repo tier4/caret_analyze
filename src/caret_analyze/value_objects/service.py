@@ -28,11 +28,13 @@ class ServiceValue(ValueObject):
         node_name: str,
         node_id: Optional[str],
         callback_id: Optional[str],
+        construction_order: int
     ) -> None:
         self._node_name = node_name
         self._node_id = node_id
         self._service_name = service_name
         self._callback_id = callback_id
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -50,6 +52,10 @@ class ServiceValue(ValueObject):
     def callback_id(self) -> Optional[str]:
         return self._callback_id
 
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
+
 
 class ServiceStructValue(ValueObject, Summarizable):
     """Service info."""
@@ -59,10 +65,12 @@ class ServiceStructValue(ValueObject, Summarizable):
         node_name: str,
         service_name: str,
         callback_info: Optional[ServiceCallbackStructValue],
+        construction_order: int
     ) -> None:
         self._node_name: str = node_name
         self._service_name: str = service_name
         self._callback_value = callback_info
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -90,3 +98,7 @@ class ServiceStructValue(ValueObject, Summarizable):
     @property
     def callback(self) -> Optional[ServiceCallbackStructValue]:
         return self._callback_value
+
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order

@@ -26,10 +26,12 @@ class ServiceStruct():
         node_name: str,
         service_name: str,
         callback_info: Optional[ServiceCallbackStruct],
+        construction_order: int,
     ) -> None:
         self._node_name: str = node_name
         self._service_name: str = service_name
         self._callback_value = callback_info
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -50,8 +52,14 @@ class ServiceStruct():
     def callback(self) -> Optional[ServiceCallbackStruct]:
         return self._callback_value
 
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
+
     def to_value(self) -> ServiceStructValue:
         return ServiceStructValue(
-            self.node_name,
-            self.service_name,
-            None if self.callback is None else self.callback.to_value())
+            node_name=self.node_name,
+            service_name=self.service_name,
+            callback_info=None if self.callback is None else self.callback.to_value(),
+            construction_order=self.construction_order
+        )

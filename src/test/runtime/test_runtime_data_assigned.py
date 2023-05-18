@@ -14,7 +14,7 @@
 
 # from threading import Timer
 from caret_analyze.architecture import Architecture
-from caret_analyze.exceptions import UnsupportedTypeError
+from caret_analyze.exceptions import ItemNotFoundError, UnsupportedTypeError
 from caret_analyze.infra.interface import RecordsProvider
 from caret_analyze.runtime.callback import (CallbackBase, SubscriptionCallback,
                                             TimerCallback)
@@ -221,6 +221,39 @@ class TestNodesLoaded:
         assert node.variable_passings == [var_pass_mock]
         assert node.paths == [node_path_mock]
 
+    def test_find_node_path(self, mocker):
+        provider_mock = mocker.Mock(spec=RecordsProvider)
+        node_info_mock = mocker.Mock(spec=NodeStructValue)
+        node_path_info_mock1 = mocker.Mock(spec=NodePath)
+        node_path_info_mock2 = mocker.Mock(spec=NodePath)
+
+        mocker.patch.object(node_path_info_mock1, 'node_name', 'node_name')
+        mocker.patch.object(node_path_info_mock1, 'publish_topic_name', 'pub_name1')
+        mocker.patch.object(node_path_info_mock1, 'subscribe_topic_name', 'sub_name1')
+        mocker.patch.object(node_path_info_mock1, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_info_mock1, 'subscription_construction_order', 0)
+        mocker.patch.object(node_path_info_mock2, 'node_name', 'node_name')
+        mocker.patch.object(node_path_info_mock2, 'publish_topic_name', 'pub_name1')
+        mocker.patch.object(node_path_info_mock2, 'subscribe_topic_name', 'sub_name1')
+        mocker.patch.object(node_path_info_mock2, 'publisher_construction_order', 1)
+        mocker.patch.object(node_path_info_mock2, 'subscription_construction_order', 0)
+
+        node_mock = mocker.Mock(spec=Node)
+        mocker.patch.object(node_mock, 'node_name', 'node_name')
+        mocker.patch.object(node_mock, 'paths', [node_path_info_mock1, node_path_info_mock2])
+        mocker.patch.object(NodesLoaded, '_to_runtime', return_value=node_mock)
+
+        node_loaded = NodesLoaded((node_info_mock,), provider_mock)
+
+        assert node_loaded.find_node_path(
+            'node_name', 'sub_name1', 'pub_name1', 0, 0) == node_path_info_mock1
+        assert node_loaded.find_node_path(
+            'node_name', 'sub_name1', 'pub_name1', 1, 0) == node_path_info_mock2
+
+        with pytest.raises(ItemNotFoundError) as e:
+            node_loaded.find_node_path('node_name', 'sub_name1', 'pub_name1', 2, 0)
+        assert 'construction_order: 2' in str(e.value)
+
 
 class TestPublishersLoaded:
 
@@ -262,6 +295,38 @@ class TestPublishersLoaded:
 
         assert loaded.get_publishers('not_exist', None, None) == []
 
+    def test_get_publisher(self, mocker):
+        provider_mock = mocker.Mock(spec=RecordsProvider)
+        pub_info_mock = mocker.Mock(spec=PublisherStructValue)
+
+        pub_mock = mocker.Mock(spec=Publisher)
+        mocker.patch.object(pub_mock, 'callback_names', ['callback'])
+        mocker.patch.object(pub_mock, 'node_name', 'node_name')
+        mocker.patch.object(pub_mock, 'topic_name', 'topic_name')
+        mocker.patch.object(pub_mock, 'construction_order', 1)
+        mocker.patch.object(PublishersLoaded, '_to_runtime', return_value=pub_mock)
+
+        loaded = PublishersLoaded((pub_info_mock,), provider_mock)
+
+        assert loaded.get_publisher(
+            'node_name',
+            'callback',
+            'topic_name',
+            1
+        ) == pub_mock
+
+        with pytest.raises(ItemNotFoundError) as e:
+            loaded.get_publisher(
+                'node_name',
+                'callback',
+                'topic_name',
+                0)
+        assert 'construction_order: 0' in str(e.value)
+
+        with pytest.raises(ItemNotFoundError) as e:
+            loaded.get_publisher('not_exist', None, None, 0)
+        assert 'not_exist' in str(e.value)
+
 
 class TestSubscriptionsLoaded:
 
@@ -302,6 +367,38 @@ class TestSubscriptionsLoaded:
         ) == [sub_mock]
 
         assert loaded.get_subscriptions('not_exist', None, None) == []
+
+    def test_get_subscription(self, mocker):
+        provider_mock = mocker.Mock(spec=RecordsProvider)
+        sub_info_mock = mocker.Mock(spec=SubscriptionStructValue)
+
+        sub_mock = mocker.Mock(spec=Subscription)
+        mocker.patch.object(sub_mock, 'callback_name', 'callback')
+        mocker.patch.object(sub_mock, 'node_name', 'node_name')
+        mocker.patch.object(sub_mock, 'topic_name', 'topic_name')
+        mocker.patch.object(sub_mock, 'construction_order', 1)
+        mocker.patch.object(SubscriptionsLoaded, '_to_runtime', return_value=sub_mock)
+
+        loaded = SubscriptionsLoaded((sub_info_mock,), provider_mock)
+
+        assert loaded.get_subscription(
+            callback_name='callback',
+            node_name='node_name',
+            topic_name='topic_name',
+            construction_order=1
+        ) == sub_mock
+
+        with pytest.raises(ItemNotFoundError) as e:
+            loaded.get_subscription(
+                callback_name='callback',
+                node_name='node_name',
+                topic_name='topic_name',
+                construction_order=0)
+        assert 'construction_order: 0' in str(e.value)
+
+        with pytest.raises(ItemNotFoundError) as e:
+            loaded.get_subscription('not_exist', None, None, 0)
+        assert 'not_exist' in str(e.value)
 
 
 class TestExecutorLoaded:
@@ -514,6 +611,28 @@ class TestCommunicationsLoaded:
 
         assert comm.callback_publish == [cb_pub_mock]
         assert comm.callback_subscription == cb_sub_mock
+
+    def test_find_communication(self, mocker):
+        comm_info_mock = mocker.Mock(spec=CommunicationStructValue)
+        provider_mock = mocker.Mock(spec=RecordsProvider)
+        nodes_loaded_mock = mocker.Mock(spec=NodesLoaded)
+
+        comm_mock = mocker.Mock(spec=Communication)
+        mocker.patch.object(comm_mock, 'topic_name', 'topic_name')
+        mocker.patch.object(comm_mock, 'publish_node_name', 'pub_name')
+        mocker.patch.object(comm_mock, 'subscribe_node_name', 'sub_name')
+        mocker.patch.object(comm_mock, 'subscription_construction_order', 0)
+        mocker.patch.object(comm_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(CommunicationsLoaded, '_to_runtime', return_value=comm_mock)
+
+        comm_loaded = CommunicationsLoaded((comm_info_mock,), provider_mock, nodes_loaded_mock)
+
+        assert comm_loaded.find_communication(
+            'topic_name', 'pub_name', 'sub_name', 0, 0) == comm_mock
+
+        with pytest.raises(ItemNotFoundError) as e:
+            comm_loaded.find_communication('topic_name', 'sub_name', 'pub_name', 1, 0)
+        assert 'publisher_construction_order: 1' in str(e.value)
 
 
 class TestCallbacksLoaded:

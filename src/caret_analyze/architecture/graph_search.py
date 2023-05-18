@@ -26,8 +26,7 @@ from .struct import (CallbackStruct, CommunicationStruct,
                      SubscriptionStruct,
                      VariablePassingStruct)
 from ..common import Util
-from ..exceptions import (InvalidArgumentError, ItemNotFoundError,
-                          MultipleItemFoundError)
+from ..exceptions import (InvalidArgumentError, ItemNotFoundError)
 from ..value_objects.value_object import ValueObject
 
 logger = getLogger(__name__)
@@ -186,7 +185,11 @@ class GraphCore:
 class GraphNode(ValueObject):
 
     def __init__(self, node_name: str) -> None:
-        self.node_name = node_name
+        self._node_name = node_name
+
+    @property
+    def node_name(self) -> str:
+        return self._node_name
 
 
 class GraphEdge(ValueObject):
@@ -357,6 +360,7 @@ class CallbackPathSearcher:
         self,
         start_callback: CallbackStruct,
         end_callback: CallbackStruct,
+        node: NodeStruct
     ) -> Tuple[NodePathStruct, ...]:
         # src_node = GraphNode(self._to_node_point_name(start_callback.callback_name, 'write'))
         # dst_node = GraphNode(self._to_node_point_name(end_callback.callback_name, 'read'))
@@ -370,7 +374,15 @@ class CallbackPathSearcher:
 
         paths: List[NodePathStruct] = []
         for graph_path in graph_paths:
-            paths += self._to_paths(graph_path, start_callback, end_callback)
+            subscription = node.get_subscription_from_callback(start_callback.callback_name)
+            publisher = node.get_publisher_from_callback(end_callback.callback_name)
+            paths += self._to_paths(
+                graph_path,
+                start_callback,
+                end_callback,
+                subscription,
+                publisher
+            )
 
         return tuple(paths)
 
@@ -379,25 +391,30 @@ class CallbackPathSearcher:
         callback_graph_path: GraphPath,
         start_callback: CallbackStruct,
         end_callback: CallbackStruct,
+        start_callback_subscription: Optional[SubscriptionStruct],
+        end_callback_publishers: Optional[List[PublisherStruct]]
     ) -> List[NodePathStruct]:
-        subscribe_topic_name = start_callback.subscribe_topic_name
 
-        if end_callback.publish_topic_names is None or \
-           end_callback.publish_topic_names == ():
-            return [self._to_path(callback_graph_path, subscribe_topic_name, None)]
+        if start_callback_subscription is None and len(end_callback_publishers or []) == 0:
+            return []  # If there is no sub or pub, it is not calculated as a path
+
+        if end_callback_publishers is None or len(end_callback_publishers) == 0:
+            return [self._to_path(callback_graph_path, start_callback_subscription, None)]
 
         return [
             self._to_path(callback_graph_path,
-                          subscribe_topic_name, publish_topic_name)
-            for publish_topic_name
-            in end_callback.publish_topic_names
+                          start_callback_subscription,
+                          publisher)
+            for publisher
+            in end_callback_publishers
+            # Do not include construction_order on the publisher side
         ]
 
     def _to_path(
         self,
         callbacks_graph_path: GraphPath,
-        subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str],
+        subscription: Optional[SubscriptionStruct],
+        publisher: Optional[PublisherStruct]
     ) -> NodePathStruct:
         child: List[Union[CallbackStruct, VariablePassingStruct]] = []
 
@@ -409,42 +426,10 @@ class CallbackPathSearcher:
                 graph_node_from, graph_node_to)
             child.append(cb_or_varpass)
 
-        sub: Optional[SubscriptionStruct] = None
-        pub: Optional[PublisherStruct] = None
-
-        if subscribe_topic_name is not None and len(graph_node_names) > 0:
-            try:
-                sub_cb_name = self._point_name_to_callback_name(graph_node_names[0])
-                sub = self._node.get_subscription(subscribe_topic_name, sub_cb_name)
-            except ItemNotFoundError:
-                msg = 'Failed to find subscription. '
-                msg += f'node_name: {self._node.node_name}, '
-                msg += f'topic_name: {subscribe_topic_name}'
-                logger.warning(msg)
-            except MultipleItemFoundError:
-                msg = 'Failed to identify subscription. Several candidates were found. '
-                msg += f'node_name: {self._node.node_name}, '
-                msg += f'topic_name: {subscribe_topic_name}'
-                logger.warning(msg)
-
-        if publish_topic_name is not None:
-            try:
-                pub = self._node.get_publisher(publish_topic_name)
-            except ItemNotFoundError:
-                msg = 'Failed to find publisher. '
-                msg += f'node_name: {self._node.node_name}'
-                msg += f'topic_name: {publish_topic_name}'
-                logger.warning(msg)
-            except MultipleItemFoundError:
-                msg = 'Failed to identify publisher. Several candidates were found. '
-                msg += f'node_name: {self._node.node_name}, '
-                msg += f'topic_name: {publish_topic_name}'
-                logger.warning(msg)
-
         return NodePathStruct(
             self._node.node_name,
-            sub,
-            pub,
+            subscription,
+            publisher,
             child,
             None)
 
@@ -517,8 +502,20 @@ class CallbackPathSearcher:
         return point_name.split('@')[1]
 
 
-NodePathKey = Tuple[Optional[str], Optional[str], Optional[str]]
-CommKey = Tuple[str, str, str]
+NodePathKey = Tuple[
+    Optional[str],  # subscribe topic_name
+    Optional[str],  # publish topic name
+    Optional[str],  # node_name
+    Optional[int],  # subscription_construction_order
+    Optional[int],  # publisher_construction_order
+]
+CommKey = Tuple[
+    str,  # publish_node_name
+    str,  # subscribe_node_name
+    str,  # topic_name
+    Optional[int],  # subscription_construction_order
+    Optional[int],  # publisher_construction_order
+]
 
 
 class NodePathSearcher:
@@ -536,26 +533,23 @@ class NodePathSearcher:
         self._graph = Graph()
 
         self._node_path_dict: Dict[NodePathKey, NodePathStruct] = {}
-        self._comm_dict: Dict[Tuple[str, str, str], CommunicationStruct] = {}
+        self._comm_dict: Dict[CommKey, CommunicationStruct] = {}
 
         node_paths: List[NodePathStruct] = Util.flatten([n.paths for n in self._nodes])
-        duplicated_node_paths: Dict[NodePathKey, NodePathStruct] = {}
+        duplicated_node_paths: Dict[NodePathKey, List[NodePathStruct]] = defaultdict(list)
 
         for node_path in node_paths:
-            key = self._node_path_key(
-                node_path.subscribe_topic_name, node_path.publish_topic_name, node_path.node_name
-            )
+            key = self._node_path_key(node_path)
             if key not in self._node_path_dict:
                 self._node_path_dict[key] = node_path
-            elif key not in duplicated_node_paths:
-                duplicated_node_paths[key] = node_path
+            else:
+                duplicated_node_paths[key].append(node_path)
 
-        for node_path in duplicated_node_paths.values():
-            logger.warning(
-                'duplicated node_path found. skip adding. '
-                f'node_name: {node_path.node_name}, '
-                f'subscribe_topic_name: {node_path.subscribe_topic_name}, '
-                f'publish_topic_name: {node_path.publish_topic_name}')
+        for node_paths in duplicated_node_paths.values():
+            msg = 'duplicated node_path found. skip adding. '
+            for node_path in node_paths:
+                msg += f'{self._node_path_key(node_path)}'
+            logger.warning(msg)
 
         for node in nodes:
             if node_filter is not None and \
@@ -575,17 +569,22 @@ class NodePathSearcher:
             if node_filter is not None and not node_filter(comm.subscribe_node_name):
                 continue
 
-            key = self._comm_key(comm.publish_node_name, comm.subscribe_node_name, comm.topic_name)
+            key = self._comm_key(comm)
             if key not in self._comm_dict:
                 self._comm_dict[key] = comm
             elif key not in duplicated_comms:
                 duplicated_comms[key] = comm
                 continue
 
+            # Even with the same publish_node_name and subscribe_node_name,
+            # if the label is different, it will be searched as a different path.
+            # Add each piece of information with @ as the delimiter.
+            edge_label = f'{comm.topic_name}'\
+                f'@{comm.subscription_construction_order}@{comm.publisher_construction_order}'
             self._graph.add_edge(
                 GraphNode(comm.publish_node_name),
                 GraphNode(comm.subscribe_node_name),
-                comm.topic_name
+                edge_label
             )
         for comm in duplicated_comms.values():
             logger.warning(
@@ -595,20 +594,52 @@ class NodePathSearcher:
                 f'subscribe_node_name: {comm.subscribe_node_name}, ')
 
     @staticmethod
-    def _comm_key(
+    def _comm_key(comm: CommunicationStruct) -> CommKey:
+        return (
+            comm.publish_node_name,
+            comm.subscribe_node_name,
+            comm.topic_name,
+            comm.subscription_construction_order,
+            comm.publisher_construction_order)
+
+    @staticmethod
+    def _create_comm_key(
         publish_node_name: str,
         subscribe_node_name: str,
-        topic_name: str
-    ) -> Tuple[str, str, str]:
-        return (publish_node_name, subscribe_node_name, topic_name)
+        topic_name: str,
+        subscription_construction_order: Optional[int],
+        publisher_construction_order: Optional[int],
+    ) -> CommKey:
+        return (publish_node_name,
+                subscribe_node_name,
+                topic_name,
+                subscription_construction_order,
+                publisher_construction_order)
 
     @staticmethod
     def _node_path_key(
+        node_path: NodePathStruct
+    ) -> NodePathKey:
+        return (
+            node_path.subscribe_topic_name,
+            node_path.publish_topic_name,
+            node_path.node_name,
+            node_path.subscription_construction_order,
+            node_path.publisher_construction_order)
+
+    @staticmethod
+    def _node_path_key_(
         subscribe_topic_name: Optional[str],
         publish_topic_name: Optional[str],
-        node_name: Optional[str]
-    ) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-        return (subscribe_topic_name, publish_topic_name, node_name)
+        node_name: Optional[str],
+        subscription_construction_order: Optional[int],
+        publisher_construction_order: Optional[int]
+    ) -> NodePathKey:
+        return (subscribe_topic_name,
+                publish_topic_name,
+                node_name,
+                subscription_construction_order,
+                publisher_construction_order)
 
     def search(
         self,
@@ -641,40 +672,52 @@ class NodePathSearcher:
     def _get_publisher(
         nodes: Tuple[NodeStruct, ...],
         node_name: str,
-        topic_name: str
+        topic_name: str,
+        construction_order: Optional[int],
     ) -> PublisherStruct:
         node: NodeStruct
         node = Util.find_one(lambda x: x.node_name == node_name, nodes)
-        return node.get_publisher(topic_name)
+        return node.get_publisher(topic_name, construction_order)
 
     @staticmethod
     def _get_subscription(
         nodes: Tuple[NodeStruct, ...],
         node_name: str,
-        topic_name: str
+        topic_name: str,
+        construction_order: Optional[int]
     ) -> SubscriptionStruct:
         node: NodeStruct
         node = Util.find_one(lambda x: x.node_name == node_name, nodes)
-        return node.get_subscription(topic_name)
+        return node.get_subscription_from_construction_order(topic_name, construction_order)
 
     @staticmethod
     def _create_head_dummy_node_path(
         nodes: Tuple[NodeStruct, ...],
-        head_edge: GraphEdge
+        node_name: str,
+        topic_name: str,
+        construction_order: Optional[int]
     ) -> NodePathStruct:
-        node_name = head_edge.node_name_from
-        topic_name = head_edge.label
-        publisher = NodePathSearcher._get_publisher(nodes, node_name, topic_name)
+        publisher = NodePathSearcher._get_publisher(
+            nodes,
+            node_name,
+            topic_name,
+            construction_order
+        )
         return NodePathStruct(node_name, None, publisher, None, None)
 
     @staticmethod
     def _create_tail_dummy_node_path(
         nodes: Tuple[NodeStruct, ...],
-        tail_edge: GraphEdge,
+        node_name: str,
+        topic_name: str,
+        subscription_construct_order: Optional[int]
     ) -> NodePathStruct:
-        node_name = tail_edge.node_name_to
-        topic_name: str = tail_edge.label
-        sub = NodePathSearcher._get_subscription(nodes, node_name, topic_name)
+        sub = NodePathSearcher._get_subscription(
+            nodes,
+            node_name,
+            topic_name,
+            subscription_construct_order
+        )
         return NodePathStruct(node_name, sub, None, None, None)
 
     def _to_path(
@@ -686,34 +729,65 @@ class NodePathSearcher:
         # add head node path
         if len(node_graph_path.edges) == 0:
             raise InvalidArgumentError("path doesn't have any edges")
-        head_node_path = self._create_head_dummy_node_path(self._nodes, node_graph_path.edges[0])
-        child.append(head_node_path)
+
+        def parse_comm_edge(edge_label: str) -> Tuple[str, Optional[int], Optional[int]]:
+            tuples = tuple(edge_label.split('@'))
+            topic_name = tuples[0]
+            sub_const_order = None if len(tuples[1]) == 0 else int(tuples[1])
+            pub_const_order = None if len(tuples[2]) == 0 else int(tuples[2])
+            return topic_name, sub_const_order, pub_const_order
+
+        topic_name, sub_const, pub_const_order = parse_comm_edge(node_graph_path.edges[0].label)
+
+        head_node_path = self._create_head_dummy_node_path(
+            self._nodes,
+            node_graph_path.edges[0].node_name_from,
+            topic_name,
+            pub_const_order
+        )
+        child.append(head_node_path)  # add first dummy NodePath
 
         for edge_, edge in zip(node_graph_path.edges[:-1], node_graph_path.edges[1:]):
+
+            topic_name_, sub_const_, pub_const_ = parse_comm_edge(edge_.label)
+            topic_name, sub_const, pub_const = parse_comm_edge(edge.label)
+
             comm = self._find_comm(
                 edge_.node_from.node_name,
                 edge_.node_to.node_name,
-                edge_.label)
-            child.append(comm)
+                topic_name_,
+                sub_const_,
+                pub_const_)
+            child.append(comm)  # add Communication
 
             node = self._find_node_path(
-                edge_.label,
-                edge.label,
+                topic_name_,
+                topic_name,
                 edge_.node_to.node_name,
+                sub_const,
+                pub_const,
             )
 
-            child.append(node)
+            child.append(node)  # add next NodePath
 
-        # add tail comm
+        # add tail Communication
         tail_edge = node_graph_path.edges[-1]
+        topic_name, sub_const, pub_const = parse_comm_edge(tail_edge.label)
         comm = self._find_comm(
             tail_edge.node_name_from,
             tail_edge.node_name_to,
-            tail_edge.label)
+            topic_name,
+            sub_const,
+            pub_const)
         child.append(comm)
 
-        # add tail node path
-        tail_node_path = self._create_tail_dummy_node_path(self._nodes, tail_edge)
+        # add tail NodePath
+        tail_node_path = self._create_tail_dummy_node_path(
+            self._nodes,
+            tail_edge.node_name_to,
+            topic_name,
+            sub_const
+        )
         child.append(tail_node_path)
 
         path_info = PathStruct(
@@ -726,14 +800,21 @@ class NodePathSearcher:
         self,
         node_from: str,
         node_to: str,
-        topic_name: str
+        topic_name: str,
+        subscription_construction_order: Optional[int],
+        publisher_construction_order: Optional[int]
     ) -> CommunicationStruct:
-        key = self._comm_key(node_from, node_to, topic_name)
+        key = self._create_comm_key(
+            node_from, node_to, topic_name,
+            subscription_construction_order,
+            publisher_construction_order)
         if key not in self._comm_dict:
             msg = 'Failed to find communication path. '
             msg += f'publish node name: {node_from}, '
             msg += f'subscription node name: {node_to}, '
             msg += f'topic name: {topic_name}, '
+            msg += f'subscription construction order: {subscription_construction_order}, '
+            msg += f'publisher construction order: {publisher_construction_order}, '
             raise ItemNotFoundError(msg)
 
         return self._comm_dict[key]
@@ -743,12 +824,19 @@ class NodePathSearcher:
         sub_topic_name: str,
         pub_topic_name: str,
         node_name: str,
+        subscription_construction_order: Optional[int],
+        publisher_construction_order: Optional[int],
     ) -> NodePathStruct:
-        key = self._node_path_key(sub_topic_name, pub_topic_name, node_name)
+        key = self._node_path_key_(
+            sub_topic_name, pub_topic_name, node_name,
+            subscription_construction_order,
+            publisher_construction_order)
         if key not in self._node_path_dict:
             msg = 'Failed to find node path. '
             msg += f'publish topic name: {pub_topic_name}, '
             msg += f'subscription topic name: {sub_topic_name}, '
             msg += f'node name: {node_name}, '
+            msg += f'subscription construction order: {subscription_construction_order}, '
+            msg += f'publisher construction order: {publisher_construction_order}, '
             raise ItemNotFoundError(msg)
         return self._node_path_dict[key]
