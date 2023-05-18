@@ -92,9 +92,11 @@ class BokehTimeSeries:
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
         if converter:
-            line_source = LineSource(legend_manager, target_objects[0], frame_min_convert, self._xaxis_type)
+            line_source = \
+                LineSource(legend_manager, target_objects[0], frame_min_convert, self._xaxis_type)
         else:
-            line_source = LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
+            line_source = \
+                LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
         fig.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
             if converter:
