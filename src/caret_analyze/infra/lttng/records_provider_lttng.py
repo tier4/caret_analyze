@@ -210,7 +210,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
 
         Raises
@@ -232,7 +231,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
         ]
         self._format(sub_records, columns)

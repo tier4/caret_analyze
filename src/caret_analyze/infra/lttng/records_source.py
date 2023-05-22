@@ -228,7 +228,7 @@ class RecordsSource():
         return communication
 
     @cached_property
-    def inter_proc_comm_records_via_rmw(self) -> RecordsInterface:
+    def inter_proc_comm_records_via_rmw_take(self) -> RecordsInterface:
         """
         Compose inter process communication records.
 
@@ -355,7 +355,7 @@ class RecordsSource():
         subscription = merge_sequential(
             left_records=subscription,
             right_records=callback_start_instances,
-            left_stamp_key=COLUMN_NAME.DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            left_stamp_key=COLUMN_NAME.RMW_TAKE_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
             join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
@@ -657,7 +657,6 @@ class RecordsSource():
         )
         if 0 in self._grouped_callback_start:
             inter_callback_start = self._grouped_callback_start[0].clone()
-            # inter_callback_start.drop_columns([COLUMN_NAME.TID])
             inter_proc_subscribe.concat(inter_callback_start)
         return inter_proc_subscribe
 
@@ -701,7 +700,8 @@ class RecordsSource():
     @cached_property
     def subscribe_records_via_rmw_take(self) -> RecordsInterface:
         callback_start_instances = self.inter_callback_records
-        inter_proc_subscribe = self._data.rmw_take_instances
+        inter_proc_subscribe = self._data.rmw_take_instances.clone()
+        inter_proc_subscribe.drop_columns([COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE])
 
         inter_proc_subscribe = merge_sequential(
             left_records=inter_proc_subscribe,
