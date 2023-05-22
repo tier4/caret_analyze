@@ -662,6 +662,58 @@ class RecordsSource():
 
     @cached_property
     def subscribe_records(self) -> RecordsInterface:
+
+        dispatch_sub_records = self.subscribe_records_via_dispatch_subscription_callback.clone()
+        print(dispatch_sub_records.columns)
+        # dispatch_sub_records.drop_columns(
+        #     [
+        #         'dispatch_subscription_callback_timestamp',
+        #         'is_intra_process',
+        #         'callback_object',
+        #         'message_timestamp',
+        #         'tid',
+        #     ]
+        # )
+        rmw_sub_records = self.subscribe_records_via_rmw_take.clone()
+        print(rmw_sub_records.columns)
+        # rmw_sub_records.drop_columns(
+        #     [
+        #         'rmw_take_timestamp',
+        #         'is_intra_process',
+        #         'callback_object',
+        #         'message_timestamp',
+        #         'tid',
+        #     ]
+        # )
+
+        # subscribe = RecordsFactory.create_instance(
+        #     None,
+        #     [
+        #         ColumnValue('callback_start_timestamp'),
+        #         ColumnValue('source_timestamp'),
+        #         ColumnValue('message')
+        #     ]
+        # )
+        # subscribe.concat(
+        #     dispatch_sub_records
+        # )
+        # subscribe.concat(
+        #     rmw_sub_records
+        # )
+        subscribe = merge(
+            left_records=dispatch_sub_records,
+            right_records=rmw_sub_records,
+            join_left_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_right_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            columns=Columns.from_str(
+                dispatch_sub_records.columns + rmw_sub_records.columns
+            ).column_names,
+            how='inner'
+        )
+        return subscribe
+
+    @cached_property
+    def subscribe_records_via_dispatch_subscription_callback(self) -> RecordsInterface:
         callback_start_instances = self.inter_callback_records
         inter_proc_subscribe = self._data.dispatch_subscription_callback_instances
 
