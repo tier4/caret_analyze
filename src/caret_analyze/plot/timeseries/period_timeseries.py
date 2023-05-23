@@ -97,6 +97,21 @@ class PeriodTimeSeries(MetricsBase):
             Period records list of all target objects.
 
         """
+        if self._target_objects and isinstance(self._target_objects[0], Communication):
+            columns = self._target_objects[0].to_records().columns
+            start_column = columns[0]
+            end_column = columns[1]
+
+            def row_filter_communication(record) -> bool:
+                """Return True only if communication is established."""
+                comm_start_column = start_column
+                comm_end_column = end_column
+                if (record.data.get(comm_start_column) is not None
+                        and record.data.get(comm_end_column) is not None):
+                    return True
+                else:
+                    return False
+
         timeseries_records_list: List[RecordsInterface] = [
             _.to_records() for _ in self._target_objects
         ]
@@ -107,7 +122,11 @@ class PeriodTimeSeries(MetricsBase):
 
         period_timeseries_list: List[RecordsInterface] = []
         for records in timeseries_records_list:
-            period = Period(records)
+            period = Period(
+                records,
+                row_filter=row_filter_communication
+                if isinstance(records, Communication) else None
+            )
             period_timeseries_list.append(period.to_records())
 
         return period_timeseries_list
