@@ -174,7 +174,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
 
         Raises
@@ -262,7 +261,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
             - [topic_name]/tilde_subscribe_timestamp
             - [topic_name]/tilde_message_id
