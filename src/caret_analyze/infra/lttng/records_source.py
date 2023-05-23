@@ -662,36 +662,61 @@ class RecordsSource():
 
     @cached_property
     def subscribe_records(self) -> RecordsInterface:
+        callback_start_instances = self.inter_callback_records
+        dispatch_sub_records = self._data.dispatch_subscription_callback_instances
 
-        dispatch_sub_records = self.subscribe_records_via_dispatch_subscription_callback.clone()
-        print(dispatch_sub_records.columns)
-        # dispatch_sub_records.drop_columns(
-        #     [
-        #         'dispatch_subscription_callback_timestamp',
-        #         'is_intra_process',
-        #         'callback_object',
-        #         'message_timestamp',
-        #         'tid',
-        #     ]
-        # )
-        rmw_sub_records = self.subscribe_records_via_rmw_take.clone()
-        print(rmw_sub_records.columns)
-        # rmw_sub_records.drop_columns(
-        #     [
-        #         'rmw_take_timestamp',
-        #         'is_intra_process',
-        #         'callback_object',
-        #         'message_timestamp',
-        #         'tid',
-        #     ]
-        # )
+        dispatch_sub_records = merge_sequential(
+            left_records=dispatch_sub_records,
+            right_records=callback_start_instances,
+            left_stamp_key=COLUMN_NAME.DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
+            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
+            columns=Columns.from_str(
+                dispatch_sub_records.columns + callback_start_instances.columns
+            ).column_names,
+            how='left',
+            progress_label='binding: dispatch_subscription_callback and callback_start',
+        )
+        dispatch_sub_records.drop_columns(
+            [
+                'dispatch_subscription_callback_timestamp',
+                'message_timestamp',
+                'tid',
+            ]
+        )
+
+        rmw_sub_records = self._data.rmw_take_instances.clone()
+        rmw_sub_records.drop_columns([COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE])
+        rmw_sub_records = merge_sequential(
+            left_records=rmw_sub_records,
+            right_records=callback_start_instances,
+            left_stamp_key=COLUMN_NAME.RMW_TAKE_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            columns=Columns.from_str(
+                rmw_sub_records.columns + callback_start_instances.columns
+            ).column_names,
+            how='left',
+            progress_label='binding: rmw_take and callback_start',
+        )
+        rmw_sub_records.drop_columns(
+            [
+                'rmw_take_timestamp',
+                'message_timestamp',
+                'tid',
+            ]
+        )
 
         # subscribe = RecordsFactory.create_instance(
         #     None,
         #     [
         #         ColumnValue('callback_start_timestamp'),
         #         ColumnValue('source_timestamp'),
-        #         ColumnValue('message')
+        #         ColumnValue('callback_object'),
+        #         ColumnValue('message'),
+        #         ColumnValue('is_intra_process')
         #     ]
         # )
         # subscribe.concat(
@@ -700,16 +725,47 @@ class RecordsSource():
         # subscribe.concat(
         #     rmw_sub_records
         # )
-        subscribe = merge(
-            left_records=dispatch_sub_records,
-            right_records=rmw_sub_records,
-            join_left_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            join_right_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            columns=Columns.from_str(
-                dispatch_sub_records.columns + rmw_sub_records.columns
-            ).column_names,
-            how='inner'
+
+        # subscribe = merge(
+        #     left_records=dispatch_sub_records,
+        #     right_records=rmw_sub_records,
+        #     join_left_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #     join_right_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #     columns=Columns.from_str(
+        #         dispatch_sub_records.columns + rmw_sub_records.columns
+        #     ).column_names,
+        #     how='inner'
+        # )
+
+        inter_proc_subscribe = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue('callback_start_timestamp'),
+                ColumnValue('source_timestamp'),
+                ColumnValue('callback_object'),
+                ColumnValue('message'),
+                ColumnValue('is_intra_process')
+            ]
         )
+        inter_proc_subscribe.concat(dispatch_sub_records)
+        inter_proc_subscribe.concat(rmw_sub_records)
+
+        intra_proc_subscribe = self.intra_callback_records
+
+        subscribe = merge_sequential(
+            left_records=inter_proc_subscribe,
+            right_records=intra_proc_subscribe,
+            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
+            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
+            columns=Columns.from_str(
+                inter_proc_subscribe.columns + intra_proc_subscribe.columns
+            ).column_names,
+            how='outer',
+            progress_label='binding intra and inter subscribe'
+        )
+
         return subscribe
 
     @cached_property
@@ -731,23 +787,24 @@ class RecordsSource():
             progress_label='binding: dispatch_subscription_callback and callback_start',
         )
 
-        intra_proc_subscribe = self.intra_callback_records
+        # intra_proc_subscribe = self.intra_callback_records
 
-        subscribe = merge_sequential(
-            left_records=inter_proc_subscribe,
-            right_records=intra_proc_subscribe,
-            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
-            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns.from_str(
-                inter_proc_subscribe.columns + intra_proc_subscribe.columns
-            ).column_names,
-            how='outer',
-            progress_label='binding intra and inter subscribe'
-        )
+        # subscribe = merge_sequential(
+        #     left_records=inter_proc_subscribe,
+        #     right_records=intra_proc_subscribe,
+        #     left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #     right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #     join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
+        #     join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
+        #     columns=Columns.from_str(
+        #         inter_proc_subscribe.columns + intra_proc_subscribe.columns
+        #     ).column_names,
+        #     how='outer',
+        #     progress_label='binding intra and inter subscribe'
+        # )
 
-        return subscribe
+        # return subscribe
+        return inter_proc_subscribe
 
     @cached_property
     def subscribe_records_via_rmw_take(self) -> RecordsInterface:
@@ -769,23 +826,24 @@ class RecordsSource():
             progress_label='binding: rmw_take and callback_start',
         )
 
-        intra_proc_subscribe = self.intra_callback_records
+        # intra_proc_subscribe = self.intra_callback_records
 
-        subscribe = merge_sequential(
-            left_records=inter_proc_subscribe,
-            right_records=intra_proc_subscribe,
-            left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
-            join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
-            columns=Columns.from_str(
-                inter_proc_subscribe.columns + intra_proc_subscribe.columns
-            ).column_names,
-            how='outer',
-            progress_label='binding intra and inter subscribe'
-        )
+        # subscribe = merge_sequential(
+        #     left_records=inter_proc_subscribe,
+        #     right_records=intra_proc_subscribe,
+        #     left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #     right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+        #     join_left_key=COLUMN_NAME.CALLBACK_OBJECT,
+        #     join_right_key=COLUMN_NAME.CALLBACK_OBJECT,
+        #     columns=Columns.from_str(
+        #         inter_proc_subscribe.columns + intra_proc_subscribe.columns
+        #     ).column_names,
+        #     how='outer',
+        #     progress_label='binding intra and inter subscribe'
+        # )
 
-        return subscribe
+        # return subscribe
+        return inter_proc_subscribe
 
     @cached_property
     def intra_proc_comm_records(self) -> RecordsInterface:
