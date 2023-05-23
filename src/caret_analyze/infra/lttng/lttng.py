@@ -678,7 +678,6 @@ class Lttng(InfraBase):
         """
         return self._source.inter_proc_comm_records_via_rmw_take.clone()
 
-
     def compose_intra_proc_comm_records(
         self,
     ) -> RecordsInterface:

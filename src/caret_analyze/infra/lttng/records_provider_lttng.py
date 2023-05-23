@@ -305,7 +305,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
             COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP,
             COLUMN_NAME.TILDE_MESSAGE_ID,

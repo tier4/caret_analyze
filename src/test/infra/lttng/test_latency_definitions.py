@@ -725,7 +725,6 @@ class TestSubscriptionRecords:
             None,
             columns=[
                 f'{sub_struct_mock.callback_name}/callback_start_timestamp',
-                f'{sub_struct_mock.topic_name}/message_timestamp',
                 f'{sub_struct_mock.topic_name}/source_timestamp',
             ],
             dtype='Int64'
@@ -770,7 +769,6 @@ class TestSubscriptionRecords:
                     # 'pid': pid,
                     # 'tid': tid,
                     f'{subscription.callback_name}/callback_start_timestamp': 1,
-                    f'{subscription.topic_name}/message_timestamp': 2,
                     f'{subscription.topic_name}/source_timestamp': 3,
                     # f'{subscription.callback_name}/callback_end_timestamp': 3,
                 }
@@ -779,7 +777,6 @@ class TestSubscriptionRecords:
                 # 'pid',
                 # 'tid',
                 f'{subscription.callback_name}/callback_start_timestamp',
-                f'{subscription.topic_name}/message_timestamp',
                 f'{subscription.topic_name}/source_timestamp',
                 # f'{subscription.callback_name}/callback_end_timestamp',
             ],
@@ -830,7 +827,6 @@ class TestSubscriptionRecords:
                     # 'tid': tid,
                     f'{subscription.callback_name}/callback_start_timestamp': 6,
                     # f'{subscription.callback_name}/callback_end_timestamp': 8,
-                    f'{subscription.topic_name}/message_timestamp': message_timestamp,
                     f'{subscription.topic_name}/source_timestamp': source_timestamp,
                     f'{subscription.topic_name}/tilde_subscribe_timestamp': 7,
                     f'{subscription.topic_name}/tilde_message_id': tilde_message_id,
@@ -841,7 +837,6 @@ class TestSubscriptionRecords:
                 # 'tid',
                 f'{subscription.callback_name}/callback_start_timestamp',
                 # f'{subscription.callback_name}/callback_end_timestamp',
-                f'{subscription.topic_name}/message_timestamp',
                 f'{subscription.topic_name}/source_timestamp',
                 f'{subscription.topic_name}/tilde_subscribe_timestamp',
                 f'{subscription.topic_name}/tilde_message_id',
