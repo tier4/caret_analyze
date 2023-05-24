@@ -662,6 +662,19 @@ class RecordsSource():
 
     @cached_property
     def subscribe_records(self) -> RecordsInterface:
+        """
+        Compose subscribe records.
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - callback_start_timestamp
+            - callback_object
+            - is_intra_process
+            - source_timestamp
+
+        """
         callback_start_instances = self.inter_callback_records
         dispatch_sub_records = self._data.dispatch_subscription_callback_instances
 
@@ -680,9 +693,10 @@ class RecordsSource():
         )
         dispatch_sub_records.drop_columns(
             [
-                'dispatch_subscription_callback_timestamp',
-                'message_timestamp',
-                'tid',
+                COLUMN_NAME.DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP,
+                COLUMN_NAME.MESSAGE_TIMESTAMP,
+                COLUMN_NAME.TID,
+                COLUMN_NAME.MESSAGE,
             ]
         )
 
@@ -703,20 +717,19 @@ class RecordsSource():
         )
         rmw_sub_records.drop_columns(
             [
-                'rmw_take_timestamp',
-                'message_timestamp',
-                'tid',
+                COLUMN_NAME.RMW_TAKE_TIMESTAMP,
+                COLUMN_NAME.TID,
+                COLUMN_NAME.MESSAGE,
             ]
         )
 
         inter_proc_subscribe = RecordsFactory.create_instance(
             None,
             [
-                ColumnValue('callback_start_timestamp'),
-                ColumnValue('source_timestamp'),
-                ColumnValue('callback_object'),
-                ColumnValue('message'),
-                ColumnValue('is_intra_process')
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
+                ColumnValue(COLUMN_NAME.IS_INTRA_PROCESS),
+                ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
             ]
         )
         inter_proc_subscribe.concat(dispatch_sub_records)
