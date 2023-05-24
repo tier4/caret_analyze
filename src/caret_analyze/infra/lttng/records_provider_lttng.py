@@ -1786,11 +1786,6 @@ class FilteredRecordsSource:
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _grouped_inter_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:
-        records = self._lttng.compose_inter_proc_comm_records()
-        return records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
-
-    @cached_property
     def _grouped_intra_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:
         records = self._lttng.compose_intra_proc_comm_records()
         return records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
