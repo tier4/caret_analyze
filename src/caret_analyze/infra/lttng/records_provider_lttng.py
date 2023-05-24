@@ -1442,7 +1442,6 @@ class FilteredRecordsSource:
                 [
                     ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                     ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
