@@ -375,6 +375,7 @@ class RecordsSource():
                 COLUMN_NAME.RMW_TAKE_TIMESTAMP,
                 COLUMN_NAME.TID,
                 COLUMN_NAME.MESSAGE,
+                COLUMN_NAME.RMW_SUBSCRIPTION_HANDLE,
             ]
         )
 
