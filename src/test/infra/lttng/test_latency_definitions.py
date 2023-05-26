@@ -744,7 +744,7 @@ class TestSubscriptionRecords:
 
     @pytest.mark.parametrize(
         'has_dispatch',
-       [True, False]
+        [True, False]
     )
     def test_single_records_without_tilde(
         self,
