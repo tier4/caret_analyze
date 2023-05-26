@@ -248,6 +248,13 @@ class NodeStruct():
                     for passing in self._variable_passings_info]:
             self._variable_passings_info.append(passing)
 
+    # def remove_message_context(self, node_name: str, context_type: str,
+    #                            sub_topic_name: str, pub_topic_name: str):
+    #     # To assign message context, update_node_path() is called in Architecture.
+    #     # This is because module dependency.
+    #     # TODO: Refactoring module dependency
+    #     pass
+
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst

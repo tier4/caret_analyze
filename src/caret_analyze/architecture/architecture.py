@@ -394,9 +394,23 @@ class Architecture(Summarizable):
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
 
-    def remove_message_context(self, node_name: str, context_type: str,
-                               subscribe_topic_name: str, publish_topic_name: str):
-        pass
+    def remove_message_context(self, node_name: str, subscribe_topic_name: str, publish_topic_name: str):
+        node: NodeStruct =\
+            Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        if publish_topic_name not in node.publish_topic_names:
+            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
+
+        if subscribe_topic_name not in node.subscribe_topic_names:
+            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
+
+        context_reader = AssignContextReader(node)
+        context_reader.remove_message_context(subscribe_topic_name, publish_topic_name)
+        context_reader.append_message_context({'context_type': 'UNDEFINED',
+                                               'subscription_topic_name': subscribe_topic_name,
+                                               'publisher_topic_name': publish_topic_name})
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
     def remove_publisher_and_callback(self, node_name: str,
                                       publish_topic_name: str, callback_name: str):
@@ -599,6 +613,12 @@ class AssignContextReader(ArchitectureReader):
 
     def append_message_context(self, context: Dict):
         self._contexts.append(context)
+    
+    def remove_message_context(self, subscribe_topic_name: str, publish_topic_name: str):
+        self._contexts = \
+            [context for context in self._contexts 
+             if (subscribe_topic_name, publish_topic_name) != 
+             (context['subscription_topic_name'], context['publisher_topic_name'])]
 
     def get_message_contexts(self, _) -> Sequence[Dict]:
         return self._contexts
