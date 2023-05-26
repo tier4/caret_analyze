@@ -394,7 +394,8 @@ class Architecture(Summarizable):
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
 
-    def remove_message_context(self, node_name: str, subscribe_topic_name: str, publish_topic_name: str):
+    def remove_message_context(self, node_name: str,
+                               subscribe_topic_name: str, publish_topic_name: str):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
@@ -618,11 +619,11 @@ class AssignContextReader(ArchitectureReader):
 
     def append_message_context(self, context: Dict):
         self._contexts.append(context)
-    
+
     def remove_message_context(self, subscribe_topic_name: str, publish_topic_name: str):
         self._contexts = \
-            [context for context in self._contexts 
-             if (subscribe_topic_name, publish_topic_name) != 
+            [context for context in self._contexts
+             if (subscribe_topic_name, publish_topic_name) !=
              (context['subscription_topic_name'], context['publisher_topic_name'])]
 
     def get_message_contexts(self, _) -> Sequence[Dict]:
