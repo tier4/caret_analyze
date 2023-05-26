@@ -894,7 +894,24 @@ $contexts
             arch.remove_message_context('/pong_node', '/pong', '/not_exist_topic')
 
     def test_remove_publisher_and_callback(self, mocker):
-        # assign publisher to publisher function
+        # assign publisher to publisher function without variable passing
+        architecture_text = \
+            self.template_architecture_assign.substitute(passings='',
+                                                         publisher_callback='timer_callback_1',
+                                                         contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.remove_publisher_and_callback('/pong_node', '/ping', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture_assign.substitute(passings='',
+                                                         publisher_callback='UNDEFINED',
+                                                         contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        # assign publisher to publisher function with variable passing
         architecture_text = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
                                                          publisher_callback='timer_callback_1',

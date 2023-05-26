@@ -255,6 +255,15 @@ class NodeStruct():
     #     # TODO: Refactoring module dependency
     #     pass
 
+    def remove_publisher_and_callback(self, publish_topic_name: str, callback_name: str):
+        callback: CallbackStruct = \
+            Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
+        callback.remove_publisher(publish_topic_name)
+
+        publisher: PublisherStruct = \
+            Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
+        publisher.remove_callback(callback)
+
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst

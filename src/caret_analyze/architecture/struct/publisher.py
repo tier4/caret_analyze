@@ -76,6 +76,10 @@ class PublisherStruct():
         elif callback.callback_name not in (self.callback_names or []):
             self._callbacks.append(callback)
 
+    def remove_callback(self, callback: CallbackStruct):
+        if self.callbacks is not None and callback in self.callbacks:
+            self._callbacks.remove(callback)
+
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
