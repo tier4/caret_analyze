@@ -613,11 +613,11 @@ class AssignContextReader(ArchitectureReader):
 
     def append_message_context(self, context: Dict):
         self._contexts.append(context)
-    
+
     def remove_message_context(self, subscribe_topic_name: str, publish_topic_name: str):
         self._contexts = \
-            [context for context in self._contexts 
-             if (subscribe_topic_name, publish_topic_name) != 
+            [context for context in self._contexts
+             if (subscribe_topic_name, publish_topic_name) !=
              (context['subscription_topic_name'], context['publisher_topic_name'])]
 
     def get_message_contexts(self, _) -> Sequence[Dict]:
