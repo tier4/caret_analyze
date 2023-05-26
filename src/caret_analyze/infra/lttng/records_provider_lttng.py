@@ -743,7 +743,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 sub_node,
                 'ros2:dispatch_subscription_callback'
             )
-            is_contain_rmw_take = self._verify_trace_points(
+            is_contains_rmw_take = self._verify_trace_points(
                 sub_node,
                 'ros2:rmw_take'
             )
@@ -751,7 +751,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         if not pub_result:
             logger.warning(f"'caret/rclcpp' may not be used in publisher of '{pub_node}'.")
             return False
-        if not sub_result and not is_contain_rmw_take:
+        if not sub_result and not is_contains_rmw_take:
             logger.warning(f"'caret/rclcpp' may not be used in subscriber of '{sub_node}'.")
             return False
         return True
