@@ -1231,10 +1231,15 @@ class TestCommunicationRecords:
 
         assert df.equals(df_expect)
 
+    @pytest.mark.parametrize(
+        'has_dispatch',
+        [True, False]
+    )
     def test_inter_proc(
         self,
         mocker,
         create_lttng,
+        has_dispatch,
         create_publisher_lttng,
         setup_bridge_get_publisher,
         create_publisher_struct,
@@ -1252,6 +1257,7 @@ class TestCommunicationRecords:
         sub_handle = 28
         # pid, tid = 15, 16
         tid = 16
+        rmw_subscription_handle = 20
 
         data = Ros2DataModel()
         data.add_rclcpp_publish_instance(
@@ -1260,8 +1266,17 @@ class TestCommunicationRecords:
         data.add_dds_write_instance(tid, 3, send_message)
         data.add_dds_bind_addr_to_stamp(
             tid, 4, send_message, source_stamp)
-        data.add_dispatch_subscription_callback_instance(
-            5, callback_obj, recv_message, source_stamp, message_stamp)
+        if has_dispatch:
+            data.add_dispatch_subscription_callback_instance(
+                5, callback_obj, recv_message, source_stamp, message_stamp)
+        else:
+            data.add_rmw_take_instance(
+                tid,
+                5,
+                rmw_subscription_handle,
+                recv_message,
+                source_stamp
+            )
         data.add_callback_start_instance(tid, 16, callback_obj, False)
         data.add_callback_end_instance(tid, 17, callback_obj)
         data.finalize()
