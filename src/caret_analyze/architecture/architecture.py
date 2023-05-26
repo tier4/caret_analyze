@@ -394,6 +394,18 @@ class Architecture(Summarizable):
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
 
+    def remove_message_context(self, node_name: str, context_type: str,
+                               subscribe_topic_name: str, publish_topic_name: str):
+        pass
+
+    def remove_publisher_and_callback(self, node_name: str,
+                                      publish_topic_name: str, callback_name: str):
+        pass
+
+    def remove_variable_passings(self, node_name: str,
+                                 callback_name_write: str, callback_name_read: str):
+        pass
+
     def rename_callback(self, src: str, dst: str) -> None:
         """
         Update callback name from "src" to "dst" in architecture.
