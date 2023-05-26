@@ -337,12 +337,22 @@ class TestCallbackRecords:
         message = 8
         source_timestamp = 11
         message_timestamp = 15
+        rmw_take_timestamp = 3
+        rmw_subscription_handle = 20
 
         data = Ros2DataModel()
         if has_dispatch:
             data.add_dispatch_subscription_callback_instance(
                 dispatch_timestamp, callback_object,
                 message, source_timestamp, message_timestamp)
+        else:
+            data.add_rmw_take_instance(
+                tid,
+                rmw_take_timestamp,
+                rmw_subscription_handle,
+                message,
+                source_timestamp
+            )
         data.add_callback_start_instance(
             tid, callback_start, callback_object, False)
         data.add_callback_end_instance(tid, callback_end, callback_object)
@@ -726,6 +736,69 @@ class TestSubscriptionRecords:
             columns=[
                 f'{sub_struct_mock.callback_name}/callback_start_timestamp',
                 f'{sub_struct_mock.topic_name}/source_timestamp',
+            ],
+            dtype='Int64'
+        )
+
+        assert df.equals(df_expect)
+
+    @pytest.mark.parametrize(
+        'has_dispatch',
+       [True, False]
+    )
+    def test_single_records_without_tilde(
+        self,
+        create_lttng,
+        create_subscription_lttng,
+        create_subscription_struct,
+        bridge_setup_get_callback,
+        has_dispatch,
+    ):
+        callback_lttng = create_subscription_lttng(5, 58)
+        subscription = create_subscription_struct()
+        bridge_setup_get_callback(subscription.callback, callback_lttng)
+
+        callback_object = callback_lttng.callback_object
+        source_timestamp = 3
+        message_timestamp = 2
+        message = 4
+        # pid = 15
+        tid = 16
+        rmw_subscription_handle = 7
+
+        data = Ros2DataModel()
+        if has_dispatch:
+            data.add_dispatch_subscription_callback_instance(
+                0, callback_object, message, source_timestamp, message_timestamp)
+        else:
+            data.add_rmw_take_instance(
+                tid, 0, rmw_subscription_handle, message, source_timestamp)
+        data.add_callback_start_instance(tid, 1, callback_object, False)
+        data.add_callback_end_instance(tid, 3, callback_object)
+        data.finalize()
+
+        lttng = create_lttng(data)
+        provider = RecordsProviderLttng(lttng)
+
+        records = provider.subscribe_records(subscription)
+        df = records.to_dataframe()
+
+        df_expect = pd.DataFrame(
+            [
+                {
+                    # 'pid': pid,
+                    # 'tid': tid,
+                    f'{subscription.callback_name}/callback_start_timestamp': 1,
+                    f'{subscription.topic_name}/source_timestamp': 3,
+                    # f'{subscription.callback_name}/callback_end_timestamp': 3,
+                }
+            ],
+            columns=[
+                # 'pid',
+                # 'tid',
+                f'{subscription.callback_name}/callback_start_timestamp',
+                f'{subscription.topic_name}/source_timestamp',
+                # f'{subscription.callback_name}/callback_end_timestamp',
             ],
             dtype='Int64'
         )
