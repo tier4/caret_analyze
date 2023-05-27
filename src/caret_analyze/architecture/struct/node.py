@@ -264,6 +264,12 @@ class NodeStruct():
             Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
         publisher.remove_callback(callback)
 
+    def remove_variable_passings(self, callback_name_write: str, callback_name_read: str):
+        self._variable_passings_info =\
+        [passing for passing in self._variable_passings_info
+         if (callback_name_write, callback_name_read) !=
+         (passing.callback_name_write, passing.callback_name_read)]
+
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
             self._node_name = dst
