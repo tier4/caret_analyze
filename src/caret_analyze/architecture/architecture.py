@@ -356,6 +356,21 @@ class Architecture(Summarizable):
 
     def assign_message_context(self, node_name: str, context_type: str,
                                subscribe_topic_name: str, publish_topic_name: str):
+        """
+        Assign message_context to node_path in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node to assign message_context
+        context_type : str
+            type name of assigning message_context
+        subscribe_topic_name : str
+            name of subscribe topic of node_path assigning message_context
+        publish_topic_name : str
+            name of publish topic of node_path assigning message_context
+
+        """
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
@@ -378,6 +393,19 @@ class Architecture(Summarizable):
 
     def assign_publisher_and_callback(self, node_name: str,
                                       publish_topic_name: str, callback_name: str):
+        """
+        Assign callback to publisher in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node to assign publisher and callback
+        publish_topic_name : str
+            name of publish topic to assign publisher callback
+        callback_name : str
+            name of callback to assign publisher
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.assign_publisher_and_callback(publish_topic_name, callback_name)
@@ -387,6 +415,19 @@ class Architecture(Summarizable):
 
     def assign_variable_passings(self, node_name: str,
                                  callback_name_write: str, callback_name_read: str):
+        """
+        Assign variable passing in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node to assign variable passing
+        callback_name_write : str
+            name of write callback in variable passing to assign
+        callback_name_read : str
+            name of read callback in variable passing to assign
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.assign_variable_passings(callback_name_write, callback_name_read)
