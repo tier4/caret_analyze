@@ -432,7 +432,7 @@ class Architecture(Summarizable):
             Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
         callback_write: CallbackStructValue = \
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
-        # NOTE: get callback -> get topic -> get node_path -> erase node_path
+
         context_reader = AssignContextReader(node)
         for publish_topic_name in callback_read.publish_topic_names or []:
             if callback_write.subscribe_topic_name is not None:
