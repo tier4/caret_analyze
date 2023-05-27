@@ -437,6 +437,19 @@ class Architecture(Summarizable):
 
     def remove_message_context(self, node_name: str,
                                subscribe_topic_name: str, publish_topic_name: str):
+        """
+        Remove message_context to node_path in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node to remove message_context
+        subscribe_topic_name : str
+            name of subscribe topic of node_path removing message_context
+        publish_topic_name : str
+            name of publish topic of node_path removing message_context
+
+        """
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
@@ -456,6 +469,19 @@ class Architecture(Summarizable):
 
     def remove_publisher_and_callback(self, node_name: str,
                                       publish_topic_name: str, callback_name: str):
+        """
+        Remove callback to publisher in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node to remove publisher and callback
+        publish_topic_name : str
+            name of publish topic to remove publisher callback
+        callback_name : str
+            name of callback to remove publisher
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.remove_publisher_and_callback(publish_topic_name, callback_name)
@@ -465,6 +491,19 @@ class Architecture(Summarizable):
 
     def remove_variable_passings(self, node_name: str,
                                  callback_name_write: str, callback_name_read: str):
+        """
+        Remove variable passing in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node to remove variable passing
+        callback_name_write : str
+            name of write callback in variable passing to remove
+        callback_name_read : str
+            name of read callback in variable passing to remove
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.remove_variable_passings(callback_name_write, callback_name_read)
