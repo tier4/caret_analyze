@@ -140,8 +140,8 @@ class CallbackStruct(metaclass=ABCMeta):
             self._publish_topic_names.append(publish_topic_name)
 
     def remove_publisher(self, publish_topic_name: str):
-        if self.publish_topic_names is not None and \
-           publish_topic_name in self.publish_topic_names:
+        if self._publish_topic_names is not None and \
+           publish_topic_name in self._publish_topic_names:
             self._publish_topic_names.remove(publish_topic_name)
 
     def rename_node(self, src: str, dst: str) -> None:

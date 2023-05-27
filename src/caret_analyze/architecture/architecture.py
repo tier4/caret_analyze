@@ -428,16 +428,16 @@ class Architecture(Summarizable):
 
         node.remove_variable_passings(callback_name_write, callback_name_read)
 
-        callback_read: CallbackStructValue = Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
-        callback_write: CallbackStructValue = Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
+        callback_read: CallbackStructValue = \
+            Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
+        callback_write: CallbackStructValue = \
+            Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
         # NOTE: get callback -> get topic -> get node_path -> erase node_path
         context_reader = AssignContextReader(node)
-        for publish_topic_name in callback_write.publish_topic_names:
-            context_reader.remove_message_context(callback_read.subscribe_topic_name, publish_topic_name)
-            context_reader.remove_message_context(publish_topic_name, callback_read.subscribe_topic_name)
-        for publish_topic_name in callback_read.publish_topic_names:
-            context_reader.remove_message_context(callback_write.subscribe_topic_name, publish_topic_name)
-            context_reader.remove_message_context(publish_topic_name, callback_write.subscribe_topic_name)
+        for publish_topic_name in callback_read.publish_topic_names or []:
+            if callback_write.subscribe_topic_name is not None:
+                context_reader.remove_message_context(callback_write.subscribe_topic_name,
+                                                      publish_topic_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               context_reader))
