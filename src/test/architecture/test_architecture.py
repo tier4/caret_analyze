@@ -610,7 +610,7 @@ $contexts
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
 
-        # assign UNDEFIND to be full architecture
+        # assign UNDEFINED to be full architecture
         architecture_text = \
             self.template_architecture_assign.substitute(passings=self.passings_text,
                                                          publisher_callback='timer_callback_1',
