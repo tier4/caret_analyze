@@ -366,7 +366,8 @@ class Architecture(Summarizable):
             raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
 
         context_reader = AssignContextReader(node)
-        context_reader.update_message_context(context_type, subscribe_topic_name, publish_topic_name)
+        context_reader.update_message_context(context_type,
+                                              subscribe_topic_name, publish_topic_name)
         node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
     def assign_publisher_and_callback(self, node_name: str,
@@ -605,26 +606,29 @@ class AssignContextReader(ArchitectureReader):
 
     def __init__(self, node: NodeStruct):
         contexts = [path.message_context for path in node.paths]
-        self._contexts = [context.to_dict() for context in contexts if context is not None]
+        self._contexts = \
+            [context.to_dict() for context in contexts if context is not None]
 
-    def update_message_context(self, context_type: str, subscribe_topic_name: str, publish_topic_name: str):
+    def update_message_context(self, context_type: str,
+                               subscribe_topic_name: str, publish_topic_name: str):
         for context in self._contexts:
-            if (context['subscription_topic_name'], context['publisher_topic_name']) \
-                == (subscribe_topic_name, publish_topic_name):
+            if (context['subscription_topic_name'], context['publisher_topic_name']) ==\
+               (subscribe_topic_name, publish_topic_name):
                 context['context_type'] = context_type
                 break
         else:
             self._contexts.append({'context_type': context_type,
                                    'subscription_topic_name': subscribe_topic_name,
                                    'publisher_topic_name': publish_topic_name})
-    
+
     def delete_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str):
         self._contexts = [
             context for context in self._contexts
-            if (context['subscription_topic_name'], context['publisher_topic_name'], context['context_type']) \
-                != (subscribe_topic_name, publish_topic_name, 'callback_chain')
+            if (context['subscription_topic_name'], context['publisher_topic_name'],
+                context['context_type']) !=
+               (subscribe_topic_name, publish_topic_name, 'callback_chain')
         ]
-            
+
     def get_message_contexts(self, _) -> Sequence[Dict]:
         return self._contexts
 
