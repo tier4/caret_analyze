@@ -380,16 +380,10 @@ class Architecture(Summarizable):
         if subscribe_topic_name not in node.subscribe_topic_names:
             raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
 
-        if (context_type, subscribe_topic_name, publish_topic_name) \
-            not in [(None if path.message_context_type is None
-                     else path.message_context_type.type_name,
-                     path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
-            context_reader = AssignContextReader(node)
-            context_reader.append_message_context({'context_type': context_type,
-                                                   'subscription_topic_name': subscribe_topic_name,
-                                                   'publisher_topic_name': publish_topic_name})
-
-            node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
+        context_reader = AssignContextReader(node)
+        context_reader.update_message_context(context_type,
+                                              subscribe_topic_name, publish_topic_name)
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
     def assign_publisher_and_callback(self, node_name: str,
                                       publish_topic_name: str, callback_name: str):
@@ -434,38 +428,6 @@ class Architecture(Summarizable):
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
-
-    def remove_message_context(self, node_name: str,
-                               subscribe_topic_name: str, publish_topic_name: str):
-        """
-        Remove message_context to node_path in "node_name" node.
-
-        Parameters
-        ----------
-        node_name : str
-            name of target node to remove message_context
-        subscribe_topic_name : str
-            name of subscribe topic of node_path removing message_context
-        publish_topic_name : str
-            name of publish topic of node_path removing message_context
-
-        """
-        node: NodeStruct =\
-            Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-
-        if publish_topic_name not in node.publish_topic_names:
-            raise ItemNotFoundError('{pub_topic_name} is not found in {node_name}')
-
-        if subscribe_topic_name not in node.subscribe_topic_names:
-            raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
-
-        context_reader = AssignContextReader(node)
-        context_reader.remove_message_context(subscribe_topic_name, publish_topic_name)
-        context_reader.append_message_context({'context_type': 'UNDEFINED',
-                                               'subscription_topic_name': subscribe_topic_name,
-                                               'publisher_topic_name': publish_topic_name})
-
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
     def remove_publisher_and_callback(self, node_name: str,
                                       publish_topic_name: str, callback_name: str):
@@ -512,12 +474,12 @@ class Architecture(Summarizable):
             Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
         callback_write: CallbackStructValue = \
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
-        # NOTE: get callback -> get topic -> get node_path -> erase node_path
+
         context_reader = AssignContextReader(node)
         for publish_topic_name in callback_read.publish_topic_names or []:
             if callback_write.subscribe_topic_name is not None:
-                context_reader.remove_message_context(callback_write.subscribe_topic_name,
-                                                      publish_topic_name)
+                context_reader.delete_callback_chain(callback_write.subscribe_topic_name,
+                                                     publish_topic_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               context_reader))
@@ -711,16 +673,28 @@ class AssignContextReader(ArchitectureReader):
 
     def __init__(self, node: NodeStruct):
         contexts = [path.message_context for path in node.paths]
-        self._contexts = [context.to_dict() for context in contexts if context is not None]
-
-    def append_message_context(self, context: Dict):
-        self._contexts.append(context)
-
-    def remove_message_context(self, subscribe_topic_name: str, publish_topic_name: str):
         self._contexts = \
-            [context for context in self._contexts
-             if (subscribe_topic_name, publish_topic_name) !=
-             (context['subscription_topic_name'], context['publisher_topic_name'])]
+            [context.to_dict() for context in contexts if context is not None]
+
+    def update_message_context(self, context_type: str,
+                               subscribe_topic_name: str, publish_topic_name: str):
+        for context in self._contexts:
+            if (context['subscription_topic_name'], context['publisher_topic_name']) ==\
+               (subscribe_topic_name, publish_topic_name):
+                context['context_type'] = context_type
+                break
+        else:
+            self._contexts.append({'context_type': context_type,
+                                   'subscription_topic_name': subscribe_topic_name,
+                                   'publisher_topic_name': publish_topic_name})
+
+    def delete_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str):
+        self._contexts = [
+            context for context in self._contexts
+            if (context['subscription_topic_name'], context['publisher_topic_name'],
+                context['context_type']) !=
+               (subscribe_topic_name, publish_topic_name, 'callback_chain')
+        ]
 
     def get_message_contexts(self, _) -> Sequence[Dict]:
         return self._contexts
