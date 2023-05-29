@@ -949,7 +949,7 @@ $contexts
         architecture_text = \
             self.template_architecture_assign.substitute(passings='',
                                                          publisher_callback='timer_callback_1',
-                                                         contexts='')
+                                                         contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 

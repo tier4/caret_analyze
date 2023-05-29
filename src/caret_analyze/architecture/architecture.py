@@ -410,8 +410,8 @@ class Architecture(Summarizable):
         context_reader = AssignContextReader(node)
         for publish_topic_name in callback_read.publish_topic_names or []:
             if callback_write.subscribe_topic_name is not None:
-                context_reader.remove_message_context(callback_write.subscribe_topic_name,
-                                                      publish_topic_name)
+                context_reader.delete_callback_chain(callback_write.subscribe_topic_name,
+                                                     publish_topic_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               context_reader))
@@ -617,8 +617,14 @@ class AssignContextReader(ArchitectureReader):
             self._contexts.append({'context_type': context_type,
                                    'subscription_topic_name': subscribe_topic_name,
                                    'publisher_topic_name': publish_topic_name})
-        
-
+    
+    def delete_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str):
+        self._contexts = [
+            context for context in self._contexts
+            if (context['subscription_topic_name'], context['publisher_topic_name'], context['context_type']) \
+                != (subscribe_topic_name, publish_topic_name, 'callback_chain')
+        ]
+            
     def get_message_contexts(self, _) -> Sequence[Dict]:
         return self._contexts
 
