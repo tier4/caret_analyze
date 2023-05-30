@@ -134,7 +134,7 @@ class CallbackStruct(metaclass=ABCMeta):
     def to_value(self) -> CallbackStructValue:
         pass
 
-    def assign_publisher(self, publish_topic_name: str):
+    def insert_publisher(self, publish_topic_name: str):
         self._publish_topic_names = self._publish_topic_names or []
         if publish_topic_name not in self._publish_topic_names:
             self._publish_topic_names.append(publish_topic_name)

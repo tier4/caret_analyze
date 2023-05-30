@@ -354,7 +354,7 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    def assign_message_context(self, node_name: str, context_type: str,
+    def update_message_context(self, node_name: str, context_type: str,
                                subscribe_topic_name: str, publish_topic_name: str):
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
@@ -370,20 +370,20 @@ class Architecture(Summarizable):
                                               subscribe_topic_name, publish_topic_name)
         node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
-    def assign_publisher_and_callback(self, node_name: str,
-                                      publish_topic_name: str, callback_name: str):
+    def insert_publisher_callback(self, node_name: str,
+                                  publish_topic_name: str, callback_name: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.assign_publisher_and_callback(publish_topic_name, callback_name)
+        node.insert_publisher_callback(publish_topic_name, callback_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
 
-    def assign_variable_passings(self, node_name: str,
-                                 callback_name_write: str, callback_name_read: str):
+    def insert_variable_passing(self, node_name: str,
+                                callback_name_write: str, callback_name_read: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.assign_variable_passings(callback_name_write, callback_name_read)
+        node.insert_variable_passing(callback_name_write, callback_name_read)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
@@ -397,11 +397,11 @@ class Architecture(Summarizable):
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
                               AssignContextReader(node)))
 
-    def remove_variable_passings(self, node_name: str,
-                                 callback_name_write: str, callback_name_read: str):
+    def remove_variable_passing(self, node_name: str,
+                                callback_name_write: str, callback_name_read: str):
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
-        node.remove_variable_passings(callback_name_write, callback_name_read)
+        node.remove_variable_passing(callback_name_write, callback_name_read)
 
         callback_read: CallbackStructValue = \
             Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
@@ -411,7 +411,7 @@ class Architecture(Summarizable):
         context_reader = AssignContextReader(node)
         for publish_topic_name in callback_read.publish_topic_names or []:
             if callback_write.subscribe_topic_name is not None:
-                context_reader.delete_callback_chain(callback_write.subscribe_topic_name,
+                context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
                                                      publish_topic_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
@@ -621,7 +621,7 @@ class AssignContextReader(ArchitectureReader):
                                    'subscription_topic_name': subscribe_topic_name,
                                    'publisher_topic_name': publish_topic_name})
 
-    def delete_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str):
+    def remove_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str):
         self._contexts = [
             context for context in self._contexts
             if (context['subscription_topic_name'], context['publisher_topic_name'],

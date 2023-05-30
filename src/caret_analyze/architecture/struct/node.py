@@ -225,16 +225,16 @@ class NodeStruct():
     #     # TODO: Refactoring module dependency
     #     pass
 
-    def assign_publisher_and_callback(self, publish_topic_name: str, callback_name: str):
+    def insert_publisher_callback(self, publish_topic_name: str, callback_name: str):
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-        callback.assign_publisher(publish_topic_name)
+        callback.insert_publisher(publish_topic_name)
 
         publisher: PublisherStruct = \
             Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
-        publisher.assign_callback(callback)
+        publisher.insert_callback(callback)
 
-    def assign_variable_passings(self, callback_name_write: str, callback_name_read: str):
+    def insert_variable_passing(self, callback_name_write: str, callback_name_read: str):
         callback_write: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
         callback_read: CallbackStruct =\
@@ -264,7 +264,7 @@ class NodeStruct():
             Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
         publisher.remove_callback(callback)
 
-    def remove_variable_passings(self, callback_name_write: str, callback_name_read: str):
+    def remove_variable_passing(self, callback_name_write: str, callback_name_read: str):
         self._variable_passings_info =\
             [passing for passing in self._variable_passings_info or []
              if (callback_name_write, callback_name_read) !=
