@@ -39,7 +39,7 @@ def parse_collection_or_unpack(
     Parse target argument.
 
     To address both cases where the target argument is passed in collection type
-    and unpacked, this function converts them to the same list format.
+    or unpacked, this function converts them to the same list format.
 
     Parameters
     ----------
@@ -81,7 +81,7 @@ class Plot:
             Metrics for stacked bar graph.
             supported metrics: [latency]
         case : str, optional
-            response time calculation method, worst by default.
+            Response time calculation method, worst by default.
             supported case: [best/worst].
 
         Returns
@@ -107,7 +107,7 @@ class Plot:
 
         Parameters
         ----------
-        target_object : Collection[TimeSeriesTypes]
+        target_objects : Collection[TimeSeriesTypes]
             TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
@@ -132,7 +132,7 @@ class Plot:
 
         Parameters
         ----------
-        target_object : Collection[TimeSeriesTypes]
+        target_objects : Collection[TimeSeriesTypes]
             TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
@@ -157,7 +157,7 @@ class Plot:
 
         Parameters
         ----------
-        target_object : Collection[CallbackBase | Communication]
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -183,14 +183,14 @@ class Plot:
 
         Parameters
         ----------
-        path : Collection[Path]
+        paths : Collection[Path]
             Target path.
             This also accepts multiple path inputs by unpacking.
         case : str, optional
-            response time calculation method, by default best-to-worst.
+            Response time calculation method, best-to-worst by default.
             supported case: [best-to-worst/best/worst].
         binsize_ns : int, optional
-            binsize [ns], by default 1000000.
+            binsize [ns], 1000000 by default.
 
         Returns
         -------
@@ -219,9 +219,9 @@ class Plot:
                                   CallbackGroup | Collection[CallbackGroup])
             Instances that are the sources of the plotting.
         lstrip_s : float, optional
-            Start time of cropping range, by default 0.
+            Start time of cropping range, 0 by default.
         rstrip_s: float, optional
-            End point of cropping range, by default 0.
+            End point of cropping range, 0 by default.
 
         Returns
         -------
@@ -252,14 +252,14 @@ class Plot:
         target_path : Path
             Target path to be plotted.
         granularity : str | None, optional
-            Granularity of chain with two value; [raw/node], by default None.
+            Granularity of chain with two value; [raw/node], None by default.
         treat_drop_as_delay : bool, optional
             If there is a drop, the flow is drawn by connecting it to the next one,
-            by default False.
+            False by default.
         lstrip_s : float, optional
-            Start time of cropping range, by default 0.
+            Start time of cropping range, 0 by default.
         rstrip_s: float, optional
-            End point of cropping range, by default 0.
+            End point of cropping range, 0 by default.
 
         Returns
         -------
