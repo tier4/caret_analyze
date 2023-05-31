@@ -19,7 +19,7 @@ from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotF
 from .histogram import ResponseTimeHistPlot, ResponseTimeHistPlotFactory
 from .message_flow import MessageFlowPlot, MessageFlowPlotFactory
 from .plot_base import PlotBase
-from .stacked_bar import StackedBarPlotFactory
+from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
@@ -69,7 +69,26 @@ class Plot:
         target_object: Path,
         metrics: str = 'latency',
         case: str = 'worst'
-    ):
+    ) -> StackedBarPlot:
+        """
+        Get StackedBarPlot instance.
+
+        Parameters
+        ----------
+        target_object : Path
+            Target path
+        metrics : str
+            Metrics for stacked bar graph.
+            supported metrics: [latency]
+        case : str, optional
+            response time calculation method, worst by default.
+            supported case: [best/worst].
+
+        Returns
+        -------
+        StackedBarPlot
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = StackedBarPlotFactory.create_instance(
             target_object,
