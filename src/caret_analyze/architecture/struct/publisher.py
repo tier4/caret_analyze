@@ -71,7 +71,7 @@ class PublisherStruct():
             construction_order=self.construction_order)
 
     def insert_callback(self, callback: CallbackStruct) -> None:
-        if self._callbacks:
+        if self._callbacks is None:
             self._callbacks = [callback]
         elif callback.callback_name not in (self.callback_names or []):
             self._callbacks.append(callback)
