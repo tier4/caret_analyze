@@ -415,8 +415,8 @@ class Architecture(Summarizable):
                     context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
                                                          publish_topic_name)
 
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              context_reader))
+            node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                                  context_reader))
 
     def rename_callback(self, src: str, dst: str) -> None:
         """
