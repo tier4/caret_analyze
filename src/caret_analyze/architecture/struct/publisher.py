@@ -70,14 +70,14 @@ class PublisherStruct():
                 else tuple(v.to_value() for v in self.callbacks)),
             construction_order=self.construction_order)
 
-    def assign_callback(self, callback: CallbackStruct):
-        if self._callbacks is None:
+    def insert_callback(self, callback: CallbackStruct) -> None:
+        if self._callbacks:
             self._callbacks = [callback]
         elif callback.callback_name not in (self.callback_names or []):
             self._callbacks.append(callback)
 
-    def remove_callback(self, callback: CallbackStruct):
-        if self._callbacks is not None and callback in self._callbacks:
+    def remove_callback(self, callback: CallbackStruct) -> None:
+        if self._callbacks and callback in self._callbacks:
             self._callbacks.remove(callback)
 
     def rename_node(self, src: str, dst: str) -> None:

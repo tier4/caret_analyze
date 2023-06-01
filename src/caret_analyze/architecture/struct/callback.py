@@ -134,13 +134,13 @@ class CallbackStruct(metaclass=ABCMeta):
     def to_value(self) -> CallbackStructValue:
         pass
 
-    def assign_publisher(self, publish_topic_name: str):
+    def insert_publisher(self, publish_topic_name: str) -> None:
         self._publish_topic_names = self._publish_topic_names or []
         if publish_topic_name not in self._publish_topic_names:
             self._publish_topic_names.append(publish_topic_name)
 
-    def remove_publisher(self, publish_topic_name: str):
-        if self._publish_topic_names is not None and \
+    def remove_publisher(self, publish_topic_name: str) -> None:
+        if self._publish_topic_names and \
            publish_topic_name in self._publish_topic_names:
             self._publish_topic_names.remove(publish_topic_name)
 
