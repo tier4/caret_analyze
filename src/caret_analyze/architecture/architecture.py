@@ -355,7 +355,7 @@ class Architecture(Summarizable):
                      f'period_ns: {uniqueness_violated[1]}'))
 
     def update_message_context(self, node_name: str, context_type: str,
-                               subscribe_topic_name: str, publish_topic_name: str):
+                               subscribe_topic_name: str, publish_topic_name: str) -> None:
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
@@ -371,7 +371,7 @@ class Architecture(Summarizable):
         node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
 
     def insert_publisher_callback(self, node_name: str,
-                                  publish_topic_name: str, callback_name: str):
+                                  publish_topic_name: str, callback_name: str) -> None:
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.insert_publisher_callback(publish_topic_name, callback_name)
@@ -380,7 +380,7 @@ class Architecture(Summarizable):
                               AssignContextReader(node)))
 
     def insert_variable_passing(self, node_name: str,
-                                callback_name_write: str, callback_name_read: str):
+                                callback_name_write: str, callback_name_read: str) -> None:
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.insert_variable_passing(callback_name_write, callback_name_read)
@@ -389,7 +389,7 @@ class Architecture(Summarizable):
                               AssignContextReader(node)))
 
     def remove_publisher_callback(self, node_name: str,
-                                  publish_topic_name: str, callback_name: str):
+                                  publish_topic_name: str, callback_name: str) -> None:
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.remove_publisher_and_callback(publish_topic_name, callback_name)
@@ -398,7 +398,7 @@ class Architecture(Summarizable):
                               AssignContextReader(node)))
 
     def remove_variable_passing(self, node_name: str,
-                                callback_name_write: str, callback_name_read: str):
+                                callback_name_write: str, callback_name_read: str) -> None:
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.remove_variable_passing(callback_name_write, callback_name_read)
@@ -605,13 +605,13 @@ class Architecture(Summarizable):
 class AssignContextReader(ArchitectureReader):
     """MessageContext of NodeStruct implemented version of ArchitectureReader."""
 
-    def __init__(self, node: NodeStruct):
+    def __init__(self, node: NodeStruct) -> None:
         contexts = [path.message_context for path in node.paths]
         self._contexts = \
             [context.to_dict() for context in contexts if context is not None]
 
     def update_message_context(self, context_type: str,
-                               subscribe_topic_name: str, publish_topic_name: str):
+                               subscribe_topic_name: str, publish_topic_name: str) -> None:
         for context in self._contexts:
             if (context['subscription_topic_name'], context['publisher_topic_name']) ==\
                (subscribe_topic_name, publish_topic_name):
@@ -622,7 +622,7 @@ class AssignContextReader(ArchitectureReader):
                                    'subscription_topic_name': subscribe_topic_name,
                                    'publisher_topic_name': publish_topic_name})
 
-    def remove_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str):
+    def remove_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str) -> None:
         self._contexts = [
             context for context in self._contexts
             if (context['subscription_topic_name'], context['publisher_topic_name'],
