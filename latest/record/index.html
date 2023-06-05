@@ -17,7 +17,7 @@
         <link rel="next" href="../value_objects/">
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.11">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -25,10 +25,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -1579,7 +1579,11 @@
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>records to calculate frequency.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>records to calculate frequency.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1589,8 +1593,12 @@
           <td>
                 <code><span title="typing.Optional">Optional</span>[str], optional</code>
           </td>
-          <td><p>Column name of timestamps used in the calculation, by default None
-If None, the first column of records is selected.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Column name of timestamps used in the calculation, by default None
+If None, the first column of records is selected.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1600,7 +1608,9 @@ If None, the first column of records is selected.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>], optional</code>
           </td>
-          <td><p>Filter function to select rows to calculate period, by default None.
+          <td>
+            <div class="doc-md-description">
+              <p>Filter function to select rows to calculate period, by default None.
 Example:
 <div class="highlight"><pre><span></span><code>def row_filter(record: RecordInterface) -&gt; bool:
 start_column = &#39;timestamp1&#39;
@@ -1610,7 +1620,9 @@ and record.data.get(end_column) is not None):
 return True
 else:
 return False
-</code></pre></div></p></td>
+</code></pre></div></p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1652,8 +1664,12 @@ return False
           <td>
                 <code>int</code>
           </td>
-          <td><p>Interval used for frequency calculation, by default 1000000000 [ns].
-The number of timestamps that exist in this time interval is counted.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Interval used for frequency calculation, by default 1000000000 [ns].
+The number of timestamps that exist in this time interval is counted.</p>
+            </div>
+          </td>
           <td>
                 <code>1000000000</code>
           </td>
@@ -1663,8 +1679,12 @@ The number of timestamps that exist in this time interval is counted.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int], optional</code>
           </td>
-          <td><p>Initial timestamp used for frequency calculation, by default None.
-If None, earliest timestamp is used.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Initial timestamp used for frequency calculation, by default None.
+If None, earliest timestamp is used.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1674,8 +1694,12 @@ If None, earliest timestamp is used.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int], optional</code>
           </td>
-          <td><p>End time of measurement.
-If None, oldest timestamp is used.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>End time of measurement.
+If None, oldest timestamp is used.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1696,10 +1720,14 @@ If None, oldest timestamp is used.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>frequency records.
+          <td>
+            <div class="doc-md-description">
+              <p>frequency records.
 Columns
 - {timestamp_column}
-- {frequency_column}</p></td>
+- {frequency_column}</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1774,7 +1802,11 @@ Columns
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>records to calculate latency.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>records to calculate latency.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1784,8 +1816,12 @@ Columns
           <td>
                 <code><span title="typing.Optional">Optional</span>[str], optional</code>
           </td>
-          <td><p>Column name of start timestamps used in the calculation, by default None
-If None, the first column of records is selected.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Column name of start timestamps used in the calculation, by default None
+If None, the first column of records is selected.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1795,8 +1831,12 @@ If None, the first column of records is selected.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str], optional</code>
           </td>
-          <td><p>Column name of end timestamps used in the calculation, by default None
-If None, the last column of records is selected.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Column name of end timestamps used in the calculation, by default None
+If None, the last column of records is selected.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1835,10 +1875,14 @@ If None, the last column of records is selected.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>latency records.
+          <td>
+            <div class="doc-md-description">
+              <p>latency records.
 Columns
 - {start_timestamp_column}
-- {latency_column}</p></td>
+- {latency_column}</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1913,7 +1957,11 @@ Columns
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>records to calculate period.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>records to calculate period.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1923,8 +1971,12 @@ Columns
           <td>
                 <code><span title="typing.Optional">Optional</span>[str], optional</code>
           </td>
-          <td><p>Column name of timestamps used in the calculation, by default None
-If None, the first column of records is selected.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Column name of timestamps used in the calculation, by default None
+If None, the first column of records is selected.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1934,7 +1986,9 @@ If None, the first column of records is selected.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>], optional</code>
           </td>
-          <td><p>Filter function to select rows to calculate period, by default None.
+          <td>
+            <div class="doc-md-description">
+              <p>Filter function to select rows to calculate period, by default None.
 Example:
 <div class="highlight"><pre><span></span><code>def row_filter(record: RecordInterface) -&gt; bool:
 start_column = &#39;timestamp1&#39;
@@ -1944,7 +1998,9 @@ and record.data.get(end_column) is not None):
 return True
 else:
 return False
-</code></pre></div></p></td>
+</code></pre></div></p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -1983,10 +2039,14 @@ return False
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>period records.
+          <td>
+            <div class="doc-md-description">
+              <p>period records.
 Columns
 - {timestamp_column}
-- {period_column}</p></td>
+- {period_column}</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2060,7 +2120,11 @@ Columns
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[int, int]</code>
           </td>
-          <td><p>Minimum and Maximum timestamps.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Minimum and Maximum timestamps.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2143,7 +2207,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.Set">Set</span>[str]</code>
           </td>
-          <td><p>Column names.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Column names.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2183,7 +2251,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <td><code>data</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, int]</code>
           </td>
-          <td><p>dictionary data.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>dictionary data.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2227,7 +2299,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>key name to set.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key name to set.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2237,7 +2313,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>key value to set.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key value to set.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2283,7 +2363,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>column name to be changed.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>column name to be changed.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2293,7 +2377,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>new column name.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>new column name.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2339,7 +2427,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>columns to be dropped.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>columns to be dropped.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2385,7 +2477,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a></code>
           </td>
-          <td><p>comparison target.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>comparison target.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2406,7 +2502,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>True if record data is same, otherwise false.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>True if record data is same, otherwise false.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2449,7 +2549,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>key name to get.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key name to get.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2470,7 +2574,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Value for selected key.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Value for selected key.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2513,7 +2621,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>key name to get.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key name to get.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2523,7 +2635,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>default value.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>default value.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2544,7 +2660,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Value for selected key.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Value for selected key.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2587,7 +2707,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a></code>
           </td>
-          <td><p>merge target.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>merge target.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2597,7 +2721,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>inplace record if true, otherwise false.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>inplace record if true, otherwise false.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2618,7 +2746,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="caret_analyze.record.record.Record">Record</span></code>
           </td>
-          <td><p>Merged record class if inplace = false, otherwise None.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Merged record class if inplace = false, otherwise None.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2696,7 +2828,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>Columns.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Columns.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2736,7 +2872,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.Sequence">Sequence</span>[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>]</code>
           </td>
-          <td><p>Records list.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Records list.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2780,7 +2920,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="caret_analyze.record.column.ColumnValue">ColumnValue</span></code>
           </td>
-          <td><p>column</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>column</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2790,7 +2934,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.List">List</span>[int]</code>
           </td>
-          <td><p>values</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>values</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2855,7 +3003,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>deep-copied records.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>deep-copied records.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2898,7 +3050,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>records to be concatenated.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>records to be concatenated.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2919,7 +3075,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>concatenated records if inplace=False, otherwise None.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>concatenated records if inplace=False, otherwise None.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2962,7 +3122,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>columns to be dropped.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>columns to be dropped.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3008,7 +3172,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>comparison target.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>comparison target.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3029,7 +3197,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>true if record data is same, otherwise false.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>true if record data is same, otherwise false.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3072,7 +3244,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.Callable">Callable</span>[[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>], bool]</code>
           </td>
-          <td><p>condition function.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>condition function.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3082,7 +3258,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>inplace original instance if true.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>inplace original instance if true.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3150,7 +3330,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a></code>
           </td>
-          <td><p>merge target.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>merge target.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3160,7 +3344,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Key to use for matching.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key to use for matching.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3170,7 +3358,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Key to use for matching.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key to use for matching.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3180,7 +3372,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>columns</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>columns</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3190,7 +3386,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>merge type. [inner/right/left/outer]</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>merge type. [inner/right/left/outer]</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3200,7 +3400,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>label for progress bar. cpp impl only.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>label for progress bar. cpp impl only.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3221,7 +3425,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td></td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3284,7 +3492,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>merge target.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>merge target.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3294,7 +3506,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>left records key name to use for comparison in time series merge.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>left records key name to use for comparison in time series merge.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3304,7 +3520,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>right records key name to use for comparison in time series merge.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>right records key name to use for comparison in time series merge.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3314,7 +3534,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>join key name to use equal condition.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>join key name to use equal condition.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3324,7 +3548,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>join key name to use equal condition.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>join key name to use equal condition.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3334,7 +3562,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>merge type. [inner/right/left/outer]</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>merge type. [inner/right/left/outer]</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3344,7 +3576,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>columns</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>columns</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3354,7 +3590,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>label for progress bar. cpp impl only.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>label for progress bar. cpp impl only.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3422,7 +3662,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>key name indicating time stamp for source records</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key name indicating time stamp for source records</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3432,7 +3676,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>Key name indicating the address of the copy source for source records.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key name indicating the address of the copy source for source records.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3442,7 +3690,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>Recordsinterface</code>
           </td>
-          <td><p>copy records</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>copy records</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3452,7 +3704,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>key name indicating time stamp for copy records</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key name indicating time stamp for copy records</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3462,7 +3718,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>Key name indicating the address of the copy source for source records.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key name indicating the address of the copy source for source records.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3472,7 +3732,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>Key name indicating the address of the copy destination</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key name indicating the address of the copy destination</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3482,7 +3746,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>sink-side records</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>sink-side records</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3492,7 +3760,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>key_name indicating time stamp for copy records</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key_name indicating time stamp for copy records</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3502,7 +3774,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>Key name indicating the address of the copy destination</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key name indicating the address of the copy destination</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3512,7 +3788,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>columns</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>columns</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3522,7 +3802,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>label for progress bar. cpp impl only.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>label for progress bar. cpp impl only.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3543,7 +3827,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>Merged records.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Merged records.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3604,7 +3892,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>columns</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>columns</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3650,7 +3942,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, str]</code>
           </td>
-          <td><p>rename params. same as dataframe rename.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>rename params. same as dataframe rename.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3696,7 +3992,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>key name to used for sort.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>key name to used for sort.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3706,7 +4006,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>second key name to used for sort.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>second key name to used for sort.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3716,7 +4020,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>bool</code>
           </td>
-          <td><p>ascending if True, descending if false.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>ascending if True, descending if false.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3762,7 +4070,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>bool</code>
           </td>
-          <td><p>ascending if True, descending if false.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>ascending if True, descending if false.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3772,7 +4084,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>bool</code>
           </td>
-          <td><p>put none at top</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>put none at top</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3815,7 +4131,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>pandas.<span title="pandas.DataFrame">DataFrame</span></code>
           </td>
-          <td><p>Records data.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Records data.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3864,7 +4184,11 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>records to calculate response time.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>records to calculate response time.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3874,8 +4198,12 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           <td>
                 <code>str</code>
           </td>
-          <td><p>List of column names to be used in return value.
-If None, the first and last columns are used.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of column names to be used in return value.
+If None, the first and last columns are used.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3954,7 +4282,11 @@ If None, the first and last columns are used.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>records to calculate response time.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>records to calculate response time.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3964,8 +4296,12 @@ If None, the first and last columns are used.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>List of column names to be used in return value.
-If None, only first and last columns are used.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of column names to be used in return value.
+If None, only first and last columns are used.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4005,8 +4341,12 @@ If None, only first and last columns are used.</p></td>
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>frequency, latencies[ns].
-ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>frequency, latencies[ns].
+ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4042,12 +4382,16 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p><
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>Records of the best cases response time.</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Records of the best cases response time.</p>
 <p>Columns
 - {columns[0]}
 - {columns[1]}
 - {...}
-- {columns[n-1]}</p></td>
+- {columns[n-1]}</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4084,7 +4428,11 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p><
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>input time[ns], latency[ns]</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>input time[ns], latency[ns]</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4123,7 +4471,11 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p><
           <td>
                 <code>int, optional</code>
           </td>
-          <td><p>binsize [ns], by default 1000000</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>binsize [ns], by default 1000000</p>
+            </div>
+          </td>
           <td>
                 <code>1000000</code>
           </td>
@@ -4133,11 +4485,15 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p><
           <td>
                 <code>bool, optional</code>
           </td>
-          <td><p>If False, the result will contain the number of samples in each bin.
+          <td>
+            <div class="doc-md-description">
+              <p>If False, the result will contain the number of samples in each bin.
 If True, the result is the value of the probability density function at the bin,
 normalized such that the integral over the range is 1.
 Note that the sum of the histogram values will not be equal to 1
-unless bins of unity width are chosen; it is not a probability mass function.</p></td>
+unless bins of unity width are chosen; it is not a probability mass function.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -4158,8 +4514,12 @@ unless bins of unity width are chosen; it is not a probability mass function.</p
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>frequency, latencies[ns].
-ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>frequency, latencies[ns].
+ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4198,7 +4558,11 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p><
           <td>
                 <code>bool, optional</code>
           </td>
-          <td><p>If True, get response times with time overlap, by default False. [for debug]</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If True, get response times with time overlap, by default False. [for debug]</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -4219,13 +4583,17 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p><
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>response time records.
+          <td>
+            <div class="doc-md-description">
+              <p>response time records.
 The best and worst cases alternate line by line.
 Columns
 - {columns[0]}
 - {columns[1]}
 - {...}
-- {columns[n-1]}</p></td>
+- {columns[n-1]}</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4261,13 +4629,17 @@ Columns
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>The best and worst cases are separated into separate columns.</p>
+          <td>
+            <div class="doc-md-description">
+              <p>The best and worst cases are separated into separate columns.</p>
 <p>Columns
 - {columns[0]}_min
 - {columns[0]}_max
 - {columns[1]}
 - {...}
-- {columns[n-1]}</p></td>
+- {columns[n-1]}</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4305,8 +4677,12 @@ as well as delays caused by various factors such as lost messages.</p>
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>frequency, latencies[ns].
-ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>frequency, latencies[ns].
+ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4344,7 +4720,11 @@ as well as delays caused by various factors such as lost messages.</p>
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>input time[ns], latency[ns]</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>input time[ns], latency[ns]</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4419,7 +4799,11 @@ as well as delays caused by various factors such as lost messages.</p>
           <td>
                 <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
           </td>
-          <td><p>Records of response time.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Records of response time.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4440,7 +4824,11 @@ as well as delays caused by various factors such as lost messages.</p>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>Error occurs if the records are empty.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Error occurs if the records are empty.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4476,7 +4864,11 @@ as well as delays caused by various factors such as lost messages.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[int]]</code>
           </td>
-          <td><p>Stacked bar dict data.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Stacked bar dict data.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4550,7 +4942,7 @@ as well as delays caused by various factors such as lost messages.</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fac441b0.min.js"></script>
+      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
       
