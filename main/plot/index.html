@@ -523,6 +523,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_facade.Plot.create_response_time_stacked_bar_plot" class="md-nav__link">
+    create_response_time_stacked_bar_plot()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -820,6 +827,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.plot_facade.Plot.create_response_time_stacked_bar_plot" class="md-nav__link">
+    create_response_time_stacked_bar_plot()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1087,6 +1101,10 @@ Columns (not include 'start time').</p>
 
 <h3 id="caret_analyze.plot.plot_facade.Plot.create_callback_scheduling_plot" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">create_callback_scheduling_plot</span><span class="p">(</span><span class="n">target_objects</span><span class="p">,</span> <span class="n">lstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rstrip_s</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
 
 <a href="#caret_analyze.plot.plot_facade.Plot.create_callback_scheduling_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1107,13 +1125,29 @@ Columns (not include 'start time').</p>
     </thead>
     <tbody>
         <tr>
+          <td><code>target_objects</code></td>
+          <td>
+                <code><span title="caret_analyze.plot.plot_facade.CallbackSchedTypes">CallbackSchedTypes</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>CallbackSchedTypes = (Application | Executor | Path | Node |
+CallbackGroup | Collection[CallbackGroup])
+Instances that are the sources of the plotting.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
           <td><code>lstrip_s</code></td>
           <td>
                 <code>float, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Start time of cropping range, by default 0.</p>
+              <p>Start time of cropping range, 0 by default.</p>
             </div>
           </td>
           <td>
@@ -1127,7 +1161,7 @@ Columns (not include 'start time').</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>End point of cropping range, by default 0.</p>
+              <p>End point of cropping range, 0 by default.</p>
             </div>
           </td>
           <td>
@@ -1168,7 +1202,11 @@ Columns (not include 'start time').</p>
 
 
 <h3 id="caret_analyze.plot.plot_facade.Plot.create_frequency_timeseries_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_frequency_timeseries_plot</span><span class="p">(</span><span class="n">target_objects</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_frequency_timeseries_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
 
 <a href="#caret_analyze.plot.plot_facade.Plot.create_frequency_timeseries_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1189,21 +1227,19 @@ Columns (not include 'start time').</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>target_object</code></td>
+          <td><code>target_objects</code></td>
           <td>
-                <code><span title="caret_analyze.plot.plot_facade.TimeSeriesTypes">TimeSeriesTypes</span></code>
+                <code><span title="collections.abc.Collection">Collection</span>[<span title="caret_analyze.plot.plot_facade.TimeSeriesTypes">TimeSeriesTypes</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>TimeSeriesPlotTypes = Union[
-CallbackBase, Communication, Union[Publisher, Subscription]
-]
+              <p>TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
 Instances that are the sources of the plotting.
 This also accepts multiple inputs by unpacking.</p>
             </div>
           </td>
           <td>
-              <em>required</em>
+                <code>()</code>
           </td>
         </tr>
     </tbody>
@@ -1240,7 +1276,11 @@ This also accepts multiple inputs by unpacking.</p>
 
 
 <h3 id="caret_analyze.plot.plot_facade.Plot.create_latency_timeseries_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_latency_timeseries_plot</span><span class="p">(</span><span class="n">target_objects</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_latency_timeseries_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
 
 <a href="#caret_analyze.plot.plot_facade.Plot.create_latency_timeseries_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1261,21 +1301,18 @@ This also accepts multiple inputs by unpacking.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>target_object</code></td>
+          <td><code>target_objects</code></td>
           <td>
-                <code><span title="caret_analyze.plot.plot_facade.TimeSeriesTypes">TimeSeriesTypes</span></code>
+                <code><span title="collections.abc.Collection">Collection</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.CallbackBase" href="../runtime/#caret_analyze.runtime.CallbackBase">CallbackBase</a> | <a class="autorefs autorefs-internal" title="caret_analyze.runtime.Communication" href="../runtime/#caret_analyze.runtime.Communication">Communication</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>TimeSeriesPlotTypes = Union[
-CallbackBase, Communication, Union[Publisher, Subscription]
-]
-Instances that are the sources of the plotting.
+              <p>Instances that are the sources of the plotting.
 This also accepts multiple inputs by unpacking.</p>
             </div>
           </td>
           <td>
-              <em>required</em>
+                <code>()</code>
           </td>
         </tr>
     </tbody>
@@ -1353,11 +1390,11 @@ This also accepts multiple inputs by unpacking.</p>
         <tr>
           <td><code>granularity</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str], optional</code>
+                <code>str | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Granularity of chain with two value; [raw/node], by default None.</p>
+              <p>Granularity of chain with two value; [raw/node], None by default.</p>
             </div>
           </td>
           <td>
@@ -1372,7 +1409,7 @@ This also accepts multiple inputs by unpacking.</p>
           <td>
             <div class="doc-md-description">
               <p>If there is a drop, the flow is drawn by connecting it to the next one,
-by default False.</p>
+False by default.</p>
             </div>
           </td>
           <td>
@@ -1386,7 +1423,7 @@ by default False.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Start time of cropping range, by default 0.</p>
+              <p>Start time of cropping range, 0 by default.</p>
             </div>
           </td>
           <td>
@@ -1400,7 +1437,7 @@ by default False.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>End point of cropping range, by default 0.</p>
+              <p>End point of cropping range, 0 by default.</p>
             </div>
           </td>
           <td>
@@ -1441,7 +1478,11 @@ by default False.</p>
 
 
 <h3 id="caret_analyze.plot.plot_facade.Plot.create_period_timeseries_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_period_timeseries_plot</span><span class="p">(</span><span class="n">target_objects</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_period_timeseries_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
 
 <a href="#caret_analyze.plot.plot_facade.Plot.create_period_timeseries_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1462,21 +1503,19 @@ by default False.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>target_object</code></td>
+          <td><code>target_objects</code></td>
           <td>
-                <code><span title="caret_analyze.plot.plot_facade.TimeSeriesTypes">TimeSeriesTypes</span></code>
+                <code><span title="collections.abc.Collection">Collection</span>[<span title="caret_analyze.plot.plot_facade.TimeSeriesTypes">TimeSeriesTypes</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>TimeSeriesPlotTypes = Union[
-CallbackBase, Communication, Union[Publisher, Subscription]
-]
+              <p>TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
 Instances that are the sources of the plotting.
 This also accepts multiple inputs by unpacking.</p>
             </div>
           </td>
           <td>
-              <em>required</em>
+                <code>()</code>
           </td>
         </tr>
     </tbody>
@@ -1513,7 +1552,11 @@ This also accepts multiple inputs by unpacking.</p>
 
 
 <h3 id="caret_analyze.plot.plot_facade.Plot.create_response_time_histogram_plot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_response_time_histogram_plot</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s1">&#39;best-to-worst&#39;</span><span class="p">,</span> <span class="n">binsize_ns</span><span class="o">=</span><span class="mi">10000000</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">create_response_time_histogram_plot</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s1">&#39;best-to-worst&#39;</span><span class="p">,</span> <span class="n">binsize_ns</span><span class="o">=</span><span class="mi">10000000</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
 
 <a href="#caret_analyze.plot.plot_facade.Plot.create_response_time_histogram_plot" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1534,9 +1577,9 @@ This also accepts multiple inputs by unpacking.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>path</code></td>
+          <td><code>paths</code></td>
           <td>
-                <code><span title="typing.Collection">Collection</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.Path" href="../runtime/#caret_analyze.runtime.Path">Path</a>]</code>
+                <code><span title="collections.abc.Collection">Collection</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.Path" href="../runtime/#caret_analyze.runtime.Path">Path</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1545,7 +1588,7 @@ This also accepts multiple path inputs by unpacking.</p>
             </div>
           </td>
           <td>
-              <em>required</em>
+                <code>()</code>
           </td>
         </tr>
         <tr>
@@ -1555,7 +1598,7 @@ This also accepts multiple path inputs by unpacking.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>response time calculation method, by default best-to-worst.
+              <p>Response time calculation method, best-to-worst by default.
 supported case: [best-to-worst/best/worst].</p>
             </div>
           </td>
@@ -1570,7 +1613,7 @@ supported case: [best-to-worst/best/worst].</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>binsize [ns], by default 1000000.</p>
+              <p>binsize [ns], 1000000 by default.</p>
             </div>
           </td>
           <td>
@@ -1592,6 +1635,108 @@ supported case: [best-to-worst/best/worst].</p>
         <tr>
           <td>
                 <code>ResponseTimePlot</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.plot.plot_facade.Plot.create_response_time_stacked_bar_plot" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">create_response_time_stacked_bar_plot</span><span class="p">(</span><span class="n">target_object</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="s1">&#39;latency&#39;</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s1">&#39;worst&#39;</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.plot.plot_facade.Plot.create_response_time_stacked_bar_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get StackedBarPlot instance.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>target_object</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.runtime.Path" href="../runtime/#caret_analyze.runtime.Path">Path</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Target path</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Metrics for stacked bar graph.
+supported metrics: [latency]</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;latency&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>case</code></td>
+          <td>
+                <code>str, optional</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Response time calculation method, worst by default.
+supported case: [best/worst].</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;worst&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="caret_analyze.plot.stacked_bar.StackedBarPlot">StackedBarPlot</span></code>
           </td>
           <td>
             <div class="doc-md-description">
