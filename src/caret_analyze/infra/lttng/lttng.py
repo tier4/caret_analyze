@@ -636,27 +636,6 @@ class Lttng(InfraBase):
         """
         return datetime.fromtimestamp(self._begin * 1.0e-9)
 
-    def compose_inter_proc_comm_records(
-        self,
-    ) -> RecordsInterface:
-        """
-        Compose inter process communication records of all communications in one records.
-
-        Returns
-        -------
-        RecordsInterface
-            Columns
-
-            - callback_object
-            - callback_start_timestamp
-            - publisher_handle
-            - rclcpp_publish_timestamp
-            - rcl_publish_timestamp (Optional)
-            - dds_write_timestamp (Optional)
-
-        """
-        return self._source.inter_proc_comm_records.clone()
-
     def compose_intra_proc_comm_records(
         self,
     ) -> RecordsInterface:
