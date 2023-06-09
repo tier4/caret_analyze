@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Collection
 from logging import getLogger
-from typing import Collection, Optional, Union
-
-from multimethod import multimethod as singledispatchmethod
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import ResponseTimeHistPlot, ResponseTimeHistPlotFactory
 from .message_flow import MessageFlowPlot, MessageFlowPlotFactory
 from .plot_base import PlotBase
-from .stacked_bar import StackedBarPlotFactory
+from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
@@ -29,47 +27,68 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 
 logger = getLogger(__name__)
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
-CallbackSchedTypes = Union[Application, Executor, Path,
-                           Node, CallbackGroup, Collection[CallbackGroup]]
+TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+CallbackSchedTypes = (Application | Executor | Path |
+                      Node | CallbackGroup | Collection[CallbackGroup])
+
+
+def parse_collection_or_unpack(
+    target_arg: tuple[Collection[TimeSeriesTypes]] | tuple[TimeSeriesTypes, ...]
+) -> list[TimeSeriesTypes]:
+    """
+    Parse target argument.
+
+    To address both cases where the target argument is passed in collection type
+    or unpacked, this function converts them to the same list format.
+
+    Parameters
+    ----------
+    target_arg : tuple[Collection[TimeSeriesTypes]] | tuple[TimeSeriesTypes, ...]
+        Target objects.
+
+    Returns
+    -------
+    list[TimeSeriesTypes]
+
+    """
+    parsed_target_objects: list[TimeSeriesTypes]
+    if isinstance(target_arg[0], Collection):
+        assert len(target_arg) == 1
+        parsed_target_objects = list(target_arg[0])
+    else:  # Unpacked case
+        parsed_target_objects = list(target_arg)  # type: ignore
+
+    return parsed_target_objects
 
 
 class Plot:
     """Facade class for plot."""
-
-    @singledispatchmethod
-    def create_period_timeseries_plot(
-        target_objects: Collection[TimeSeriesTypes]
-    ) -> PlotBase:
-        """
-        Get period timeseries plot instance.
-
-        Parameters
-        ----------
-        target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
-            Instances that are the sources of the plotting.
-            This also accepts multiple inputs by unpacking.
-
-        Returns
-        -------
-        PlotBase
-
-        """
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = TimeSeriesPlotFactory.create_instance(
-            list(target_objects), 'period', visualize_lib
-        )
-        return plot
 
     @staticmethod
     def create_response_time_stacked_bar_plot(
         target_object: Path,
         metrics: str = 'latency',
         case: str = 'worst'
-    ):
+    ) -> StackedBarPlot:
+        """
+        Get StackedBarPlot instance.
+
+        Parameters
+        ----------
+        target_object : Path
+            Target path
+        metrics : str
+            Metrics for stacked bar graph.
+            supported metrics: [latency]
+        case : str, optional
+            Response time calculation method, worst by default.
+            supported case: [best/worst].
+
+        Returns
+        -------
+        StackedBarPlot
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = StackedBarPlotFactory.create_instance(
             target_object,
@@ -80,29 +99,41 @@ class Plot:
         return plot
 
     @staticmethod
-    @create_period_timeseries_plot.register
-    def _create_period_timeseries_plot_tuple(
+    def create_period_timeseries_plot(
         *target_objects: TimeSeriesTypes
     ) -> PlotBase:
+        """
+        Get period timeseries plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[TimeSeriesTypes]
+            TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
-            list(target_objects), 'period', visualize_lib
+            parse_collection_or_unpack(target_objects), 'period', visualize_lib
         )
         return plot
 
-    @singledispatchmethod
+    @staticmethod
     def create_frequency_timeseries_plot(
-        target_objects: Collection[TimeSeriesTypes]
+        *target_objects: TimeSeriesTypes
     ) -> PlotBase:
         """
         Get frequency timeseries plot instance.
 
         Parameters
         ----------
-        target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+        target_objects : Collection[TimeSeriesTypes]
+            TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -113,34 +144,20 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
-            list(target_objects), 'frequency', visualize_lib
+            parse_collection_or_unpack(target_objects), 'frequency', visualize_lib
         )
         return plot
 
     @staticmethod
-    @create_frequency_timeseries_plot.register
-    def _create_frequency_timeseries_plot_tuple(
-        *target_objects: TimeSeriesTypes
-    ) -> PlotBase:
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = TimeSeriesPlotFactory.create_instance(
-            list(target_objects), 'frequency', visualize_lib
-        )
-        return plot
-
-    @singledispatchmethod
     def create_latency_timeseries_plot(
-        target_objects: Collection[Union[CallbackBase, Communication]]
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get latency timeseries plot instance.
 
         Parameters
         ----------
-        target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -151,24 +168,13 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
-            list(target_objects), 'latency', visualize_lib
+            parse_collection_or_unpack(target_objects), 'latency', visualize_lib
         )
         return plot
 
     @staticmethod
-    @create_latency_timeseries_plot.register
-    def _create_latency_timeseries_plot_tuple(
-        *target_objects: Union[CallbackBase, Communication]
-    ) -> PlotBase:
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = TimeSeriesPlotFactory.create_instance(
-            list(target_objects), 'latency', visualize_lib
-        )
-        return plot
-
-    @singledispatchmethod
     def create_response_time_histogram_plot(
-        paths: Collection[Path],
+        *paths: Path,
         case: str = 'best-to-worst',
         binsize_ns: int = 10000000
     ) -> ResponseTimeHistPlot:
@@ -177,14 +183,14 @@ class Plot:
 
         Parameters
         ----------
-        path : Collection[Path]
+        paths : Collection[Path]
             Target path.
             This also accepts multiple path inputs by unpacking.
         case : str, optional
-            response time calculation method, by default best-to-worst.
+            Response time calculation method, best-to-worst by default.
             supported case: [best-to-worst/best/worst].
         binsize_ns : int, optional
-            binsize [ns], by default 1000000.
+            binsize [ns], 1000000 by default.
 
         Returns
         -------
@@ -198,20 +204,7 @@ class Plot:
         return plot
 
     @staticmethod
-    @create_response_time_histogram_plot.register
-    def _create_response_time_histogram_plot_tuple(
-        *paths: Path,
-        case: str = 'best-to-worst',
-        binsize_ns: int = 10000000
-    ) -> ResponseTimeHistPlot:
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = ResponseTimeHistPlotFactory.create_instance(
-            visualize_lib, list(paths), case, int(binsize_ns)
-        )
-        return plot
-
-    @singledispatchmethod
-    def create_callback_scheduling_plot(  # type: ignore
+    def create_callback_scheduling_plot(
         target_objects: CallbackSchedTypes,
         lstrip_s: float = 0,
         rstrip_s: float = 0
@@ -221,10 +214,14 @@ class Plot:
 
         Parameters
         ----------
+        target_objects : CallbackSchedTypes
+            CallbackSchedTypes = (Application | Executor | Path | Node |
+                                  CallbackGroup | Collection[CallbackGroup])
+            Instances that are the sources of the plotting.
         lstrip_s : float, optional
-            Start time of cropping range, by default 0.
+            Start time of cropping range, 0 by default.
         rstrip_s: float, optional
-            End point of cropping range, by default 0.
+            End point of cropping range, 0 by default.
 
         Returns
         -------
@@ -240,22 +237,9 @@ class Plot:
         return plot
 
     @staticmethod
-    @create_callback_scheduling_plot.register
-    def _create_callback_scheduling_plot_tuple(
-        *target_objects: CallbackGroup,
-        lstrip_s: float = 0,
-        rstrip_s: float = 0
-    ) -> PlotBase:
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = CallbackSchedulingPlotFactory.create_instance(
-            list(target_objects), visualize_lib, lstrip_s, rstrip_s
-        )
-        return plot
-
-    @staticmethod
     def create_message_flow_plot(
         target_path: Path,
-        granularity: Optional[str] = None,
+        granularity: str | None = None,
         treat_drop_as_delay: bool = False,
         lstrip_s: float = 0,
         rstrip_s: float = 0
@@ -267,15 +251,15 @@ class Plot:
         ----------
         target_path : Path
             Target path to be plotted.
-        granularity : Optional[str], optional
-            Granularity of chain with two value; [raw/node], by default None.
+        granularity : str | None, optional
+            Granularity of chain with two value; [raw/node], None by default.
         treat_drop_as_delay : bool, optional
             If there is a drop, the flow is drawn by connecting it to the next one,
-            by default False.
+            False by default.
         lstrip_s : float, optional
-            Start time of cropping range, by default 0.
+            Start time of cropping range, 0 by default.
         rstrip_s: float, optional
-            End point of cropping range, by default 0.
+            End point of cropping range, 0 by default.
 
         Returns
         -------

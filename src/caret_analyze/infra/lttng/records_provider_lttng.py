@@ -174,7 +174,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
 
         Raises
@@ -210,7 +209,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
 
         Raises
@@ -232,7 +230,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
         ]
         self._format(sub_records, columns)
@@ -264,7 +261,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
             - [topic_name]/tilde_subscribe_timestamp
             - [topic_name]/tilde_message_id
@@ -307,7 +303,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
             COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP,
             COLUMN_NAME.TILDE_MESSAGE_ID,
@@ -748,11 +743,15 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 sub_node,
                 'ros2:dispatch_subscription_callback'
             )
+            is_contains_rmw_take = self._verify_trace_points(
+                sub_node,
+                'ros2:rmw_take'
+            )
 
         if not pub_result:
             logger.warning(f"'caret/rclcpp' may not be used in publisher of '{pub_node}'.")
             return False
-        if not sub_result:
+        if not sub_result and not is_contains_rmw_take:
             logger.warning(f"'caret/rclcpp' may not be used in subscriber of '{sub_node}'.")
             return False
         return True
@@ -1447,7 +1446,6 @@ class FilteredRecordsSource:
                 [
                     ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                     ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
@@ -1789,11 +1787,6 @@ class FilteredRecordsSource:
         records = self._lttng.compose_callback_records()
         group = records.groupby([COLUMN_NAME.CALLBACK_OBJECT])
         return self._expand_key_tuple(group)
-
-    @cached_property
-    def _grouped_inter_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:
-        records = self._lttng.compose_inter_proc_comm_records()
-        return records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
 
     @cached_property
     def _grouped_intra_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:

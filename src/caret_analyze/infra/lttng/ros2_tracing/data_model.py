@@ -167,6 +167,14 @@ class Ros2DataModel():
                 ColumnValue('source_timestamp'),
                 ColumnValue('message_timestamp'),
             ])
+        self.rmw_take_instances = RecordsFactory.create_instance(
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('rmw_take_timestamp'),
+                ColumnValue('rmw_subscription_handle'),
+                ColumnValue('message'),
+                ColumnValue('source_timestamp')
+            ])
         self.dispatch_intra_process_subscription_callback_instances = \
             RecordsFactory.create_instance(
                 None,
@@ -516,6 +524,23 @@ class Ros2DataModel():
             'message_timestamp': message_timestamp,
         }
         self.dispatch_subscription_callback_instances.append(record)
+
+    def add_rmw_take_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        rmw_subscription_handle: int,
+        message: int,
+        source_timestamp: int
+    ) -> None:
+        record = {
+            'tid': tid,
+            'rmw_take_timestamp': timestamp,
+            'rmw_subscription_handle': rmw_subscription_handle,
+            'message': message,
+            'source_timestamp': source_timestamp
+        }
+        self.rmw_take_instances.append(record)
 
     def add_sim_time(
         self,

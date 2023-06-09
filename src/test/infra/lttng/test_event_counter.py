@@ -65,6 +65,7 @@ class TestEventCounter:
         data.add_on_data_available_instance(0, 0)
         data.add_message_construct_instance(0, 0, 0)
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
+        data.add_rmw_take_instance(0, 0, 0, 0, 0)
         data.add_sim_time(0, 0)
         data.add_rmw_implementation('')
         data.add_dispatch_intra_process_subscription_callback_instance(0, 0, 0, 0)

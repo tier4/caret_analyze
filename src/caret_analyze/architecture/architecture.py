@@ -371,7 +371,6 @@ class Architecture(Summarizable):
             name of publish topic of node_path updating message_context
 
         """
-
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
