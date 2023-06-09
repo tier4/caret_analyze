@@ -357,7 +357,7 @@ class Architecture(Summarizable):
     def update_message_context(self, node_name: str, context_type: str,
                                subscribe_topic_name: str, publish_topic_name: str) -> None:
         """
-        update message_context of node_path in "node_name" node.
+        Update message_context of node_path in "node_name" node.
 
         Parameters
         ----------
