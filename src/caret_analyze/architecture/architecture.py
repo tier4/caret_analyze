@@ -357,18 +357,18 @@ class Architecture(Summarizable):
     def update_message_context(self, node_name: str, context_type: str,
                                subscribe_topic_name: str, publish_topic_name: str) -> None:
         """
-        Assign message_context to node_path in "node_name" node.
+        update message_context of node_path in "node_name" node.
 
         Parameters
         ----------
         node_name : str
-            name of target node to assign message_context
+            name of target node to update message_context
         context_type : str
-            type name of assigning message_context
+            type name of updating message_context
         subscribe_topic_name : str
-            name of subscribe topic of node_path assigning message_context
+            name of subscribe topic of node_path updating message_context
         publish_topic_name : str
-            name of publish topic of node_path assigning message_context
+            name of publish topic of node_path updating message_context
 
         """
 
@@ -389,16 +389,16 @@ class Architecture(Summarizable):
     def insert_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
         """
-        Assign callback to publisher in "node_name" node.
+        Insert callback to publisher in "node_name" node.
 
         Parameters
         ----------
         node_name : str
-            name of target node to assign publisher and callback
+            name of target node to insert publisher and callback
         publish_topic_name : str
-            name of publish topic to assign publisher callback
+            name of publish topic to insert publisher callback
         callback_name : str
-            name of callback to assign publisher
+            name of callback to insert publisher
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
@@ -411,16 +411,16 @@ class Architecture(Summarizable):
     def insert_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
         """
-        Assign variable passing in "node_name" node.
+        Insert variable passing in "node_name" node.
 
         Parameters
         ----------
         node_name : str
-            name of target node to assign variable passing
+            name of target node to insert variable passing
         callback_name_write : str
-            name of write callback in variable passing to assign
+            name of write callback in variable passing to insert
         callback_name_read : str
-            name of read callback in variable passing to assign
+            name of read callback in variable passing to insert
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
