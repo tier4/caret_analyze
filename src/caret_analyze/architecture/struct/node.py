@@ -215,26 +215,26 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
-    def update_node_path(self, paths: List[NodePathStruct]):
+    def update_node_path(self, paths: List[NodePathStruct]) -> None:
         self._node_paths = paths
 
-    # def assign_message_context(self, node_name: str, context_type: str,
+    # def update_message_context(self, node_name: str, context_type: str,
     #                            sub_topic_name: str, pub_topic_name: str):
     #     # To assign message context, update_node_path() is called in Architecture.
     #     # This is because module dependency.
     #     # TODO: Refactoring module dependency
     #     pass
 
-    def assign_publisher_and_callback(self, publish_topic_name: str, callback_name: str):
+    def insert_publisher_callback(self, publish_topic_name: str, callback_name: str) -> None:
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
-        callback.assign_publisher(publish_topic_name)
+        callback.insert_publisher(publish_topic_name)
 
         publisher: PublisherStruct = \
             Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
-        publisher.assign_callback(callback)
+        publisher.insert_callback(callback)
 
-    def assign_variable_passings(self, callback_name_write: str, callback_name_read: str):
+    def insert_variable_passing(self, callback_name_write: str, callback_name_read: str) -> None:
         callback_write: CallbackStruct =\
             Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
         callback_read: CallbackStruct =\
@@ -247,6 +247,22 @@ class NodeStruct():
                 [(passing.callback_name_read, passing.callback_name_write)
                     for passing in self._variable_passings_info]:
             self._variable_passings_info.append(passing)
+
+    def remove_publisher_and_callback(self, publish_topic_name: str, callback_name: str) -> None:
+        callback: CallbackStruct = \
+            Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
+        callback.remove_publisher(publish_topic_name)
+
+        publisher: PublisherStruct = \
+            Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
+        publisher.remove_callback(callback)
+
+    def remove_variable_passing(self, callback_name_write: str, callback_name_read: str) -> None:
+        if self._variable_passings_info:
+            self._variable_passings_info =\
+                [passing for passing in self._variable_passings_info
+                 if (callback_name_write, callback_name_read) !=
+                 (passing.callback_name_write, passing.callback_name_read)]
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
