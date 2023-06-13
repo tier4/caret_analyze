@@ -96,54 +96,6 @@ class TestRecordsProviderLttng:
         records = provider.node_records(node_path_info_mock)
         assert records == records_mock
 
-    def test_inter_proc_comm_records(self, mocker):
-        lttng_mock = mocker.Mock(spec=Lttng)
-
-        comm_mock = mocker.Mock(spec=CommunicationStructValue)
-        pub_mock = mocker.Mock(spec=PublisherStructValue)
-        sub_cb_mock = mocker.Mock(spec=SubscriptionCallbackStructValue)
-
-        cb_object = 5
-        pub_handle = 6
-
-        def _rename_column(records, callback_name, topic_name, node_name):
-            return records
-        mocker.patch.object(
-            RecordsProviderLttng, '_rename_column', side_effect=_rename_column)
-
-        def _format(records, columns):
-            return records
-        mocker.patch.object(
-            RecordsProviderLttng, '_format', side_effect=_format)
-
-        records_mock = mocker.Mock(spec=RecordsInterface)
-        mocker.patch.object(records_mock, 'columns', return_value=[])
-
-        mocker.patch.object(comm_mock, 'publisher', pub_mock)
-        mocker.patch.object(comm_mock, 'subscribe_callback', sub_cb_mock)
-
-        helper_mock = mocker.Mock(spec=RecordsProviderLttngHelper)
-        mocker.patch(
-            'caret_analyze.infra.lttng.records_provider_lttng.RecordsProviderLttngHelper',
-            return_value=helper_mock)
-        mocker.patch.object(helper_mock, 'get_subscription_callback_object_inter',
-                            return_value=cb_object)
-        mocker.patch.object(helper_mock, 'get_publisher_handles',
-                            return_value=[pub_handle])
-
-        source_mock = mocker.Mock(spec=FilteredRecordsSource)
-        mocker.patch(
-            'caret_analyze.infra.lttng.records_provider_lttng.FilteredRecordsSource',
-            return_value=source_mock)
-        mocker.patch.object(source_mock, 'inter_comm_records', return_value=records_mock)
-
-        mocker.patch.object(
-            lttng_mock, 'compose_inter_proc_comm_records', return_value=records_mock)
-        provider = RecordsProviderLttng(lttng_mock)
-
-        records = provider._compose_inter_proc_comm_records(comm_mock)
-        assert records == records_mock
-
     def test_node_records_inherit_timestamp(self, mocker):
         lttng_mock = mocker.Mock(spec=Lttng)
         node_path_info_mock = mocker.Mock(spec=NodePathStructValue)

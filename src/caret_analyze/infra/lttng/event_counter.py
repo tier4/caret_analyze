@@ -135,6 +135,8 @@ class EventCounter:
             'ros2:message_construct': data.message_construct_instances.to_dataframe(),
             'ros2:dispatch_subscription_callback':
                 data.dispatch_subscription_callback_instances.to_dataframe(),
+            'ros2:rmw_take':
+                data.rmw_take_instances.to_dataframe(),
             'ros2:dispatch_intra_process_subscription_callback':
                 data.dispatch_intra_process_subscription_callback_instances.to_dataframe(),
             'ros2:rcl_publish': data.rcl_publish_instances.to_dataframe(),
