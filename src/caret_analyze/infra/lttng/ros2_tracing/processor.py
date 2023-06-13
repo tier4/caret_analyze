@@ -616,7 +616,7 @@ class Ros2Handler():
 
     def _handle_rmw_take(
         self,
-        event: Dict,
+        event: dict,
     ) -> None:
         if not self._is_valid_data(event):
             return
