@@ -366,9 +366,9 @@ class Architecture(Summarizable):
         context_type : str
             type name of updating message_context
         subscribe_topic_name : str
-            name of subscribe topic of node_path updating message_context
+            name of subscribe topic of node_path for updating message_context
         publish_topic_name : str
-            name of publish topic of node_path updating message_context
+            name of publish topic of node_path for updating message_context
 
         """
         node: NodeStruct =\
@@ -410,16 +410,16 @@ class Architecture(Summarizable):
     def insert_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
         """
-        Insert variable passing in "node_name" node.
+        Insert variable_passing in "node_name" node.
 
         Parameters
         ----------
         node_name : str
-            name of target node to insert variable passing
+            name of target node to insert variable_passing
         callback_name_write : str
-            name of write callback in variable passing to insert
+            name of write callback in variable_passing to insert
         callback_name_read : str
-            name of read callback in variable passing to insert
+            name of read callback in variable_passing to insert
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
@@ -432,12 +432,12 @@ class Architecture(Summarizable):
     def remove_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
         """
-        Remove callback to publisher in "node_name" node.
+        Remove the association of callback with publisher in "node_name" node.
 
         Parameters
         ----------
         node_name : str
-            name of target node to remove publisher and callback
+            name of target node to remove publisher callback
         publish_topic_name : str
             name of publish topic to remove publisher callback
         callback_name : str
@@ -454,16 +454,16 @@ class Architecture(Summarizable):
     def remove_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
         """
-        Remove variable passing in "node_name" node.
+        Remove variable_passing in "node_name" node.
 
         Parameters
         ----------
         node_name : str
-            name of target node to remove variable passing
+            name of target node to remove variable_passing
         callback_name_write : str
-            name of write callback in variable passing to remove
+            name of write callback in variable_passing to remove
         callback_name_read : str
-            name of read callback in variable passing to remove
+            name of read callback in variable_passing to remove
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
