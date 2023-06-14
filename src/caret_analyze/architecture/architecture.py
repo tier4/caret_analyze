@@ -388,7 +388,7 @@ class Architecture(Summarizable):
     def insert_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
         """
-        Insert callback to publisher in "node_name" node.
+        Insert the association of callback with publisher in "node_name" node.
 
         Parameters
         ----------
