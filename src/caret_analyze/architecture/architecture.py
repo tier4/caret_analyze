@@ -397,7 +397,7 @@ class Architecture(Summarizable):
         publish_topic_name : str
             name of publish topic to insert publisher callback
         callback_name : str
-            name of callback to insert publisher
+            name of callback to be inserted for publisher
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
@@ -441,7 +441,7 @@ class Architecture(Summarizable):
         publish_topic_name : str
             name of publish topic to remove publisher callback
         callback_name : str
-            name of callback to remove publisher
+            name of callback to be removed for publisher
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
