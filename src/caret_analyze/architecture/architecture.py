@@ -362,13 +362,13 @@ class Architecture(Summarizable):
         Parameters
         ----------
         node_name : str
-            name of target node to update message_context
+            name of target node
         context_type : str
             type name of updating message_context
         subscribe_topic_name : str
-            name of subscribe topic of node_path for updating message_context
+            name of subscribe topic of target node_path
         publish_topic_name : str
-            name of publish topic of node_path for updating message_context
+            name of publish topic of target node_path
 
         """
         node: NodeStruct =\
@@ -393,7 +393,7 @@ class Architecture(Summarizable):
         Parameters
         ----------
         node_name : str
-            name of target node to insert publisher and callback
+            name of target node
         publish_topic_name : str
             name of publish topic to insert publisher callback
         callback_name : str
@@ -415,7 +415,7 @@ class Architecture(Summarizable):
         Parameters
         ----------
         node_name : str
-            name of target node to insert variable_passing
+            name of target node
         callback_name_write : str
             name of write callback in variable_passing to insert
         callback_name_read : str
@@ -437,7 +437,7 @@ class Architecture(Summarizable):
         Parameters
         ----------
         node_name : str
-            name of target node to remove publisher callback
+            name of target node
         publish_topic_name : str
             name of publish topic to remove publisher callback
         callback_name : str
@@ -459,7 +459,7 @@ class Architecture(Summarizable):
         Parameters
         ----------
         node_name : str
-            name of target node to remove variable_passing
+            name of target node
         callback_name_write : str
             name of write callback in variable_passing to remove
         callback_name_read : str
