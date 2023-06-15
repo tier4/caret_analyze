@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Collection, Iterable
+
 import difflib
 
 from logging import getLogger
@@ -21,7 +23,7 @@ from logging import getLogger
 import os
 
 from statistics import mean
-from typing import Any, Callable, Collection, Dict, Iterable, List, Optional, Tuple
+from typing import Any
 
 from ..exceptions import ItemNotFoundError, MultipleItemFoundError
 
@@ -31,7 +33,7 @@ logger = getLogger(__name__)
 class Util:
 
     @staticmethod
-    def flatten(x: Iterable[Iterable[Any]]) -> List[Any]:
+    def flatten(x: Iterable[Iterable[Any]]) -> list[Any]:
         """
         Expand double nested Iterable to List.
 
@@ -42,7 +44,7 @@ class Util:
 
         Returns
         -------
-        List[Any]
+        list[Any]
             Flattened list.
 
         """
@@ -51,7 +53,7 @@ class Util:
         return list(itertools.chain.from_iterable(x))
 
     @staticmethod
-    def filter_items(f: Callable[[Any], bool], x: Optional[Iterable[Any]]) -> List[Any]:
+    def filter_items(f: Callable[[Any], bool], x: Iterable[Any] | None) -> list[Any]:
         """
         Filter iterable.
 
@@ -59,12 +61,12 @@ class Util:
         ----------
         f : Callable[[Any], bool]
             Filtering condition. Items that return True remain.
-        x : Optional[Iterable[Any]]
+        x : Iterable[Any] | None
             Filtering target.
 
         Returns
         -------
-        List[Any]
+        list[Any]
             Filtered list.
 
         """
@@ -116,7 +118,7 @@ class Util:
         return ext[1:]
 
     @staticmethod
-    def find_one(condition: Callable[[Any], bool], items: Optional[Iterable[Any]]) -> Any:
+    def find_one(condition: Callable[[Any], bool], items: Iterable[Any] | None) -> Any:
         """
         Get a single item that matches the condition.
 
@@ -124,7 +126,7 @@ class Util:
         ----------
         condition : Callable[[Any], bool]
             condition
-        items : Optional[Iterable[Any]]
+        items : Iterable[Any] | None
             Items to be searched.
 
         Returns
@@ -204,9 +206,9 @@ class Util:
 
     @staticmethod
     def find_similar_one_multi_keys(
-        target_names: Dict[str, str | int],
+        target_names: dict[str, str | int],
         items: Collection[Any],
-        keys: Callable[[Any], Dict[str, str | int]] = lambda x: x,
+        keys: Callable[[Any], dict[str, str | int]] = lambda x: x,
         th: float = 0.6
     ) -> Any:
         """
@@ -214,11 +216,11 @@ class Util:
 
         Parameters
         ----------
-        target_names: Dict[str, str | int]
+        target_names: dict[str, str | int]
             target_names
         items: Collection[Any]
             Items to be searched.
-        keys: Callable[[Any], Dict[str, str | int]]
+        keys: Callable[[Any], dict[str, str | int]]
             key
         th: float
             Similarity judgment threshold.
@@ -242,7 +244,7 @@ class Util:
             each_similarity = []
             keys_dict = keys(item)
             for target_name in target_names:
-                if(keys_dict[target_name] is None):
+                if (keys_dict[target_name] is None):
                     each_similarity.append(0.0)
                     continue
                 if type(keys_dict[target_name]) is not str:
@@ -314,7 +316,7 @@ class Util:
         return os.path.basename(path).split('.')[-1]
 
     @staticmethod
-    def to_ns_and_name(nodename: str) -> Tuple[str, str]:
+    def to_ns_and_name(nodename: str) -> tuple[str, str]:
         """
         Convert fully qualified node name.
 
@@ -325,7 +327,7 @@ class Util:
 
         Returns
         -------
-        Tuple[str, str]
+        tuple[str, str]
             name space, node name.
 
         """

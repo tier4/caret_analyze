@@ -13,7 +13,9 @@
 # limitations under the License.
 
 
-from typing import Dict, Optional, Sequence
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from multimethod import multimethod as singledispatchmethod
 
@@ -37,14 +39,14 @@ class RecordFactory:
         return use_cpp_impl
 
     @classmethod
-    def create_instance(cls, init: Optional[Dict] = None) -> RecordInterface:
+    def create_instance(cls, init: dict | None = None) -> RecordInterface:
         if use_cpp_impl:
             return cls._create_cpp_instance(init)
         else:
             return Record(init)
 
     @classmethod
-    def _create_cpp_instance(cls, init: Optional[Dict] = None) -> RecordInterface:
+    def _create_cpp_instance(cls, init: dict | None = None) -> RecordInterface:
         if init is None:
             return cpp_impl.RecordCppImpl()
         else:
@@ -69,8 +71,8 @@ class RecordsFactory:
     @staticmethod
     @create_instance.register
     def _create_instance_record(
-        init: Optional[Sequence[RecordInterface]] = None,
-        columns: Optional[Sequence[ColumnValue]] = None
+        init: Sequence[RecordInterface] | None = None,
+        columns: Sequence[ColumnValue] | None = None
     ) -> RecordsInterface:
         if use_cpp_impl:
             return RecordsFactory._create_cpp_instance(init, columns)
@@ -80,13 +82,13 @@ class RecordsFactory:
     @staticmethod
     @create_instance.register
     def _create_instance_dict(
-        init: Optional[Sequence[Dict[str, int]]] = None,
-        columns: Optional[Sequence[ColumnValue]] = None
+        init: Sequence[dict[str, int]] | None = None,
+        columns: Sequence[ColumnValue] | None = None
     ) -> RecordsInterface:
         records: Sequence[RecordInterface] = [
-                    RecordFactory.create_instance(record)
-                    for record
-                    in init or []
+            RecordFactory.create_instance(record)
+            for record
+            in init or []
         ]
 
         if use_cpp_impl:
@@ -96,7 +98,7 @@ class RecordsFactory:
 
     @staticmethod
     def _create_cpp_instance(
-        init: Optional[Sequence[RecordInterface]] = None,
-        columns: Optional[Sequence[ColumnValue]] = None,
+        init: Sequence[RecordInterface] | None = None,
+        columns: Sequence[ColumnValue] | None = None,
     ) -> RecordsInterface:
         return cpp_impl.RecordsCppImpl(init or [], columns or [])

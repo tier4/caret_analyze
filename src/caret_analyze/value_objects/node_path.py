@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Optional, Tuple, Union
 
 from .callback import CallbackStructValue, SubscriptionCallbackStructValue
 from .message_context import MessageContext, MessageContextType
@@ -40,10 +39,10 @@ class NodePathValue(ValueObject):
     def __init__(
         self,
         node_name: str,
-        subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str],
-        publisher_construction_order: Optional[int],
-        subscription_construction_order: Optional[int],
+        subscribe_topic_name: str | None,
+        publish_topic_name: str | None,
+        publisher_construction_order: int | None,
+        subscription_construction_order: int | None,
     ) -> None:
         """
         Construct an instance.
@@ -52,13 +51,13 @@ class NodePathValue(ValueObject):
         ----------
         node_name : str
             Node name.
-        subscribe_topic_name : Optional[str]
+        subscribe_topic_name : str | None
             Topic name which the node-path subscribes.
-        publish_topic_name : Optional[str]
+        publish_topic_name : str | None
             Topic name which the node-path publishes.
-        publisher_construction_order : Optional[int]
+        publisher_construction_order : int | None
             construction order of publisher.
-        subscription_construction_order : Optional[int]
+        subscription_construction_order : int | None
             construction order of subscription.
 
         """
@@ -73,19 +72,19 @@ class NodePathValue(ValueObject):
         return self._node_name
 
     @property
-    def publish_topic_name(self) -> Optional[str]:
+    def publish_topic_name(self) -> str | None:
         return self._publish_topic_name
 
     @property
-    def subscribe_topic_name(self) -> Optional[str]:
+    def subscribe_topic_name(self) -> str | None:
         return self._subscribe_topic_name
 
     @property
-    def publisher_construction_order(self) -> Optional[int]:
+    def publisher_construction_order(self) -> int | None:
         return self._publisher_construction_order
 
     @property
-    def subscription_construction_order(self) -> Optional[int]:
+    def subscription_construction_order(self) -> int | None:
         return self._subscription_construction_order
 
 
@@ -101,10 +100,10 @@ class NodePathStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         node_name: str,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        child: Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]],
-        message_context: Optional[MessageContext],
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        child: tuple[CallbackStructValue | VariablePassingStructValue, ...] | None,
+        message_context: MessageContext | None,
     ) -> None:
         """
         Construct an instance.
@@ -113,14 +112,14 @@ class NodePathStructValue(ValueObject, Summarizable):
         ----------
         node_name : str
             Node name
-        subscription : Optional[SubscriptionStructValue]
+        subscription : SubscriptionStructValue | None
             Subscription which the node path subscribes.
-        publisher : Optional[PublisherStructValue]
+        publisher : PublisherStructValue | None
             Publisher which the node path publishes.
-        child : Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]]
+        child : tuple[CallbackStructValue | VariablePassingStructValue, ...] | None
             Child elements of a node path.
             Required only when message_context is callback_chain.
-        message_context : Optional[MessageContext]
+        message_context : MessageContext | None
             Message Context. Used to define node latency.
 
         """
@@ -135,7 +134,7 @@ class NodePathStructValue(ValueObject, Summarizable):
         return self._node_name
 
     @property
-    def callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
+    def callbacks(self) -> tuple[CallbackStructValue, ...] | None:
         if self._child is None:
             return None
 
@@ -167,14 +166,14 @@ class NodePathStructValue(ValueObject, Summarizable):
         return Summary(dict_item)
 
     @property
-    def callback_names(self) -> Optional[Tuple[str, ...]]:
+    def callback_names(self) -> tuple[str, ...] | None:
         if self.callbacks is None:
             return None
 
         return tuple(_.callback_name for _ in self.callbacks)
 
     @property
-    def variable_passings(self) -> Optional[Tuple[VariablePassingStructValue, ...]]:
+    def variable_passings(self) -> tuple[VariablePassingStructValue, ...] | None:
         if self._child is None:
             return None
 
@@ -185,11 +184,11 @@ class NodePathStructValue(ValueObject, Summarizable):
         return tuple(cbs_info)
 
     @property
-    def message_context(self) -> Optional[MessageContext]:
+    def message_context(self) -> MessageContext | None:
         return self._context
 
     @property
-    def message_context_type(self) -> Optional[MessageContextType]:
+    def message_context_type(self) -> MessageContextType | None:
         if self._context is None:
             return None
 
@@ -198,46 +197,46 @@ class NodePathStructValue(ValueObject, Summarizable):
     @property
     def child(
         self,
-    ) -> Optional[Tuple[Union[CallbackStructValue, VariablePassingStructValue], ...]]:
+    ) -> tuple[CallbackStructValue | VariablePassingStructValue, ...] | None:
         if self._child is None:
             return None
 
         return tuple(self._child)
 
     @property
-    def publisher(self) -> Optional[PublisherStructValue]:
+    def publisher(self) -> PublisherStructValue | None:
         return self._publisher
 
     @property
-    def subscription(self) -> Optional[SubscriptionStructValue]:
+    def subscription(self) -> SubscriptionStructValue | None:
         return self._subscription
 
     @property
-    def subscription_callback(self) -> Optional[SubscriptionCallbackStructValue]:
+    def subscription_callback(self) -> SubscriptionCallbackStructValue | None:
         if self._subscription is not None:
             return self._subscription.callback
         return None
 
     @property
-    def publish_topic_name(self) -> Optional[str]:
+    def publish_topic_name(self) -> str | None:
         if self._publisher is None:
             return None
         return self._publisher.topic_name
 
     @property
-    def subscribe_topic_name(self) -> Optional[str]:
+    def subscribe_topic_name(self) -> str | None:
         if self._subscription is None:
             return None
         return self._subscription.topic_name
 
     @property
-    def publisher_construction_order(self) -> Optional[int]:
+    def publisher_construction_order(self) -> int | None:
         if self.publisher:
             return self.publisher.construction_order
         return None
 
     @property
-    def subscription_construction_order(self) -> Optional[int]:
+    def subscription_construction_order(self) -> int | None:
         if self.subscription:
             return self.subscription.construction_order
         return None

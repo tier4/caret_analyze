@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Union
-
 from .callback import CallbackBase
 from .node import Node
 from .path_base import PathBase
@@ -37,9 +35,9 @@ class Communication(PathBase, Summarizable):
         publisher: Publisher,
         subscription: Subscription,
         communication_value: CommunicationStructValue,
-        records_provider: Union[RecordsProvider, RuntimeDataProvider, None],
-        callbacks_publish: Optional[List[CallbackBase]],
-        callback_subscription: Optional[CallbackBase],
+        records_provider: RecordsProvider | RuntimeDataProvider | None,
+        callbacks_publish: list[CallbackBase] | None,
+        callback_subscription: CallbackBase | None,
     ) -> None:
         """
         Construct an instance.
@@ -56,11 +54,11 @@ class Communication(PathBase, Summarizable):
             subscription
         communication_value : CommunicationStructValue
             static info.
-        records_provider : Union[RecordsProvider, RuntimeDataProvider, None]
+        records_provider : RecordsProvider | RuntimeDataProvider | None
             provider to be evaluated.
-        callbacks_publish : Optional[List[CallbackBase]]
+        callbacks_publish : list[CallbackBase] | None
             callbacks publish
-        callback_subscription : Optional[CallbackBase]
+        callback_subscription : CallbackBase | None
             callback subscription
 
         """
@@ -71,8 +69,8 @@ class Communication(PathBase, Summarizable):
         self._records_provider = records_provider
         self._callbacks_publish = callbacks_publish
         self._callback_subscription = callback_subscription
-        self._is_intra_process: Optional[bool] = None
-        self._rmw_implementation: Optional[str] = None
+        self._is_intra_process: bool | None = None
+        self._rmw_implementation: str | None = None
         if isinstance(records_provider, RuntimeDataProvider):
             self._is_intra_process = \
                 records_provider.is_intra_process_communication(communication_value)
@@ -82,13 +80,13 @@ class Communication(PathBase, Summarizable):
         self._subscription = subscription
 
     @property
-    def rmw_implementation(self) -> Optional[str]:
+    def rmw_implementation(self) -> str | None:
         """
         Get rmw implementation.
 
         Returns
         -------
-        Optional[str]
+        str | None
             rmw implementation.
 
         """
@@ -108,39 +106,39 @@ class Communication(PathBase, Summarizable):
         return self._val.summary
 
     @property
-    def is_intra_proc_comm(self) -> Optional[bool]:
+    def is_intra_proc_comm(self) -> bool | None:
         """
         Get whether this communication is intra-process-communication.
 
         Returns
         -------
-        Optional[bool]
+        bool | None
             True when intra-process-communication. otherwise False.
 
         """
         return self._is_intra_process
 
     @property
-    def callback_publish(self) -> Optional[List[CallbackBase]]:
+    def callback_publish(self) -> list[CallbackBase] | None:
         """
         Get publisher callback.
 
         Returns
         -------
-        Optional[List[CallbackBase]]
+        list[CallbackBase] | None
             callback which publishes this communication.
 
         """
         return self._callbacks_publish
 
     @property
-    def callback_subscription(self) -> Optional[CallbackBase]:
+    def callback_subscription(self) -> CallbackBase | None:
         """
         Get subscribe callback.
 
         Returns
         -------
-        Optional[CallbackBase]
+        CallbackBase | None
             callback to which subscribe this communication.
 
         """
@@ -238,7 +236,7 @@ class Communication(PathBase, Summarizable):
         return self._val.topic_name
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         records = self.to_records()
         return records.columns
 
@@ -290,13 +288,13 @@ class Communication(PathBase, Summarizable):
         return records
 
     @property
-    def subscription_construction_order(self) -> Optional[int]:
+    def subscription_construction_order(self) -> int | None:
         """
         Get subscription construction order.
 
         Returns
         -------
-        Optional[int]
+        int | None
             A construction order of subscription.
 
         """
@@ -305,13 +303,13 @@ class Communication(PathBase, Summarizable):
         return None
 
     @property
-    def publisher_construction_order(self) -> Optional[int]:
+    def publisher_construction_order(self) -> int | None:
         """
         Get publisher construction order.
 
         Returns
         -------
-        Optional[int]
+        int | None
             A construction order of publisher.
 
         """

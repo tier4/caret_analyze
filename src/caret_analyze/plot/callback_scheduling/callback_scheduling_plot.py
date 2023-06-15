@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from logging import getLogger
-from typing import List, Optional, Sequence, Union
 
 from bokeh.plotting import Figure, save, show
 from bokeh.resources import CDN
@@ -28,8 +28,8 @@ from ...common import UniqueList
 from ...exceptions import UnsupportedTypeError
 from ...runtime import Application, CallbackGroup, Executor, Node, Path
 
-CallbackGroupTypes = Union[Application, Executor,
-                           Path, Node, CallbackGroup, Sequence[CallbackGroup]]
+CallbackGroupTypes = (Application | Executor | Path | Node |
+                      CallbackGroup | Sequence[CallbackGroup])
 
 logger = getLogger(__name__)
 
@@ -55,10 +55,10 @@ class CallbackSchedulingPlot(PlotBase):
 
     def figure(
         self,
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None,
-        coloring_rule: Optional[str] = None,
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None,
+        coloring_rule: str | None = None,
     ) -> Figure:
         """
         Get a callback scheduling plot using the bokeh library.
@@ -110,10 +110,10 @@ class CallbackSchedulingPlot(PlotBase):
 
     def show(
         self,
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None,
-        coloring_rule: Optional[str] = None,
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None,
+        coloring_rule: str | None = None,
     ) -> None:
         p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
         show(p)
@@ -122,17 +122,17 @@ class CallbackSchedulingPlot(PlotBase):
         self,
         export_path: str,
         title: str = '',
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None,
-        coloring_rule: Optional[str] = None
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None,
+        coloring_rule: str | None = None
     ) -> None:
         p = self.figure(xaxis_type, ywheel_zoom, full_legends, coloring_rule)
         save(p, export_path, title=title, resources=CDN)
 
     @staticmethod
-    def _get_callback_groups(target_objects: CallbackGroupTypes) -> List[CallbackGroup]:
-        callback_groups: List[CallbackGroup]
+    def _get_callback_groups(target_objects: CallbackGroupTypes) -> list[CallbackGroup]:
+        callback_groups: list[CallbackGroup]
 
         if isinstance(target_objects, (Application, Executor, Node)):
             if target_objects.callback_groups is None:

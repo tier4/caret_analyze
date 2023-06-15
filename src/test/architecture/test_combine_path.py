@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Optional, Tuple
+from __future__ import annotations
+
+from collections.abc import Callable
 
 from caret_analyze.architecture.combine_path import CombinePath
 
@@ -47,8 +49,8 @@ def create_node_path(
 ):
     def _create_node_path(
         node_name: str,
-        sub_topic_name: Optional[str],
-        pub_topic_name: Optional[str],
+        sub_topic_name: str | None,
+        pub_topic_name: str | None,
     ) -> NodePathStructValue:
         sub = None
         if sub_topic_name is not None:
@@ -67,7 +69,7 @@ def create_node_path(
 @pytest.fixture
 def create_get_node(mocker):
     def _create_get_node(
-        node_paths: List[NodePathStructValue],
+        node_paths: list[NodePathStructValue],
     ) -> Callable[[str], NodeStructValue]:
         node_value_mock = mocker.Mock(spec=NodeStructValue)
         mocker.patch.object(node_value_mock, 'paths', tuple(node_paths))
@@ -100,11 +102,11 @@ def create_node(
 ):
     def _create_node(
         node_name: str,
-        sub_topic_name: Optional[str],
-        pub_topic_name: Optional[str]
+        sub_topic_name: str | None,
+        pub_topic_name: str | None
     ) -> NodeStructValue:
-        pubs: Tuple[PublisherStructValue, ...]
-        subs: Tuple[SubscriptionStructValue, ...]
+        pubs: tuple[PublisherStructValue, ...]
+        subs: tuple[SubscriptionStructValue, ...]
 
         if pub_topic_name:
             pubs = (create_publisher(node_name, pub_topic_name),)
@@ -123,7 +125,7 @@ def create_node(
 
 
 @pytest.fixture
-def create_comm(create_node: Callable[[str, Optional[str], Optional[str]], NodeStructValue]):
+def create_comm(create_node: Callable[[str, str | None, str | None], NodeStructValue]):
     def _create_comm(
         topic_name: str,
         pub_node_name: str,

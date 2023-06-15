@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from logging import getLogger, INFO, StreamHandler
-from typing import Tuple
 
 from .architecture import Architecture
 from .architecture_loaded import NodeValuesLoaded
@@ -27,7 +28,7 @@ def check_procedure(
     file_path: str,
     app_arch: Architecture,
     node_name: str,
-) -> Tuple[NodePathStructValue, ...]:
+) -> tuple[NodePathStructValue, ...]:
 
     handler = StreamHandler()
     handler.setLevel(INFO)

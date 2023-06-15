@@ -16,13 +16,13 @@ from __future__ import annotations
 
 from collections import defaultdict
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from bokeh.models import GlyphRenderer, Legend
 
 from .....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TargetTypes = Union[CallbackBase, Communication, Path, Union[Publisher, Subscription]]
+TargetTypes = (CallbackBase | Communication | Path | (Publisher | Subscription))
 
 logger = getLogger(__name__)
 
@@ -31,15 +31,15 @@ class LegendManager:
     """Class that manages legend in Bokeh figure."""
 
     def __init__(self) -> None:
-        self._legend_count_map: Dict[str, int] = defaultdict(int)
-        self._legend_items: List[Tuple[str, List[GlyphRenderer]]] = []
-        self._legend: Dict[Any, str] = {}
+        self._legend_count_map: dict[str, int] = defaultdict(int)
+        self._legend_items: list[tuple[str, list[GlyphRenderer]]] = []
+        self._legend: dict[Any, str] = {}
 
     def add_legend(
         self,
         target_object: Any,
         renderer: GlyphRenderer,
-        legend_word: Optional[str] = None,
+        legend_word: str | None = None,
     ) -> None:
         """
         Store a legend of the input object internally.
@@ -50,7 +50,7 @@ class LegendManager:
             Instance of any class.
         renderer : bokeh.models.GlyphRenderer
             Instance of renderer.
-        legend_word : Optional[str]
+        legend_word : str | None
             Sentence of the legend.
             If None, the class name of
             the target object is used.
@@ -65,7 +65,7 @@ class LegendManager:
         max_legends: int = 20,
         full_legends: bool = False,
         location: str = 'top_right'
-    ) -> List[Legend]:
+    ) -> list[Legend]:
         """
         Create legends.
 
@@ -81,7 +81,7 @@ class LegendManager:
 
         Returns
         -------
-        List[Legend]
+        list[Legend]
             List of Legend instances separated by location argument.
 
         """
@@ -90,7 +90,7 @@ class LegendManager:
         else:
             separate_num = len(self._legend_items)
 
-        legends: List[Legend] = []
+        legends: list[Legend] = []
         for i in range(0, len(self._legend_items)+separate_num, separate_num):
             if not full_legends and i >= max_legends:
                 logger.warning(
@@ -105,7 +105,7 @@ class LegendManager:
     def get_label(
         self,
         target_object: Any,
-        word: Optional[str] = None,
+        word: str | None = None,
     ) -> str:
         """
         Get label name of target object.
@@ -114,7 +114,7 @@ class LegendManager:
         ----------
         target_object : Any
             Target object.
-        word : Optional[str]
+        word : str | None
             Sentence of the legend.
             If None, the class name of
             the target object is used.

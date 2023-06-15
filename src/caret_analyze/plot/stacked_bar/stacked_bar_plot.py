@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from bokeh.plotting import Figure
 
@@ -38,9 +38,9 @@ class StackedBarPlot(PlotBase):
 
     def figure(
         self,
-        xaxis_type: Optional[str] = 'system_time',
-        ywheel_zoom: Optional[bool] = True,
-        full_legends: Optional[bool] = False,
+        xaxis_type: str | None = 'system_time',
+        ywheel_zoom: bool | None = True,
+        full_legends: bool | None = False,
     ) -> Figure:
 
         # Set default value

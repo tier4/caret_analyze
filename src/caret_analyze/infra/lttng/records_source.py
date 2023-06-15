@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import cached_property
+from __future__ import annotations
 
-from typing import Dict, List, Sequence
+from collections.abc import Sequence
+from functools import cached_property
 
 from .column_names import COLUMN_NAME
 from .events_factory import EventsFactory
@@ -47,9 +48,9 @@ class RecordsSource():
         )
 
     @cached_property
-    def _grouped_callback_start(self) -> Dict[int, RecordsInterface]:
+    def _grouped_callback_start(self) -> dict[int, RecordsInterface]:
         records = self._data.callback_start_instances.clone()
-        group: Dict[int, RecordsInterface] = {}
+        group: dict[int, RecordsInterface] = {}
         for k, v in records.groupby([COLUMN_NAME.IS_INTRA_PROCESS]).items():
             assert len(k) == 1
             group[k[0]] = v
@@ -256,7 +257,7 @@ class RecordsSource():
         records = self._data.tilde_publish.clone()
         records.rename_columns({'publisher': 'tilde_publisher'})
 
-        subscription: List[int] = []
+        subscription: list[int] = []
         for record in records:
             subscription_id = record.get('subscription_id')
             subscription.append(self._info.tilde_sub_id_map[subscription_id])

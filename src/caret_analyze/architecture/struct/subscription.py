@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from .callback import SubscriptionCallbackStruct
 from ...value_objects import SubscriptionStructValue
@@ -25,7 +25,7 @@ class SubscriptionStruct():
         self,
         node_name: str,
         topic_name: str,
-        callback_info: Optional[SubscriptionCallbackStruct],
+        callback_info: SubscriptionCallbackStruct | None,
         construction_order: int,
     ) -> None:
         self._node_name: str = node_name
@@ -42,14 +42,14 @@ class SubscriptionStruct():
         return self._topic_name
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         if self._callback_value is None:
             return None
 
         return self._callback_value.callback_name
 
     @property
-    def callback(self) -> Optional[SubscriptionCallbackStruct]:
+    def callback(self) -> SubscriptionCallbackStruct | None:
         return self._callback_value
 
     @property

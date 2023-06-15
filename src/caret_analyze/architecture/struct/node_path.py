@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import List, Optional, Union
 
 from .callback import CallbackStruct, SubscriptionCallbackStruct
 from .message_context import MessageContextStruct
@@ -33,10 +32,10 @@ class NodePathStruct():
     def __init__(
         self,
         node_name: str,
-        subscription: Optional[SubscriptionStruct],
-        publisher: Optional[PublisherStruct],
-        child: Optional[List[Union[CallbackStruct, VariablePassingStruct]]],
-        message_context: Optional[MessageContextStruct],
+        subscription: SubscriptionStruct | None,
+        publisher: PublisherStruct | None,
+        child: list[CallbackStruct | VariablePassingStruct] | None,
+        message_context: MessageContextStruct | None,
     ) -> None:
         self._node_name = node_name
         self._child = child
@@ -49,36 +48,36 @@ class NodePathStruct():
         return self._node_name
 
     @property
-    def callbacks(self) -> Optional[List[CallbackStruct]]:
+    def callbacks(self) -> list[CallbackStruct] | None:
         if self._child is None:
             return None
 
-        cb_values: List[CallbackStruct] = Util.filter_items(
+        cb_values: list[CallbackStruct] = Util.filter_items(
             lambda x: isinstance(x, CallbackStruct),
             self._child
         )
         return cb_values
 
     @property
-    def callback_names(self) -> Optional[List[str]]:
+    def callback_names(self) -> list[str] | None:
         if self.callbacks is None:
             return None
 
         return [_.callback_name for _ in self.callbacks]
 
     @property
-    def variable_passings(self) -> Optional[List[VariablePassingStruct]]:
+    def variable_passings(self) -> list[VariablePassingStruct] | None:
         if self._child is None:
             return None
 
-        cbs_info: List[VariablePassingStruct] = Util.filter_items(
+        cbs_info: list[VariablePassingStruct] = Util.filter_items(
             lambda x: isinstance(x, VariablePassingStruct),
             self._child
         )
         return cbs_info
 
     @property
-    def message_context(self) -> Optional[MessageContextStruct]:
+    def message_context(self) -> MessageContextStruct | None:
         return self._context
 
     @message_context.setter
@@ -86,7 +85,7 @@ class NodePathStruct():
         self._context = context
 
     @property
-    def message_context_type(self) -> Optional[MessageContextType]:
+    def message_context_type(self) -> MessageContextType | None:
         if self._context is None:
             return None
 
@@ -95,46 +94,46 @@ class NodePathStruct():
     @property
     def child(
         self,
-    ) -> Optional[List[Union[CallbackStruct, VariablePassingStruct]]]:
+    ) -> list[CallbackStruct | VariablePassingStruct] | None:
         if self._child is None:
             return None
 
         return self._child
 
     @property
-    def publisher(self) -> Optional[PublisherStruct]:
+    def publisher(self) -> PublisherStruct | None:
         return self._publisher
 
     @property
-    def subscription(self) -> Optional[SubscriptionStruct]:
+    def subscription(self) -> SubscriptionStruct | None:
         return self._subscription
 
     @property
-    def subscription_callback(self) -> Optional[SubscriptionCallbackStruct]:
+    def subscription_callback(self) -> SubscriptionCallbackStruct | None:
         if self._subscription is not None:
             return self._subscription.callback
         return None
 
     @property
-    def publisher_construction_order(self) -> Optional[int]:
+    def publisher_construction_order(self) -> int | None:
         if self.publisher:
             return self.publisher.construction_order
         return None
 
     @property
-    def subscription_construction_order(self) -> Optional[int]:
+    def subscription_construction_order(self) -> int | None:
         if self.subscription:
             return self.subscription.construction_order
         return None
 
     @property
-    def publish_topic_name(self) -> Optional[str]:
+    def publish_topic_name(self) -> str | None:
         if self._publisher is None:
             return None
         return self._publisher.topic_name
 
     @property
-    def subscribe_topic_name(self) -> Optional[str]:
+    def subscribe_topic_name(self) -> str | None:
         if self._subscription is None:
             return None
         return self._subscription.topic_name

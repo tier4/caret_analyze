@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Optional, Tuple, Union
 
 from .communication import CommunicationStructValue
 from .node_path import NodePathStructValue, NodePathValue
@@ -33,7 +32,7 @@ class PathValue(ValueObject):
     def __init__(
         self,
         alias: str,
-        node_path_values: Tuple[NodePathValue, ...]
+        node_path_values: tuple[NodePathValue, ...]
     ) -> None:
         self._alias = alias
         self._node_paths_info = node_path_values
@@ -43,34 +42,34 @@ class PathValue(ValueObject):
         return self._alias
 
     @property
-    def node_path_values(self) -> Tuple[NodePathValue, ...]:
+    def node_path_values(self) -> tuple[NodePathValue, ...]:
         return self._node_paths_info
 
 
 class PathStructValue(ValueObject, Summarizable):
     def __init__(
         self,
-        path_name: Optional[str],
-        child: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...],
+        path_name: str | None,
+        child: tuple[NodePathStructValue | CommunicationStructValue, ...],
     ) -> None:
         self._path_name = path_name
         self._child = child
         self._validate(child)
 
     @property
-    def path_name(self) -> Optional[str]:
+    def path_name(self) -> str | None:
         return self._path_name
 
     @property
-    def node_names(self) -> Tuple[str, ...]:
+    def node_names(self) -> tuple[str, ...]:
         return tuple(_.node_name for _ in self.node_paths)
 
     @property
-    def topic_names(self) -> Tuple[str, ...]:
+    def topic_names(self) -> tuple[str, ...]:
         return tuple(_.topic_name for _ in self.communications)
 
     @property
-    def child_names(self) -> Tuple[str, ...]:
+    def child_names(self) -> tuple[str, ...]:
         names = []
         for child in self.child:
             if isinstance(child, NodePathStructValue):
@@ -80,14 +79,14 @@ class PathStructValue(ValueObject, Summarizable):
         return tuple(names)
 
     @property
-    def node_paths(self) -> Tuple[NodePathStructValue, ...]:
+    def node_paths(self) -> tuple[NodePathStructValue, ...]:
         node_paths = Util.filter_items(
             lambda x: isinstance(x, NodePathStructValue),
             self._child)
         return tuple(node_paths)
 
     @property
-    def communications(self) -> Tuple[CommunicationStructValue, ...]:
+    def communications(self) -> tuple[CommunicationStructValue, ...]:
         comm_paths = Util.filter_items(
             lambda x: isinstance(x, CommunicationStructValue),
             self._child)
@@ -113,11 +112,11 @@ class PathStructValue(ValueObject, Summarizable):
         return d
 
     @property
-    def child(self) -> Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]:
+    def child(self) -> tuple[NodePathStructValue | CommunicationStructValue, ...]:
         return self._child
 
     @staticmethod
-    def _validate(path_elements: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]):
+    def _validate(path_elements: tuple[NodePathStructValue | CommunicationStructValue, ...]):
         if len(path_elements) == 0:
             return
 

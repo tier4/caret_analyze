@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 from ....value_objects import ServiceCallbackValue, SubscriptionCallbackValue, TimerCallbackValue
 
 
@@ -28,7 +26,7 @@ class TimerCallbackValueLttng(TimerCallbackValue):
         symbol: str,
         period_ns: int,
         timer_handle: int,
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: tuple[str, ...] | None,
         callback_object: int,
         construction_order: int,
     ) -> None:
@@ -62,11 +60,11 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         symbol: str,
         subscribe_topic_name: str,
         subscription_handle: int,
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: tuple[str, ...] | None,
         callback_object: int,
-        callback_object_intra: Optional[int],
+        callback_object_intra: int | None,
         construction_order: int,
-        tilde_subscription: Optional[int]
+        tilde_subscription: int | None
     ) -> None:
         super().__init__(
             callback_id=callback_id,
@@ -88,11 +86,11 @@ class SubscriptionCallbackValueLttng(SubscriptionCallbackValue):
         return self._callback_object
 
     @property
-    def callback_object_intra(self) -> Optional[int]:
+    def callback_object_intra(self) -> int | None:
         return self._callback_object_intra
 
     @property
-    def tilde_subscription(self) -> Optional[int]:
+    def tilde_subscription(self) -> int | None:
         return self._tilde_sub
 
     @property
@@ -109,7 +107,7 @@ class ServiceCallbackValueLttng(ServiceCallbackValue):
         symbol: str,
         service_name: str,
         service_handle: int,
-        publish_topic_names: Optional[Tuple[str, ...]],
+        publish_topic_names: tuple[str, ...] | None,
         callback_object: int,
         construction_order: int,
     ) -> None:

@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from collections.abc import Callable, Sequence
 
 from record_cpp_impl import RecordBase, RecordsBase
 
@@ -32,8 +32,8 @@ class RecordsCppImpl(RecordsInterface):
 
     def __init__(
         self,
-        init: Optional[Sequence[RecordInterface]] = None,
-        columns: Optional[Sequence[ColumnValue]] = None,
+        init: Sequence[RecordInterface] | None = None,
+        columns: Sequence[ColumnValue] | None = None,
     ):
         columns = columns or []
         column_names = [str(c) for c in columns]
@@ -54,7 +54,7 @@ class RecordsCppImpl(RecordsInterface):
 
     def _append_dict(
         self,
-        other: Dict[str, int]
+        other: dict[str, int]
     ) -> None:
         record = RecordBase(other)
         self._records.append(record)
@@ -84,7 +84,7 @@ class RecordsCppImpl(RecordsInterface):
         return None
 
     def sort(
-        self, key: str, sub_key: Optional[str] = None, ascending=True
+        self, key: str, sub_key: str | None = None, ascending=True
     ) -> None:
         if key not in self.columns:
             raise InvalidArgumentError(f'column [{key}] not found.')
@@ -106,7 +106,7 @@ class RecordsCppImpl(RecordsInterface):
         return Records._to_dataframe(data_dict, self.columns)
 
     def rename_columns(
-        self, columns: Dict[str, str]
+        self, columns: dict[str, str]
     ) -> None:
         validate_rename_rule(columns)
         self._records.rename_columns(columns)
@@ -118,10 +118,10 @@ class RecordsCppImpl(RecordsInterface):
         right_records: RecordsInterface,
         join_left_key: str,
         join_right_key: str,
-        columns: List[str],
+        columns: list[str],
         how: str,
         *,
-        progress_label: Optional[str] = None,
+        progress_label: str | None = None,
     ) -> RecordsCppImpl:
         progress_label = progress_label or ''
         assert how in ['inner', 'left', 'right', 'outer']
@@ -141,12 +141,12 @@ class RecordsCppImpl(RecordsInterface):
 
     def groupby(
         self,
-        columns: List[str]
-    ) -> Dict[Tuple[int, ...], RecordsInterface]:
+        columns: list[str]
+    ) -> dict[tuple[int, ...], RecordsInterface]:
         assert 0 < len(columns) and len(columns) <= 3
 
         group_cpp_base = self._records.groupby(*columns)
-        group: Dict[Tuple[int, ...], RecordsInterface] = {}
+        group: dict[tuple[int, ...], RecordsInterface] = {}
         for k, v in group_cpp_base.items():
             column_values = [ColumnValue(c) for c in self.columns]
             records = RecordsCppImpl(None, column_values)
@@ -159,11 +159,11 @@ class RecordsCppImpl(RecordsInterface):
             raise InvalidArgumentError('index exceeds the row size.')
         return self.data[index]
 
-    def get_column_series(self, column_name: str) -> Sequence[Optional[int]]:
+    def get_column_series(self, column_name: str) -> Sequence[int | None]:
         return Records._get_column_series_core(self, column_name)
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         return self._columns.column_names
 
     def equals(self, other: RecordsInterface) -> bool:
@@ -173,7 +173,7 @@ class RecordsCppImpl(RecordsInterface):
         match_columns = self._columns.to_value() == other._columns.to_value()
         return match_records and match_columns
 
-    def reindex(self, columns: List[str]) -> None:
+    def reindex(self, columns: list[str]) -> None:
         miss_match_columns = set(columns) ^ set(self.columns)
         if len(miss_match_columns) > 0:
             msg = 'Contains an unknown columns. '
@@ -194,7 +194,7 @@ class RecordsCppImpl(RecordsInterface):
     def append_column(
         self,
         column: ColumnValue,
-        values: List[int]
+        values: list[int]
     ) -> None:
         if len(values) != len(self):
             raise InvalidArgumentError('len(values) != len(records)')
@@ -202,7 +202,7 @@ class RecordsCppImpl(RecordsInterface):
         self._columns.append(Column(column))
         self._records.append_column(column.column_name, values)
 
-    def drop_columns(self, column_names: List[str]) -> None:
+    def drop_columns(self, column_names: list[str]) -> None:
         if not isinstance(column_names, list):
             raise InvalidArgumentError('columns must be list.')
         self._columns.drop(column_names)
@@ -240,12 +240,12 @@ class RecordsCppImpl(RecordsInterface):
         right_records: RecordsInterface,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
-        columns: List[str],
+        join_left_key: str | None,
+        join_right_key: str | None,
+        columns: list[str],
         how: str,
         *,
-        progress_label: Optional[str] = None,
+        progress_label: str | None = None,
     ) -> RecordsInterface:
         progress_label = progress_label or ''
         Records._validate_merge_records(columns, self, right_records)
@@ -278,9 +278,9 @@ class RecordsCppImpl(RecordsInterface):
         sink_records: RecordsInterface,
         sink_stamp_key: str,
         sink_from_key: str,
-        columns: List[str],
+        columns: list[str],
         *,
-        progress_label: Optional[str] = None,
+        progress_label: str | None = None,
     ) -> RecordsInterface:
         assert isinstance(copy_records, RecordsCppImpl)
         assert isinstance(sink_records, RecordsCppImpl)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Union
+from __future__ import annotations
 
 from .path_base import PathBase
 from ..common import Summarizable, Summary
@@ -27,7 +27,7 @@ class Subscription(PathBase, Summarizable):
     def __init__(
         self,
         val: SubscriptionStructValue,
-        data_provider: Union[RecordsProvider, RuntimeDataProvider],
+        data_provider: RecordsProvider | RuntimeDataProvider,
     ) -> None:
         """
         Construct an instance.
@@ -36,7 +36,7 @@ class Subscription(PathBase, Summarizable):
         ----------
         val : SubscriptionStructValue
             static info.
-        data_provider : Union[RecordsProvider, RuntimeDataProvider]
+        data_provider : RecordsProvider | RuntimeDataProvider
             provider to be evaluated.
 
         """
@@ -114,26 +114,26 @@ class Subscription(PathBase, Summarizable):
         return self._val.construction_order
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         """
         Get a subscription callback name.
 
         Returns
         -------
-        Optional[str]
+        str | None
             callback name to which the subscription is attached.
 
         """
         return self._val.callback_name
 
     @property
-    def qos(self) -> Optional[Qos]:
+    def qos(self) -> Qos | None:
         """
         Get QoS.
 
         Returns
         -------
-        Optional[Qos]
+        Qos | None
             Subscription QoS.
 
         """

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Optional, Tuple
+from __future__ import annotations
 
 from .callback import CallbackStructValue
 from .callback_group import CallbackGroupStructValue
@@ -40,7 +40,7 @@ class NodeValue(ValueObject):
     def __init__(
         self,
         node_name: str,
-        node_id: Optional[str],
+        node_id: str | None,
     ) -> None:
         """
         Construct an instance.
@@ -49,7 +49,7 @@ class NodeValue(ValueObject):
         ----------
         node_name : str
             Node name.
-        node_id : Optional[str]
+        node_id : str | None
             Identification of the node,
             a value that can be identified when retrieved from the Architecture reader.
 
@@ -62,7 +62,7 @@ class NodeValue(ValueObject):
         return self.__node_name
 
     @property
-    def node_id(self) -> Optional[str]:
+    def node_id(self) -> str | None:
         return self.__node_id
 
 
@@ -87,7 +87,7 @@ class NodeValueWithId(NodeValue):
         ----------
         node_name : str
             Node name.
-        node_id : Optional[str]
+        node_id : str | None
             Identification of the node,
             a value that can be identified when retrieved from the Architecture reader.
 
@@ -111,13 +111,13 @@ class NodeStructValue(ValueObject, Summarizable):
     def __init__(
         self,
         node_name: str,
-        publishers: Tuple[PublisherStructValue, ...],
-        subscriptions_info: Tuple[SubscriptionStructValue, ...],
-        services_info: Tuple[ServiceStructValue, ...],
-        timers: Tuple[TimerStructValue, ...],
-        node_paths: Tuple[NodePathStructValue, ...],
-        callback_groups: Optional[Tuple[CallbackGroupStructValue, ...]],
-        variable_passings: Optional[Tuple[VariablePassingStructValue, ...]],
+        publishers: tuple[PublisherStructValue, ...],
+        subscriptions_info: tuple[SubscriptionStructValue, ...],
+        services_info: tuple[ServiceStructValue, ...],
+        timers: tuple[TimerStructValue, ...],
+        node_paths: tuple[NodePathStructValue, ...],
+        callback_groups: tuple[CallbackGroupStructValue, ...] | None,
+        variable_passings: tuple[VariablePassingStructValue, ...] | None,
     ) -> None:
         self._node_name = node_name
         self._publishers = publishers
@@ -133,31 +133,31 @@ class NodeStructValue(ValueObject, Summarizable):
         return self._node_name
 
     @property
-    def publishers(self) -> Tuple[PublisherStructValue, ...]:
+    def publishers(self) -> tuple[PublisherStructValue, ...]:
         return self._publishers
 
     @property
-    def publish_topic_names(self) -> Tuple[str, ...]:
+    def publish_topic_names(self) -> tuple[str, ...]:
         return tuple(p.topic_name for p in self._publishers)
 
     @property
-    def subscribe_topic_names(self) -> Tuple[str, ...]:
+    def subscribe_topic_names(self) -> tuple[str, ...]:
         return tuple(s.topic_name for s in self._subscriptions)
 
     @property
-    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
+    def subscriptions(self) -> tuple[SubscriptionStructValue, ...]:
         return self._subscriptions
 
     @property
-    def service_names(self) -> Tuple[str, ...]:
+    def service_names(self) -> tuple[str, ...]:
         return tuple(s.service_name for s in self._services)
 
     @property
-    def services(self) -> Tuple[ServiceStructValue, ...]:
+    def services(self) -> tuple[ServiceStructValue, ...]:
         return self._services
 
     @property
-    def timers(self) -> Tuple[TimerStructValue, ...]:
+    def timers(self) -> tuple[TimerStructValue, ...]:
         return self._timers
 
     def get_path(
@@ -172,39 +172,39 @@ class NodeStructValue(ValueObject, Summarizable):
         return Util.find_one(is_target, self.paths)
 
     @property
-    def callbacks(self) -> Optional[Tuple[CallbackStructValue, ...]]:
+    def callbacks(self) -> tuple[CallbackStructValue, ...] | None:
         if self._callback_groups is None:
             return None
         return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
-    def callback_names(self) -> Optional[Tuple[str, ...]]:
+    def callback_names(self) -> tuple[str, ...] | None:
         if self.callbacks is None:
             return None
         return tuple(_.callback_name for _ in self.callbacks)
 
     @property
-    def callback_groups(self) -> Optional[Tuple[CallbackGroupStructValue, ...]]:
+    def callback_groups(self) -> tuple[CallbackGroupStructValue, ...] | None:
         return self._callback_groups
 
     @property
-    def callback_group_names(self) -> Optional[Tuple[str, ...]]:
+    def callback_group_names(self) -> tuple[str, ...] | None:
         if self.callback_groups is None:
             return None
         return tuple(_.callback_group_name for _ in self.callback_groups)
 
     @property
-    def paths(self) -> Tuple[NodePathStructValue, ...]:
+    def paths(self) -> tuple[NodePathStructValue, ...]:
         return self._node_paths
 
     @property
-    def variable_passings(self) -> Optional[Tuple[VariablePassingStructValue, ...]]:
+    def variable_passings(self) -> tuple[VariablePassingStructValue, ...] | None:
         return self._variable_passings_info
 
     def get_subscription(
         self,
         subscribe_topic_name: str,
-        construction_order: Optional[int]
+        construction_order: int | None
     ) -> SubscriptionStructValue:
 
         try:
@@ -225,7 +225,7 @@ class NodeStructValue(ValueObject, Summarizable):
     def get_service(
         self,
         service_name: str,
-        construction_order: Optional[int]
+        construction_order: int | None
     ) -> ServiceStructValue:
 
         try:
@@ -246,7 +246,7 @@ class NodeStructValue(ValueObject, Summarizable):
     def get_publisher(
         self,
         publish_topic_name: str,
-        construction_order: Optional[int]
+        construction_order: int | None
     ) -> PublisherStructValue:
         try:
             def is_target_publisher(publisher: PublisherStructValue):
@@ -266,7 +266,7 @@ class NodeStructValue(ValueObject, Summarizable):
     def get_timer(
         self,
         timer_period: str,
-        construction_order: Optional[int]
+        construction_order: int | None
     ) -> TimerStructValue:
         try:
             def is_target_timer(timer: TimerStructValue):
@@ -312,7 +312,7 @@ class DiffNode:
         self._left_node = left_node
         self._right_node = right_node
 
-    def diff_node_pubs(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    def diff_node_pubs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
         set_left_pubs = set(self._left_node.publish_topic_names)
         set_right_pubs = set(self._right_node.publish_topic_names)
         common_node_pubs = set_left_pubs & set_right_pubs
@@ -320,7 +320,7 @@ class DiffNode:
         right_only_pubs = tuple(set_right_pubs - common_node_pubs)
         return left_only_pubs, right_only_pubs
 
-    def diff_node_subs(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    def diff_node_subs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
         set_left_subs = set(self._left_node.subscribe_topic_names)
         set_right_subs = set(self._right_node.subscribe_topic_names)
         common_node_subs = set_left_subs & set_right_subs
