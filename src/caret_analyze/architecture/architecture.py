@@ -364,7 +364,7 @@ class Architecture(Summarizable):
         node_name : str
             name of target node
         context_type : str
-            type name of updating message_context
+            type name of message_context to be added
         subscribe_topic_name : str
             name of subscribe topic of target node_path
         publish_topic_name : str
@@ -388,14 +388,14 @@ class Architecture(Summarizable):
     def insert_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
         """
-        Insert the association of callback with publisher in "node_name" node.
+        Insert association of callback with publisher in "node_name" node.
 
         Parameters
         ----------
         node_name : str
             name of target node
         publish_topic_name : str
-            name of publish topic to insert publisher callback
+            topic name of target publisher into which callback is inserted
         callback_name : str
             name of callback to be inserted for publisher
 
@@ -417,9 +417,9 @@ class Architecture(Summarizable):
         node_name : str
             name of target node
         callback_name_write : str
-            name of write callback in variable_passing to insert
+            name of write callback to be inserted in variable_passing
         callback_name_read : str
-            name of read callback in variable_passing to insert
+            name of read callback to be inserted in variable_passing
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
@@ -432,14 +432,14 @@ class Architecture(Summarizable):
     def remove_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
         """
-        Remove the association of callback with publisher in "node_name" node.
+        Remove association of callback with publisher in "node_name" node.
 
         Parameters
         ----------
         node_name : str
             name of target node
         publish_topic_name : str
-            name of publish topic to remove publisher callback
+            topic name of target publisher from which callback is removed
         callback_name : str
             name of callback to be removed for publisher
 
@@ -461,9 +461,9 @@ class Architecture(Summarizable):
         node_name : str
             name of target node
         callback_name_write : str
-            name of write callback in variable_passing to remove
+            name of write callback to be removed from variable_passing
         callback_name_read : str
-            name of read callback in variable_passing to remove
+            name of read callback to be removed from variable_passing
 
         """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
