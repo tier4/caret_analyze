@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from __future__ import annotations
 
 from .callback import CallbackStruct
 from ...value_objects import PublisherStructValue
@@ -25,7 +25,7 @@ class PublisherStruct():
         self,
         node_name: str,
         topic_name: str,
-        callback_values: Optional[List[CallbackStruct]],
+        callback_values: list[CallbackStruct] | None,
         construction_order: int,
     ) -> None:
         self._node_name = node_name
@@ -48,11 +48,11 @@ class PublisherStruct():
         return self._topic_name
 
     @property
-    def callbacks(self) -> Optional[List[CallbackStruct]]:
+    def callbacks(self) -> list[CallbackStruct] | None:
         return self._callbacks
 
     @property
-    def callback_names(self) -> Optional[List[str]]:
+    def callback_names(self) -> list[str] | None:
         if self._callbacks is None:
             return None
         return [c.callback_name for c in self._callbacks]

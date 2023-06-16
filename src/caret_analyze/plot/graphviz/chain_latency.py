@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from __future__ import annotations
 
 from graphviz import Digraph, Source
 import numpy as np
@@ -26,12 +26,12 @@ from ...runtime.path import Path
 @type_check_decorator
 def chain_latency(
     path: Path,
-    export_path: Optional[str] = None,
+    export_path: str | None = None,
     granularity: str = 'node',
     treat_drop_as_delay=False,
     lstrip_s=0,
     rstrip_s=0,
-) -> Optional[Digraph]:
+) -> Digraph | None:
     granularity = granularity or 'node'
     if granularity not in ['node', 'end-to-end']:
         raise InvalidArgumentError('granularity must be [ node / end-to-end ]')
@@ -78,7 +78,7 @@ class GraphEdge:
 
 class GraphAttr:
 
-    def __init__(self, nodes: List[GraphNode], edges: List[GraphEdge]):
+    def __init__(self, nodes: list[GraphNode], edges: list[GraphEdge]):
         self.nodes = nodes
         self.edges = edges
 
@@ -113,7 +113,8 @@ def get_attr_node(
             latency_ns = latency_ns.astype('int64')
         return latency_ns
 
-    graph_nodes: List[GraphNode] = []
+    graph_nodes: list[GraphNode] = []
+
     remove_dropped = False
 
     for i, node_path in enumerate(path.node_paths):
@@ -141,7 +142,7 @@ def get_attr_node(
 
         graph_nodes.append(GraphNode(node_name, label))
 
-    graph_edges: List[GraphEdge] = []
+    graph_edges: list[GraphEdge] = []
     for comm_path in path.communications:
         _, pubsub_latency = comm_path.to_timeseries(
             remove_dropped=remove_dropped,
@@ -167,7 +168,7 @@ def get_attr_end_to_end(
     node_paths = path.node_paths
     remove_dropped = False
 
-    graph_nodes: List[GraphNode] = []
+    graph_nodes: list[GraphNode] = []
 
     for node_path in [node_paths[0], node_paths[-1]]:
         node_name = node_path.node_name
@@ -191,7 +192,7 @@ def get_attr_end_to_end(
 
     start_node_name = node_paths[0].node_name
     end_node_name = node_paths[-1].node_name
-    graph_edges: List[GraphEdge] = []
+    graph_edges: list[GraphEdge] = []
     graph_edges.append(
         GraphEdge(start_node_name, end_node_name, to_label(latency))
     )

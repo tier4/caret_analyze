@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Union
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 import pandas as pd
 
@@ -20,7 +22,7 @@ from ..metrics_base import MetricsBase
 from ...record import Period, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class PeriodTimeSeries(MetricsBase):
@@ -80,7 +82,7 @@ class PeriodTimeSeries(MetricsBase):
     def to_timeseries_records_list(
         self,
         xaxis_type: str = 'system_time'
-    ) -> List[RecordsInterface]:
+    ) -> list[RecordsInterface]:
         """
         Get period records list of all target objects.
 
@@ -93,7 +95,7 @@ class PeriodTimeSeries(MetricsBase):
 
         Returns
         -------
-        List[RecordsInterface]
+        list[RecordsInterface]
             Period records list of all target objects.
 
         """
@@ -112,7 +114,7 @@ class PeriodTimeSeries(MetricsBase):
                 else:
                     return False
 
-        timeseries_records_list: List[RecordsInterface] = []
+        timeseries_records_list: list[RecordsInterface] = []
         for target_object in self._target_objects:
             period = Period(
                 target_object.to_records(),

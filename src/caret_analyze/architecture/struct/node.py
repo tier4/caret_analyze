@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from __future__ import annotations
 
 from .callback import CallbackStruct
 from .callback_group import CallbackGroupStruct
@@ -33,13 +33,13 @@ class NodeStruct():
     def __init__(
         self,
         node_name: str,
-        publishers: List[PublisherStruct],
-        subscriptions_info: List[SubscriptionStruct],
-        services: List[ServiceStruct],
-        timers: List[TimerStruct],
-        node_paths: List[NodePathStruct],
-        callback_groups: Optional[List[CallbackGroupStruct]],
-        variable_passings: Optional[List[VariablePassingStruct]],
+        publishers: list[PublisherStruct],
+        subscriptions_info: list[SubscriptionStruct],
+        services: list[ServiceStruct],
+        timers: list[TimerStruct],
+        node_paths: list[NodePathStruct],
+        callback_groups: list[CallbackGroupStruct] | None,
+        variable_passings: list[VariablePassingStruct] | None,
     ) -> None:
         self._node_name = node_name
         self._publishers = publishers
@@ -55,27 +55,27 @@ class NodeStruct():
         return self._node_name
 
     @property
-    def publishers(self) -> List[PublisherStruct]:
+    def publishers(self) -> list[PublisherStruct]:
         return self._publishers
 
     @property
-    def publish_topic_names(self) -> List[str]:
+    def publish_topic_names(self) -> list[str]:
         return [p.topic_name for p in self._publishers]
 
     @property
-    def subscribe_topic_names(self) -> List[str]:
+    def subscribe_topic_names(self) -> list[str]:
         return [s.topic_name for s in self._subscriptions]
 
     @property
-    def subscriptions(self) -> List[SubscriptionStruct]:
+    def subscriptions(self) -> list[SubscriptionStruct]:
         return self._subscriptions
 
     @property
-    def services(self) -> List[ServiceStruct]:
+    def services(self) -> list[ServiceStruct]:
         return self._services
 
     @property
-    def timers(self) -> List[TimerStruct]:
+    def timers(self) -> list[TimerStruct]:
         return self._timers
 
     def get_path(
@@ -90,39 +90,39 @@ class NodeStruct():
         return Util.find_one(is_target, self.paths)
 
     @property
-    def callbacks(self) -> Optional[List[CallbackStruct]]:
+    def callbacks(self) -> list[CallbackStruct] | None:
         if self._callback_groups is None:
             return None
         return list(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
-    def callback_names(self) -> Optional[List[str]]:
+    def callback_names(self) -> list[str] | None:
         if self.callbacks is None:
             return None
         return [_.callback_name for _ in self.callbacks]
 
     @property
-    def callback_groups(self) -> Optional[List[CallbackGroupStruct]]:
+    def callback_groups(self) -> list[CallbackGroupStruct] | None:
         return self._callback_groups
 
     @property
-    def callback_group_names(self) -> Optional[List[str]]:
+    def callback_group_names(self) -> list[str] | None:
         if self.callback_groups is None:
             return None
         return [_.callback_group_name for _ in self.callback_groups]
 
     @property
-    def paths(self) -> List[NodePathStruct]:
+    def paths(self) -> list[NodePathStruct]:
         return self._node_paths
 
     @property
-    def variable_passings(self) -> Optional[List[VariablePassingStruct]]:
+    def variable_passings(self) -> list[VariablePassingStruct] | None:
         return self._variable_passings_info
 
     def get_subscription_from_construction_order(
         self,
         subscribe_topic_name: str,
-        construction_order: Optional[int] = None
+        construction_order: int | None = None
     ) -> SubscriptionStruct:
 
         def is_target(subscription: SubscriptionStruct):
@@ -141,7 +141,7 @@ class NodeStruct():
     def get_subscription(
         self,
         subscribe_topic_name: str,
-        callback_name: Optional[str] = None
+        callback_name: str | None = None
     ) -> SubscriptionStruct:
 
         def is_target(subscription: SubscriptionStruct):
@@ -174,7 +174,7 @@ class NodeStruct():
     def get_publisher(
         self,
         publish_topic_name: str,
-        construction_order: Optional[int]
+        construction_order: int | None
     ) -> PublisherStruct:
         try:
             def is_target_publisher(publisher: PublisherStruct):
@@ -215,7 +215,7 @@ class NodeStruct():
             None if self.variable_passings is None
             else tuple(v.to_value() for v in self.variable_passings))
 
-    def update_node_path(self, paths: List[NodePathStruct]) -> None:
+    def update_node_path(self, paths: list[NodePathStruct]) -> None:
         self._node_paths = paths
 
     # def update_message_context(self, node_name: str, context_type: str,
@@ -309,14 +309,14 @@ class NodeStruct():
             for v in self._variable_passings_info:
                 v.rename_topic(src, dst)
 
-    def get_publisher_from_callback(self, callback_name: str) -> List[PublisherStruct]:
-        l: List[PublisherStruct] = []
+    def get_publisher_from_callback(self, callback_name: str) -> list[PublisherStruct]:
+        l: list[PublisherStruct] = []
         for publisher in self.publishers:
             if publisher.callback_names and callback_name in publisher.callback_names:
                 l.append(publisher)
         return l
 
-    def get_subscription_from_callback(self, callback_name: str) -> Optional[SubscriptionStruct]:
+    def get_subscription_from_callback(self, callback_name: str) -> SubscriptionStruct | None:
         for subscription in self.subscriptions:
             if subscription.callback_name == callback_name:
                 return subscription

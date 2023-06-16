@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
+from __future__ import annotations
 
+from collections import defaultdict
+from collections.abc import Callable
 from logging import WARNING
 
 from string import Template
-from typing import Callable, List, Optional, Tuple
 
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
@@ -61,8 +62,8 @@ def create_node_path(
 ):
     def _create_node_path(
         node_name: str,
-        sub_topic_name: Optional[str],
-        pub_topic_name: Optional[str],
+        sub_topic_name: str | None,
+        pub_topic_name: str | None,
     ) -> NodePathStructValue:
         sub = None
         if sub_topic_name is not None:
@@ -81,13 +82,13 @@ def create_node_path(
 @pytest.fixture
 def create_arch(mocker):
     def _create_arch(
-        node_paths: Tuple[NodePathStructValue],
-        comms: Tuple[CommunicationStructValue]
+        node_paths: tuple[NodePathStructValue],
+        comms: tuple[CommunicationStructValue]
     ) -> Architecture:
-        node_dict: defaultdict[str, List[NodePathStructValue]] = defaultdict(list)
+        node_dict: defaultdict[str, list[NodePathStructValue]] = defaultdict(list)
         for node_path in node_paths:
             node_dict[node_path.node_name].append(node_path)
-        node_list = []  # List[mock]
+        node_list = []  # list[mock]
 
         for node, paths in node_dict.items():
             node_value_mock = mocker.Mock(spec=NodeStructValue)
@@ -133,11 +134,11 @@ def create_node(
 ):
     def _create_node(
         node_name: str,
-        sub_topic_name: Optional[str],
-        pub_topic_name: Optional[str]
+        sub_topic_name: str | None,
+        pub_topic_name: str | None
     ) -> NodeStructValue:
-        pubs: Tuple[PublisherStructValue, ...]
-        subs: Tuple[SubscriptionStructValue, ...]
+        pubs: tuple[PublisherStructValue, ...]
+        subs: tuple[SubscriptionStructValue, ...]
 
         if pub_topic_name:
             pubs = (create_publisher(node_name, pub_topic_name),)
@@ -156,7 +157,7 @@ def create_node(
 
 
 @pytest.fixture
-def create_comm(create_node: Callable[[str, Optional[str], Optional[str]], NodeStructValue]):
+def create_comm(create_node: Callable[[str, str | None, str | None], NodeStructValue]):
     def _create_comm(
         topic_name: str,
         pub_node_name: str,

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Tuple
+from __future__ import annotations
 
 import pandas as pd
 
@@ -53,7 +53,7 @@ class LatencyStackedBar:
         # NOTE: returned columns aren't used because they don't include 'start time'
         # TODO: delete 1e-6
         stacked_bar_dict, _ = self.to_stacked_bar_data()
-        millisecond_dict: Dict[str, List[float]] = {}
+        millisecond_dict: dict[str, list[float]] = {}
         if xaxis_type == 'system_time':
             for column in stacked_bar_dict:
                 millisecond_dict[column] = \
@@ -67,13 +67,13 @@ class LatencyStackedBar:
 
     def to_stacked_bar_data(
         self,
-    ) -> Tuple[Dict[str, List[int]], List[str]]:
+    ) -> tuple[dict[str, list[int]], list[str]]:
         """
         Get stacked bar dict and columns.
 
         Returns
         -------
-        Dict[str, List[int]], List[str]
+        dict[str, list[int]], list[str]
             Stacked bar dict.
             Columns (not include 'start time').
 

@@ -15,15 +15,8 @@
 from __future__ import annotations
 
 from collections import UserList
+from collections.abc import Collection, Sequence
 from itertools import groupby
-from typing import (
-    Collection,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-)
 
 from ..common import UniqueList
 from ..exceptions import (
@@ -34,8 +27,8 @@ from ..value_objects import ValueObject
 
 
 def validate_rename_rule(
-    rename_rule: Dict[str, str],
-    old_columns: List[str]
+    rename_rule: dict[str, str],
+    old_columns: list[str]
 ) -> None:
     already_exist = set(old_columns) & set(rename_rule.values())
     if len(already_exist) > 0:
@@ -112,7 +105,7 @@ class Columns(UserList):
 
     def __init__(
         self,
-        init: Optional[Sequence[ColumnValue]] = None,
+        init: Sequence[ColumnValue] | None = None,
     ) -> None:
         uniq_init = UniqueList(init or [])
         super().__init__([Column(value) for value in uniq_init])
@@ -120,7 +113,7 @@ class Columns(UserList):
     def append(self, item: Column) -> None:
         super().append(item)
 
-    def as_list(self) -> List[Column]:
+    def as_list(self) -> list[Column]:
         return list(self)
 
     def drop(self, columns: Collection[str]) -> None:
@@ -162,7 +155,7 @@ class Columns(UserList):
 
         self.data = tmp
 
-    def get(self, name: str, take: Optional[str] = None) -> Column:
+    def get(self, name: str, take: str | None = None) -> Column:
         if take is not None:
             assert take in ['head', 'tail']
 
@@ -184,14 +177,14 @@ class Columns(UserList):
         assert len(columns) == 1
         return columns[0]
 
-    def gets(self, names: Collection[str]) -> List[Column]:
+    def gets(self, names: Collection[str]) -> list[Column]:
         return [self.get(_) for _ in names]
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         return [str(_) for _ in self.data]
 
-    def rename(self, rename_rule: Dict[str, str]):
+    def rename(self, rename_rule: dict[str, str]):
         validate_rename_rule(rename_rule, self.column_names)
         for column in self.data:
             if column.column_name in rename_rule:
@@ -199,7 +192,7 @@ class Columns(UserList):
                 new = rename_rule[old]
                 column.rename(new)
 
-    def to_value(self) -> Tuple[ColumnValue, ...]:
+    def to_value(self) -> tuple[ColumnValue, ...]:
         return tuple(c.value for c in self.data)
 
     @staticmethod

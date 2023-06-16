@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Optional
+from __future__ import annotations
+
+from collections.abc import Callable
 
 from ..column import ColumnValue
 from ..interface import RecordsInterface
@@ -24,8 +26,8 @@ class Period:
     def __init__(
         self,
         records: RecordsInterface,
-        target_column: Optional[str] = None,
-        row_filter: Optional[Callable] = None
+        target_column: str | None = None,
+        row_filter: Callable | None = None
     ) -> None:
         """
         Construct an instance.
@@ -34,10 +36,10 @@ class Period:
         ----------
         records : RecordsInterface
             records to calculate period.
-        target_column : Optional[str], optional
+        target_column : str | None, optional
             Column name of timestamps used in the calculation, by default None
             If None, the first column of records is selected.
-        row_filter : Optional[Callable], optional
+        row_filter : Callable | None, optional
             Filter function to select rows to calculate period, by default None.
             Example:
             ```
@@ -53,7 +55,7 @@ class Period:
 
         """
         self._target_column = target_column or records.columns[0]
-        self._target_timestamps: List[int] = []
+        self._target_timestamps: list[int] = []
         for record in records:
             if row_filter and not row_filter(record):
                 continue

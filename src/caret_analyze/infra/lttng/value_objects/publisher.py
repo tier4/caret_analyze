@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 from ....value_objects import PublisherValue
 
 
@@ -25,10 +23,10 @@ class PublisherValueLttng(PublisherValue):
         node_name: str,
         topic_name: str,
         node_id: str,
-        callback_ids: Optional[Tuple[str, ...]],
+        callback_ids: tuple[str, ...] | None,
         publisher_handle: int,
         construction_order: int,
-        tilde_publisher: Optional[int]
+        tilde_publisher: int | None
     ) -> None:
         super().__init__(
             node_name=node_name,
@@ -45,5 +43,5 @@ class PublisherValueLttng(PublisherValue):
         return self._publisher_handle
 
     @property
-    def tilde_publisher(self) -> Optional[int]:
+    def tilde_publisher(self) -> int | None:
         return self._tilde_publisher

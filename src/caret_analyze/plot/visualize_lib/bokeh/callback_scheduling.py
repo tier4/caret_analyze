@@ -14,7 +14,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from bokeh.models import Arrow, HoverTool, NormalHead
 from bokeh.plotting import ColumnDataSource, Figure
@@ -55,7 +56,7 @@ class BokehCallbackSched:
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type)
 
         # Apply xaxis offset
-        callbacks: List[CallbackBase] = Util.flatten(
+        callbacks: list[CallbackBase] = Util.flatten(
             cbg.callbacks for cbg in self._callback_groups if len(cbg.callbacks) > 0)
         records_range = Range([cb.to_records() for cb in callbacks])
         range_min, range_max = records_range.get_range()
@@ -166,7 +167,7 @@ class CallbackSchedRectSource:
         legend_manager: LegendManager,
         target_object: CallbackBase,
         clip: Clip,
-        converter: Optional[ClockConverter] = None
+        converter: ClockConverter | None = None
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance(
             'callback_scheduling_rect', target_object)
@@ -180,7 +181,7 @@ class CallbackSchedRectSource:
     def rect_y_base(self) -> float:
         return self._rect_y_base
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 
@@ -261,7 +262,7 @@ class CallbackSchedBarSource:
         self._frame_min = frame_min
         self._frame_max = frame_max
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 

@@ -14,15 +14,15 @@
 
 from __future__ import annotations
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from .callback_scheduling_plot import CallbackSchedulingPlot
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
 from ...runtime import Application, CallbackGroup, Executor, Node, Path
 
-CallbackGroupTypes = Union[Application, Executor,
-                           Path, Node, CallbackGroup, Sequence[CallbackGroup]]
+CallbackGroupTypes = (Application | Executor | Path | Node |
+                      CallbackGroup | Sequence[CallbackGroup])
 
 
 class CallbackSchedulingPlotFactory:
@@ -42,8 +42,8 @@ class CallbackSchedulingPlotFactory:
         Parameters
         ----------
         target_objects : CallbackGroupTypes
-            CallbackGroupTypes = Union[Application, Executor, Path,
-                                       Node, CallbackGroup, Sequence[CallbackGroup]]
+            CallbackGroupTypes = (Application | Executor | Path | Node |
+                                  CallbackGroup | Sequence[CallbackGroup])
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
         lstrip_s : float, optional

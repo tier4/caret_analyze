@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from copy import deepcopy
 import os
-from typing import Any, Optional
+from typing import Any
 
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.record.column import Columns, ColumnValue
@@ -46,7 +48,7 @@ except ModuleNotFoundError as e:
             'possibly due to missing information in the PYTHONPATH environment variable.') from e
 
 
-def to_cpp_record(record: RecordInterface) -> Optional[RecordCppImpl]:
+def to_cpp_record(record: RecordInterface) -> RecordCppImpl | None:
     assert isinstance(record, Record)
     if not CppImplEnabled:
         return None
@@ -54,7 +56,7 @@ def to_cpp_record(record: RecordInterface) -> Optional[RecordCppImpl]:
     return RecordCppImpl(record.data)
 
 
-def to_cpp_records(records: RecordsInterface) -> Optional[RecordsCppImpl]:
+def to_cpp_records(records: RecordsInterface) -> RecordsCppImpl | None:
     assert isinstance(records, Records)
     if not CppImplEnabled:
         return None
@@ -65,14 +67,14 @@ def to_cpp_records(records: RecordsInterface) -> Optional[RecordsCppImpl]:
     )
 
 
-def to_py_record(record: RecordCppImpl) -> Optional[Record]:
+def to_py_record(record: RecordCppImpl) -> Record | None:
     if not CppImplEnabled:
         return None
 
     return Record(record.data)
 
 
-def to_py_records(records: RecordsCppImpl) -> Optional[Records]:
+def to_py_records(records: RecordsCppImpl) -> Records | None:
     if not CppImplEnabled:
         return None
 

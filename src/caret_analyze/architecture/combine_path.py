@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from collections.abc import Callable
 
 from multimethod import multimethod as singledispatchmethod
 
@@ -44,15 +44,15 @@ class CombinePath():
         self._get_communication = get_communication
 
     @staticmethod
-    def __can_combine(name1: Optional[str], name2: Optional[str]) -> bool:
+    def __can_combine(name1: str | None, name2: str | None) -> bool:
         """
         Validate to be able to combine.
 
         Parameters
         ----------
-        name1 : Optional[str]
+        name1 : str | None
             node or topic name
-        name2 : Optional[str]
+        name2 : str | None
             node or topic name
 
         Returns
@@ -66,16 +66,16 @@ class CombinePath():
         return name1 is None or name2 is None or name1 == name2
 
     def __validate_topic_name(
-        self, left_topic_name: Optional[str], right_topic_name: Optional[str]
+        self, left_topic_name: str | None, right_topic_name: str | None
     ) -> None:
         """
         Validate topic name.
 
         Parameters
         ----------
-        left_topic_name : Optional[str]
+        left_topic_name : str | None
             left topic name
-        right_topic_name : Optional[str]
+        right_topic_name : str | None
             right topic name
 
         Raises
@@ -90,16 +90,16 @@ class CombinePath():
         raise InvalidArgumentError(msg)
 
     def __validate_node_name(
-        self, left_node_name: Optional[str], right_node_name: Optional[str]
+        self, left_node_name: str | None, right_node_name: str | None
     ) -> None:
         """
         Validate node name.
 
         Parameters
         ----------
-        left_node_name : Optional[str]
+        left_node_name : str | None
             left node name
-        right_node_name : Optional[str]
+        right_node_name : str | None
             right node name
 
         Raises
@@ -247,17 +247,17 @@ class CombinePath():
             msg = 'No child in input path. '
             raise InvalidArgumentError(msg)
 
-        left_last_child: Union[NodePathStructValue, CommunicationStructValue] = \
+        left_last_child: NodePathStructValue | CommunicationStructValue = \
             left_path.child[-1]
-        right_first_child: Union[NodePathStructValue, CommunicationStructValue] = \
+        right_first_child: NodePathStructValue | CommunicationStructValue = \
             right_path.child[0]
         self._validate_child(left_last_child, right_first_child)
 
     @staticmethod
     def __is_valid(
         node_path: NodePathStructValue,
-        subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str]
+        subscribe_topic_name: str | None,
+        publish_topic_name: str | None
     ) -> bool:
         """
         Check if the given NodePathStructValue matches.
@@ -266,9 +266,9 @@ class CombinePath():
         ----------
         node_path : NodePathStructValue
             candidate node path
-        subscribe_topic_name : Optional[str]
+        subscribe_topic_name : str | None
             expected subscribe topic name
-        publish_topic_name : Optional[str]
+        publish_topic_name : str | None
             expected publish topic name
 
         Returns
@@ -283,8 +283,8 @@ class CombinePath():
     @singledispatchmethod
     def _find_node_path_core(
         self,
-        left_last_child: Union[NodePathStructValue, CommunicationStructValue],
-        right_first_child: Union[NodePathStructValue, CommunicationStructValue],
+        left_last_child: NodePathStructValue | CommunicationStructValue,
+        right_first_child: NodePathStructValue | CommunicationStructValue,
         node_paths: NodePathStructValue
     ) -> NodePathStructValue:
         raise NotImplementedError('')
@@ -294,7 +294,7 @@ class CombinePath():
         self,
         left_last_child: NodePathStructValue,
         right_first_child: NodePathStructValue,
-        node_paths: Tuple[NodePathStructValue, ...],
+        node_paths: tuple[NodePathStructValue, ...],
     ) -> NodePathStructValue:
         """
         Find node path in case of Node-Node.
@@ -305,7 +305,7 @@ class CombinePath():
             left last child
         right_first_child : NodePathStructValue
             right last child
-        node_paths : Tuple[NodePathStructValue, ...]
+        node_paths : tuple[NodePathStructValue, ...]
             candidate node paths
 
         Returns
@@ -333,7 +333,7 @@ class CombinePath():
         self,
         left_last_child: NodePathStructValue,
         right_first_child: CommunicationStructValue,
-        node_paths: Tuple[NodePathStructValue, ...],
+        node_paths: tuple[NodePathStructValue, ...],
     ) -> NodePathStructValue:
         """
         Find node path in case of Node-Comm.
@@ -344,7 +344,7 @@ class CombinePath():
             left last child
         right_first_child : CommunicationStructValue
             right last child
-        node_paths : Tuple[NodePathStructValue, ...]
+        node_paths : tuple[NodePathStructValue, ...]
             candidate node paths
 
         Returns
@@ -372,7 +372,7 @@ class CombinePath():
         self,
         left_last_child: CommunicationStructValue,
         right_first_child: NodePathStructValue,
-        node_paths: Tuple[NodePathStructValue, ...],
+        node_paths: tuple[NodePathStructValue, ...],
     ) -> NodePathStructValue:
         """
         Find node path in case of Comm-Node.
@@ -383,7 +383,7 @@ class CombinePath():
             left last child
         right_first_child : NodePathStructValue
             right last child
-        node_paths : Tuple[NodePathStructValue, ...]
+        node_paths : tuple[NodePathStructValue, ...]
             candidate node paths
 
         Returns
@@ -408,25 +408,25 @@ class CombinePath():
 
     def _find_node_path(
         self,
-        left_last_child: Union[NodePathStructValue, CommunicationStructValue],
-        right_first_child: Union[NodePathStructValue, CommunicationStructValue],
-        node_paths: Tuple[NodePathStructValue, ...],
+        left_last_child: NodePathStructValue | CommunicationStructValue,
+        right_first_child: NodePathStructValue | CommunicationStructValue,
+        node_paths: tuple[NodePathStructValue, ...],
     ) -> NodePathStructValue:
         return self._find_node_path_core(left_last_child, right_first_child, node_paths)
 
     @staticmethod
     def _get_node_name(
-        left_last_child: Union[NodePathStructValue, CommunicationStructValue],
-        right_first_child: Union[NodePathStructValue, CommunicationStructValue]
+        left_last_child: NodePathStructValue | CommunicationStructValue,
+        right_first_child: NodePathStructValue | CommunicationStructValue
     ) -> str:
         """
         Get node name.
 
         Parameters
         ----------
-        left_last_child : Union[NodePathStructValue, CommunicationStructValue]
+        left_last_child : NodePathStructValue | CommunicationStructValue
             left last child
-        right_first_child : Union[NodePathStructValue, CommunicationStructValue]
+        right_first_child : NodePathStructValue | CommunicationStructValue
             right first child
 
         Returns
@@ -448,13 +448,13 @@ class CombinePath():
         raise UnsupportedTypeError(msg)
 
     @staticmethod
-    def __get_name(child: Union[NodePathStructValue, CommunicationStructValue]) -> str:
+    def __get_name(child: NodePathStructValue | CommunicationStructValue) -> str:
         """
         Get node or topic name.
 
         Parameters
         ----------
-        child : Union[NodePathStructValue, CommunicationStructValue]
+        child : NodePathStructValue | CommunicationStructValue
             child
 
         Returns
@@ -469,17 +469,17 @@ class CombinePath():
 
     def __is_same(
         self,
-        left_child: Union[NodePathStructValue, CommunicationStructValue],
-        right_child: Union[NodePathStructValue, CommunicationStructValue],
+        left_child: NodePathStructValue | CommunicationStructValue,
+        right_child: NodePathStructValue | CommunicationStructValue,
     ) -> bool:
         """
         Validate left child and right child are same.
 
         Parameters
         ----------
-        left_child : Union[NodePathStructValue, CommunicationStructValue]
+        left_child : NodePathStructValue | CommunicationStructValue
             left child
-        right_child : Union[NodePathStructValue, CommunicationStructValue]
+        right_child : NodePathStructValue | CommunicationStructValue
             right child
 
         Returns
@@ -493,20 +493,20 @@ class CombinePath():
 
     def _create_path(
         self,
-        left_path: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...],
-        middle_child: Union[NodePathStructValue, CommunicationStructValue],
-        right_path: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...],
+        left_path: tuple[NodePathStructValue | CommunicationStructValue, ...],
+        middle_child: NodePathStructValue | CommunicationStructValue,
+        right_path: tuple[NodePathStructValue | CommunicationStructValue, ...],
     ) -> PathStructValue:
         """
         Create path.
 
         Parameters
         ----------
-        left_path : Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]
+        left_path : tuple[NodePathStructValue | CommunicationStructValue, ...]
             left path
-        middle_child : Union[NodePathStructValue, CommunicationStructValue]
+        middle_child : NodePathStructValue | CommunicationStructValue
             middle child
-        right_path : Tuple[Union[NodePathStructValue, CommunicationStructValue], ...]
+        right_path : tuple[NodePathStructValue | CommunicationStructValue, ...]
             right path
 
         Returns
@@ -515,8 +515,8 @@ class CombinePath():
             Combined path
 
         """
-        new_child: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...] = ()
-        candidate_path: Tuple[Union[NodePathStructValue, CommunicationStructValue], ...] = \
+        new_child: tuple[NodePathStructValue | CommunicationStructValue, ...] = ()
+        candidate_path: tuple[NodePathStructValue | CommunicationStructValue, ...] = \
             left_path + right_path
 
         assert len(candidate_path) >= 2
@@ -546,9 +546,9 @@ class CombinePath():
 
         Parameters
         ----------
-        left_last_child : Union[NodePathStructValue, CommunicationStructValue]
+        left_last_child : NodePathStructValue | CommunicationStructValue
             left last child
-        right_first_child : Union[NodePathStructValue, CommunicationStructValue]
+        right_first_child : NodePathStructValue | CommunicationStructValue
             right first child
 
         Returns
@@ -558,7 +558,7 @@ class CombinePath():
 
         """
         node_name: str = self._get_node_name(left_last_child, right_first_child)
-        node_paths: Tuple[NodePathStructValue, ...] = self._get_node(node_name).paths
+        node_paths: tuple[NodePathStructValue, ...] = self._get_node(node_name).paths
         target_node_path: NodePathStructValue = \
             self._find_node_path(left_last_child, right_first_child, node_paths)
         return target_node_path
@@ -626,11 +626,11 @@ class CombinePath():
             combined path
 
         """
-        left_last_child: Union[NodePathStructValue, CommunicationStructValue] = \
+        left_last_child: NodePathStructValue | CommunicationStructValue = \
             left_path.child[-1]
-        right_first_child: Union[NodePathStructValue, CommunicationStructValue] = \
+        right_first_child: NodePathStructValue | CommunicationStructValue = \
             right_path.child[0]
-        middle_child: Union[NodePathStructValue, CommunicationStructValue] = \
+        middle_child: NodePathStructValue | CommunicationStructValue = \
             self._get_middle_child(left_last_child, right_first_child)
 
         return self._create_path(left_path.child, middle_child, right_path.child)
@@ -684,9 +684,9 @@ class CombinePath():
         """
         self._validate(left_path, right_path)
 
-        left_last_child: Union[NodePathStructValue, CommunicationStructValue] = \
+        left_last_child: NodePathStructValue | CommunicationStructValue = \
             left_path.child[-1]
-        right_first_child: Union[NodePathStructValue, CommunicationStructValue] = \
+        right_first_child: NodePathStructValue | CommunicationStructValue = \
             right_path.child[0]
 
         # Left, Right = (Node, Node)

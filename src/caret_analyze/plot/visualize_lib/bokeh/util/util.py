@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import datetime
 
-from typing import Optional
-
 from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
 from bokeh.plotting import Figure, figure
 
@@ -59,8 +57,8 @@ def init_figure(
     title: str,
     ywheel_zoom: bool,
     xaxis_type: str,
-    y_axis_label: Optional[str] = None,
-    x_axis_label: Optional[str] = None,
+    y_axis_label: str | None = None,
+    x_axis_label: str | None = None,
 ) -> Figure:
     if x_axis_label is None:
         if xaxis_type == 'system_time':

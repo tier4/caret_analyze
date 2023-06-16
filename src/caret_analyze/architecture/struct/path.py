@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import List, Optional, Union
 
 from .communication import CommunicationStruct
 from .node_path import NodePathStruct
@@ -30,15 +29,15 @@ logger = getLogger(__name__)
 class PathStruct():
     def __init__(
         self,
-        path_name: Optional[str],
-        child: List[Union[NodePathStruct, CommunicationStruct]],
+        path_name: str | None,
+        child: list[NodePathStruct | CommunicationStruct],
     ) -> None:
         self._path_name = path_name
         self._child = child
         self._validate(child)
 
     @property
-    def path_name(self) -> Optional[str]:
+    def path_name(self) -> str | None:
         return self._path_name
 
     @path_name.setter
@@ -46,16 +45,16 @@ class PathStruct():
         self._path_name = n
 
     @property
-    def node_names(self) -> List[str]:
+    def node_names(self) -> list[str]:
         return [_.node_name for _ in self.node_paths]
 
     @property
-    def topic_names(self) -> List[str]:
+    def topic_names(self) -> list[str]:
         return [_.topic_name for _ in self.communications]
 
     @property
-    def child_names(self) -> List[str]:
-        names: List[str] = []
+    def child_names(self) -> list[str]:
+        names: list[str] = []
         for child in self.child:
             if isinstance(child, NodePathStruct):
                 names.append(child.node_name)
@@ -64,25 +63,25 @@ class PathStruct():
         return names
 
     @property
-    def node_paths(self) -> List[NodePathStruct]:
-        node_paths: List[NodePathStruct] = Util.filter_items(
+    def node_paths(self) -> list[NodePathStruct]:
+        node_paths: list[NodePathStruct] = Util.filter_items(
             lambda x: isinstance(x, NodePathStruct),
             self._child)
         return node_paths
 
     @property
-    def communications(self) -> List[CommunicationStruct]:
-        comm_paths: List[CommunicationStruct] = Util.filter_items(
+    def communications(self) -> list[CommunicationStruct]:
+        comm_paths: list[CommunicationStruct] = Util.filter_items(
             lambda x: isinstance(x, CommunicationStruct),
             self._child)
         return comm_paths
 
     @property
-    def child(self) -> List[Union[NodePathStruct, CommunicationStruct]]:
+    def child(self) -> list[NodePathStruct | CommunicationStruct]:
         return self._child
 
     @staticmethod
-    def _validate(path_elements: List[Union[NodePathStruct, CommunicationStruct]]):
+    def _validate(path_elements: list[NodePathStruct | CommunicationStruct]):
         if len(path_elements) == 0:
             return
 

@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Dict, List
 
 import pandas as pd
 
@@ -33,7 +32,7 @@ class EventCounter:
         if validate:
             self._validate()
 
-    def get_count(self, groupby: List[str]) -> pd.DataFrame:
+    def get_count(self, groupby: list[str]) -> pd.DataFrame:
         if len(set(groupby) - self._allowed_keys) > 0:
             raise InvalidArgumentError(
                 f'invalid groupby: {groupby}. {self._allowed_keys} are allowed.')
@@ -152,17 +151,17 @@ class EventCounter:
         }
         #  'ros2_caret:rmw_implementation': ,
 
-        sub_handle_to_topic_name: Dict[int, str] = {}
-        sub_handle_to_node_name: Dict[int, str] = {}
-        pub_handle_to_topic_name: Dict[int, str] = {}
-        pub_handle_to_node_name: Dict[int, str] = {}
-        node_handle_to_node_name: Dict[int, str] = {}
-        timer_handle_to_node_name: Dict[int, str] = {}
-        sub_cb_to_node_name: Dict[int, str] = {}
-        timer_cb_to_node_name: Dict[int, str] = {}
-        sub_cb_to_topic_name: Dict[int, str] = {}
-        sub_to_topic_name: Dict[int, str] = {}
-        sub_to_node_name: Dict[int, str] = {}
+        sub_handle_to_topic_name: dict[int, str] = {}
+        sub_handle_to_node_name: dict[int, str] = {}
+        pub_handle_to_topic_name: dict[int, str] = {}
+        pub_handle_to_node_name: dict[int, str] = {}
+        node_handle_to_node_name: dict[int, str] = {}
+        timer_handle_to_node_name: dict[int, str] = {}
+        sub_cb_to_node_name: dict[int, str] = {}
+        timer_cb_to_node_name: dict[int, str] = {}
+        sub_cb_to_topic_name: dict[int, str] = {}
+        sub_to_topic_name: dict[int, str] = {}
+        sub_to_node_name: dict[int, str] = {}
 
         def ns_and_node_name(ns: str, name: str) -> str:
             if ns[-1] == '/':
@@ -200,14 +199,14 @@ class EventCounter:
                 timer_cb_to_node_name[row['callback_object']] = \
                     timer_handle_to_node_name.get(handler, '-')
 
-        tilde_pub_to_topic_name: Dict[int, str] = {}
-        tilde_pub_to_node_name: Dict[int, str] = {}
+        tilde_pub_to_topic_name: dict[int, str] = {}
+        tilde_pub_to_node_name: dict[int, str] = {}
         for handler, row in data.tilde_publishers.df.iterrows():
             tilde_pub_to_node_name[handler] = row['node_name']
             tilde_pub_to_topic_name[handler] = row['topic_name']
 
-        tilde_sub_to_topic_name: Dict[int, str] = {}
-        tilde_sub_to_node_name: Dict[int, str] = {}
+        tilde_sub_to_topic_name: dict[int, str] = {}
+        tilde_sub_to_node_name: dict[int, str] = {}
         for handler, row in data.tilde_subscriptions.df.iterrows():
             tilde_sub_to_node_name[handler] = row['node_name']
             tilde_sub_to_topic_name[handler] = row['topic_name']
@@ -216,7 +215,7 @@ class EventCounter:
         group_keys = [
             'callback_object', 'publisher_handle', 'subscription_handle',
             'tilde_publisher', 'tilde_subscription'
-            ]
+        ]
         for trace_point, df in trace_point_and_df.items():
             df = df.reset_index()
 

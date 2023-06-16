@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from __future__ import annotations
 
 from .callback import CallbackStruct
 from .node import NodeStruct
@@ -30,8 +30,8 @@ class CommunicationStruct():
         node_subscription: NodeStruct,
         publisher_value: PublisherStruct,
         subscription_value: SubscriptionStruct,
-        publish_callback_values: Optional[List[CallbackStruct]],
-        subscription_callback_value: Optional[CallbackStruct],
+        publish_callback_values: list[CallbackStruct] | None,
+        subscription_callback_value: CallbackStruct | None,
     ) -> None:
         self._publisher_value = publisher_value
         self._subscription_value = subscription_value
@@ -64,13 +64,13 @@ class CommunicationStruct():
         return self._topic_name
 
     @property
-    def publish_callback_names(self) -> Optional[List[str]]:
+    def publish_callback_names(self) -> list[str] | None:
         if self._publish_callbacks_value is None:
             return None
         return [p.callback_name for p in self._publish_callbacks_value]
 
     @property
-    def subscribe_callback_name(self) -> Optional[str]:
+    def subscribe_callback_name(self) -> str | None:
         if self._subscription_callback_value is None:
             return None
         return self._subscription_callback_value.callback_name
@@ -84,23 +84,23 @@ class CommunicationStruct():
         return self._subscription_value
 
     @property
-    def publisher_construction_order(self) -> Optional[int]:
+    def publisher_construction_order(self) -> int | None:
         if self.publisher:
             return self.publisher.construction_order
         return None
 
     @property
-    def subscription_construction_order(self) -> Optional[int]:
+    def subscription_construction_order(self) -> int | None:
         if self.subscription:
             return self.subscription.construction_order
         return None
 
     @property
-    def publish_callbacks(self) -> Optional[List[CallbackStruct]]:
+    def publish_callbacks(self) -> list[CallbackStruct] | None:
         return self._publish_callbacks_value
 
     @property
-    def subscribe_callback(self) -> Optional[CallbackStruct]:
+    def subscribe_callback(self) -> CallbackStruct | None:
         return self._subscription_callback_value
 
     @property
