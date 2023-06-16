@@ -17,7 +17,7 @@
         <link rel="next" href="../value_objects/">
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -1591,7 +1591,7 @@
         <tr>
           <td><code>target_column</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str], optional</code>
+                <code>str | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1606,7 +1606,7 @@ If None, the first column of records is selected.</p>
         <tr>
           <td><code>row_filter</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>], optional</code>
+                <code><span title="collections.abc.Callable">Callable</span> | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1677,7 +1677,7 @@ The number of timestamps that exist in this time interval is counted.</p>
         <tr>
           <td><code>base_timestamp</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[int], optional</code>
+                <code>int | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1692,7 +1692,7 @@ If None, earliest timestamp is used.</p>
         <tr>
           <td><code>until_timestamp</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[int], optional</code>
+                <code>int | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1814,7 +1814,7 @@ Columns
         <tr>
           <td><code>start_column</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str], optional</code>
+                <code>str | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1829,7 +1829,7 @@ If None, the first column of records is selected.</p>
         <tr>
           <td><code>end_column</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str], optional</code>
+                <code>str | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1969,7 +1969,7 @@ Columns
         <tr>
           <td><code>target_column</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str], optional</code>
+                <code>str | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1984,7 +1984,7 @@ If None, the first column of records is selected.</p>
         <tr>
           <td><code>row_filter</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>], optional</code>
+                <code><span title="collections.abc.Callable">Callable</span> | None, optional</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2118,7 +2118,7 @@ Columns
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Tuple">Tuple</span>[int, int]</code>
+                <code>tuple[int, int]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2180,11 +2180,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
 
 <h3 id="caret_analyze.record.interface.RecordInterface.columns" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">columns</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">columns</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2205,7 +2205,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Set">Set</span>[str]</code>
+                <code>set[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2224,11 +2224,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
 
 <h3 id="caret_analyze.record.interface.RecordInterface.data" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -2249,7 +2249,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
     <tbody>
         <tr>
 <td><code>data</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, int]</code>
+                <code>dict[str, int]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2425,7 +2425,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.List">List</span>[str]</code>
+                <code>list[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2801,11 +2801,11 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
 
 <h3 id="caret_analyze.record.interface.RecordsInterface.columns" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.columns" class="headerlink" title="Permanent link">#</a></h3>
@@ -2826,7 +2826,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.List">List</span>[str]</code>
+                <code>list[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2848,8 +2848,8 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 <code class="highlight language-python"><span class="n">data</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">RecordInterface</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#caret_analyze.record.interface.RecordsInterface.data" class="headerlink" title="Permanent link">#</a></h3>
@@ -2870,7 +2870,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Sequence">Sequence</span>[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>]</code>
+                <code><span title="collections.abc.Sequence">Sequence</span>[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2932,7 +2932,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
         <tr>
           <td><code>values</code></td>
           <td>
-                <code><span title="typing.List">List</span>[int]</code>
+                <code>list[int]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3120,7 +3120,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.List">List</span>[str]</code>
+                <code>list[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3242,7 +3242,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
         <tr>
           <td><code>f</code></td>
           <td>
-                <code><span title="typing.Callable">Callable</span>[[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>], bool]</code>
+                <code><span title="collections.abc.Callable">Callable</span>[[<a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordInterface" href="#caret_analyze.record.RecordInterface">RecordInterface</a>], bool]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3370,7 +3370,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.List">List</span>[str]</code>
+                <code>list[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3574,7 +3574,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.List">List</span>[str]</code>
+                <code>list[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3786,7 +3786,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.List">List</span>[str]</code>
+                <code>list[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3890,7 +3890,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.List">List</span>[str]</code>
+                <code>list[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3940,7 +3940,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, str]</code>
+                <code>dict[str, str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4294,7 +4294,7 @@ If None, the first and last columns are used.</p>
         <tr>
           <td><code>columns</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str]</code>
+                <code>str | None</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4339,7 +4339,7 @@ If None, only first and last columns are used.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code>tuple[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4426,7 +4426,7 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code>tuple[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4512,7 +4512,7 @@ unless bins of unity width are chosen; it is not a probability mass function.</p
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code>tuple[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4675,7 +4675,7 @@ as well as delays caused by various factors such as lost messages.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code>tuple[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4718,7 +4718,7 @@ as well as delays caused by various factors such as lost messages.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code>tuple[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4862,7 +4862,7 @@ as well as delays caused by various factors such as lost messages.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[int]]</code>
+                <code>dict[str, list[int]]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4942,11 +4942,15 @@ as well as delays caused by various factors such as lost messages.</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
-        <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
+        
+          <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
+        
       
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        
+          <script src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        
       
     
   </body>
