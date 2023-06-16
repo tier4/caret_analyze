@@ -17,7 +17,7 @@ from typing import List, Sequence, Union
 
 import pandas as pd
 
-from ..record import ColumnValue, RecordFactory, RecordsFactory, RecordsInterface
+from ..record import ColumnValue, Range, RecordFactory, RecordsFactory, RecordsInterface
 from ..runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
@@ -53,15 +53,17 @@ class MetricsBase(metaclass=ABCMeta):
         timeseries_records_list: List[RecordsInterface]
     ) -> List[RecordsInterface]:
         # get converter
+        records_range = Range([to.to_records() for to in self.target_objects])
+        frame_min, frame_max = records_range.get_range()
         if isinstance(self._target_objects[0], Communication):
             for comm in self._target_objects:
                 assert isinstance(comm, Communication)
                 if comm._callback_subscription:
                     converter_cb = comm._callback_subscription
                     break
-            converter = converter_cb._provider.get_sim_time_converter()
+            converter = converter_cb._provider.get_sim_time_converter(frame_min, frame_max)
         else:
-            converter = self._target_objects[0]._provider.get_sim_time_converter()
+            converter = self._target_objects[0]._provider.get_sim_time_converter(frame_min, frame_max)
 
         # convert
         converted_records_list: List[RecordsInterface] = []

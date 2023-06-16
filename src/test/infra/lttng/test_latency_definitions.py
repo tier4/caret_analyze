@@ -1738,7 +1738,9 @@ class TestSimTimeConverter:
 
         lttng = create_lttng(data)
         provider = RecordsProviderLttng(lttng)
-        converter = provider.get_sim_time_converter()
+        min_ns = 0
+        max_ns = 1
+        converter = provider.get_sim_time_converter(min_ns, max_ns)
 
         assert converter.convert(0) - 1.0 <= 1e-6
         assert converter.convert(1) - 2.0 <= 1e-6

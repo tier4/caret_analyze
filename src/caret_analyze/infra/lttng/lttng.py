@@ -587,13 +587,22 @@ class Lttng(InfraBase):
         return self._info.get_subscription_qos(sub)
 
     def get_sim_time_converter(
-        self
+        self,
+        min_ns: float,
+        max_ns: float
     ) -> ClockConverter:
         records: RecordsInterface = self._source.system_and_sim_times
         system_times = records.get_column_series('system_time')
         sim_times = records.get_column_series('sim_time')
-        system_times_filtered = [_ for _ in system_times if _ is not None]
-        sim_times_filtered = [_ for _ in sim_times if _ is not None]
+        system_times_filtered = []
+        sim_times_filtered = []
+        for system_time, sim_time in zip(system_times, sim_times):
+            if system_time is not None and sim_time is not None:
+                if min_ns is None or system_time >= min_ns:
+                    if max_ns is None or system_time <= max_ns:
+                        system_times_filtered.append(system_time)
+                        sim_times_filtered.append(sim_time)
+
         try:
             return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
         except InvalidArgumentError:
