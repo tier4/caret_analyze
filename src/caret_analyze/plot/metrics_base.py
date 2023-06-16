@@ -61,9 +61,11 @@ class MetricsBase(metaclass=ABCMeta):
                 if comm._callback_subscription:
                     converter_cb = comm._callback_subscription
                     break
-            converter = converter_cb._provider.get_sim_time_converter(frame_min, frame_max)
+            converter = converter_cb._provider.get_sim_time_converter(
+                frame_min, frame_max)
         else:
-            converter = self._target_objects[0]._provider.get_sim_time_converter(frame_min, frame_max)
+            converter = self._target_objects[0]._provider.get_sim_time_converter(
+                frame_min, frame_max)
 
         # convert
         converted_records_list: List[RecordsInterface] = []

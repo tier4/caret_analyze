@@ -598,10 +598,9 @@ class Lttng(InfraBase):
         sim_times_filtered = []
         for system_time, sim_time in zip(system_times, sim_times):
             if system_time is not None and sim_time is not None:
-                if min_ns is None or system_time >= min_ns:
-                    if max_ns is None or system_time <= max_ns:
-                        system_times_filtered.append(system_time)
-                        sim_times_filtered.append(sim_time)
+                if min_ns <= system_time <= max_ns:
+                    system_times_filtered.append(system_time)
+                    sim_times_filtered.append(sim_time)
 
         try:
             return ClockConverter.create_from_series(system_times_filtered, sim_times_filtered)
