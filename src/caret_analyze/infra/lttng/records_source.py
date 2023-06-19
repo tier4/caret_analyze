@@ -96,12 +96,12 @@ class RecordsSource():
             inter_proc_publish = merge_sequential(
                 left_records=inter_proc_publish,
                 right_records=rcl_publish_records,
-                left_stamp_key='rclcpp_inter_publish_timestamp',
-                right_stamp_key='rcl_publish_timestamp',
-                join_left_key='message',
-                join_right_key='message',
+                left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                join_left_key=COLUMN_NAME.MESSAGE,
+                join_right_key=COLUMN_NAME.MESSAGE,
                 columns=Columns.from_str(
-                    inter_proc_publish.columns + ['publisher_handle']).column_names,
+                    inter_proc_publish.columns + [COLUMN_NAME.PUBLISHER_HANDLE]).column_names,
                 how='left')
 
         rcl_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
