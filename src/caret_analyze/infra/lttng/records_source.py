@@ -430,6 +430,7 @@ class RecordsSource():
             - message_timestamp
 
         """
+        return self.intra_proc_comm_records_iron
         sink_records = self._data.dispatch_intra_process_subscription_callback_instances
         intra_publish_records = merge_sequential_for_addr_track(
             source_records=self._data.rclcpp_intra_publish_instances,
@@ -500,6 +501,96 @@ class RecordsSource():
                 COLUMN_NAME.IS_INTRA_PROCESS
             ]
         )
+        intra_records.rename_columns(
+            {
+                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP
+            }
+        )
+
+        return intra_records
+
+    @cached_property
+    def enqueue_records(self) -> RecordsInterface:
+        return self._data.rclcpp_ring_buffer_enqueue_instances.clone()
+
+    @cached_property
+    def intra_proc_comm_records_iron(self) -> RecordsInterface:
+        """
+        Compose intra process communication records.
+
+        Used tracepoints
+        - rclcpp_publish
+        - rclcpp_ring_buffer_enqueue
+        - rclcpp_ring_buffer_dequeue
+        - callback_start
+
+        Returns
+        -------
+        RecordsInterface
+            columns:
+            - callback_object
+            - callback_start_timestamp
+            - publisher_handle
+            - rclcpp_publish_timestamp
+            - message_timestamp
+
+        """
+        intra_pub = self._data.rclcpp_intra_publish_instances.clone()
+        enq = self._data.rclcpp_ring_buffer_enqueue_instances.clone()
+        deq = self._data.rclcpp_ring_buffer_dequeue_instances.clone()
+        callback_start = self._data.callback_start_instances.clone()
+
+        pub_records = merge_sequential(
+            left_records=intra_pub,
+            right_records=enq,
+            left_stamp_key=COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            columns=[
+                'tid',
+                'index',
+                'buffer',
+                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP
+            ],
+            how='left'
+        )
+
+        sub_records = merge_sequential(
+            left_records=deq,
+            right_records=callback_start,
+            left_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            join_left_key=COLUMN_NAME.TID,
+            join_right_key=COLUMN_NAME.TID,
+            columns=[
+                'tid',
+                'index',
+                'buffer',
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP
+            ],
+            how='right'
+        )
+
+        intra_records = merge_sequential(
+            left_records=pub_records,
+            right_records=sub_records,
+            left_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP,
+            right_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP,
+            join_left_key='index',
+            join_right_key='index',
+            columns=[
+                'tid',
+                'index',
+                'buffer',
+                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+            ],
+            how='left'
+        )
+
         intra_records.rename_columns(
             {
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP
