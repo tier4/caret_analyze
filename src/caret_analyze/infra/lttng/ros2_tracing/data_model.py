@@ -142,6 +142,25 @@ class Ros2DataModel():
                 ColumnValue('message_timestamp'),
             ]
         )
+        self.rclcpp_ring_buffer_enqueue_instances = RecordsFactory.create_instance(
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_ring_buffer_enqueue_timestamp'),
+                ColumnValue('buffer'),
+                ColumnValue('index'),
+                ColumnValue('size'),
+                ColumnValue('overwritten'),
+            ]
+        )
+        self.rclcpp_ring_buffer_dequeue_instances = RecordsFactory.create_instance(
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_ring_buffer_dequeue_timestamp'),
+                ColumnValue('buffer'),
+                ColumnValue('index'),
+                ColumnValue('size'),
+            ]
+        )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
             None, [
                 ColumnValue('tid'),
@@ -413,6 +432,42 @@ class Ros2DataModel():
             'message_timestamp': message_timestamp,
         }
         self.rclcpp_intra_publish_instances.append(record)
+
+    def add_rclcpp_ring_buffer_enqueue_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        buffer: int,
+        index: int,
+        size: int,
+        overwritten: bool,
+    ) -> None:
+        record = {
+            'tid': tid,
+            'rclcpp_ring_buffer_enqueue_timestamp': timestamp,
+            'buffer': buffer,
+            'index': index,
+            'size': size,
+            'overwritten': overwritten,
+        }
+        self.rclcpp_ring_buffer_enqueue_instances.append(record)
+
+    def add_rclcpp_ring_buffer_dequeue_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        buffer: int,
+        index: int,
+        size: int,
+    ) -> None:
+        record = {
+            'tid': tid,
+            'rclcpp_ring_buffer_dequeue_timestamp': timestamp,
+            'buffer': buffer,
+            'index': index,
+            'size': size,
+        }
+        self.rclcpp_ring_buffer_dequeue_instances.append(record)
 
     def add_rclcpp_publish_instance(
         self,

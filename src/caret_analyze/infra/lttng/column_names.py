@@ -26,6 +26,8 @@ class ColumnName(NamedTuple):
     DDS_WRITE_TIMESTAMP: str = 'dds_write_timestamp'
     ON_DATA_AVAILABLE_TIMESTAMP: str = 'on_data_available_timestamp'
     RCLCPP_INTRA_PUBLISH_TIMESTAMP: str = 'rclcpp_intra_publish_timestamp'
+    RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP: str = 'rclcpp_ring_buffer_enqueue_timestamp'
+    RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP: str = 'rclcpp_ring_buffer_dequeue_timestamp'
     TIMER_EVENT_TIMESTAMP: str = 'timer_event_timestamp'
 
     MESSAGE: str = 'message'

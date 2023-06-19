@@ -107,6 +107,8 @@ class Ros2Handler():
         handler_map['ros2:rclcpp_publish'] = self._handle_rclcpp_publish
         handler_map['ros2:message_construct'] = self._handle_message_construct
         handler_map['ros2:rclcpp_intra_publish'] = self._handle_rclcpp_intra_publish
+        handler_map['ros2:rclcpp_ring_buffer_enqueue'] = self._handle_rclcpp_ring_buffer_enqueue
+        handler_map['ros2:rclcpp_ring_buffer_dequeue'] = self._handle_rclcpp_ring_buffer_dequeue
         handler_map['ros2:dispatch_subscription_callback'] = \
             self._handle_dispatch_subscription_callback
         handler_map['ros2:rmw_take'] = self._handle_rmw_take
@@ -224,6 +226,8 @@ class Ros2Handler():
             'ros2:rclcpp_publish',
             'ros2:message_construct',
             'ros2:rclcpp_intra_publish',
+            'ros2:rclcpp_ring_buffer_enqueue',
+            'ros2:rclcpp_ring_buffer_dequeue',
             'ros2:dispatch_subscription_callback',
             'ros2:rmw_take',
             'ros2:dispatch_intra_process_subscription_callback',
@@ -605,6 +609,37 @@ class Ros2Handler():
         tid = get_field(event, '_vtid')
         self.data.add_rclcpp_intra_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
+
+    def _handle_rclcpp_ring_buffer_enqueue(
+        self,
+        event: dict,
+    ) -> None:
+        if not self._is_valid_data(event):
+            return
+
+        buffer = get_field(event, 'buffer')
+        index = get_field(event, 'index')
+        size = get_field(event, 'size')
+        overwritten = get_field(event, 'overwritten')
+        timestamp = get_field(event, '_timestamp')
+        tid = get_field(event, '_vtid')
+        self.data.add_rclcpp_ring_buffer_enqueue_instance(
+            tid, timestamp, buffer, index, size, overwritten)
+
+    def _handle_rclcpp_ring_buffer_dequeue(
+        self,
+        event: dict,
+    ) -> None:
+        if not self._is_valid_data(event):
+            return
+
+        buffer = get_field(event, 'buffer')
+        index = get_field(event, 'index')
+        size = get_field(event, 'size')
+        timestamp = get_field(event, '_timestamp')
+        tid = get_field(event, '_vtid')
+        self.data.add_rclcpp_ring_buffer_dequeue_instance(
+            tid, timestamp, buffer, index, size)
 
     def _handle_dispatch_subscription_callback(
         self,
