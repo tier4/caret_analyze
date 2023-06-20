@@ -15,8 +15,6 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 from .callback import CallbackStructValue
 from .value_object import ValueObject
 from ..common import Summarizable, Summary
@@ -80,10 +78,10 @@ class CallbackGroupValue(ValueObject):
         callback_group_type_name: str,
         node_name: str,
         node_id: str,
-        callback_ids: Tuple[str, ...],
+        callback_ids: tuple[str, ...],
         callback_group_id: str,
         *,
-        callback_group_name: Optional[str] = None
+        callback_group_name: str | None = None
     ) -> None:
         """
         Construct an instance.
@@ -97,13 +95,13 @@ class CallbackGroupValue(ValueObject):
         node_id : str
             Identification of the node,
             a value that can be identified when retrieved from the Architecture reader.
-        callback_ids : Tuple[str, ...]
+        callback_ids : tuple[str, ...]
             Identification of the callback,
             a value that can be identified when retrieved from the Architecture reader.
         callback_group_id : str
             Identification of the callback group,
             a value that can be identified when retrieved from the Architecture reader.
-        callback_group_name : Optional[str], optional
+        callback_group_name : str | None, optional
             callback group name, by default None. If None, it is generated automatically.
 
         """
@@ -153,13 +151,13 @@ class CallbackGroupValue(ValueObject):
         return self._node_id
 
     @property
-    def callback_group_name(self) -> Optional[str]:
+    def callback_group_name(self) -> str | None:
         """
         Get callback group name.
 
         Returns
         -------
-        Optional[str]
+        str | None
             Callback group name.
 
         """
@@ -179,13 +177,13 @@ class CallbackGroupValue(ValueObject):
         return self._callback_group_id
 
     @property
-    def callback_ids(self) -> Tuple[str, ...]:
+    def callback_ids(self) -> tuple[str, ...]:
         """
         Get callback ids.
 
         Returns
         -------
-        Tuple[str, ...]
+        tuple[str, ...]
             callback ids added to the callback group.
 
         """
@@ -199,7 +197,7 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         self,
         callback_group_type: CallbackGroupType,
         node_name: str,
-        callback_values: Tuple[CallbackStructValue, ...],
+        callback_values: tuple[CallbackStructValue, ...],
         callback_group_name: str
     ) -> None:
         """
@@ -209,9 +207,9 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         ----------
         callback_group_type : str
             callback group type
-        node_name : List[str]
+        node_name : list[str]
             node name
-        callback_values: Tuple[CallbackStructValue, ...]
+        callback_values: tuple[CallbackStructValue, ...]
             callback values
         callback_group_name: str
             callback group name
@@ -273,26 +271,26 @@ class CallbackGroupStructValue(ValueObject, Summarizable):
         return self._node_name
 
     @property
-    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
+    def callbacks(self) -> tuple[CallbackStructValue, ...]:
         """
         Get callbacks.
 
         Returns
         -------
-        Tuple[CallbackStructValue, ...]
+        tuple[CallbackStructValue, ...]
             Callbacks which are added to the callback group.
 
         """
         return self._callback_values
 
     @property
-    def callback_names(self) -> Tuple[str, ...]:
+    def callback_names(self) -> tuple[str, ...]:
         """
         Get callback names.
 
         Returns
         -------
-        Tuple[str, ...]
+        tuple[str, ...]
             Callback names which are added to the callback group.
 
         """

@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from logging import getLogger
-from typing import Sequence, Union
 
 from bokeh.plotting import Figure
 
@@ -28,7 +28,7 @@ from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 logger = getLogger(__name__)
 

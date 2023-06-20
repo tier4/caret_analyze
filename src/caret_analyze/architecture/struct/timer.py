@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from .callback import TimerCallbackStruct
 from ...value_objects import TimerStructValue
@@ -25,7 +25,7 @@ class TimerStruct():
         self,
         node_name: str,
         period_ns: int,
-        callback_info: Optional[TimerCallbackStruct],
+        callback_info: TimerCallbackStruct | None,
         construction_order: int,
     ) -> None:
         self._node_name: str = node_name
@@ -42,14 +42,14 @@ class TimerStruct():
         return self._period_ns
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         if self._callback_value is None:
             return None
 
         return self._callback_value.callback_name
 
     @property
-    def callback(self) -> Optional[TimerCallbackStruct]:
+    def callback(self) -> TimerCallbackStruct | None:
         return self._callback_value
 
     @property

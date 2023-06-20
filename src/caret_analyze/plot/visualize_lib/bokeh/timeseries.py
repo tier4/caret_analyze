@@ -15,7 +15,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Any
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
@@ -27,7 +28,7 @@ from ....common import ClockConverter
 from ....record import Range, RecordsInterface
 from ....runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class BokehTimeSeries:
@@ -144,7 +145,7 @@ class LineSource:
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 
@@ -171,9 +172,7 @@ class LineSource:
         Parameters
         ----------
         target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+            TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
         timeseries_records : RecordsInterface
             Records containing timeseries data.
 
@@ -200,10 +199,10 @@ class LineSource:
     def _get_x_y(
         self,
         timeseries_records: RecordsInterface
-    ) -> Tuple[List[Union[int, float]], List[Union[int, float]]]:
+    ) -> tuple[list[int | float], list[int | float]]:
         def ensure_not_none(
-            target_seq: Sequence[Optional[Union[int, float]]]
-        ) -> List[Union[int, float]]:
+            target_seq: Sequence[int | float | None]
+        ) -> list[int | float]:
             """
             Ensure the inputted list does not include None.
 
@@ -225,8 +224,8 @@ class LineSource:
         if 'latency' in value_column.lower() or 'period' in value_column.lower():
             values = [v*10**(-6) for v in values]  # [ns] -> [ms]
 
-        x_item: List[Union[int, float]]
-        y_item: List[Union[int, float]] = values
+        x_item: list[int | float]
+        y_item: list[int | float] = values
         if self._xaxis_type == 'system_time':
             x_item = [(ts-self._frame_min)*10**(-9) for ts in timestamps]
         elif self._xaxis_type == 'index':

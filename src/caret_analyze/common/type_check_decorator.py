@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import wraps
 from inspect import Signature, signature
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from ..exceptions import UnsupportedTypeError
 
@@ -48,7 +50,7 @@ try:
                 '<EXPECT_TYPE>'
 
         """
-        expected_types: List[str] = []
+        expected_types: list[str] = []
         for error in e.errors():
             if error['type'] == 'type_error.arbitrary_type':  # Custom class type case
                 expected_types.append(error['ctx']['expected_arbitrary_type'])
@@ -100,8 +102,8 @@ try:
 
     def _get_given_arg_type(
         signature: Signature,
-        args: Tuple[Any, ...],
-        kwargs: Dict[str, Any],
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
         given_arg_loc: tuple
     ) -> str:
         """
@@ -111,9 +113,9 @@ try:
         ----------
         signature: Signature
             Signature of target function.
-        args: Tuple[Any, ...]
+        args: tuple[Any, ...]
             Arguments of target function.
-        kwargs: Dict[str, Any]
+        kwargs: dict[str, Any]
             Keyword arguments of target function.
         given_arg_loc: tuple
             (i) Not iterable type case

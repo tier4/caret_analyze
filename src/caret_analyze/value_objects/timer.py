@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from .callback import TimerCallbackStructValue
 from .value_object import ValueObject
@@ -26,8 +26,8 @@ class TimerValue(ValueObject):
         self,
         period: int,
         node_name: str,
-        node_id: Optional[str],
-        callback_id: Optional[str],
+        node_id: str | None,
+        callback_id: str | None,
         construction_order: int
     ) -> None:
         self._node_name = node_name
@@ -45,7 +45,7 @@ class TimerValue(ValueObject):
         return self._node_name
 
     @property
-    def node_id(self) -> Optional[str]:
+    def node_id(self) -> str | None:
         return self._node_id
 
     @property
@@ -53,7 +53,7 @@ class TimerValue(ValueObject):
         return self._period
 
     @property
-    def callback_id(self) -> Optional[str]:
+    def callback_id(self) -> str | None:
         return self._callback_id
 
 
@@ -64,7 +64,7 @@ class TimerStructValue(ValueObject, Summarizable):
         self,
         node_name: str,
         period_ns: int,
-        callback_info: Optional[TimerCallbackStructValue],
+        callback_info: TimerCallbackStructValue | None,
         construction_order: int
     ) -> None:
         self._node_name: str = node_name
@@ -81,7 +81,7 @@ class TimerStructValue(ValueObject, Summarizable):
         return self._period_ns
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         if self._callback_value is None:
             return None
 
@@ -96,9 +96,9 @@ class TimerStructValue(ValueObject, Summarizable):
         })
 
     @property
-    def callback(self) -> Optional[TimerCallbackStructValue]:
+    def callback(self) -> TimerCallbackStructValue | None:
         return self._callback_value
 
     @property
-    def construction_order(self) -> Optional[int]:
+    def construction_order(self) -> int | None:
         return self._construction_order

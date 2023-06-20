@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
-from typing import List, Sequence, Union
+from collections.abc import Sequence
 
 import pandas as pd
 
 from ..record import ColumnValue, RecordFactory, RecordsFactory, RecordsInterface
 from ..runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class MetricsBase(metaclass=ABCMeta):
@@ -33,7 +35,7 @@ class MetricsBase(metaclass=ABCMeta):
         self._target_objects = list(target_objects)
 
     @property
-    def target_objects(self) -> List[TimeSeriesTypes]:
+    def target_objects(self) -> list[TimeSeriesTypes]:
         return self._target_objects
 
     @abstractmethod
@@ -44,14 +46,14 @@ class MetricsBase(metaclass=ABCMeta):
     def to_timeseries_records_list(
         self,
         xaxis_type: str = 'system_time'
-    ) -> List[RecordsInterface]:
+    ) -> list[RecordsInterface]:
         raise NotImplementedError()
 
     # TODO: Migrate into records.
     def _convert_timeseries_records_to_sim_time(
         self,
-        timeseries_records_list: List[RecordsInterface]
-    ) -> List[RecordsInterface]:
+        timeseries_records_list: list[RecordsInterface]
+    ) -> list[RecordsInterface]:
         # get converter
         if isinstance(self._target_objects[0], Communication):
             for comm in self._target_objects:
@@ -64,7 +66,7 @@ class MetricsBase(metaclass=ABCMeta):
             converter = self._target_objects[0]._provider.get_sim_time_converter()
 
         # convert
-        converted_records_list: List[RecordsInterface] = []
+        converted_records_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
             # TODO: Refactor after Records class supports quadrature operations.
             values = [
@@ -78,7 +80,7 @@ class MetricsBase(metaclass=ABCMeta):
                 in records
             ]
 
-            columns: List[ColumnValue] = \
+            columns: list[ColumnValue] = \
                 [ColumnValue(_) for _ in records.columns]
 
             converted_records_list.append(RecordsFactory.create_instance(values, columns))

@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional
 
 from ...value_objects import (CallbackStructValue, CallbackType,
                               ServiceCallbackStructValue,
@@ -30,9 +29,9 @@ class CallbackStruct(metaclass=ABCMeta):
         self,
         node_name: str,
         symbol: str,
-        subscribe_topic_name: Optional[str],
-        service_name: Optional[str],
-        publish_topic_names: Optional[List[str]],
+        subscribe_topic_name: str | None,
+        service_name: str | None,
+        publish_topic_names: list[str] | None,
         construction_order: int,
         callback_name: str
     ) -> None:
@@ -106,15 +105,15 @@ class CallbackStruct(metaclass=ABCMeta):
         return str(self.callback_type)
 
     @property
-    def subscribe_topic_name(self) -> Optional[str]:
+    def subscribe_topic_name(self) -> str | None:
         return self._subscribe_topic_name
 
     @property
-    def service_name(self) -> Optional[str]:
+    def service_name(self) -> str | None:
         return self._service_name
 
     @property
-    def publish_topic_names(self) -> Optional[List[str]]:
+    def publish_topic_names(self) -> list[str] | None:
         return self._publish_topic_names
 
     @property
@@ -134,10 +133,15 @@ class CallbackStruct(metaclass=ABCMeta):
     def to_value(self) -> CallbackStructValue:
         pass
 
-    def assign_publisher(self, publish_topic_name: str):
+    def insert_publisher(self, publish_topic_name: str) -> None:
         self._publish_topic_names = self._publish_topic_names or []
         if publish_topic_name not in self._publish_topic_names:
             self._publish_topic_names.append(publish_topic_name)
+
+    def remove_publisher(self, publish_topic_name: str) -> None:
+        if self._publish_topic_names and \
+           publish_topic_name in self._publish_topic_names:
+            self._publish_topic_names.remove(publish_topic_name)
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:
@@ -162,7 +166,7 @@ class TimerCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         period_ns: int,
-        publish_topic_names: Optional[List[str]],
+        publish_topic_names: list[str] | None,
         construction_order: int,
         callback_name: str,
     ) -> None:
@@ -199,7 +203,7 @@ class SubscriptionCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         subscribe_topic_name: str,
-        publish_topic_names: Optional[List[str]],
+        publish_topic_names: list[str] | None,
         construction_order: int,
         callback_name: str,
     ) -> None:
@@ -247,7 +251,7 @@ class ServiceCallbackStruct(CallbackStruct):
         node_name: str,
         symbol: str,
         service_name: str,
-        publish_topic_names: Optional[List[str]],
+        publish_topic_names: list[str] | None,
         construction_order: int,
         callback_name: str,
     ) -> None:

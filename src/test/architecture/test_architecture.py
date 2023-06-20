@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
+from __future__ import annotations
 
+from collections import defaultdict
+from collections.abc import Callable
 from logging import WARNING
 
 from string import Template
-from typing import Callable, List, Optional, Tuple
 
 from caret_analyze.architecture import Architecture
 from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
@@ -61,8 +62,8 @@ def create_node_path(
 ):
     def _create_node_path(
         node_name: str,
-        sub_topic_name: Optional[str],
-        pub_topic_name: Optional[str],
+        sub_topic_name: str | None,
+        pub_topic_name: str | None,
     ) -> NodePathStructValue:
         sub = None
         if sub_topic_name is not None:
@@ -81,13 +82,13 @@ def create_node_path(
 @pytest.fixture
 def create_arch(mocker):
     def _create_arch(
-        node_paths: Tuple[NodePathStructValue],
-        comms: Tuple[CommunicationStructValue]
+        node_paths: tuple[NodePathStructValue],
+        comms: tuple[CommunicationStructValue]
     ) -> Architecture:
-        node_dict: defaultdict[str, List[NodePathStructValue]] = defaultdict(list)
+        node_dict: defaultdict[str, list[NodePathStructValue]] = defaultdict(list)
         for node_path in node_paths:
             node_dict[node_path.node_name].append(node_path)
-        node_list = []  # List[mock]
+        node_list = []  # list[mock]
 
         for node, paths in node_dict.items():
             node_value_mock = mocker.Mock(spec=NodeStructValue)
@@ -133,11 +134,11 @@ def create_node(
 ):
     def _create_node(
         node_name: str,
-        sub_topic_name: Optional[str],
-        pub_topic_name: Optional[str]
+        sub_topic_name: str | None,
+        pub_topic_name: str | None
     ) -> NodeStructValue:
-        pubs: Tuple[PublisherStructValue, ...]
-        subs: Tuple[SubscriptionStructValue, ...]
+        pubs: tuple[PublisherStructValue, ...]
+        subs: tuple[SubscriptionStructValue, ...]
 
         if pub_topic_name:
             pubs = (create_publisher(node_name, pub_topic_name),)
@@ -156,7 +157,7 @@ def create_node(
 
 
 @pytest.fixture
-def create_comm(create_node: Callable[[str, Optional[str], Optional[str]], NodeStructValue]):
+def create_comm(create_node: Callable[[str, str | None, str | None], NodeStructValue]):
     def _create_comm(
         topic_name: str,
         pub_node_name: str,
@@ -508,7 +509,9 @@ class TestArchitecture:
         Architecture._verify([node_mock])
         assert len(caplog.record_tuples) == 1
 
-    template_architecture_assign = Template("""
+
+class TestArchitectureInsertAndUpdate:
+    template_architecture = Template("""
 named_paths: []
 executors:
 - executor_type: single_threaded_executor
@@ -551,33 +554,342 @@ $contexts
 
     contexts_text = """
   message_contexts:
-    - context_type: callback_chain
+    - context_type: use_latest_message
       subscription_topic_name: /pong
       publisher_topic_name: /ping
 """
 
-    contexts_text_latest = """
+    contexts_text_undefined = """
+  message_contexts:
+    - context_type: UNDEFINED
+      subscription_topic_name: /pong
+      publisher_topic_name: /ping
+"""
+
+    def test_update_message_context(self, mocker, caplog):
+        # update message context to minimum architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.update_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # update message context to be full architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.update_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # update UNDEFINED to full architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.update_message_context('/pong_node', 'UNDEFINED', '/pong', '/ping')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text_undefined)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # invalid update
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        with pytest.raises(ItemNotFoundError):
+            arch.update_message_context('/not_exist_node', 'callback_chain', '/pong', '/ping')
+
+        arch.update_message_context('/pong_node', 'invalid_contexts', '/pong', '/ping')
+        assert any(['Failed to load message context.' in message for message in caplog.messages])
+
+        with pytest.raises(ItemNotFoundError):
+            arch.update_message_context('/pong_node', 'callback_chain',
+                                        '/not_exist_topic', '/ping')
+        with pytest.raises(ItemNotFoundError):
+            arch.update_message_context('/pong_node', 'callback_chain',
+                                        '/pong', '/not_exist_topic')
+
+    def test_insert_publisher_callback(self, mocker):
+        # insert publisher callback to publisher to minimum architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='UNDEFINED',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # insert publisher callback to publisher to be full architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='UNDEFINED',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # invalid insert
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        with pytest.raises(ItemNotFoundError):
+            arch.insert_publisher_callback('/not_exist_node', '/ping', 'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.insert_publisher_callback('/pong_node', '/not_exist_topic',
+                                           'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.insert_publisher_callback('/pong_node', '/ping', 'not_exist_callback_1')
+
+        # duplicated insert
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.insert_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+    def test_insert_variable_passing(self, mocker):
+        # insert variable passing to minimum architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.insert_variable_passing('/pong_node', 'subscription_callback_0', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # insert variable passing to be full architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.insert_variable_passing('/pong_node', 'subscription_callback_0', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+        # invalid insert
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        with pytest.raises(ItemNotFoundError):
+            arch.insert_variable_passing('/not_exist_node', 'subscription_callback_0',
+                                         'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.insert_variable_passing('/pong_node', 'not_exist_callback_0',
+                                         'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.insert_variable_passing('/pong_node', 'subscription_callback_0',
+                                         'not_exist_callback_0')
+
+        # duplicated insert
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.insert_variable_passing('/pong_node', 'subscription_callback_0', 'timer_callback_1')
+
+        assert set(arch.nodes) == set(arch_expected.nodes)
+        assert set(arch.communications) == set(arch_expected.communications)
+        assert set(arch.executors) == set(arch_expected.executors)
+        assert set(arch.paths) == set(arch_expected.paths)
+
+
+class TestArchitectureRemove:
+    template_architecture = Template("""
+named_paths: []
+executors:
+- executor_type: single_threaded_executor
+  executor_name: executor_0
+  callback_group_names:
+  - /callback_group_0
+nodes:
+- node_name: /pong_node
+  callback_groups:
+  - callback_group_type: mutually_exclusive
+    callback_group_name: /callback_group_0
+    callback_names:
+    - subscription_callback_0
+    - timer_callback_1
+  callbacks:
+    - callback_name: subscription_callback_0
+      callback_type: subscription_callback
+      topic_name: /pong
+      symbol: sub_symbol
+    - callback_name: timer_callback_1
+      callback_type: timer_callback
+      period_ns: 1
+      symbol: timer_symbol
+$passings
+  subscribes:
+    - topic_name: /pong
+      callback_name: subscription_callback_0
+  publishes:
+    - topic_name: /ping
+      callback_names:
+        - $publisher_callback
+$contexts
+""")
+
+    passings_text = """
+  variable_passings:
+    - callback_name_write: subscription_callback_0
+      callback_name_read: timer_callback_1
+"""
+
+    contexts_text = """
   message_contexts:
     - context_type: use_latest_message
       subscription_topic_name: /pong
       publisher_topic_name: /ping
 """
 
-    def test_assign_message_contexts(self, mocker, caplog):
-        # assign message context to template
+    def test_remove_publisher_callback(self, mocker):
+        # remove publisher to publisher function without variable passing
         architecture_text = \
-            self.template_architecture_assign.substitute(passings='',
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts='')
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.assign_message_context('/pong_node', 'callback_chain', '/pong', '/ping')
+        arch.remove_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
 
         architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings='',
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='UNDEFINED',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch_expected = Architecture('yaml', 'architecture.yaml')
+
+        # remove publisher to publisher function with variable passing
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.remove_publisher_callback('/pong_node', '/ping', 'timer_callback_1')
+
+        architecture_text_expected = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='UNDEFINED',
+                                                  contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
@@ -586,20 +898,37 @@ $contexts
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
 
-        # assign message context to be full architecture
+        # invalid remove
         architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts='')
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
+        with pytest.raises(ItemNotFoundError):
+            arch.remove_publisher_callback('/pong_node', '/not_exist_topic',
+                                           'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.remove_publisher_callback('/not_exist_node', '/ping', 'timer_callback_1')
+        with pytest.raises(ItemNotFoundError):
+            arch.remove_publisher_callback('/pong_node', '/ping', 'not_exist_callback_1')
+
+    def test_remove_variable_passing(self, mocker):
+        # remove variable passing to be minimum architecture
+        architecture_text = \
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.remove_variable_passing('/pong_node', 'subscription_callback_0', 'timer_callback_1')
 
         architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text_latest)
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts='')
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
@@ -608,58 +937,21 @@ $contexts
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
 
-        # invalid assign
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text_latest)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
-        with pytest.raises(ItemNotFoundError):
-            arch.assign_message_context('/not_exist_node', 'callback_chain', '/pong', '/ping')
-
-        arch.assign_message_context('/pong_node', 'invalid_contexts', '/pong', '/ping')
-        assert any(['Failed to load message context.' in message for message in caplog.messages])
-
-        with pytest.raises(ItemNotFoundError):
-            arch.assign_message_context('/pong_node', 'callback_chain',
-                                        '/not_exist_topic', '/ping')
-        with pytest.raises(ItemNotFoundError):
-            arch.assign_message_context('/pong_node', 'callback_chain',
-                                        '/pong', '/not_exist_topic')
-
-        # duplicated assign
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text_latest)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
-        arch.assign_message_context('/pong_node', 'use_latest_message', '/pong', '/ping')
-
-        assert set(arch.nodes) == set(arch_expected.nodes)
-        assert set(arch.communications) == set(arch_expected.communications)
-        assert set(arch.executors) == set(arch_expected.executors)
-        assert set(arch.paths) == set(arch_expected.paths)
-
-    def test_assign_publisher_and_callback(self, mocker):
-        # assign publisher to publisher function
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='UNDEFINED',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
-        arch.assign_publisher_and_callback('/pong_node', '/ping', 'timer_callback_1')
-
+        # remove variable passing to full architecture
         architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
+        arch = Architecture('yaml', 'architecture.yaml')
+
+        arch.remove_variable_passing('/pong_node', 'subscription_callback_0', 'timer_callback_1')
+
+        architecture_text = \
+            self.template_architecture.substitute(passings='',
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
+        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch_expected = Architecture('yaml', 'architecture.yaml')
 
         assert set(arch.nodes) == set(arch_expected.nodes)
@@ -667,112 +959,26 @@ $contexts
         assert set(arch.executors) == set(arch_expected.executors)
         assert set(arch.paths) == set(arch_expected.paths)
 
-        # invalid assign
+        # invalid remove
         architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
+            self.template_architecture.substitute(passings=self.passings_text,
+                                                  publisher_callback='timer_callback_1',
+                                                  contexts=self.contexts_text)
         mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
         arch = Architecture('yaml', 'architecture.yaml')
 
         with pytest.raises(ItemNotFoundError):
-            arch.assign_publisher_and_callback('/not_exist_node', '/ping', 'timer_callback_1')
+            arch.remove_variable_passing('/not_exist_node', 'subscription_callback_0',
+                                         'timer_callback_1')
         with pytest.raises(ItemNotFoundError):
-            arch.assign_publisher_and_callback('/pong_node', '/ping', 'not_exist_callback_1')
-
-        # duplicated assign
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
-        arch.assign_publisher_and_callback('/pong_node', '/ping', 'timer_callback_1')
-
-        assert set(arch.nodes) == set(arch_expected.nodes)
-        assert set(arch.communications) == set(arch_expected.communications)
-        assert set(arch.executors) == set(arch_expected.executors)
-        assert set(arch.paths) == set(arch_expected.paths)
-
-    def test_assign_passings(self, mocker):
-        # assign passing to template
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings='',
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts='')
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
-        arch.assign_variable_passings('/pong_node', 'subscription_callback_0', 'timer_callback_1')
-
-        architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts='')
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
-        arch_expected = Architecture('yaml', 'architecture.yaml')
-
-        assert set(arch.nodes) == set(arch_expected.nodes)
-        assert set(arch.communications) == set(arch_expected.communications)
-        assert set(arch.executors) == set(arch_expected.executors)
-        assert set(arch.paths) == set(arch_expected.paths)
-
-        # assign passing to be full architecture
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings='',
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
-        arch.assign_variable_passings('/pong_node', 'subscription_callback_0', 'timer_callback_1')
-
-        architecture_text_expected = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text_expected))
-        arch_expected = Architecture('yaml', 'architecture.yaml')
-
-        assert set(arch.nodes) == set(arch_expected.nodes)
-        assert set(arch.communications) == set(arch_expected.communications)
-        assert set(arch.executors) == set(arch_expected.executors)
-        assert set(arch.paths) == set(arch_expected.paths)
-
-        # invalid assign
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
-
+            arch.remove_variable_passing('/pong_node', 'not_exist_callback_0',
+                                         'timer_callback_1')
         with pytest.raises(ItemNotFoundError):
-            arch.assign_variable_passings('/not_exist_node', 'subscription_callback_0',
-                                          'timer_callback_1')
-        with pytest.raises(ItemNotFoundError):
-            arch.assign_variable_passings('/pong_node', 'not_exist_callback_0',
-                                          'timer_callback_1')
-        with pytest.raises(ItemNotFoundError):
-            arch.assign_variable_passings('/pong_node', 'subscription_callback_0',
-                                          'not_exist_callback_0')
+            arch.remove_variable_passing('/pong_node', 'subscription_callback_0',
+                                         'not_exist_callback_0')
 
-        # duplicated assign
-        architecture_text = \
-            self.template_architecture_assign.substitute(passings=self.passings_text,
-                                                         publisher_callback='timer_callback_1',
-                                                         contexts=self.contexts_text)
-        mocker.patch('builtins.open', mocker.mock_open(read_data=architecture_text))
-        arch = Architecture('yaml', 'architecture.yaml')
 
-        arch.assign_variable_passings('/pong_node', 'subscription_callback_0', 'timer_callback_1')
-
-        assert set(arch.nodes) == set(arch_expected.nodes)
-        assert set(arch.communications) == set(arch_expected.communications)
-        assert set(arch.executors) == set(arch_expected.executors)
-        assert set(arch.paths) == set(arch_expected.paths)
-
+class TestArchitectureRename:
     # define template text of rename function
     template_architecture_rename = Template("""
 named_paths:

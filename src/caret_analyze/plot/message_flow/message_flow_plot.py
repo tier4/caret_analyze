@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Optional
 
 from bokeh.plotting import Figure
 
@@ -53,9 +52,9 @@ class MessageFlowPlot(PlotBase):
 
     def figure(
         self,
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None  # FIXME: not used in message flow
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None  # FIXME: not used in message flow
     ) -> Figure:
         # Set default value
         xaxis_type = xaxis_type or 'system_time'

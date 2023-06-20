@@ -14,10 +14,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from copy import deepcopy
 from enum import IntEnum
 from itertools import groupby
-from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 import pandas as pd
 
@@ -34,7 +34,7 @@ class MergeSide(IntEnum):
 # class Record(collections.UserDict, RecordInterface):
 class Record(RecordInterface):
 
-    def __init__(self, init: Optional[Dict] = None) -> None:
+    def __init__(self, init: dict | None = None) -> None:
         init = init or {}
         self._data = init or {}
         self._columns = set(init.keys())
@@ -46,18 +46,18 @@ class Record(RecordInterface):
         return self._data.get(key, v)
 
     @property
-    def data(self) -> Dict[str, int]:
+    def data(self) -> dict[str, int]:
         return self._data
 
     @property
-    def columns(self) -> Set[str]:
+    def columns(self) -> set[str]:
         return deepcopy(self._columns)
 
-    def drop_columns(self, columns: List[str]) -> None:
+    def drop_columns(self, columns: list[str]) -> None:
         if not isinstance(columns, list):
             raise InvalidArgumentError('columns must be list.')
 
-        data: Dict[str, int]
+        data: dict[str, int]
 
         data = self._data
 
@@ -93,21 +93,21 @@ class Records(RecordsInterface):
 
     def __init__(
         self,
-        init: Optional[Sequence[RecordInterface]] = None,
-        column_values: Optional[Sequence[ColumnValue]] = None
+        init: Sequence[RecordInterface] | None = None,
+        column_values: Sequence[ColumnValue] | None = None
     ) -> None:
-        init_: List[RecordInterface] = [] if init is None else list(init)
+        init_: list[RecordInterface] = [] if init is None else list(init)
         column_values = [] if column_values is None else list(column_values)
 
         column_names = [str(c) for c in column_values]
         self._validate(init_, column_names)
-        self._data: List[RecordInterface] = init_
+        self._data: list[RecordInterface] = init_
         self._columns: Columns = Columns(column_values or [])
 
     @staticmethod
     def _validate(
-        init: Optional[List[RecordInterface]],
-        columns: Optional[List[str]]
+        init: list[RecordInterface] | None,
+        columns: list[str] | None
     ) -> None:
         init = init or []
         columns = columns or []
@@ -133,8 +133,8 @@ class Records(RecordsInterface):
 
     @staticmethod
     def __validate_unknown_columns(
-        selected_columns: Set[str],
-        columns: Set[str]
+        selected_columns: set[str],
+        columns: set[str]
     ) -> None:
         unknown_column = selected_columns - columns
         if len(unknown_column) > 0:
@@ -144,7 +144,7 @@ class Records(RecordsInterface):
 
     @staticmethod
     def _validate_merge_records(
-        columns: Optional[List[str]],
+        columns: list[str] | None,
         *records_args: RecordsInterface,
     ) -> None:
         columns = columns or []
@@ -162,11 +162,11 @@ class Records(RecordsInterface):
         return len(self.data)
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         return self._columns.column_names
 
     def sort(
-        self, key: str, sub_key: Optional[str] = None, ascending=True
+        self, key: str, sub_key: str | None = None, ascending=True
     ) -> None:
         data_ = self.data
 
@@ -211,10 +211,10 @@ class Records(RecordsInterface):
         return None
 
     @property
-    def data(self) -> List[RecordInterface]:
+    def data(self) -> list[RecordInterface]:
         return self._data
 
-    def _append_dict(self, other: Dict[str, int]):
+    def _append_dict(self, other: dict[str, int]):
         record = Record(other)
         self._append_record(record)
 
@@ -234,8 +234,8 @@ class Records(RecordsInterface):
             raise InvalidArgumentError(msg)
         self._data += list(other.data)
 
-    def drop_columns(self, columns: List[str]) -> None:
-        data_: List[RecordInterface]
+    def drop_columns(self, columns: list[str]) -> None:
+        data_: list[RecordInterface]
 
         self._columns.drop(columns)
         data_ = self._data
@@ -244,10 +244,10 @@ class Records(RecordsInterface):
             record.drop_columns(columns)
         return None
 
-    def rename_columns(self, columns: Dict[str, str]) -> None:
+    def rename_columns(self, columns: dict[str, str]) -> None:
         validate_rename_rule(columns)
 
-        data_: List[RecordInterface]
+        data_: list[RecordInterface]
         data_ = self._data
 
         for record in data_:
@@ -259,7 +259,7 @@ class Records(RecordsInterface):
         self._columns.rename(columns)
         return None
 
-    def append_column(self, column: ColumnValue, values: List[int]) -> None:
+    def append_column(self, column: ColumnValue, values: list[int]) -> None:
         assert isinstance(column, ColumnValue)
 
         if len(values) != len(self):
@@ -292,7 +292,7 @@ class Records(RecordsInterface):
 
         return True
 
-    def reindex(self, columns: List[str]) -> None:
+    def reindex(self, columns: list[str]) -> None:
         err_columns = set(self.columns) ^ set(columns)
         if len(err_columns) > 0:
             msg = 'Column names do not match. '
@@ -306,7 +306,7 @@ class Records(RecordsInterface):
         pd_dict = [record.data for record in self.data]
         return self._to_dataframe(pd_dict, self.columns)
 
-    def get_column_series(self, column_name: str) -> Sequence[Optional[int]]:
+    def get_column_series(self, column_name: str) -> Sequence[int | None]:
         return self._get_column_series_core(self, column_name)
 
     def get_row_series(self, index: int) -> RecordInterface:
@@ -318,7 +318,7 @@ class Records(RecordsInterface):
     def _get_column_series_core(records: RecordsInterface, column_name: str):
         if column_name not in records.columns:
             raise InvalidArgumentError(f'Unknown column_name: {column_name}')
-        l: List[Optional[int]] = []
+        l: list[int | None] = []
         for datum in records.data:
             if column_name in datum.columns:
                 l.append(datum.get(column_name))
@@ -328,13 +328,13 @@ class Records(RecordsInterface):
 
     @staticmethod
     def _to_dataframe(
-        df_list: List[Dict[str, int]],
-        columns: List[str]
+        df_list: list[dict[str, int]],
+        columns: list[str]
     ) -> pd.DataFrame:
         # When from_dict is used,
         # dataframe values are rounded to a float type,
         # so here uses a dictionary type.
-        df_dict: Dict[str, List[Optional[int]]]
+        df_dict: dict[str, list[int | None]]
         df_dict = {c: [None]*len(df_list) for c in columns}
 
         int64_max = 2**63-1
@@ -365,7 +365,7 @@ class Records(RecordsInterface):
     def bind_drop_as_delay(self) -> None:
         self.sort_column_order(ascending=False, put_none_at_top=False)
 
-        oldest_values: Dict[str, int] = {}
+        oldest_values: dict[str, int] = {}
 
         for record in self.data:
             for key in self.columns:
@@ -381,10 +381,10 @@ class Records(RecordsInterface):
         right_records: RecordsInterface,
         join_left_key: str,
         join_right_key: str,
-        columns: List[str],
+        columns: list[str],
         how: str,
         *,
-        progress_label: Optional[str] = None  # unused
+        progress_label: str | None = None  # unused
     ) -> Records:
         maxsize = 2**64 - 1
 
@@ -433,9 +433,9 @@ class Records(RecordsInterface):
 
         concat_records.sort(key=column_merge_stamp, sub_key=column_side)
 
-        empty_records: List[RecordInterface] = []
-        left_records_: List[RecordInterface] = []
-        processed_stamps: Set[int] = set()
+        empty_records: list[RecordInterface] = []
+        left_records_: list[RecordInterface] = []
+        processed_stamps: set[int] = set()
 
         merged_records = Records(
             None,
@@ -446,8 +446,8 @@ class Records(RecordsInterface):
         )
 
         def move_left_to_empty(
-            left: List[RecordInterface],
-            empty: List[RecordInterface]
+            left: list[RecordInterface],
+            empty: list[RecordInterface]
         ):
             for left_record in left_records_:
                 if left_record.get(column_found_right_record) is False:
@@ -504,12 +504,12 @@ class Records(RecordsInterface):
         right_records: RecordsInterface,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
-        columns: List[str],
+        join_left_key: str | None,
+        join_right_key: str | None,
+        columns: list[str],
         how: str,
         *,
-        progress_label: Optional[str] = None  # unused
+        progress_label: str | None = None  # unused
     ) -> RecordsInterface:
         maxsize = 2**64 - 1
         self._validate(None, columns)
@@ -559,7 +559,7 @@ class Records(RecordsInterface):
                 record.add(column_merge_stamp, maxsize)
                 record.add(column_has_merge_stamp, False)
 
-        def get_join_value(record: RecordInterface) -> Optional[int]:
+        def get_join_value(record: RecordInterface) -> int | None:
             if record.get(column_side) == MergeSide.LEFT:
                 join_key = join_left_key
             else:
@@ -574,7 +574,7 @@ class Records(RecordsInterface):
 
         concat_records.sort(key=column_merge_stamp, sub_key=column_side)
 
-        to_left_records: Dict[int, RecordInterface] = {}
+        to_left_records: dict[int, RecordInterface] = {}
         for record in concat_records.data:
             if not record.get(column_has_merge_stamp):
                 continue
@@ -602,7 +602,7 @@ class Records(RecordsInterface):
             ).to_value()
         )
 
-        added: Set[RecordInterface] = set()
+        added: set[RecordInterface] = set()
         for current_record in concat_records.data:
             recorded = current_record in added
             if recorded:
@@ -625,7 +625,7 @@ class Records(RecordsInterface):
                     added.add(current_record)
                 continue
 
-            sub_records: List[RecordInterface]
+            sub_records: list[RecordInterface]
             sub_records = current_record.data[column_sub_records]  # type: ignore
 
             if sub_records == []:
@@ -684,9 +684,9 @@ class Records(RecordsInterface):
         sink_records: RecordsInterface,
         sink_stamp_key: str,
         sink_from_key: str,
-        columns: List[str],
+        columns: list[str],
         *,
-        progress_label: Optional[str] = None  # unused
+        progress_label: str | None = None  # unused
     ) -> Records:
         assert isinstance(copy_records, Records)
         assert isinstance(sink_records, Records)
@@ -723,7 +723,7 @@ class Records(RecordsInterface):
         # because the lost records stay forever. Sort in reverse chronological order.
 
         #  Dict of records to be added by sink and removed by source
-        processing_records: Dict[int, RecordInterface] = {}
+        processing_records: dict[int, RecordInterface] = {}
 
         sink_from_keys = sink_from_key + '_'
 
@@ -786,8 +786,8 @@ class Records(RecordsInterface):
 
         return merged_records
 
-    def groupby(self, columns: List[str]) -> Dict[Tuple[int, ...], RecordsInterface]:
-        group: Dict[Tuple[int, ...], RecordsInterface] = {}
+    def groupby(self, columns: list[str]) -> dict[tuple[int, ...], RecordsInterface]:
+        group: dict[tuple[int, ...], RecordsInterface] = {}
 
         m = 2**64 - 1
         for record in self._data:
@@ -805,10 +805,10 @@ def merge(
     right_records: RecordsInterface,
     join_left_key: str,
     join_right_key: str,
-    columns: List[str],
+    columns: list[str],
     how: str,
     *,
-    progress_label: Optional[str] = None
+    progress_label: str | None = None
 ) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
@@ -827,12 +827,12 @@ def merge_sequential(
     right_records: RecordsInterface,
     left_stamp_key: str,
     right_stamp_key: str,
-    join_left_key: Optional[str],
-    join_right_key: Optional[str],
-    columns: List[str],
+    join_left_key: str | None,
+    join_right_key: str | None,
+    columns: list[str],
     how: str,
     *,
-    progress_label: Optional[str] = None,
+    progress_label: str | None = None,
 ) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
@@ -865,9 +865,9 @@ def merge_sequential_for_addr_track(
     sink_records: RecordsInterface,
     sink_stamp_key: str,
     sink_from_key: str,
-    columns: List[str],
+    columns: list[str],
     *,
-    progress_label: Optional[str] = None
+    progress_label: str | None = None
 ):
     assert type(source_records) == type(copy_records) and type(
         copy_records) == type(sink_records)
@@ -887,7 +887,7 @@ def merge_sequential_for_addr_track(
     )
 
 
-def validate_rename_rule(rename_rule: Dict[str, str]):
+def validate_rename_rule(rename_rule: dict[str, str]):
     # overwrite columns
     if len(set(rename_rule.keys()) & set(rename_rule.values())) > 0:
         msg = 'Overwrite columns. '

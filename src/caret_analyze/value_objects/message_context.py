@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from logging import getLogger
-from typing import Dict, Optional, Tuple
 
 from .callback import CallbackStructValue
 from .publisher import PublisherStructValue
@@ -53,9 +52,9 @@ class MessageContextType(ValueObject):
 
 
 MessageContextType.USE_LATEST_MESSAGE = \
-        MessageContextType('use_latest_message')
+    MessageContextType('use_latest_message')
 MessageContextType.INHERIT_UNIQUE_STAMP = \
-        MessageContextType('inherit_unique_stamp')
+    MessageContextType('inherit_unique_stamp')
 MessageContextType.CALLBACK_CHAIN = MessageContextType('callback_chain')
 MessageContextType.TILDE = MessageContextType('tilde')
 
@@ -66,10 +65,10 @@ class MessageContext(ValueObject, Summarizable):
     def __init__(
         self,
         node_name: str,
-        message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        child: Optional[Tuple[CallbackStructValue, ...]],
+        message_context_dict: dict,
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        child: tuple[CallbackStructValue, ...] | None,
     ) -> None:
         # Since it is used as a value object,
         # mutable types such as dict should not be used.
@@ -94,10 +93,10 @@ class MessageContext(ValueObject, Summarizable):
     @property
     def callbacks(
         self
-    ) -> Optional[Tuple[CallbackStructValue, ...]]:
+    ) -> tuple[CallbackStructValue, ...] | None:
         return self._callbacks
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             'context_type': str(self.type_name),
             'subscription_topic_name': self.subscription_topic_name,
@@ -106,32 +105,32 @@ class MessageContext(ValueObject, Summarizable):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        callbacks: tuple[CallbackStructValue, ...] | None
     ) -> bool:
         return self._sub == subscription and self._pub == publisher
 
     @property
-    def publisher_topic_name(self) -> Optional[str]:
+    def publisher_topic_name(self) -> str | None:
         if self._pub is None:
             return None
         return self._pub.topic_name
 
     @property
-    def subscription_topic_name(self) -> Optional[str]:
+    def subscription_topic_name(self) -> str | None:
         if self._sub is None:
             return None
         return self._sub.topic_name
 
     @property
-    def publisher_construction_order(self) -> Optional[int]:
+    def publisher_construction_order(self) -> int | None:
         if self._pub is None:
             return None
         return self._pub.construction_order
 
     @property
-    def subscription_construction_order(self) -> Optional[int]:
+    def subscription_construction_order(self) -> int | None:
         if self._sub is None:
             return None
         return self._sub.construction_order
@@ -151,11 +150,11 @@ class MessageContext(ValueObject, Summarizable):
     @staticmethod
     def create_instance(
         context_type_name: str,
-        context_dict: Dict,
+        context_dict: dict,
         node_name: str,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        child: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        child: tuple[CallbackStructValue, ...] | None
     ) -> MessageContext:
         if context_type_name == str(MessageContextType.CALLBACK_CHAIN):
             return CallbackChain(node_name,
@@ -234,10 +233,10 @@ class CallbackChain(MessageContext):
     def __init__(
         self,
         node_name: str,
-        message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        message_context_dict: dict,
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        callbacks: tuple[CallbackStructValue, ...] | None
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -251,15 +250,15 @@ class CallbackChain(MessageContext):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        callbacks: tuple[CallbackStructValue, ...] | None
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
         return self.callbacks == callbacks
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         d = super().to_dict()
         if self.callbacks is not None:
             d['callbacks'] = [_.callback_name for _ in self.callbacks]
@@ -303,10 +302,10 @@ class Tilde(MessageContext):
     def __init__(
         self,
         node_name: str,
-        message_context_dict: Dict,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        message_context_dict: dict,
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        callbacks: tuple[CallbackStructValue, ...] | None
     ) -> None:
         super().__init__(node_name,
                          message_context_dict,
@@ -320,9 +319,9 @@ class Tilde(MessageContext):
 
     def is_applicable_path(
         self,
-        subscription: Optional[SubscriptionStructValue],
-        publisher: Optional[PublisherStructValue],
-        callbacks: Optional[Tuple[CallbackStructValue, ...]]
+        subscription: SubscriptionStructValue | None,
+        publisher: PublisherStructValue | None,
+        callbacks: tuple[CallbackStructValue, ...] | None
     ) -> bool:
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False

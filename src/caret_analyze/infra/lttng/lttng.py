@@ -15,12 +15,13 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod, abstractproperty
+from collections.abc import Iterable, Iterator, Sequence, Sized
 from datetime import datetime
 from functools import cached_property
 from logging import getLogger
 import os
 import pickle
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Sized, Tuple, Union
+from typing import Any
 
 import bt2
 import pandas as pd
@@ -43,7 +44,7 @@ from ...record import RecordsInterface
 from ...value_objects import  \
     CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos, TimerValue
 
-Event = Dict[str, int]
+Event = dict[str, int]
 
 logger = getLogger(__name__)
 
@@ -80,10 +81,10 @@ class EventCollection(Iterable, Sized):
     def __len__(self) -> int:
         return len(self._iterable_events)
 
-    def __iter__(self) -> Iterator[Dict]:
+    def __iter__(self) -> Iterator[dict]:
         return iter(self._iterable_events)
 
-    def time_range(self) -> Tuple[int, int]:
+    def time_range(self) -> tuple[int, int]:
         return self._iterable_events.time_range()
 
     def _cache_path(self, events_path: str) -> str:
@@ -137,7 +138,7 @@ class EventCollection(Iterable, Sized):
 class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
 
     @abstractmethod
-    def __iter__(self) -> Iterator[Dict]:
+    def __iter__(self) -> Iterator[dict]:
         pass
 
     @abstractmethod
@@ -145,11 +146,11 @@ class IterableEvents(Iterable, Sized, metaclass=ABCMeta):
         pass
 
     @abstractproperty
-    def events(self) -> List[Dict]:
+    def events(self) -> list[dict]:
         pass
 
     @abstractmethod
-    def time_range(self) -> Tuple[int, int]:
+    def time_range(self) -> tuple[int, int]:
         pass
 
 
@@ -159,17 +160,17 @@ class PickleEventCollection(IterableEvents):
         with open(events_path, mode='rb') as f:
             self._events = pickle.load(f)
 
-    def __iter__(self) -> Iterator[Dict]:
+    def __iter__(self) -> Iterator[dict]:
         return iter(self._events)
 
     def __len__(self) -> int:
         return len(self._events)
 
     @property
-    def events(self) -> List[Dict]:
+    def events(self) -> list[dict]:
         return self._events
 
-    def time_range(self) -> Tuple[int, int]:
+    def time_range(self) -> tuple[int, int]:
         begin_time = self._events[0][LttngEventFilter.TIMESTAMP]
         end_time = self._events[-1][LttngEventFilter.TIMESTAMP]
         return begin_time, end_time
@@ -187,7 +188,7 @@ class CtfEventCollection(IterableEvents):
                 event_count += 1
 
             # Check for traces lost
-            if(type(msg) is bt2._DiscardedEventsMessageConst):
+            if (type(msg) is bt2._DiscardedEventsMessageConst):
                 msg = ('Tracer discarded '
                        f'{msg.count} events between '
                        f'{msg.beginning_default_clock_snapshot.ns_from_origin} and '
@@ -211,15 +212,15 @@ class CtfEventCollection(IterableEvents):
         self._size = event_count
         self._events_path = events_path
 
-    def __iter__(self) -> Iterator[Dict]:
+    def __iter__(self) -> Iterator[dict]:
         return iter(self.events)
 
     def __len__(self) -> int:
         return self._size
 
     @staticmethod
-    def _to_event(msg: Any) -> Dict[str, Any]:
-        event: Dict[str, Any] = {}
+    def _to_event(msg: Any) -> dict[str, Any]:
+        event: dict[str, Any] = {}
         event[LttngEventFilter.NAME] = msg.event.name
         event['timestamp'] = msg.default_clock_snapshot.ns_from_origin
         event.update(msg.event.payload_field)
@@ -227,14 +228,14 @@ class CtfEventCollection(IterableEvents):
         return event
 
     @cached_property
-    def events(self) -> List[Dict]:
+    def events(self) -> list[dict]:
         return self._to_dicts(self._events_path, self._size)
 
-    def time_range(self) -> Tuple[int, int]:
+    def time_range(self) -> tuple[int, int]:
         return self._begin_time, self._end_time
 
     @staticmethod
-    def _to_dicts(trace_dir: str, count: int) -> List[Dict]:
+    def _to_dicts(trace_dir: str, count: int) -> list[dict]:
         msg_it = bt2.TraceCollectionMessageIterator(trace_dir)
         events = []
         acceptable_tracepoints = set(Ros2Handler.get_trace_points())
@@ -268,10 +269,10 @@ class Lttng(InfraBase):
 
     def __init__(
         self,
-        trace_dir_or_events: Union[str, List[Dict]],
+        trace_dir_or_events: str | list[dict],
         force_conversion: bool = False,
         *,
-        event_filters: Optional[List[LttngEventFilter]] = None,
+        event_filters: list[LttngEventFilter] | None = None,
         store_events: bool = False,
         # TODO(hsgwa): change validate function to public "verify".
         validate: bool = True
@@ -296,15 +297,15 @@ class Lttng(InfraBase):
 
     @staticmethod
     def _parse_lttng_data(
-        trace_dir_or_events: Union[str, List[Dict]],
+        trace_dir_or_events: str | list[dict],
         force_conversion: bool,
-        event_filters: List[LttngEventFilter],
+        event_filters: list[LttngEventFilter],
         store_events: bool,
 
-    ) -> Tuple[Ros2DataModel, Optional[List[Dict]], int, int]:
+    ) -> tuple[Ros2DataModel, list[dict] | None, int, int]:
 
         data = Ros2DataModel()
-        offset: Optional[int] = None
+        offset: int | None = None
         events = []
         begin: int
         end: int
@@ -387,13 +388,13 @@ class Lttng(InfraBase):
     def get_node_names_and_cb_symbols(
         self,
         callback_group_id: str
-    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+    ) -> Sequence[tuple[str | None, str | None]]:
         """
         Get node names and callback symbols from callback group id.
 
         Returns
         -------
-        Sequence[Tuple[Optional[str], Optional[str]]]
+        Sequence[tuple[str | None, str | None]]
             node names and callback symbols.
             tuple structure: (node_name, callback_symbol)
 
@@ -602,20 +603,20 @@ class Lttng(InfraBase):
 
     def get_count(
         self,
-        groupby: Optional[List[str]] = None
+        groupby: list[str] | None = None
     ) -> pd.DataFrame:
         groupby = groupby or ['trace_point']
         return self._counter.get_count(groupby)
 
     def get_trace_range(
         self
-    ) -> Tuple[datetime, datetime]:
+    ) -> tuple[datetime, datetime]:
         """
         Get trace range.
 
         Returns
         -------
-        trace_range: Tuple[datetime, datetime]
+        trace_range: tuple[datetime, datetime]
             Trace begin time and trace end time.
 
         """
@@ -635,27 +636,6 @@ class Lttng(InfraBase):
 
         """
         return datetime.fromtimestamp(self._begin * 1.0e-9)
-
-    def compose_inter_proc_comm_records(
-        self,
-    ) -> RecordsInterface:
-        """
-        Compose inter process communication records of all communications in one records.
-
-        Returns
-        -------
-        RecordsInterface
-            Columns
-
-            - callback_object
-            - callback_start_timestamp
-            - publisher_handle
-            - rclcpp_publish_timestamp
-            - rcl_publish_timestamp (Optional)
-            - dds_write_timestamp (Optional)
-
-        """
-        return self._source.inter_proc_comm_records.clone()
 
     def compose_intra_proc_comm_records(
         self,

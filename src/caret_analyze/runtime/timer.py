@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Union
+from __future__ import annotations
 
 from caret_analyze.value_objects.timer import TimerStructValue
 
@@ -28,7 +28,7 @@ class Timer(PathBase, Summarizable):
     def __init__(
         self,
         val: TimerStructValue,
-        data_provider: Union[RecordsProvider, RuntimeDataProvider],
+        data_provider: RecordsProvider | RuntimeDataProvider,
     ) -> None:
         """
         Construct an instance.
@@ -37,7 +37,7 @@ class Timer(PathBase, Summarizable):
         ----------
         val : TimerStructValue
             static info.
-        data_provider : Union[RecordsProvider, RuntimeDataProvider]
+        data_provider : RecordsProvider | RuntimeDataProvider
             provider to be evaluated.
 
         """
@@ -85,13 +85,13 @@ class Timer(PathBase, Summarizable):
         return self._val.period_ns
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         """
         Get callback name.
 
         Returns
         -------
-        Optional[str]
+        str | None
             callback name defined in the architecture.
 
         """

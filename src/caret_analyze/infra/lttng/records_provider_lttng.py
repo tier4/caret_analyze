@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from collections.abc import Sequence
 from functools import cached_property
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+
 
 from caret_analyze.value_objects.message_context import MessageContext, MessageContextType
 
@@ -174,7 +177,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
 
         Raises
@@ -210,7 +212,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
 
         Raises
@@ -232,7 +233,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
         ]
         self._format(sub_records, columns)
@@ -264,7 +264,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             Columns
 
             - [callback_name]/callback_start_timestamp
-            - [topic_name]/message_timestamp
             - [topic_name]/source_timestamp
             - [topic_name]/tilde_subscribe_timestamp
             - [topic_name]/tilde_message_id
@@ -307,7 +306,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         columns = [
             COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            COLUMN_NAME.MESSAGE_TIMESTAMP,
             COLUMN_NAME.SOURCE_TIMESTAMP,
             COLUMN_NAME.TILDE_SUBSCRIBE_TIMESTAMP,
             COLUMN_NAME.TILDE_MESSAGE_ID,
@@ -569,7 +567,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
     def get_qos(
         self,
-        pub_sub: Union[PublisherStructValue, SubscriptionStructValue]
+        pub_sub: PublisherStructValue | SubscriptionStructValue
     ) -> Qos:
         if isinstance(pub_sub, SubscriptionStructValue):
             sub_cb = pub_sub.callback
@@ -645,7 +643,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
     def is_intra_process_communication(
         self,
         communication_value: CommunicationStructValue
-    ) -> Optional[bool]:
+    ) -> bool | None:
         intra_record = self._compose_intra_proc_comm_records(communication_value)
         return len(intra_record) > 0
 
@@ -748,11 +746,15 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 sub_node,
                 'ros2:dispatch_subscription_callback'
             )
+            is_contains_rmw_take = self._verify_trace_points(
+                sub_node,
+                'ros2:rmw_take'
+            )
 
         if not pub_result:
             logger.warning(f"'caret/rclcpp' may not be used in publisher of '{pub_node}'.")
             return False
-        if not sub_result:
+        if not sub_result and not is_contains_rmw_take:
             logger.warning(f"'caret/rclcpp' may not be used in subscriber of '{sub_node}'.")
             return False
         return True
@@ -849,7 +851,7 @@ class RecordsProviderLttng(RuntimeDataProvider):
         return records
 
     @staticmethod
-    def _format(records: RecordsInterface, columns: List[str]):
+    def _format(records: RecordsInterface, columns: list[str]):
         drop = list(set(records.columns) - set(columns))
         records.drop_columns(drop)
         records.reindex(columns)
@@ -857,9 +859,9 @@ class RecordsProviderLttng(RuntimeDataProvider):
     @staticmethod
     def _rename_column(
         records: RecordsInterface,
-        callback_name: Optional[str],
-        topic_name: Optional[str],
-        node_name: Optional[str]
+        callback_name: str | None,
+        topic_name: str | None,
+        node_name: str | None
     ) -> None:
         rename_dict = {}
 
@@ -947,7 +949,7 @@ class RecordsProviderLttngHelper:
     def get_callback_objects(
         self,
         callback: CallbackStructValue
-    ) -> Tuple[int, Optional[int]]:
+    ) -> tuple[int, int | None]:
         if isinstance(callback, TimerCallbackStructValue):
             return self.get_timer_callback_object(callback), None
 
@@ -972,7 +974,7 @@ class RecordsProviderLttngHelper:
     def get_subscription_callback_objects(
         self,
         callback: SubscriptionCallbackStructValue
-    ) -> Tuple[int, Optional[int]]:
+    ) -> tuple[int, int | None]:
         return self.get_callback_objects(callback)
 
     def get_subscription_callback_object_inter(
@@ -985,21 +987,21 @@ class RecordsProviderLttngHelper:
     def get_subscription_callback_object_intra(
         self,
         callback: SubscriptionCallbackStructValue
-    ) -> Optional[int]:
+    ) -> int | None:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.callback_object_intra
 
     def get_tilde_subscription(
         self,
         callback: SubscriptionCallbackStructValue
-    ) -> Optional[int]:
+    ) -> int | None:
         callback_lttng = self._bridge.get_subscription_callback(callback)
         return callback_lttng.tilde_subscription
 
     def get_publisher_handles(
         self,
         publisher: PublisherStructValue
-    ) -> List[int]:
+    ) -> list[int]:
         publisher_lttng = self._bridge.get_publishers(publisher)
         return [pub_info.publisher_handle
                 for pub_info
@@ -1008,7 +1010,7 @@ class RecordsProviderLttngHelper:
     def get_tilde_publishers(
         self,
         publisher_info: PublisherStructValue
-    ) -> List[int]:
+    ) -> list[int]:
         publisher_lttng = self._bridge.get_publishers(publisher_info)
         publisher = [pub_info.tilde_publisher
                      for pub_info
@@ -1019,7 +1021,7 @@ class RecordsProviderLttngHelper:
     def get_lttng_publishers(
         self,
         publisher: PublisherStructValue
-    ) -> List[PublisherValueLttng]:
+    ) -> list[PublisherValueLttng]:
         return self._bridge.get_publishers(publisher)
 
     def get_lttng_subscription(
@@ -1416,7 +1418,7 @@ class FilteredRecordsSource:
     def sub_records(
         self,
         inter_callback_object: int,
-        intra_callback_object: Optional[int]
+        intra_callback_object: int | None
     ) -> RecordsInterface:
         """
         Compose filtered subscribe records.
@@ -1425,7 +1427,7 @@ class FilteredRecordsSource:
         ----------
         inter_callback_object : int
             inter callback object
-        intra_callback_object : Optional[int]
+        intra_callback_object : int | None
             intra callback object
 
         Returns
@@ -1447,7 +1449,6 @@ class FilteredRecordsSource:
                 [
                     ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                     ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
-                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
@@ -1467,7 +1468,7 @@ class FilteredRecordsSource:
 
     def inter_comm_records(
         self,
-        publisher_handles: List[int],
+        publisher_handles: list[int],
         callback_object: int
     ) -> RecordsInterface:
         """
@@ -1475,7 +1476,7 @@ class FilteredRecordsSource:
 
         Parameters
         ----------
-        publisher_handles : List[int]
+        publisher_handles : list[int]
             publisher handles
         callback_object : int
             callback object
@@ -1525,17 +1526,17 @@ class FilteredRecordsSource:
 
     def intra_comm_records(
         self,
-        publisher_handles: List[int],
-        intra_callback_object: Optional[int]
+        publisher_handles: list[int],
+        intra_callback_object: int | None
     ) -> RecordsInterface:
         """
         Compose filtered intra communication records.
 
         Parameters
         ----------
-        publisher_handles : List[int]
+        publisher_handles : list[int]
             publisher handles
-        intra_callback_object : Optional[int]
+        intra_callback_object : int | None
             intra callback object
 
         Returns
@@ -1577,14 +1578,14 @@ class FilteredRecordsSource:
 
     def publish_records(
         self,
-        publisher_handles: List[int],
+        publisher_handles: list[int],
     ) -> RecordsInterface:
         """
         Compose publish records.
 
         Parameters
         ----------
-        publisher_handles : List[int]
+        publisher_handles : list[int]
             publisher handles
 
         Returns
@@ -1680,9 +1681,9 @@ class FilteredRecordsSource:
 
     def _expand_key_tuple(
         self,
-        group: Dict[Tuple[int, ...], RecordsInterface]
-    ) -> Dict[int, RecordsInterface]:
-        group_: Dict[int, RecordsInterface] = {}
+        group: dict[tuple[int, ...], RecordsInterface]
+    ) -> dict[int, RecordsInterface]:
+        group_: dict[int, RecordsInterface] = {}
         for key in group.keys():
             assert len(key) == 1
             group_[key[0]] = group[key]
@@ -1691,7 +1692,7 @@ class FilteredRecordsSource:
     def callback_records(
         self,
         inter_callback_object: int,
-        intra_callback_object: Optional[int]
+        intra_callback_object: int | None
     ) -> RecordsInterface:
         """
         Compose callback records.
@@ -1700,7 +1701,7 @@ class FilteredRecordsSource:
         ----------
         inter_callback_object : int
             inter callback object
-        intra_callback_object : Optional[int]
+        intra_callback_object : int | None
             intra callback object
 
         Returns
@@ -1736,14 +1737,14 @@ class FilteredRecordsSource:
 
     def path_beginning_records(
         self,
-        publisher_handles: List[int]
+        publisher_handles: list[int]
     ) -> RecordsInterface:
         """
         Compose callback_start to publish records.
 
         Parameters
         ----------
-        publisher_handles : List[int]
+        publisher_handles : list[int]
             publisher handles
 
         Returns
@@ -1785,47 +1786,42 @@ class FilteredRecordsSource:
         return records
 
     @cached_property
-    def _grouped_callback_records(self) -> Dict[int, RecordsInterface]:
+    def _grouped_callback_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_callback_records()
         group = records.groupby([COLUMN_NAME.CALLBACK_OBJECT])
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _grouped_inter_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:
-        records = self._lttng.compose_inter_proc_comm_records()
-        return records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
-
-    @cached_property
-    def _grouped_intra_comm_records(self) -> Dict[Tuple[int, ...], RecordsInterface]:
+    def _grouped_intra_comm_records(self) -> dict[tuple[int, ...], RecordsInterface]:
         records = self._lttng.compose_intra_proc_comm_records()
         return records.groupby([COLUMN_NAME.CALLBACK_OBJECT, COLUMN_NAME.PUBLISHER_HANDLE])
 
     @cached_property
-    def _grouped_publish_records(self) -> Dict[int, RecordsInterface]:
+    def _grouped_publish_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_publish_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _grouped_sub_records(self) -> Dict[int, RecordsInterface]:
+    def _grouped_sub_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_subscribe_records()
         group = records.groupby([COLUMN_NAME.CALLBACK_OBJECT])
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _grouped_tilde_pub_records(self) -> Dict[int, RecordsInterface]:
+    def _grouped_tilde_pub_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_tilde_publish_records()
         group = records.groupby([COLUMN_NAME.TILDE_PUBLISHER])
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _grouped_tilde_sub_records(self) -> Dict[int, RecordsInterface]:
+    def _grouped_tilde_sub_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_tilde_subscribe_records()
         group = records.groupby([COLUMN_NAME.TILDE_SUBSCRIPTION])
         return self._expand_key_tuple(group)
 
     @cached_property
-    def _path_beginning_records(self) -> Dict[int, RecordsInterface]:
+    def _path_beginning_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_path_beginning_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         return self._expand_key_tuple(group)

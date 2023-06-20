@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Union
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 import pandas as pd
 
@@ -26,7 +28,7 @@ class LatencyTimeSeries(MetricsBase):
 
     def __init__(
         self,
-        target_objects: Sequence[Union[CallbackBase, Communication]],
+        target_objects: Sequence[CallbackBase | Communication],
     ) -> None:
         super().__init__(target_objects)
 
@@ -73,7 +75,7 @@ class LatencyTimeSeries(MetricsBase):
     def to_timeseries_records_list(
         self,
         xaxis_type: str = 'system_time'
-    ) -> List[RecordsInterface]:
+    ) -> list[RecordsInterface]:
         """
         Get latency records list of all target objects.
 
@@ -86,11 +88,11 @@ class LatencyTimeSeries(MetricsBase):
 
         Returns
         -------
-        List[RecordsInterface]
+        list[RecordsInterface]
             Latency records list of all target objects.
 
         """
-        timeseries_records_list: List[RecordsInterface] = [
+        timeseries_records_list: list[RecordsInterface] = [
             _.to_records() for _ in self._target_objects
         ]
 
@@ -98,7 +100,7 @@ class LatencyTimeSeries(MetricsBase):
             timeseries_records_list = \
                 self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
-        latency_timeseries_list: List[RecordsInterface] = []
+        latency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
             latency = Latency(records)
             latency_timeseries_list.append(latency.to_records())

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Union
+from __future__ import annotations
 
 from .path_base import PathBase
 from ..common import Summarizable, Summary
@@ -27,7 +27,7 @@ class Publisher(PathBase, Summarizable):
     def __init__(
         self,
         publisher: PublisherStructValue,
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> None:
         """
         Construct an instance.
@@ -36,7 +36,7 @@ class Publisher(PathBase, Summarizable):
         ----------
         publisher : PublisherStructValue
             static info.
-        provider : Union[RecordsProvider, RuntimeDataProvider]
+        provider : RecordsProvider | RuntimeDataProvider
             provider to be evaluated.
 
         """
@@ -97,13 +97,13 @@ class Publisher(PathBase, Summarizable):
         return self._val.construction_order
 
     @property
-    def callback_names(self) -> Optional[List[str]]:
+    def callback_names(self) -> list[str] | None:
         """
         Get callback names.
 
         Returns
         -------
-        Optional[List[str]]
+        list[str] | None
             Callback names which uses the publisher to publish.
 
         """
@@ -113,13 +113,13 @@ class Publisher(PathBase, Summarizable):
         return sorted(names)
 
     @property
-    def qos(self) -> Optional[Qos]:
+    def qos(self) -> Qos | None:
         """
         Get QoS.
 
         Returns
         -------
-        Optional[Qos]
+        Qos | None
             Publisher QoS
 
         """

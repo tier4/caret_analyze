@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import inspect
 
-from typing import Any, Dict
+from typing import Any
 
 
 class ValueObject():
@@ -96,17 +98,17 @@ class ValueObject():
         d = self._to_dict()
         return dump(d)
 
-    def _to_dict(self) -> Dict[Any, Any]:
+    def _to_dict(self) -> dict[Any, Any]:
         """
         Convert to dictionary.
 
         Returns
         -------
-        Dict
+        dict
             Dictionary created by recursively access properties.
 
         """
-        d: Dict[Any, Any] = {}
+        d: dict[Any, Any] = {}
         for attr in self.__generate_public_attrs():
             value = getattr(self, attr)
             if isinstance(value, ValueObject):

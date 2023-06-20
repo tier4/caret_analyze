@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from caret_analyze.common import Summarizable, Summary, Util
 from caret_analyze.exceptions import InvalidArgumentError
 from caret_analyze.value_objects import ExecutorStructValue, ExecutorType
@@ -30,7 +28,7 @@ class Executor(Summarizable):
     def __init__(
         self,
         executor_value: ExecutorStructValue,
-        callback_groups: List[CallbackGroup],
+        callback_groups: list[CallbackGroup],
     ) -> None:
         """
         Construct an instance.
@@ -39,12 +37,12 @@ class Executor(Summarizable):
         ----------
         executor_value : ExecutorStructValue
             Static info.
-        callback_groups : List[CallbackGroup]
+        callback_groups : list[CallbackGroup]
             Callback groups added to the executor.
 
         """
         self._val = executor_value
-        self._callback_groups: List[CallbackGroup] = callback_groups
+        self._callback_groups: list[CallbackGroup] = callback_groups
 
     @property
     def executor_type(self) -> ExecutorType:
@@ -73,13 +71,13 @@ class Executor(Summarizable):
         return self._val.executor_name
 
     @property
-    def callbacks(self) -> List[CallbackBase]:
+    def callbacks(self) -> list[CallbackBase]:
         """
         Get callbacks.
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             Callbacks added to the executor.
 
         """
@@ -169,13 +167,13 @@ class Executor(Summarizable):
 
         return Util.find_one(is_target_callback, self.callbacks)
 
-    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: str) -> list[CallbackBase]:
         """
         Get callbacks.
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             callbacks that match the condition.
 
         """
@@ -186,39 +184,39 @@ class Executor(Summarizable):
         return callbacks
 
     @property
-    def callback_names(self) -> List[str]:
+    def callback_names(self) -> list[str]:
         """
         Get callback names.
 
         Returns
         -------
-        List[str]
+        list[str]
             callback names added to the executor.
 
         """
         return sorted(c.callback_name for c in self.callbacks)
 
     @property
-    def callback_groups(self) -> List[CallbackGroup]:
+    def callback_groups(self) -> list[CallbackGroup]:
         """
         Get callback groups.
 
         Returns
         -------
-        List[CallbackGroup]
+        list[CallbackGroup]
             Callback groups added to the executor.
 
         """
         return sorted(self._callback_groups, key=lambda x: x.callback_group_name)
 
     @property
-    def callback_group_names(self) -> List[str]:
+    def callback_group_names(self) -> list[str]:
         """
         Get callback group names.
 
         Returns
         -------
-        List[str]
+        list[str]
             Callback group names added to the executor.
 
         """

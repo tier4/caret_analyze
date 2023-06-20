@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Callable, Dict, Iterator, List, Optional, Sequence, Set, Tuple
+from collections.abc import Callable, Iterator, Sequence
 
 from multimethod import multimethod as singledispatchmethod
 import pandas as pd
@@ -71,13 +71,13 @@ class RecordInterface:
         pass
 
     @abstractmethod
-    def drop_columns(self, columns: List[str]) -> None:
+    def drop_columns(self, columns: list[str]) -> None:
         """
         Drop columns method.
 
         Parameters
         ----------
-        columns : List[str]
+        columns : list[str]
             columns to be dropped.
 
         """
@@ -153,13 +153,13 @@ class RecordInterface:
 
     @property
     @abstractmethod
-    def data(self) -> Dict[str, int]:
+    def data(self) -> dict[str, int]:
         """
         Convert to dictionary.
 
         Returns
         -------
-        data : Dict[str, int]:
+        data : dict[str, int]:
             dictionary data.
 
         """
@@ -167,13 +167,13 @@ class RecordInterface:
 
     @property
     @abstractmethod
-    def columns(self) -> Set[str]:
+    def columns(self) -> set[str]:
         """
         Get column names.
 
         Returns
         -------
-        Set[str]
+        set[str]
             Column names.
 
         """
@@ -243,11 +243,11 @@ class RecordsInterface:
         pass
 
     @append.register
-    def __append_dict(self, other: Dict[str, int]) -> None:
+    def __append_dict(self, other: dict[str, int]) -> None:
         self._append_dict(other)
 
     @abstractmethod
-    def _append_dict(self, other: Dict[str, int]) -> None:
+    def _append_dict(self, other: dict[str, int]) -> None:
         """
         Append new record.
 
@@ -279,7 +279,7 @@ class RecordsInterface:
 
     @abstractmethod
     def sort(
-        self, key: str, sub_key: Optional[str] = None, ascending=True
+        self, key: str, sub_key: str | None = None, ascending=True
     ) -> None:
         """
         Sort records.
@@ -351,7 +351,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def get_column_series(self, column_name: str) -> Sequence[Optional[int]]:
+    def get_column_series(self, column_name: str) -> Sequence[int | None]:
         pass
 
     def __len__(self) -> int:
@@ -360,13 +360,13 @@ class RecordsInterface:
     def __iter__(self) -> Iterator:
         return iter(self.data)
 
-    def reindex(self, columns: List[str]) -> None:
+    def reindex(self, columns: list[str]) -> None:
         """
         Reindex columns.
 
         Parameters
         ----------
-        columns : List[str]
+        columns : list[str]
             columns
 
         """
@@ -374,14 +374,14 @@ class RecordsInterface:
 
     @abstractmethod
     def drop_columns(
-        self, columns: List[str]
+        self, columns: list[str]
     ) -> None:
         """
         Drop columns.
 
         Parameters
         ----------
-        columns : List[str]
+        columns : list[str]
             columns to be dropped.
 
         """
@@ -389,14 +389,14 @@ class RecordsInterface:
 
     @abstractmethod
     def rename_columns(
-        self, columns: Dict[str, str]
+        self, columns: dict[str, str]
     ) -> None:
         """
         Rename columns.
 
         Parameters
         ----------
-        columns : Dict[str, str]
+        columns : dict[str, str]
             rename params. same as dataframe rename.
 
         """
@@ -404,13 +404,13 @@ class RecordsInterface:
 
     @property
     @abstractmethod
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         """
         Get column names.
 
         Returns
         -------
-        List[str]
+        list[str]
             Columns.
 
         """
@@ -435,10 +435,10 @@ class RecordsInterface:
         right_records: RecordsInterface,
         join_left_key: str,
         join_right_key: str,
-        columns: List[str],
+        columns: list[str],
         how: str,
         *,
-        progress_label: Optional[str] = None
+        progress_label: str | None = None
     ) -> RecordsInterface:
         """
         Merge records by key match.
@@ -451,7 +451,7 @@ class RecordsInterface:
             Key to use for matching.
         join_right_key : str
             Key to use for matching.
-        columns: List[str]
+        columns: list[str]
             columns
         how : str
             merge type. [inner/right/left/outer]
@@ -488,12 +488,12 @@ class RecordsInterface:
         right_records: RecordsInterface,
         left_stamp_key: str,
         right_stamp_key: str,
-        join_left_key: Optional[str],
-        join_right_key: Optional[str],
-        columns: List[str],
+        join_left_key: str | None,
+        join_right_key: str | None,
+        columns: list[str],
         how: str,
         *,
-        progress_label: Optional[str] = None
+        progress_label: str | None = None
     ) -> RecordsInterface:
         """
         Merge chronologically contiguous records.
@@ -517,7 +517,7 @@ class RecordsInterface:
             join key name to use equal condition.
         how : str
             merge type. [inner/right/left/outer]
-        columns : List[str]
+        columns : list[str]
             columns
         progress_label : str
             label for progress bar. cpp impl only.
@@ -562,9 +562,9 @@ class RecordsInterface:
         sink_records: RecordsInterface,
         sink_stamp_key: str,
         sink_from_key: str,
-        columns: List[str],
+        columns: list[str],
         *,
-        progress_label: Optional[str] = None
+        progress_label: str | None = None
     ) -> RecordsInterface:
         """
         Merge for tracking addresses when copying occurs.
@@ -589,7 +589,7 @@ class RecordsInterface:
             key_name indicating time stamp for copy records
         sink_from_key : str
             Key name indicating the address of the copy destination
-        columns : List[str]
+        columns : list[str]
             columns
         progress_label : str
             label for progress bar. cpp impl only.
@@ -625,7 +625,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def append_column(self, column: ColumnValue, values: List[int]) -> None:
+    def append_column(self, column: ColumnValue, values: list[int]) -> None:
         """
         Append column to records.
 
@@ -633,7 +633,7 @@ class RecordsInterface:
         ----------
         column : ColumnValue
             column
-        values: List[int]
+        values: list[int]
             values
 
         """
@@ -657,6 +657,6 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def groupby(self, columns: List[str]) -> Dict[Tuple[int, ...], RecordsInterface]:
+    def groupby(self, columns: list[str]) -> dict[tuple[int, ...], RecordsInterface]:
         """Split based on the value of the given column name."""
         pass
