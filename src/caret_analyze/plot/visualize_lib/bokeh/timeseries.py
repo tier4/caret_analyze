@@ -68,7 +68,7 @@ class BokehTimeSeries:
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
         frame_min, frame_max = records_range.get_range()
-        converter: Optional[ClockConverter] = None
+        converter: ClockConverter | None = None
         if self._xaxis_type == 'sim_time':
             # TODO: refactor
             # get converter
