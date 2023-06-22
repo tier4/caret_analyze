@@ -84,17 +84,19 @@ class BokehStackedBar:
         fig.add_tools(stacked_bar_source.create_hover())
         stacked_bar_data, x_width_list = \
             self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
+        bottom_labels = self._get_bottom_labels(y_labels)
 
         vbar_stacks = []
-        for y_label in y_labels:
-            vbar_stack = fig.vbar_stack(
-                [y_label],
+        for y_label, bottom_label in zip(y_labels, bottom_labels):
+            vbar_stack = fig.vbar(
                 x='start time',
+                top=y_label,
                 width='x_width_list',
-                source=stacked_bar_source.generate(y_label, stacked_bar_data, x_width_list),
-                color=color_selector.get_color(y_label)
+                source=stacked_bar_source.generate(y_label, stacked_bar_data, x_width_list, bottom_label),
+                color=color_selector.get_color(y_label),
+                bottom=bottom_label
             )
-            vbar_stacks.append((y_label, vbar_stack))
+            vbar_stacks.append((y_label, [vbar_stack]))
 
         legend = Legend(items=vbar_stacks, location='bottom_left')
         fig.add_layout(legend, 'below')
@@ -282,6 +284,7 @@ class StackedBarSource:
         y_label: str,
         stacked_bar_data: dict[str, list[float]],
         x_width_list: list[float],
+        bottom_label: str
     ) -> ColumnDataSource:
         target_data = stacked_bar_data[y_label]
         y_labels = list(stacked_bar_data.keys())
@@ -294,9 +297,15 @@ class StackedBarSource:
             ]
         else:
             latencies = target_data
+        
+        bottom_value = [0] * len(stacked_bar_data[y_label])
+        label_idx_of_bottom_value = y_labels.index(y_label) + 1
+        if label_idx_of_bottom_value < len(y_labels) - 1:
+            bottom_value = stacked_bar_data[y_labels[label_idx_of_bottom_value]]
 
         source = ColumnDataSource({y_label: target_data})
         source.add(stacked_bar_data['start time'], 'start time')
+        source.add(bottom_value, bottom_label)
         source.add(x_width_list, 'x_width_list')
         source.add([f'{y_label}'] * len(x_width_list), 'label')
         source.add(['latency = ' + str(_) for _ in latencies], 'latency')
