@@ -356,6 +356,21 @@ class Architecture(Summarizable):
 
     def update_message_context(self, node_name: str, context_type: str,
                                subscribe_topic_name: str, publish_topic_name: str) -> None:
+        """
+        Update message_context of node_path in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        context_type : str
+            type name of message_context to be added
+        subscribe_topic_name : str
+            name of subscribe topic of target node_path
+        publish_topic_name : str
+            name of publish topic of target node_path
+
+        """
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
@@ -372,6 +387,19 @@ class Architecture(Summarizable):
 
     def insert_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
+        """
+        Insert association of callback with publisher in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        publish_topic_name : str
+            topic name of target publisher into which callback is inserted
+        callback_name : str
+            name of callback to be inserted for publisher
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.insert_publisher_callback(publish_topic_name, callback_name)
@@ -381,6 +409,19 @@ class Architecture(Summarizable):
 
     def insert_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
+        """
+        Insert variable_passing in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        callback_name_write : str
+            name of write callback to be inserted in variable_passing
+        callback_name_read : str
+            name of read callback to be inserted in variable_passing
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.insert_variable_passing(callback_name_write, callback_name_read)
@@ -390,6 +431,19 @@ class Architecture(Summarizable):
 
     def remove_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
+        """
+        Remove association of callback with publisher in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        publish_topic_name : str
+            topic name of target publisher from which callback is removed
+        callback_name : str
+            name of callback to be removed for publisher
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.remove_publisher_and_callback(publish_topic_name, callback_name)
@@ -399,6 +453,19 @@ class Architecture(Summarizable):
 
     def remove_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
+        """
+        Remove variable_passing in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        callback_name_write : str
+            name of write callback to be removed from variable_passing
+        callback_name_read : str
+            name of read callback to be removed from variable_passing
+
+        """
         node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
         node.remove_variable_passing(callback_name_write, callback_name_read)
