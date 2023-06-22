@@ -297,7 +297,7 @@ class StackedBarSource:
             ]
         else:
             latencies = target_data
-        
+
         bottom_value = [0] * len(stacked_bar_data[y_label])
         label_idx_of_bottom_value = y_labels.index(y_label) + 1
         if label_idx_of_bottom_value < len(y_labels) - 1:
