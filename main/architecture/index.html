@@ -442,6 +442,34 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.insert_publisher_callback" class="md-nav__link">
+    insert_publisher_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.insert_variable_passing" class="md-nav__link">
+    insert_variable_passing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.remove_publisher_callback" class="md-nav__link">
+    remove_publisher_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.remove_variable_passing" class="md-nav__link">
+    remove_variable_passing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.architecture.architecture.Architecture.rename_callback" class="md-nav__link">
     rename_callback()
   </a>
@@ -472,6 +500,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.architecture.architecture.Architecture.rename_topic" class="md-nav__link">
     rename_topic()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.update_message_context" class="md-nav__link">
+    update_message_context()
   </a>
   
 </li>
@@ -707,6 +742,34 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.insert_publisher_callback" class="md-nav__link">
+    insert_publisher_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.insert_variable_passing" class="md-nav__link">
+    insert_variable_passing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.remove_publisher_callback" class="md-nav__link">
+    remove_publisher_callback()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.remove_variable_passing" class="md-nav__link">
+    remove_variable_passing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.architecture.architecture.Architecture.rename_callback" class="md-nav__link">
     rename_callback()
   </a>
@@ -737,6 +800,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.architecture.architecture.Architecture.rename_topic" class="md-nav__link">
     rename_topic()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.architecture.architecture.Architecture.update_message_context" class="md-nav__link">
+    update_message_context()
   </a>
   
 </li>
@@ -1161,6 +1231,302 @@
 
 
 
+<h3 id="caret_analyze.architecture.architecture.Architecture.insert_publisher_callback" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">insert_publisher_callback</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">,</span> <span class="n">callback_name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.insert_publisher_callback" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Insert association of callback with publisher in "node_name" node.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of target node</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publish_topic_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>topic name of target publisher into which callback is inserted</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of callback to be inserted for publisher</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.insert_variable_passing" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">insert_variable_passing</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">callback_name_write</span><span class="p">,</span> <span class="n">callback_name_read</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.insert_variable_passing" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Insert variable_passing in "node_name" node.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of target node</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_name_write</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of write callback to be inserted in variable_passing</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_name_read</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of read callback to be inserted in variable_passing</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.remove_publisher_callback" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_publisher_callback</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">,</span> <span class="n">callback_name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.remove_publisher_callback" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove association of callback with publisher in "node_name" node.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of target node</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publish_topic_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>topic name of target publisher from which callback is removed</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of callback to be removed for publisher</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.remove_variable_passing" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_variable_passing</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">callback_name_write</span><span class="p">,</span> <span class="n">callback_name_read</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.remove_variable_passing" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove variable_passing in "node_name" node.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of target node</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_name_write</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of write callback to be removed from variable_passing</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>callback_name_read</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of read callback to be removed from variable_passing</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="caret_analyze.architecture.architecture.Architecture.rename_callback" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">rename_callback</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span></code>
 
@@ -1444,6 +1810,94 @@
           <td>
             <div class="doc-md-description">
               <p>updated topic name</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="caret_analyze.architecture.architecture.Architecture.update_message_context" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">update_message_context</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">context_type</span><span class="p">,</span> <span class="n">subscribe_topic_name</span><span class="p">,</span> <span class="n">publish_topic_name</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.architecture.architecture.Architecture.update_message_context" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Update message_context of node_path in "node_name" node.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>node_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of target node</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>context_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>type name of message_context to be added</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subscribe_topic_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of subscribe topic of target node_path</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>publish_topic_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of publish topic of target node_path</p>
             </div>
           </td>
           <td>
