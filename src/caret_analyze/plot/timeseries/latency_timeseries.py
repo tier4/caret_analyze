@@ -92,12 +92,17 @@ class LatencyTimeSeries(MetricsBase):
             Latency records list of all target objects.
 
         """
-        timeseries_records_list: list[RecordsInterface] = []
-        for target_object in self._target_objects:
-            latency = Latency(target_object.to_records())
-            timeseries_records_list.append(latency.to_records())
+        timeseries_records_list: list[RecordsInterface] = [
+            _.to_records() for _ in self._target_objects
+        ]
 
         if xaxis_type == 'sim_time':
-            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+            timeseries_records_list = \
+                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
-        return timeseries_records_list
+        latency_timeseries_list: list[RecordsInterface] = []
+        for records in timeseries_records_list:
+            latency = Latency(records)
+            latency_timeseries_list.append(latency.to_records())
+
+        return latency_timeseries_list
