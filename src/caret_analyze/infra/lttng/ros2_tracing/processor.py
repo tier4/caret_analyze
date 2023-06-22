@@ -19,7 +19,6 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-import os
 from typing import Any
 
 
@@ -549,17 +548,17 @@ class Ros2Handler():
         if not self._is_valid_data(event):
             return
 
-        if os.environ['ROS_DISTRO'] in ['iron', 'rolling']:
-            publisher_handle = 0
-        else:
+        if 'publisher_handle' in event.keys():
             publisher_handle = get_field(event, 'publisher_handle')
+        else:
+            publisher_handle = 0
         timestamp = get_field(event, '_timestamp')
         message = get_field(event, 'message')
         tid = get_field(event, '_vtid')
-        if os.environ['ROS_DISTRO'] in ['iron', 'rolling']:
-            message_timestamp = 0
-        else:
+        if 'message_timestamp' in event.keys():
             message_timestamp = get_field(event, 'message_timestamp')
+        else:
+            message_timestamp = 0
         self.data.add_rclcpp_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
 
