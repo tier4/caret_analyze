@@ -114,16 +114,21 @@ class PeriodTimeSeries(MetricsBase):
                 else:
                     return False
 
-        timeseries_records_list: list[RecordsInterface] = []
-        for target_object in self._target_objects:
-            period = Period(
-                target_object.to_records(),
-                row_filter=row_filter_communication
-                if isinstance(target_object, Communication) else None
-            )
-            timeseries_records_list.append(period.to_records())
+        timeseries_records_list: list[RecordsInterface] = [
+            _.to_records() for _ in self._target_objects
+        ]
 
         if xaxis_type == 'sim_time':
-            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+            timeseries_records_list = \
+                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
-        return timeseries_records_list
+        period_timeseries_list: list[RecordsInterface] = []
+        for records in timeseries_records_list:
+            period = Period(
+                records,
+                row_filter=row_filter_communication
+                if isinstance(records, Communication) else None
+            )
+            period_timeseries_list.append(period.to_records())
+
+        return period_timeseries_list

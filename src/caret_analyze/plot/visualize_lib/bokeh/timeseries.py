@@ -24,6 +24,7 @@ from bokeh.plotting import ColumnDataSource, Figure
 from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager)
 from ...metrics_base import MetricsBase
+from ....common import ClockConverter
 from ....record import Range, RecordsInterface
 from ....runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -67,20 +68,51 @@ class BokehTimeSeries:
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
         frame_min, frame_max = records_range.get_range()
-        if self._xaxis_type == 'system_time':
+        converter: ClockConverter | None = None
+        if self._xaxis_type == 'sim_time':
+            # TODO: refactor
+            # get converter
+            if isinstance(target_objects[0], Communication):
+                for comm in target_objects:
+                    assert isinstance(comm, Communication)
+                    if comm.callback_subscription:
+                        converter_cb = comm.callback_subscription
+                        converter = converter_cb._provider.get_sim_time_converter()
+                        break
+            else:
+                converter = target_objects[0]._provider.get_sim_time_converter()
+        if converter:
+            frame_min_convert = converter.convert(frame_min)
+            frame_max_convert = converter.convert(frame_max)
+            x_range_name = 'x_plot_axis'
+            apply_x_axis_offset(fig, frame_min_convert, frame_max_convert, x_range_name)
+        elif self._xaxis_type == 'system_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
 
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
-        line_source = LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
+        if converter:
+            line_source = \
+                LineSource(legend_manager, target_objects[0], frame_min_convert, self._xaxis_type)
+        else:
+            line_source = \
+                LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
         fig.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
-            renderer = fig.line(
-                'x', 'y',
-                source=line_source.generate(to, timeseries),
-                color=color_selector.get_color()
-            )
+            if converter:
+                renderer = fig.line(
+                    'x', 'y',
+                    source=line_source.generate(to, timeseries),
+                    color=color_selector.get_color(),
+                    x_range_name=x_range_name
+                )
+            else:
+                renderer = fig.line(
+                    'x', 'y',
+                    source=line_source.generate(to, timeseries),
+                    color=color_selector.get_color()
+                )
             legend_manager.add_legend(to, renderer)
 
         # Draw legends
