@@ -92,7 +92,8 @@ class BokehStackedBar:
                 x='start time',
                 top=y_label,
                 width='x_width_list',
-                source=stacked_bar_source.generate(y_label, stacked_bar_data, x_width_list, bottom_label),
+                source=stacked_bar_source.generate(y_label, stacked_bar_data,
+                                                   x_width_list, bottom_label),
                 color=color_selector.get_color(y_label),
                 bottom=bottom_label
             )
@@ -297,8 +298,8 @@ class StackedBarSource:
             ]
         else:
             latencies = target_data
-        
-        bottom_value = [0] * len(stacked_bar_data[y_label])
+
+        bottom_value: list[float] = [0] * len(stacked_bar_data[y_label])
         label_idx_of_bottom_value = y_labels.index(y_label) + 1
         if label_idx_of_bottom_value < len(y_labels) - 1:
             bottom_value = stacked_bar_data[y_labels[label_idx_of_bottom_value]]
