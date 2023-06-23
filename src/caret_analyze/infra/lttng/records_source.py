@@ -592,10 +592,26 @@ class RecordsSource():
         """
         records_inter: RecordsInterface
         records_intra: RecordsInterface
+        rclcpp_publish_records = self._data.rclcpp_publish_instances.clone()
+        rcl_publish_records = self._data.rcl_publish_instances.clone()
+
+        # Get the publish_handle from rcl_publish and add it to the rclcpp_publish record,
+        # in case rclcpp_publish does not have a publisher_handle.
+        if len(rcl_publish_records) != 0:
+            rclcpp_publish_records = merge_sequential(
+                left_records=rclcpp_publish_records,
+                right_records=rcl_publish_records,
+                left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
+                right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                join_left_key=COLUMN_NAME.MESSAGE,
+                join_right_key=COLUMN_NAME.MESSAGE,
+                columns=Columns.from_str(
+                    rclcpp_publish_records.columns + [COLUMN_NAME.PUBLISHER_HANDLE]).column_names,
+                how='left')
 
         records_inter = merge_sequential(
             left_records=self._data.callback_start_instances,
-            right_records=self._data.rclcpp_publish_instances,
+            right_records=rclcpp_publish_records,
             left_stamp_key=COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             right_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
             join_left_key=COLUMN_NAME.TID,
