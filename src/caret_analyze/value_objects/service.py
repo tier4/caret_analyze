@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from .callback import ServiceCallbackStructValue
 from .value_object import ValueObject
@@ -26,8 +26,8 @@ class ServiceValue(ValueObject):
         self,
         service_name: str,
         node_name: str,
-        node_id: Optional[str],
-        callback_id: Optional[str],
+        node_id: str | None,
+        callback_id: str | None,
         construction_order: int
     ) -> None:
         self._node_name = node_name
@@ -41,7 +41,7 @@ class ServiceValue(ValueObject):
         return self._node_name
 
     @property
-    def node_id(self) -> Optional[str]:
+    def node_id(self) -> str | None:
         return self._node_id
 
     @property
@@ -49,7 +49,7 @@ class ServiceValue(ValueObject):
         return self._service_name
 
     @property
-    def callback_id(self) -> Optional[str]:
+    def callback_id(self) -> str | None:
         return self._callback_id
 
     @property
@@ -64,7 +64,7 @@ class ServiceStructValue(ValueObject, Summarizable):
         self,
         node_name: str,
         service_name: str,
-        callback_info: Optional[ServiceCallbackStructValue],
+        callback_info: ServiceCallbackStructValue | None,
         construction_order: int
     ) -> None:
         self._node_name: str = node_name
@@ -81,7 +81,7 @@ class ServiceStructValue(ValueObject, Summarizable):
         return self._service_name
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         if self._callback_value is None:
             return None
 
@@ -96,7 +96,7 @@ class ServiceStructValue(ValueObject, Summarizable):
         })
 
     @property
-    def callback(self) -> Optional[ServiceCallbackStructValue]:
+    def callback(self) -> ServiceCallbackStructValue | None:
         return self._callback_value
 
     @property

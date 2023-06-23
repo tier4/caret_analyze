@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+from typing import Any
 
 from multimethod import multimethod as singledispatchmethod
 
@@ -28,9 +29,9 @@ class TracePointIntermediateData:
     def __init__(
         self,
         columns: Sequence[str],
-        dtypes: Optional[Dict[str, str]] = None,
+        dtypes: dict[str, str] | None = None,
         *,
-        exclusion_columns_for_drop_duplicates: Optional[List[str]] = None
+        exclusion_columns_for_drop_duplicates: list[str] | None = None
     ) -> None:
         """
         Construct an instance.
@@ -44,12 +45,12 @@ class TracePointIntermediateData:
             This argument is used to manually determine which columns may be None.
             For columns that do not contain None,
             pandas.DataFrame.convert_dtypes will automatically determine it.
-        exclusion_columns_for_drop_duplicates : Optional[List[str]]
+        exclusion_columns_for_drop_duplicates : list[str] | None
             Column names to ignore when performing drop_duplicates.
             Default value is ['timestamp']
 
         """
-        self._data: Dict[str, Any] = {column: [] for column in columns}
+        self._data: dict[str, Any] = {column: [] for column in columns}
         self._columns = list(columns)
         self._dtypes = dtypes
         self._exclusion_columns = exclusion_columns_for_drop_duplicates or ['timestamp']
@@ -57,13 +58,13 @@ class TracePointIntermediateData:
     def __len__(self) -> int:
         return len(self._data)
 
-    def append(self, series_data: Dict[str, Any]):
+    def append(self, series_data: dict[str, Any]):
         """
         Append single row.
 
         Parameters
         ----------
-        series_data : Dict[str, Any]
+        series_data : dict[str, Any]
             row values.
 
         """
@@ -74,13 +75,13 @@ class TracePointIntermediateData:
         for column in missing_columns:
             self._data[column].append(None)
 
-    def get_finalized(self, index_column: Optional[str] = None) -> TracePointData:
+    def get_finalized(self, index_column: str | None = None) -> TracePointData:
         """
         Get finalized data.
 
         Parameters
         ----------
-        index_column : Optional[str], optional
+        index_column : str | None, optional
             column name to set as index, by default None.
             If None, an index number is created.
 
@@ -103,13 +104,13 @@ class TracePointIntermediateData:
         return TracePointData(df)
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         """
         Get column names.
 
         Returns
         -------
-        List[str]
+        list[str]
             column names.
 
         """
@@ -176,13 +177,13 @@ class TracePointData:
         return len(self._df)
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         """
         Column names.
 
         Returns
         -------
-        List[str]
+        list[str]
             column names.
 
         """
@@ -308,7 +309,7 @@ class TracePointData:
         on: str,
         how='inner',
         *,
-        drop_columns: Optional[List[str]] = None
+        drop_columns: list[str] | None = None
     ) -> None:
         self._merge_impl(other, on, how, drop_columns=drop_columns)
 
@@ -316,20 +317,20 @@ class TracePointData:
     def _merge_multiple_join_key(
         self,
         other: TracePointData,
-        on: List[str],
+        on: list[str],
         how='inner',
         *,
-        drop_columns: Optional[List[str]] = None
+        drop_columns: list[str] | None = None
     ) -> None:
         self._merge_impl(other, on, how, drop_columns=drop_columns)
 
     def _merge_impl(
         self,
         other: TracePointData,
-        on: Union[List[str], str],
+        on: list[str] | str,
         how='inner',
         *,
-        drop_columns: Optional[List[str]] = None
+        drop_columns: list[str] | None = None
     ) -> None:
         """
         Merge TracePointData.
@@ -338,15 +339,15 @@ class TracePointData:
         ----------
         other : TracePointData
             data to be merged
-        on : Union[List[str], str]
+        on : list[str] | str
             column names for matching
         how : str, optional
             merge method, by default 'inner'
-        drop_columns : Optional[List[str]], optional
+        drop_columns : list[str] | None, optional
             column names to be dropped, by default None
 
         """
-        def drop(df: pd.DataFrame, drop_columns: List[str]) -> pd.DataFrame:
+        def drop(df: pd.DataFrame, drop_columns: list[str]) -> pd.DataFrame:
             columns = list(set(df) & set(drop_columns))
             if len(columns) == 0:
                 return df
@@ -375,7 +376,7 @@ class TracePointData:
 
     def set_columns(
         self,
-        columns: List[str]
+        columns: list[str]
     ) -> None:
         """
         Set columns.
@@ -385,7 +386,7 @@ class TracePointData:
 
         Parameters
         ----------
-        columns : List[str]
+        columns : list[str]
             column names.
 
         """

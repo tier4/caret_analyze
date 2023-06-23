@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional
+from __future__ import annotations
 
 from graphviz import Digraph, Source
 import numpy as np
@@ -26,12 +26,12 @@ from ...runtime.path import Path
 @type_check_decorator
 def chain_latency(
     path: Path,
-    export_path: Optional[str] = None,
+    export_path: str | None = None,
     granularity: str = 'node',
     treat_drop_as_delay=False,
     lstrip_s=0,
     rstrip_s=0,
-) -> Optional[Digraph]:
+) -> Digraph | None:
     granularity = granularity or 'node'
     if granularity not in ['node', 'end-to-end']:
         raise InvalidArgumentError('granularity must be [ node / end-to-end ]')
@@ -78,7 +78,7 @@ class GraphEdge:
 
 class GraphAttr:
 
-    def __init__(self, nodes: List[GraphNode], edges: List[GraphEdge]):
+    def __init__(self, nodes: list[GraphNode], edges: list[GraphEdge]):
         self.nodes = nodes
         self.edges = edges
 
@@ -99,14 +99,39 @@ def get_attr_node(
     lstrip_s: float,
     rstrip_s: float
 ) -> GraphAttr:
-    graph_nodes: List[GraphNode] = []
+    def calc_latency_from_path_df(target_columns: list[str]) -> np.ndarray:
+        target_df = path.to_dataframe(
+            remove_dropped=remove_dropped,
+            treat_drop_as_delay=treat_drop_as_delay,
+            lstrip_s=lstrip_s,
+            rstrip_s=rstrip_s,
+        )[target_columns]
+        source_stamps_ns = np.array(target_df.iloc[:, 0].values)
+        dest_stamps_ns = np.array(target_df.iloc[:, -1].values)
+        latency_ns = dest_stamps_ns - source_stamps_ns
+        if remove_dropped:
+            latency_ns = latency_ns.astype('int64')
+        return latency_ns
+
+    graph_nodes: list[GraphNode] = []
+
     remove_dropped = False
 
-    for node_path in path.node_paths:
+    for i, node_path in enumerate(path.node_paths):
         node_name = node_path.node_name
         label = node_name
 
-        if node_path.column_names != []:
+        if i == 0 and path.include_first_callback:
+            first_cb_columns = path.column_names[0:2]
+            latency = calc_latency_from_path_df(first_cb_columns)
+            label += '\n' + to_label(latency)
+
+        elif i == len(path.node_paths)-1 and path.include_last_callback:
+            last_cb_columns = path.column_names[-2:]
+            latency = calc_latency_from_path_df(last_cb_columns)
+            label += '\n' + to_label(latency)
+
+        elif node_path.column_names != []:
             _, latency = node_path.to_timeseries(
                 remove_dropped=remove_dropped,
                 treat_drop_as_delay=treat_drop_as_delay,
@@ -114,9 +139,10 @@ def get_attr_node(
                 rstrip_s=rstrip_s,
             )
             label += '\n' + to_label(latency)
+
         graph_nodes.append(GraphNode(node_name, label))
 
-    graph_edges: List[GraphEdge] = []
+    graph_edges: list[GraphEdge] = []
     for comm_path in path.communications:
         _, pubsub_latency = comm_path.to_timeseries(
             remove_dropped=remove_dropped,
@@ -142,7 +168,7 @@ def get_attr_end_to_end(
     node_paths = path.node_paths
     remove_dropped = False
 
-    graph_nodes: List[GraphNode] = []
+    graph_nodes: list[GraphNode] = []
 
     for node_path in [node_paths[0], node_paths[-1]]:
         node_name = node_path.node_name
@@ -166,7 +192,7 @@ def get_attr_end_to_end(
 
     start_node_name = node_paths[0].node_name
     end_node_name = node_paths[-1].node_name
-    graph_edges: List[GraphEdge] = []
+    graph_edges: list[GraphEdge] = []
     graph_edges.append(
         GraphEdge(start_node_name, end_node_name, to_label(latency))
     )

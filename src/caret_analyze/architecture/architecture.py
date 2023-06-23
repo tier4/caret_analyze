@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Collection, Sequence
 import logging
-from typing import Callable, Collection, Dict, List, Optional, Sequence, Tuple, Union
 
 from .architecture_exporter import ArchitectureExporter
 from .architecture_loaded import NodeValuesLoaded
@@ -47,15 +47,15 @@ class Architecture(Summarizable):
         from .architecture_loaded import ArchitectureLoaded
 
         # /parameter events and /rosout measurements are not yet supported.
-        ignore_topics: List[str] = IGNORE_TOPICS
+        ignore_topics: list[str] = IGNORE_TOPICS
 
         reader = ArchitectureReaderFactory.create_instance(
             file_type, file_path)
         loaded = ArchitectureLoaded(reader, ignore_topics)
 
-        self._nodes: List[NodeStruct] = loaded.nodes
-        self._communications: List[CommunicationStruct] = loaded.communications
-        self._executors: List[ExecutorStruct] = loaded.executors
+        self._nodes: list[NodeStruct] = loaded.nodes
+        self._communications: list[CommunicationStruct] = loaded.communications
+        self._executors: list[ExecutorStruct] = loaded.executors
         self._paths = loaded.paths
         self._verify(self._nodes)
 
@@ -75,15 +75,15 @@ class Architecture(Summarizable):
                              self.callback_groups)
 
     @property
-    def callback_groups(self) -> Tuple[CallbackGroupStructValue, ...]:
+    def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
         return tuple(Util.flatten(_.callback_groups for _ in self.executors))
 
     @property
-    def callback_group_names(self) -> Tuple[str, ...]:
+    def callback_group_names(self) -> tuple[str, ...]:
         return tuple(sorted(_.callback_group_name for _ in self.callback_groups))
 
     @property
-    def topic_names(self) -> Tuple[str, ...]:
+    def topic_names(self) -> tuple[str, ...]:
         topic_names = {_.topic_name for _ in self.publishers}
         topic_names |= {_.topic_name for _ in self.subscriptions}
         return tuple(sorted(topic_names))
@@ -92,7 +92,7 @@ class Architecture(Summarizable):
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
     @property
-    def callbacks(self) -> Tuple[CallbackStructValue, ...]:
+    def callbacks(self) -> tuple[CallbackStructValue, ...]:
         return tuple(Util.flatten(_.callbacks for _ in self.callback_groups))
 
     def get_communication(
@@ -124,7 +124,7 @@ class Architecture(Summarizable):
         if path_name in self.path_names:
             raise InvalidArgumentError('Failed to add named path. Duplicate path name.')
 
-        child: List[Union[NodePathStruct, CommunicationStruct]] = []
+        child: list[NodePathStruct | CommunicationStruct] = []
 
         for c in path_info.child:
             if isinstance(c, NodePathStructValue):
@@ -195,45 +195,45 @@ class Architecture(Summarizable):
         self.add_path(path_name, path)
 
     @property
-    def nodes(self) -> Tuple[NodeStructValue, ...]:
+    def nodes(self) -> tuple[NodeStructValue, ...]:
         return tuple(v.to_value() for v in self._nodes)
 
     @property
-    def node_names(self) -> Tuple[str, ...]:
+    def node_names(self) -> tuple[str, ...]:
         return tuple(sorted(_.node_name for _ in self._nodes))
 
     @property
-    def executors(self) -> Tuple[ExecutorStructValue, ...]:
+    def executors(self) -> tuple[ExecutorStructValue, ...]:
         return tuple(v.to_value() for v in self._executors)
 
     @property
-    def executor_names(self) -> Tuple[str, ...]:
+    def executor_names(self) -> tuple[str, ...]:
         return tuple(sorted(_.executor_name for _ in self._executors))
 
     @property
-    def paths(self) -> Tuple[PathStructValue, ...]:
+    def paths(self) -> tuple[PathStructValue, ...]:
         return tuple([v.to_value() for v in self._paths])
 
     @property
-    def path_names(self) -> Tuple[str, ...]:
+    def path_names(self) -> tuple[str, ...]:
         return tuple(sorted(v.path_name for v in self._paths if v.path_name is not None))
 
     @property
-    def communications(self) -> Tuple[CommunicationStructValue, ...]:
+    def communications(self) -> tuple[CommunicationStructValue, ...]:
         return tuple(v.to_value() for v in self._communications)
 
     @property
-    def publishers(self) -> Tuple[PublisherStructValue, ...]:
+    def publishers(self) -> tuple[PublisherStructValue, ...]:
         publishers = Util.flatten(_.publishers for _ in self.nodes)
         return tuple(sorted(publishers, key=lambda x: x.topic_name))
 
     @property
-    def subscriptions(self) -> Tuple[SubscriptionStructValue, ...]:
+    def subscriptions(self) -> tuple[SubscriptionStructValue, ...]:
         subscriptions = Util.flatten(_.subscriptions for _ in self.nodes)
         return tuple(sorted(subscriptions, key=lambda x: x.topic_name))
 
     @property
-    def services(self) -> Tuple[ServiceStructValue, ...]:
+    def services(self) -> tuple[ServiceStructValue, ...]:
         services = Util.flatten(_.services for _ in self.nodes)
         return tuple(sorted(services, key=lambda x: x.service_name))
 
@@ -251,10 +251,10 @@ class Architecture(Summarizable):
     def search_paths(
         self,
         *node_names: str,
-        max_node_depth: Optional[int] = None,
-        node_filter: Optional[Callable[[str], bool]] = None,
-        communication_filter: Optional[Callable[[str], bool]] = None,
-    ) -> List[PathStructValue]:
+        max_node_depth: int | None = None,
+        node_filter: Callable[[str], bool] | None = None,
+        communication_filter: Callable[[str], bool] | None = None,
+    ) -> list[PathStructValue]:
         from .graph_search import NodePathSearcher
         for node_name in node_names:
             if node_name not in self.node_names:
@@ -329,12 +329,12 @@ class Architecture(Summarizable):
             if callbacks is None:
                 continue
 
-            callback_params: List[Tuple[str, Union[str, int], str, int]] = []
+            callback_params: list[tuple[str, str | int, str, int]] = []
             for callback in callbacks:
                 cb_type = callback.callback_type_name
                 symbol = callback.symbol
                 # TODO: refactor Add callback_parameter property to CallbackStruct
-                cb_param: Union[str, int]
+                cb_param: str | int
                 if isinstance(callback, TimerCallbackStruct):
                     cb_param = callback.period_ns
                 elif isinstance(callback, SubscriptionCallbackStruct):
@@ -354,8 +354,23 @@ class Architecture(Summarizable):
                      f'callback_type: {uniqueness_violated[0]}'
                      f'period_ns: {uniqueness_violated[1]}'))
 
-    def assign_message_context(self, node_name: str, context_type: str,
-                               subscribe_topic_name: str, publish_topic_name: str):
+    def update_message_context(self, node_name: str, context_type: str,
+                               subscribe_topic_name: str, publish_topic_name: str) -> None:
+        """
+        Update message_context of node_path in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        context_type : str
+            type name of message_context to be added
+        subscribe_topic_name : str
+            name of subscribe topic of target node_path
+        publish_topic_name : str
+            name of publish topic of target node_path
+
+        """
         node: NodeStruct =\
             Util.find_one(lambda x: x.node_name == node_name, self._nodes)
 
@@ -365,34 +380,110 @@ class Architecture(Summarizable):
         if subscribe_topic_name not in node.subscribe_topic_names:
             raise ItemNotFoundError('{sub_topic_name} is not found in {node_name}')
 
-        if (context_type, subscribe_topic_name, publish_topic_name) \
-            not in [(None if path.message_context_type is None
-                     else path.message_context_type.type_name,
-                     path.subscribe_topic_name, path.publish_topic_name) for path in node.paths]:
+        context_reader = AssignContextReader(node)
+        context_reader.update_message_context(context_type,
+                                              subscribe_topic_name, publish_topic_name)
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
+
+    def insert_publisher_callback(self, node_name: str,
+                                  publish_topic_name: str, callback_name: str) -> None:
+        """
+        Insert association of callback with publisher in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        publish_topic_name : str
+            topic name of target publisher into which callback is inserted
+        callback_name : str
+            name of callback to be inserted for publisher
+
+        """
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.insert_publisher_callback(publish_topic_name, callback_name)
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
+
+    def insert_variable_passing(self, node_name: str,
+                                callback_name_write: str, callback_name_read: str) -> None:
+        """
+        Insert variable_passing in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        callback_name_write : str
+            name of write callback to be inserted in variable_passing
+        callback_name_read : str
+            name of read callback to be inserted in variable_passing
+
+        """
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.insert_variable_passing(callback_name_write, callback_name_read)
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
+
+    def remove_publisher_callback(self, node_name: str,
+                                  publish_topic_name: str, callback_name: str) -> None:
+        """
+        Remove association of callback with publisher in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        publish_topic_name : str
+            topic name of target publisher from which callback is removed
+        callback_name : str
+            name of callback to be removed for publisher
+
+        """
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.remove_publisher_and_callback(publish_topic_name, callback_name)
+
+        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                              AssignContextReader(node)))
+
+    def remove_variable_passing(self, node_name: str,
+                                callback_name_write: str, callback_name_read: str) -> None:
+        """
+        Remove variable_passing in "node_name" node.
+
+        Parameters
+        ----------
+        node_name : str
+            name of target node
+        callback_name_write : str
+            name of write callback to be removed from variable_passing
+        callback_name_read : str
+            name of read callback to be removed from variable_passing
+
+        """
+        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
+
+        node.remove_variable_passing(callback_name_write, callback_name_read)
+
+        callback_read: CallbackStructValue = \
+            Util.find_one(lambda x: x.callback_name == callback_name_read, self.callbacks)
+        callback_write: CallbackStructValue = \
+            Util.find_one(lambda x: x.callback_name == callback_name_write, self.callbacks)
+
+        if callback_read.publish_topic_names:
             context_reader = AssignContextReader(node)
-            context_reader.append_message_context({'context_type': context_type,
-                                                   'subscription_topic_name': subscribe_topic_name,
-                                                   'publisher_topic_name': publish_topic_name})
+            for publish_topic_name in callback_read.publish_topic_names:
+                if callback_write.subscribe_topic_name:
+                    context_reader.remove_callback_chain(callback_write.subscribe_topic_name,
+                                                         publish_topic_name)
 
-            node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
-
-    def assign_publisher_and_callback(self, node_name: str,
-                                      publish_topic_name: str, callback_name: str):
-        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-
-        node.assign_publisher_and_callback(publish_topic_name, callback_name)
-
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
-
-    def assign_variable_passings(self, node_name: str,
-                                 callback_name_write: str, callback_name_read: str):
-        node: NodeStruct = Util.find_one(lambda x: x.node_name == node_name, self._nodes)
-
-        node.assign_variable_passings(callback_name_write, callback_name_read)
-
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
+            node.update_node_path(NodeValuesLoaded._search_node_paths(node,
+                                  context_reader))
 
     def rename_callback(self, src: str, dst: str) -> None:
         """
@@ -406,7 +497,7 @@ class Architecture(Summarizable):
             updated callback name
 
         """
-        cb_s: List[CallbackStruct] =\
+        cb_s: list[CallbackStruct] =\
             Util.flatten(cb_g.callbacks for cb_g in
                          Util.flatten([e.callback_groups for e in self._executors]))
         c: CallbackStruct = Util.find_similar_one(src, cb_s, lambda x: x.callback_name)
@@ -488,7 +579,7 @@ class Architecture(Summarizable):
     def diff_node_names(
         left_arch: Architecture,
         right_arch: Architecture
-    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    ) -> tuple[tuple[str, ...], tuple[str, ...]]:
         """
         Compare two architecture objects and return the difference of nodes name.
 
@@ -501,7 +592,7 @@ class Architecture(Summarizable):
 
         Returns
         -------
-        Tuple[Tuple[str,...], Tuple[str,...]]
+        tuple[tuple[str,...], tuple[str,...]]
             Returns node names that exist only in the respective architectures.
 
         """
@@ -511,7 +602,7 @@ class Architecture(Summarizable):
     def diff_topic_names(
         left_arch: Architecture,
         right_arch: Architecture
-    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    ) -> tuple[tuple[str, ...], tuple[str, ...]]:
         """
         Compare two architecture objects and return the difference of pub/sub topic names.
 
@@ -524,7 +615,7 @@ class Architecture(Summarizable):
 
         Returns
         -------
-        Tuple[Tuple[str,...], Tuple[str,...]]
+        tuple[tuple[str,...], tuple[str,...]]
             Returns pub/sub topic names that exist only in the respective architectures.
 
         """
@@ -534,7 +625,7 @@ class Architecture(Summarizable):
     def diff_node_pubs(
         left_node: NodeStructValue,
         right_node: NodeStructValue
-    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    ) -> tuple[tuple[str, ...], tuple[str, ...]]:
         """
         Compare two nodes of architecture objects and return the difference of publish topic names.
 
@@ -547,7 +638,7 @@ class Architecture(Summarizable):
 
         Returns
         -------
-        Tuple[Tuple[str,...], Tuple[str,...]]
+        tuple[tuple[str,...], tuple[str,...]]
             Returns publish topic names that exist only in the respective nodes.
 
         """
@@ -557,7 +648,7 @@ class Architecture(Summarizable):
     def diff_node_subs(
         left_node: NodeStructValue,
         right_node: NodeStructValue
-    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    ) -> tuple[tuple[str, ...], tuple[str, ...]]:
         """
         Compare two nodes of architecture objects and return the difference of \
         subscribe topic names.
@@ -571,7 +662,7 @@ class Architecture(Summarizable):
 
         Returns
         -------
-        Tuple[Tuple[str,...], Tuple[str,...]]
+        tuple[tuple[str,...], tuple[str,...]]
             Returns subscribe topic names that exist only in the respective nodes.
 
         """
@@ -581,14 +672,32 @@ class Architecture(Summarizable):
 class AssignContextReader(ArchitectureReader):
     """MessageContext of NodeStruct implemented version of ArchitectureReader."""
 
-    def __init__(self, node: NodeStruct):
+    def __init__(self, node: NodeStruct) -> None:
         contexts = [path.message_context for path in node.paths]
-        self._contexts = [context.to_dict() for context in contexts if context is not None]
+        self._contexts = \
+            [context.to_dict() for context in contexts if context is not None]
 
-    def append_message_context(self, context: Dict):
-        self._contexts.append(context)
+    def update_message_context(self, context_type: str,
+                               subscribe_topic_name: str, publish_topic_name: str) -> None:
+        for context in self._contexts:
+            if (context['subscription_topic_name'], context['publisher_topic_name']) ==\
+               (subscribe_topic_name, publish_topic_name):
+                context['context_type'] = context_type
+                break
+        else:
+            self._contexts.append({'context_type': context_type,
+                                   'subscription_topic_name': subscribe_topic_name,
+                                   'publisher_topic_name': publish_topic_name})
 
-    def get_message_contexts(self, _) -> Sequence[Dict]:
+    def remove_callback_chain(self, subscribe_topic_name: str, publish_topic_name: str) -> None:
+        self._contexts = [
+            context for context in self._contexts
+            if (context['subscription_topic_name'], context['publisher_topic_name'],
+                context['context_type']) !=
+               (subscribe_topic_name, publish_topic_name, 'callback_chain')
+        ]
+
+    def get_message_contexts(self, _) -> Sequence[dict]:
         return self._contexts
 
     def get_callback_groups(self):
@@ -642,7 +751,7 @@ class DiffArchitecture:
         self._left_arch = left_arch
         self._right_arch = right_arch
 
-    def diff_node_names(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    def diff_node_names(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
         set_left_node_names = set(self._left_arch.node_names)
         set_right_node_names = set(self._right_arch.node_names)
         common_node_names = set_left_node_names & set_right_node_names
@@ -650,7 +759,7 @@ class DiffArchitecture:
         right_only_names = tuple(set_right_node_names - common_node_names)
         return left_only_names, right_only_names
 
-    def diff_topic_names(self) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    def diff_topic_names(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
         set_left_topics = set(self._left_arch.topic_names)
         set_right_topics = set(self._right_arch.topic_names)
         common_node_topics = set_left_topics & set_right_topics

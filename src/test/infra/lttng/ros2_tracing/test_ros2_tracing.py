@@ -43,6 +43,7 @@ class TestLttngInfo:
         data.add_dds_bind_addr_to_addr(0, 0, 0)
         data.add_message_construct_instance(0, 0, 0)
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
+        data.add_rmw_take_instance(0, 0, 0, 0, 0)
         data.add_dispatch_intra_process_subscription_callback_instance(0, 0, 0, 0)
         data.add_executor(0, 0, 'executor_type')
         data.add_executor_static(0, 0, 0, 'executor_type')

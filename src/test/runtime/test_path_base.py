@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import List
+from __future__ import annotations
 
 from caret_analyze.record import Records, RecordsInterface
 from caret_analyze.runtime.path_base import PathBase
@@ -28,7 +28,7 @@ class PathSample(PathBase):
         return Records()
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         return []
 
 

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, Union
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 import pandas as pd
 
@@ -20,7 +22,7 @@ from ..metrics_base import MetricsBase
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class FrequencyTimeSeries(MetricsBase):
@@ -74,7 +76,7 @@ class FrequencyTimeSeries(MetricsBase):
     def to_timeseries_records_list(
         self,
         xaxis_type: str = 'system_time'
-    ) -> List[RecordsInterface]:
+    ) -> list[RecordsInterface]:
         """
         Get frequency records list of all target objects.
 
@@ -87,7 +89,7 @@ class FrequencyTimeSeries(MetricsBase):
 
         Returns
         -------
-        List[RecordsInterface]
+        list[RecordsInterface]
             Frequency records list of all target objects.
 
         """
@@ -106,7 +108,7 @@ class FrequencyTimeSeries(MetricsBase):
                 else:
                     return False
 
-        timeseries_records_list: List[RecordsInterface] = [
+        timeseries_records_list: list[RecordsInterface] = [
             _.to_records() for _ in self._target_objects
         ]
 
@@ -116,7 +118,7 @@ class FrequencyTimeSeries(MetricsBase):
 
         min_time, max_time = self._get_timestamp_range(timeseries_records_list)
 
-        frequency_timeseries_list: List[RecordsInterface] = []
+        frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
             frequency = Frequency(
                 records,
@@ -132,8 +134,8 @@ class FrequencyTimeSeries(MetricsBase):
     # TODO: Migrate into record.
     @staticmethod
     def _get_timestamp_range(
-        timeseries_records_list: List[RecordsInterface]
-    ) -> Tuple[int, int]:
+        timeseries_records_list: list[RecordsInterface]
+    ) -> tuple[int, int]:
         first_timestamps = []
         last_timestamps = []
         for records in timeseries_records_list:

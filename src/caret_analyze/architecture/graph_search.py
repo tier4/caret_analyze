@@ -15,10 +15,10 @@
 from __future__ import annotations
 
 from collections import defaultdict, UserList
+from collections.abc import Callable
 from copy import deepcopy
 from itertools import product
 from logging import getLogger
-from typing import Callable, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 
 from .struct import (CallbackStruct, CommunicationStruct,
                      NodePathStruct, NodeStruct,
@@ -34,7 +34,7 @@ logger = getLogger(__name__)
 
 class GraphEdgeCore(ValueObject):
 
-    def __init__(self, i_from: int, i_to: int, label: Optional[str] = None):
+    def __init__(self, i_from: int, i_to: int, label: str | None = None):
         self.i_from = i_from
         self.i_to = i_to
         self.label = label or ''
@@ -42,19 +42,19 @@ class GraphEdgeCore(ValueObject):
 
 class GraphPathCore(UserList):
 
-    def __init__(self, init: List[GraphEdgeCore] = None):
+    def __init__(self, init: list[GraphEdgeCore] = None):
         init = init or []
         super().__init__(init)
 
     @property
-    def path(self) -> Tuple[GraphEdgeCore, ...]:
+    def path(self) -> tuple[GraphEdgeCore, ...]:
         return tuple(self.data)
 
-    def to_graph_node_indices(self) -> List[int]:
+    def to_graph_node_indices(self) -> list[int]:
         if len(self) == 0:
             return []
 
-        nodes: List[int] = []
+        nodes: list[int] = []
         nodes.append(self[0].i_from)
 
         if self[0].i_from == self[0].i_to:
@@ -71,10 +71,10 @@ class GraphCore:
     def __init__(self):
         self._v = 0
         # default dictionary to store graph
-        self._graph: DefaultDict[int, List[GraphEdgeCore]]
+        self._graph: defaultdict[int, list[GraphEdgeCore]]
         self._graph = defaultdict(list)
 
-    def add_edge(self, u: int, v: int, label: Optional[str] = None):
+    def add_edge(self, u: int, v: int, label: str | None = None):
         self._v = max(self._v, u + 1, v + 1)
         self._graph[u].append(GraphEdgeCore(u, v, label))
 
@@ -82,10 +82,10 @@ class GraphCore:
         self,
         u: int,
         d: int,
-        edge: Optional[GraphEdgeCore],
-        visited: Dict[Tuple[int, int], bool],
+        edge: GraphEdgeCore | None,
+        visited: dict[tuple[int, int], bool],
         path: GraphPathCore,
-        paths: List[GraphPathCore],
+        paths: list[GraphPathCore],
     ) -> None:
 
         if edge is not None:
@@ -110,17 +110,17 @@ class GraphCore:
         self,
         u: int,
         d: int,
-        edge: Optional[GraphEdgeCore],
-        visited: Dict[Tuple[int, int], bool],
+        edge: GraphEdgeCore | None,
+        visited: dict[tuple[int, int], bool],
         path: GraphPathCore,
-        paths: List[GraphPathCore],
+        paths: list[GraphPathCore],
         max_depth: int = 0
     ) -> None:
 
         edges_cache = []
         forward = True
 
-        def get_next_edge(u, edges_cache) -> Optional[GraphEdgeCore]:
+        def get_next_edge(u, edges_cache) -> GraphEdgeCore | None:
             last_cache = edges_cache[-1]
             if 0 < max_depth and max_depth < len(path):
                 return None
@@ -167,14 +167,14 @@ class GraphCore:
         start: int,
         goal: int,
         max_depth: int = 0
-    ) -> List[GraphPathCore]:
+    ) -> list[GraphPathCore]:
 
-        visited: Dict[Tuple[int, int], bool] = {}
+        visited: dict[tuple[int, int], bool] = {}
         for i, j in product(range(self._v), range(self._v)):
             visited[i, j] = False
 
         path: GraphPathCore = GraphPathCore()
-        paths: List[GraphPathCore] = []
+        paths: list[GraphPathCore] = []
 
         # self._search_paths_recursion(start, goal, None, visited, path, paths)
         self._search_paths(start, goal, None, visited, path, paths, max_depth)
@@ -198,7 +198,7 @@ class GraphEdge(ValueObject):
         self,
         node_from: GraphNode,
         node_to: GraphNode,
-        label: Optional[str] = None
+        label: str | None = None
     ) -> None:
         self._node_from = node_from
         self._node_to = node_to
@@ -227,20 +227,20 @@ class GraphEdge(ValueObject):
 
 class GraphPath(UserList):
 
-    def __init__(self, init: List[GraphEdge] = None):
+    def __init__(self, init: list[GraphEdge] = None):
         init = init or []
         super().__init__(init)
 
     @property
-    def edges(self) -> List[GraphEdge]:
+    def edges(self) -> list[GraphEdge]:
         return self.data
 
     @property
-    def nodes(self) -> List[GraphNode]:
+    def nodes(self) -> list[GraphNode]:
         if len(self) == 0:
             return []
 
-        nodes: List[GraphNode] = []
+        nodes: list[GraphNode] = []
         nodes.append(self[0].node_from)
 
         if self[0].node_from == self[0].node_to:
@@ -255,9 +255,9 @@ class GraphPath(UserList):
 class Graph:
 
     def __init__(self) -> None:
-        self._idx_to_node: Dict[int, GraphNode] = {}
-        self._node_to_idx: Dict[GraphNode, int] = {}
-        self._nodes: Set[GraphNode] = set()
+        self._idx_to_node: dict[int, GraphNode] = {}
+        self._node_to_idx: dict[GraphNode, int] = {}
+        self._nodes: set[GraphNode] = set()
 
         self._graph = GraphCore()
 
@@ -267,7 +267,7 @@ class Graph:
         self._node_to_idx[node] = index
         self._nodes.add(node)
 
-    def add_edge(self, node_from: GraphNode, node_to: GraphNode, label: Optional[str] = None):
+    def add_edge(self, node_from: GraphNode, node_to: GraphNode, label: str | None = None):
         if node_from not in self._nodes:
             self.add_node(node_from)
 
@@ -289,14 +289,14 @@ class Graph:
     def search_paths(
         self,
         *nodes: GraphNode,
-        max_depth: Optional[int] = None
-    ) -> List[GraphPath]:
+        max_depth: int | None = None
+    ) -> list[GraphPath]:
         if len(nodes) < 2:
             raise InvalidArgumentError('nodes must be at least 2')
 
         self._validate(*nodes)
 
-        path_cores: List[List[GraphPathCore]] = []
+        path_cores: list[list[GraphPathCore]] = []
         for start, goal in zip(nodes[:-1], nodes[1:]):
             path_cores.append(
                 self._graph.search_paths(
@@ -306,7 +306,7 @@ class Graph:
                 )
             )
 
-        paths: List[GraphPath] = []
+        paths: list[GraphPath] = []
         for path_cores_ in product(*path_cores):
             path = GraphPath()
 
@@ -361,7 +361,7 @@ class CallbackPathSearcher:
         start_callback: CallbackStruct,
         end_callback: CallbackStruct,
         node: NodeStruct
-    ) -> Tuple[NodePathStruct, ...]:
+    ) -> tuple[NodePathStruct, ...]:
         # src_node = GraphNode(self._to_node_point_name(start_callback.callback_name, 'write'))
         # dst_node = GraphNode(self._to_node_point_name(end_callback.callback_name, 'read'))
 
@@ -372,7 +372,7 @@ class CallbackPathSearcher:
 
         graph_paths = self._graph.search_paths(GraphNode(start_name), GraphNode(end_name))
 
-        paths: List[NodePathStruct] = []
+        paths: list[NodePathStruct] = []
         for graph_path in graph_paths:
             subscription = node.get_subscription_from_callback(start_callback.callback_name)
             publisher = node.get_publisher_from_callback(end_callback.callback_name)
@@ -391,9 +391,9 @@ class CallbackPathSearcher:
         callback_graph_path: GraphPath,
         start_callback: CallbackStruct,
         end_callback: CallbackStruct,
-        start_callback_subscription: Optional[SubscriptionStruct],
-        end_callback_publishers: Optional[List[PublisherStruct]]
-    ) -> List[NodePathStruct]:
+        start_callback_subscription: SubscriptionStruct | None,
+        end_callback_publishers: list[PublisherStruct] | None
+    ) -> list[NodePathStruct]:
 
         if start_callback_subscription is None and len(end_callback_publishers or []) == 0:
             return []  # If there is no sub or pub, it is not calculated as a path
@@ -413,10 +413,10 @@ class CallbackPathSearcher:
     def _to_path(
         self,
         callbacks_graph_path: GraphPath,
-        subscription: Optional[SubscriptionStruct],
-        publisher: Optional[PublisherStruct]
+        subscription: SubscriptionStruct | None,
+        publisher: PublisherStruct | None
     ) -> NodePathStruct:
-        child: List[Union[CallbackStruct, VariablePassingStruct]] = []
+        child: list[CallbackStruct | VariablePassingStruct] = []
 
         graph_nodes = callbacks_graph_path.nodes
         graph_node_names = [_.node_name for _ in graph_nodes]
@@ -437,7 +437,7 @@ class CallbackPathSearcher:
         self,
         graph_node_from: str,
         graph_node_to: str,
-    ) -> Union[CallbackStruct, VariablePassingStruct]:
+    ) -> CallbackStruct | VariablePassingStruct:
         read_write_name_ = self._point_name_to_read_write_name(graph_node_from)
 
         read_read_name = self._point_name_to_read_write_name(graph_node_to)
@@ -502,19 +502,19 @@ class CallbackPathSearcher:
         return point_name.split('@')[1]
 
 
-NodePathKey = Tuple[
-    Optional[str],  # subscribe topic_name
-    Optional[str],  # publish topic name
-    Optional[str],  # node_name
-    Optional[int],  # subscription_construction_order
-    Optional[int],  # publisher_construction_order
+NodePathKey = tuple[
+    str | None,  # subscribe topic_name
+    str | None,  # publish topic name
+    str | None,  # node_name
+    int | None,  # subscription_construction_order
+    int | None,  # publisher_construction_order
 ]
-CommKey = Tuple[
+CommKey = tuple[
     str,  # publish_node_name
     str,  # subscribe_node_name
     str,  # topic_name
-    Optional[int],  # subscription_construction_order
-    Optional[int],  # publisher_construction_order
+    int | None,  # subscription_construction_order
+    int | None,  # publisher_construction_order
 ]
 
 
@@ -522,21 +522,21 @@ class NodePathSearcher:
 
     def __init__(
         self,
-        nodes: Tuple[NodeStruct, ...],
-        communications: Tuple[CommunicationStruct, ...],
-        node_filter: Optional[Callable[[str], bool]] = None,
-        communication_filter: Optional[Callable[[str], bool]] = None,
+        nodes: tuple[NodeStruct, ...],
+        communications: tuple[CommunicationStruct, ...],
+        node_filter: Callable[[str], bool] | None = None,
+        communication_filter: Callable[[str], bool] | None = None,
     ) -> None:
         self._nodes = nodes
         self._comms = communications
 
         self._graph = Graph()
 
-        self._node_path_dict: Dict[NodePathKey, NodePathStruct] = {}
-        self._comm_dict: Dict[CommKey, CommunicationStruct] = {}
+        self._node_path_dict: dict[NodePathKey, NodePathStruct] = {}
+        self._comm_dict: dict[CommKey, CommunicationStruct] = {}
 
-        node_paths: List[NodePathStruct] = Util.flatten([n.paths for n in self._nodes])
-        duplicated_node_paths: Dict[NodePathKey, List[NodePathStruct]] = defaultdict(list)
+        node_paths: list[NodePathStruct] = Util.flatten([n.paths for n in self._nodes])
+        duplicated_node_paths: dict[NodePathKey, list[NodePathStruct]] = defaultdict(list)
 
         for node_path in node_paths:
             key = self._node_path_key(node_path)
@@ -558,7 +558,7 @@ class NodePathSearcher:
 
             self._graph.add_node(GraphNode(node.node_name))
 
-        duplicated_comms: Dict[CommKey, CommunicationStruct] = {}
+        duplicated_comms: dict[CommKey, CommunicationStruct] = {}
 
         for comm in communications:
             if communication_filter is not None and \
@@ -607,8 +607,8 @@ class NodePathSearcher:
         publish_node_name: str,
         subscribe_node_name: str,
         topic_name: str,
-        subscription_construction_order: Optional[int],
-        publisher_construction_order: Optional[int],
+        subscription_construction_order: int | None,
+        publisher_construction_order: int | None,
     ) -> CommKey:
         return (publish_node_name,
                 subscribe_node_name,
@@ -629,11 +629,11 @@ class NodePathSearcher:
 
     @staticmethod
     def _node_path_key_(
-        subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str],
-        node_name: Optional[str],
-        subscription_construction_order: Optional[int],
-        publisher_construction_order: Optional[int]
+        subscribe_topic_name: str | None,
+        publish_topic_name: str | None,
+        node_name: str | None,
+        subscription_construction_order: int | None,
+        publisher_construction_order: int | None
     ) -> NodePathKey:
         return (subscribe_topic_name,
                 publish_topic_name,
@@ -644,13 +644,13 @@ class NodePathSearcher:
     def search(
         self,
         *node_names: str,
-        max_node_depth: Optional[int] = None
-    ) -> List[PathStruct]:
-        paths: List[PathStruct] = []
+        max_node_depth: int | None = None
+    ) -> list[PathStruct]:
+        paths: list[PathStruct] = []
 
         max_search_depth = max_node_depth or 0
 
-        graph_nodes: List[GraphNode] = [GraphNode(node) for node in node_names]
+        graph_nodes: list[GraphNode] = [GraphNode(node) for node in node_names]
         graph_paths = self._graph.search_paths(
             *graph_nodes,
             max_depth=max_search_depth)
@@ -670,10 +670,10 @@ class NodePathSearcher:
 
     @staticmethod
     def _get_publisher(
-        nodes: Tuple[NodeStruct, ...],
+        nodes: tuple[NodeStruct, ...],
         node_name: str,
         topic_name: str,
-        construction_order: Optional[int],
+        construction_order: int | None,
     ) -> PublisherStruct:
         node: NodeStruct
         node = Util.find_one(lambda x: x.node_name == node_name, nodes)
@@ -681,10 +681,10 @@ class NodePathSearcher:
 
     @staticmethod
     def _get_subscription(
-        nodes: Tuple[NodeStruct, ...],
+        nodes: tuple[NodeStruct, ...],
         node_name: str,
         topic_name: str,
-        construction_order: Optional[int]
+        construction_order: int | None
     ) -> SubscriptionStruct:
         node: NodeStruct
         node = Util.find_one(lambda x: x.node_name == node_name, nodes)
@@ -692,10 +692,10 @@ class NodePathSearcher:
 
     @staticmethod
     def _create_head_dummy_node_path(
-        nodes: Tuple[NodeStruct, ...],
+        nodes: tuple[NodeStruct, ...],
         node_name: str,
         topic_name: str,
-        construction_order: Optional[int]
+        construction_order: int | None
     ) -> NodePathStruct:
         publisher = NodePathSearcher._get_publisher(
             nodes,
@@ -707,10 +707,10 @@ class NodePathSearcher:
 
     @staticmethod
     def _create_tail_dummy_node_path(
-        nodes: Tuple[NodeStruct, ...],
+        nodes: tuple[NodeStruct, ...],
         node_name: str,
         topic_name: str,
-        subscription_construct_order: Optional[int]
+        subscription_construct_order: int | None
     ) -> NodePathStruct:
         sub = NodePathSearcher._get_subscription(
             nodes,
@@ -724,13 +724,13 @@ class NodePathSearcher:
         self,
         node_graph_path: GraphPath,
     ) -> PathStruct:
-        child: List[Union[NodePathStruct, CommunicationStruct]] = []
+        child: list[NodePathStruct | CommunicationStruct] = []
 
         # add head node path
         if len(node_graph_path.edges) == 0:
             raise InvalidArgumentError("path doesn't have any edges")
 
-        def parse_comm_edge(edge_label: str) -> Tuple[str, Optional[int], Optional[int]]:
+        def parse_comm_edge(edge_label: str) -> tuple[str, int | None, int | None]:
             tuples = tuple(edge_label.split('@'))
             topic_name = tuples[0]
             sub_const_order = None if len(tuples[1]) == 0 else int(tuples[1])
@@ -801,8 +801,8 @@ class NodePathSearcher:
         node_from: str,
         node_to: str,
         topic_name: str,
-        subscription_construction_order: Optional[int],
-        publisher_construction_order: Optional[int]
+        subscription_construction_order: int | None,
+        publisher_construction_order: int | None
     ) -> CommunicationStruct:
         key = self._create_comm_key(
             node_from, node_to, topic_name,
@@ -824,8 +824,8 @@ class NodePathSearcher:
         sub_topic_name: str,
         pub_topic_name: str,
         node_name: str,
-        subscription_construction_order: Optional[int],
-        publisher_construction_order: Optional[int],
+        subscription_construction_order: int | None,
+        publisher_construction_order: int | None,
     ) -> NodePathStruct:
         key = self._node_path_key_(
             sub_topic_name, pub_topic_name, node_name,

@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractproperty
 from collections import UserDict
-from typing import Any, Dict, List, Union
+from typing import Any
 
 
 class Summary(UserDict):
@@ -46,7 +48,7 @@ class Summary(UserDict):
         return dump(self._convert_safe(self.data))
 
     @staticmethod
-    def _convert_safe(obj: Any) -> Union[List, Dict]:
+    def _convert_safe(obj: Any) -> list | dict:
         """
         Convert a object to a object convertible to YAML.
 
@@ -57,7 +59,7 @@ class Summary(UserDict):
 
         Returns
         -------
-        Union[List, Dict]
+        list | dict
             converted object.
 
         """

@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from .message_flow_plot import MessageFlowPlot
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
@@ -31,7 +29,7 @@ class MessageFlowPlotFactory:
     def create_instance(
         target_path: Path,
         visualize_lib: VisualizeLibInterface,
-        granularity: Optional[str] = None,
+        granularity: str | None = None,
         treat_drop_as_delay: bool = False,
         lstrip_s: float = 0,
         rstrip_s: float = 0

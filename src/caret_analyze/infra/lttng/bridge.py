@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union
+from __future__ import annotations
 
 from .lttng import Lttng
 from .value_objects import (PublisherValueLttng,
@@ -130,7 +130,7 @@ class LttngBridge:
     def get_publishers(
         self,
         publisher_value: PublisherStructValue
-    ) -> List[PublisherValueLttng]:
+    ) -> list[PublisherValueLttng]:
         """
         Get publisher handles.
 
@@ -141,7 +141,7 @@ class LttngBridge:
 
         Returns
         -------
-        List[PublisherValueLttng]
+        list[PublisherValueLttng]
             publisher values that match the condition
 
         """
@@ -172,13 +172,13 @@ class TimerCallbackBindCondition:
 
     def __init__(
         self,
-        target_condition: Union[TimerCallbackValue, TimerCallbackStructValue]
+        target_condition: TimerCallbackValue | TimerCallbackStructValue
     ) -> None:
         self._target = target_condition
 
     def __call__(
         self,
-        callback_value: Union[TimerCallbackValue, TimerCallbackStructValue],
+        callback_value: TimerCallbackValue | TimerCallbackStructValue,
     ) -> bool:
         if isinstance(self._target, TimerCallbackValue) and \
                 isinstance(callback_value, TimerCallbackStructValue):
@@ -219,14 +219,13 @@ class SubscriptionCallbackBindCondition:
 
     def __init__(
         self,
-        target_condition: Union[SubscriptionCallbackValue,
-                                SubscriptionCallbackStructValue]
+        target_condition: SubscriptionCallbackValue | SubscriptionCallbackStructValue
     ) -> None:
         self._target = target_condition
 
     def __call__(
         self,
-        callback_value: Union[SubscriptionCallbackValue, SubscriptionCallbackStructValue],
+        callback_value: SubscriptionCallbackValue | SubscriptionCallbackStructValue,
     ) -> bool:
         if isinstance(self._target, SubscriptionCallbackValue) and \
                 isinstance(callback_value, SubscriptionCallbackStructValue):
@@ -270,13 +269,13 @@ class PublisherBindCondition:
 
     def __init__(
         self,
-        target_condition: Union[PublisherValue, PublisherStructValue]
+        target_condition: PublisherValue | PublisherStructValue
     ) -> None:
         self._target = target_condition
 
     def __call__(
         self,
-        publisher_value: Union[PublisherValue, PublisherStructValue],
+        publisher_value: PublisherValue | PublisherStructValue,
     ) -> bool:
         if isinstance(self._target, PublisherValue) and \
                 isinstance(publisher_value, PublisherStructValue):

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Union
+from __future__ import annotations
 
 from bokeh.plotting import Figure
 
@@ -24,7 +24,7 @@ from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class TimeSeriesPlot(PlotBase):
@@ -63,9 +63,9 @@ class TimeSeriesPlot(PlotBase):
 
     def figure(
         self,
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None
     ) -> Figure:
         """
         Get a timeseries graph for each object using the bokeh library.

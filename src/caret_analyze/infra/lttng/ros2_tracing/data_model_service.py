@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from functools import lru_cache
 import itertools
 
 from logging import getLogger, Logger
-from typing import List, Optional, Set, Tuple, Union
 
 import pandas as pd
 
@@ -34,7 +35,7 @@ class DataModelService:
     def get_node_names_and_cb_symbols(
         self,
         cbg_addr: int
-    ) -> List[Tuple[Optional[str], Optional[str]]]:
+    ) -> list[tuple[str | None, str | None]]:
         """
         Get node names and callback symbols from callback group address.
 
@@ -45,7 +46,7 @@ class DataModelService:
 
         Returns
         -------
-        List[Tuple[Optional[str], Optional[str]]]
+        list[tuple[str | None, str | None]]
             node names and callback symbols.
             tuple structure: (node_name, callback_symbol)
 
@@ -55,7 +56,7 @@ class DataModelService:
         this returns a list of all possible node names and callback symbols.
 
         """
-        node_names_and_cb_symbols: Set[Tuple[Optional[str], Optional[str]]] = set()
+        node_names_and_cb_symbols: set[tuple[str | None, str | None]] = set()
         try:
             node_names_and_cb_symbols |= \
                 set(self._get_node_names_and_cb_symbols_from_timer(cbg_addr))
@@ -82,12 +83,12 @@ class DataModelService:
     def _get_node_names_and_cb_symbols_from_timer(
         self,
         cbg_addr: int
-    ) -> List[Tuple[Optional[str], Optional[str]]]:
+    ) -> list[tuple[str | None, str | None]]:
         match_cbg_timer = self._ensure_dataframe(
             self._data.callback_group_timer.df.loc[cbg_addr, :])
         timer_handles = match_cbg_timer.loc[:, 'timer_handle'].to_list()
 
-        node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
+        node_names_and_cb_symbols: list[tuple[str | None, str | None]] = []
         for handle in timer_handles:
             node_name = self._get_node_name_from_handle(handle, self._data.timer_node_links.df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
@@ -100,12 +101,12 @@ class DataModelService:
     def _get_node_names_and_cb_symbols_from_sub(
         self,
         cbg_addr: int
-    ) -> List[Tuple[Optional[str], Optional[str]]]:
+    ) -> list[tuple[str | None, str | None]]:
         match_cbg_sub = self._ensure_dataframe(
             self._data.callback_group_subscription.df.loc[cbg_addr, :])
         sub_handles = match_cbg_sub.loc[:, 'subscription_handle'].to_list()
 
-        node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
+        node_names_and_cb_symbols: list[tuple[str | None, str | None]] = []
         for handle in sub_handles:
             node_name = self._get_node_name_from_handle(handle, self._data.subscriptions.df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
@@ -118,12 +119,12 @@ class DataModelService:
     def _get_node_names_and_cb_symbols_from_srv(
         self,
         cbg_addr: int
-    ) -> List[Tuple[Optional[str], Optional[str]]]:
+    ) -> list[tuple[str | None, str | None]]:
         match_cbg_srv = self._ensure_dataframe(
             self._data.callback_group_service.df.loc[cbg_addr, :])
         srv_handles = match_cbg_srv.loc[:, 'service_handle'].to_list()
 
-        node_names_and_cb_symbols: List[Tuple[Optional[str], Optional[str]]] = []
+        node_names_and_cb_symbols: list[tuple[str | None, str | None]] = []
         for handle in srv_handles:
             node_name = self._get_node_name_from_handle(handle, self._data.services.df)
             callback_symbol = self._get_callback_symbols_from_handle(handle)
@@ -142,7 +143,7 @@ class DataModelService:
         self,
         handle: int,
         middle_df: pd.DataFrame
-    ) -> Optional[str]:
+    ) -> str | None:
         def ns_and_node_name(row: pd.Series) -> str:
             ns: str = row['namespace']
             name: str = row['name']
@@ -172,7 +173,7 @@ class DataModelService:
     def _get_callback_symbols_from_handle(
         self,
         handle: int
-    ) -> List[Optional[str]]:
+    ) -> list[str | None]:
         try:
             match_callback_objects = self._ensure_dataframe(
                 self._data.callback_objects.df.loc[handle, :])
@@ -184,7 +185,7 @@ class DataModelService:
 
     @staticmethod
     def _ensure_dataframe(
-        dataframe_or_series: Union[pd.DataFrame, pd.Series]
+        dataframe_or_series: pd.DataFrame | pd.Series
     ) -> pd.DataFrame:
         """
         If input is Series, convert to DataFrame.
