@@ -607,7 +607,8 @@ class RecordsSource():
                 join_right_key=COLUMN_NAME.MESSAGE,
                 columns=Columns.from_str(
                     rclcpp_publish_records.columns + [COLUMN_NAME.PUBLISHER_HANDLE]).column_names,
-                how='left')
+                how='left',
+                progress_label='binding: rclcpp_publish and rcl_publish')
 
         records_inter = merge_sequential(
             left_records=self._data.callback_start_instances,
