@@ -14,13 +14,11 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-from bokeh.models import HoverTool, Legend
+from bokeh.models import Legend
 from bokeh.plotting import ColumnDataSource, Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
-                   HoverKeysFactory, HoverSource, init_figure)
+                   HoverKeysFactory, init_figure)
 
 
 class BokehStackedBar:
@@ -83,7 +81,7 @@ class BokehStackedBar:
         colors = [color_selector.get_color(y_label) for y_label in y_labels]
 
         fig.add_tools(
-            HoverKeysFactory.create_instance('stacked_bar',target_objects).create_hover())
+            HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
 
@@ -93,12 +91,12 @@ class BokehStackedBar:
         # add 'label' and 'latency' data to each bar due to display hover
         for label, stack in zip(y_labels, stacks):
             stack.data_source.add([label] * source.x_len, 'label')
-            stack.data_source.add(['latency = ' + str(latency) 
+            stack.data_source.add(['latency = ' + str(latency)
                                    for latency in source.data[label]], 'latency')
 
         legend_items = [(label, [bar]) for label, bar in zip(y_labels, stacks)]
-        legend = Legend(items=legend_items, location="bottom_left",
-                        orientation="vertical", click_policy='mute')
+        legend = Legend(items=legend_items, location='bottom_left',
+                        orientation='vertical', click_policy='mute')
         fig.add_layout(legend, 'below')
 
         return fig
@@ -186,10 +184,6 @@ class BokehStackedBar:
         # TODO: create bokeh_util.py and move this.
         return [values[i] + shift_values[i] for i in range(len(values))]
 
-    @staticmethod
-    def _get_bottom_labels(labels: list[str]) -> list[str]:
-        return [label + '_bottom' for label in labels]
-
 
 class StackedBarSource:
     """Class to generate stacked bar source."""
@@ -227,9 +221,8 @@ class StackedBarSource:
             data[x_label] = list(range(0, len(data[y_labels[0]])))
             x_width_list = BokehStackedBar._get_x_width_list(data[x_label])
 
-
         self._data: dict[str, list[int | float]] = data
-        self._x_width_list: str = x_width_list
+        self._x_width_list: list[float] = x_width_list
 
     @property
     def data(self) -> dict[str, list[int | float]]:
