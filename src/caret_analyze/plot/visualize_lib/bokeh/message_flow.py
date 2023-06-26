@@ -73,8 +73,8 @@ class BokehMessageFlow:
         if self._xaxis_type == 'sim_time':
             assert len(self._target_path.child) > 0
             # TODO(hsgwa): refactor
-            converter = self._target_path.child[0]._provider.get_sim_time_converter(
-                frame_min, frame_max)  # type: ignore
+            provider = self._target_path.child[0]._provider  # type: ignore
+            converter = provider.get_sim_time_converter(frame_min, frame_max)
         if converter:
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)

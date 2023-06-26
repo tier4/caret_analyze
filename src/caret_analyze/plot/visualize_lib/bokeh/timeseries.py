@@ -77,12 +77,12 @@ class BokehTimeSeries:
                     assert isinstance(comm, Communication)
                     if comm.callback_subscription:
                         converter_cb = comm.callback_subscription
-                        converter = converter_cb._provider.get_sim_time_converter(
-                            frame_min, frame_max)
+                        provider = converter_cb._provider
+                        converter = provider.get_sim_time_converter(frame_min, frame_max)
                         break
             else:
-                converter = target_objects[0]._provider.get_sim_time_converter(
-                    frame_min, frame_max)
+                provider = target_objects[0]._provider
+                converter = provider.get_sim_time_converter(frame_min, frame_max)
         if converter:
             frame_min_convert = converter.convert(frame_min)
             frame_max_convert = converter.convert(frame_max)
