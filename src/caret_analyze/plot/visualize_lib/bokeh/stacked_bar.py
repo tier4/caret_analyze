@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from bokeh.models import Legend
+from bokeh.models import Legend, HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
@@ -80,21 +80,22 @@ class BokehStackedBar:
             color_selector.get_color()
         colors = [color_selector.get_color(y_label) for y_label in y_labels]
 
-        fig.add_tools(
-            HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
-
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
-        stacks = fig.vbar_stack(y_labels, x='start time', width='x_width_list',
-                                color=colors, source=source.to_column_data_source())
+        # stack bottom -> top to top -> bottom
+        reversed_y_label = [_ for _ in reversed(y_labels)]
+        stacks = fig.vbar_stack(reversed_y_label, x='start time', width='x_width_list',
+                                color=colors, source=source.to_source())
 
         # add 'label' and 'latency' data to each bar due to display hover
-        for label, stack in zip(y_labels, stacks):
+        for label, stack in zip(reversed_y_label, stacks):
             stack.data_source.add([label] * source.x_len, 'label')
             stack.data_source.add(['latency = ' + str(latency)
                                    for latency in source.data[label]], 'latency')
+            fig.add_tools(
+                HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         # add legend (for each var in stacked bar)
-        legend_items = [(label, [bar]) for label, bar in zip(y_labels, stacks)]
+        legend_items = [(label, [bar]) for label, bar in zip(reversed_y_label, stacks)]
         legend = Legend(items=legend_items, location='bottom_left',
                         orientation='vertical', click_policy='mute')
         fig.add_layout(legend, 'below')
@@ -224,9 +225,9 @@ class StackedBarSource:
     def x_len(self) -> int:
         return min([len(v) for v in self._data.values()])
 
-    def to_column_data_source(
+    def to_source(
         self,
-    ) -> ColumnDataSource:
+    ) -> dict[str, list[int | float]]:
         # convert timestamp to latency
         labels = list(self._data.keys())
         for k in self._data.keys():
@@ -242,7 +243,7 @@ class StackedBarSource:
             ]
 
         # set data used in stacked bar
-        source = ColumnDataSource(self._data)
-        source.add(self._x_width_list, 'x_width_list')
+        source = self._data
+        source['x_width_list'] = self._x_width_list
 
         return source
