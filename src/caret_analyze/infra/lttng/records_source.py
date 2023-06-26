@@ -75,22 +75,6 @@ class RecordsSource():
         """
         inter_proc_publish = self._data.rclcpp_publish_instances.clone()
         rcl_publish_records = self._data.rcl_publish_instances.clone()
-
-        # Get the publish_handle from rcl_publish and add it to the rclcpp_publish record,
-        # in case rclcpp_publish does not have a publisher_handle.
-        if len(rcl_publish_records) != 0:
-            inter_proc_publish = merge_sequential(
-                left_records=inter_proc_publish,
-                right_records=rcl_publish_records,
-                left_stamp_key=COLUMN_NAME.RCLCPP_INTER_PUBLISH_TIMESTAMP,
-                right_stamp_key=COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
-                join_left_key=COLUMN_NAME.MESSAGE,
-                join_right_key=COLUMN_NAME.MESSAGE,
-                columns=Columns.from_str(
-                    inter_proc_publish.columns + [COLUMN_NAME.PUBLISHER_HANDLE]).column_names,
-                how='left')
-
-        rcl_publish_records.drop_columns([COLUMN_NAME.PUBLISHER_HANDLE])
         if len(rcl_publish_records) > 0:
             inter_proc_publish = merge_sequential(
                 left_records=inter_proc_publish,
