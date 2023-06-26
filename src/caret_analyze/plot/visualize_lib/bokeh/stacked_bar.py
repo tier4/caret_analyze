@@ -85,8 +85,9 @@ class BokehStackedBar:
         fig.add_tools(
             HoverKeysFactory.create_instance('stacked_bar',target_objects).create_hover())
 
-        stacked_bar_data, x_width_list = \
-            self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
+        source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
+        stacked_bar_data = source._data
+        x_width_list = source._x_width_list
 
         labels = list(stacked_bar_data.keys())
         for k in stacked_bar_data.keys():
@@ -116,67 +117,6 @@ class BokehStackedBar:
         fig.add_layout(legend, 'below')
 
         return fig
-
-    @staticmethod
-    def _get_stacked_bar_data(
-        data: dict[str, list[int | float]],
-        y_labels: list[str],
-        xaxis_type: str,
-        x_label: str,
-    ) -> tuple[dict[str, list[float]],  list[float]]:
-        """
-        Calculate stacked bar data.
-
-        Parameters
-        ----------
-        data : dict[str, list[int]]
-            Source data.
-        y_labels : list[str]
-            Y axis labels that are Node/Topic name.
-        xaxis_type : str
-            Type of x-axis of the line graph to be plotted.
-            "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
-        x_label : str
-            X-axis label of data dict.
-            "start time" or "index".
-
-        Returns
-        -------
-        dict[str, list[float]]
-            Stacked bar data.
-        list[float]
-            Width list of bars.
-
-        """
-        output_data: dict[str, list[float]] = {}
-        x_width_list: list[float] = []
-
-        # Convert the data unit to second
-        output_data = BokehStackedBar._updated_with_unit(data, y_labels, 1e-6)
-        output_data = BokehStackedBar._updated_with_unit(output_data, ['start time'], 1e-9)
-
-        # Calculate the stacked y values
-        output_data = BokehStackedBar._stacked_y_values(output_data, y_labels)
-
-        if xaxis_type == 'system_time':
-            # Update the timestamps from absolutely time to offset time
-            output_data[x_label] = BokehStackedBar._updated_timestamps_to_offset_time(
-                output_data[x_label])
-
-            x_width_list = BokehStackedBar._get_x_width_list(output_data[x_label])
-            half_width_list = [x / 2 for x in x_width_list]
-
-            # Slide x axis values so that the bottom left of bars are the start time.
-            output_data[x_label] = BokehStackedBar._add_shift_value(
-                output_data[x_label], half_width_list)
-        elif xaxis_type == 'sim_time':
-            raise NotImplementedError()
-        else:  # index
-            output_data[x_label] = list(range(0, len(output_data[y_labels[0]])))
-            x_width_list = BokehStackedBar._get_x_width_list(output_data[x_label])
-
-        return output_data, x_width_list
 
     @staticmethod
     def _updated_with_unit(
@@ -271,28 +211,42 @@ class StackedBarSource:
 
     def __init__(
         self,
-        target_object,
+        data: dict[str, list[int | float]],
+        y_labels: list[str],
+        xaxis_type: str,
+        x_label: str
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instance('stacked_bar', target_object)
-        self._hover_source = HoverSource(self._hover_keys)
+        x_width_list: list[float] = []
 
-    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
-        """
-        Create HoverTool based on the hover keys.
+        # Convert the data unit to second
+        data = BokehStackedBar._updated_with_unit(data, y_labels, 1e-6)
+        data = BokehStackedBar._updated_with_unit(data, ['start time'], 1e-9)
 
-        Parameters
-        ----------
-        options : dict, optional
-            Additional options, by default {}
+        # Calculate the stacked y values
+        data = BokehStackedBar._stacked_y_values(data, y_labels)
 
-        Returns
-        -------
-        HoverTool
+        if xaxis_type == 'system_time':
+            # Update the timestamps from absolutely time to offset time
+            data[x_label] = BokehStackedBar._updated_timestamps_to_offset_time(
+                data[x_label])
 
-        """
-        return self._hover_keys.create_hover(options)
+            x_width_list = BokehStackedBar._get_x_width_list(data[x_label])
+            half_width_list = [x / 2 for x in x_width_list]
 
-    def generate(
+            # Slide x axis values so that the bottom left of bars are the start time.
+            data[x_label] = BokehStackedBar._add_shift_value(
+                data[x_label], half_width_list)
+        elif xaxis_type == 'sim_time':
+            raise NotImplementedError()
+        else:  # index
+            data[x_label] = list(range(0, len(data[y_labels[0]])))
+            x_width_list = BokehStackedBar._get_x_width_list(data[x_label])
+
+
+        self._data: dict[str, list[int | float]] = data
+        self._x_width_list: str = x_width_list
+
+    def to_column_data_source(
         self,
         y_label: str,
         stacked_bar_data: dict[str, list[float]],
