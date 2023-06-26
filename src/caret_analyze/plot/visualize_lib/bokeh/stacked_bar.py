@@ -86,32 +86,16 @@ class BokehStackedBar:
             HoverKeysFactory.create_instance('stacked_bar',target_objects).create_hover())
 
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
-        stacked_bar_data = source._data
-        x_width_list = source._x_width_list
 
-        labels = list(stacked_bar_data.keys())
-        for k in stacked_bar_data.keys():
-            if k == 'start time':
-                continue
-            if labels[labels.index(k)+1] == 'start time':
-                continue
-            target_data = stacked_bar_data[k]
-            below_data = stacked_bar_data[labels[labels.index(k)+1]]
-            stacked_bar_data[k] = [
-                target - below for target, below in
-                zip(target_data, below_data)
-            ]
-
-        stacked_bar_data['x_width_list'] = x_width_list
         stacks = fig.vbar_stack(y_labels, x='start time', width='x_width_list',
-                                color=colors, source=ColumnDataSource(stacked_bar_data))
+                                color=colors, source=source.to_column_data_source())
 
-        for label, stack in zip(labels, stacks):
-            stack.data_source.add([label] * len(x_width_list), 'label')
+        for label, stack in zip(y_labels, stacks):
+            stack.data_source.add([label] * len(source._x_width_list), 'label')
             stack.data_source.add(['latency = ' + str(latency) 
-                                   for latency in stacked_bar_data[label]], 'latency')
+                                   for latency in source._data[label]], 'latency')
 
-        legend_items = [(label, [bar]) for label, bar in zip(labels, stacks)]
+        legend_items = [(label, [bar]) for label, bar in zip(y_labels, stacks)]
         legend = Legend(items=legend_items, location="bottom_left",
                         orientation="vertical", click_policy='mute')
         fig.add_layout(legend, 'below')
@@ -248,26 +232,21 @@ class StackedBarSource:
 
     def to_column_data_source(
         self,
-        y_label: str,
-        stacked_bar_data: dict[str, list[float]],
-        x_width_list: list[float],
     ) -> ColumnDataSource:
-        target_data = stacked_bar_data[y_label]
-        y_labels = list(stacked_bar_data.keys())
-        idx_one_below = y_labels.index(y_label) + 1
-        # HACK: This assumes that 'start time' is at the bottom of y_labels.
-        if y_labels[idx_one_below] != 'start time':
-            latencies = [
+        labels = list(self._data.keys())
+        for k in self._data.keys():
+            if k == 'start time':
+                continue
+            if labels[labels.index(k)+1] == 'start time':
+                continue
+            target_data = self._data[k]
+            below_data = self._data[labels[labels.index(k)+1]]
+            self._data[k] = [
                 target - below for target, below in
-                zip(target_data, stacked_bar_data[y_labels[idx_one_below]])
+                zip(target_data, below_data)
             ]
-        else:
-            latencies = target_data
 
-        source = ColumnDataSource({y_label: target_data})
-        source.add(stacked_bar_data['start time'], 'start time')
-        source.add(x_width_list, 'x_width_list')
-        source.add([f'{y_label}'] * len(x_width_list), 'label')
-        source.add(['latency = ' + str(_) for _ in latencies], 'latency')
+        source = ColumnDataSource(self._data)
+        source.add(self._x_width_list, 'x_width_list')
 
         return source
