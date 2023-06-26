@@ -90,10 +90,11 @@ class BokehStackedBar:
         stacks = fig.vbar_stack(y_labels, x='start time', width='x_width_list',
                                 color=colors, source=source.to_column_data_source())
 
+        # add 'label' and 'latency' data to each bar due to display hover
         for label, stack in zip(y_labels, stacks):
-            stack.data_source.add([label] * len(source._x_width_list), 'label')
+            stack.data_source.add([label] * source.x_len, 'label')
             stack.data_source.add(['latency = ' + str(latency) 
-                                   for latency in source._data[label]], 'latency')
+                                   for latency in source.data[label]], 'latency')
 
         legend_items = [(label, [bar]) for label, bar in zip(y_labels, stacks)]
         legend = Legend(items=legend_items, location="bottom_left",
@@ -229,6 +230,14 @@ class StackedBarSource:
 
         self._data: dict[str, list[int | float]] = data
         self._x_width_list: str = x_width_list
+
+    @property
+    def data(self) -> dict[str, list[int | float]]:
+        return self._data
+
+    @property
+    def x_len(self) -> int:
+        return min([len(v) for v in self._data.values()])
 
     def to_column_data_source(
         self,
