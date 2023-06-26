@@ -82,8 +82,8 @@ class BokehStackedBar:
             color_selector.get_color()
         colors = [color_selector.get_color(y_label) for y_label in y_labels]
 
-        stacked_bar_source = StackedBarSource(target_objects)
-        fig.add_tools(stacked_bar_source.create_hover())
+        fig.add_tools(
+            HoverKeysFactory.create_instance('stacked_bar',target_objects).create_hover())
 
         stacked_bar_data, x_width_list = \
             self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
@@ -103,7 +103,7 @@ class BokehStackedBar:
 
         stacked_bar_data['x_width_list'] = x_width_list
         stacks = fig.vbar_stack(y_labels, x='start time', width='x_width_list',
-                                color=colors, source=stacked_bar_data)
+                                color=colors, source=ColumnDataSource(stacked_bar_data))
 
         for label, stack in zip(labels, stacks):
             stack.data_source.add([label] * len(x_width_list), 'label')
