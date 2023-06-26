@@ -96,6 +96,7 @@ class BokehStackedBar:
 
         # add legend (for each var in stacked bar)
         legend_items = [(label, [bar]) for label, bar in zip(reversed_y_label, stacks)]
+        legend_items.reverse()
         legend = Legend(items=legend_items, location='bottom_left',
                         orientation='vertical', click_policy='mute')
         fig.add_layout(legend, 'below')
