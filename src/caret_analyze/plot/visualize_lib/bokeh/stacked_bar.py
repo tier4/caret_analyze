@@ -80,6 +80,40 @@ class BokehStackedBar:
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         if self._case == 'best':
             color_selector.get_color()
+        colors = [color_selector.get_color(y_label) for y_label in y_labels]
+
+        stacked_bar_source = StackedBarSource(target_objects)
+        fig.add_tools(stacked_bar_source.create_hover())
+
+        stacked_bar_data, x_width_list = \
+            self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
+
+        labels = list(stacked_bar_data.keys())
+        for k in stacked_bar_data.keys():
+            if k == 'start time':
+                continue
+            if labels[labels.index(k)+1] == 'start time':
+                continue
+            target_data = stacked_bar_data[k]
+            below_data = stacked_bar_data[labels[labels.index(k)+1]]
+            stacked_bar_data[k] = [
+                target - below for target, below in
+                zip(target_data, below_data)
+            ]
+
+        stacked_bar_data['x_width_list'] = x_width_list
+        stacks = fig.vbar_stack(y_labels, x='start time', width='x_width_list',
+                                color=colors, source=stacked_bar_data)
+
+        for label, stack in zip(labels, stacks):
+            stack.data_source.add([label] * len(x_width_list), 'label')
+            stack.data_source.add(['latency = ' + str(latency) 
+                                   for latency in stacked_bar_data[label]], 'latency')
+
+        legend_items = [(label, [bar]) for label, bar in zip(labels, stacks)]
+        legend = Legend(items=legend_items, location="bottom_left",
+                        orientation="vertical", click_policy='mute')
+        fig.add_layout(legend, 'below')
 
         return fig
 
