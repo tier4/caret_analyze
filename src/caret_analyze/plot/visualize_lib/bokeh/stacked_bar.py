@@ -84,7 +84,6 @@ class BokehStackedBar:
             HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
-
         stacks = fig.vbar_stack(y_labels, x='start time', width='x_width_list',
                                 color=colors, source=source.to_column_data_source())
 
@@ -94,6 +93,7 @@ class BokehStackedBar:
             stack.data_source.add(['latency = ' + str(latency)
                                    for latency in source.data[label]], 'latency')
 
+        # add legend (for each var in stacked bar)
         legend_items = [(label, [bar]) for label, bar in zip(y_labels, stacks)]
         legend = Legend(items=legend_items, location='bottom_left',
                         orientation='vertical', click_policy='mute')
@@ -227,6 +227,7 @@ class StackedBarSource:
     def to_column_data_source(
         self,
     ) -> ColumnDataSource:
+        # convert timestamp to latency
         labels = list(self._data.keys())
         for k in self._data.keys():
             if k == 'start time':
@@ -240,6 +241,7 @@ class StackedBarSource:
                 zip(target_data, below_data)
             ]
 
+        # set data used in stacked bar
         source = ColumnDataSource(self._data)
         source.add(self._x_width_list, 'x_width_list')
 
