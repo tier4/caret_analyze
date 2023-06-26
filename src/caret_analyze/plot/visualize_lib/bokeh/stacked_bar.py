@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from bokeh.models import Legend, HoverTool
+from bokeh.models import Legend
 from bokeh.plotting import Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
@@ -82,7 +82,7 @@ class BokehStackedBar:
 
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
         # stack bottom -> top to top -> bottom
-        reversed_y_label = [_ for _ in reversed(y_labels)]
+        reversed_y_label = list(reversed(y_labels))
         stacks = fig.vbar_stack(reversed_y_label, x='start time', width='x_width_list',
                                 color=colors, source=source.to_source())
 
@@ -229,7 +229,7 @@ class StackedBarSource:
     def to_source(
         self,
     ) -> dict[str, list[int | float]]:
-        # NOTE: Using `ColumnDataSource`, it is not possible 
+        # NOTE: Using `ColumnDataSource`, it is not possible
         # NOTE: to display a different hover for each stack (cause unknown).
         # convert timestamp to latency
         labels = list(self._data.keys())
