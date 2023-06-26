@@ -80,25 +80,6 @@ class BokehStackedBar:
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         if self._case == 'best':
             color_selector.get_color()
-        stacked_bar_source = StackedBarSource(target_objects)
-        fig.add_tools(stacked_bar_source.create_hover())
-        stacked_bar_data, x_width_list = \
-            self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
-
-        vbar_stacks = []
-        for y_label in y_labels:
-            vbar_stack = fig.vbar_stack(
-                [y_label],
-                x='start time',
-                width='x_width_list',
-                source=stacked_bar_source.generate(y_label, stacked_bar_data, x_width_list),
-                color=color_selector.get_color(y_label)
-            )
-            vbar_stacks.append((y_label, vbar_stack))
-
-        legend = Legend(items=vbar_stacks, location='bottom_left')
-        fig.add_layout(legend, 'below')
-        fig.legend.click_policy = 'mute'
 
         return fig
 
