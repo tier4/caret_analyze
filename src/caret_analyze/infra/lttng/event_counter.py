@@ -29,6 +29,7 @@ class EventCounter:
     def __init__(self, data: Ros2DataModel, *, validate=True):
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
         self._count_df = self._build_count_df(data)
+        self._has_intra_process = self._check_intra_process_communication(data)
         if validate:
             self._validate()
 
@@ -74,27 +75,51 @@ class EventCounter:
             'ros2_caret:rmw_implementation'
         }
 
-        trace_points_added_by_fork_rclcpp = {
+        trace_points_added_by_fork_rclcpp_for_intra_process = {
             'ros2:message_construct',
             'ros2:rclcpp_intra_publish',
-            'ros2:dispatch_subscription_callback',
             'ros2:dispatch_intra_process_subscription_callback',
+        }
+
+        trace_points_added_by_fork_rclcpp_for_inter_process = {
+            'ros2:dispatch_subscription_callback',
         }
 
         if len(set(recorded_trace_points) & trace_points_added_by_ld_preload) == 0:
             raise InvalidTraceFormatError(
                 'Failed to find trace point added by LD_PRELOAD. '
                 'Measurement results will not be correct. '
-                'The measurement may have been performed without setting LD_PRELOAD.')
+                'The measurement may have been performed without setting LD_PRELOAD.'
+            )
 
         # trace points added to rclcpp may not be recorded, depending on the implementation.
         # Here, only warnings are given.
-        if len(set(recorded_trace_points) & trace_points_added_by_fork_rclcpp) == 0:
-            logger.warning(
-                'Failed to find trace point added by caret-rclcpp. '
-                'To check whether binary are built with caret-rclcpp,'
-                'run CARET CLI : ros2 caret check_caret_rclcpp.'
-            )
+        has_forked_inter_process_trace_points = len(
+            set(recorded_trace_points) & trace_points_added_by_fork_rclcpp_for_inter_process) != 0
+        has_forked_intra_process_trace_points = len(
+            set(recorded_trace_points) & trace_points_added_by_fork_rclcpp_for_intra_process) != 0
+
+        # In caret, rmw_take can be used as a substitute for dispatch_subscription_callback
+        has_rmw_take_trace_points = len(
+            set(recorded_trace_points) & {'ros2:rmw_take'}) != 0
+
+        if (not has_forked_inter_process_trace_points
+                and not has_forked_intra_process_trace_points):
+            # In this case, the measured application uses only intra process communication,
+            # so the trace data can be analyzed using rmw_take trace points.
+            if has_rmw_take_trace_points and not self._has_intra_process:
+                return
+            msg = 'Failed to find trace points added by caret-rclcpp. '
+            if self._has_intra_process:
+                msg += "If the application doesn't have any intra communication, "
+                msg += 'please ignore this message. '
+            msg += 'To check whether binary are built with caret-rclcpp, '
+            msg += 'run CARET CLI : ros2 caret check_caret_rclcpp.'
+
+            logger.warning(msg)
+
+    def _check_intra_process_communication(self, data: Ros2DataModel) -> bool:
+        return sum(data.callback_start_instances.get_column_series('is_intra_process')) != 0
 
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
