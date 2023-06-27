@@ -101,10 +101,10 @@ class TestEventCounter:
             EventCounter(data)
 
     @pytest.mark.parametrize(
-        'use_intra_process, has_rmw_take',(
-        [False, False],
-        [False, True],
-        [True, True],
+        'use_intra_process, has_rmw_take', (
+            [False, False],
+            [False, True],
+            [True, True],
         )
     )
     def test_validation_without_forked_rclcpp(
