@@ -166,8 +166,10 @@ class EventCounter:
             'ros2:callback_end': data.callback_end_instances.to_dataframe(),
             'ros2:rclcpp_publish': data.rclcpp_publish_instances.to_dataframe(),
             'ros2:rclcpp_intra_publish': data.rclcpp_intra_publish_instances.to_dataframe(),
-            'ros2:rclcpp_ring_buffer_enqueue': data.rclcpp_ring_buffer_enqueue_instances.to_dataframe(),
-            'ros2:rclcpp_ring_buffer_dequeue': data.rclcpp_ring_buffer_dequeue_instances.to_dataframe(),
+            'ros2:rclcpp_ring_buffer_enqueue':
+                data.rclcpp_ring_buffer_enqueue_instances.to_dataframe(),
+            'ros2:rclcpp_ring_buffer_dequeue':
+                data.rclcpp_ring_buffer_dequeue_instances.to_dataframe(),
             'ros2:message_construct': data.message_construct_instances.to_dataframe(),
             'ros2:dispatch_subscription_callback':
                 data.dispatch_subscription_callback_instances.to_dataframe(),
