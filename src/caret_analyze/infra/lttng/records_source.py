@@ -430,7 +430,10 @@ class RecordsSource():
             - message_timestamp
 
         """
-        return self.intra_proc_comm_records_iron
+        # If the trace data being analyzed is measured with an `iron` or later version
+        if len(self._data.rclcpp_ring_buffer_enqueue_instances) != 0:
+            return self.intra_proc_comm_records_iron
+
         sink_records = self._data.dispatch_intra_process_subscription_callback_instances
         intra_publish_records = merge_sequential_for_addr_track(
             source_records=self._data.rclcpp_intra_publish_instances,
