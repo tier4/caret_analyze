@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from bokeh.models import Legend, GraphRenderer
+from bokeh.models import GraphRenderer, Legend
 from bokeh.plotting import Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
@@ -82,9 +82,9 @@ class BokehStackedBar:
 
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
         # reverse the order of y_labels to reverse the order in which bars are stacked.
-        reversed_y_label = list(reversed(y_labels))
-        stacked_bar = fig.vbar_stack(reversed_y_label, x='start time', width='x_width_list',
-                                     color=colors, source=source.to_source())
+        stacked_bar = fig.vbar_stack(list(reversed(y_labels)), x='start time',
+                                     width='x_width_list', color=colors,
+                                     source=source.to_source())
         source.add_label_data_to_stacked_bar(stacked_bar)
         source.add_latency_data_to_stacked_bar(stacked_bar)
 
@@ -92,7 +92,7 @@ class BokehStackedBar:
             HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         # add legend (for each var in stacked bar)
-        legend_items = [(label, [bar]) for label, bar in zip(reversed_y_label, stacked_bar)]
+        legend_items = [(bar.name, [bar]) for bar in stacked_bar]
         legend_items.reverse()
         legend = Legend(items=legend_items, location='bottom_left',
                         orientation='vertical', click_policy='mute')
@@ -218,14 +218,14 @@ class StackedBarSource:
     def add_label_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
         # add 'label' data to each bar due to display hover
         x_len = min([len(v) for v in self._data.values()])
-        for stack in stacked_bar:
-            stack.data_source.add([stack.name] * x_len, 'label')
+        for bar in stacked_bar:
+            bar.data_source.add([bar.name] * x_len, 'label')
 
     def add_latency_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
         # add 'latency' data to each bar due to display hover
-        for stack in stacked_bar:
-            stack.data_source.add(['latency = ' + str(latency)
-                                   for latency in self._data[stack.name]], 'latency')
+        for bar in stacked_bar:
+            bar.data_source.add(['latency = ' + str(latency)
+                                 for latency in self._data[bar.name]], 'latency')
 
     def to_source(
         self,
