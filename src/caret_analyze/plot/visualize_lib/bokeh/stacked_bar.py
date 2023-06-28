@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from bokeh.models import Legend
+from bokeh.models import Legend, GraphRenderer
 from bokeh.plotting import Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
@@ -89,10 +89,8 @@ class BokehStackedBar:
             HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         # add 'label' and 'latency' data to each bar due to display hover
-        for label, stack in zip(reversed_y_label, stacks):
-            stack.data_source.add([label] * source.x_len, 'label')
-            stack.data_source.add(['latency = ' + str(latency)
-                                   for latency in source.data[label]], 'latency')
+        source.add_label_data_to_stacked_bar(stacks)
+        source.add_latency_data_to_stacked_bar(stacks)
 
         # add legend (for each var in stacked bar)
         legend_items = [(label, [bar]) for label, bar in zip(reversed_y_label, stacks)]
@@ -218,13 +216,15 @@ class StackedBarSource:
         # TODO: create bokeh_util.py and move this.
         return [values[i] + shift_values[i] for i in range(len(values))]
 
-    @property
-    def data(self) -> dict[str, list[int | float]]:
-        return self._data
+    def add_label_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
+        x_len = min([len(v) for v in self._data.values()])
+        for stack in stacked_bar:
+            stack.data_source.add([stack.name] * x_len, 'label')
 
-    @property
-    def x_len(self) -> int:
-        return min([len(v) for v in self._data.values()])
+    def add_latency_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
+        for stack in stacked_bar:
+            stack.data_source.add(['latency = ' + str(latency)
+                                   for latency in self._data[stack.name]], 'latency')
 
     def to_source(
         self,
