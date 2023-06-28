@@ -81,18 +81,18 @@ class BokehStackedBar:
         colors = [color_selector.get_color(y_label) for y_label in y_labels]
 
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
-        # stack bottom -> top to top -> bottom
+        # reverse the order of y_labels to reverse the order in which bars are stacked.
         reversed_y_label = list(reversed(y_labels))
         stacks = fig.vbar_stack(reversed_y_label, x='start time', width='x_width_list',
                                 color=colors, source=source.to_source())
+        fig.add_tools(
+            HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         # add 'label' and 'latency' data to each bar due to display hover
         for label, stack in zip(reversed_y_label, stacks):
             stack.data_source.add([label] * source.x_len, 'label')
             stack.data_source.add(['latency = ' + str(latency)
                                    for latency in source.data[label]], 'latency')
-            fig.add_tools(
-                HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         # add legend (for each var in stacked bar)
         legend_items = [(label, [bar]) for label, bar in zip(reversed_y_label, stacks)]
