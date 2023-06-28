@@ -92,8 +92,6 @@ class EventCounter:
                 'The measurement may have been performed without setting LD_PRELOAD.'
             )
 
-        # trace points added to rclcpp may not be recorded, depending on the implementation.
-        # Here, only warnings are given.
         has_forked_inter_process_trace_points = len(
             set(recorded_trace_points) & trace_points_added_by_fork_rclcpp_for_inter_process) != 0
         has_forked_intra_process_trace_points = len(
@@ -116,6 +114,8 @@ class EventCounter:
             msg += 'To check whether binary are built with caret-rclcpp, '
             msg += 'run CARET CLI : ros2 caret check_caret_rclcpp.'
 
+            # trace points added to rclcpp may not be recorded, depending on the implementation.
+            # Here, only warnings are given.
             logger.warning(msg)
 
     def _check_intra_process_communication(self, data: Ros2DataModel) -> bool:
