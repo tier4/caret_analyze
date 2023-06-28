@@ -92,7 +92,7 @@ class BokehStackedBar:
             HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
 
         # add legend (for each var in stacked bar)
-        legend_items = [(label, [bar]) for label, bar in zip(reversed_y_label, stacks)]
+        legend_items = [(label, [bar]) for label, bar in zip(reversed_y_label, stacked_bar)]
         legend_items.reverse()
         legend = Legend(items=legend_items, location='bottom_left',
                         orientation='vertical', click_policy='mute')
