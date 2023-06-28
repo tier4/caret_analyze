@@ -100,16 +100,6 @@ class BokehStackedBar:
 
         return fig
 
-    @staticmethod
-    def _updated_timestamps_to_offset_time(
-        x_values: list[float]
-    ):
-        new_values: list[float] = []
-        first_time = x_values[0]
-        for time in x_values:
-            new_values.append(time - first_time)
-        return new_values
-
 
 class StackedBarSource:
     """Class to generate stacked bar source."""
@@ -133,7 +123,7 @@ class StackedBarSource:
 
         if xaxis_type == 'system_time':
             # Update the timestamps from absolutely time to offset time
-            data[x_label] = BokehStackedBar._updated_timestamps_to_offset_time(
+            data[x_label] = StackedBarSource._updated_timestamps_to_offset_time(
                 data[x_label])
 
             x_width_list = StackedBarSource.get_x_width_list(data[x_label])
@@ -214,6 +204,16 @@ class StackedBarSource:
         """
         # TODO: create bokeh_util.py and move this.
         return [values[i] + shift_values[i] for i in range(len(values))]
+
+    @staticmethod
+    def _updated_timestamps_to_offset_time(
+        x_values: list[float]
+    ):
+        new_values: list[float] = []
+        first_time = x_values[0]
+        for time in x_values:
+            new_values.append(time - first_time)
+        return new_values
 
     def add_label_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
         # add 'label' data to each bar due to display hover
