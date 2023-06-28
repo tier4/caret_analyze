@@ -105,7 +105,7 @@ class EventCounter:
 
         if (not has_forked_inter_process_trace_points
                 and not has_forked_intra_process_trace_points):
-            # In this case, the measured application uses only intra process communication,
+            # In this case, the measured application uses only inter process communication,
             # so the trace data can be analyzed using rmw_take trace points.
             if has_rmw_take_trace_points and not self._has_intra_process:
                 return
