@@ -114,8 +114,8 @@ class StackedBarSource:
         x_width_list: list[float] = []
 
         # Convert the data unit to second
-        data = StackedBarSource.updated_with_unit(data, y_labels, 1e-6)
-        data = StackedBarSource.updated_with_unit(data, ['start time'], 1e-9)
+        data = self._updated_with_unit(data, y_labels, 1e-6)
+        data = self._updated_with_unit(data, ['start time'], 1e-9)
 
         # Calculate the stacked y values
         for prev_, next_ in zip(reversed(y_labels[:-1]), reversed(y_labels[1:])):
@@ -123,26 +123,25 @@ class StackedBarSource:
 
         if xaxis_type == 'system_time':
             # Update the timestamps from absolutely time to offset time
-            data[x_label] = StackedBarSource._updated_timestamps_to_offset_time(
+            data[x_label] = self._updated_timestamps_to_offset_time(
                 data[x_label])
 
-            x_width_list = StackedBarSource.get_x_width_list(data[x_label])
+            x_width_list = self._get_x_width_list(data[x_label])
             half_width_list = [x / 2 for x in x_width_list]
 
             # Slide x axis values so that the bottom left of bars are the start time.
-            data[x_label] = StackedBarSource.add_shift_value(
-                data[x_label], half_width_list)
+            data[x_label] = self._add_shift_value(data[x_label], half_width_list)
         elif xaxis_type == 'sim_time':
             raise NotImplementedError()
         else:  # index
             data[x_label] = list(range(0, len(data[y_labels[0]])))
-            x_width_list = StackedBarSource.get_x_width_list(data[x_label])
+            x_width_list = self._get_x_width_list(data[x_label])
 
         self._data: dict[str, list[int | float]] = data
         self._x_width_list: list[float] = x_width_list
 
-    @staticmethod
-    def updated_with_unit(
+    def _updated_with_unit(
+        self,
         data: dict[str, list[int | float]],
         columns: list[str] | None,
         unit: float,
@@ -159,8 +158,7 @@ class StackedBarSource:
                 output_data[key] = [d * unit for d in data[key]]
         return output_data
 
-    @staticmethod
-    def get_x_width_list(x_values: list[float]) -> list[float]:
+    def _get_x_width_list(self, x_values: list[float]) -> list[float]:
         """
         Get width between a x value and next x value.
 
@@ -181,8 +179,8 @@ class StackedBarSource:
         x_width_list.append(x_width_list[-1])
         return x_width_list
 
-    @staticmethod
-    def add_shift_value(
+    def _add_shift_value(
+        self,
         values: list[float],
         shift_values: list[float]
     ) -> list[float]:
@@ -205,8 +203,8 @@ class StackedBarSource:
         # TODO: create bokeh_util.py and move this.
         return [values[i] + shift_values[i] for i in range(len(values))]
 
-    @staticmethod
     def _updated_timestamps_to_offset_time(
+        self,
         x_values: list[float]
     ):
         new_values: list[float] = []
