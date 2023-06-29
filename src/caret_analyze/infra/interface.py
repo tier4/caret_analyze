@@ -118,6 +118,8 @@ class RecordsProvider(metaclass=ABCMeta):
     @abstractmethod
     def get_sim_time_converter(
         self,
+        min_ns: float,
+        max_ns: float
     ) -> ClockConverter:
         pass
 

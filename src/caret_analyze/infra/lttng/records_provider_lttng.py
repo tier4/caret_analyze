@@ -587,8 +587,8 @@ class RecordsProviderLttng(RuntimeDataProvider):
 
         return self._lttng.get_publisher_qos(pubs_lttng[0])
 
-    def get_sim_time_converter(self) -> ClockConverter:
-        return self._lttng.get_sim_time_converter()
+    def get_sim_time_converter(self, min_ns, max_ns) -> ClockConverter:
+        return self._lttng.get_sim_time_converter(min_ns, max_ns)
 
     def variable_passing_records(
         self,
