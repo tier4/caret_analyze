@@ -65,7 +65,7 @@ class BokehCallbackSched:
         clip = Clip(clip_min, clip_max)
         if self._xaxis_type == 'sim_time':
             # TODO(hsgwa): refactor
-            converter = callbacks[0]._provider.get_sim_time_converter()
+            converter = callbacks[0]._provider.get_sim_time_converter(range_min, range_max)
             frame_min = converter.convert(clip.min_ns)
             frame_max = converter.convert(clip.max_ns)
         else:
