@@ -83,7 +83,7 @@ class BokehStackedBar:
         source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
         # reverse the order of y_labels to reverse the order in which bars are stacked.
         stacked_bar = fig.vbar_stack(list(reversed(y_labels)), x='start time',
-                                     width='x_width_list', color=colors,
+                                     width='x_width_list', color=list(reversed(colors)),
                                      source=source.to_source())
         source.add_label_data_to_stacked_bar(stacked_bar)
         source.add_latency_data_to_stacked_bar(stacked_bar)
