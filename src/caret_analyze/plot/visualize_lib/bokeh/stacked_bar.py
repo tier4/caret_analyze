@@ -14,13 +14,11 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-from bokeh.models import HoverTool, Legend
-from bokeh.plotting import ColumnDataSource, Figure
+from bokeh.models import GraphRenderer, Legend
+from bokeh.plotting import Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
-                   HoverKeysFactory, HoverSource, init_figure)
+                   HoverKeysFactory, init_figure)
 
 
 class BokehStackedBar:
@@ -80,91 +78,70 @@ class BokehStackedBar:
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         if self._case == 'best':
             color_selector.get_color()
-        stacked_bar_source = StackedBarSource(target_objects)
-        fig.add_tools(stacked_bar_source.create_hover())
-        stacked_bar_data, x_width_list = \
-            self._get_stacked_bar_data(data, y_labels, self._xaxis_type, x_label)
+        colors = [color_selector.get_color(y_label) for y_label in y_labels]
 
-        vbar_stacks = []
-        for y_label in y_labels:
-            vbar_stack = fig.vbar_stack(
-                [y_label],
-                x='start time',
-                width='x_width_list',
-                source=stacked_bar_source.generate(y_label, stacked_bar_data, x_width_list),
-                color=color_selector.get_color(y_label)
-            )
-            vbar_stacks.append((y_label, vbar_stack))
+        source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
+        # reverse the order of y_labels to reverse the order in which bars are stacked.
+        stacked_bar = fig.vbar_stack(list(reversed(y_labels)), x='start time',
+                                     width='x_width_list', color=list(reversed(colors)),
+                                     source=source.to_source())
+        source.add_label_data_to_stacked_bar(stacked_bar)
+        source.add_latency_data_to_stacked_bar(stacked_bar)
 
-        legend = Legend(items=vbar_stacks, location='bottom_left')
+        fig.add_tools(
+            HoverKeysFactory.create_instance('stacked_bar', target_objects).create_hover())
+
+        # add legend (for each var in stacked bar)
+        legend_items = [(bar.name, [bar]) for bar in stacked_bar]
+        legend_items.reverse()
+        legend = Legend(items=legend_items, location='bottom_left',
+                        orientation='vertical', click_policy='mute')
         fig.add_layout(legend, 'below')
-        fig.legend.click_policy = 'mute'
 
         return fig
 
-    @staticmethod
-    def _get_stacked_bar_data(
+
+class StackedBarSource:
+    """Class to generate stacked bar source."""
+
+    def __init__(
+        self,
         data: dict[str, list[int | float]],
         y_labels: list[str],
         xaxis_type: str,
-        x_label: str,
-    ) -> tuple[dict[str, list[float]],  list[float]]:
-        """
-        Calculate stacked bar data.
-
-        Parameters
-        ----------
-        data : dict[str, list[int]]
-            Source data.
-        y_labels : list[str]
-            Y axis labels that are Node/Topic name.
-        xaxis_type : str
-            Type of x-axis of the line graph to be plotted.
-            "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
-        x_label : str
-            X-axis label of data dict.
-            "start time" or "index".
-
-        Returns
-        -------
-        dict[str, list[float]]
-            Stacked bar data.
-        list[float]
-            Width list of bars.
-
-        """
-        output_data: dict[str, list[float]] = {}
+        x_label: str
+    ) -> None:
         x_width_list: list[float] = []
 
         # Convert the data unit to second
-        output_data = BokehStackedBar._updated_with_unit(data, y_labels, 1e-6)
-        output_data = BokehStackedBar._updated_with_unit(output_data, ['start time'], 1e-9)
+        data = self._updated_with_unit(data, y_labels, 1e-6)
+        data = self._updated_with_unit(data, ['start time'], 1e-9)
 
         # Calculate the stacked y values
-        output_data = BokehStackedBar._stacked_y_values(output_data, y_labels)
+        for prev_, next_ in zip(reversed(y_labels[:-1]), reversed(y_labels[1:])):
+            data[prev_] = [data[prev_][i] + data[next_][i] for i in range(len(data[next_]))]
 
         if xaxis_type == 'system_time':
             # Update the timestamps from absolutely time to offset time
-            output_data[x_label] = BokehStackedBar._updated_timestamps_to_offset_time(
-                output_data[x_label])
+            data[x_label] = self._updated_timestamps_to_offset_time(
+                data[x_label])
 
-            x_width_list = BokehStackedBar._get_x_width_list(output_data[x_label])
+            x_width_list = self._get_x_width_list(data[x_label])
             half_width_list = [x / 2 for x in x_width_list]
 
             # Slide x axis values so that the bottom left of bars are the start time.
-            output_data[x_label] = BokehStackedBar._add_shift_value(
-                output_data[x_label], half_width_list)
+            data[x_label] = self._add_shift_value(data[x_label], half_width_list)
         elif xaxis_type == 'sim_time':
             raise NotImplementedError()
         else:  # index
-            output_data[x_label] = list(range(0, len(output_data[y_labels[0]])))
-            x_width_list = BokehStackedBar._get_x_width_list(output_data[x_label])
+            data[x_label] = list(range(0, len(data[y_labels[0]])))
+            x_width_list = self._get_x_width_list(data[x_label])
 
-        return output_data, x_width_list
+        self._data: dict[str, list[int | float]] = data
+        self._x_width_list: list[float] = x_width_list
 
-    @staticmethod
     def _updated_with_unit(
+        self,
         data: dict[str, list[int | float]],
         columns: list[str] | None,
         unit: float,
@@ -181,27 +158,7 @@ class BokehStackedBar:
                 output_data[key] = [d * unit for d in data[key]]
         return output_data
 
-    @staticmethod
-    def _stacked_y_values(
-        data: dict[str, list[float]],
-        y_values: list[str],
-    ) -> dict[str, list[float]]:
-        for prev_, next_ in zip(reversed(y_values[:-1]), reversed(y_values[1:])):
-            data[prev_] = [data[prev_][i] + data[next_][i] for i in range(len(data[next_]))]
-        return data
-
-    @staticmethod
-    def _updated_timestamps_to_offset_time(
-        x_values: list[float]
-    ):
-        new_values: list[float] = []
-        first_time = x_values[0]
-        for time in x_values:
-            new_values.append(time - first_time)
-        return new_values
-
-    @staticmethod
-    def _get_x_width_list(x_values: list[float]) -> list[float]:
+    def _get_x_width_list(self, x_values: list[float]) -> list[float]:
         """
         Get width between a x value and next x value.
 
@@ -222,8 +179,8 @@ class BokehStackedBar:
         x_width_list.append(x_width_list[-1])
         return x_width_list
 
-    @staticmethod
     def _add_shift_value(
+        self,
         values: list[float],
         shift_values: list[float]
     ) -> list[float]:
@@ -246,59 +203,49 @@ class BokehStackedBar:
         # TODO: create bokeh_util.py and move this.
         return [values[i] + shift_values[i] for i in range(len(values))]
 
-    @staticmethod
-    def _get_bottom_labels(labels: list[str]) -> list[str]:
-        return [label + '_bottom' for label in labels]
-
-
-class StackedBarSource:
-    """Class to generate stacked bar source."""
-
-    def __init__(
+    def _updated_timestamps_to_offset_time(
         self,
-        target_object,
-    ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instance('stacked_bar', target_object)
-        self._hover_source = HoverSource(self._hover_keys)
+        x_values: list[float]
+    ):
+        new_values: list[float] = []
+        first_time = x_values[0]
+        for time in x_values:
+            new_values.append(time - first_time)
+        return new_values
 
-    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
-        """
-        Create HoverTool based on the hover keys.
+    def add_label_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
+        # add 'label' data to each bar due to display hover
+        x_len = min([len(v) for v in self._data.values()])
+        for bar in stacked_bar:
+            bar.data_source.add([bar.name] * x_len, 'label')
 
-        Parameters
-        ----------
-        options : dict, optional
-            Additional options, by default {}
+    def add_latency_data_to_stacked_bar(self, stacked_bar: list[GraphRenderer]):
+        # add 'latency' data to each bar due to display hover
+        for bar in stacked_bar:
+            bar.data_source.add(['latency = ' + str(latency)
+                                 for latency in self._data[bar.name]], 'latency')
 
-        Returns
-        -------
-        HoverTool
-
-        """
-        return self._hover_keys.create_hover(options)
-
-    def generate(
+    def to_source(
         self,
-        y_label: str,
-        stacked_bar_data: dict[str, list[float]],
-        x_width_list: list[float],
-    ) -> ColumnDataSource:
-        target_data = stacked_bar_data[y_label]
-        y_labels = list(stacked_bar_data.keys())
-        idx_one_below = y_labels.index(y_label) + 1
-        # HACK: This assumes that 'start time' is at the bottom of y_labels.
-        if y_labels[idx_one_below] != 'start time':
-            latencies = [
+    ) -> dict[str, list[int | float]]:
+        # NOTE: Using `ColumnDataSource`, it is not possible
+        # NOTE: to display a different hover for each stack (cause unknown).
+        # convert timestamp to latency
+        labels = list(self._data.keys())
+        for k in self._data.keys():
+            if k == 'start time':
+                continue
+            if labels[labels.index(k)+1] == 'start time':
+                continue
+            target_data = self._data[k]
+            below_data = self._data[labels[labels.index(k)+1]]
+            self._data[k] = [
                 target - below for target, below in
-                zip(target_data, stacked_bar_data[y_labels[idx_one_below]])
+                zip(target_data, below_data)
             ]
-        else:
-            latencies = target_data
 
-        source = ColumnDataSource({y_label: target_data})
-        source.add(stacked_bar_data['start time'], 'start time')
-        source.add(x_width_list, 'x_width_list')
-        source.add([f'{y_label}'] * len(x_width_list), 'label')
-        source.add(['latency = ' + str(_) for _ in latencies], 'latency')
+        # set data used in stacked bar
+        source = self._data
+        source['x_width_list'] = self._x_width_list
 
         return source
