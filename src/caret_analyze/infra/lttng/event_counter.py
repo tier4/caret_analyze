@@ -92,6 +92,17 @@ class EventCounter:
                 'Measurement results will not be correct. '
                 'The measurement may have been performed without setting LD_PRELOAD.'
             )
+        # For after iron distributions
+        # No need to check trace points added by fork-rclcpp
+        trace_points_added_by_iron = {
+            'ros2_caret:rclcpp_buffer_to_ipb',
+            'ros2_caret:rclcpp_ipb_to_subcription',
+            'ros2_caret:rclcpp_construct_ring_buffer',
+            'ros2_caret:rclcpp_ring_buffer_enqueue',
+            'ros2_caret:rclcpp_ring_buffer_dequeue',
+        }
+        if len(set(recorded_trace_points) & trace_points_added_by_iron) == 0:
+            return
 
         has_forked_inter_process_trace_points = len(
             set(recorded_trace_points) & trace_points_added_by_fork_rclcpp_for_inter_process) != 0
