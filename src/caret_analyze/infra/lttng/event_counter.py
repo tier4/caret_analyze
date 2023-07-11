@@ -160,6 +160,9 @@ class EventCounter:
             'ros2_caret:tilde_publisher_init': data.tilde_publishers.df,
             'ros2_caret:tilde_subscribe_added': data.tilde_subscribe_added.df,
             'ros2:rcl_lifecycle_transition': data.lifecycle_transitions.df,
+            'ros2_caret:rclcpp_buffer_to_ipb': data.buffer_to_ipbs.df,
+            'ros2_caret:rclcpp_ipb_to_subscription': data.ipb_to_subscriptions.df,
+            'ros2_caret:rclcpp_construct_ring_buffer': data.ring_buffers.df,
             'ros2_caret:rmw_implementation': data.rmw_impl.df,
 
             'ros2:callback_start': data.callback_start_instances.to_dataframe(),

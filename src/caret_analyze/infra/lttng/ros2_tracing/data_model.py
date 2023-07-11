@@ -74,6 +74,12 @@ class Ros2DataModel():
             ['timestamp', 'callback_group_addr', 'service_handle'])
         self._callback_group_client = TracePointIntermediateData(
             ['timestamp', 'callback_group_addr', 'client_handle'])
+        self._buffer_to_ipbs = TracePointIntermediateData(
+            ['timestamp', 'buffer', 'ipb'])
+        self._ipb_to_subscriptions = TracePointIntermediateData(
+            ['timestamp', 'ipb', 'subscription'])
+        self._ring_buffers = TracePointIntermediateData(
+            ['timestamp', 'buffer', 'capacity'])
         self._rmw_impl = TracePointIntermediateData(
             ['rmw_impl'])
 
@@ -608,6 +614,36 @@ class Ros2DataModel():
         }
         self.sim_time.append(record)
 
+    def add_buffer_to_ipb(
+        self, timestamp, buffer, ipb
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'buffer': buffer,
+            'ipb': ipb,
+        }
+        self._buffer_to_ipbs.append(record)
+
+    def add_ipb_to_subscription(
+        self, timestamp, subscription, ipb
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'ipb': ipb,
+            'subscription': subscription,
+        }
+        self._ipb_to_subscriptions.append(record)
+
+    def add_ring_buffer(
+        self, timestamp, buffer, capacity
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'buffer': buffer,
+            'capacity': capacity,
+        }
+        self._ring_buffers.append(record)
+
     def add_rmw_implementation(self, rmw_impl: str):
         record = {'rmw_impl': rmw_impl}
         self._rmw_impl.append(record)
@@ -857,6 +893,15 @@ class Ros2DataModel():
 
         self.tilde_subscribe_added = self._tilde_subscribe_added.get_finalized('subscription_id')
         del self._tilde_subscribe_added
+
+        self.buffer_to_ipbs = self._buffer_to_ipbs.get_finalized()
+        del self._buffer_to_ipbs
+
+        self.ipb_to_subscriptions = self._ipb_to_subscriptions.get_finalized()
+        del self._ipb_to_subscriptions
+
+        self.ring_buffers = self._ring_buffers.get_finalized()
+        del self._ring_buffers
 
         self.rmw_impl = self._rmw_impl.get_finalized()
         del self._rmw_impl

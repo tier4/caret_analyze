@@ -142,6 +142,14 @@ class Ros2Handler():
         handler_map['ros2_caret:callback_group_add_client'] = \
             self._create_handler(self._handle_callback_group_add_client, True)
 
+        # Trace points of initialization defined in iron.
+        handler_map['ros2_caret:rclcpp_buffer_to_ipb'] = \
+            self._create_handler(self._handle_rclcpp_buffer_to_ipb, True)
+        handler_map['ros2_caret:rclcpp_ipb_to_subscription'] = \
+            self._create_handler(self._handle_rclcpp_ipb_to_subscription, True)
+        handler_map['ros2_caret:rclcpp_construct_ring_buffer'] = \
+            self._create_handler(self._handle_rclcpp_construct_ring_buffer, True)
+
         #  Trace points of initialization defined in TILDE
         handler_map['ros2_caret:tilde_subscription_init'] = \
             self._create_handler(self._handle_tilde_subscription_init, True)
@@ -271,6 +279,9 @@ class Ros2Handler():
                     'ros2_caret:rclcpp_timer_link_node',
                     'ros2_caret:rclcpp_callback_register',
                     'ros2_caret:rcl_lifecycle_state_machine_init',
+                    'ros2_caret:rclcpp_buffer_to_ipb',
+                    'ros2_caret:rclcpp_ipb_to_subscription',
+                    'ros2_caret:rclcpp_construct_ring_buffer',
                 ]
             )
         return tracepoints
@@ -358,6 +369,44 @@ class Ros2Handler():
             rmw_handle,
             topic_name,
             depth,
+        )
+    def _handle_rclcpp_buffer_to_ipb(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        buffer = get_field(event, 'buffer')
+        ipb = get_field(event, 'ipb')
+        self.data.add_buffer_to_ipb(
+            timestamp,
+            buffer,
+            ipb
+        )
+
+    def _handle_rclcpp_ipb_to_subscription(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        ipb = get_field(event, 'ipb')
+        subscription = get_field(event, 'subscription')
+        self.data.add_ipb_to_subscription(
+            timestamp,
+            ipb,
+            subscription,
+        )
+
+    def _handle_rclcpp_construct_ring_buffer(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        buffer = get_field(event, 'buffer')
+        capacity = get_field(event, 'capacity')
+        self.data.add_ring_buffer(
+            timestamp,
+            buffer,
+            capacity,
         )
 
     def _handle_rclcpp_subscription_init(
