@@ -81,6 +81,9 @@ class TestEventCounter:
         data.callback_group_add_subscription(0, 0, 0)
         data.callback_group_add_service(0, 0, 0)
         data.callback_group_add_client(0, 0, 0)
+        data.add_buffer_to_ipb(0, 0, 0)
+        data.add_ipb_to_subscription(0, 0, 0)
+        data.add_ring_buffer(0, 0, 0)
 
         data.finalize()
 
