@@ -178,6 +178,23 @@ class TestEventCounter:
                 EventCounter(data)
                 assert 'without caret-rclcpp' in caplog.messages[0]
 
+    def test_validation_with_iron_tracepoint(
+        self,
+        caplog,
+    ):
+        data = Ros2DataModel()
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
+        data.add_ring_buffer(0, 0, 0)  # add iron tracepoint
+        # data.add_rclcpp_ring_buffer_enqueue_instance(0, 0, 0, 0, 0, False)  # add iron tracepoint
+        data.finalize()
+
+        logger = getLogger('caret_analyze.infra.lttng.event_counter')
+        logger.propagate = True
+
+        with caplog.at_level(WARNING):
+            EventCounter(data)
+            assert len(caplog.messages) == 0
+
     def test_validation_valid_case(
         self,
         mocker,

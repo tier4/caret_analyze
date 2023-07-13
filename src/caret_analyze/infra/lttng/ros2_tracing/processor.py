@@ -110,7 +110,8 @@ class Ros2Handler():
         handler_map['ros2:rclcpp_ring_buffer_enqueue'] = self._handle_rclcpp_ring_buffer_enqueue
         handler_map['ros2:rclcpp_buffer_to_ipb'] = self._handle_rclcpp_buffer_to_ipb
         handler_map['ros2:rclcpp_ipb_to_subscription'] = self._handle_rclcpp_ipb_to_subscription
-        handler_map['ros2:rclcpp_construct_ring_buffer'] = self._handle_rclcpp_construct_ring_buffer
+        handler_map['ros2:rclcpp_construct_ring_buffer'] = \
+            self._handle_rclcpp_construct_ring_buffer
 
         handler_map['ros2:dispatch_subscription_callback'] = \
             self._handle_dispatch_subscription_callback
@@ -376,6 +377,7 @@ class Ros2Handler():
             topic_name,
             depth,
         )
+
     def _handle_rclcpp_buffer_to_ipb(
         self,
         event: dict,
