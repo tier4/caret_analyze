@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple, Union
-
 from .reader_interface import UNDEFINED_STR
 from ..exceptions import InvalidArgumentError, UnsupportedTypeError
 from ..value_objects import (CallbackStructValue,
@@ -33,9 +31,9 @@ class ArchitectureExporter():
 
     def __init__(
         self,
-        node_values: Tuple[NodeStructValue, ...],
-        executor_values: Tuple[ExecutorStructValue, ...],
-        named_path_values: Tuple[PathStructValue, ...],
+        node_values: tuple[NodeStructValue, ...],
+        executor_values: tuple[ExecutorStructValue, ...],
+        named_path_values: tuple[PathStructValue, ...],
         force: bool = False
     ) -> None:
         self._named_path_values = named_path_values
@@ -67,26 +65,33 @@ class ArchitectureExporter():
 class NamedPathsDicts:
     def __init__(
         self,
-        named_path_values: List[PathStructValue]
+        named_path_values: list[PathStructValue]
     ) -> None:
         self._data = [self._to_dict(p) for p in named_path_values]
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
     def _to_dict(self, path_value: PathStructValue):
-        obj: Dict = {}
+        obj: dict = {}
         obj['path_name'] = path_value.path_name
         node_chain = []
         for node_path in path_value.node_paths:
-            node_chain.append(
-                {
-                    'node_name': node_path.node_name,
-                    'publish_topic_name': node_path.publish_topic_name or UNDEFINED_STR,
-                    'subscribe_topic_name': node_path.subscribe_topic_name or UNDEFINED_STR
-                }
-            )
+            dict_item = {
+                'node_name': node_path.node_name,
+                'publish_topic_name': node_path.publish_topic_name or UNDEFINED_STR,
+                'subscribe_topic_name': node_path.subscribe_topic_name or UNDEFINED_STR
+            }
+
+            if 0 < (node_path.publisher_construction_order or 0):
+                dict_item['publisher_construction_order'] = \
+                    node_path.publisher_construction_order  # type: ignore
+            if 0 < (node_path.subscription_construction_order or 0):
+                dict_item['subscription_construction_order'] = \
+                    node_path.subscription_construction_order  # type: ignore
+            node_chain.append(dict_item)
+
         obj['node_chain'] = node_chain
         return obj
 
@@ -94,7 +99,7 @@ class NamedPathsDicts:
 class CallbackDicts:
     def __init__(
         self,
-        callback_values: Tuple[CallbackStructValue, ...]
+        callback_values: tuple[CallbackStructValue, ...]
     ) -> None:
         # Processes related to services are implemented later.
         def _is_ignore_callback(callback: CallbackStructValue):
@@ -108,37 +113,37 @@ class CallbackDicts:
     def _timer_cb_to_dict(
         self,
         timer_callback: TimerCallbackStructValue
-    ) -> Dict:
-        d = {
-                'callback_name': timer_callback.callback_name,
-                'callback_type': str(CallbackType.TIMER),
-                'period_ns': timer_callback.period_ns,
-                'symbol': timer_callback.symbol,
-            }
+    ) -> dict:
+        dict_item = {
+            'callback_name': timer_callback.callback_name,
+            'callback_type': str(CallbackType.TIMER),
+            'period_ns': timer_callback.period_ns,
+            'symbol': timer_callback.symbol,
+        }
         if timer_callback.construction_order > 0:
-            d['construction_order'] = timer_callback.construction_order
-        return d
+            dict_item['construction_order'] = timer_callback.construction_order
+        return dict_item
 
     def _sub_cb_to_dict(
         self,
         subscription_callback: SubscriptionCallbackStructValue
-    ) -> Dict:
-        d: Dict[str, Union[str, int]]
-        d = {
+    ) -> dict:
+        dict_item: dict[str, str | int]
+        dict_item = {
             'callback_name': subscription_callback.callback_name,
             'callback_type': str(CallbackType.SUBSCRIPTION),
             'topic_name': subscription_callback.subscribe_topic_name,
             'symbol': subscription_callback.symbol,
         }
         if subscription_callback.construction_order > 0:
-            d['construction_order'] = subscription_callback.construction_order
+            dict_item['construction_order'] = subscription_callback.construction_order
 
-        return d
+        return dict_item
 
     def _cb_to_dict(
         self,
         callback: CallbackStructValue
-    ) -> Dict:
+    ) -> dict:
         if isinstance(callback, TimerCallbackStructValue):
             return self._timer_cb_to_dict(callback)
         if isinstance(callback, SubscriptionCallbackStructValue):
@@ -147,16 +152,16 @@ class CallbackDicts:
         raise UnsupportedTypeError('')
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
 
 class VarPassDicts:
     def __init__(
         self,
-        var_pass_values: Optional[Tuple[VariablePassingStructValue, ...]]
+        var_pass_values: tuple[VariablePassingStructValue, ...] | None
     ) -> None:
-        self._data: List[Dict] = []
+        self._data: list[dict] = []
 
         if var_pass_values is None:
             self._data = [self._undefined_dict]
@@ -176,7 +181,7 @@ class VarPassDicts:
         return None
 
     @property
-    def _undefined_dict(self) -> Dict:
+    def _undefined_dict(self) -> dict:
         return \
             {
                 'callback_name_write': UNDEFINED_STR,
@@ -184,13 +189,13 @@ class VarPassDicts:
             }
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
 
 class PubDicts:
 
-    def __init__(self, publisher_values: Tuple[PublisherStructValue, ...]) -> None:
+    def __init__(self, publisher_values: tuple[PublisherStructValue, ...]) -> None:
         dicts = [self._to_dict(p) for p in publisher_values]
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
@@ -201,30 +206,39 @@ class PubDicts:
         else:
             callback_names = list(publisher_value.callback_names)
 
-        return {
+        dict_item = {
             'topic_name': publisher_value.topic_name,
             'callback_names': callback_names,
         }
 
+        if 0 < publisher_value.construction_order:
+            dict_item['construction_order'] = publisher_value.construction_order    # type: ignore
+
+        return dict_item
+
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
 
 class SubDicts:
 
-    def __init__(self, subscription_values: Tuple[SubscriptionStructValue, ...]) -> None:
+    def __init__(self, subscription_values: tuple[SubscriptionStructValue, ...]) -> None:
         dicts = [self._to_dict(s) for s in subscription_values]
         self._data = sorted(dicts, key=lambda x: x['topic_name'])
 
     def _to_dict(self, subscription_value: SubscriptionStructValue):
-        return {
+        dict_item = {
             'topic_name': subscription_value.topic_name,
             'callback_name': subscription_value.callback_name or UNDEFINED_STR
         }
+        if 0 < subscription_value.construction_order:
+            dict_item['construction_order'] = subscription_value.construction_order  # type: ignore
+
+        return dict_item
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
 
@@ -232,20 +246,20 @@ class NodesDicts:
 
     def __init__(
         self,
-        node_values: List[NodeStructValue],
+        node_values: list[NodeStructValue],
     ) -> None:
         nodes_dicts = [self._to_dict(n) for n in node_values]
         self._data = sorted(nodes_dicts, key=lambda x: x['node_name'])
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
     def _to_dict(
         self,
         node: NodeStructValue,
-    ) -> Dict:
-        obj: Dict = {}
+    ) -> dict:
+        obj: dict = {}
         obj['node_name'] = f'{node.node_name}'
 
         if node.callback_groups is not None:
@@ -277,43 +291,55 @@ class NodesDicts:
 class MessageContextDicts:
     def __init__(
         self,
-        paths: Tuple[NodePathStructValue, ...],
+        paths: tuple[NodePathStructValue, ...],
     ) -> None:
         self._data = []
+
+        def sort_key(path: NodePathStructValue) -> tuple:
+            return path.subscribe_topic_name or '', path.publish_topic_name or ''
+
+        paths = tuple(sorted(paths, key=sort_key))
+
         for path in paths:
             if path.publish_topic_name is None or path.subscribe_topic_name is None:
                 continue
             message_context = path.message_context
             if message_context is None:
-                self._data.append(
-                    {
-                        'context_type': UNDEFINED_STR,
-                        'subscription_topic_name': path.subscribe_topic_name,
-                        'publisher_topic_name': path.publish_topic_name
-                    }
-                )
+                dict_item = {
+                    'context_type': UNDEFINED_STR,
+                    'subscription_topic_name': path.subscribe_topic_name,
+                    'publisher_topic_name': path.publish_topic_name
+                }
+                if (path.publisher_construction_order or 0) > 0:
+                    dict_item['publisher_construction_order'] = \
+                        path.publisher_construction_order  # type: ignore
+                if (path.subscription_construction_order or 0) > 0:
+                    dict_item['subscription_construction_order'] = \
+                        path.subscription_construction_order  # type: ignore
+
+                self._data.append(dict_item)
             else:
                 self._data.append(message_context.to_dict())
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
 
 class ExecutorsDicts:
     def __init__(
         self,
-        executor_values: List[ExecutorStructValue],
+        executor_values: list[ExecutorStructValue],
     ) -> None:
         exec_dicts = [self._to_dict(e) for e in executor_values]
         self._data = sorted(exec_dicts, key=lambda x: x['executor_name'])
 
     @property
-    def data(self) -> List[Dict]:
+    def data(self) -> list[dict]:
         return self._data
 
     @staticmethod
-    def _to_dict(executor_value: ExecutorStructValue) -> Dict:
+    def _to_dict(executor_value: ExecutorStructValue) -> dict:
         if executor_value.executor_name is None:
             raise InvalidArgumentError('executor_value.executor_name is None')
 

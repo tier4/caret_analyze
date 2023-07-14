@@ -191,30 +191,6 @@ class TestLttng:
                             return_value=[exec_info_mock])
         assert lttng.get_executors() == [exec_info_mock]
 
-    def test_compose_inter_proc_comm_records(self, mocker):
-        data_mock = mocker.Mock(spec=Ros2DataModel)
-        mocker.patch.object(Lttng, '_parse_lttng_data',
-                            return_value=(data_mock, {}, 0, 1))
-
-        lttng_info_mock = mocker.Mock(spec=LttngInfo)
-        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
-                     return_value=lttng_info_mock)
-        counter_mock = mocker.Mock(spec=EventCounter)
-        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
-                     return_value=counter_mock)
-
-        records_source_mock = mocker.Mock(spec=RecordsSource)
-        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
-                     return_value=records_source_mock)
-
-        lttng = Lttng('trace_dir')
-
-        records_mock = mocker.Mock(spec=RecordsInterface)
-        mocker.patch.object(records_mock, 'clone', return_value=records_mock)
-        mocker.patch.object(records_source_mock, 'inter_proc_comm_records',
-                            records_mock)
-        assert lttng.compose_inter_proc_comm_records() == records_mock
-
     def test_compose_intra_proc_comm_records(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data',

@@ -14,9 +14,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from itertools import product
 from logging import getLogger, WARN
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from caret_analyze.architecture.struct.message_context import CallbackChainStruct
 
@@ -62,27 +62,27 @@ class ArchitectureLoaded():
     def __init__(
         self,
         reader: ArchitectureReader,
-        ignore_topics: List[str]
+        ignore_topics: list[str]
     ) -> None:
 
         topic_ignored_reader = TopicIgnoredReader(reader, ignore_topics)
 
-        self._nodes: List[NodeStruct]
+        self._nodes: list[NodeStruct]
         nodes_loaded = NodeValuesLoaded(topic_ignored_reader)
 
         self._nodes = nodes_loaded.data
 
         execs_loaded = ExecutorValuesLoaded(topic_ignored_reader, nodes_loaded)
-        self._executors: List[ExecutorStruct]
+        self._executors: list[ExecutorStruct]
         self._executors = execs_loaded.data
 
         comms_loaded = CommValuesLoaded(nodes_loaded)
-        self._communications: List[CommunicationStruct]
+        self._communications: list[CommunicationStruct]
         self._communications = comms_loaded.data
 
         paths_loaded = PathValuesLoaded(
             topic_ignored_reader, nodes_loaded, comms_loaded)
-        self._named_paths: List[PathStruct]
+        self._named_paths: list[PathStruct]
         self._paths = paths_loaded.data
 
         # TODO(hsgwa): Workaround implementation to minimize merge conflicts. Need to refactor.
@@ -106,19 +106,19 @@ class ArchitectureLoaded():
         return None
 
     @property
-    def paths(self) -> List[PathStruct]:
+    def paths(self) -> list[PathStruct]:
         return self._paths
 
     @property
-    def executors(self) -> List[ExecutorStruct]:
+    def executors(self) -> list[ExecutorStruct]:
         return self._executors
 
     @property
-    def nodes(self) -> List[NodeStruct]:
+    def nodes(self) -> list[NodeStruct]:
         return self._nodes
 
     @property
-    def communications(self) -> List[CommunicationStruct]:
+    def communications(self) -> list[CommunicationStruct]:
         return self._communications
 
     def _ignore_service(self) -> None:
@@ -158,7 +158,7 @@ class CommValuesLoaded():
     ) -> None:
         node_values = nodes_loaded.data
 
-        data: List[CommunicationStruct] = []
+        data: list[CommunicationStruct] = []
         pub_sub_pair = product(node_values, node_values)
 
         node_pub: NodeStruct
@@ -212,21 +212,25 @@ class CommValuesLoaded():
             node_pub, node_sub, pub, sub, callbacks_pub, callback_sub)
 
     @property
-    def data(self) -> List[CommunicationStruct]:
+    def data(self) -> list[CommunicationStruct]:
         return self._data
 
     def find_communication(
         self,
         topic_name: str,
         publish_node_name: str,
+        publisher_construction_order: int | None,
         subscribe_node_name: str,
+        subscription_construction_order: int | None,
     ) -> CommunicationStruct:
         from ..common import Util
 
         def is_target(comm: CommunicationStruct):
             return comm.publish_node_name == publish_node_name and \
                 comm.subscribe_node_name == subscribe_node_name and \
-                comm.topic_name == topic_name
+                comm.topic_name == topic_name and \
+                comm.publisher_construction_order == publisher_construction_order and \
+                comm.subscription_construction_order == subscription_construction_order
         try:
             return Util.find_one(is_target, self.data)
         except ItemNotFoundError:
@@ -234,6 +238,8 @@ class CommValuesLoaded():
             msg += f'topic_name: {topic_name}, '
             msg += f'publish_node_name: {publish_node_name}, '
             msg += f'subscribe_node_name: {subscribe_node_name}, '
+            msg += f'publisher_construction_order: {publisher_construction_order}, '
+            msg += f'subscription_construction_order: {subscription_construction_order}, '
 
             raise ItemNotFoundError(msg)
 
@@ -270,9 +276,9 @@ class NodeValuesLoaded():
         reader: ArchitectureReader,
     ) -> None:
         self._reader = reader
-        nodes_struct: List[NodeStruct] = []
-        self._cb_loaded: List[CallbacksLoaded] = []
-        self._cbg_loaded: List[CallbackGroupsLoaded] = []
+        nodes_struct: list[NodeStruct] = []
+        self._cb_loaded: list[CallbacksLoaded] = []
+        self._cbg_loaded: list[CallbackGroupsLoaded] = []
 
         nodes = reader.get_nodes()
         nodes = sorted(nodes, key=lambda x: x.node_name)
@@ -297,9 +303,9 @@ class NodeValuesLoaded():
 
     @staticmethod
     def _remove_duplicated(nodes: Sequence[NodeValueWithId]) -> Sequence[NodeValueWithId]:
-        nodes_: List[NodeValueWithId] = []
-        node_names: Set[str] = set()
-        node_ids: Set[str] = set()
+        nodes_: list[NodeValueWithId] = []
+        node_names: set[str] = set()
+        node_ids: set[str] = set()
         for node in nodes:
             # remove if name and id are not unique
             if node.node_name not in node_names and node.node_id not in node_ids:
@@ -314,8 +320,8 @@ class NodeValuesLoaded():
 
         # validate node name uniqueness.
         node_names = [n.node_name for n in nodes]
-        duplicated_name: List[str] = []
-        duplicated_id: List[str] = []
+        duplicated_name: list[str] = []
+        duplicated_id: list[str] = []
         for node_name, group in groupby(node_names):
             if len(list(group)) >= 2:
                 duplicated_name.append(node_name)
@@ -333,13 +339,13 @@ class NodeValuesLoaded():
             raise InvalidReaderError(msg)
 
     @property
-    def data(self) -> List[NodeStruct]:
+    def data(self) -> list[NodeStruct]:
         return self._data
 
     def get_callbacks(
         self,
         node_name: str
-    ) -> List[CallbackStruct]:
+    ) -> list[CallbackStruct]:
         from ..common import Util
         try:
             cb_loaded: CallbacksLoaded
@@ -366,8 +372,13 @@ class NodeValuesLoaded():
         from ..common import Util
 
         def is_target(value: NodePathStruct):
-            return value.publish_topic_name == node_path_value.publish_topic_name and \
-                value.subscribe_topic_name == node_path_value.subscribe_topic_name
+            return (value.publish_topic_name == node_path_value.publish_topic_name and
+                    value.subscribe_topic_name == node_path_value.subscribe_topic_name and
+                    value.publisher_construction_order ==
+                    node_path_value.publisher_construction_order and
+                    value.subscription_construction_order ==
+                    node_path_value.subscription_construction_order
+                    )
 
         node_value = self.find_node(node_path_value.node_name)
         try:
@@ -377,6 +388,10 @@ class NodeValuesLoaded():
             msg += f' node_name: {node_path_value.node_name}'
             msg += f' publish_topic_name: {node_path_value.publish_topic_name}'
             msg += f' subscribe_topic_name: {node_path_value.subscribe_topic_name}'
+            msg += f' publisher_construction_order: \
+                {node_path_value.publisher_construction_order}'
+            msg += f' subscription_construction_order: \
+                {node_path_value.subscription_construction_order}'
             raise ItemNotFoundError(msg)
         except MultipleItemFoundError as e:
             raise MultipleItemFoundError(
@@ -416,9 +431,9 @@ class NodeValuesLoaded():
 
     def find_callbacks(
         self,
-        callback_ids: List[str]
-    ) -> List[CallbackStruct]:
-        callbacks: List[CallbackStruct] = []
+        callback_ids: list[str]
+    ) -> list[CallbackStruct]:
+        callbacks: list[CallbackStruct] = []
         for cb_loaded in self._cb_loaded:
             callbacks += cb_loaded.search_callbacks(callback_ids)
 
@@ -431,27 +446,27 @@ class NodeValuesLoaded():
     def _create_node(
         node: NodeValue,
         reader: ArchitectureReader,
-    ) -> Tuple[NodeStruct, CallbacksLoaded, CallbackGroupsLoaded]:
+    ) -> tuple[NodeStruct, CallbacksLoaded, CallbackGroupsLoaded]:
 
         callbacks_loaded = CallbacksLoaded(reader, node)
 
-        publishers: List[PublisherStruct]
+        publishers: list[PublisherStruct]
         publishers = PublishersLoaded(reader, callbacks_loaded, node).data
 
-        subscriptions: List[SubscriptionStruct]
+        subscriptions: list[SubscriptionStruct]
         subscriptions = SubscriptionsLoaded(reader, callbacks_loaded, node).data
 
-        services: List[ServiceStruct]
+        services: list[ServiceStruct]
         services = ServicesLoaded(reader, callbacks_loaded, node).data
 
-        timers: List[TimerStruct]
+        timers: list[TimerStruct]
         timers = TimersLoaded(reader, callbacks_loaded, node).data
 
-        callback_groups: List[CallbackGroupStruct]
+        callback_groups: list[CallbackGroupStruct]
         cbg_loaded = CallbackGroupsLoaded(reader, callbacks_loaded, node)
         callback_groups = cbg_loaded.data
 
-        variable_passings: List[VariablePassingStruct]
+        variable_passings: list[VariablePassingStruct]
         variable_passings = VariablePassingsLoaded(
             reader, callbacks_loaded, node).data
 
@@ -482,9 +497,9 @@ class NodeValuesLoaded():
     def _search_node_paths(
         node: NodeStruct,
         reader: ArchitectureReader
-    ) -> List[NodePathStruct]:
+    ) -> list[NodePathStruct]:
 
-        node_paths: List[NodePathStruct] = []
+        node_paths: list[NodePathStruct] = []
 
         # add callback-graph paths
         logger.info('[callback_chain]')
@@ -496,18 +511,26 @@ class NodeValuesLoaded():
         subs = node.subscriptions
         node_path_pub_sub_pairs = NodePathCreated(subs, pubs).data
         for node_path in node_path_pub_sub_pairs:
-            added_pub_sub_pairs = [(n.publish_topic_name, n.subscribe_topic_name)
-                                   for n in node_paths]
-            pub_sub_pair = (node_path.publish_topic_name,
-                            node_path.subscribe_topic_name)
+            added_pub_sub_construction_order_pairs = [(
+                n.publish_topic_name,
+                n.publisher_construction_order,
+                n.subscribe_topic_name,
+                n.subscription_construction_order,
+            ) for n in node_paths]
+            pub_sub_construction_order_pair = (node_path.publish_topic_name,
+                                               node_path.publisher_construction_order,
+                                               node_path.subscribe_topic_name,
+                                               node_path.subscription_construction_order)
 
-            if pub_sub_pair not in added_pub_sub_pairs:
+            if pub_sub_construction_order_pair not in added_pub_sub_construction_order_pairs:
                 node_paths.append(node_path)
 
                 logger.info(
                     'Path Added: '
                     f'subscribe: {node_path.subscribe_topic_name}, '
+                    f'subscription_order: {node_path.subscription_construction_order}, '
                     f'publish: {node_path.publish_topic_name}, '
+                    f'publisher_order: {node_path.publisher_construction_order}, '
                 )
 
         # add dummy node paths
@@ -552,7 +575,7 @@ class NodeValuesLoaded():
                     f'publish: {node_path.publish_topic_name}'
                 )
 
-        message_contexts: List[MessageContextStruct] = []
+        message_contexts: list[MessageContextStruct] = []
         message_contexts += list(MessageContextsLoaded(reader, node, node_paths).data)
 
         # assign message context to each node paths
@@ -579,7 +602,7 @@ class NodeValuesLoaded():
     def _message_context_assigned(
         node_paths: Sequence[NodePathStruct],
         message_contexts: Sequence[MessageContextStruct],
-    ) -> List[NodePathStruct]:
+    ) -> list[NodePathStruct]:
         node_paths_ = list(node_paths)
         for i, node_path in enumerate(node_paths_):
             for context in message_contexts:
@@ -611,20 +634,28 @@ class MessageContextsLoaded:
         node: NodeStruct,
         node_paths: Sequence[NodePathStruct]
     ) -> None:
-        self._data: List[MessageContextStruct]
-        data: List[MessageContextStruct] = []
+        self._data: list[MessageContextStruct]
+        data: list[MessageContextStruct] = []
 
         context_dicts = reader.get_message_contexts(NodeValue(node.node_name, None))
-        pub_sub_pairs: List[Tuple[Optional[str], Optional[str]]] = []
+        pub_sub_pairs: list[tuple[str | None, str | None]] = []
         for context_dict in context_dicts:
             try:
                 context_type = context_dict['context_type']
                 if context_type == UNDEFINED_STR:
                     logger.info(f'message context is UNDEFINED. {context_dict}')
                     continue
+                publisher_topic_name = context_dict['publisher_topic_name']
+                subscription_topic_name = context_dict['subscription_topic_name']
+                subscription_construction_order = 0 if 'subscription_construction_order' \
+                    not in context_dict else context_dict['subscription_construction_order']
+                publisher_construction_order = 0 if 'publisher_construction_order' \
+                    not in context_dict else context_dict['publisher_construction_order']
                 node_path = self.get_node_path(node_paths,
-                                               context_dict['publisher_topic_name'],
-                                               context_dict['subscription_topic_name'])
+                                               publisher_topic_name,
+                                               subscription_topic_name,
+                                               subscription_construction_order,
+                                               publisher_construction_order)
                 data.append(self._to_struct(context_dict, node_path))
                 pair = (node_path.publish_topic_name, node_path.subscribe_topic_name)
                 pub_sub_pairs.append(pair)
@@ -642,22 +673,26 @@ class MessageContextsLoaded:
     def get_node_path(
         node_paths: Sequence[NodePathStruct],
         publisher_topic_name: str,
-        subscription_topic_name: str
+        subscription_topic_name: str,
+        subscription_construction_order: int,
+        publisher_construction_order: int
     ) -> NodePathStruct:
         def is_target(path: NodePathValue):
             return path.publish_topic_name == publisher_topic_name and \
-                path.subscribe_topic_name == subscription_topic_name
+                path.subscribe_topic_name == subscription_topic_name and \
+                path.subscription_construction_order == subscription_construction_order and \
+                path.publisher_construction_order == publisher_construction_order
         return Util.find_one(is_target, node_paths)
 
     @property
-    def data(self) -> List[MessageContextStruct]:
+    def data(self) -> list[MessageContextStruct]:
         return self._data
 
     @staticmethod
     def _create_callback_chain(
         node_paths: Sequence[NodePathStruct]
-    ) -> List[MessageContextStruct]:
-        chains: List[MessageContextStruct] = []
+    ) -> list[MessageContextStruct]:
+        chains: list[MessageContextStruct] = []
         for path in node_paths:
             if path.callbacks is not None:
                 chains.append(
@@ -672,7 +707,7 @@ class MessageContextsLoaded:
 
     @staticmethod
     def _to_struct(
-        context_dict: Dict,
+        context_dict: dict,
         node_path: NodePathStruct
     ) -> MessageContextStruct:
         type_name = context_dict['context_type']
@@ -695,10 +730,10 @@ class MessageContextsLoaded:
 class NodePathCreated:
     def __init__(
         self,
-        subscription_values: List[SubscriptionStruct],
-        publisher_values: List[PublisherStruct],
+        subscription_values: list[SubscriptionStruct],
+        publisher_values: list[PublisherStruct],
     ) -> None:
-        paths: List[NodePathStruct] = []
+        paths: list[NodePathStruct] = []
         for sub, pub in product(subscription_values, publisher_values):
             paths.append(
                 NodePathStruct(sub.node_name, sub, pub, None, None)
@@ -707,7 +742,7 @@ class NodePathCreated:
         self._data = paths
 
     @property
-    def data(self) -> List[NodePathStruct]:
+    def data(self) -> list[NodePathStruct]:
         return self._data
 
 
@@ -728,7 +763,7 @@ class PublishersLoaded:
         publisher_value: PublisherValue
     ) -> PublisherStruct:
 
-        pub_callbacks: List[CallbackStruct] = []
+        pub_callbacks: list[CallbackStruct] = []
         if publisher_value.callback_ids is not None:
             for callback_id in publisher_value.callback_ids:
                 if callback_id == UNDEFINED_STR:
@@ -753,12 +788,13 @@ class PublishersLoaded:
             publisher_value.node_name,
             publisher_value.topic_name,
             callback_values=pub_callbacks,
+            construction_order=publisher_value.construction_order
         )
 
     @staticmethod
     def _get_callbacks(
         callbacks_loaded: CallbacksLoaded,
-    ) -> List[CallbackStruct]:
+    ) -> list[CallbackStruct]:
         def is_user_defined(callback: CallbackStruct):
             if isinstance(callback, SubscriptionCallbackStruct):
                 if callback.subscribe_topic_name == '/parameter_events':
@@ -769,7 +805,7 @@ class PublishersLoaded:
         return Util.filter_items(is_user_defined, callbacks)
 
     @property
-    def data(self) -> List[PublisherStruct]:
+    def data(self) -> list[PublisherStruct]:
         return self._data
 
 
@@ -795,8 +831,8 @@ class SubscriptionsLoaded:
     @staticmethod
     def _validate(subscriptions: Sequence[SubscriptionValue]):
         # validate callback id uniqueness.
-        callback_ids: Set[str] = set()
-        duplicated: List[str] = []
+        callback_ids: set[str] = set()
+        duplicated: list[str] = []
         for subscription in subscriptions:
             if subscription.callback_id is not None:
                 if subscription.callback_id not in callback_ids:
@@ -808,9 +844,9 @@ class SubscriptionsLoaded:
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(subscriptions: Sequence[SubscriptionValue]) -> List[SubscriptionValue]:
-        ids_: List[SubscriptionValue] = []
-        callback_ids: Set[str] = set()
+    def _remove_duplicated(subscriptions: Sequence[SubscriptionValue]) -> list[SubscriptionValue]:
+        ids_: list[SubscriptionValue] = []
+        callback_ids: set[str] = set()
         for subscription in subscriptions:
             # remove if callback id are not unique
             if subscription.callback_id is None:
@@ -825,7 +861,7 @@ class SubscriptionsLoaded:
         callbacks_loaded: CallbacksLoaded,
         subscription_value: SubscriptionValue
     ) -> SubscriptionStruct:
-        sub_callback: Optional[SubscriptionCallbackStruct] = None
+        sub_callback: SubscriptionCallbackStruct | None = None
 
         if subscription_value.callback_id is not None:
             sub_callback = callbacks_loaded.find_callback(
@@ -834,13 +870,14 @@ class SubscriptionsLoaded:
             assert isinstance(sub_callback, SubscriptionCallbackStruct)
 
         return SubscriptionStruct(
-            subscription_value.node_name,
-            subscription_value.topic_name,
-            sub_callback
+            node_name=subscription_value.node_name,
+            topic_name=subscription_value.topic_name,
+            callback_info=sub_callback,
+            construction_order=subscription_value.construction_order
         )
 
     @property
-    def data(self) -> List[SubscriptionStruct]:
+    def data(self) -> list[SubscriptionStruct]:
         return self._data
 
 
@@ -866,8 +903,8 @@ class ServicesLoaded:
     @staticmethod
     def _validate(services: Sequence[ServiceValue]):
         # validate callback id uniqueness.
-        callback_ids: Set[str] = set()
-        duplicated: List[str] = []
+        callback_ids: set[str] = set()
+        duplicated: list[str] = []
         for service in services:
             if service.callback_id is not None:
                 if service.callback_id not in callback_ids:
@@ -879,9 +916,9 @@ class ServicesLoaded:
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(services: Sequence[ServiceValue]) -> List[ServiceValue]:
-        ids_: List[ServiceValue] = []
-        callback_ids: Set[str] = set()
+    def _remove_duplicated(services: Sequence[ServiceValue]) -> list[ServiceValue]:
+        ids_: list[ServiceValue] = []
+        callback_ids: set[str] = set()
         for service in services:
             # remove if callback id are not unique
             if service.callback_id is None:
@@ -896,7 +933,7 @@ class ServicesLoaded:
         callbacks_loaded: CallbacksLoaded,
         service_value: ServiceValue
     ) -> ServiceStruct:
-        srv_callback: Optional[ServiceCallbackStruct] = None
+        srv_callback: ServiceCallbackStruct | None = None
 
         if service_value.callback_id is not None:
             srv_callback = callbacks_loaded.find_callback(
@@ -905,13 +942,14 @@ class ServicesLoaded:
             assert isinstance(srv_callback, ServiceCallbackStruct)
 
         return ServiceStruct(
-            service_value.node_name,
-            service_value.service_name,
-            srv_callback
+            node_name=service_value.node_name,
+            service_name=service_value.service_name,
+            callback_info=srv_callback,
+            construction_order=service_value.construction_order
         )
 
     @property
-    def data(self) -> List[ServiceStruct]:
+    def data(self) -> list[ServiceStruct]:
         return self._data
 
 
@@ -938,8 +976,8 @@ class TimersLoaded:
     @staticmethod
     def _validate(timers: Sequence[TimerValue]):
         # validate callback id uniqueness.
-        callback_ids: Set[str] = set()
-        duplicated: List[str] = []
+        callback_ids: set[str] = set()
+        duplicated: list[str] = []
         for timer in timers:
             if timer.callback_id is not None:
                 if timer.callback_id not in callback_ids:
@@ -951,9 +989,9 @@ class TimersLoaded:
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(timers: Sequence[TimerValue]) -> List[TimerValue]:
-        ids_: List[TimerValue] = []
-        callback_ids: Set[str] = set()
+    def _remove_duplicated(timers: Sequence[TimerValue]) -> list[TimerValue]:
+        ids_: list[TimerValue] = []
+        callback_ids: set[str] = set()
         for timer in timers:
             # remove if callback id are not unique
             if timer.callback_id is None:
@@ -969,20 +1007,21 @@ class TimersLoaded:
         timer_value: TimerValue
     ) -> TimerStruct:
 
-        timer_callback: Optional[TimerCallbackStruct] = None
+        timer_callback: TimerCallbackStruct | None = None
 
         if timer_value.callback_id is not None:
             timer_callback = callbacks_loaded.find_callback(
                 timer_value.callback_id)  # type: ignore
 
         return TimerStruct(
-            timer_value.node_name,
-            timer_value.period,
-            timer_callback
+            node_name=timer_value.node_name,
+            period_ns=timer_value.period,
+            callback_info=timer_callback,
+            construction_order=timer_value.construction_order
         )
 
     @property
-    def data(self) -> List[TimerStruct]:
+    def data(self) -> list[TimerStruct]:
         return self._data
 
 
@@ -993,7 +1032,7 @@ class VariablePassingsLoaded():
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue,
     ) -> None:
-        data: List[VariablePassingStruct] = []
+        data: list[VariablePassingStruct] = []
 
         for var_pass in reader.get_variable_passings(node):
             if var_pass.callback_id_read == UNDEFINED_STR or\
@@ -1009,11 +1048,11 @@ class VariablePassingsLoaded():
                 )
             )
 
-        self._data: List[VariablePassingStruct]
+        self._data: list[VariablePassingStruct]
         self._data = data
 
     @property
-    def data(self) -> List[VariablePassingStruct]:
+    def data(self) -> list[VariablePassingStruct]:
         return self._data
 
 
@@ -1024,10 +1063,10 @@ class CallbackGroupsLoaded():
         callbacks_loaded: CallbacksLoaded,
         node: NodeValue
     ) -> None:
-        self._data: Dict[str, CallbackGroupStruct] = {}
+        self._data: dict[str, CallbackGroupStruct] = {}
 
-        _cbg_dict: Dict[CallbackGroupValue, int] = {}
-        _srv_only_cbg_dict: Dict[CallbackGroupValue, int] = {}
+        _cbg_dict: dict[CallbackGroupValue, int] = {}
+        _srv_only_cbg_dict: dict[CallbackGroupValue, int] = {}
 
         # ignore callback_group containing only service callbacks
         def _is_service_only_callbackgroup(cbg: CallbackGroupValue):
@@ -1046,7 +1085,7 @@ class CallbackGroupsLoaded():
 
         callback_groups = self._remove_duplicated(callback_groups)
 
-        duplicated_names: Set[str] = set()
+        duplicated_names: set[str] = set()
 
         for cbg in callback_groups:
             self._validate(cbg, node)
@@ -1063,7 +1102,7 @@ class CallbackGroupsLoaded():
             else:
                 cbg_name = cbg.callback_group_name  \
                     or f'{node.node_name}/service_only_callback_group_' \
-                    + '{len(_srv_only_cbg_dict)}'
+                    + f'{len(_srv_only_cbg_dict)}'
                 _srv_only_cbg_dict[cbg] = len(_srv_only_cbg_dict)
 
             cbg_struct = CallbackGroupStruct(
@@ -1089,8 +1128,8 @@ class CallbackGroupsLoaded():
     @staticmethod
     def _validate_id(callback_groups: Sequence[CallbackGroupValue]):
         # validate callback group id uniqueness.
-        callback_ids: Set[str] = set()
-        duplicated: List[str] = []
+        callback_ids: set[str] = set()
+        duplicated: list[str] = []
         for callback_group in callback_groups:
             if callback_group.callback_group_id not in callback_ids:
                 callback_ids.add(callback_group.callback_group_id)
@@ -1102,9 +1141,9 @@ class CallbackGroupsLoaded():
 
     @staticmethod
     def _remove_duplicated(callback_groups: Sequence[CallbackGroupValue]) \
-            -> List[CallbackGroupValue]:
-        ids_: List[CallbackGroupValue] = []
-        callback_ids: Set[str] = set()
+            -> list[CallbackGroupValue]:
+        ids_: list[CallbackGroupValue] = []
+        callback_ids: set[str] = set()
         for callback_group in callback_groups:
             # remove if callback id are not unique
             if callback_group.callback_group_id not in callback_ids:
@@ -1120,7 +1159,7 @@ class CallbackGroupsLoaded():
             raise InvalidReaderError(f'duplicated callback id. {node}, {cbg}')
 
     @property
-    def data(self) -> List[CallbackGroupStruct]:
+    def data(self) -> list[CallbackGroupStruct]:
         return list(self._data.values())
 
     def find_callback_group(self, callback_group_id: str):
@@ -1133,8 +1172,8 @@ class CallbackGroupsLoaded():
         self,
         callbacks_loaded: CallbacksLoaded,
         callback_group: CallbackGroupValue,
-    ) -> List[CallbackStruct]:
-        callback_structs: List[CallbackStruct] = []
+    ) -> list[CallbackStruct]:
+        callback_structs: list[CallbackStruct] = []
         for callback_id in callback_group.callback_ids:
             # Ensure that the callback information exists.
             callback_struct = callbacks_loaded.find_callback(callback_id)
@@ -1150,7 +1189,7 @@ class CallbacksLoaded():
         node: NodeValue,
     ) -> None:
         self._node = node
-        callbacks: List[CallbackValue] = []
+        callbacks: list[CallbackValue] = []
         callbacks += reader.get_timer_callbacks(node)
         callbacks += reader.get_subscription_callbacks(node)
         callbacks += reader.get_service_callbacks(node)
@@ -1158,11 +1197,11 @@ class CallbacksLoaded():
         self._validate(callbacks)
         self._callbacks = callbacks
 
-        self._callback_count: Dict[CallbackValue, int] = {}
+        self._callback_count: dict[CallbackValue, int] = {}
         # "_srv_callback_count" will be integrated
         # into "_callback_count" when the service is officially supported.
-        self._srv_callback_count: Dict[CallbackValue, int] = {}
-        self._cb_dict: Dict[str, CallbackStruct] = {}
+        self._srv_callback_count: dict[CallbackValue, int] = {}
+        self._cb_dict: dict[str, CallbackStruct] = {}
 
         # TODO(hsgwa): Checking for unique constraints on id and name
 
@@ -1183,7 +1222,7 @@ class CallbacksLoaded():
         return self._node.node_name
 
     @property
-    def data(self) -> List[CallbackStruct]:
+    def data(self) -> list[CallbackStruct]:
         return list(self._cb_dict.values())
 
     def _to_struct(
@@ -1268,7 +1307,7 @@ class CallbacksLoaded():
             )
         raise UnsupportedTypeError('Unsupported callback type')
 
-    def _validate(self, callbacks: List[CallbackValue]) -> None:
+    def _validate(self, callbacks: list[CallbackValue]) -> None:
         # check node name
         for callback in callbacks:
             if callback.node_id != self._node.node_id:
@@ -1277,7 +1316,7 @@ class CallbacksLoaded():
                 raise InvalidReaderError(msg)
 
         # check callback name
-        cb_names: List[str] = [
+        cb_names: list[str] = [
             cb.callback_name for cb in callbacks if cb.callback_name is not None]
         if len(cb_names) != len(set(cb_names)):
             msg = f'Duplicated callback names. node_name: {self._node.node_name}\n'
@@ -1287,7 +1326,7 @@ class CallbacksLoaded():
             raise InvalidReaderError(msg)
 
         # check callback id
-        cb_ids: List[str] = [
+        cb_ids: list[str] = [
             cb.callback_id
             for cb
             in callbacks
@@ -1314,23 +1353,23 @@ class CallbacksLoaded():
 
     def search_callbacks(
         self,
-        callback_ids: List[str]
-    ) -> List[CallbackStruct]:
+        callback_ids: list[str]
+    ) -> list[CallbackStruct]:
         """
         Search callbacks.
 
         Parameters
         ----------
-        callback_ids : List[str, ...]
+        callback_ids : list[str, ...]
             target callback ids
 
         Returns
         -------
-        List[CallbackStruct, ...]
+        list[CallbackStruct, ...]
             If the callback is not found, it returns an empty tuple.
 
         """
-        callbacks: List[CallbackStruct] = []
+        callbacks: list[CallbackStruct] = []
 
         for callback_id in callback_ids:
             if callback_id not in self._cb_dict.keys():
@@ -1347,7 +1386,7 @@ class ExecutorValuesLoaded():
         reader: ArchitectureReader,
         nodes_loaded: NodeValuesLoaded,
     ) -> None:
-        execs: List[ExecutorStruct] = []
+        execs: list[ExecutorStruct] = []
 
         exec_vals = reader.get_executors()
 
@@ -1384,8 +1423,8 @@ class ExecutorValuesLoaded():
     @staticmethod
     def _validate(executors: Sequence[ExecutorValue]):
         # validate executor name uniqueness.
-        executor_names: Set[str] = set()
-        duplicated: List[str] = []
+        executor_names: set[str] = set()
+        duplicated: list[str] = []
         for executor in executors:
             if executor.executor_name is not None:
                 if executor.executor_name not in executor_names:
@@ -1397,9 +1436,9 @@ class ExecutorValuesLoaded():
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(executors: Sequence[ExecutorValue]) -> List[ExecutorValue]:
-        executors_: List[ExecutorValue] = []
-        executor_names: Set[str] = set()
+    def _remove_duplicated(executors: Sequence[ExecutorValue]) -> list[ExecutorValue]:
+        executors_: list[ExecutorValue] = []
+        executor_names: set[str] = set()
         for executor in executors:
             # remove if name are not unique
             if executor.executor_name is None:
@@ -1415,7 +1454,7 @@ class ExecutorValuesLoaded():
         executor: ExecutorValue,
         nodes_loaded: NodeValuesLoaded,
     ) -> ExecutorStruct:
-        callback_group_values: List[CallbackGroupStruct] = []
+        callback_group_values: list[CallbackGroupStruct] = []
 
         for cbg_id in executor.callback_group_ids:
             try:
@@ -1445,7 +1484,7 @@ class ExecutorValuesLoaded():
         return nodes_loaded.find_callback_group(callback_group_id)
 
     @property
-    def data(self) -> List[ExecutorStruct]:
+    def data(self) -> list[ExecutorStruct]:
         return self._data
 
 
@@ -1456,7 +1495,7 @@ class PathValuesLoaded():
         nodes_loaded: NodeValuesLoaded,
         communications_loaded: CommValuesLoaded,
     ) -> None:
-        paths: List[PathStruct] = []
+        paths: list[PathStruct] = []
 
         # duplicate check for path name
         path_values = reader.get_paths()
@@ -1480,8 +1519,8 @@ class PathValuesLoaded():
     @staticmethod
     def _validate(path_vals: Sequence[PathValue]):
         # validate path name uniqueness.
-        path_names: Set[str] = set()
-        duplicated: List[str] = []
+        path_names: set[str] = set()
+        duplicated: list[str] = []
         for path in path_vals:
             if path.path_name not in path_names:
                 path_names.add(path.path_name)
@@ -1492,9 +1531,9 @@ class PathValuesLoaded():
             raise InvalidReaderError(msg)
 
     @staticmethod
-    def _remove_duplicated(path_vals: Sequence[PathValue]) -> List[PathValue]:
-        paths_: List[PathValue] = []
-        path_names: Set[str] = set()
+    def _remove_duplicated(path_vals: Sequence[PathValue]) -> list[PathValue]:
+        paths_: list[PathValue] = []
+        path_names: set[str] = set()
         for path in path_vals:
             # remove if name and id are not unique
             if path.path_name not in path_names:
@@ -1511,7 +1550,7 @@ class PathValuesLoaded():
         node_paths_info = PathValuesLoaded._to_node_path_struct(
             list(path_info.node_path_values), nodes_loaded)
 
-        child: List[Union[NodePathStruct, CommunicationStruct]] = []
+        child: list[NodePathStruct | CommunicationStruct] = []
         child.append(node_paths_info[0])
         for pub_node_path, sub_node_path in zip(node_paths_info[:-1], node_paths_info[1:]):
             topic_name = sub_node_path.subscribe_topic_name
@@ -1523,7 +1562,9 @@ class PathValuesLoaded():
             comm_info = comms_loaded.find_communication(
                 topic_name,
                 pub_node_path.node_name,
-                sub_node_path.node_name
+                pub_node_path.publisher_construction_order,
+                sub_node_path.node_name,
+                sub_node_path.subscription_construction_order
             )
 
             child.append(comm_info)
@@ -1533,13 +1574,13 @@ class PathValuesLoaded():
 
     @staticmethod
     def _to_node_path_struct(
-        node_path_values: List[NodePathValue],
+        node_path_values: list[NodePathValue],
         nodes_loaded: NodeValuesLoaded,
-    ) -> List[NodePathStruct]:
+    ) -> list[NodePathStruct]:
         return [nodes_loaded.find_node_path(_) for _ in node_path_values]
 
     @property
-    def data(self) -> List[PathStruct]:
+    def data(self) -> list[PathStruct]:
         return self._data
 
 
@@ -1549,16 +1590,16 @@ class CallbackPathSearched():
         node: NodeStruct,
     ) -> None:
         from .graph_search import CallbackPathSearcher
-        self._data: List[NodePathStruct]
+        self._data: list[NodePathStruct]
 
         searcher = CallbackPathSearcher(node)
 
         callbacks = node.callbacks
-        paths: List[NodePathStruct] = []
+        paths: list[NodePathStruct] = []
 
         if callbacks is not None:
             for write_callback, read_callback in product(callbacks, callbacks):
-                searched_paths = searcher.search(write_callback, read_callback)
+                searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
                     msg = 'Path Added: '
                     msg += f'subscribe: {path.subscribe_topic_name}, '
@@ -1570,7 +1611,7 @@ class CallbackPathSearched():
         self._data = paths
 
     @property
-    def data(self) -> List[NodePathStruct]:
+    def data(self) -> list[NodePathStruct]:
         return self._data
 
 
@@ -1578,22 +1619,22 @@ class TopicIgnoredReader(ArchitectureReader):
     def __init__(
         self,
         reader: ArchitectureReader,
-        ignore_topics: List[str],
+        ignore_topics: list[str],
     ) -> None:
         self._reader = reader
         self._ignore_topics = ignore_topics
         self._ignore_callback_ids = self._get_ignore_callback_ids(reader, ignore_topics)
 
-    def get_publishers(self, node: NodeValue) -> List[PublisherValue]:
-        publishers: List[PublisherValue] = []
+    def get_publishers(self, node: NodeValue) -> list[PublisherValue]:
+        publishers: list[PublisherValue] = []
         for publisher in self._reader.get_publishers(node):
             if publisher.topic_name in self._ignore_topics:
                 continue
             publishers.append(publisher)
         return publishers
 
-    def get_timers(self, node: NodeValue) -> List[TimerValue]:
-        timers: List[TimerValue] = []
+    def get_timers(self, node: NodeValue) -> list[TimerValue]:
+        timers: list[TimerValue] = []
         for timer in self._reader.get_timers(node):
             timers.append(timer)
         return timers
@@ -1625,13 +1666,13 @@ class TopicIgnoredReader(ArchitectureReader):
     def get_message_contexts(
         self,
         node: NodeValue
-    ) -> Sequence[Dict]:
+    ) -> Sequence[dict]:
         return self._reader.get_message_contexts(node)
 
     def _filter_callback_id(
         self,
-        callback_ids: List[str]
-    ) -> List[str]:
+        callback_ids: list[str]
+    ) -> list[str]:
         def is_not_ignored(callback_id: str):
             return callback_id not in self._ignore_callback_ids
 
@@ -1640,9 +1681,9 @@ class TopicIgnoredReader(ArchitectureReader):
     @staticmethod
     def _get_ignore_callback_ids(
         reader: ArchitectureReader,
-        ignore_topics: List[str]
-    ) -> Set[str]:
-        ignore_callback_ids: List[str] = []
+        ignore_topics: list[str]
+    ) -> set[str]:
+        ignore_callback_ids: list[str] = []
         ignore_topic_set = set(ignore_topics)
 
         nodes = reader.get_nodes()
@@ -1667,21 +1708,21 @@ class TopicIgnoredReader(ArchitectureReader):
     def get_node_names_and_cb_symbols(
         self,
         callback_group_id: str
-    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+    ) -> Sequence[tuple[str | None, str | None]]:
         return self._reader.get_node_names_and_cb_symbols(callback_group_id)
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
         return self._reader.get_nodes()
 
-    def get_subscriptions(self, node: NodeValue) -> List[SubscriptionValue]:
-        subscriptions: List[SubscriptionValue] = []
+    def get_subscriptions(self, node: NodeValue) -> list[SubscriptionValue]:
+        subscriptions: list[SubscriptionValue] = []
         for subscription in self._reader.get_subscriptions(node):
             if subscription.topic_name in self._ignore_topics:
                 continue
             subscriptions.append(subscription)
         return subscriptions
 
-    def get_services(self, node: NodeValue) -> List[ServiceValue]:
+    def get_services(self, node: NodeValue) -> list[ServiceValue]:
         return list(self._reader.get_services(node))
 
     def get_variable_passings(
@@ -1700,7 +1741,7 @@ class TopicIgnoredReader(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[SubscriptionCallbackValue]:
-        callbacks: List[SubscriptionCallbackValue] = []
+        callbacks: list[SubscriptionCallbackValue] = []
         for subscription_callback in self._reader.get_subscription_callbacks(node):
             if subscription_callback.subscribe_topic_name in self._ignore_topics:
                 continue

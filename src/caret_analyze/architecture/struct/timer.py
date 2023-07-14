@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from .callback import TimerCallbackStruct
 from ...value_objects import TimerStructValue
@@ -25,11 +25,13 @@ class TimerStruct():
         self,
         node_name: str,
         period_ns: int,
-        callback_info: Optional[TimerCallbackStruct],
+        callback_info: TimerCallbackStruct | None,
+        construction_order: int,
     ) -> None:
         self._node_name: str = node_name
         self._period_ns: int = period_ns
         self._callback_value = callback_info
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -40,19 +42,26 @@ class TimerStruct():
         return self._period_ns
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         if self._callback_value is None:
             return None
 
         return self._callback_value.callback_name
 
     @property
-    def callback(self) -> Optional[TimerCallbackStruct]:
+    def callback(self) -> TimerCallbackStruct | None:
         return self._callback_value
 
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
+
     def to_value(self) -> TimerStructValue:
-        return TimerStructValue(self.node_name, self.period_ns,
-                                None if self.callback is None else self.callback.to_value())
+        return TimerStructValue(
+            node_name=self.node_name,
+            period_ns=self.period_ns,
+            callback_info=None if self.callback is None else self.callback.to_value(),
+            construction_order=self.construction_order)
 
     def rename_node(self, src: str, dst: str) -> None:
         if self.node_name == src:

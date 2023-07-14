@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from functools import cached_property
-from typing import Dict, List, Optional
+from typing import Any
 
 from bokeh.models import CrosshairTool, HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
@@ -26,12 +26,11 @@ import numpy as np
 
 import pandas as pd
 
-from .util import (apply_x_axis_offset, ColorSelectorFactory,
-                   HoverKeysFactory, init_figure, RectValues)
+from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
+                   HoverKeysFactory, HoverSource, init_figure, RectValues)
 from ....common import ClockConverter
-from ....exceptions import UnsupportedTypeError
 from ....record.data_frame_shaper import Clip, Strip
-from ....runtime import CallbackBase, Path, SubscriptionCallback, TimerCallback
+from ....runtime import Path
 
 
 class BokehMessageFlow:
@@ -70,12 +69,12 @@ class BokehMessageFlow:
         # Apply xaxis offset
         frame_min: float = clip.min_ns
         frame_max: float = clip.max_ns
-        converter: Optional[ClockConverter] = None
+        converter: ClockConverter | None = None
         if self._xaxis_type == 'sim_time':
             assert len(self._target_path.child) > 0
             # TODO(hsgwa): refactor
-            converter = \
-                self._target_path.child[0]._provider.get_sim_time_converter()  # type: ignore
+            provider = self._target_path.child[0]._provider  # type: ignore
+            converter = provider.get_sim_time_converter(frame_min, frame_max)
         if converter:
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
@@ -93,27 +92,26 @@ class BokehMessageFlow:
         fig.yaxis.major_label_overrides = yaxis_property.labels_dict
 
         # Draw callback rect
-        rect_source = get_callback_rect_list(
-            self._target_path, yaxis_values, self._granularity, clip, converter, offset)
-        fig.rect(
+        rect_source = MessageFlowRectSource(self._target_path)
+        rect = fig.rect(
             'x',
             'y',
             'width',
             'height',
-            source=rect_source,
+            source=rect_source.generate(yaxis_values, self._granularity, clip, converter, offset),
             color='black',
             alpha=0.15,
             hover_fill_color='black',
             hover_alpha=0.4,
             x_range_name=x_range_name
         )
+        fig.add_tools(rect_source.create_hover({'renderers': [rect]}))
 
         # Draw message flow
         color_selector = ColorSelectorFactory.create_instance('unique')
-        flow_source = MessageFlowSource(self._target_path)
-        fig.add_tools(flow_source.create_hover())
+        flow_source = MessageFlowLineSource(self._target_path)
         for source in flow_source.generate(df, converter, offset):
-            fig.line(
+            line = fig.line(
                 x='x',
                 y='y',
                 line_width=1.5,
@@ -122,124 +120,160 @@ class BokehMessageFlow:
                 source=source,
                 x_range_name=x_range_name
             )
+            fig.add_tools(flow_source.create_hover({'renderers': [line]}))
 
         return fig
 
 
-class Offset:
+class MessageFlowRectSource:
+    """Class to generate message flow rect sources."""
+
     def __init__(
         self,
-        offset_ns: int
+        target_path: Path
     ) -> None:
-        self._offset = offset_ns
+        self._target_path = target_path
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow_rect', target_path)
+        self._hover_source = HoverSource(self._hover_keys)
 
-    def __str__(self) -> str:
-        return self._str
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
+        return self._hover_keys.create_hover(options)
 
-    @cached_property
-    def _str(self) -> str:
-        t_offset = datetime.fromtimestamp(self._offset * 10**-9)
-        return t_offset.isoformat(sep=' ', timespec='seconds')
+    def generate(
+        self,
+        y_axis_values: YAxisValues,
+        granularity: str,
+        clip: Clip | None,
+        converter: ClockConverter | None,
+        offset: Offset
+    ) -> ColumnDataSource:
+        """
+        Generate message flow rect source.
 
-    @property
-    def value(self) -> int:
-        return self._offset
+        Parameters
+        ----------
+        y_axis_values : YAxisValues
+            Y-axis values.
+        granularity : str
+            Granularity of chain with two value; [raw/node].
+        clip : Clip | None
+            Clip the first and last few seconds.
+        converter : ClockConverter | None
+            Converter to simulation time.
+        offset : Offset
+            Offset of x-axis.
 
+        Returns
+        -------
+        ColumnDataSource
 
-def to_format_str(ns: int) -> str:
-    s = (ns) * 10**-9
-    return '{:.3f}'.format(s)
+        """
+        rect_source = ColumnDataSource(data={
+            k: [] for k in (['x', 'y', 'width', 'height'] + self._hover_keys.to_list())
+        })
 
+        if self._target_path.callback_chain is None:
+            return rect_source
 
-def get_callback_param_desc(callback: CallbackBase):
-    if isinstance(callback, TimerCallback):
-        return f'period_ns: {callback.period_ns}'
+        for callback in self._target_path.callback_chain:
+            if granularity == 'raw':
+                search_name = callback.callback_name
+            elif granularity == 'node':
+                search_name = callback.node_name
 
-    if isinstance(callback, SubscriptionCallback):
-        return f'topic_name: {callback.subscribe_topic_name}'
+            y_max_list = np.array(y_axis_values.get_start_indexes(search_name))
+            y_min_list = y_max_list - 1
 
-    raise UnsupportedTypeError('callback type must be '
-                               '[ TimerCallback/ SubscriptionCallback]')
+            for y_min, y_max in zip(y_min_list, y_max_list):
+                df = callback.to_dataframe(shaper=clip)
+                for _, row in df.iterrows():
+                    callback_start = row.to_list()[0]
+                    callback_end = row.to_list()[-1]
+                    if converter:
+                        callback_start = converter.convert(callback_start)
+                        callback_end = converter.convert(callback_end)
+                    rect = RectValues(callback_start, callback_end, y_min, y_max)
+                    rect_source.stream({
+                        **{'x': [rect.x],
+                           'y': [rect.y],
+                           'width': [rect.width],
+                           'height': [rect.height]},
+                        **self._hover_source.generate(callback, {
+                            't_start':
+                            f't_start = {to_format_str(callback_start - offset.value)} [s]',
+                            't_end': f't_end = {to_format_str(callback_end - offset.value)} [s]',
+                            't_offset': f't_offset = {offset}',
+                            'latency': f'latency = {(callback_end-callback_start)*1.0e-6} [ms]',
+                            'callback_param': get_callback_param_desc(callback)
+                        })  # type: ignore
+                    })
 
-
-def get_callback_rect_list(
-    path: Path,
-    y_axi_values: YAxisValues,
-    granularity: str,
-    clip: Optional[Clip],
-    converter: Optional[ClockConverter],
-    offset: Offset
-) -> ColumnDataSource:
-    rect_source = ColumnDataSource(data={
-        'x': [],
-        'y': [],
-        't_start': [],
-        't_end': [],
-        't_offset': [],
-        'desc': [],
-        'width': [],
-        'latency': [],
-        'height': []
-    })
-
-    if path.callback_chain is None:
         return rect_source
 
-    x = []
-    y = []
-    t_start = []
-    t_end = []
-    t_offset = []
-    desc = []
-    width = []
-    latency = []
-    height = []
 
-    for callback in path.callback_chain:
-        if granularity == 'raw':
-            search_name = callback.callback_name
-        elif granularity == 'node':
-            search_name = callback.node_name
+class MessageFlowLineSource:
+    """Class to generate message flow line sources."""
 
-        y_max_list = np.array(y_axi_values.get_start_indexes(search_name))
-        y_mins = y_max_list - 1
+    def __init__(
+        self,
+        target_path: Path
+    ) -> None:
+        self._hover_keys = HoverKeysFactory.create_instance('message_flow_line', target_path)
 
-        callback_desc = get_callback_param_desc(callback)
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
+        return self._hover_keys.create_hover(options)
 
-        for y_min, y_max in zip(y_mins, y_max_list):
-            df = callback.to_dataframe(shaper=clip)
-            for _, row in df.iterrows():
-                callback_start = row.to_list()[0]
-                callback_end = row.to_list()[-1]
-                if converter:
-                    callback_start = converter.convert(callback_start)
-                    callback_end = converter.convert(callback_end)
-                rect = RectValues(callback_start, callback_end, y_min, y_max)
-                x.append(rect.x)
-                y.append(rect.y)
-                t_offset.append(f't_offset = {offset}')
-                t_start.append(f't_start = {to_format_str(callback_start - offset.value)} [s]')
-                t_end.append(f't_end = {to_format_str(callback_end - offset.value)} [s]')
-                width.append(rect.width)
-                latency.append(f'latency = {(callback_end-callback_start)*1.0e-6} [ms]')
-                height.append(rect.height)
+    def generate(
+        self,
+        df: pd.DataFrame,
+        converter: ClockConverter | None,
+        offset: Offset
+    ) -> ColumnDataSource:
+        """
+        Generate message flow line source.
 
-                desc_str = f'callback_type: {callback.callback_type}' + \
-                    f', {callback_desc}, symbol: {callback.symbol}'
-                desc.append(desc_str)
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Formatted latency table for the target path.
+        converter : ClockConverter | None
+            Converter to simulation time.
+        offset : Offset
+            Offset of x-axis.
 
-    rect_source = ColumnDataSource(data={
-        'x': x,
-        'y': y,
-        't_start': t_start,
-        't_end': t_end,
-        't_offset': t_offset,
-        'desc': desc,
-        'width': width,
-        'latency': latency,
-        'height': height
-    })
-    return rect_source
+        Returns
+        -------
+        ColumnDataSource
+
+        """
+        tick_labels = YAxisProperty(df)
+        line_sources = []
+
+        for i, row in df.iterrows():
+            row_values = row.dropna().values
+            if converter:
+                row_values = [converter.convert(_) for _ in row_values]
+            x_min = min(row_values)
+            x_max = max(row_values)
+            width = x_max - x_min
+
+            t_start_s = to_format_str(x_min-offset.value)
+            t_end_s = to_format_str(x_max-offset.value)
+            line_source = ColumnDataSource({
+                'x': row_values,
+                'y': tick_labels.values[:len(row_values)],
+                'width': [width]*len(row_values),
+                'height': [0]*len(row_values),
+                't_start': [f't_start = {t_start_s} [s]']*len(row_values),
+                't_end': [f't_end = {t_end_s} [s]']*len(row_values),
+                't_offset': [f't_offset = {offset}']*len(row_values),
+                'latency': [f'latency = {width*1.0e-6} [ms]']*len(row_values),
+                'index': [f'index: {i}']*len(row_values),
+            })
+
+            line_sources.append(line_source)
+
+        return line_sources
 
 
 class DataFrameColumnNameParsed:
@@ -276,7 +310,7 @@ class DataFrameColumnNameParsed:
 class YAxisProperty:
 
     def __init__(self, df) -> None:
-        self._tick_labels: Dict[int, str] = {}
+        self._tick_labels: dict[int, str] = {}
         y_axis_step = -1
 
         y_value = 0
@@ -295,7 +329,7 @@ class YAxisProperty:
         return list(self._tick_labels.values())
 
     @property
-    def labels_dict(self) -> Dict[int, str]:
+    def labels_dict(self) -> dict[int, str]:
         return self._tick_labels
 
 
@@ -313,11 +347,11 @@ class YAxisValues:
                 indexes = np.append(indexes, i)
         return indexes
 
-    def get_start_indexes(self, search_name) -> List[int]:
+    def get_start_indexes(self, search_name) -> list[int]:
         indexes = self._search_values(search_name)
         return list((indexes) * -1)
 
-    def get_end_values(self, search_name) -> List[int]:
+    def get_end_values(self, search_name) -> list[int]:
         indexes = self._search_values(search_name)
         return list((indexes + 1) * -0.5)
 
@@ -405,48 +439,26 @@ class NodeLevelFormatter(DataFrameFormatter):
         df.rename(columns=renames, inplace=True)
 
 
-class MessageFlowSource:
-
+class Offset:
     def __init__(
         self,
-        target_path: Path
+        offset_ns: int
     ) -> None:
-        self._hover_keys = HoverKeysFactory.create_instance('message_flow', target_path)
+        self._offset = offset_ns
 
-    def create_hover(self,) -> HoverTool:
-        return self._hover_keys.create_hover()
+    def __str__(self) -> str:
+        return self._str
 
-    def generate(
-        self,
-        df: pd.DataFrame,
-        converter: Optional[ClockConverter],
-        offset: Offset
-    ) -> ColumnDataSource:
-        tick_labels = YAxisProperty(df)
-        line_sources = []
+    @cached_property
+    def _str(self) -> str:
+        t_offset = datetime.fromtimestamp(self._offset * 10**-9)
+        return t_offset.isoformat(sep=' ', timespec='seconds')
 
-        for i, row in df.iterrows():
-            row_values = row.dropna().values
-            if converter:
-                row_values = [converter.convert(_) for _ in row_values]
-            x_min = min(row_values)
-            x_max = max(row_values)
-            width = x_max - x_min
+    @property
+    def value(self) -> int:
+        return self._offset
 
-            t_start_s = to_format_str(x_min-offset.value)
-            t_end_s = to_format_str(x_max-offset.value)
-            line_source = ColumnDataSource({
-                'x': row_values,
-                'y': tick_labels.values[:len(row_values)],
-                'width': [width]*len(row_values),
-                'height': [0]*len(row_values),
-                't_start': [f't_start = {t_start_s} [s]']*len(row_values),
-                't_end': [f't_end = {t_end_s} [s]']*len(row_values),
-                't_offset': [f't_offset = {offset}']*len(row_values),
-                'latency': [f'latency = {width*1.0e-6} [ms]']*len(row_values),
-                'desc': [f'index: {i}']*len(row_values),
-            })
 
-            line_sources.append(line_source)
-
-        return line_sources
+def to_format_str(ns: int) -> str:
+    s = (ns) * 10**-9
+    return '{:.3f}'.format(s)

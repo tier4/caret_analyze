@@ -65,6 +65,7 @@ class TestEventCounter:
         data.add_on_data_available_instance(0, 0)
         data.add_message_construct_instance(0, 0, 0)
         data.add_dispatch_subscription_callback_instance(0, 0, 0, 0, 0)
+        data.add_rmw_take_instance(0, 0, 0, 0, 0)
         data.add_sim_time(0, 0)
         data.add_rmw_implementation('')
         data.add_dispatch_intra_process_subscription_callback_instance(0, 0, 0, 0)
@@ -99,20 +100,46 @@ class TestEventCounter:
         with pytest.raises(InvalidTraceFormatError):
             EventCounter(data)
 
+    @pytest.mark.parametrize(
+        'use_intra_process, has_rmw_take', (
+            [False, False],
+            [False, True],
+            [True, True],
+        )
+    )
     def test_validation_without_forked_rclcpp(
         self,
         caplog,
+        use_intra_process,
+        has_rmw_take,
     ):
         data = Ros2DataModel()
         data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
+        if has_rmw_take:
+            data.add_rmw_take_instance(0, 0, 0, 0, 0)  # pass rmw_take check
+        if use_intra_process:
+            data.add_callback_start_instance(0, 0, 0, 1)
+        else:
+            data.add_callback_start_instance(0, 0, 0, 0)
         data.finalize()
 
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
         logger.propagate = True
 
-        with caplog.at_level(WARNING):
-            EventCounter(data)
-            assert 'caret-rclcpp' in caplog.messages[0]
+        if not use_intra_process and has_rmw_take:
+            with caplog.at_level(WARNING):
+                EventCounter(data)
+                assert len(caplog.messages) == 0
+        elif not use_intra_process and not has_rmw_take:
+            with caplog.at_level(WARNING):
+                EventCounter(data)
+                assert 'caret-rclcpp' in caplog.messages[0]
+                assert 'please ignore this message.' not in caplog.messages[0]
+        else:
+            with caplog.at_level(WARNING):
+                EventCounter(data)
+                assert 'caret-rclcpp' in caplog.messages[0]
+                assert 'please ignore this message.' in caplog.messages[0]
 
     def test_validation_valid_case(
         self,

@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from logging import getLogger
 
-from typing import List, Optional, Tuple, Union
-
 from .callback import CallbackBase, SubscriptionCallback, TimerCallback
 from .callback_group import CallbackGroup
 from .communication import Communication
@@ -51,7 +49,7 @@ class RuntimeLoaded():
     def __init__(
         self,
         architecture: Architecture,
-        provider: Union[RecordsProvider, RuntimeDataProvider]
+        provider: RecordsProvider | RuntimeDataProvider
     ) -> None:
         nodes_loaded = NodesLoaded(architecture.nodes, provider)
         self._nodes = nodes_loaded.data
@@ -69,26 +67,26 @@ class RuntimeLoaded():
         self._paths = paths_loaded.data
 
     @property
-    def nodes(self) -> List[Node]:
+    def nodes(self) -> list[Node]:
         return self._nodes
 
     @property
-    def executors(self) -> List[Executor]:
+    def executors(self) -> list[Executor]:
         return self._executors
 
     @property
-    def communications(self) -> List[Communication]:
+    def communications(self) -> list[Communication]:
         return self._comms
 
     @property
-    def paths(self) -> List[Path]:
+    def paths(self) -> list[Path]:
         return self._paths
 
 
 class ExecutorsLoaded:
     def __init__(
         self,
-        executors_values: Tuple[ExecutorStructValue, ...],
+        executors_values: tuple[ExecutorStructValue, ...],
         nodes_loaded: NodesLoaded
     ) -> None:
         self._data = []
@@ -115,17 +113,17 @@ class ExecutorsLoaded:
         )
 
     @property
-    def data(self) -> List[Executor]:
+    def data(self) -> list[Executor]:
         return self._data
 
 
 class NodesLoaded:
     def __init__(
         self,
-        node_values: Tuple[NodeStructValue, ...],
-        provider: Union[RecordsProvider, RuntimeDataProvider]
+        node_values: tuple[NodeStructValue, ...],
+        provider: RecordsProvider | RuntimeDataProvider
     ) -> None:
-        self._nodes: List[Node] = []
+        self._nodes: list[Node] = []
         for node_value in node_values:
             try:
                 self._nodes.append(self._to_runtime(node_value, provider))
@@ -135,7 +133,7 @@ class NodesLoaded:
     @staticmethod
     def _to_runtime(
         node_value: NodeStructValue,
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> Node:
         publishers_loaded = PublishersLoaded(
             node_value.publishers, provider)
@@ -150,7 +148,7 @@ class NodesLoaded:
         )
         timers = timers_loaded.data
 
-        callback_groups: List[CallbackGroup] = []
+        callback_groups: list[CallbackGroup] = []
         if node_value.callback_groups is not None:
             callback_groups = CallbackGroupsLoaded(
                 node_value.callback_groups,
@@ -161,12 +159,12 @@ class NodesLoaded:
             ).data
 
         callbacks = Util.flatten([_.callbacks for _ in callback_groups])
-        node_paths: List[NodePath]
+        node_paths: list[NodePath]
         node_paths = NodePathsLoaded(
             node_value.paths, provider, publishers_loaded, subscriptions_loaded, callbacks
         ).data
 
-        variable_passings: List[VariablePassing] = []
+        variable_passings: list[VariablePassing] = []
         if node_value.variable_passings is not None:
             variable_passings = VariablePassingsLoaded(
                 node_value.variable_passings, provider).data
@@ -182,19 +180,19 @@ class NodesLoaded:
         )
 
     @property
-    def callback_groups(self) -> List[CallbackGroup]:
-        callback_groups: List[CallbackGroup] = []
+    def callback_groups(self) -> list[CallbackGroup]:
+        callback_groups: list[CallbackGroup] = []
         for node in self._nodes:
             if node.callback_groups is not None:
                 callback_groups += node.callback_groups
         return callback_groups
 
     @property
-    def data(self) -> List[Node]:
+    def data(self) -> list[Node]:
         return self._nodes
 
     @property
-    def callbacks(self) -> Optional[List[CallbackBase]]:
+    def callbacks(self) -> list[CallbackBase] | None:
         cbs = []
         for node in self._nodes:
             if node.callbacks is not None:
@@ -251,15 +249,15 @@ class NodesLoaded:
     def find_node_path(
         self,
         node_name: str,
-        subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str],
+        subscribe_topic_name: str | None,
+        publish_topic_name: str | None,
+        publisher_construction_order: int | None,
+        subscription_construction_order: int | None,
     ) -> NodePath:
-        def is_target(node_path: NodePath):
-            return node_path.publish_topic_name == publish_topic_name and \
-                node_path.subscribe_topic_name == subscribe_topic_name and \
-                node_path.node_name == node_name
-
         try:
+            is_target = NodesLoaded.IsTarget(
+                node_name, publish_topic_name, subscribe_topic_name,
+                publisher_construction_order, subscription_construction_order)
             node_paths = Util.flatten([n.paths for n in self._nodes])
             return Util.find_one(is_target, node_paths)
         except ItemNotFoundError:
@@ -267,14 +265,56 @@ class NodesLoaded:
             msg += f'node_name: {node_name}. '
             msg += f'publish_topic_name: {publish_topic_name}. '
             msg += f'subscribe_topic_name: {subscribe_topic_name}. '
+            msg += f'publisher_construction_order: {publisher_construction_order}. '
+            msg += f'subscription_construction_order: {subscription_construction_order}. '
             raise ItemNotFoundError(msg)
+
+    class IsTarget:
+        def __init__(
+            self,
+            node_name: str | None,
+            publish_topic_name: str | None,
+            subscribe_topic_name: str | None,
+            publisher_construction_order: int | None = None,
+            subscription_construction_order: int | None = None
+        ) -> None:
+            self._node_name = node_name
+            self._publish_topic_name = publish_topic_name
+            self._subscribe_topic_name = subscribe_topic_name
+            self._publisher_construction_order = publisher_construction_order
+            self._subscription_construction_order = subscription_construction_order
+
+        def __call__(self, node_path: NodePath) -> bool:
+            # If None, both must be None.
+            # If it is only one side, it will find multiple matches.
+            node_match = self._node_name == node_path.node_name
+            pub_topic_match = self._publish_topic_name == node_path.publish_topic_name
+            sub_topic_match = self._subscribe_topic_name == node_path.subscribe_topic_name
+
+            # If the topic name is None, construction_order does not need to be checked
+            # because it is 0, checking it will result in a mismatch
+            pub_construction_order_match = True
+            if self._publish_topic_name is not None:
+                if self._publisher_construction_order is not None:
+                    pub_construction_order_match = \
+                        self._publisher_construction_order == \
+                        node_path.publisher_construction_order
+            sub_construction_order_match = True
+            if self._subscribe_topic_name is not None:
+                if self._subscription_construction_order is not None:
+                    sub_construction_order_match = \
+                        self._subscription_construction_order == \
+                        node_path.subscription_construction_order
+
+            return node_match and pub_topic_match and sub_topic_match and \
+                pub_construction_order_match and sub_construction_order_match
 
 
 class PublishersLoaded:
     def __init__(
         self,
-        publishers_info: Tuple[PublisherStructValue, ...],
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        publishers_info: tuple[PublisherStructValue, ...],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> None:
         self._pubs = []
         for pub_info in publishers_info:
@@ -286,49 +326,54 @@ class PublishersLoaded:
     @staticmethod
     def _to_runtime(
         publisher_info: PublisherStructValue,
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> Publisher:
         return Publisher(publisher_info, provider)
 
     @property
-    def data(self) -> List[Publisher]:
+    def data(self) -> list[Publisher]:
         return self._pubs
 
     def get_publishers(
         self,
-        node_name: Optional[str],
-        callback_name: Optional[str],
-        topic_name: Optional[str],
-    ) -> List[Publisher]:
+        node_name: str | None,
+        callback_name: str | None,
+        topic_name: str | None,
+    ) -> list[Publisher]:
         is_target = PublishersLoaded.IsTarget(node_name, callback_name, topic_name)
         return Util.filter_items(is_target, self._pubs)
 
     def get_publisher(
         self,
-        node_name: Optional[str],
-        callback_name: Optional[str],
-        topic_name: Optional[str],
+        node_name: str | None,
+        callback_name: str | None,
+        topic_name: str | None,
+        construction_order: int | None = None
     ) -> Publisher:
         try:
-            is_target = PublishersLoaded.IsTarget(node_name, callback_name, topic_name)
+            is_target = PublishersLoaded.IsTarget(
+                node_name, callback_name, topic_name, construction_order)
             return Util.find_one(is_target, self._pubs)
         except ItemNotFoundError:
             msg = 'Failed to find publisher. '
             msg += f'node_name: {node_name}, '
             msg += f'callback_name: {callback_name}, '
             msg += f'topic_name: {topic_name}, '
+            msg += f'construction_order: {construction_order}, '
             raise ItemNotFoundError(msg)
 
     class IsTarget:
         def __init__(
             self,
-            node_name: Optional[str],
-            callback_name: Optional[str],
-            topic_name: Optional[str]
+            node_name: str | None,
+            callback_name: str | None,
+            topic_name: str | None,
+            construction_order: int | None = None
         ) -> None:
             self._node_name = node_name
             self._callback_name = callback_name
             self._topic_name = topic_name
+            self._construction_order = construction_order
 
         def __call__(self, pub: Publisher) -> bool:
             topic_match = True
@@ -345,14 +390,18 @@ class PublishersLoaded:
                     callback_match = False
                 else:
                     callback_match = self._callback_name in pub.callback_names
-            return topic_match and node_match and callback_match
+
+            construction_order_match = True
+            if self._construction_order is not None:
+                construction_order_match = self._construction_order == pub.construction_order
+            return topic_match and node_match and callback_match and construction_order_match
 
 
 class SubscriptionsLoaded:
     def __init__(
         self,
-        subscriptions_info: Tuple[SubscriptionStructValue, ...],
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        subscriptions_info: tuple[SubscriptionStructValue, ...],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> None:
         self._subs = []
         for sub_info in subscriptions_info:
@@ -364,55 +413,61 @@ class SubscriptionsLoaded:
     @staticmethod
     def _to_runtime(
         subscription_info: SubscriptionStructValue,
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> Subscription:
         return Subscription(subscription_info, provider)
 
     @property
-    def data(self) -> List[Subscription]:
+    def data(self) -> list[Subscription]:
         return self._subs
 
     def get_subscriptions(
         self,
-        node_name: Optional[str],
-        callback_name: Optional[str],
-        topic_name: Optional[str],
-    ) -> List[Subscription]:
+        node_name: str | None,
+        callback_name: str | None,
+        topic_name: str | None,
+    ) -> list[Subscription]:
         is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
         return Util.filter_items(is_target, self._subs)
 
     def get_subscription(
         self,
-        node_name: Optional[str],
-        callback_name: Optional[str],
-        topic_name: Optional[str],
+        node_name: str | None,
+        callback_name: str | None,
+        topic_name: str | None,
+        construction_order: int | None = None
     ) -> Subscription:
         try:
-            is_target = SubscriptionsLoaded.IsTarget(node_name, callback_name, topic_name)
+            is_target = SubscriptionsLoaded.IsTarget(
+                node_name, callback_name, topic_name, construction_order)
             return Util.find_one(is_target, self._subs)
         except ItemNotFoundError:
             msg = 'Failed to find subscription. '
             msg += f'node_name: {node_name}, '
             msg += f'callback_name: {callback_name}, '
             msg += f'topic_name: {topic_name}, '
+            msg += f'construction_order: {construction_order}, '
             raise ItemNotFoundError(msg)
         except MultipleItemFoundError:
             msg = 'Multiple item found. '
             msg += f'node_name: {node_name}, '
             msg += f'callback_name: {callback_name}, '
             msg += f'topic_name: {topic_name}, '
+            msg += f'construction_order: {construction_order}, '
             raise ItemNotFoundError(msg)
 
     class IsTarget:
         def __init__(
             self,
-            node_name: Optional[str],
-            callback_name: Optional[str],
-            topic_name: Optional[str]
+            node_name: str | None,
+            callback_name: str | None,
+            topic_name: str | None,
+            construction_order: int | None = None
         ) -> None:
             self._node_name = node_name
             self._callback_name = callback_name
             self._topic_name = topic_name
+            self._construction_order = construction_order
 
         def __call__(self, sub: Subscription) -> bool:
             topic_match = True
@@ -426,14 +481,18 @@ class SubscriptionsLoaded:
             callback_match = True
             if self._callback_name is not None:
                 callback_match = self._callback_name == sub.callback_name
-            return topic_match and node_match and callback_match
+
+            construction_order_match = True
+            if self._construction_order is not None:
+                construction_order_match = self._construction_order == sub.construction_order
+            return topic_match and node_match and callback_match and construction_order_match
 
 
 class TimersLoaded:
     def __init__(
         self,
-        timers_info: Tuple[TimerStructValue, ...],
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        timers_info: tuple[TimerStructValue, ...],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> None:
         self._timers = []
         for timer_info in timers_info:
@@ -445,28 +504,28 @@ class TimersLoaded:
     @staticmethod
     def _to_runtime(
         timer_info: TimerStructValue,
-        provider: Union[RecordsProvider, RuntimeDataProvider],
+        provider: RecordsProvider | RuntimeDataProvider,
     ) -> Timer:
         return Timer(timer_info, provider)
 
     @property
-    def data(self) -> List[Timer]:
+    def data(self) -> list[Timer]:
         return self._timers
 
     def get_timers(
         self,
-        node_name: Optional[str],
-        callback_name: Optional[str],
-        period_ns: Optional[int],
-    ) -> List[Timer]:
+        node_name: str | None,
+        callback_name: str | None,
+        period_ns: int | None,
+    ) -> list[Timer]:
         is_target = TimersLoaded.IsTarget(node_name, callback_name, period_ns)
         return Util.filter_items(is_target, self._timers)
 
     def get_timer(
         self,
-        node_name: Optional[str],
-        callback_name: Optional[str],
-        period_ns: Optional[int],
+        node_name: str | None,
+        callback_name: str | None,
+        period_ns: int | None,
     ) -> Timer:
         try:
             is_target = TimersLoaded.IsTarget(node_name, callback_name, period_ns)
@@ -481,9 +540,9 @@ class TimersLoaded:
     class IsTarget:
         def __init__(
             self,
-            node_name: Optional[str],
-            callback_name: Optional[str],
-            period_ns: Optional[int],
+            node_name: str | None,
+            callback_name: str | None,
+            period_ns: int | None,
         ) -> None:
             self._node_name = node_name
             self._callback_name = callback_name
@@ -507,11 +566,11 @@ class TimersLoaded:
 class NodePathsLoaded:
     def __init__(
         self,
-        node_path_values: Tuple[NodePathStructValue, ...],
+        node_path_values: tuple[NodePathStructValue, ...],
         provider: RecordsProvider,
         publisher_loaded: PublishersLoaded,
         subscription_loaded: SubscriptionsLoaded,
-        callbacks: List[CallbackBase],
+        callbacks: list[CallbackBase],
     ) -> None:
         self._data = []
         for node_path_value in node_path_values:
@@ -527,16 +586,17 @@ class NodePathsLoaded:
         provider: RecordsProvider,
         publisher_loaded: PublishersLoaded,
         subscription_loaded: SubscriptionsLoaded,
-        callbacks: List[CallbackBase]
+        callbacks: list[CallbackBase]
     ) -> NodePath:
-        publisher: Optional[Publisher] = None
-        subscription: Optional[Subscription] = None
+        publisher: Publisher | None = None
+        subscription: Subscription | None = None
 
         try:
             publisher = publisher_loaded.get_publisher(
                 node_path_value.node_name,
                 None,
-                node_path_value.publish_topic_name
+                node_path_value.publish_topic_name,
+                node_path_value.publisher_construction_order
             )
         except ItemNotFoundError:
             pass
@@ -547,7 +607,8 @@ class NodePathsLoaded:
             subscription = subscription_loaded.get_subscription(
                 node_path_value.node_name,
                 None,
-                node_path_value.subscribe_topic_name
+                node_path_value.subscribe_topic_name,
+                node_path_value.subscription_construction_order
             )
         except ItemNotFoundError:
             pass
@@ -557,14 +618,14 @@ class NodePathsLoaded:
         return NodePath(node_path_value, provider, subscription, publisher, callbacks)
 
     @property
-    def data(self) -> List[NodePath]:
+    def data(self) -> list[NodePath]:
         return self._data
 
 
 class VariablePassingsLoaded:
     def __init__(
         self,
-        variable_passings_info: Tuple[VariablePassingStructValue, ...],
+        variable_passings_info: tuple[VariablePassingStructValue, ...],
         provider: RecordsProvider
     ) -> None:
         self._var_passes = []
@@ -585,14 +646,14 @@ class VariablePassingsLoaded:
         )
 
     @property
-    def data(self) -> List[VariablePassing]:
+    def data(self) -> list[VariablePassing]:
         return self._var_passes
 
 
 class PathsLoaded:
     def __init__(
         self,
-        paths_info: Tuple[PathStructValue, ...],
+        paths_info: tuple[PathStructValue, ...],
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
     ) -> None:
@@ -609,8 +670,8 @@ class PathsLoaded:
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
     ) -> Path:
-        child: List[Union[NodePath, Communication]] = []
-        callbacks: List[CallbackBase] = []
+        child: list[NodePath | Communication] = []
+        callbacks: list[CallbackBase] = []
         for elem_info in path_info.child:
             child.append(
                 PathsLoaded._get_loaded(elem_info, nodes_loaded, comms_loaded)
@@ -625,40 +686,44 @@ class PathsLoaded:
 
     @staticmethod
     def _get_loaded(
-        path_element: Union[NodePathStructValue, CommunicationStructValue],
+        path_element: NodePathStructValue | CommunicationStructValue,
         nodes_loaded: NodesLoaded,
         comms_loaded: CommunicationsLoaded,
-    ) -> Union[NodePath, Communication]:
+    ) -> NodePath | Communication:
         if isinstance(path_element, NodePathStructValue):
             return nodes_loaded.find_node_path(
                 path_element.node_name,
                 path_element.subscribe_topic_name,
-                path_element.publish_topic_name
+                path_element.publish_topic_name,
+                path_element.publisher_construction_order,
+                path_element.subscription_construction_order
             )
 
         if isinstance(path_element, CommunicationStructValue):
             return comms_loaded.find_communication(
                 path_element.topic_name,
                 path_element.publish_node_name,
-                path_element.subscribe_node_name
+                path_element.subscribe_node_name,
+                path_element.publisher_construction_order,
+                path_element.subscription_construction_order
             )
 
         msg = 'Given type is neither NodePathStructValue nor CommunicationStructValue.'
         raise UnsupportedTypeError(msg)
 
     @property
-    def data(self) -> List[Path]:
+    def data(self) -> list[Path]:
         return self._data
 
 
 class CommunicationsLoaded:
     def __init__(
         self,
-        communication_values: Tuple[CommunicationStructValue, ...],
+        communication_values: tuple[CommunicationStructValue, ...],
         provider: RecordsProvider,
         nodes_loaded: NodesLoaded,
     ) -> None:
-        self._data: List[Communication] = []
+        self._data: list[Communication] = []
         for comm_value in communication_values:
             try:
                 comm = self._to_runtime(comm_value, provider, nodes_loaded)
@@ -667,7 +732,7 @@ class CommunicationsLoaded:
                 pass
 
     @property
-    def data(self) -> List[Communication]:
+    def data(self) -> list[Communication]:
         return self._data
 
     @staticmethod
@@ -680,7 +745,7 @@ class CommunicationsLoaded:
         node_sub = nodes_loaded.find_node(
             communication_value.subscribe_node_name)
 
-        cb_pubs: Optional[List[CallbackBase]] = None
+        cb_pubs: list[CallbackBase] | None = None
         if communication_value.publish_callback_names is not None:
             cb_pubs = [
                 nodes_loaded.find_callback(cb_name)
@@ -688,14 +753,16 @@ class CommunicationsLoaded:
                 in communication_value.publish_callback_names
             ]
 
-        cb_sub: Optional[CallbackBase] = None
+        cb_sub: CallbackBase | None = None
         if communication_value.subscribe_callback_name is not None:
             cb_name = communication_value.subscribe_callback_name
             cb_sub = nodes_loaded.find_callback(cb_name)
 
         topic_name = communication_value.topic_name
-        subscription = node_sub.get_subscription(topic_name)
-        publisher = node_pub.get_publisher(topic_name)
+        subscription_construction_order = communication_value.subscription_construction_order
+        publisher_construction_order = communication_value.publisher_construction_order
+        subscription = node_sub.get_subscription(topic_name, subscription_construction_order)
+        publisher = node_pub.get_publisher(topic_name, publisher_construction_order)
 
         return Communication(
             node_pub, node_sub,
@@ -707,20 +774,33 @@ class CommunicationsLoaded:
         topic_name: str,
         publish_node_name: str,
         subscribe_node_name: str,
+        publisher_construction_order: int,
+        subscription_construction_order: int,
     ) -> Communication:
         def is_target(comm: Communication):
             return comm.publish_node_name == publish_node_name and \
                 comm.subscribe_node_name == subscribe_node_name and \
-                comm.topic_name == topic_name
+                comm.topic_name == topic_name and \
+                comm.publisher_construction_order == publisher_construction_order and \
+                comm.subscription_construction_order == subscription_construction_order
 
-        return Util.find_one(is_target, self._data)
+        try:
+            return Util.find_one(is_target, self._data)
+        except ItemNotFoundError:
+            msg = 'Failed to find communication. '
+            msg += f'topic_name: {topic_name}. '
+            msg += f'publish_node_name: {publish_node_name}. '
+            msg += f'subscribe_node_name: {subscribe_node_name}. '
+            msg += f'publisher_construction_order: {publisher_construction_order}. '
+            msg += f'subscription_construction_order: {subscription_construction_order}. '
+            raise ItemNotFoundError(msg)
 
 
 class CallbacksLoaded:
 
     def __init__(
         self,
-        callback_values: Tuple[CallbackStructValue, ...],
+        callback_values: tuple[CallbackStructValue, ...],
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
@@ -740,7 +820,7 @@ class CallbacksLoaded:
                     continue
 
                 self._callbacks.append(self._to_runtime(
-                        cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded))
+                    cb_info, provider, publishers_loaded, subscriptions_loaded, timers_loaded))
             except Error as e:
                 logger.warning(e)
 
@@ -752,7 +832,7 @@ class CallbacksLoaded:
         subscriptions_loaded: SubscriptionsLoaded,
         timers_loaded: TimersLoaded,
     ) -> CallbackBase:
-        publishers: Optional[List[Publisher]] = None
+        publishers: list[Publisher] | None = None
 
         if callback_value.publish_topic_names is not None:
             publishers = publishers_loaded.get_publishers(
@@ -769,7 +849,7 @@ class CallbacksLoaded:
             )
         if isinstance(callback_value, SubscriptionCallbackStructValue):
             subscription = subscriptions_loaded.get_subscription(
-                None, callback_value.callback_name, None)
+                None, callback_value.callback_name, None, None)
             return SubscriptionCallback(
                 callback_value,
                 provider,
@@ -780,14 +860,14 @@ class CallbacksLoaded:
         raise UnsupportedTypeError('Unsupported callback type')
 
     @property
-    def data(self) -> List[CallbackBase]:
+    def data(self) -> list[CallbackBase]:
         return self._callbacks
 
 
 class CallbackGroupsLoaded:
     def __init__(
         self,
-        callback_group_value: Tuple[CallbackGroupStructValue, ...],
+        callback_group_value: tuple[CallbackGroupStructValue, ...],
         provider: RecordsProvider,
         publishers_loaded: PublishersLoaded,
         subscriptions_loaded: SubscriptionsLoaded,
@@ -818,5 +898,5 @@ class CallbackGroupsLoaded:
         return CallbackGroup(cbg_value, cbs_loaded.data)
 
     @property
-    def data(self) -> List[CallbackGroup]:
+    def data(self) -> list[CallbackGroup]:
         return self._data

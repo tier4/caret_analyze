@@ -14,30 +14,30 @@
 
 from __future__ import annotations
 
-from .message_flow_plot import MessageFlowPlot
+from collections.abc import Sequence
+
+from .histogram import ResponseTimeHistPlot
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
-from ...exceptions import InvalidArgumentError
+from ...exceptions import UnsupportedTypeError
 from ...runtime import Path
 
 
-class MessageFlowPlotFactory:
-    """Factory class to create an instance of MessageFlowPlot."""
+class ResponseTimeHistPlotFactory:
+    """Factory class to create an instance of ResponseTimeHistPlot."""
 
     @staticmethod
     @type_check_decorator
     def create_instance(
-        target_path: Path,
         visualize_lib: VisualizeLibInterface,
-        granularity: str | None = None,
-        treat_drop_as_delay: bool = False,
-        lstrip_s: float = 0,
-        rstrip_s: float = 0
-    ) -> MessageFlowPlot:
-        granularity = granularity or 'raw'
-        if granularity not in ['raw', 'node']:
-            raise InvalidArgumentError('granularity must be [ raw / node ]')
+        target: Sequence[Path],
+        case: str = 'best-to-worst',
+        binsize_ns: int = 10000000,
+    ) -> ResponseTimeHistPlot:
+        if case not in ['best-to-worst', 'best', 'worst']:
+            raise UnsupportedTypeError(
+                f'Unsupported "case". case = {case}.'
+                'supported "case": [best-to-worst/best/worst]'
+            )
 
-        return MessageFlowPlot(
-            target_path, visualize_lib, granularity, treat_drop_as_delay, lstrip_s, rstrip_s
-        )
+        return ResponseTimeHistPlot(visualize_lib, target, case, binsize_ns)

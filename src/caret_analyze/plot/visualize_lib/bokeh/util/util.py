@@ -16,12 +16,13 @@ from __future__ import annotations
 
 import datetime
 
-from typing import Optional
-
 from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
 from bokeh.plotting import Figure, figure
 
 import numpy as np
+
+from .....exceptions import UnsupportedTypeError
+from .....runtime import CallbackBase, SubscriptionCallback, TimerCallback
 
 
 class RectValues:
@@ -56,14 +57,16 @@ def init_figure(
     title: str,
     ywheel_zoom: bool,
     xaxis_type: str,
-    y_axis_label: Optional[str] = None,
+    y_axis_label: str | None = None,
+    x_axis_label: str | None = None,
 ) -> Figure:
-    if xaxis_type == 'system_time':
-        x_axis_label = 'system time [s]'
-    elif xaxis_type == 'sim_time':
-        x_axis_label = 'simulation time [s]'
-    else:
-        x_axis_label = xaxis_type
+    if x_axis_label is None:
+        if xaxis_type == 'system_time':
+            x_axis_label = 'system time [s]'
+        elif xaxis_type == 'sim_time':
+            x_axis_label = 'simulation time [s]'
+        else:
+            x_axis_label = xaxis_type
 
     if ywheel_zoom:
         tools = ['wheel_zoom', 'pan', 'box_zoom', 'save', 'reset']
@@ -138,3 +141,14 @@ def apply_x_axis_offset(
     #     return hh + ":" + mm + ":" + ss;
     #     ''',
     #     args={"offset_s": offset_s})
+
+
+def get_callback_param_desc(callback: CallbackBase):
+    if isinstance(callback, TimerCallback):
+        return f'period_ns = {callback.period_ns}'
+
+    if isinstance(callback, SubscriptionCallback):
+        return f'topic_name = {callback.subscribe_topic_name}'
+
+    raise UnsupportedTypeError('callback type must be '
+                               '[ TimerCallback/ SubscriptionCallback]')

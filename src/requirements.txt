@@ -4,3 +4,4 @@ pandas>=1.4.0
 bokeh<3
 graphviz
 types-pyyaml
+pydantic>=1.9.0

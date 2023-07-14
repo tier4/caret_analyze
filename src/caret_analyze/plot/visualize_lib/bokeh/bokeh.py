@@ -14,20 +14,21 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from logging import getLogger
-from typing import Sequence, Union
 
 from bokeh.plotting import Figure
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
+from .response_time_hist import BokehResponseTimeHist
 from .stacked_bar import BokehStackedBar
 from .timeseries import BokehTimeSeries
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 logger = getLogger(__name__)
 
@@ -37,6 +38,20 @@ class Bokeh(VisualizeLibInterface):
 
     def __init__(self) -> None:
         pass
+
+    def response_time_hist(
+        self,
+        target_paths: Sequence[Path],
+        case: str,
+        binsize_ns: int,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+    ) -> Figure:
+        response_time_hist = BokehResponseTimeHist(
+            target_paths, case, binsize_ns, xaxis_type, ywheel_zoom, full_legends
+        )
+        return response_time_hist.create_figure()
 
     def message_flow(
         self,

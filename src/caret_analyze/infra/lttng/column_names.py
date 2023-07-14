@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from typing import NamedTuple
 
 
@@ -31,6 +33,8 @@ class ColumnName(NamedTuple):
         'dispatch_intra_process_subscription_callback_timestamp'
     DISPATCH_SUBSCRIPTION_CALLBACK_TIMESTAMP: str = \
         'dispatch_subscription_callback_timestamp'
+    RMW_TAKE_TIMESTAMP: str = 'rmw_take_timestamp'
+    RMW_SUBSCRIPTION_HANDLE: str = 'rmw_subscription_handle'
     SOURCE_TIMESTAMP: str = 'source_timestamp'
     CALLBACK_OBJECT: str = 'callback_object'
     MESSAGE_CONSTRUCT_TIMESTAMP: str = 'message_construct_timestamp'

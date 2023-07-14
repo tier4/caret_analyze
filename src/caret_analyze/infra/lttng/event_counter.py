@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from logging import getLogger
-from typing import Dict, List
 
 import pandas as pd
 
@@ -30,10 +29,11 @@ class EventCounter:
     def __init__(self, data: Ros2DataModel, *, validate=True):
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
         self._count_df = self._build_count_df(data)
+        self._has_intra_process = self._check_intra_process_communication(data)
         if validate:
             self._validate()
 
-    def get_count(self, groupby: List[str]) -> pd.DataFrame:
+    def get_count(self, groupby: list[str]) -> pd.DataFrame:
         if len(set(groupby) - self._allowed_keys) > 0:
             raise InvalidArgumentError(
                 f'invalid groupby: {groupby}. {self._allowed_keys} are allowed.')
@@ -75,27 +75,51 @@ class EventCounter:
             'ros2_caret:rmw_implementation'
         }
 
-        trace_points_added_by_fork_rclcpp = {
+        trace_points_added_by_fork_rclcpp_for_intra_process = {
             'ros2:message_construct',
             'ros2:rclcpp_intra_publish',
-            'ros2:dispatch_subscription_callback',
             'ros2:dispatch_intra_process_subscription_callback',
+        }
+
+        trace_points_added_by_fork_rclcpp_for_inter_process = {
+            'ros2:dispatch_subscription_callback',
         }
 
         if len(set(recorded_trace_points) & trace_points_added_by_ld_preload) == 0:
             raise InvalidTraceFormatError(
                 'Failed to find trace point added by LD_PRELOAD. '
                 'Measurement results will not be correct. '
-                'The measurement may have been performed without setting LD_PRELOAD.')
-
-        # trace points added to rclcpp may not be recorded, depending on the implementation.
-        # Here, only warnings are given.
-        if len(set(recorded_trace_points) & trace_points_added_by_fork_rclcpp) == 0:
-            logger.warning(
-                'Failed to find trace point added by caret-rclcpp. '
-                'To check whether binary are built with caret-rclcpp,'
-                'run CARET CLI : ros2 caret check_caret_rclcpp.'
+                'The measurement may have been performed without setting LD_PRELOAD.'
             )
+
+        has_forked_inter_process_trace_points = len(
+            set(recorded_trace_points) & trace_points_added_by_fork_rclcpp_for_inter_process) != 0
+        has_forked_intra_process_trace_points = len(
+            set(recorded_trace_points) & trace_points_added_by_fork_rclcpp_for_intra_process) != 0
+
+        # In caret, rmw_take can be used as a substitute for dispatch_subscription_callback
+        has_rmw_take_trace_points = len(
+            set(recorded_trace_points) & {'ros2:rmw_take'}) != 0
+
+        if (not has_forked_inter_process_trace_points
+                and not has_forked_intra_process_trace_points):
+            # In this case, the measured application uses only inter process communication,
+            # so the trace data can be analyzed using rmw_take trace points.
+            if has_rmw_take_trace_points and not self._has_intra_process:
+                return
+            msg = 'Failed to find trace points added by caret-rclcpp. '
+            if self._has_intra_process:
+                msg += "If the application doesn't have any intra communication, "
+                msg += 'please ignore this message. '
+            msg += 'To check whether binary are built with caret-rclcpp, '
+            msg += 'run CARET CLI : ros2 caret check_caret_rclcpp.'
+
+            # trace points added to rclcpp may not be recorded, depending on the implementation.
+            # Here, only warnings are given.
+            logger.warning(msg)
+
+    def _check_intra_process_communication(self, data: Ros2DataModel) -> bool:
+        return sum(data.callback_start_instances.get_column_series('is_intra_process')) != 0
 
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
@@ -136,6 +160,8 @@ class EventCounter:
             'ros2:message_construct': data.message_construct_instances.to_dataframe(),
             'ros2:dispatch_subscription_callback':
                 data.dispatch_subscription_callback_instances.to_dataframe(),
+            'ros2:rmw_take':
+                data.rmw_take_instances.to_dataframe(),
             'ros2:dispatch_intra_process_subscription_callback':
                 data.dispatch_intra_process_subscription_callback_instances.to_dataframe(),
             'ros2:rcl_publish': data.rcl_publish_instances.to_dataframe(),
@@ -150,17 +176,17 @@ class EventCounter:
         }
         #  'ros2_caret:rmw_implementation': ,
 
-        sub_handle_to_topic_name: Dict[int, str] = {}
-        sub_handle_to_node_name: Dict[int, str] = {}
-        pub_handle_to_topic_name: Dict[int, str] = {}
-        pub_handle_to_node_name: Dict[int, str] = {}
-        node_handle_to_node_name: Dict[int, str] = {}
-        timer_handle_to_node_name: Dict[int, str] = {}
-        sub_cb_to_node_name: Dict[int, str] = {}
-        timer_cb_to_node_name: Dict[int, str] = {}
-        sub_cb_to_topic_name: Dict[int, str] = {}
-        sub_to_topic_name: Dict[int, str] = {}
-        sub_to_node_name: Dict[int, str] = {}
+        sub_handle_to_topic_name: dict[int, str] = {}
+        sub_handle_to_node_name: dict[int, str] = {}
+        pub_handle_to_topic_name: dict[int, str] = {}
+        pub_handle_to_node_name: dict[int, str] = {}
+        node_handle_to_node_name: dict[int, str] = {}
+        timer_handle_to_node_name: dict[int, str] = {}
+        sub_cb_to_node_name: dict[int, str] = {}
+        timer_cb_to_node_name: dict[int, str] = {}
+        sub_cb_to_topic_name: dict[int, str] = {}
+        sub_to_topic_name: dict[int, str] = {}
+        sub_to_node_name: dict[int, str] = {}
 
         def ns_and_node_name(ns: str, name: str) -> str:
             if ns[-1] == '/':
@@ -198,14 +224,14 @@ class EventCounter:
                 timer_cb_to_node_name[row['callback_object']] = \
                     timer_handle_to_node_name.get(handler, '-')
 
-        tilde_pub_to_topic_name: Dict[int, str] = {}
-        tilde_pub_to_node_name: Dict[int, str] = {}
+        tilde_pub_to_topic_name: dict[int, str] = {}
+        tilde_pub_to_node_name: dict[int, str] = {}
         for handler, row in data.tilde_publishers.df.iterrows():
             tilde_pub_to_node_name[handler] = row['node_name']
             tilde_pub_to_topic_name[handler] = row['topic_name']
 
-        tilde_sub_to_topic_name: Dict[int, str] = {}
-        tilde_sub_to_node_name: Dict[int, str] = {}
+        tilde_sub_to_topic_name: dict[int, str] = {}
+        tilde_sub_to_node_name: dict[int, str] = {}
         for handler, row in data.tilde_subscriptions.df.iterrows():
             tilde_sub_to_node_name[handler] = row['node_name']
             tilde_sub_to_topic_name[handler] = row['topic_name']
@@ -214,7 +240,7 @@ class EventCounter:
         group_keys = [
             'callback_object', 'publisher_handle', 'subscription_handle',
             'tilde_publisher', 'tilde_subscription'
-            ]
+        ]
         for trace_point, df in trace_point_and_df.items():
             df = df.reset_index()
 

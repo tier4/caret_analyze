@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Sequence
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from .latency import Latency
 from ..interface import RecordsInterface
@@ -42,7 +44,7 @@ class StackedBar:
         # rename columns to nodes and topics granularity
         self._records = records
         self._first_latency_name = '[worst - best] response time'
-        rename_map: Dict[str, str] = \
+        rename_map: dict[str, str] = \
             self._get_rename_column_map(self._records.columns)
         renamed_records: RecordsInterface = \
             self._rename_columns(self._records, rename_map)
@@ -56,7 +58,7 @@ class StackedBar:
             self._get_x_axis_values(renamed_records, columns[0], xlabel)
         stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
         series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
-        series_list: List[int] = self._convert_sequence_to_list(series_seq)
+        series_list: list[int] = self._convert_sequence_to_list(series_seq)
         stacked_bar_records = \
             self._merge_column_series(
                 stacked_bar_records,
@@ -69,7 +71,7 @@ class StackedBar:
     @staticmethod
     def _rename_columns(
         records: RecordsInterface,
-        rename_map: Dict[str, str],
+        rename_map: dict[str, str],
     ) -> RecordsInterface:
         """
         Rename columns of records.
@@ -78,7 +80,7 @@ class StackedBar:
         ----------
         records : RecordsInterface
             Target records.
-        rename_map : Dict[str, str]
+        rename_map : dict[str, str]
             Names before and after changed.
 
         Returns
@@ -93,23 +95,23 @@ class StackedBar:
 
     def _get_rename_column_map(
         self,
-        raw_columns: List[str],
-    ) -> Dict[str, str]:
+        raw_columns: list[str],
+    ) -> dict[str, str]:
         """
         Generate rename map to visualize Node/Topic granularity.
 
         Parameters
         ----------
-        raw_columns : List[str]
+        raw_columns : list[str]
             Source columns.
 
         Returns
         -------
-        Dict[str, str]
+        dict[str, str]
             Names before and after changed.
 
         """
-        rename_map: Dict[str, str] = {}
+        rename_map: dict[str, str] = {}
         end_word: str = '_min'
         for column in raw_columns:
             if column.endswith(end_word):
@@ -160,7 +162,7 @@ class StackedBar:
     def _to_stacked_bar_records(
         self,
         records: RecordsInterface,
-        columns: List[str],
+        columns: list[str],
     ) -> RecordsInterface:
         """
         Calculate stacked bar data.
@@ -169,7 +171,7 @@ class StackedBar:
         ----------
         records : RecordsInterface
             Target records.
-        columns : List[str]
+        columns : list[str]
             Target columns (Node/Topic granularity).
 
         Returns
@@ -189,7 +191,7 @@ class StackedBar:
 
             latency_records = latency_handler.to_records()
             latency_seq: Sequence[int | None] = latency_records.get_column_series('latency')
-            latency_list: List[int] = self._convert_sequence_to_list(latency_seq)
+            latency_list: list[int] = self._convert_sequence_to_list(latency_seq)
 
             output_records = self._merge_column_series(output_records, latency_list, column_from)
 
@@ -198,7 +200,7 @@ class StackedBar:
     @staticmethod
     def _merge_column_series(
         records: RecordsInterface,
-        series: List[int],
+        series: list[int],
         column: str,
     ) -> RecordsInterface:
         """
@@ -208,7 +210,7 @@ class StackedBar:
         ----------
         records : RecordsInterface
             Source records.
-        series : List[int]
+        series : list[int]
             Data to append.
         column : str
             The column with appended data.
@@ -229,19 +231,19 @@ class StackedBar:
             records.append_column(ColumnValue(column), series)
         return records
 
-    def to_dict(self) -> Dict[str, List[int]]:
+    def to_dict(self) -> dict[str, list[int]]:
         """
         Get stacked bar dict data.
 
         Returns
         -------
-        Dict[str, List[int]]
+        dict[str, list[int]]
             Stacked bar dict data.
 
         """
         return self._to_dict(self._stacked_bar_records)
 
-    def _to_dict(self, records: RecordsInterface) -> Dict[str, List[int]]:
+    def _to_dict(self, records: RecordsInterface) -> dict[str, list[int]]:
         """
         Generate dict from records.
 
@@ -252,27 +254,27 @@ class StackedBar:
 
         Returns
         -------
-        Dict[str, List[int]]
+        dict[str, list[int]]
             Dict generated from records.
 
         """
         columns = records.columns
-        output_dict: Dict[str, List[int]] = {}
+        output_dict: dict[str, list[int]] = {}
         for column in columns:
             series_seq: Sequence[int | None] = records.get_column_series(column)
-            series_list: List[int] = self._convert_sequence_to_list(series_seq)
+            series_list: list[int] = self._convert_sequence_to_list(series_seq)
             output_dict[column] = series_list
         return output_dict
 
     @staticmethod
     def _convert_sequence_to_list(
         seq: Sequence[int | None],
-    ) -> List[int]:
+    ) -> list[int]:
         assert not any(x is None for x in seq)
         return [x for x in seq if x is not None]
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         return self._columns
 
     @property

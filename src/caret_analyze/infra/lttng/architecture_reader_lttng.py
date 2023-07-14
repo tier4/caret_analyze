@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from __future__ import annotations
+
+from collections import defaultdict
+from collections.abc import Sequence
+
 
 from .lttng import LttngEventFilter
 from ...architecture.reader_interface import ArchitectureReader
@@ -46,7 +50,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
     def get_node_names_and_cb_symbols(
         self,
         callback_group_id: str
-    ) -> Sequence[Tuple[Optional[str], Optional[str]]]:
+    ) -> Sequence[tuple[str | None, str | None]]:
         return self._lttng.get_node_names_and_cb_symbols(callback_group_id)
 
     def get_nodes(self) -> Sequence[NodeValueWithId]:
@@ -67,7 +71,7 @@ class ArchitectureReaderLttng(ArchitectureReader):
     def get_message_contexts(
         self,
         node: NodeValue
-    ) -> Sequence[Dict]:
+    ) -> Sequence[dict]:
         return []
 
     def get_executors(
@@ -114,14 +118,21 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[SubscriptionValue]:
-        info: List[SubscriptionValue] = []
+        info: list[SubscriptionValue] = []
+        construction_order_counter: dict[tuple[str, str], int] = defaultdict(int)
+
         for sub_cb in self.get_subscription_callbacks(node):
             topic_name = sub_cb.subscribe_topic_name
+            node_name = sub_cb.node_name
+            construction_order = construction_order_counter[node_name, topic_name]
+            construction_order_counter[node_name, topic_name] += 1
+
             info.append(SubscriptionValue(
-                topic_name,
-                sub_cb.node_name,
-                sub_cb.node_id,
-                sub_cb.callback_id
+                topic_name=topic_name,
+                node_name=node_name,
+                node_id=sub_cb.node_id,
+                callback_id=sub_cb.callback_id,
+                construction_order=construction_order
             ))
         return info
 
@@ -129,13 +140,19 @@ class ArchitectureReaderLttng(ArchitectureReader):
         self,
         node: NodeValue
     ) -> Sequence[ServiceValue]:
-        info: List[ServiceValue] = []
+        info: list[ServiceValue] = []
+        construction_order_counter: dict[tuple[str, str], int] = defaultdict(int)
         for srv_cb in self.get_service_callbacks(node):
             service_name = srv_cb.service_name
+            node_name = srv_cb.node_name
+            construction_order = construction_order_counter[node_name, service_name]
+            construction_order_counter[node_name, service_name] += 1
+
             info.append(ServiceValue(
-                service_name,
-                srv_cb.node_name,
-                srv_cb.node_id,
-                srv_cb.callback_id
+                service_name=service_name,
+                node_name=srv_cb.node_name,
+                node_id=srv_cb.node_id,
+                callback_id=srv_cb.callback_id,
+                construction_order=construction_order
             ))
         return info

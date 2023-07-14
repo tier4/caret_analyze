@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import Tuple
-
 from ....value_objects import CallbackGroupValue, ValueObject
 
 
@@ -25,7 +23,7 @@ class CallbackGroupValueLttng(CallbackGroupValue):
         callback_group_type_name: str,
         node_name: str,
         node_id: str,
-        callback_ids: Tuple[str, ...],
+        callback_ids: tuple[str, ...],
         callback_group_id: str,
         callback_group_addr: int,
         executor_addr: int

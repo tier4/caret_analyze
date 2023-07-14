@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Optional, Tuple
+from __future__ import annotations
+
+from collections.abc import Callable
 
 from ..column import ColumnValue
 from ..interface import RecordsInterface
@@ -24,7 +26,8 @@ class Frequency:
     def __init__(
         self,
         records: RecordsInterface,
-        target_column: Optional[str] = None
+        target_column: str | None = None,
+        row_filter: Callable | None = None
     ) -> None:
         """
         Construct an instance.
@@ -33,14 +36,29 @@ class Frequency:
         ----------
         records : RecordsInterface
             records to calculate frequency.
-        target_column : Optional[str], optional
+        target_column : str | None, optional
             Column name of timestamps used in the calculation, by default None
             If None, the first column of records is selected.
+        row_filter : Callable | None, optional
+            Filter function to select rows to calculate period, by default None.
+            Example:
+            ```
+            def row_filter(record: RecordInterface) -> bool:
+                start_column = 'timestamp1'
+                end_column = 'timestamp2'
+                if (record.data.get(start_column) is not None
+                        and record.data.get(end_column) is not None):
+                    return True
+                else:
+                    return False
+            ```
 
         """
         self._target_column = target_column or records.columns[0]
-        self._target_timestamps: List[int] = []
+        self._target_timestamps: list[int] = []
         for record in records:
+            if row_filter and not row_filter(record):
+                continue
             if self._target_column in record.columns:
                 timestamp = record.get(self._target_column)
                 self._target_timestamps.append(timestamp)
@@ -48,8 +66,8 @@ class Frequency:
     def to_records(
         self,
         interval_ns: int = 1000000000,
-        base_timestamp: Optional[int] = None,
-        until_timestamp: Optional[int] = None
+        base_timestamp: int | None = None,
+        until_timestamp: int | None = None,
     ) -> RecordsInterface:
         """
         Calculate frequency records.
@@ -59,10 +77,10 @@ class Frequency:
         interval_ns: int, optional
             Interval used for frequency calculation, by default 1000000000 [ns].
             The number of timestamps that exist in this time interval is counted.
-        base_timestamp : Optional[int], optional
+        base_timestamp : int | None, optional
             Initial timestamp used for frequency calculation, by default None.
             If None, earliest timestamp is used.
-        until_timestamp : Optional[int], optional
+        until_timestamp : int | None, optional
             End time of measurement.
             If None, oldest timestamp is used.
 
@@ -105,9 +123,9 @@ class Frequency:
         interval_ns: int,
         base_timestamp: int,
         until_timestamp: int
-    ) -> Tuple[List[int], List[int]]:
-        timestamp_list: List[int] = [base_timestamp]
-        frequency_list: List[int] = [0]
+    ) -> tuple[list[int], list[int]]:
+        timestamp_list: list[int] = [base_timestamp]
+        frequency_list: list[int] = [0]
         interval_start_time = base_timestamp
 
         for timestamp in self._target_timestamps:

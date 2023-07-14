@@ -59,32 +59,41 @@ class TestUtil:
         mocker.patch.object(comm_mock, 'publish_node_name', 'pub_node')
         mocker.patch.object(comm_mock, 'subscribe_node_name', 'sub_node')
         mocker.patch.object(comm_mock, 'topic_name', 'topic')
+        mocker.patch.object(comm_mock, 'publisher_construction_order', 1)
+        mocker.patch.object(comm_mock, 'subscription_construction_order', 0)
         mocker.patch.object(app_mock, 'communications', [])
         app_mock.communications.append(comm_mock)
 
         target_names = {'publisher_node_name': 'pub_node',
                         'subscription_node_name': 'sub_node',
-                        'topic_name': 'topic'}
+                        'topic_name': 'topic',
+                        'publisher_construction_order': 1,
+                        'subscription_construction_order': 0}
 
         def keys(x):
             return {'publisher_node_name': x.publish_node_name,
                     'subscription_node_name': x.subscribe_node_name,
-                    'topic_name': x.topic_name}
+                    'topic_name': x.topic_name,
+                    'publisher_construction_order': x.publisher_construction_order,
+                    'subscription_construction_order': x.subscription_construction_order}
 
         with pytest.raises(ItemNotFoundError):
             Util.find_similar_one_multi_keys(target_names, [])
 
-        assert Util.find_similar_one_multi_keys(target_names, [target_names]) == target_names
+        assert Util.find_similar_one_multi_keys(
+            target_names, [target_names]) == target_names
 
         assert Util.find_similar_one_multi_keys(target_names,
                                                 app_mock.communications,
                                                 keys) == comm_mock
 
-        target_names = {'publisher_node_name': 'miss_pub_node',
+        target_names = {'publisher_node_name': 'pub_node',
                         'subscription_node_name': 'sub_node',
-                        'topic_name': 'topic'}
+                        'topic_name': 'topic',
+                        'publisher_construction_order': 0,
+                        'subscription_construction_order': 0}
         with pytest.raises(ItemNotFoundError) as e:
             Util.find_similar_one_multi_keys(target_names,
                                              app_mock.communications,
                                              keys)
-        assert 'publisher_node_name' in str(e.value)
+        assert 'publisher_construction_order' in str(e.value)

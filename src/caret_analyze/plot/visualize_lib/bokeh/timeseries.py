@@ -15,18 +15,20 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Any
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource, Figure
 
-from .util import (apply_x_axis_offset, ColorSelectorFactory,
+from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager)
 from ...metrics_base import MetricsBase
+from ....common import ClockConverter
 from ....record import Range, RecordsInterface
 from ....runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class BokehTimeSeries:
@@ -66,20 +68,53 @@ class BokehTimeSeries:
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
         frame_min, frame_max = records_range.get_range()
-        if self._xaxis_type == 'system_time':
+        converter: ClockConverter | None = None
+        if self._xaxis_type == 'sim_time':
+            # TODO: refactor
+            # get converter
+            if isinstance(target_objects[0], Communication):
+                for comm in target_objects:
+                    assert isinstance(comm, Communication)
+                    if comm.callback_subscription:
+                        converter_cb = comm.callback_subscription
+                        provider = converter_cb._provider
+                        converter = provider.get_sim_time_converter(frame_min, frame_max)
+                        break
+            else:
+                provider = target_objects[0]._provider
+                converter = provider.get_sim_time_converter(frame_min, frame_max)
+        if converter:
+            frame_min_convert = converter.convert(frame_min)
+            frame_max_convert = converter.convert(frame_max)
+            x_range_name = 'x_plot_axis'
+            apply_x_axis_offset(fig, frame_min_convert, frame_max_convert, x_range_name)
+        elif self._xaxis_type == 'system_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
 
         # Draw lines
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         legend_manager = LegendManager()
-        line_source = LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
+        if converter:
+            line_source = \
+                LineSource(legend_manager, target_objects[0], frame_min_convert, self._xaxis_type)
+        else:
+            line_source = \
+                LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
         fig.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
-            renderer = fig.line(
-                'x', 'y',
-                source=line_source.generate(to, timeseries),
-                color=color_selector.get_color()
-            )
+            if converter:
+                renderer = fig.line(
+                    'x', 'y',
+                    source=line_source.generate(to, timeseries),
+                    color=color_selector.get_color(),
+                    x_range_name=x_range_name
+                )
+            else:
+                renderer = fig.line(
+                    'x', 'y',
+                    source=line_source.generate(to, timeseries),
+                    color=color_selector.get_color()
+                )
             legend_manager.add_legend(to, renderer)
 
         # Draw legends
@@ -107,11 +142,12 @@ class LineSource:
         xaxis_type: str,
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance('timeseries', target_object)
-        self._hover_source = HoverSource(legend_manager, self._hover_keys)
+        self._hover_source = HoverSource(self._hover_keys)
+        self._legend_manager = legend_manager
         self._frame_min = frame_min
         self._xaxis_type = xaxis_type
 
-    def create_hover(self, options: Dict[str, Any] = {}) -> HoverTool:
+    def create_hover(self, options: dict[str, Any] = {}) -> HoverTool:
         """
         Create HoverTool based on the legend keys.
 
@@ -138,9 +174,7 @@ class LineSource:
         Parameters
         ----------
         target_object : TimeSeriesTypes
-            TimeSeriesPlotTypes = Union[
-                CallbackBase, Communication, Union[Publisher, Subscription]
-            ]
+            TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
         timeseries_records : RecordsInterface
             Records containing timeseries data.
 
@@ -153,7 +187,11 @@ class LineSource:
         line_source = ColumnDataSource(data={
             k: [] for k in (['x', 'y'] + self._hover_keys.to_list())
         })
-        hover_source = self._hover_source.generate(target_object)
+        additional_hover_dict = {
+            'legend_label': f'legend_label = {self._legend_manager.get_label(target_object)}'}
+        if isinstance(target_object, CallbackBase):
+            additional_hover_dict['callback_param'] = get_callback_param_desc(target_object)
+        hover_source = self._hover_source.generate(target_object, additional_hover_dict)
         x_item, y_item = self._get_x_y(timeseries_records)
         for x, y in zip(x_item, y_item):
             line_source.stream({**{'x': [x], 'y': [y]}, **hover_source})  # type: ignore
@@ -163,10 +201,10 @@ class LineSource:
     def _get_x_y(
         self,
         timeseries_records: RecordsInterface
-    ) -> Tuple[List[Union[int, float]], List[Union[int, float]]]:
+    ) -> tuple[list[int | float], list[int | float]]:
         def ensure_not_none(
-            target_seq: Sequence[Optional[Union[int, float]]]
-        ) -> List[Union[int, float]]:
+            target_seq: Sequence[int | float | None]
+        ) -> list[int | float]:
             """
             Ensure the inputted list does not include None.
 
@@ -188,8 +226,8 @@ class LineSource:
         if 'latency' in value_column.lower() or 'period' in value_column.lower():
             values = [v*10**(-6) for v in values]  # [ns] -> [ms]
 
-        x_item: List[Union[int, float]]
-        y_item: List[Union[int, float]] = values
+        x_item: list[int | float]
+        y_item: list[int | float] = values
         if self._xaxis_type == 'system_time':
             x_item = [(ts-self._frame_min)*10**(-9) for ts in timestamps]
         elif self._xaxis_type == 'index':

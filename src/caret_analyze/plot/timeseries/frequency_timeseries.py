@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, Union
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 import pandas as pd
 
@@ -20,7 +22,7 @@ from ..metrics_base import MetricsBase
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class FrequencyTimeSeries(MetricsBase):
@@ -74,7 +76,7 @@ class FrequencyTimeSeries(MetricsBase):
     def to_timeseries_records_list(
         self,
         xaxis_type: str = 'system_time'
-    ) -> List[RecordsInterface]:
+    ) -> list[RecordsInterface]:
         """
         Get frequency records list of all target objects.
 
@@ -87,32 +89,56 @@ class FrequencyTimeSeries(MetricsBase):
 
         Returns
         -------
-        List[RecordsInterface]
+        list[RecordsInterface]
             Frequency records list of all target objects.
 
         """
-        min_time, max_time = self._get_timestamp_range(self._target_objects)
-        timeseries_records_list: List[RecordsInterface] = []
-        for target_object in self._target_objects:
-            frequency = Frequency(target_object.to_records())
-            timeseries_records_list.append(frequency.to_records(
+        if self._target_objects and isinstance(self._target_objects[0], Communication):
+            columns = self._target_objects[0].to_records().columns
+            start_column = columns[0]
+            end_column = columns[1]
+
+            def row_filter_communication(record) -> bool:
+                """Return True only if communication is established."""
+                comm_start_column = start_column
+                comm_end_column = end_column
+                if (record.data.get(comm_start_column) is not None
+                        and record.data.get(comm_end_column) is not None):
+                    return True
+                else:
+                    return False
+
+        timeseries_records_list: list[RecordsInterface] = [
+            _.to_records() for _ in self._target_objects
+        ]
+
+        if xaxis_type == 'sim_time':
+            timeseries_records_list = \
+                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+
+        min_time, max_time = self._get_timestamp_range(timeseries_records_list)
+
+        frequency_timeseries_list: list[RecordsInterface] = []
+        for records in timeseries_records_list:
+            frequency = Frequency(
+                records,
+                row_filter=row_filter_communication
+                if isinstance(records, Communication) else None
+            )
+            frequency_timeseries_list.append(frequency.to_records(
                 base_timestamp=min_time, until_timestamp=max_time
             ))
 
-        if xaxis_type == 'sim_time':
-            self._convert_timeseries_records_to_sim_time(timeseries_records_list)
-
-        return timeseries_records_list
+        return frequency_timeseries_list
 
     # TODO: Migrate into record.
     @staticmethod
     def _get_timestamp_range(
-        target_objects: Sequence[TimeSeriesTypes]
-    ) -> Tuple[int, int]:
+        timeseries_records_list: list[RecordsInterface]
+    ) -> tuple[int, int]:
         first_timestamps = []
         last_timestamps = []
-        for to in target_objects:
-            records = to.to_records()
+        for records in timeseries_records_list:
             if len(records) == 0:
                 continue
             first_timestamp = records.get_column_series(records.columns[0])[0]

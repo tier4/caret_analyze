@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from __future__ import annotations
 
 from .callback import ServiceCallbackStruct
 from ...value_objects import ServiceStructValue
@@ -25,11 +25,13 @@ class ServiceStruct():
         self,
         node_name: str,
         service_name: str,
-        callback_info: Optional[ServiceCallbackStruct],
+        callback_info: ServiceCallbackStruct | None,
+        construction_order: int,
     ) -> None:
         self._node_name: str = node_name
         self._service_name: str = service_name
         self._callback_value = callback_info
+        self._construction_order = construction_order
 
     @property
     def node_name(self) -> str:
@@ -40,18 +42,24 @@ class ServiceStruct():
         return self._service_name
 
     @property
-    def callback_name(self) -> Optional[str]:
+    def callback_name(self) -> str | None:
         if self._callback_value is None:
             return None
 
         return self._callback_value.callback_name
 
     @property
-    def callback(self) -> Optional[ServiceCallbackStruct]:
+    def callback(self) -> ServiceCallbackStruct | None:
         return self._callback_value
+
+    @property
+    def construction_order(self) -> int:
+        return self._construction_order
 
     def to_value(self) -> ServiceStructValue:
         return ServiceStructValue(
-            self.node_name,
-            self.service_name,
-            None if self.callback is None else self.callback.to_value())
+            node_name=self.node_name,
+            service_name=self.service_name,
+            callback_info=None if self.callback is None else self.callback.to_value(),
+            construction_order=self.construction_order
+        )

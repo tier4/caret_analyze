@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from copy import deepcopy
 from logging import getLogger
-from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -31,7 +32,7 @@ class PathBase(metaclass=ABCMeta):
     """Base class for Latency."""
 
     def __init__(self) -> None:
-        self.__records_cache: Optional[RecordsInterface] = None
+        self.__records_cache: RecordsInterface | None = None
 
     def to_records(self) -> RecordsInterface:
         """
@@ -73,13 +74,13 @@ class PathBase(metaclass=ABCMeta):
         return self.__records_cache
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         """
         Get column names.
 
         Returns
         -------
-        List[str]
+        list[str]
             column names
 
         """
@@ -92,7 +93,7 @@ class PathBase(metaclass=ABCMeta):
         lstrip_s: float = 0,
         rstrip_s: float = 0,
         *,
-        shaper: Optional[DataFrameShaper] = None,
+        shaper: DataFrameShaper | None = None,
     ) -> pd.DataFrame:
         """
         Calculate dataframe.
@@ -104,11 +105,11 @@ class PathBase(metaclass=ABCMeta):
         treat_drop_as_delay: bool
             Convert dropped records as a delay.
             Valid only when remove_dropped=false.
-        lstrip_s: Optional[float]
+        lstrip_s: float | None
             Remove from beginning. [s]
-        rstrip_s: Optional[float]
+        rstrip_s: float | None
             Remove from end [s]
-        shaper: Optional[DataFrameShaper]
+        shaper: DataFrameShaper | None
             shaper
 
         Returns
@@ -153,28 +154,28 @@ class PathBase(metaclass=ABCMeta):
         lstrip_s: float = 0,
         rstrip_s: float = 0,
         *,
-        shaper: Optional[DataFrameShaper] = None,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+        shaper: DataFrameShaper | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate timeseries data.
 
         Parameters
         ----------
-        remove_dropped : Optional[bool]
+        remove_dropped : bool | None
             If true, eliminate the records that caused the drop. default: False.
-        treat_drop_as_delay : Optional[bool]
+        treat_drop_as_delay : bool | None
             Convert dropped records as a delay.
             Valid only when remove_dropped=false. default: False.
-        lstrip_s: Optional[float]
+        lstrip_s: float | None
             Remove from beginning. [s] default: 0
-        rstrip_s: Optional[float]
+        rstrip_s: float | None
             Remove from end [s] default: 0
-        shaper: Optional[DataFrameShaper]
+        shaper: DataFrameShaper | None
             shaper
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             time[ns], latency[ns]
             len(time) == len(latency)
 
@@ -208,8 +209,8 @@ class PathBase(metaclass=ABCMeta):
         lstrip_s: float = 0,
         rstrip_s: float = 0,
         *,
-        shaper: Optional[DataFrameShaper] = None,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+        shaper: DataFrameShaper | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate histogram data.
 
@@ -219,16 +220,16 @@ class PathBase(metaclass=ABCMeta):
             bin size for histogram. default 1ms.
         treat_drop_as_delay : bool
             Convert dropped records as a delay.
-        lstrip_s: Optional[float]
+        lstrip_s: float | None
             Remove from beginning. [s]
-        rstrip_s: Optional[float]
+        rstrip_s: float | None
             Remove from end [s]
-        shaper: Optional[DataFrameShaper]
+        shaper: DataFrameShaper | None
             shaper
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
+        tuple[np.ndarray, np.ndarray]
             frequency, latency[ns]
 
             len(frequency)+1 == len(latency)

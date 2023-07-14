@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from .callback import CallbackBase
 from .callback_group import CallbackGroup
 from .node_path import NodePath
@@ -34,12 +32,12 @@ class Node(Summarizable):
     def __init__(
         self,
         node: NodeStructValue,
-        publishers: List[Publisher],
-        subscription: List[Subscription],
-        timers: List[Timer],
-        node_paths: List[NodePath],
-        callback_groups: Optional[List[CallbackGroup]],
-        variable_passings: Optional[List[VariablePassing]],
+        publishers: list[Publisher],
+        subscription: list[Subscription],
+        timers: list[Timer],
+        node_paths: list[NodePath],
+        callback_groups: list[CallbackGroup] | None,
+        variable_passings: list[VariablePassing] | None,
     ) -> None:
         """
         Construct an instance.
@@ -48,17 +46,17 @@ class Node(Summarizable):
         ----------
         node : NodeStructValue
             static info
-        publishers : List[Publisher]
+        publishers : list[Publisher]
             publishers in the node.
-        subscription : List[Subscription]
+        subscription : list[Subscription]
             subscriptions in the node.
-        timers : List[Timer]
+        timers : list[Timer]
             timers in the node.
-        node_paths : List[NodePath]
+        node_paths : list[NodePath]
             node paths in the node.
-        callback_groups : Optional[List[CallbackGroup]]
+        callback_groups : list[CallbackGroup] | None
             callback groups in the node.
-        variable_passings : Optional[List[VariablePassing]]
+        variable_passings : list[VariablePassing] | None
             variable passings in the node.
 
         """
@@ -71,13 +69,13 @@ class Node(Summarizable):
         self._variable_passings = variable_passings
 
     @property
-    def callback_groups(self) -> Optional[List[CallbackGroup]]:
+    def callback_groups(self) -> list[CallbackGroup] | None:
         """
         Get callback groups.
 
         Returns
         -------
-        Optional[List[CallbackGroup]]
+        list[CallbackGroup] | None
             callback groups that the node contains.
 
         """
@@ -99,13 +97,13 @@ class Node(Summarizable):
         return self._val.node_name
 
     @property
-    def callbacks(self) -> Optional[List[CallbackBase]]:
+    def callbacks(self) -> list[CallbackBase] | None:
         """
         Get callbacks.
 
         Returns
         -------
-        Optional[List[CallbackBase]]
+        list[CallbackBase] | None
             callbacks that the node contains.
 
         """
@@ -115,13 +113,13 @@ class Node(Summarizable):
         return sorted(cbs, key=lambda x: x.callback_name)
 
     @property
-    def callback_names(self) -> Optional[List[str]]:
+    def callback_names(self) -> list[str] | None:
         """
         Get callback names.
 
         Returns
         -------
-        Optional[List[str]]
+        list[str] | None
             callback names that the node contains.
 
         """
@@ -130,59 +128,59 @@ class Node(Summarizable):
         return sorted(c.callback_name for c in self.callbacks)
 
     @property
-    def variable_passings(self) -> Optional[List[VariablePassing]]:
+    def variable_passings(self) -> list[VariablePassing] | None:
         """
         Get variable passings.
 
         Returns
         -------
-        Optional[List[VariablePassing]]
+        list[VariablePassing] | None
             Variable passings that the node contains.
 
         """
         return self._variable_passings
 
     @property
-    def publishers(self) -> List[Publisher]:
+    def publishers(self) -> list[Publisher]:
         """
         Get publishers.
 
         Returns
         -------
-        List[Publisher]
+        list[Publisher]
             publishers used by the node.
 
         """
         return sorted(self._publishers, key=lambda x: x.topic_name)
 
     @property
-    def timers(self) -> List[Timer]:
+    def timers(self) -> list[Timer]:
         """
         Get timers.
 
         Returns
         -------
-        List[Timer]
+        list[Timer]
             timers that the node contains.
 
         """
         return sorted(self._timers, key=lambda x: x.period_ns)
 
     @property
-    def publish_topic_names(self) -> List[str]:
+    def publish_topic_names(self) -> list[str]:
         """
         Get topic names the node publishes.
 
         Returns
         -------
-        List[str]
+        list[str]
             topic names that the node publishes to.
 
         """
         return sorted(_.topic_name for _ in self._publishers)
 
     @property
-    def paths(self) -> List[NodePath]:
+    def paths(self) -> list[NodePath]:
         """
         Get node paths.
 
@@ -190,46 +188,46 @@ class Node(Summarizable):
 
         Returns
         -------
-        List[NodePath]
+        list[NodePath]
             node paths that the node contains.
 
         """
         return self._paths
 
     @property
-    def subscriptions(self) -> List[Subscription]:
+    def subscriptions(self) -> list[Subscription]:
         """
         Get subscriptions the node subscribes.
 
         Returns
         -------
-        List[Subscription]
+        list[Subscription]
             subscriptions that the node subscribes to.
 
         """
         return sorted(self._subscriptions, key=lambda x: x.topic_name)
 
     @property
-    def subscribe_topic_names(self) -> List[str]:
+    def subscribe_topic_names(self) -> list[str]:
         """
         Get subscribe topic names.
 
         Returns
         -------
-        List[str]
+        list[str]
             topic names to which the node subscribes.
 
         """
         return sorted(_.topic_name for _ in self._subscriptions)
 
     @property
-    def callback_group_names(self) -> Optional[List[str]]:
+    def callback_group_names(self) -> list[str] | None:
         """
         Get callback group names.
 
         Returns
         -------
-        Optional[List[str]]
+        list[str] | None
             callback group names that the node contains.
 
         """
@@ -302,17 +300,17 @@ class Node(Summarizable):
 
     def get_path(
         self,
-        subscribe_topic_name: Optional[str],
-        publish_topic_name: Optional[str],
+        subscribe_topic_name: str | None,
+        publish_topic_name: str | None,
     ) -> NodePath:
         """
         Get node path.
 
         Parameters
         ----------
-        subscribe_topic_name : Optional[str]
+        subscribe_topic_name : str | None
             topic name to which the node subscribes.
-        publish_topic_name : Optional[str]
+        publish_topic_name : str | None
             topic name to which the node publishes.
 
         Returns
@@ -374,7 +372,7 @@ class Node(Summarizable):
 
         return Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
 
-    def get_callbacks(self, *callback_names: str) -> List[CallbackBase]:
+    def get_callbacks(self, *callback_names: str) -> list[CallbackBase]:
         """
         Get callbacks.
 
@@ -385,7 +383,7 @@ class Node(Summarizable):
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             callbacks that match the condition.
 
         Raises
@@ -402,7 +400,11 @@ class Node(Summarizable):
 
         return callbacks
 
-    def get_subscription(self, topic_name: str) -> Subscription:
+    def get_subscription(
+        self,
+        topic_name: str,
+        construction_order: int | None = None
+    ) -> Subscription:
         """
         Get subscription.
 
@@ -410,6 +412,8 @@ class Node(Summarizable):
         ----------
         topic_name : str
             topic name to get.
+        construction_order : int | None
+            construction order to get.
 
         Returns
         -------
@@ -429,9 +433,19 @@ class Node(Summarizable):
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(lambda x: x.topic_name == topic_name, self._subscriptions)
+        def is_target(subscription: Subscription):
+            match = subscription.topic_name == topic_name
+            if construction_order is not None:
+                match &= subscription.construction_order == construction_order
+            return match
 
-    def get_publisher(self, topic_name: str) -> Publisher:
+        return Util.find_one(is_target, self._subscriptions)
+
+    def get_publisher(
+            self,
+            topic_name: str,
+            construction_order: int | None = None
+    ) -> Publisher:
         """
         Get publisher.
 
@@ -439,6 +453,8 @@ class Node(Summarizable):
         ----------
         topic_name : str
             publisher topic name to get.
+        construction_order : int | None
+            construction order to get.
 
         Returns
         -------
@@ -458,7 +474,13 @@ class Node(Summarizable):
         if not isinstance(topic_name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        return Util.find_one(lambda x: x.topic_name == topic_name, self._publishers)
+        def is_target_publisher(publishers: Publisher):
+            match = publishers.topic_name == topic_name
+            if construction_order is not None:
+                match &= publishers.construction_order == construction_order
+            return match
+
+        return Util.find_one(is_target_publisher, self._publishers)
 
     def get_timer(self, topic_name: str) -> Timer:
         # TODO(hsgwa): fix argument type.

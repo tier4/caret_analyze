@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
+from collections.abc import Sequence
 from logging import getLogger
-from typing import List, Optional, Sequence, Tuple
 
 from ..interface import RecordsInterface
 
@@ -27,13 +29,13 @@ class Range:
     def __init__(self, records_list: Sequence[RecordsInterface]) -> None:
         self._records_list = records_list
 
-    def get_range(self) -> Tuple[int, int]:
+    def get_range(self) -> tuple[int, int]:
         """
         Get minimum and maximum timestamps.
 
         Returns
         -------
-        Tuple[int, int]
+        tuple[int, int]
             Minimum and Maximum timestamps.
 
         Notes
@@ -43,12 +45,12 @@ class Range:
         Only the system time is picked out here.
 
         """
-        def remove_none(series: Sequence[Optional[int]]) -> List[int]:
+        def remove_none(series: Sequence[int | None]) -> list[int]:
             return [v for v in series if v is not None]
 
         base_series = [remove_none(r.get_column_series(r.columns[0])) for r in self._records_list]
-        min_series: List[int] = []
-        max_series: List[int] = []
+        min_series: list[int] = []
+        max_series: list[int] = []
         for series in base_series:
             if len(series) > 0:
                 min_series.append(min(series))

@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from logging import getLogger
-from typing import List, Optional
 
 from .callback import CallbackBase
 from .path_base import PathBase
@@ -40,9 +41,9 @@ class NodePath(PathBase, Summarizable):
         self,
         node_path_value: NodePathStructValue,
         records_provider: RecordsProvider,
-        subscription: Optional[Subscription],
-        publisher: Optional[Publisher],
-        callbacks: Optional[List[CallbackBase]]
+        subscription: Subscription | None,
+        publisher: Publisher | None,
+        callbacks: list[CallbackBase] | None
     ) -> None:
         """
         Construct an instance.
@@ -53,11 +54,11 @@ class NodePath(PathBase, Summarizable):
             static info.
         records_provider : RecordsProvider
             provider to be evaluated.
-        subscription : Optional[Subscription]
+        subscription : Subscription | None
             node path subscription
-        publisher : Optional[Publisher]
+        publisher : Publisher | None
             node path publisher
-        callbacks : Optional[List[CallbackBase]]
+        callbacks : list[CallbackBase] | None
             Callbacks in node path. Needed only if message context is CallbackChain.
 
         """
@@ -67,8 +68,8 @@ class NodePath(PathBase, Summarizable):
         self._pub = publisher
         self._sub = subscription
         self._callbacks = callbacks
-        self._path_beginning_records_cache: Optional[RecordsInterface] = None
-        self._path_end_records_cache: Optional[RecordsInterface] = None
+        self._path_beginning_records_cache: RecordsInterface | None = None
+        self._path_end_records_cache: RecordsInterface | None = None
 
     @property
     def node_name(self) -> str:
@@ -84,13 +85,13 @@ class NodePath(PathBase, Summarizable):
         return self._val.node_name
 
     @property
-    def callbacks(self) -> Optional[List[CallbackBase]]:
+    def callbacks(self) -> list[CallbackBase] | None:
         """
         Get callbacks.
 
         Returns
         -------
-        Optional[List[CallbackBase]]
+        list[CallbackBase] | None
             Callbacks in node path.
             None except for message context is callback chain.
 
@@ -100,13 +101,13 @@ class NodePath(PathBase, Summarizable):
         return sorted(self._callbacks, key=lambda x: x.callback_name)
 
     @property
-    def message_context(self) -> Optional[MessageContext]:
+    def message_context(self) -> MessageContext | None:
         """
         Get message context.
 
         Returns
         -------
-        Optional[MessageContext]
+        MessageContext | None
             message context for this node path.
 
         """
@@ -159,56 +160,86 @@ class NodePath(PathBase, Summarizable):
         return records
 
     @property
-    def publisher(self) -> Optional[Publisher]:
+    def publisher(self) -> Publisher | None:
         """
         Get publisher.
 
         Returns
         -------
-        Optional[Publisher]
+        Publisher | None
             node path publisher.
 
         """
         return self._pub
 
     @property
-    def publish_topic_name(self) -> Optional[str]:
+    def publish_topic_name(self) -> str | None:
         """
         Get a topic name to publish.
 
         Returns
         -------
-        Optional[str]
+        str | None
             topic name to publish.
 
         """
         return self._val.publish_topic_name
 
     @property
-    def subscription(self) -> Optional[Subscription]:
+    def subscription(self) -> Subscription | None:
         """
         Get a subscription.
 
         Returns
         -------
-        Optional[Subscription]
+        Subscription | None
             subscription to subscribe to.
 
         """
         return self._sub
 
     @property
-    def subscribe_topic_name(self) -> Optional[str]:
+    def subscribe_topic_name(self) -> str | None:
         """
         Get a topic name to subscribe to.
 
         Returns
         -------
-        Optional[str]
+        str | None
             topic name to subscribe to.
 
         """
         return self._val.subscribe_topic_name
+
+    @property
+    def publisher_construction_order(self) -> int | None:
+        """
+        Get a construction order of publisher.
+
+        Returns
+        -------
+        int | None
+            construction order of publisher.
+
+        """
+        if self.publisher:
+            return self.publisher.construction_order
+        return None
+
+    @property
+    def subscription_construction_order(self) -> int | None:
+        """
+        Get a construction order of subscription.
+
+        Returns
+        -------
+        int | None
+            construction order of subscription.
+
+        """
+        if self.subscription:
+            return self.subscription.construction_order
+        return None
 
     def clear_cache(self) -> None:
         self._path_beginning_records_cache = None

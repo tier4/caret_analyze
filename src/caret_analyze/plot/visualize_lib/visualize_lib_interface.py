@@ -12,19 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from bokeh.plotting import Figure
 
 from ..metrics_base import MetricsBase
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = Union[CallbackBase, Communication, Union[Publisher, Subscription]]
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
     """Interface class for VisualizeLib."""
+
+    @abstractmethod
+    def response_time_hist(
+        self,
+        target_paths: Sequence[Path],
+        case: str,
+        binsize_ns: int,
+        xaxis_type: str,
+        ywheel_zoom: bool,
+        full_legends: bool,
+    ) -> Figure:
+        raise NotImplementedError()
 
     @abstractmethod
     def message_flow(

@@ -14,8 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from logging import getLogger
-from typing import Dict, List, Optional, Sequence, Union
 
 from .callback import CallbackBase
 from .communication import Communication
@@ -33,8 +33,8 @@ logger = getLogger(__name__)
 class ColumnMerger():
 
     def __init__(self) -> None:
-        self._count: Dict[str, int] = {}
-        self._column_names: List[str] = []
+        self._count: dict[str, int] = {}
+        self._column_names: list[str] = []
 
     def append_column(
         self,
@@ -58,8 +58,8 @@ class ColumnMerger():
     def append_columns(
         self,
         records: RecordsInterface,
-    ) -> List[str]:
-        renamed_columns: List[str] = []
+    ) -> list[str]:
+        renamed_columns: list[str] = []
         for column in records.columns:
             renamed_columns.append(
                 self.append_column(records, column)
@@ -69,14 +69,14 @@ class ColumnMerger():
     def append_columns_and_return_rename_rule(
         self,
         records: RecordsInterface,
-    ) -> Dict[str, str]:
-        renamed_columns: List[str] = self.append_columns(records)
+    ) -> dict[str, str]:
+        renamed_columns: list[str] = self.append_columns(records)
         return self._to_rename_rule(records.columns, renamed_columns)
 
     @property
     def column_names(
         self
-    ) -> List[str]:
+    ) -> list[str]:
         return self._column_names
 
     @staticmethod
@@ -102,7 +102,7 @@ class RecordsMerged:
 
     def __init__(
         self,
-        merge_targets: List[Union[NodePath, Communication]],
+        merge_targets: list[NodePath | Communication],
         include_first_callback: bool = False,
         include_last_callback: bool = False
     ) -> None:
@@ -119,7 +119,7 @@ class RecordsMerged:
 
     @staticmethod
     def _merge_records(
-        targets: List[Union[NodePath, Communication]],
+        targets: list[NodePath | Communication],
         include_first_callback: bool = False,
         include_last_callback: bool = False
     ) -> RecordsInterface:
@@ -237,8 +237,8 @@ class Path(PathBase, Summarizable):
     def __init__(
         self,
         path: PathStructValue,
-        child: List[Union[NodePath, Communication]],
-        callbacks: Optional[List[CallbackBase]],
+        child: list[NodePath | Communication],
+        callbacks: list[CallbackBase] | None,
         include_first_callback: bool = False,
         include_last_callback: bool = False
     ) -> None:
@@ -249,9 +249,9 @@ class Path(PathBase, Summarizable):
         ----------
         path : PathStructValue
             static info
-        child : List[Union[NodePath, Communication]]
+        child : list[NodePath | Communication]
             path children's which compose path (node paths and communications).
-        callbacks : Optional[List[CallbackBase]]
+        callbacks : list[CallbackBase] | None
             callbacks that compose the path.
             return None except for all of node paths are not callback-chain.
         include_first_callback : bool
@@ -265,11 +265,11 @@ class Path(PathBase, Summarizable):
         self._value = path
         self._validate(child)
         self._child = child
-        self._columns_cache: Optional[List[str]] = None
+        self._columns_cache: list[str] | None = None
         self._callbacks = callbacks
         self._include_first_callback = include_first_callback
         self._include_last_callback = include_last_callback
-        self.__records_cache: Dict = {}
+        self.__records_cache: dict = {}
         return None
 
     @property
@@ -311,7 +311,7 @@ class Path(PathBase, Summarizable):
 
     @staticmethod
     def _verify_path(
-        path_children: List[NodePath]
+        path_children: list[NodePath]
     ) -> None:
         for child in path_children[1: -1]:
             if len(child.column_names) == 0:
@@ -349,7 +349,7 @@ class Path(PathBase, Summarizable):
         if not isinstance(name, str):
             raise InvalidArgumentError('Argument type is invalid.')
 
-        def is_target(child: Union[NodePath, Communication]):
+        def is_target(child: NodePath | Communication):
             if isinstance(child, NodePath):
                 return child.node_name == name
             elif isinstance(child, Communication):
@@ -371,13 +371,13 @@ class Path(PathBase, Summarizable):
         return self._value.summary
 
     @property
-    def callbacks(self) -> List[CallbackBase]:
+    def callbacks(self) -> list[CallbackBase]:
         """
         Get callbacks.
 
         Returns
         -------
-        List[CallbackBase]
+        list[CallbackBase]
             callbacks in all nodes that comprise the node path.
 
         """
@@ -391,13 +391,13 @@ class Path(PathBase, Summarizable):
         return callbacks
 
     @property
-    def callback_chain(self) -> Optional[List[CallbackBase]]:
+    def callback_chain(self) -> list[CallbackBase] | None:
         """
         Get callback chain.
 
         Returns
         -------
-        Optional[List[CallbackBase]]
+        list[CallbackBase] | None
             callbacks that compose the path.
             return None except for all of the node paths are callback chains.
 
@@ -405,7 +405,7 @@ class Path(PathBase, Summarizable):
         return self._callbacks
 
     @staticmethod
-    def _validate(path_elements: List[Union[NodePath, Communication]]):
+    def _validate(path_elements: list[NodePath | Communication]):
         if len(path_elements) == 0:
             return
         t = NodePath if isinstance(
@@ -421,13 +421,13 @@ class Path(PathBase, Summarizable):
             raise InvalidArgumentError(msg)
 
     @property
-    def path_name(self) -> Optional[str]:
+    def path_name(self) -> str | None:
         """
         Get path name.
 
         Returns
         -------
-        Optional[str]
+        str | None
             Path name defined in the architecture.
 
         """
@@ -461,52 +461,52 @@ class Path(PathBase, Summarizable):
         return '\n'.join(node_names)
 
     @property
-    def communications(self) -> List[Communication]:
+    def communications(self) -> list[Communication]:
         """
         Get communications.
 
         Returns
         -------
-        List[Communication]
+        list[Communication]
             Communications in target path.
 
         """
         return Util.filter_items(lambda x: isinstance(x, Communication), self._child)
 
     @property
-    def node_paths(self) -> List[NodePath]:
+    def node_paths(self) -> list[NodePath]:
         """
         Get node-paths.
 
         Returns
         -------
-        List[NodePath]
+        list[NodePath]
             node paths in target path.
 
         """
         return Util.filter_items(lambda x: isinstance(x, NodePath), self._child)
 
     @property
-    def topic_names(self) -> List[str]:
+    def topic_names(self) -> list[str]:
         """
         Get topic names.
 
         Returns
         -------
-        List[str]
+        list[str]
             topic names in the target path.
 
         """
         return sorted(self._value.topic_names)
 
     @property
-    def child(self) -> List[Union[NodePath, Communication]]:
+    def child(self) -> list[NodePath | Communication]:
         """
         Get path children.
 
         Returns
         -------
-        List[Union[NodePath, Communication]]
+        list[NodePath | Communication]
             node paths and communications in the target path.
             node paths and communications are alternately contained.
 
@@ -514,26 +514,26 @@ class Path(PathBase, Summarizable):
         return self._child
 
     @property
-    def child_names(self) -> List[str]:
+    def child_names(self) -> list[str]:
         """
         Get path children's names.
 
         Returns
         -------
-        List[str]
+        list[str]
             node names and topic names in the target path.
 
         """
         return sorted(self._value.child_names)
 
     @property
-    def node_names(self) -> List[str]:
+    def node_names(self) -> list[str]:
         """
         Get node names.
 
         Returns
         -------
-        List[str]
+        list[str]
             node names in the target path.
 
         """

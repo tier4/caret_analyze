@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Sequence, Union
+from __future__ import annotations
 
+from collections.abc import Sequence
 
 from caret_analyze.infra.lttng import Lttng, RecordsProviderLttng
 from caret_analyze.infra.lttng.bridge import LttngBridge
@@ -78,7 +79,7 @@ def create_publisher_lttng(
 ):
     def _create_publisher_lttng(
         pub_handle: int,
-        tilde_pub: Optional[int] = None
+        tilde_pub: int | None = None
     ):
         publisher_lttng = mocker.Mock(spec=PublisherValueLttng)
         mocker.patch.object(
@@ -95,8 +96,8 @@ def create_subscription_lttng(
     def _create(
         callback_object: int,
         subscription_handle: int,
-        callback_object_intra: Optional[int] = None,
-        tilde_subscription: Optional[int] = None,
+        callback_object_intra: int | None = None,
+        tilde_subscription: int | None = None,
     ):
         sub_lttng = mocker.Mock(spec=SubscriptionCallbackValueLttng)
         mocker.patch.object(
@@ -207,7 +208,7 @@ def create_timer_struct(mocker):
 def create_timer_cb_lttng(mocker):
     def _create_timer_cb_lttng(
         callback_object: int,
-        timer_handle: Optional[int] = None
+        timer_handle: int | None = None
     ):
         callback_lttng = mocker.Mock(spec=TimerCallbackValueLttng)
         mocker.patch.object(callback_lttng, 'callback_object', callback_object)
@@ -222,7 +223,7 @@ def setup_bridge_get_publisher(
     mocker,
     bridge_mock,
 ):
-    pub_map: Dict[PublisherStructValue, Sequence[PublisherValueLttng]] = {}
+    pub_map: dict[PublisherStructValue, Sequence[PublisherValueLttng]] = {}
 
     def _setup(
         publisher: PublisherStructValue,
@@ -246,14 +247,14 @@ def bridge_setup_get_callback(
     bridge_mock,
 ):
 
-    cb_map: Dict[
+    cb_map: dict[
         CallbackStructValue,
-        Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng]
+        TimerCallbackValueLttng | SubscriptionCallbackValueLttng
     ] = {}
 
     def _setup(
         callback: CallbackStructValue,
-        callback_lttng: Union[TimerCallbackValueLttng, SubscriptionCallbackValueLttng],
+        callback_lttng: TimerCallbackValueLttng | SubscriptionCallbackValueLttng,
     ):
         cb_map[callback] = callback_lttng
 
@@ -337,12 +338,22 @@ class TestCallbackRecords:
         message = 8
         source_timestamp = 11
         message_timestamp = 15
+        rmw_take_timestamp = 3
+        rmw_subscription_handle = 20
 
         data = Ros2DataModel()
         if has_dispatch:
             data.add_dispatch_subscription_callback_instance(
                 dispatch_timestamp, callback_object,
                 message, source_timestamp, message_timestamp)
+        else:
+            data.add_rmw_take_instance(
+                tid,
+                rmw_take_timestamp,
+                rmw_subscription_handle,
+                message,
+                source_timestamp
+            )
         data.add_callback_start_instance(
             tid, callback_start, callback_object, False)
         data.add_callback_end_instance(tid, callback_end, callback_object)
@@ -725,7 +736,6 @@ class TestSubscriptionRecords:
             None,
             columns=[
                 f'{sub_struct_mock.callback_name}/callback_start_timestamp',
-                f'{sub_struct_mock.topic_name}/message_timestamp',
                 f'{sub_struct_mock.topic_name}/source_timestamp',
             ],
             dtype='Int64'
@@ -733,12 +743,17 @@ class TestSubscriptionRecords:
 
         assert df.equals(df_expect)
 
+    @pytest.mark.parametrize(
+        'has_dispatch',
+        [True, False]
+    )
     def test_single_records_without_tilde(
         self,
         create_lttng,
         create_subscription_lttng,
         create_subscription_struct,
         bridge_setup_get_callback,
+        has_dispatch,
     ):
         callback_lttng = create_subscription_lttng(5, 58)
         subscription = create_subscription_struct()
@@ -750,10 +765,15 @@ class TestSubscriptionRecords:
         message = 4
         # pid = 15
         tid = 16
+        rmw_subscription_handle = 7
 
         data = Ros2DataModel()
-        data.add_dispatch_subscription_callback_instance(
-            0, callback_object, message, source_timestamp, message_timestamp)
+        if has_dispatch:
+            data.add_dispatch_subscription_callback_instance(
+                0, callback_object, message, source_timestamp, message_timestamp)
+        else:
+            data.add_rmw_take_instance(
+                tid, 0, rmw_subscription_handle, message, source_timestamp)
         data.add_callback_start_instance(tid, 1, callback_object, False)
         data.add_callback_end_instance(tid, 3, callback_object)
         data.finalize()
@@ -770,7 +790,6 @@ class TestSubscriptionRecords:
                     # 'pid': pid,
                     # 'tid': tid,
                     f'{subscription.callback_name}/callback_start_timestamp': 1,
-                    f'{subscription.topic_name}/message_timestamp': 2,
                     f'{subscription.topic_name}/source_timestamp': 3,
                     # f'{subscription.callback_name}/callback_end_timestamp': 3,
                 }
@@ -779,7 +798,6 @@ class TestSubscriptionRecords:
                 # 'pid',
                 # 'tid',
                 f'{subscription.callback_name}/callback_start_timestamp',
-                f'{subscription.topic_name}/message_timestamp',
                 f'{subscription.topic_name}/source_timestamp',
                 # f'{subscription.callback_name}/callback_end_timestamp',
             ],
@@ -830,7 +848,6 @@ class TestSubscriptionRecords:
                     # 'tid': tid,
                     f'{subscription.callback_name}/callback_start_timestamp': 6,
                     # f'{subscription.callback_name}/callback_end_timestamp': 8,
-                    f'{subscription.topic_name}/message_timestamp': message_timestamp,
                     f'{subscription.topic_name}/source_timestamp': source_timestamp,
                     f'{subscription.topic_name}/tilde_subscribe_timestamp': 7,
                     f'{subscription.topic_name}/tilde_message_id': tilde_message_id,
@@ -841,7 +858,6 @@ class TestSubscriptionRecords:
                 # 'tid',
                 f'{subscription.callback_name}/callback_start_timestamp',
                 # f'{subscription.callback_name}/callback_end_timestamp',
-                f'{subscription.topic_name}/message_timestamp',
                 f'{subscription.topic_name}/source_timestamp',
                 f'{subscription.topic_name}/tilde_subscribe_timestamp',
                 f'{subscription.topic_name}/tilde_message_id',
@@ -1216,10 +1232,15 @@ class TestCommunicationRecords:
 
         assert df.equals(df_expect)
 
+    @pytest.mark.parametrize(
+        'has_dispatch',
+        [True, False]
+    )
     def test_inter_proc(
         self,
         mocker,
         create_lttng,
+        has_dispatch,
         create_publisher_lttng,
         setup_bridge_get_publisher,
         create_publisher_struct,
@@ -1237,6 +1258,7 @@ class TestCommunicationRecords:
         sub_handle = 28
         # pid, tid = 15, 16
         tid = 16
+        rmw_subscription_handle = 20
 
         data = Ros2DataModel()
         data.add_rclcpp_publish_instance(
@@ -1245,8 +1267,17 @@ class TestCommunicationRecords:
         data.add_dds_write_instance(tid, 3, send_message)
         data.add_dds_bind_addr_to_stamp(
             tid, 4, send_message, source_stamp)
-        data.add_dispatch_subscription_callback_instance(
-            5, callback_obj, recv_message, source_stamp, message_stamp)
+        if has_dispatch:
+            data.add_dispatch_subscription_callback_instance(
+                5, callback_obj, recv_message, source_stamp, message_stamp)
+        else:
+            data.add_rmw_take_instance(
+                tid,
+                5,
+                rmw_subscription_handle,
+                recv_message,
+                source_stamp
+            )
         data.add_callback_start_instance(tid, 16, callback_obj, False)
         data.add_callback_end_instance(tid, 17, callback_obj)
         data.finalize()
@@ -1738,7 +1769,9 @@ class TestSimTimeConverter:
 
         lttng = create_lttng(data)
         provider = RecordsProviderLttng(lttng)
-        converter = provider.get_sim_time_converter()
+        min_ns = 0
+        max_ns = 1
+        converter = provider.get_sim_time_converter(min_ns, max_ns)
 
         assert converter.convert(0) - 1.0 <= 1e-6
         assert converter.convert(1) - 2.0 <= 1e-6

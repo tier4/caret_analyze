@@ -15,8 +15,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from .callback import CallbackStruct
 
 from ...value_objects.callback_group import CallbackGroupStructValue, CallbackGroupType
@@ -29,7 +27,7 @@ class CallbackGroupStruct():
         self,
         callback_group_type: CallbackGroupType,
         node_name: str,
-        callbacks: List[CallbackStruct],
+        callbacks: list[CallbackStruct],
         callback_group_name: str
     ) -> None:
         """
@@ -41,7 +39,7 @@ class CallbackGroupStruct():
             callback group type
         node_name: str
             node name
-        callbacks: Tuple[CallbackStruct, ...]
+        callbacks: tuple[CallbackStruct, ...]
             callbacks
         callback_group_name: str
             callback group name
@@ -98,11 +96,11 @@ class CallbackGroupStruct():
         return self._node_name
 
     @property
-    def callbacks(self) -> List[CallbackStruct]:
+    def callbacks(self) -> list[CallbackStruct]:
         return self._callbacks
 
     @property
-    def callback_names(self) -> List[str]:
+    def callback_names(self) -> list[str]:
         return [i.callback_name for i in self._callbacks]
 
     def to_value(self) -> CallbackGroupStructValue:

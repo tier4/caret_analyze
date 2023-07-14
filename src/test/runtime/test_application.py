@@ -21,6 +21,7 @@ from caret_analyze.runtime.callback import CallbackBase
 from caret_analyze.runtime.communication import Communication
 from caret_analyze.runtime.executor import Executor
 from caret_analyze.runtime.node import Node
+from caret_analyze.runtime.node_path import NodePath
 from caret_analyze.runtime.path import Path
 from caret_analyze.runtime.runtime_loaded import RuntimeLoaded
 
@@ -71,12 +72,19 @@ class TestApplication:
         comm_mock = mocker.Mock(spec=Communication)
         callback_mock = mocker.Mock(spec=CallbackBase)
         records_assigned_mock = mocker.Mock(spec=RuntimeLoaded)
+        node_path_mock = mocker.Mock(spec=NodePath)
 
         # patch mocks
+        mocker.patch.object(node_path_mock, 'node_name', 'node_name_')
+        mocker.patch.object(node_path_mock, 'publish_topic_name', 'publish_topic_name_')
+        mocker.patch.object(node_path_mock, 'subscribe_topic_name', 'subscribe_topic_name_')
+        mocker.patch.object(node_path_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_mock, 'subscription_construction_order', 0)
         mocker.patch.object(
             callback_mock, 'callback_name', 'callback_name_')
         mocker.patch.object(node_mock, 'node_name', 'node_name_')
         mocker.patch.object(node_mock, 'callbacks', [callback_mock])
+        mocker.patch.object(node_mock, 'paths', [node_path_mock])
         mocker.patch.object(path_mock, 'path_name', 'path_name_')
         mocker.patch.object(comm_mock, 'publish_node_name',
                             'publish_node_name_')
@@ -84,6 +92,10 @@ class TestApplication:
             comm_mock, 'subscribe_node_name', 'subscribe_node_name_')
         mocker.patch.object(
             comm_mock, 'topic_name', 'topic_name')
+        mocker.patch.object(
+            comm_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(
+            comm_mock, 'subscription_construction_order', 0)
 
         mocker.patch('caret_analyze.runtime.runtime_loaded.RuntimeLoaded',
                      return_value=records_assigned_mock)
@@ -108,10 +120,40 @@ class TestApplication:
         assert app.get_node(node_mock.node_name) == node_mock
         assert app.get_callback(
             callback_mock.callback_name) == callback_mock
+
         assert app.get_communication(
             comm_mock.publish_node_name,
             comm_mock.subscribe_node_name,
-            comm_mock.topic_name) == comm_mock
+            comm_mock.topic_name,
+            publisher_construction_order=comm_mock.publisher_construction_order,
+            subscription_construction_order=comm_mock.subscription_construction_order) == \
+            comm_mock
+
+        with pytest.raises(ItemNotFoundError) as e:
+            app.get_communication(
+                comm_mock.publish_node_name,
+                comm_mock.subscribe_node_name,
+                comm_mock.topic_name,
+                publisher_construction_order=1,
+                subscription_construction_order=0)
+        assert 'publisher_construction_order' in str(e.value)
+
+        assert app.get_node_path(
+            node_path_mock.node_name,
+            node_path_mock.subscribe_topic_name,
+            node_path_mock.publish_topic_name,
+            subscription_construction_order=node_path_mock.subscription_construction_order,
+            publisher_construction_order=node_path_mock.publisher_construction_order) == \
+            node_path_mock
+
+        with pytest.raises(ItemNotFoundError) as e:
+            app.get_node_path(
+                node_path_mock.node_name,
+                node_path_mock.subscribe_topic_name,
+                node_path_mock.publish_topic_name,
+                subscription_construction_order=0,
+                publisher_construction_order=1)
+        assert 'publisher_construction_order' in str(e.value)
 
     def test_get_callbacks(self, mocker):
         # define mocks

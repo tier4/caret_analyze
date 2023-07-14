@@ -15,9 +15,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Sequence
 from functools import cached_property, lru_cache
 from logging import getLogger, WARN
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+
 
 from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
 from caret_analyze.value_objects.timer import TimerValue
@@ -51,10 +52,10 @@ class LttngInfo:
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iat(0, 0) if len(data.rmw_impl) > 0 else ''
 
-        self._id_to_topic: Dict[str, str] = {}
-        self._id_to_service: Dict[str, str] = {}
+        self._id_to_topic: dict[str, str] = {}
+        self._id_to_service: dict[str, str] = {}
 
-    def _get_timer_cbs_without_pub(self, node_id: str) -> List[TimerCallbackValueLttng]:
+    def _get_timer_cbs_without_pub(self, node_id: str) -> list[TimerCallbackValueLttng]:
         timer_cb_cache_without_pub = self._load_timer_cbs_without_pub()
 
         if node_id not in timer_cb_cache_without_pub:
@@ -62,7 +63,7 @@ class LttngInfo:
 
         return timer_cb_cache_without_pub[node_id]
 
-    def _get_sub_cbs_without_pub(self, node_id: str) -> List[SubscriptionCallbackValueLttng]:
+    def _get_sub_cbs_without_pub(self, node_id: str) -> list[SubscriptionCallbackValueLttng]:
         sub_cb_cache_without_pub = self._load_sub_cbs_without_pub()
 
         if node_id not in sub_cb_cache_without_pub:
@@ -70,7 +71,7 @@ class LttngInfo:
 
         return sub_cb_cache_without_pub[node_id]
 
-    def _get_srv_cbs_without_pub(self, node_id: str) -> List[ServiceCallbackValueLttng]:
+    def _get_srv_cbs_without_pub(self, node_id: str) -> list[ServiceCallbackValueLttng]:
         srv_cb_cache_without_pub = self._load_srv_cbs_without_pub()
 
         if node_id not in srv_cb_cache_without_pub:
@@ -91,8 +92,8 @@ class LttngInfo:
         return self._rmw_implementation
 
     @lru_cache
-    def _load_timer_cbs_without_pub(self) -> Dict[str, List[TimerCallbackValueLttng]]:
-        timer_cbs_info: Dict[str, List[TimerCallbackValueLttng]] = {}
+    def _load_timer_cbs_without_pub(self) -> dict[str, list[TimerCallbackValueLttng]]:
+        timer_cbs_info: dict[str, list[TimerCallbackValueLttng]] = {}
 
         for node in self.get_nodes():
             timer_cbs_info[node.node_id] = []
@@ -188,8 +189,8 @@ class LttngInfo:
     @lru_cache
     def _load_sub_cbs_without_pub(
         self
-    ) -> Dict[str, List[SubscriptionCallbackValueLttng]]:
-        sub_cbs_info: Dict[str, List[SubscriptionCallbackValueLttng]] = {}
+    ) -> dict[str, list[SubscriptionCallbackValueLttng]]:
+        sub_cbs_info: dict[str, list[SubscriptionCallbackValueLttng]] = {}
 
         for node in self.get_nodes():
             sub_cbs_info[node.node_id] = []
@@ -236,11 +237,11 @@ class LttngInfo:
     def _get_subscription_callback_values(
         self,
         node: NodeValue
-    ) -> List[SubscriptionCallbackValueLttng]:
+    ) -> list[SubscriptionCallbackValueLttng]:
         node_id = node.node_id
         assert node_id is not None
 
-        sub_cbs_info: List[SubscriptionCallbackValueLttng]
+        sub_cbs_info: list[SubscriptionCallbackValueLttng]
         sub_cbs_info = self._get_sub_cbs_without_pub(node_id)
         return sub_cbs_info
 
@@ -272,14 +273,14 @@ class LttngInfo:
         return self._get_subscription_callback_values(node_lttng)
 
     @property
-    def tilde_sub_id_map(self) -> Dict[int, int]:
+    def tilde_sub_id_map(self) -> dict[int, int]:
         return self._formatted.tilde_sub_id_map
 
     @lru_cache
     def _load_srv_cbs_without_pub(
         self
-    ) -> Dict[str, List[ServiceCallbackValueLttng]]:
-        srv_cbs_info: Dict[str, List[ServiceCallbackValueLttng]] = {}
+    ) -> dict[str, list[ServiceCallbackValueLttng]]:
+        srv_cbs_info: dict[str, list[ServiceCallbackValueLttng]] = {}
 
         for node in self.get_nodes():
             srv_cbs_info[node.node_id] = []
@@ -313,11 +314,11 @@ class LttngInfo:
     def _get_service_callback_values(
         self,
         node: NodeValue
-    ) -> List[ServiceCallbackValueLttng]:
+    ) -> list[ServiceCallbackValueLttng]:
         node_id = node.node_id
         assert node_id is not None
 
-        srv_cbs_info: List[ServiceCallbackValueLttng]
+        srv_cbs_info: list[ServiceCallbackValueLttng]
         srv_cbs_info = self._get_srv_cbs_without_pub(node_id)
 
         return srv_cbs_info
@@ -350,11 +351,11 @@ class LttngInfo:
         return self._get_service_callback_values(node_lttng)
 
     @lru_cache
-    def _get_publishers(self, node: NodeValueLttng) -> List[PublisherValueLttng]:
+    def _get_publishers(self, node: NodeValueLttng) -> list[PublisherValueLttng]:
         node_id = node.node_id
         return self._get_publishers_without_cb_bind(node_id)
 
-    def get_publishers(self, node: NodeValue) -> List[PublisherValueLttng]:
+    def get_publishers(self, node: NodeValue) -> list[PublisherValueLttng]:
         """
         Get publishers information.
 
@@ -365,7 +366,7 @@ class LttngInfo:
 
         Returns
         -------
-        List[PublisherInfo]
+        list[PublisherInfo]
 
         """
         if node.node_id is None:
@@ -384,7 +385,7 @@ class LttngInfo:
     ) -> Sequence[NodeValueLttng]:
         return Util.filter_items(lambda x: x.node_name == node_name, self.get_nodes())
 
-    def _get_publishers_without_cb_bind(self, node_id: str) -> List[PublisherValueLttng]:
+    def _get_publishers_without_cb_bind(self, node_id: str) -> list[PublisherValueLttng]:
         """
         Get publishers information.
 
@@ -395,7 +396,7 @@ class LttngInfo:
 
         Returns
         -------
-        List[PublisherInfo]
+        list[PublisherInfo]
 
         """
         pub = self._formatted.publishers.clone()
@@ -420,7 +421,8 @@ class LttngInfo:
                     node_id=row['node_id'],
                     callback_ids=None,
                     publisher_handle=row['publisher_handle'],
-                    tilde_publisher=tilde_publisher
+                    tilde_publisher=tilde_publisher,
+                    construction_order=row['construction_order']
                 )
             )
 
@@ -444,7 +446,7 @@ class LttngInfo:
     def _get_callback_groups(
         self,
         node_id: str
-    ) -> List[CallbackGroupValueLttng]:
+    ) -> list[CallbackGroupValueLttng]:
         concat_target_dfs = []
         concat_target_dfs.append(self._formatted.timer_callbacks.clone())
         concat_target_dfs.append(self._formatted.subscription_callbacks.clone())
@@ -461,7 +463,7 @@ class LttngInfo:
             merge(concat, nodes, 'node_handle')
             merge(concat, callback_groups, 'callback_group_addr')
 
-            callback_groups_values: List[CallbackGroupValueLttng] = []
+            callback_groups_values: list[CallbackGroupValueLttng] = []
             for _, group_df in concat.df.groupby('callback_group_addr'):
                 row = group_df.iloc[0, :]
                 node_id_ = row['node_id']
@@ -496,7 +498,7 @@ class LttngInfo:
 
         Returns
         -------
-        List[CallbackGroupInfo]
+        list[CallbackGroupInfo]
 
         """
         if node.node_id is None:
@@ -509,13 +511,13 @@ class LttngInfo:
         node_lttng = NodeValueLttng(node.node_name, node.node_id)
         return self._get_callback_groups(node_lttng.node_id)
 
-    def get_executors(self) -> List[ExecutorValue]:
+    def get_executors(self) -> list[ExecutorValue]:
         """
         Get executors information.
 
         Returns
         -------
-        List[ExecutorInfo]
+        list[ExecutorInfo]
 
         """
         executor = self._formatted.executor.clone()
@@ -570,13 +572,14 @@ class LttngInfo:
             timers = []
             for callback in callbacks:
                 timers.append(
-                        TimerValue(
-                            period=callback.period_ns,
-                            node_name=callback.node_name,
-                            node_id=callback.node_id,
-                            callback_id=callback.callback_id,
-                        )
+                    TimerValue(
+                        period=callback.period_ns,
+                        node_name=callback.node_name,
+                        node_id=callback.node_id,
+                        callback_id=callback.callback_id,
+                        construction_order=callback.construction_order
                     )
+                )
 
             return timers
         except ValueError:
@@ -584,7 +587,7 @@ class LttngInfo:
 
     def get_timer_controls(self) -> Sequence[TimerControl]:
         timer_controls = self._formatted.timer_controls.clone()
-        controls: List[TimerControl] = []
+        controls: list[TimerControl] = []
         for _, row in timer_controls.df.iterrows():
             if row['type'] == 'init':
                 params = row['params']
@@ -615,8 +618,8 @@ class DataFrameFormatted:
         self._timer_control = self._build_timer_control(data)
 
     @cached_property
-    def tilde_sub_id_map(self) -> Dict[int, int]:
-        d: Dict[int, int] = {}
+    def tilde_sub_id_map(self) -> dict[int, int]:
+        d: dict[int, int] = {}
         for _, row in self._tilde_sub_id_to_sub.df.iterrows():
             d[row['subscription_id']] = row['tilde_subscription']
         return d
@@ -802,9 +805,15 @@ class DataFrameFormatted:
     def _build_publisher(
         data: Ros2DataModel,
     ) -> TracePointData:
-        columns = ['publisher_id', 'publisher_handle', 'node_handle', 'topic_name', 'depth']
+        columns = (
+            ['publisher_id', 'publisher_handle', 'node_handle',
+             'topic_name', 'depth', 'construction_order']
+        )
         publishers = data.publishers.clone()
         publishers.reset_index()
+
+        DataFrameFormatted._add_construction_order_publisher_or_subscription(
+            publishers, 'construction_order', 'timestamp', 'node_handle', 'topic_name')
 
         def to_publisher_id(row: pd.Series):
             publisher_handle = row['publisher_handle']
@@ -1015,7 +1024,7 @@ class DataFrameFormatted:
 
         return subscriptions
 
-    KeyType = Tuple[Union[int, str], Union[int, str], Union[str, int]]
+    KeyType = tuple[int | str, int | str, str | int]
 
     @staticmethod
     def _add_construction_order(
@@ -1028,13 +1037,36 @@ class DataFrameFormatted:
     ) -> None:
 
         data.sort(timestamp_column)
-        order: defaultdict[DataFrameFormatted.KeyType, int] = defaultdict(int)
+        order: dict[DataFrameFormatted.KeyType, int] = defaultdict(int)
 
         def construct_order(row: pd.Series) -> int:
             node = row[node_handle_column]
             callback_param = row[callback_parameter_column]
             symbol = row[symbol_column]
             key: DataFrameFormatted.KeyType = node, callback_param, symbol
+            order_ = int(order[key])
+            order[key] += 1
+            return order_
+
+        data.add_column(column_name, construct_order)
+
+    KeyTypePubSub = tuple[int | str, str | int]
+
+    @staticmethod
+    def _add_construction_order_publisher_or_subscription(
+        data: TracePointData,
+        column_name: str,
+        timestamp_column: str,
+        node_handle_column: str,
+        topic_name: str
+    ) -> None:
+
+        data.sort(timestamp_column)
+        order: dict[DataFrameFormatted.KeyTypePubSub, int] = defaultdict(int)
+
+        def construct_order(row: pd.Series) -> int:
+            node = row[node_handle_column]
+            key: DataFrameFormatted.KeyTypePubSub = node, row[topic_name]
             order_ = int(order[key])
             order[key] += 1
             return order_
@@ -1296,8 +1328,8 @@ def merge(
     left_data: TracePointData,
     right_data: TracePointData,
     on,
-    how: Optional[str] = None,
-    merge_drop_columns: Optional[List[str]] = None
+    how: str | None = None,
+    merge_drop_columns: list[str] | None = None
 ):
     how = how or 'inner'
     merge_drop_columns = merge_drop_columns or ['timestamp', 'tid', 'rmw_handle']

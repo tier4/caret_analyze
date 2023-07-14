@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List
+from __future__ import annotations
 
 from caret_analyze.architecture.architecture_exporter import (ArchitectureExporter,
                                                               CallbackDicts,
@@ -57,7 +57,7 @@ class TestArchitectureExporter:
                      return_value=node_mock)
         mocker.patch.object(node_mock, 'data', [])
 
-        expected: Dict[str, List] = {
+        expected: dict[str, list] = {
             'named_paths': [],
             'executors': [],
             'nodes': []
@@ -162,6 +162,8 @@ class TestNamedPathsDicts:
         mocker.patch.object(node_path_mock, 'publish_topic_name', 'pub_topic')
         mocker.patch.object(
             node_path_mock, 'subscribe_topic_name', 'sub_topic')
+        mocker.patch.object(node_path_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_mock, 'subscription_construction_order', 0)
 
         path_dict = NamedPathsDicts([path_info_mock])
         expect = [
@@ -189,6 +191,8 @@ class TestNamedPathsDicts:
         mocker.patch.object(node_path_mock, 'node_name', 'node')
         mocker.patch.object(node_path_mock, 'publish_topic_name', None)
         mocker.patch.object(node_path_mock, 'subscribe_topic_name', None)
+        mocker.patch.object(node_path_mock, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path_mock, 'subscription_construction_order', 0)
 
         path_dict = NamedPathsDicts([path_info_mock])
         expect = [
@@ -199,6 +203,38 @@ class TestNamedPathsDicts:
                         'node_name': 'node',
                         'publish_topic_name': UNDEFINED_STR,
                         'subscribe_topic_name': UNDEFINED_STR
+                    }
+                ]
+            }
+        ]
+        assert path_dict.data == expect
+
+    def test_construction_order(self, mocker):
+        path_info_mock = mocker.Mock(spec=PathStructValue)
+        node_path_mock = mocker.Mock(spec=NodePathStructValue)
+
+        mocker.patch.object(path_info_mock, 'path_name', 'target_path')
+        mocker.patch.object(
+            path_info_mock, 'node_paths', [node_path_mock])
+
+        mocker.patch.object(node_path_mock, 'node_name', 'node')
+        mocker.patch.object(node_path_mock, 'publish_topic_name', 'pub_topic')
+        mocker.patch.object(
+            node_path_mock, 'subscribe_topic_name', 'sub_topic')
+        mocker.patch.object(node_path_mock, 'publisher_construction_order', 1)
+        mocker.patch.object(node_path_mock, 'subscription_construction_order', 1)
+
+        path_dict = NamedPathsDicts([path_info_mock])
+        expect = [
+            {
+                'path_name': 'target_path',
+                'node_chain': [
+                    {
+                        'node_name': 'node',
+                        'publish_topic_name': 'pub_topic',
+                        'subscribe_topic_name': 'sub_topic',
+                        'publisher_construction_order': 1,
+                        'subscription_construction_order': 1
                     }
                 ]
             }
@@ -491,6 +527,7 @@ class TestSubDicts:
         sub_info = mocker.Mock(spec=SubscriptionStructValue)
         mocker.patch.object(sub_info, 'topic_name', 'topic')
         mocker.patch.object(sub_info, 'callback_name', 'callback')
+        mocker.patch.object(sub_info, 'construction_order', 0)
         sub_dict = SubDicts((sub_info,))
 
         expect = [{
@@ -504,6 +541,7 @@ class TestSubDicts:
         sub_info = mocker.Mock(spec=SubscriptionStructValue)
         mocker.patch.object(sub_info, 'topic_name', 'topic')
         mocker.patch.object(sub_info, 'callback_name', None)
+        mocker.patch.object(sub_info, 'construction_order', 0)
 
         sub_dict = SubDicts((sub_info,))
         expect = [{
@@ -526,6 +564,10 @@ class TestSubDicts:
         mocker.patch.object(sub_mock_1, 'callback_name', None)
         mocker.patch.object(sub_mock_2, 'callback_name', None)
 
+        mocker.patch.object(sub_mock_0, 'construction_order', 0)
+        mocker.patch.object(sub_mock_1, 'construction_order', 0)
+        mocker.patch.object(sub_mock_2, 'construction_order', 0)
+
         sub_dict = SubDicts((sub_mock_1, sub_mock_2, sub_mock_0,))
 
         expect = [
@@ -536,6 +578,21 @@ class TestSubDicts:
 
         assert sub_dict.data == expect
 
+    def test_construction_order(self, mocker):
+        sub_info = mocker.Mock(spec=SubscriptionStructValue)
+        mocker.patch.object(sub_info, 'topic_name', 'topic')
+        mocker.patch.object(sub_info, 'callback_name', None)
+        mocker.patch.object(sub_info, 'construction_order', 1)
+        sub_dict = SubDicts((sub_info,))
+
+        expect = [{
+            'topic_name': 'topic',
+            'callback_name': UNDEFINED_STR,
+            'construction_order': 1,
+        }]
+
+        assert sub_dict.data == expect
+
 
 class TestPubDicts:
 
@@ -543,6 +600,7 @@ class TestPubDicts:
         pub_info = mocker.Mock(spec=PublisherStructValue)
         mocker.patch.object(pub_info, 'topic_name', 'topic')
         mocker.patch.object(pub_info, 'callback_names', ('callback',))
+        mocker.patch.object(pub_info, 'construction_order', 0)
         pub_dict = PubDicts((pub_info,))
 
         expect = [{
@@ -556,6 +614,7 @@ class TestPubDicts:
         pub_info = mocker.Mock(spec=PublisherStructValue)
         mocker.patch.object(pub_info, 'topic_name', 'topic')
         mocker.patch.object(pub_info, 'callback_names', None)
+        mocker.patch.object(pub_info, 'construction_order', 0)
         pub_dict = PubDicts((pub_info,))
 
         expect = [{
@@ -578,6 +637,10 @@ class TestPubDicts:
         mocker.patch.object(pub_mock_1, 'callback_names', None)
         mocker.patch.object(pub_mock_2, 'callback_names', None)
 
+        mocker.patch.object(pub_mock_0, 'construction_order', 0)
+        mocker.patch.object(pub_mock_1, 'construction_order', 0)
+        mocker.patch.object(pub_mock_2, 'construction_order', 0)
+
         pub_dict = PubDicts((pub_mock_1, pub_mock_2, pub_mock_0))
 
         expect = [
@@ -585,6 +648,21 @@ class TestPubDicts:
             {'topic_name': 'B', 'callback_names': [UNDEFINED_STR]},
             {'topic_name': 'C', 'callback_names': [UNDEFINED_STR]},
         ]
+
+        assert pub_dict.data == expect
+
+    def test_construction_order(self, mocker):
+        pub_info = mocker.Mock(spec=PublisherStructValue)
+        mocker.patch.object(pub_info, 'topic_name', 'topic')
+        mocker.patch.object(pub_info, 'callback_names', None)
+        mocker.patch.object(pub_info, 'construction_order', 1)
+        pub_dict = PubDicts((pub_info,))
+
+        expect = [{
+            'topic_name': 'topic',
+            'callback_names': [UNDEFINED_STR],
+            'construction_order': 1,
+        }]
 
         assert pub_dict.data == expect
 

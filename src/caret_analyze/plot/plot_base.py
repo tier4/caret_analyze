@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from typing import Optional
 
 from bokeh.plotting import Figure, save, show
 from bokeh.resources import CDN
@@ -32,22 +33,52 @@ class PlotBase(metaclass=ABCMeta):
         self,
         xaxis_type: str
     ) -> pd.DataFrame:
+        """
+        Get data in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+
+        Returns
+        -------
+        pd.DataFrame
+
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def figure(
         self,
-        xaxis_type: Optional[str],
-        ywheel_zoom: Optional[bool],
-        full_legends: Optional[bool]
+        xaxis_type: str | None,
+        ywheel_zoom: bool | None,
+        full_legends: bool | None
     ) -> Figure:
+        """
+        Get bokeh.plotting.Figure object.
+
+        Parameters
+        ----------
+        xaxis_type : str | None
+            Type of time for timestamp.
+        ywheel_zoom : bool | None
+            If True, the drawn graph can be expanded in the y-axis direction.
+        full_legends : bool | None
+            If True, all legends are drawn even if the number of legends exceeds the threshold.
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+
+        """
         raise NotImplementedError()
 
     def show(
         self,
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None,
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None,
         # TODO: add interactive option
     ) -> None:
         """
@@ -78,9 +109,9 @@ class PlotBase(metaclass=ABCMeta):
         self,
         export_path: str,
         title: str = '',
-        xaxis_type: Optional[str] = None,
-        ywheel_zoom: Optional[bool] = None,
-        full_legends: Optional[bool] = None
+        xaxis_type: str | None = None,
+        ywheel_zoom: bool | None = None,
+        full_legends: bool | None = None
     ) -> None:
         """
         Export a graph using the bokeh library.
