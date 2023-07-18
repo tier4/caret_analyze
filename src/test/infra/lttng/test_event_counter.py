@@ -141,24 +141,37 @@ class TestEventCounter:
                 assert 'caret-rclcpp' in caplog.messages[0]
                 assert 'please ignore this message.' in caplog.messages[0]
 
+    @pytest.mark.parametrize(
+        'use_caret_rclcpp',
+        [False, True],
+    )
     def test_check_original_rclcpp_publish(
         self,
         caplog,
         mocker,
+        use_caret_rclcpp,
     ):
         data = Ros2DataModel()
         # pass rclcpp-check
         data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
         data.add_rmw_take_instance(0, 0, 0, 0, 0)  # pass rmw_take check
-        data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)  # set publisher_handle to 0
+        if use_caret_rclcpp:
+            data.add_rclcpp_publish_instance(0, 0, 1, 0, 0)  # set publisher_handle to non-zero
+        else:
+            data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)  # set publisher_handle to 0
         data.finalize()
 
         logger = getLogger('caret_analyze.infra.lttng.event_counter')
         logger.propagate = True
 
-        with caplog.at_level(WARNING):
-            EventCounter(data)
-            assert 'without caret-rclcpp' in caplog.messages[0]
+        if use_caret_rclcpp:
+            with caplog.at_level(WARNING):
+                EventCounter(data)
+                assert len(caplog.messages) == 0
+        else:
+            with caplog.at_level(WARNING):
+                EventCounter(data)
+                assert 'without caret-rclcpp' in caplog.messages[0]
 
     def test_validation_valid_case(
         self,
