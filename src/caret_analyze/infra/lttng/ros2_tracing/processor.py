@@ -108,6 +108,7 @@ class Ros2Handler():
         handler_map['ros2:message_construct'] = self._handle_message_construct
         handler_map['ros2:rclcpp_intra_publish'] = self._handle_rclcpp_intra_publish
         handler_map['ros2:rclcpp_ring_buffer_enqueue'] = self._handle_rclcpp_ring_buffer_enqueue
+        handler_map['ros2:rclcpp_ring_buffer_dequeue'] = self._handle_rclcpp_ring_buffer_dequeue
         handler_map['ros2:rclcpp_buffer_to_ipb'] = self._handle_rclcpp_buffer_to_ipb
         handler_map['ros2:rclcpp_ipb_to_subscription'] = self._handle_rclcpp_ipb_to_subscription
         handler_map['ros2:rclcpp_construct_ring_buffer'] = \
