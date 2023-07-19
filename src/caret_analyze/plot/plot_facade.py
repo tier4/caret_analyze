@@ -26,6 +26,10 @@ from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
                        Path, Publisher, Subscription)
+from bokeh.plotting import Figure, show
+from caret_analyze.record import Latency
+from numpy import histogram
+from bokeh.models import HoverTool
 
 logger = getLogger(__name__)
 
@@ -272,4 +276,24 @@ class Plot:
         plot = MessageFlowPlotFactory.create_instance(
             target_path, visualize_lib, granularity, treat_drop_as_delay, lstrip_s, rstrip_s
         )
+        return plot
+    
+    @staticmethod
+    def create_latency_histgram_plot(
+        target_object: CallbackBase
+    ) -> Figure:
+        
+        latency_records = Latency(target_object.to_records())
+        latencies = [d.data['latency'] for d in latency_records.to_records()]
+
+        hist, bins = histogram(latencies, 20)
+
+        plot = Figure(title="histgram", x_axis_label='x', y_axis_label='y')
+        quad = plot.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:], line_color='white', alpha=0.5, legend_label=target_object.callback_name)
+        plot.legend.title = 'Legend'
+        plot.legend.location = 'top_right'
+        plot.legend.label_text_font_size = '12pt'
+        hover = HoverTool(tooltips=[("x", '@left'), ("y", "@top")], renderers=[quad])
+        plot.add_tools(hover)
+        show(plot)
         return plot
