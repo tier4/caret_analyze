@@ -50,7 +50,7 @@ try:
                 '<EXPECT_TYPE>'
 
         """
-        expected_types: list[str] = []
+        expected_types: list[str | int | float] = []
         for error in e.errors():
             if error['type'] == 'type_error.arbitrary_type':  # Custom class type case
                 expected_types.append(error['ctx']['expected_arbitrary_type'])
