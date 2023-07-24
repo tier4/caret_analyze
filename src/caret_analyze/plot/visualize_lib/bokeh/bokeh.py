@@ -28,6 +28,12 @@ from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
+from bokeh.plotting import Figure, show
+from caret_analyze.record import Latency
+from numpy import histogram
+from bokeh.models import HoverTool
+from ....record.interface import RecordsInterface
+
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 logger = getLogger(__name__)
@@ -143,7 +149,7 @@ class Bokeh(VisualizeLibInterface):
         xaxis_type : str
             Type of x-axis of the line graph to be plotted.
             "system_time", "index", or "sim_time" can be specified.
-            The default is "system_time".
+            The default is "systeadd_toolsm_time".
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
             by the mouse wheel.
@@ -159,3 +165,20 @@ class Bokeh(VisualizeLibInterface):
         """
         timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends)
         return timeseries.create_figure()
+    
+    def histgram(
+        self,
+        metrics: list[RecordsInterface],
+        callback_name: str
+    ) -> Figure:
+        latencies = [d.data['latency'] for d in metrics]
+        hist, bins = histogram(latencies, 20)
+        plot = Figure(title='histgram', x_axis_label='x', y_axis_label='y')
+        quad = plot.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:], line_color='white', alpha=0.5, legend_label=callback_name)
+        plot.legend.title = 'Legend'
+        plot.legend.location = 'top_right'
+        plot.legend.label_text_font_size = '12pt'
+        hover = HoverTool(tooltips=[('x', '@left'), ('y', '@top')], renderers=[quad])
+        plot.add_tools(hover)
+        show(plot)
+        return Figure()
