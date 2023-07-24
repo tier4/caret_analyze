@@ -149,7 +149,7 @@ class Bokeh(VisualizeLibInterface):
         xaxis_type : str
             Type of x-axis of the line graph to be plotted.
             "system_time", "index", or "sim_time" can be specified.
-            The default is "systeadd_toolsm_time".
+            The default is "system_time".
         ywheel_zoom : bool
             If True, the drawn graph can be expanded in the y-axis direction
             by the mouse wheel.
