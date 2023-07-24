@@ -68,8 +68,8 @@ class TestResponseTimeAll:
     def test_three_column_default_case(self):
         records_raw = [
             {'start': 0, 'middle': 1, 'end': 2},
-            {'start': 3, 'middle': 4, 'end': 5},
-            {'start': 11, 'middle': 12, 'end': 13}
+            {'start': 3, 'middle': 4, 'end': 6},
+            {'start': 11, 'middle': 13, 'end': 16}
         ]
         columns = [ColumnValue('start'), ColumnValue('ts'), ColumnValue('end')]
         records = create_records(records_raw, columns)
@@ -78,8 +78,8 @@ class TestResponseTimeAll:
 
         expect_raw = [
             {'start': 0, 'response_time': 2},
-            {'start': 3, 'response_time': 2},
-            {'start': 11, 'response_time': 2}
+            {'start': 3, 'response_time': 3},
+            {'start': 11, 'response_time': 5}
         ]
         result = to_dict(response_time.to_all_records())
         assert result == expect_raw
