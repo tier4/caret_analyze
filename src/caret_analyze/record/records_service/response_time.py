@@ -240,21 +240,25 @@ class ResponseMapAll:
         self._start_timestamps: list[int] = []
         self._end_timestamps: list[int] = []
 
-        for record in records:
-            if (self._start_column not in record.columns or
-                    self._end_column not in record.columns):
+        end_ts = None
+        for record in reversed(records.data):
+            if self._end_column in record.columns:
+                end_ts = record.get(self._end_column)
+            elif end_ts is None:
                 continue
 
+            if self._start_column not in record.columns:
+                continue
             start_ts = record.get(self._start_column)
-            end_ts = record.get(self._end_column)
+
             if start_ts in self._start_timestamps:
                 idx = self._start_timestamps.index(start_ts)
                 if end_ts < self._end_timestamps[idx]:
                     self._start_timestamps[idx] = start_ts
                     self._end_timestamps[idx] = end_ts
             else:
-                self._start_timestamps.append(start_ts)
-                self._end_timestamps.append(end_ts)
+                self._start_timestamps.insert(0, start_ts)
+                self._end_timestamps.insert(0, end_ts)
 
     def to_all_records(self) -> RecordsInterface:
         records = self._create_empty_records()

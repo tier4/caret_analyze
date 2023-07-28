@@ -122,9 +122,9 @@ class TestResponseTimeAll:
 
     def test_drop_case(self):
         records_raw = [
-            {'start': 0, 'middle': 4, 'end': 5},
-            {'start': 0, 'middle': 4},
-            {'start': 0, 'middle': 12, 'end': 13}
+            {'start': 0, 'middle': 4, 'end': 13},
+            {'start': 1, 'middle': 4},
+            {'start': 5, 'middle': 12, 'end': 13}
         ]
         columns = [ColumnValue('start'), ColumnValue('end')]
         records = create_records(records_raw, columns)
@@ -132,7 +132,9 @@ class TestResponseTimeAll:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 5}
+            {'start': 0, 'response_time': 13},
+            {'start': 1, 'response_time': 12},
+            {'start': 5, 'response_time': 8}
         ]
         result = to_dict(response_time.to_all_records())
         assert result == expect_raw
