@@ -547,8 +547,10 @@ class Ros2Handler():
     ) -> None:
         if not self._is_valid_data(event):
             return
-
-        publisher_handle = get_field(event, 'publisher_handle')
+        if 'publisher_handle' in event.keys():
+            publisher_handle = get_field(event, 'publisher_handle')
+        else:
+            publisher_handle = 0
         timestamp = get_field(event, '_timestamp')
         message = get_field(event, 'message')
         tid = get_field(event, '_vtid')
