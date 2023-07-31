@@ -548,10 +548,7 @@ class Ros2Handler():
         if not self._is_valid_data(event):
             return
 
-        if 'publisher_handle' in event.keys():
-            publisher_handle = get_field(event, 'publisher_handle')
-        else:
-            publisher_handle = 0
+        publisher_handle = get_field(event, 'publisher_handle')
         timestamp = get_field(event, '_timestamp')
         message = get_field(event, 'message')
         tid = get_field(event, '_vtid')
@@ -599,7 +596,10 @@ class Ros2Handler():
         message = get_field(event, 'message')
         publisher_handle = get_field(event, 'publisher_handle')
         timestamp = get_field(event, '_timestamp')
-        message_timestamp = get_field(event, 'message_timestamp')
+        if 'message_timestamp' in event.keys():
+            message_timestamp = get_field(event, 'message_timestamp')
+        else:
+            message_timestamp = 0
         tid = get_field(event, '_vtid')
         self.data.add_rclcpp_intra_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
