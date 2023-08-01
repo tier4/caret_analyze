@@ -342,7 +342,7 @@ class ResponseTime:
         # If necessary, please contact us.
         raise NotImplementedError()
 
-    def to_best_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
+    def to_best_case_records(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate the best-case time series data for response time.
 
@@ -354,9 +354,9 @@ class ResponseTime:
             input time[ns], latency[ns]
 
         """
-        return self._timeseries.to_best_case_timeseries()
+        return self._timeseries.to_best_case_records()
 
-    def to_worst_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
+    def to_worst_case_records(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculate the worst-case time series data for response time.
 
@@ -369,7 +369,7 @@ class ResponseTime:
             input time[ns], latency[ns]
 
         """
-        return self._timeseries.to_worst_case_timeseries()
+        return self._timeseries.to_worst_case_records()
 
     def to_histogram(
         self,
@@ -734,19 +734,19 @@ class ResponseTimeseries:
     ) -> None:
         self._records = response_records
 
-    def to_best_case_timeseries(self):
+    def to_best_case_records(self):
         records = self._records.to_range_records()
         input_column = records.columns[1]
         output_column = records.columns[-1]
-        return self._to_timeseries(input_column, output_column)
+        return self._to_records(input_column, output_column)
 
-    def to_worst_case_timeseries(self):
+    def to_worst_case_records(self):
         records = self._records.to_range_records()
         input_column = records.columns[0]
         output_column = records.columns[-1]
-        return self._to_timeseries(input_column, output_column)
+        return self._to_records(input_column, output_column)
 
-    def _to_timeseries(self, input_column, output_column):
+    def _to_records(self, input_column, output_column):
         records = self._records.to_range_records()
 
         t_ = records.get_column_series(input_column)
@@ -873,7 +873,7 @@ class ResponseHistogram:
             Occurs when the number of response latencies is insufficient.
 
         """
-        _, latency_ns = self._timeseries.to_best_case_timeseries()
+        _, latency_ns = self._timeseries.to_best_case_records()
         return self._to_histogram(latency_ns, binsize_ns, density)
 
     def to_worst_case_histogram(
@@ -908,7 +908,7 @@ class ResponseHistogram:
             Occurs when the number of response latencies is insufficient.
 
         """
-        _, latency_ns = self._timeseries.to_worst_case_timeseries()
+        _, latency_ns = self._timeseries.to_worst_case_records()
 
         return self._to_histogram(latency_ns, binsize_ns, density)
 
