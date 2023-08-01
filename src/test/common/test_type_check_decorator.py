@@ -54,7 +54,8 @@ class TestTypeCheckDecorator:
 
         with pytest.raises(UnsupportedTypeError) as e:
             union_arg(10)
-        assert "'u' must be ['bool_parsing', 'set_type']. The given argument type is 'int'" in str(e.value)
+        assert "'u' must be ['bool_parsing', 'set_type']. The given argument type is 'int'"\
+            in str(e.value)
 
     def test_type_check_decorator_iterable(self):
         @type_check_decorator

@@ -174,7 +174,8 @@ try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e)
-                loc_tuple = e.errors()[0]['loc'] if len(e.errors()) == 1 else e.errors()[0]['loc'][:-1]
+                loc_tuple = e.errors()[0]['loc'] if len(e.errors()) == 1\
+                    else e.errors()[0]['loc'][:-1]
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple)
                 given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple)
 
