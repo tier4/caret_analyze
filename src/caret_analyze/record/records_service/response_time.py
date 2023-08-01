@@ -319,7 +319,7 @@ class ResponseTime:
         # If necessary, please contact us.
         raise NotImplementedError()
 
-    def to_best_case_records(self) -> tuple[np.ndarray, np.ndarray]:
+    def to_best_case_records(self) -> RecordsInterface:
         """
         Calculate the best-case time series data for response time.
 
@@ -333,7 +333,7 @@ class ResponseTime:
         """
         return self._timeseries.to_best_case_records()
 
-    def to_worst_case_records(self) -> tuple[np.ndarray, np.ndarray]:
+    def to_worst_case_records(self) -> RecordsInterface:
         """
         Calculate the worst-case time series data for response time.
 
@@ -679,30 +679,41 @@ class ResponseTimeseries:
     ) -> None:
         self._records = response_records
 
-    def to_best_case_records(self):
+    def to_best_case_records(self) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[1]
         output_column = records.columns[-1]
         return self._to_records(input_column, output_column)
 
-    def to_worst_case_records(self):
+    def to_worst_case_records(self) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[0]
         output_column = records.columns[-1]
         return self._to_records(input_column, output_column)
 
-    def _to_records(self, input_column, output_column):
-        records = self._records.to_range_records()
+    def _to_records(self, input_column, output_column) -> RecordsInterface:
+        records: RecordsInterface = self._create_empty_records(input_column)
 
-        t_ = records.get_column_series(input_column)
-        t_in = np.array(t_, dtype=np.int64)
+        range_records = self._records.to_range_records()
+        t_in = range_records.get_column_series(input_column)
+        t_out = range_records.get_column_series(output_column)
 
-        t_out_ = records.get_column_series(output_column)
-        t_out = np.array(t_out_, dtype=np.int64)
+        for start_ts, end_ts in zip(t_in, t_out):
+            record = {
+                input_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
+            records.append(record)
 
-        latency = t_out - t_in
+        return records
 
-        return t_in, latency
+    def _create_empty_records(
+        self,
+        input_column: str
+    ) -> RecordsInterface:
+        return RecordsFactory.create_instance(columns=[
+            ColumnValue(input_column), ColumnValue('response_time')
+        ])
 
 
 class ResponseHistogram:
@@ -818,7 +829,7 @@ class ResponseHistogram:
             Occurs when the number of response latencies is insufficient.
 
         """
-        _, latency_ns = self._timeseries.to_best_case_records()
+        latency_ns = self._timeseries.to_best_case_records().get_column_series('response_time')
         return self._to_histogram(latency_ns, binsize_ns, density)
 
     def to_worst_case_histogram(
@@ -853,8 +864,7 @@ class ResponseHistogram:
             Occurs when the number of response latencies is insufficient.
 
         """
-        _, latency_ns = self._timeseries.to_worst_case_records()
-
+        latency_ns = self._timeseries.to_worst_case_records().get_column_series('response_time')
         return self._to_histogram(latency_ns, binsize_ns, density)
 
     @staticmethod

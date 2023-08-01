@@ -480,17 +480,13 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_records()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_records()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
     def test_single_flow_case(self):
         records_raw = [
@@ -501,17 +497,13 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_records()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_records()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
     def test_double_flow_case(self):
         records_raw = [
@@ -523,17 +515,17 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_records()
-        t_expect = [2]
-        latency_expect = [1]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = [
+            {'start_max': 2, 'response_time': 1}
+        ]
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_records()
-        t_expect = [0]
-        latency_expect = [3]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = [
+            {'start_min': 0, 'response_time': 3}
+        ]
+        assert to_dict(response_time) == expect
 
     def test_cross_flow_case(self):
         records_raw = [
@@ -547,17 +539,19 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_records()
-        t_expect = [3, 6]
-        latency_expect = [1, 0]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = [
+            {'start_max': 3, 'response_time': 1},
+            {'start_max': 6, 'response_time': 0}
+        ]
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_records()
-        t_expect = [0, 3]
-        latency_expect = [4, 3]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = [
+            {'start_min': 0, 'response_time': 4},
+            {'start_min': 3, 'response_time': 3}
+        ]
+        assert to_dict(response_time) == expect
 
     class TestMultiColumnCase:
         records_raw = [
@@ -601,15 +595,21 @@ class TestResponseTimeseries:
                 create_records(self.records_raw, self.columns),
                 columns=self.column_names
             )
-            best_case_input_time, latency = response.to_best_case_records()
-            assert list(best_case_input_time) == [20, 35]
-            assert list(latency) == [10, 10]
+            response_time = response.to_best_case_records()
+            expect = [
+                {'column0_max': 20, 'response_time': 10},
+                {'column0_max': 35, 'response_time': 10}
+            ]
+            assert to_dict(response_time) == expect
 
         def test_to_worst_case_timeseries(self):
             response = ResponseTime(
                 create_records(self.records_raw, self.columns),
                 columns=self.column_names
             )
-            worst_case_input_time, latency = response.to_worst_case_records()
-            assert list(worst_case_input_time) == [5, 20]
-            assert list(latency) == [25, 25]
+            response_time = response.to_worst_case_records()
+            expect = [
+                {'column0_min': 5, 'response_time': 25},
+                {'column0_min': 20, 'response_time': 25}
+            ]
+            assert to_dict(response_time) == expect
