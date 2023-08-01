@@ -276,29 +276,6 @@ class ResponseTime:
         self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records, self._timeseries)
 
-    def to_records(self, *, all_pattern=False) -> RecordsInterface:
-        """
-        Calculate response time records.
-
-        Parameters
-        ----------
-        all_pattern : bool, optional
-            If True, get response times with time overlap, by default False. [for debug]
-
-        Returns
-        -------
-        RecordsInterface
-            response time records.
-            The best and worst cases alternate line by line.
-            Columns
-            - {columns[0]}
-            - {columns[1]}
-            - {...}
-            - {columns[n-1]}
-
-        """
-        return self._records.to_records(all_pattern)
-
     def to_response_records(self) -> RecordsInterface:
         """
         Calculate response records.
@@ -455,38 +432,6 @@ class ResponseRecords:
 
         """
         self._response_map = response_map
-
-    def to_records(
-        self,
-        all_pattern: bool
-    ) -> RecordsInterface:
-        """
-        Calculate records.
-
-        Parameters
-        ----------
-        all_pattern : bool
-            Calculate response times with time overlap, by default False. [for debug]
-
-        Returns
-        -------
-        RecordsInterface
-            response time.
-            The best and worst cases alternate line by line.
-            Columns
-            - {columns[0]}
-            - {columns[1]}
-            - {...}
-            - {columns[n-1]}
-
-        """
-        if len(self._response_map) == 0:
-            return self._create_empty_records()
-
-        if all_pattern:
-            return self._create_all_pattern_records()
-
-        return self._create_response_records()
 
     def to_range_records(
         self,
