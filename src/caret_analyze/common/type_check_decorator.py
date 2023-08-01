@@ -52,10 +52,10 @@ try:
         """
         expected_types: list[str | int | float] = []
         for error in e.errors():
-            if error['type'] == 'type_error.arbitrary_type':  # Custom class type case
-                expected_types.append(error['ctx']['expected_arbitrary_type'])
+            if error['type'] == 'is_instance_of':  # Custom class type case
+                expected_types.append(error['ctx']['class'])
             else:
-                expected_types.append(error['type'].replace('type_error.', ''))
+                expected_types.append(error['type'])
 
         if len(expected_types) > 1:  # Union case
             expected_types_str = str(expected_types)
@@ -174,7 +174,7 @@ try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e)
-                loc_tuple = e.errors()[0]['loc']
+                loc_tuple = e.errors()[0]['loc'] if len(e.errors()) == 1 else e.errors()[0]['loc'][:-1]
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple)
                 given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple)
 
