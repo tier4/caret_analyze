@@ -79,6 +79,15 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
+        error_type: str
+            (i) Dict case
+                'DictArg'
+
+            (ii) Iterable type except for dict case
+                'IterableArg'
+
+            (iii) Not iterable type case
+                other
 
         Returns
         -------
@@ -127,6 +136,15 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
+        error_type: str
+            (i) Dict case
+                'DictArg'
+
+            (ii) Iterable type except for dict case
+                'IterableArg'
+
+            (iii) Not iterable type case
+                other
 
         Returns
         -------
@@ -177,7 +195,8 @@ try:
                 error_type = e.title
                 loc_tuple = e.errors()[0]['loc']
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, error_type)
-                given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple, error_type)
+                given_arg_type \
+                    = _get_given_arg_type(signature(func), args, kwargs, loc_tuple, error_type)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
