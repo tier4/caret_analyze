@@ -54,7 +54,7 @@ try:
 
         """
         error = e.errors()[0]
-        invalid_arg_name: str = error['loc'][0]
+        invalid_arg_name: str | int = error['loc'][0]
         expected_types: list[str] \
             = str(signature.parameters[invalid_arg_name].annotation).split(' | ')
 
