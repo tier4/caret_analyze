@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from functools import wraps
 from inspect import Signature, signature
+from re import findall
 from typing import Any
 
 from ..exceptions import UnsupportedTypeError
@@ -24,7 +25,7 @@ from ..exceptions import UnsupportedTypeError
 try:
     from pydantic import validate_arguments, ValidationError
 
-    def _get_expected_types(e: ValidationError) -> str:
+    def _get_expected_types(e: ValidationError, func: function) -> str:
         """
         Get expected types.
 
@@ -50,12 +51,14 @@ try:
                 '<EXPECT_TYPE>'
 
         """
-        expected_types: list[str | int | float] = []
-        for error in e.errors():
-            if error['type'] == 'is_instance_of':  # Custom class type case
-                expected_types.append(error['ctx']['class'])
-            else:
-                expected_types.append(error['type'])
+        error = e.errors()[0]
+        invalid_arg_name: str = error['loc'][0]
+        expected_types: list[str] = str(func.__annotations__[invalid_arg_name]).split(' | ')
+
+        if e.title == 'IterableArg':
+            expected_types = sum([findall('.*\[(.*)\]', t) for t in expected_types], [])
+        if e.title == 'DictArg':
+            expected_types = sum([findall('.*\[.*, (.*)\]', t) for t in expected_types], [])
 
         if len(expected_types) > 1:  # Union case
             expected_types_str = str(expected_types)
@@ -173,7 +176,7 @@ try:
             try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
-                expected_types = _get_expected_types(e)
+                expected_types = _get_expected_types(e, func)
                 loc_tuple = e.errors()[0]['loc'] if len(e.errors()) == 1\
                     else e.errors()[0]['loc'][:-1]
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple)
