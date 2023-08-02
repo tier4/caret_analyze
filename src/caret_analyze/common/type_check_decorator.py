@@ -25,7 +25,7 @@ from ..exceptions import UnsupportedTypeError
 try:
     from pydantic import validate_arguments, ValidationError
 
-    def _get_expected_types(e: ValidationError, func: function) -> str:
+    def _get_expected_types(e: ValidationError, signature: Signature) -> str:
         """
         Get expected types.
 
@@ -40,6 +40,8 @@ try:
             (ii) Custom class type case:
                 {'type': 'type_error.arbitrary_type',
                 'ctx': {'expected_arbitrary_type': '<EXPECT_TYPE>'}, ...}
+        signature: Signature
+            Signature of target function.
 
         Returns
         -------
@@ -53,12 +55,13 @@ try:
         """
         error = e.errors()[0]
         invalid_arg_name: str = error['loc'][0]
-        expected_types: list[str] = str(func.__annotations__[invalid_arg_name]).split(' | ')
+        expected_types: list[str] \
+            = str(signature.parameters[invalid_arg_name].annotation).split(' | ')
 
         if e.title == 'IterableArg':
-            expected_types = sum([findall('.*\[(.*)\]', t) for t in expected_types], [])
+            expected_types = sum([findall(r'.*\[(.*)\]', t) for t in expected_types], [])
         if e.title == 'DictArg':
-            expected_types = sum([findall('.*\[.*, (.*)\]', t) for t in expected_types], [])
+            expected_types = sum([findall(r'.*\[.*, (.*)\]', t) for t in expected_types], [])
 
         if len(expected_types) > 1:  # Union case
             expected_types_str = str(expected_types)
@@ -67,7 +70,7 @@ try:
 
         return expected_types_str
 
-    def _get_given_arg_loc_str(given_arg_loc: tuple) -> str:
+    def _get_given_arg_loc_str(given_arg_loc: tuple, error_type: str) -> str:
         """
         Get given argument location string.
 
@@ -82,6 +85,15 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
+        error_type: str
+            (i) Dict case
+                'DictArg'
+
+            (ii) Iterable type except for dict case
+                'IterableArg'
+
+            (iii) Not iterable type case
+                other
 
         Returns
         -------
@@ -96,7 +108,7 @@ try:
                 '<ARGUMENT_NAME>'[KEY]
 
         """
-        if len(given_arg_loc) == 2:  # Iterable type case
+        if error_type == 'IterableArg' or error_type == 'DictArg':  # Iterable type case
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
@@ -107,7 +119,8 @@ try:
         signature: Signature,
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
-        given_arg_loc: tuple
+        given_arg_loc: tuple,
+        error_type: str
     ) -> str:
         """
         Get given argument type.
@@ -129,6 +142,15 @@ try:
 
             (ii) Dict case
                 ('<ARGUMENT_NAME>', '<KEY>')
+        error_type: str
+            (i) Dict case
+                'DictArg'
+
+            (ii) Iterable type except for dict case
+                'IterableArg'
+
+            (iii) Not iterable type case
+                other
 
         Returns
         -------
@@ -157,11 +179,10 @@ try:
             given_arg_idx = list(signature.parameters.keys()).index(arg_name)
             given_arg = args[given_arg_idx]
 
-        if len(given_arg_loc) == 2:  # Iterable type case
-            if isinstance(given_arg, dict):
-                given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
-            else:
-                given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
+        if error_type == 'DictArg':
+            given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
+        elif error_type == 'IterableArg':
+            given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
         else:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
@@ -176,11 +197,12 @@ try:
             try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
-                expected_types = _get_expected_types(e, func)
-                loc_tuple = e.errors()[0]['loc'] if len(e.errors()) == 1\
-                    else e.errors()[0]['loc'][:-1]
-                given_arg_loc_str = _get_given_arg_loc_str(loc_tuple)
-                given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple)
+                expected_types = _get_expected_types(e, signature(func))
+                error_type = e.title
+                loc_tuple = e.errors()[0]['loc']
+                given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, error_type)
+                given_arg_type \
+                    = _get_given_arg_type(signature(func), args, kwargs, loc_tuple, error_type)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
