@@ -64,7 +64,7 @@ try:
 
         return expected_types_str
 
-    def _get_given_arg_loc_str(given_arg_loc: tuple) -> str:
+    def _get_given_arg_loc_str(given_arg_loc: tuple, error_type: str) -> str:
         """
         Get given argument location string.
 
@@ -93,7 +93,7 @@ try:
                 '<ARGUMENT_NAME>'[KEY]
 
         """
-        if len(given_arg_loc) == 2:  # Iterable type case
+        if error_type == 'IterableArg' or error_type == 'DictArg':  # Iterable type case
             loc_str = f"'{given_arg_loc[0]}'[{given_arg_loc[1]}]"
         else:
             loc_str = f"'{given_arg_loc[0]}'"
@@ -104,7 +104,8 @@ try:
         signature: Signature,
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
-        given_arg_loc: tuple
+        given_arg_loc: tuple,
+        error_type: str
     ) -> str:
         """
         Get given argument type.
@@ -154,11 +155,10 @@ try:
             given_arg_idx = list(signature.parameters.keys()).index(arg_name)
             given_arg = args[given_arg_idx]
 
-        if len(given_arg_loc) == 2:  # Iterable type case
-            if isinstance(given_arg, dict):
-                given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
-            else:
-                given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
+        if error_type == 'DictArg':
+            given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
+        elif error_type == 'IterableArg':
+            given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
         else:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
@@ -174,10 +174,10 @@ try:
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e)
-                loc_tuple = e.errors()[0]['loc'] if len(e.errors()) == 1\
-                    else e.errors()[0]['loc'][:-1]
-                given_arg_loc_str = _get_given_arg_loc_str(loc_tuple)
-                given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple)
+                error_type = e.title
+                loc_tuple = e.errors()[0]['loc']
+                given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, error_type)
+                given_arg_type = _get_given_arg_type(signature(func), args, kwargs, loc_tuple, error_type)
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
