@@ -278,7 +278,7 @@ class ResponseTime:
 
     def to_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate recprd for stacked bar.
+        Calculate records for stacked bar.
 
         Returns
         -------
@@ -297,7 +297,7 @@ class ResponseTime:
 
     def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate ecprd for stacked bar.
+        Calculate records for stacked bar.
 
         Returns
         -------
