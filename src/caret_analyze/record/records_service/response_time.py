@@ -278,7 +278,7 @@ class ResponseTime:
 
     def to_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate response records.
+        Calculate recprd for stacked bar.
 
         Returns
         -------
@@ -297,7 +297,7 @@ class ResponseTime:
 
     def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate response records.
+        Calculate ecprd for stacked bar.
 
         Returns
         -------
@@ -321,7 +321,7 @@ class ResponseTime:
 
     def to_best_case_records(self) -> RecordsInterface:
         """
-        Calculate the best-case time series data for response time.
+        Calculate the best-case records data for response time.
 
         The best case for response time are included message flow latency.
 
@@ -335,7 +335,7 @@ class ResponseTime:
 
     def to_worst_case_records(self) -> RecordsInterface:
         """
-        Calculate the worst-case time series data for response time.
+        Calculate the worst-case records data for response time.
 
         The worst case in response time includes message flow latencies
         as well as delays caused by various factors such as lost messages.
@@ -488,7 +488,7 @@ class ResponseRecords:
 
     def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate best case response time records.
+        Calculate best case response time records for stacked bar.
 
         Returns
         -------
@@ -517,7 +517,7 @@ class ResponseRecords:
 
     def to_worst_case_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate worst case response records.
+        Calculate worst case response records for stacked bar.
 
         Returns
         -------
