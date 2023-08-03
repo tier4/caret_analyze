@@ -51,7 +51,7 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = []
-        result = to_dict(response.to_response_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
     def test_single_flow_case(self):
@@ -65,7 +65,7 @@ class TestResponseRecords:
 
         expect_raw = [
         ]
-        result = to_dict(response.to_response_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
     def test_double_flow_case(self):
@@ -81,13 +81,13 @@ class TestResponseRecords:
         expect_raw = [
             {'start_min': 0, 'start_max': 2, 'end': 3},
         ]
-        result = to_dict(response.to_response_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
             {'start': 2, 'end': 3},
         ]
-        result = to_dict(response.to_best_case_response_records())
+        result = to_dict(response.to_best_case_stacked_bar())
         assert result == expect_raw
 
     def test_cross_flow_case(self):
@@ -106,14 +106,14 @@ class TestResponseRecords:
             {'start_min': 0, 'start_max': 3, 'end': 4},
             {'start_min': 3, 'start_max': 6, 'end': 6},
         ]
-        result = to_dict(response.to_response_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
             {'start': 3, 'end': 4},
             {'start': 6, 'end': 6},
         ]
-        result = to_dict(response.to_best_case_response_records())
+        result = to_dict(response.to_best_case_stacked_bar())
         assert result == expect_raw
 
     def test_triple_flow_case(self):
@@ -131,14 +131,14 @@ class TestResponseRecords:
             {'start_min': 0, 'start_max': 2, 'end': 3},
             {'start_min': 2, 'start_max': 10, 'end': 11},
         ]
-        result = to_dict(response.to_response_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
             {'start': 2, 'end': 3},
             {'start': 10, 'end': 11},
         ]
-        result = to_dict(response.to_best_case_response_records())
+        result = to_dict(response.to_best_case_stacked_bar())
         assert result == expect_raw
 
     def test_double_flow_cross_case(self):
@@ -154,7 +154,7 @@ class TestResponseRecords:
         expect_raw = [
             {'start_min': 0, 'start_max': 2, 'end': 3},
         ]
-        result = to_dict(response.to_response_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
     def test_drop_case(self):
@@ -172,7 +172,7 @@ class TestResponseRecords:
         expect_raw = [
             {'start_min': 2, 'start_max': 3, 'end': 4},
         ]
-        result = to_dict(response.to_response_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
 
@@ -578,7 +578,7 @@ class TestResponseTimeseries:
                 columns=self.column_names
             )
 
-            records = response.to_response_records()
+            records = response.to_stacked_bar()
 
             expect = [
                 # flow 1 input ~ flow 7 output

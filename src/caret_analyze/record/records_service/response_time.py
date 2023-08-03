@@ -276,7 +276,7 @@ class ResponseTime:
         self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records, self._timeseries)
 
-    def to_response_records(self) -> RecordsInterface:
+    def to_stacked_bar(self) -> RecordsInterface:
         """
         Calculate response records.
 
@@ -295,7 +295,7 @@ class ResponseTime:
         """
         return self._records.to_range_records()
 
-    def to_best_case_response_records(self) -> RecordsInterface:
+    def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
         Calculate response records.
 
@@ -313,7 +313,7 @@ class ResponseTime:
         """
         return self._records.to_range_records('best')
 
-    def to_worst_case_response_records(self) -> RecordsInterface:
+    def to_worst_case_stacked_bar(self) -> RecordsInterface:
         # NOTE:
         # We think this function is unnecessary.
         # If necessary, please contact us.
@@ -486,7 +486,7 @@ class ResponseRecords:
 
         return records
 
-    def to_best_case_records(self) -> RecordsInterface:
+    def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
         Calculate best case response time records.
 
@@ -515,7 +515,7 @@ class ResponseRecords:
 
         return records
 
-    def to_worst_case_records(self) -> RecordsInterface:
+    def to_worst_case_stacked_bar(self) -> RecordsInterface:
         """
         Calculate worst case response records.
 
