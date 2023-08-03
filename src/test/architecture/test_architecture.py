@@ -645,7 +645,7 @@ $contexts
             arch.update_message_context('/not_exist_node', 'callback_chain', '/pong', '/ping')
 
         arch.update_message_context('/pong_node', 'invalid_contexts', '/pong', '/ping')
-        assert any(['Failed to load message context.' in message for message in caplog.messages])
+        assert any('Failed to load message context.' in message for message in caplog.messages)
 
         with pytest.raises(ItemNotFoundError):
             arch.update_message_context('/pong_node', 'callback_chain',

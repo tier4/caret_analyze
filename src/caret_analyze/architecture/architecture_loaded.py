@@ -1085,6 +1085,13 @@ class CallbackGroupsLoaded():
 
         callback_groups = self._remove_duplicated(callback_groups)
 
+        try:
+            self._validate_callback_ids(callback_groups)
+        except InvalidReaderError as e:
+            logger.warning(e)
+
+        callback_groups = self._remove_duplicated_callback_ids(callback_groups)
+
         duplicated_names: set[str] = set()
 
         for cbg in callback_groups:
@@ -1152,6 +1159,39 @@ class CallbackGroupsLoaded():
         return ids_
 
     @staticmethod
+    def _validate_callback_ids(callback_groups: Sequence[CallbackGroupValue]):
+        # validate callback group ids uniqueness.
+        callback_ids: set[str] = set()
+        duplicated: list[str] = []
+        for callback_group in callback_groups:
+            str_callback_ids = ''.join(callback_group.callback_ids)
+            if len(str_callback_ids) == 0:
+                continue
+            if str_callback_ids not in callback_ids:
+                callback_ids.add(str_callback_ids)
+            else:
+                duplicated.append(str_callback_ids)
+        if len(duplicated) > 0:
+            msg = f'Duplicated callback ids. {duplicated}. Use first callback ids only.'
+            raise InvalidReaderError(msg)
+
+    @staticmethod
+    def _remove_duplicated_callback_ids(callback_groups: Sequence[CallbackGroupValue]) \
+            -> list[CallbackGroupValue]:
+        ids_: list[CallbackGroupValue] = []
+        callback_ids: set[str] = set()
+        for callback_group in callback_groups:
+            # remove if callback ids are not unique
+            str_callback_ids = ''.join(callback_group.callback_ids)
+            if len(str_callback_ids) == 0:
+                ids_.append(callback_group)
+                continue
+            if str_callback_ids not in callback_ids:
+                callback_ids.add(str_callback_ids)
+                ids_.append(callback_group)
+        return ids_
+
+    @staticmethod
     def _validate(cbg: CallbackGroupValue, node: NodeValue):
         # TODO: add callback group id validation
 
@@ -1195,6 +1235,18 @@ class CallbacksLoaded():
         callbacks += reader.get_service_callbacks(node)
 
         self._validate(callbacks)
+        try:
+            self._validate_cb_name(callbacks)
+        except InvalidReaderError as e:
+            logger.warning(e)
+        # duplicate check for callback_name
+        callbacks = self._remove_duplicated_name(callbacks)
+        try:
+            self._validate_cb_ids(callbacks)
+        except InvalidReaderError as e:
+            logger.warning(e)
+        # duplicate check for callback_id
+        callbacks = self._remove_duplicated_ids(callbacks)
         self._callbacks = callbacks
 
         self._callback_count: dict[CallbackValue, int] = {}
@@ -1315,6 +1367,7 @@ class CallbacksLoaded():
                 msg += f'get [{self._node.node_id}] value returns [{callback.node_id}]'
                 raise InvalidReaderError(msg)
 
+    def _validate_cb_name(self, callbacks: list[CallbackValue]) -> None:
         # check callback name
         cb_names: list[str] = [
             cb.callback_name for cb in callbacks if cb.callback_name is not None]
@@ -1325,6 +1378,7 @@ class CallbacksLoaded():
                     msg += f'callback name: {name} \n'
             raise InvalidReaderError(msg)
 
+    def _validate_cb_ids(self, callbacks: list[CallbackValue]) -> None:
         # check callback id
         cb_ids: list[str] = [
             cb.callback_id
@@ -1338,6 +1392,32 @@ class CallbacksLoaded():
                 if cb_ids.count(cb_id) >= 2:
                     msg += f'callback id: {cb_id} \n'
             raise InvalidReaderError(msg)
+
+    @staticmethod
+    def _remove_duplicated_name(callbacks: Sequence[CallbackValue]) -> list[CallbackValue]:
+        ids_: list[CallbackValue] = []
+        cb_names: set[str] = set()
+        for callback in callbacks:
+            # remove if callback name are not unique
+            if callback.callback_name is None:
+                ids_.append(callback)
+            elif callback.callback_name not in cb_names:
+                cb_names.add(callback.callback_name)
+                ids_.append(callback)
+        return ids_
+
+    @staticmethod
+    def _remove_duplicated_ids(callbacks: Sequence[CallbackValue]) -> list[CallbackValue]:
+        ids_: list[CallbackValue] = []
+        callback_ids: set[str] = set()
+        for callback in callbacks:
+            # remove if callback id are not unique
+            if callback.callback_id is None:
+                ids_.append(callback)
+            elif callback.callback_id not in callback_ids:
+                callback_ids.add(callback.callback_id)
+                ids_.append(callback)
+        return ids_
 
     def find_callback(
         self,
