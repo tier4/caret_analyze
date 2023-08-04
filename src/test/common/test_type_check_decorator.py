@@ -65,6 +65,15 @@ class TestTypeCheckDecorator:
             iterable_arg([True, 10])
         assert "'i'[1] must be 'bool'. The given argument type is 'int'" in str(e.value)
 
+    def test_type_check_decorator_iterable_with_union(self):
+        @type_check_decorator
+        def iterable_arg(i: list[bool | str]):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            iterable_arg([True, 10])
+        assert "'i'[1] must be ['bool', 'str']. The given argument type is 'int'" in str(e.value)
+
     def test_type_check_decorator_dict(self):
         @type_check_decorator
         def dict_arg(d: dict[str, bool]):
@@ -74,6 +83,17 @@ class TestTypeCheckDecorator:
             dict_arg({'key1': True,
                       'key2': 10})
         assert "'d'[key2] must be 'bool'. The given argument type is 'int'" in str(e.value)
+
+    def test_type_check_decorator_dict_with_union(self):
+        @type_check_decorator
+        def dict_arg(d: dict[str, bool | str]):
+            pass
+
+        with pytest.raises(UnsupportedTypeError) as e:
+            dict_arg({'key1': True,
+                      'key2': 10})
+        assert "'d'[key2] must be ['bool', 'str']. The given argument type is 'int'"\
+            in str(e.value)
 
     def test_type_check_decorator_kwargs(self):
         @type_check_decorator

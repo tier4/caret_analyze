@@ -55,13 +55,14 @@ try:
         """
         error = e.errors()[0]
         invalid_arg_name: str = str(error['loc'][0])
-        expected_types: list[str] \
-            = str(signature.parameters[invalid_arg_name].annotation).split(' | ')
+        expected_type: str = str(signature.parameters[invalid_arg_name].annotation)
 
         if e.title == 'IterableArg':
-            expected_types = sum([findall(r'.*\[(.*)\]', t) for t in expected_types], [])
+            expected_type = str(findall(r'.*\[(.*)\]', expected_type)[0])
         if e.title == 'DictArg':
-            expected_types = sum([findall(r'.*\[.*, (.*)\]', t) for t in expected_types], [])
+            expected_type = str(findall(r'.*\[.*, (.*)\]', expected_type)[0])
+
+        expected_types: list[str] = expected_type.split(' | ')
 
         if len(expected_types) > 1:  # Union case
             expected_types_str = str(expected_types)
