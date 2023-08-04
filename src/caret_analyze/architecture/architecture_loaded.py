@@ -1161,16 +1161,15 @@ class CallbackGroupsLoaded():
     @staticmethod
     def _validate_callback_ids(callback_groups: Sequence[CallbackGroupValue]):
         # validate callback group ids uniqueness.
-        callback_ids: set[str] = set()
-        duplicated: list[str] = []
+        callback_ids: set(str) = set()
+        duplicated: set(str) = set()
         for callback_group in callback_groups:
-            str_callback_ids = ''.join(callback_group.callback_ids)
-            if len(str_callback_ids) == 0:
+            if len(callback_group.callback_ids) == 0:
                 continue
-            if str_callback_ids not in callback_ids:
-                callback_ids.add(str_callback_ids)
+            if callback_group.callback_ids not in callback_ids:
+                callback_ids.add(callback_group.callback_ids)
             else:
-                duplicated.append(str_callback_ids)
+                duplicated.add(callback_group.callback_ids)
         if len(duplicated) > 0:
             msg = f'Duplicated callback ids. {duplicated}. Use first callback ids only.'
             raise InvalidReaderError(msg)
@@ -1179,15 +1178,14 @@ class CallbackGroupsLoaded():
     def _remove_duplicated_callback_ids(callback_groups: Sequence[CallbackGroupValue]) \
             -> list[CallbackGroupValue]:
         ids_: list[CallbackGroupValue] = []
-        callback_ids: set[str] = set()
+        callback_ids: set(str) = set()
         for callback_group in callback_groups:
             # remove if callback ids are not unique
-            str_callback_ids = ''.join(callback_group.callback_ids)
-            if len(str_callback_ids) == 0:
+            if len(callback_group.callback_ids) == 0:
                 ids_.append(callback_group)
                 continue
-            if str_callback_ids not in callback_ids:
-                callback_ids.add(str_callback_ids)
+            if callback_group.callback_ids not in callback_ids:
+                callback_ids.add(callback_group.callback_ids)
                 ids_.append(callback_group)
         return ids_
 
