@@ -18,7 +18,7 @@ from collections.abc import Collection
 from logging import getLogger
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
-from .histogram import ResponseTimeHistPlot, ResponseTimeHistPlotFactory
+from .histogram import ResponseTimeHistPlot, ResponseTimeHistPlotFactory, HistogramPlotFactory
 from .message_flow import MessageFlowPlot, MessageFlowPlotFactory
 from .plot_base import PlotBase
 from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
@@ -34,6 +34,7 @@ from bokeh.models import HoverTool
 logger = getLogger(__name__)
 
 TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+HistogramTypes = CallbackBase | Communication
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
 
@@ -298,10 +299,94 @@ class Plot:
     #     show(plot)
     #     return plot
 
+    # @staticmethod
+    # def create_latency_histgram_plot(
+    #     target_object: CallbackBase
+    # ) -> Figure:
+    #     latency_records = Latency(target_object.to_records())
+    #     visualize_lib = VisualizeLibFactory.create_instance()
+    #     return visualize_lib.histgram(latency_records.to_records(), target_object.callback_name)
+
     @staticmethod
-    def create_latency_histgram_plot(
-        target_object: CallbackBase
-    ) -> Figure:
-        latency_records = Latency(target_object.to_records())
+    def create_frequency_histogram_plot(
+        target_objects: HistogramTypes
+    ) -> PlotBase:
+        """
+        Get frequency histogram plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[TimeSeriesTypes]
+            HistogramTypes = CallbackBase | Communication
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
         visualize_lib = VisualizeLibFactory.create_instance()
-        return visualize_lib.histgram(latency_records.to_records(), target_object.callback_name)
+        # plot = HistogramPlotFactory.create_instance(
+        #     parse_collection_or_unpack(target_objects), 'latency', visualize_lib
+        # )
+        plot = HistogramPlotFactory.create_instance(
+            target_objects, 'frequency', visualize_lib
+        )
+        return plot
+    
+    @staticmethod
+    def create_latency_histogram_plot(
+        target_objects: HistogramTypes
+    ) -> PlotBase:
+        """
+        Get latency histogram plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[TimeSeriesTypes]
+            HistogramTypes = CallbackBase | Communication
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        visualize_lib = VisualizeLibFactory.create_instance()
+        # plot = HistogramPlotFactory.create_instance(
+        #     parse_collection_or_unpack(target_objects), 'latency', visualize_lib
+        # )
+        plot = HistogramPlotFactory.create_instance(
+            target_objects, 'latency', visualize_lib
+        )
+        return plot
+    
+    @staticmethod
+    def create_period_histogram_plot(
+        target_objects: HistogramTypes
+    ) -> PlotBase:
+        """
+        Get period histogram plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[TimeSeriesTypes]
+            HistogramTypes = CallbackBase | Communication
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        visualize_lib = VisualizeLibFactory.create_instance()
+        # plot = HistogramPlotFactory.create_instance(
+        #     parse_collection_or_unpack(target_objects), 'latency', visualize_lib
+        # )
+        plot = HistogramPlotFactory.create_instance(
+            target_objects, 'period', visualize_lib
+        )
+        return plot

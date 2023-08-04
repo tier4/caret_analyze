@@ -166,19 +166,22 @@ class Bokeh(VisualizeLibInterface):
         timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends)
         return timeseries.create_figure()
     
-    def histgram(
+    def histogram(
         self,
         metrics: list[RecordsInterface],
-        callback_name: str
+        callback_name: str,
+        data_type: str
     ) -> Figure:
-        latencies = [d.data['latency'] for d in metrics]
+        # latencies = [d.data['period'] for d in metrics]
+        latencies = [d.data[data_type] for d in metrics]
         hist, bins = histogram(latencies, 20)
-        plot = Figure(title='histgram', x_axis_label='x', y_axis_label='y')
+        plot = Figure(title=data_type+' histogram', x_axis_label='x', y_axis_label='y')
         quad = plot.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:], line_color='white', alpha=0.5, legend_label=callback_name)
         plot.legend.title = 'Legend'
         plot.legend.location = 'top_right'
         plot.legend.label_text_font_size = '12pt'
         hover = HoverTool(tooltips=[('x', '@left'), ('y', '@top')], renderers=[quad])
         plot.add_tools(hover)
-        show(plot)
-        return Figure()
+        # show(plot)
+        # return Figure()
+        return plot

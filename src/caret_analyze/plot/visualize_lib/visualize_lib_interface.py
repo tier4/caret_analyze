@@ -22,6 +22,8 @@ from bokeh.plotting import Figure
 from ..metrics_base import MetricsBase
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
+from ...record.interface import RecordsInterface
+
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
 
@@ -84,5 +86,13 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         ywheel_zoom: bool,
         full_legends: bool,
         case: str,
+    ) -> Figure:
+        raise NotImplementedError()
+    
+    def histogram(
+        self,
+        metrics: list[RecordsInterface],
+        callback_name: str,
+        data_type: str
     ) -> Figure:
         raise NotImplementedError()
