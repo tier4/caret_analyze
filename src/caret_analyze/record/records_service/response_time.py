@@ -20,6 +20,8 @@ import math
 
 import numpy as np
 
+from warnings import warn
+
 from ..column import ColumnValue
 from ..interface import RecordInterface, RecordsInterface
 from ..record_factory import RecordFactory, RecordsFactory
@@ -686,6 +688,31 @@ class ResponseTimeseries:
         response_records: ResponseRecords
     ) -> None:
         self._records = response_records
+
+    def to_best_case_timeseries(self):
+        records = self._records.to_range_records()
+        input_column = records.columns[1]
+        output_column = records.columns[-1]
+        return self._to_timeseries(input_column, output_column)
+
+    def to_worst_case_timeseries(self):
+        records = self._records.to_range_records()
+        input_column = records.columns[0]
+        output_column = records.columns[-1]
+        return self._to_timeseries(input_column, output_column)
+
+    def _to_timeseries(self, input_column, output_column):
+        records = self._records.to_range_records()
+
+        t_ = records.get_column_series(input_column)
+        t_in = np.array(t_, dtype=np.int64)
+
+        t_out_ = records.get_column_series(output_column)
+        t_out = np.array(t_out_, dtype=np.int64)
+
+        latency = t_out - t_in
+
+        return t_in, latency
 
     def to_best_case_records(self) -> RecordsInterface:
         records = self._records.to_range_records()
