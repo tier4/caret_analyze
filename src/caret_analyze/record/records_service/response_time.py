@@ -327,8 +327,12 @@ class ResponseTime:
 
         Returns
         -------
-        tuple[np.ndarray, np.ndarray]
-            input time[ns], latency[ns]
+        RecordsInterface
+            Records of the best cases response time.
+
+            Columns
+            - {columns[0]}
+            - {'response_time'}
 
         """
         return self._timeseries.to_best_case_records()
@@ -342,10 +346,14 @@ class ResponseTime:
 
         Returns
         -------
-        tuple[np.ndarray, np.ndarray]
-            input time[ns], latency[ns]
+        RecordsInterface
+            Records of the worst cases response time.
 
-        """
+            Columns
+            - {columns[0]}
+            - {'response_time'}
+
+                    """
         return self._timeseries.to_worst_case_records()
 
     def to_histogram(
