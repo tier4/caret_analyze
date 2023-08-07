@@ -241,14 +241,14 @@ class ResponseTime:
     >>> # Calculate response time
     >>> records = callback.to_records()
     >>> response = ResponseTime(records)
-    >>> response_records = response.to_response_records()
-    >>> response_df = response_records.to_dataframe()
+    >>> response_time_records = response.to_best_case_records()
+    >>> response_df = response_time_records.to_dataframe()
 
     >>> path = app.get_path('path_name')
     >>> records = path.to_records()
     >>> response = ResponseTime(records)
-    >>> response_records = response.to_response_records()
-    >>> response_df = response_records.to_dataframe()
+    >>> response_time_records = response.to_best_case_records()
+    >>> response_df = response_time_records.to_dataframe()
 
     """
 
@@ -517,7 +517,7 @@ class ResponseRecords:
 
     def to_worst_case_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate worst case response records for stacked bar.
+        Calculate worst case response time records for stacked bar.
 
         Returns
         -------
