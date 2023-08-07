@@ -358,6 +358,37 @@ class ResponseTime:
                     """
         return self._timeseries.to_worst_case_records()
 
+    def to_best_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
+        warn('This API will be moved to the Plot package in the near future.', DeprecationWarning)
+        """
+        Calculate the best-case time series data for response time.
+
+        The best case for response time are included message flow latency.
+
+        Returns
+        -------
+        tuple[np.ndarray, np.ndarray]
+            input time[ns], latency[ns]
+
+        """
+        return self._timeseries.to_best_case_timeseries()
+
+    def to_worst_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
+        warn('This API will be moved to the Plot package in the near future.', DeprecationWarning)
+        """
+        Calculate the worst-case time series data for response time.
+
+        The worst case in response time includes message flow latencies
+        as well as delays caused by various factors such as lost messages.
+
+        Returns
+        -------
+        tuple[np.ndarray, np.ndarray]
+            input time[ns], latency[ns]
+
+        """
+        return self._timeseries.to_worst_case_timeseries()
+
     def to_histogram(
         self,
         binsize_ns: int = 1000000,
