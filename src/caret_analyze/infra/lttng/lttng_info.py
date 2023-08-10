@@ -985,7 +985,7 @@ class DataFrameFormatted:
             duplicated_callback_objects_str = [f'0x{c:X}' for c in duplicated_callback_objects]
             logger.warning(
                 'Different timer callbacks have same callback_object value. '
-                'This can be happen because of memory reusal by operating system. '
+                'This can be caused by memory reclamation by the operating system. '
                 'Duplicated callbacks were removed except first one as a workaround. '
                 'This issue should be fixed in the future. '
                 'duplicated callback_objects = '
