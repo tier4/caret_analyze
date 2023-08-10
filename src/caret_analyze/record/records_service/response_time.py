@@ -17,10 +17,9 @@ from __future__ import annotations
 from collections.abc import Iterator, Sequence
 
 import math
+from warnings import warn
 
 import numpy as np
-
-from warnings import warn
 
 from ..column import ColumnValue
 from ..interface import RecordInterface, RecordsInterface
@@ -355,7 +354,7 @@ class ResponseTime:
             - {columns[0]}
             - {'response_time'}
 
-                    """
+        """
         return self._timeseries.to_worst_case_records()
 
     def to_best_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
