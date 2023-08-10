@@ -96,14 +96,7 @@ class EventCounter:
 
         # For after iron distributions
         # No need to check trace points added by fork-rclcpp
-        trace_points_added_by_iron = {
-            'ros2:rclcpp_buffer_to_ipb',
-            'ros2:rclcpp_ipb_to_subcription',
-            'ros2:rclcpp_construct_ring_buffer',
-            'ros2:rclcpp_ring_buffer_enqueue',
-            'ros2:rclcpp_ring_buffer_dequeue',
-        }
-        if len(set(recorded_trace_points) & trace_points_added_by_iron) != 0:
+        if self._distribution in ['iron', 'rolling']:
             return
 
         has_forked_inter_process_trace_points = len(
