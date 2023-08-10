@@ -71,7 +71,7 @@ class TestResponseTimeAll:
             {'start': 3, 'middle': 4, 'end': 6},
             {'start': 11, 'middle': 13, 'end': 16}
         ]
-        columns = [ColumnValue('start'), ColumnValue('ts'), ColumnValue('end')]
+        columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
         records = create_records(records_raw, columns)
 
         response_time = ResponseTime(records)
@@ -126,7 +126,7 @@ class TestResponseTimeAll:
             {'start': 1, 'middle': 4},
             {'start': 5, 'middle': 12, 'end': 13}
         ]
-        columns = [ColumnValue('start'), ColumnValue('end')]
+        columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
         records = create_records(records_raw, columns)
 
         response_time = ResponseTime(records)
