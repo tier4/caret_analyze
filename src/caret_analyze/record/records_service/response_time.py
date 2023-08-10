@@ -764,6 +764,8 @@ class ResponseTimeseries:
         t_out = range_records.get_column_series(output_column)
 
         for start_ts, end_ts in zip(t_in, t_out):
+            if start_ts is None or end_ts is None:
+                continue
             record = {
                 input_column: start_ts,
                 'response_time': end_ts - start_ts
@@ -895,7 +897,7 @@ class ResponseHistogram:
 
         """
         latency_ns = self._timeseries.to_best_case_records().get_column_series('response_time')
-        return self._to_histogram(latency_ns, binsize_ns, density)
+        return self._to_histogram([_ for _ in latency_ns if _ is not None], binsize_ns, density)
 
     def to_worst_case_histogram(
         self,
@@ -930,7 +932,7 @@ class ResponseHistogram:
 
         """
         latency_ns = self._timeseries.to_worst_case_records().get_column_series('response_time')
-        return self._to_histogram(latency_ns, binsize_ns, density)
+        return self._to_histogram([_ for _ in latency_ns if _ is not None], binsize_ns, density)
 
     @staticmethod
     def _to_histogram(latency_ns: Sequence[int], binsize_ns: int, density: bool):
