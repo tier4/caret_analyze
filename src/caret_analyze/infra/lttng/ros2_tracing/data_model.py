@@ -49,7 +49,7 @@ class Ros2DataModel():
         self._timers = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'period', 'tid'])
         self._caret_init = TracePointIntermediateData(
-            ['timestamp', 'clock_offset'])
+            ['timestamp', 'clock_offset', 'distribution'])
         self._timer_node_links = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'node_handle'])
         self._callback_objects = TracePointIntermediateData(
@@ -805,11 +805,13 @@ class Ros2DataModel():
     def add_caret_init(
         self,
         clock_offset: int,
-        timestamp: int
+        timestamp: int,
+        distribution: str,
     ) -> None:
         record = {
             'timestamp': timestamp,
             'clock_offset': clock_offset,
+            'distribution': distribution,
         }
         self._caret_init.append(record)
 

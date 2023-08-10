@@ -31,6 +31,7 @@ class EventCounter:
         self._count_df = self._build_count_df(data)
         self._has_intra_process = self._check_intra_process_communication(data)
         self._has_original_rclcpp_publish = self._check_original_rclcpp_publish(data)
+        self._distribution = self._get_distribution(data)
         if validate:
             self._validate()
 
@@ -141,6 +142,14 @@ class EventCounter:
 
     def _check_original_rclcpp_publish(self, data: Ros2DataModel) -> bool:
         return 0 in data.rclcpp_publish_instances.get_column_series('publisher_handle')
+
+    def _get_distribution(self, data: Ros2DataModel) -> str:
+        caret_init_df = data.caret_init.df
+        distributions = list(caret_init_df['distribution'].unique())
+        if len(distributions) > 1:
+            logger.info('Multiple ros distributions are found.')
+        return distributions[0]
+
 
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:

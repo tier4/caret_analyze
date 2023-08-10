@@ -513,7 +513,11 @@ class Ros2Handler():
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         clock_offset = get_field(event, 'clock_offset')
-        self.data.add_caret_init(clock_offset, timestamp)  # type: ignore
+        if 'distribution' in event.keys():
+            distribution = get_field(event, 'distribution')
+        else:
+            distribution = 'NOTFOUND'
+        self.data.add_caret_init(clock_offset, timestamp, distribution)  # type: ignore
         pid = get_field(event, '_vpid')
         assert isinstance(pid, int)
         self._caret_init_recorded[pid] = True
