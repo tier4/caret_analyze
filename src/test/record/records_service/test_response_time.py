@@ -90,6 +90,7 @@ class TestResponseRecords:
         result = to_dict(response.to_best_case_stacked_bar())
         assert result == expect_raw
 
+    # NOTE: Is this test up to specification?
     def test_cross_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 10},
@@ -141,6 +142,7 @@ class TestResponseRecords:
         result = to_dict(response.to_best_case_stacked_bar())
         assert result == expect_raw
 
+    # NOTE: Is this test up to specification?
     def test_double_flow_cross_case(self):
         records_raw = [
             {'start': 0, 'end': 5},
@@ -527,6 +529,7 @@ class TestResponseTimeseries:
         ]
         assert to_dict(response_time) == expect
 
+    # NOTE: Is this test up to specification?
     def test_cross_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 10},
