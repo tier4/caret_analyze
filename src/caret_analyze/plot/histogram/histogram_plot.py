@@ -26,7 +26,7 @@ from ...runtime import CallbackBase, Communication
 from caret_analyze.record import Frequency, Latency, Period
 
 HistogramTypes = CallbackBase | Communication
-hist_types = Frequency | Latency | Period
+hist_types = list[Frequency | Latency | Period]
 
 class HistogramPlot(PlotBase):
     """Class that provides API for timeseries data."""
@@ -112,7 +112,7 @@ class HistogramPlot(PlotBase):
         #     full_legends
         # )
 
-        return self._visualize_lib.histogram(self._metrics.to_records(), self._callback_name, self._data_type)
+        return self._visualize_lib.histogram(self._metrics, self._callback_name, self._data_type)
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:
         if xaxis_type not in ['system_time', 'sim_time', 'index']:

@@ -31,6 +31,8 @@ from caret_analyze.record import Latency
 from numpy import histogram
 from bokeh.models import HoverTool
 
+from collections.abc import Sequence
+
 logger = getLogger(__name__)
 
 TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
@@ -337,7 +339,8 @@ class Plot:
     
     @staticmethod
     def create_latency_histogram_plot(
-        target_objects: HistogramTypes
+        *target_objects: HistogramTypes
+        # target_objects: Sequence[HistogramTypes]
     ) -> PlotBase:
         """
         Get latency histogram plot instance.
@@ -355,12 +358,12 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        # plot = HistogramPlotFactory.create_instance(
-        #     parse_collection_or_unpack(target_objects), 'latency', visualize_lib
-        # )
         plot = HistogramPlotFactory.create_instance(
-            target_objects, 'latency', visualize_lib
+            parse_collection_or_unpack(target_objects), 'latency', visualize_lib
         )
+        # plot = HistogramPlotFactory.create_instance(
+        #     target_objects, 'latency', visualize_lib
+        # )
         return plot
     
     @staticmethod
