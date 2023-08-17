@@ -174,9 +174,12 @@ class Bokeh(VisualizeLibInterface):
         data_type: str
     ) -> Figure:
         #for文で配列の長さ分繰り返すように実装を変更、複数の図が重なって出る感じに
+        latencies = []
 
         for _metrics in metrics:
-            latencies = [d.data[data_type] for d in _metrics]
+            # latencies = [d.data[data_type] for d in _metrics.to_records()]
+            latencie = [d.data[data_type] for d in _metrics.to_records()]
+            latencies.append(latencie)
         hist, bins = histogram(latencies, 20)
         plot = Figure(title=data_type+' histogram', x_axis_label='x', y_axis_label='y')
         quad = plot.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:], line_color='white', alpha=0.5, legend_label=callback_name)
