@@ -91,11 +91,7 @@ class ColumnMerger():
         old_columns: Sequence[str],
         new_columns: Sequence[str],
     ):
-        return {
-            old_column: new_column
-            for old_column, new_column
-            in zip(old_columns, new_columns)
-        }
+        return dict(zip(old_columns, new_columns))
 
 
 class RecordsMerged:

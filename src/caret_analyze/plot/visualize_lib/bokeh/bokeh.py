@@ -17,22 +17,23 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
+from bokeh.models import HoverTool
+
 from bokeh.plotting import Figure
+
+from caret_analyze.record import Frequency, Latency, Period
+
+from numpy import histogram
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
 from .response_time_hist import BokehResponseTimeHist
 from .stacked_bar import BokehStackedBar
 from .timeseries import BokehTimeSeries
+from .util import ColorSelectorFactory
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
-
-from bokeh.plotting import Figure, show
-from caret_analyze.record import Latency
-from numpy import histogram
-from bokeh.models import HoverTool
-from ....record.interface import RecordsInterface
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 
@@ -165,32 +166,28 @@ class Bokeh(VisualizeLibInterface):
         """
         timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends)
         return timeseries.create_figure()
-    
+
     def histogram(
         self,
-        metrics: list[RecordsInterface],
-        # metrics: RecordsInterface,
-        callback_name: str,
+        metrics: list[Frequency | Latency | Period],
+        callback_names: list[str],
         data_type: str
     ) -> Figure:
-        #for文で配列の長さ分繰り返すように実装を変更、複数の図が重なって出る感じに
-        latencies = []
-
-        for _metrics in metrics:
-            # latencies = [d.data[data_type] for d in _metrics.to_records()]
-            latencie = [d.data[data_type] for d in _metrics.to_records()]
-            latencies.append(latencie)
-        hist, bins = histogram(latencies, 20)
         plot = Figure(title=data_type+' histogram', x_axis_label='x', y_axis_label='y')
-        quad = plot.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:], line_color='white', alpha=0.5, legend_label=callback_name)
+        latencies: list[list[int]] = [m.to_records().get_column_series(data_type) for m in metrics]
+        color_selector = ColorSelectorFactory.create_instance('unique')
+        max_value = max(max(latencies, key=lambda x: max(x)))
+        min_value = min(min(latencies, key=lambda x: min(x)))
 
-        # latencies = [d.data[data_type] for d in metrics]
-        # hist, bins = histogram(latencies, 20)
-        # plot = Figure(title=data_type+' histogram', x_axis_label='x', y_axis_label='y')
-        # quad = plot.quad(top=hist, bottom=0, left=bins[:-1], right=bins[1:], line_color='white', alpha=0.5, legend_label=callback_name)
+        for latency, callback_name in zip(latencies, callback_names):
+            hist, bins = histogram(latency, 20, (min_value, max_value))
+            quad = plot.quad(top=hist, bottom=0,
+                             left=bins[:-1], right=bins[1:],
+                             line_color='white', alpha=0.5, legend_label=callback_name,
+                             color=color_selector.get_color())
+            hover = HoverTool(tooltips=[('x', '@left'), ('y', '@top')], renderers=[quad])
+            plot.add_tools(hover)
         plot.legend.title = 'Legend'
         plot.legend.location = 'top_right'
         plot.legend.label_text_font_size = '12pt'
-        hover = HoverTool(tooltips=[('x', '@left'), ('y', '@top')], renderers=[quad])
-        plot.add_tools(hover)
         return plot

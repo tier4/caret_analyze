@@ -16,17 +16,18 @@ from __future__ import annotations
 
 from bokeh.plotting import Figure
 
+from caret_analyze.record import Frequency, Latency, Period
+
 import pandas as pd
 
-from ..metrics_base import MetricsBase
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication
-from caret_analyze.record import Frequency, Latency, Period
 
 HistogramTypes = CallbackBase | Communication
 hist_types = list[Frequency | Latency | Period]
+
 
 class HistogramPlot(PlotBase):
     """Class that provides API for timeseries data."""
@@ -35,12 +36,12 @@ class HistogramPlot(PlotBase):
         self,
         metrics: hist_types,
         visualize_lib: VisualizeLibInterface,
-        callback_name: str,
+        callback_names: list[str],
         data_type: str
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
-        self._callback_name = callback_name
+        self._callback_names = callback_names
         self._data_type = data_type
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
@@ -105,14 +106,7 @@ class HistogramPlot(PlotBase):
         # Validate
         self._validate_xaxis_type(xaxis_type)
 
-        # return self._visualize_lib.histogram(
-        #     self._metrics,
-        #     xaxis_type,
-        #     ywheel_zoom,
-        #     full_legends
-        # )
-
-        return self._visualize_lib.histogram(self._metrics, self._callback_name, self._data_type)
+        return self._visualize_lib.histogram(self._metrics, self._callback_names, self._data_type)
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:
         if xaxis_type not in ['system_time', 'sim_time', 'index']:
