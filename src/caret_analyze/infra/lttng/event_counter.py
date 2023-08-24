@@ -141,6 +141,10 @@ class EventCounter:
         distributions = list(caret_init_df['distribution'].unique())
         if len(distributions) > 1:
             logger.info('Multiple ros distributions are found.')
+
+        if len(distributions) == 0:
+            return 'NOTFOUND'
+
         return distributions[0]
 
 
