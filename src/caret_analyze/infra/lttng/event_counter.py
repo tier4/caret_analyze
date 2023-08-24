@@ -147,7 +147,6 @@ class EventCounter:
 
         return distributions[0]
 
-
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
         # TODO(hsgwa): Definitions on tracepoint types are scattered. Refactor required.
