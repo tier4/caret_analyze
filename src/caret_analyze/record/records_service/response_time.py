@@ -211,7 +211,7 @@ class ResponseMap():
         return self._columns
 
 
-# NOTE: Rename ResponseMap after reactoring
+# NOTE: Rename ResponseMap after refactoring
 class ResponseMapAll:
 
     def __init__(
