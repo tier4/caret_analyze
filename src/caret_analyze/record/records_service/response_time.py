@@ -212,6 +212,76 @@ class ResponseMap():
         return self._columns
 
 
+class ResponseMapAll:
+
+    def __init__(
+        self,
+        records: RecordsInterface,
+        columns: list[str]
+    ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        records : RecordsInterface
+            records to calculate latency.
+        columns : list[str] | None, optional
+            Column name of start timestamps used in the calculation, by default None
+            If None, the first column of records is selected.
+
+        """
+        if columns:
+            self._start_column = columns[0]
+            self._end_column = columns[-1]
+        else:
+            self._start_column = records.columns[0]
+            self._end_column = records.columns[-1]
+
+        self._start_timestamps: list[int] = []
+        self._end_timestamps: list[int] = []
+
+        for record in reversed(records.data):
+            if self._end_column in record.columns:
+                end_ts = record.get(self._end_column)
+            elif len(self._end_timestamps) > 0:
+                end_ts = min(self._end_timestamps)
+            else:
+                continue
+
+            if self._start_column not in record.columns:
+                continue
+            start_ts = record.get(self._start_column)
+
+            if start_ts not in self._start_timestamps:
+                self._start_timestamps.insert(0, start_ts)
+                self._end_timestamps.insert(0, end_ts)
+            else:
+                idx = self._start_timestamps.index(start_ts)
+                if end_ts < self._end_timestamps[idx]:
+                    self._start_timestamps[idx] = start_ts
+                    self._end_timestamps[idx] = end_ts
+
+    def to_all_records(self) -> RecordsInterface:
+        records = self._create_empty_records()
+
+        for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
+            record = {
+                self._start_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
+            records.append(record)
+
+        return records
+
+    def _create_empty_records(
+        self
+    ) -> RecordsInterface:
+        return RecordsFactory.create_instance(columns=[
+            ColumnValue(self._start_column), ColumnValue('response_time')
+        ])
+
+
 class ResponseTime:
     """
     Class which calculates response time.
@@ -273,9 +343,13 @@ class ResponseTime:
         """
         columns = columns or [records.columns[0], records.columns[-1]]
         response_map = ResponseMap(records, columns)
+        self._response_map_all = ResponseMapAll(records, columns)
         self._records = ResponseRecords(response_map)
         self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records, self._timeseries)
+
+    def to_all_records(self) -> RecordsInterface:
+        return self._response_map_all.to_all_records()
 
     def to_stacked_bar(self) -> RecordsInterface:
         """
