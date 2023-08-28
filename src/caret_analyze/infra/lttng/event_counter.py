@@ -103,8 +103,9 @@ class EventCounter:
             set(recorded_trace_points) & {'ros2:rmw_take'}) != 0
 
         if self._has_original_rclcpp_publish:
-            logger.warning('Trace data from a package built without caret-rclcpp was detected. '
-                           'This trace data may not be analyzed successfully.')
+            logger.warning(
+                'This trace data has trace point from a package built without caret-rclcpp. '
+                'Such package cannot be analyzed successfully.')
 
         if (not has_forked_inter_process_trace_points
                 and not has_forked_intra_process_trace_points):
