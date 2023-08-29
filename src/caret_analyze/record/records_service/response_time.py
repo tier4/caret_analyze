@@ -369,9 +369,6 @@ class ResponseTime:
 
         """
         return self._records.to_records(all_pattern)
-    
-    def to_range_records(self):
-        return self._records.to_range_records()
 
     def to_all_records(self) -> RecordsInterface:
         return self._response_map_all.to_all_records()
