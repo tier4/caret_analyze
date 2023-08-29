@@ -22,9 +22,9 @@ from ..metrics_base import MetricsBase
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication, Publisher, Subscription
+from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class TimeSeriesPlot(PlotBase):

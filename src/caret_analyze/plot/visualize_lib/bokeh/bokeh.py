@@ -28,7 +28,7 @@ from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 logger = getLogger(__name__)
 

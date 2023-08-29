@@ -20,9 +20,9 @@ from collections.abc import Sequence
 import pandas as pd
 
 from ..record import ColumnValue, Range, RecordFactory, RecordsFactory, RecordsInterface
-from ..runtime import CallbackBase, Communication, Publisher, Subscription
+from ..runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class MetricsBase(metaclass=ABCMeta):
@@ -122,5 +122,7 @@ class MetricsBase(metaclass=ABCMeta):
                            f'{target_object.subscribe_node_name}')
         elif isinstance(target_object, (Publisher, Subscription)):
             column_name = target_object.topic_name
+        elif isinstance(target_object, Path):
+            column_name = f'{target_object.column_names[0]} to {target_object.column_names[-1]}'
 
         return pd.concat([target_df], keys=[column_name], axis=1)

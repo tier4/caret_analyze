@@ -174,6 +174,29 @@ class Plot:
         )
         return plot
 
+    def create_response_time_timeseries_plot(
+        *target_objects: Path
+    ) -> PlotBase:
+        """
+        Get latency timeseries plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[CallbackBase | Communication]
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = TimeSeriesPlotFactory.create_instance(
+            parse_collection_or_unpack(target_objects), 'response_time', visualize_lib
+        )
+        return plot
+
     @staticmethod
     def create_response_time_histogram_plot(
         *paths: Path,

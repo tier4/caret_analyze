@@ -298,6 +298,9 @@ class ResponseTime:
 
         """
         return self._records.to_records(all_pattern)
+    
+    def to_range_records(self):
+        return self._records.to_range_records()
 
     def to_response_records(self) -> RecordsInterface:
         """

@@ -19,14 +19,15 @@ from collections.abc import Sequence
 from .frequency_timeseries import FrequencyTimeSeries
 from .latency_timeseries import LatencyTimeSeries
 from .period_timeseries import PeriodTimeSeries
+from .response_time_timeseries import ResponsetimeTimeSeries
 from .timeseries_plot import TimeSeriesPlot
 from ..metrics_base import MetricsBase
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication, Publisher, Subscription
+from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class TimeSeriesPlotFactory:
@@ -72,6 +73,9 @@ class TimeSeriesPlotFactory:
             return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'period':
             metrics_ = PeriodTimeSeries(list(target_objects))
+            return TimeSeriesPlot(metrics_, visualize_lib)
+        elif metrics == 'response_time':
+            metrics_ = ResponsetimeTimeSeries(list(target_objects))
             return TimeSeriesPlot(metrics_, visualize_lib)
         else:
             raise UnsupportedTypeError(
