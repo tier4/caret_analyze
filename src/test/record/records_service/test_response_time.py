@@ -769,15 +769,13 @@ class TestResponseTimeseries:
 class TestResponseTimeWorstInInput:
 
     def test_empty_case(self):
-        records_raw = [
-        ]
+        records_raw = []
         columns = [ColumnValue('start'), ColumnValue('end')]
         records = create_records(records_raw, columns)
 
         response_time = ResponseTime(records)
 
-        expect_raw = [
-        ]
+        expect_raw = []
         result = to_dict(response_time.to_worst_in_input_records())
         assert result == expect_raw
 
