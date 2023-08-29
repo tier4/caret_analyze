@@ -13,5 +13,10 @@
     "version": "latest",
     "title": "latest",
     "aliases": []
+  },
+  {
+    "version": "chore-fix_deploy-docs_error",
+    "title": "chore-fix_deploy-docs_error",
+    "aliases": []
   }
 ]
