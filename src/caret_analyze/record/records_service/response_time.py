@@ -259,7 +259,6 @@ class ResponseMapAll:
             else:
                 idx = self._start_timestamps.index(start_ts)
                 if end_ts < self._end_timestamps[idx]:
-                    self._start_timestamps[idx] = start_ts
                     self._end_timestamps[idx] = end_ts
 
     def to_all_records(self) -> RecordsInterface:
@@ -285,7 +284,6 @@ class ResponseMapAll:
                 idx = end_timestamps.index(end_ts)
                 if start_ts < start_timestamps[idx]:
                     start_timestamps[idx] = start_ts
-                    end_timestamps[idx] = end_ts
 
         records = self._create_empty_records()
         for start_ts, end_ts in zip(start_timestamps, end_timestamps):
