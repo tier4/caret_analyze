@@ -499,12 +499,17 @@ class TestPublisherRecords:
 
         assert df.equals(df_expect)
 
+    @pytest.mark.parametrize(
+        'has_publisher_handle',
+        [True, False]
+    )
     def test_single_publisher_without_tilde(
         self,
         create_lttng,
         create_publisher_lttng,
         setup_bridge_get_publisher,
         create_publisher_struct,
+        has_publisher_handle,
     ):
         data = Ros2DataModel()
         pub_handle = 3
@@ -513,8 +518,12 @@ class TestPublisherRecords:
         message_addr = 6
         # pid = 2
         tid = 11
-        data.add_rclcpp_publish_instance(tid, 1, pub_handle,
-                                         message_addr, message_timestamp)
+        if has_publisher_handle:
+            data.add_rclcpp_publish_instance(
+                tid, 1, pub_handle, message_addr, message_timestamp)
+        else:
+            data.add_rclcpp_publish_instance(
+                tid, 1, 0, message_addr, message_timestamp)
         data.add_rcl_publish_instance(tid, 2, pub_handle, message_addr)
         data.add_dds_write_instance(tid, 3, message_addr)
         data.add_dds_bind_addr_to_stamp(
@@ -634,12 +643,17 @@ class TestPublisherRecords:
 
         assert df.equals(df_expect)
 
+    @pytest.mark.parametrize(
+        'has_publisher_handle',
+        [True, False]
+    )
     def test_single_publisher_with_tilde(
         self,
         create_lttng,
         create_publisher_lttng,
         setup_bridge_get_publisher,
         create_publisher_struct,
+        has_publisher_handle,
     ):
         data = Ros2DataModel()
         pub_handle = 3
@@ -659,8 +673,12 @@ class TestPublisherRecords:
             tilde_sub_id, 'node', 'topic', 0)
         data.add_tilde_publish(1, tilde_pub,
                                tilde_sub_id, tilde_message_id)
-        data.add_rclcpp_publish_instance(tid, 2, pub_handle,
-                                         message_addr, message_timestamp)
+        if has_publisher_handle:
+            data.add_rclcpp_publish_instance(
+                tid, 2, pub_handle, message_addr, message_timestamp)
+        else:
+            data.add_rclcpp_publish_instance(
+                tid, 2, 0, message_addr, message_timestamp)
         data.add_rcl_publish_instance(tid, 3, pub_handle, message_addr)
         data.add_dds_write_instance(tid, 4, message_addr)
         data.add_dds_bind_addr_to_stamp(

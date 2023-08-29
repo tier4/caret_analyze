@@ -30,6 +30,7 @@ class EventCounter:
         self._allowed_keys = {'trace_point', 'node_name', 'topic_name'}
         self._count_df = self._build_count_df(data)
         self._has_intra_process = self._check_intra_process_communication(data)
+        self._has_original_rclcpp_publish = self._check_original_rclcpp_publish(data)
         if validate:
             self._validate()
 
@@ -101,6 +102,11 @@ class EventCounter:
         has_rmw_take_trace_points = len(
             set(recorded_trace_points) & {'ros2:rmw_take'}) != 0
 
+        if self._has_original_rclcpp_publish:
+            logger.warning(
+                'This trace data has trace point from a package built without caret-rclcpp. '
+                'Such package cannot be analyzed successfully.')
+
         if (not has_forked_inter_process_trace_points
                 and not has_forked_intra_process_trace_points):
             # In this case, the measured application uses only inter process communication,
@@ -120,6 +126,9 @@ class EventCounter:
 
     def _check_intra_process_communication(self, data: Ros2DataModel) -> bool:
         return sum(data.callback_start_instances.get_column_series('is_intra_process')) != 0
+
+    def _check_original_rclcpp_publish(self, data: Ros2DataModel) -> bool:
+        return 0 in data.rclcpp_publish_instances.get_column_series('publisher_handle')
 
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
