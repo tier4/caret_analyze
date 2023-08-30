@@ -105,9 +105,9 @@ class LatencyStackedBar:
                                      columns=target_object.column_names)
         # include timestamp of response time (best, worst)
         if self._case == 'best':
-            return response_time.to_best_case_response_records()
+            return response_time.to_best_case_stacked_bar()
 
-        return response_time.to_response_records()
+        return response_time.to_stacked_bar()
 
     @property
     def target_objects(self) -> Path:

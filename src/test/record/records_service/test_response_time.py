@@ -51,15 +51,8 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = []
-        result = to_dict(response.to_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
-
-        expect_raw = []
-        result = to_dict(response.to_response_records())
-        assert result == expect_raw
-
-        expect_raw = []
-        assert to_dict(response.to_records(all_pattern=True)) == expect_raw
 
     def test_single_flow_case(self):
         records_raw = [
@@ -72,18 +65,8 @@ class TestResponseRecords:
 
         expect_raw = [
         ]
-        result = to_dict(response.to_records())
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
-
-        expect_raw = [
-        ]
-        result = to_dict(response.to_response_records())
-        assert result == expect_raw
-
-        expect_raw = [
-            {'start': 0, 'end': 1}
-        ]
-        assert to_dict(response.to_records(all_pattern=True)) == expect_raw
 
     def test_double_flow_case(self):
         records_raw = [
@@ -96,32 +79,18 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'end': 3},
-            {'start': 2, 'end': 3},
-        ]
-        result = to_dict(response.to_records())
-        assert result == expect_raw
-
-        expect_raw = [
             {'start_min': 0, 'start_max': 2, 'end': 3},
         ]
-        result = to_dict(response.to_response_records())
-        assert result == expect_raw
-
-        expect_raw = [
-            {'start': 0, 'end': 1},
-            {'start': 0, 'end': 3},
-            {'start': 2, 'end': 3},
-        ]
-        result = to_dict(response.to_records(all_pattern=True))
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
             {'start': 2, 'end': 3},
         ]
-        result = to_dict(response.to_best_case_response_records())
+        result = to_dict(response.to_best_case_stacked_bar())
         assert result == expect_raw
 
+    # NOTE: Is this test up to specification?
     def test_cross_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 10},
@@ -135,37 +104,18 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'end': 4},
-            {'start': 3, 'end': 4},
-            {'start': 3, 'end': 6},
-            {'start': 6, 'end': 6},
-        ]
-        result = to_dict(response.to_records())
-        assert result == expect_raw
-
-        expect_raw = [
             {'start_min': 0, 'start_max': 3, 'end': 4},
             {'start_min': 3, 'start_max': 6, 'end': 6},
         ]
-        result = to_dict(response.to_response_records())
-        assert result == expect_raw
-
-        expect_raw = [
-            {'start': 0, 'end': 4},
-            {'start': 0, 'end': 6},
-            {'start': 0, 'end': 8},
-            {'start': 0, 'end': 10},
-            {'start': 3, 'end': 4},
-            {'start': 4, 'end': 8},
-            {'start': 6, 'end': 6},
-        ]
-        result = to_dict(response.to_records(all_pattern=True))
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
             {'start': 3, 'end': 4},
             {'start': 6, 'end': 6},
         ]
+        result = to_dict(response.to_best_case_stacked_bar())
+        assert result == expect_raw
 
     def test_triple_flow_case(self):
         records_raw = [
@@ -179,37 +129,20 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'end': 3},
-            {'start': 2, 'end': 3},
-            {'start': 2, 'end': 11},
-            {'start': 10, 'end': 11}
-        ]
-        result = to_dict(response.to_records())
-        assert result == expect_raw
-
-        expect_raw = [
             {'start_min': 0, 'start_max': 2, 'end': 3},
             {'start_min': 2, 'start_max': 10, 'end': 11},
         ]
-        result = to_dict(response.to_response_records())
-        assert result == expect_raw
-
-        expect_raw = [
-            {'start': 0, 'end': 1},
-            {'start': 0, 'end': 3},
-            {'start': 0, 'end': 11},
-            {'start': 2, 'end': 3},
-            {'start': 10, 'end': 11},
-        ]
-
-        result = to_dict(response.to_records(all_pattern=True))
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
             {'start': 2, 'end': 3},
             {'start': 10, 'end': 11},
         ]
+        result = to_dict(response.to_best_case_stacked_bar())
+        assert result == expect_raw
 
+    # NOTE: Is this test up to specification?
     def test_double_flow_cross_case(self):
         records_raw = [
             {'start': 0, 'end': 5},
@@ -221,25 +154,9 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'end': 3},
-            {'start': 2, 'end': 3}
-        ]
-        result = to_dict(response.to_records())
-        assert result == expect_raw
-
-        expect_raw = [
             {'start_min': 0, 'start_max': 2, 'end': 3},
         ]
-        result = to_dict(response.to_response_records())
-        assert result == expect_raw
-
-        expect_raw = [
-            {'start': 0, 'end': 3},
-            {'start': 0, 'end': 5},
-            {'start': 2, 'end': 3},
-        ]
-
-        result = to_dict(response.to_records(all_pattern=True))
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
     def test_drop_case(self):
@@ -255,25 +172,9 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = [
-            {'start': 2, 'end': 4},
-            {'start': 3, 'end': 4}
-        ]
-        result = to_dict(response.to_records())
-        assert result == expect_raw
-
-        expect_raw = [
             {'start_min': 2, 'start_max': 3, 'end': 4},
         ]
-        result = to_dict(response.to_response_records())
-        assert result == expect_raw
-
-        expect_raw = [
-            {'start': 2, 'end': 3},
-            {'start': 2, 'end': 4},
-            {'start': 3, 'end': 4},
-        ]
-
-        result = to_dict(response.to_records(all_pattern=True))
+        result = to_dict(response.to_stacked_bar())
         assert result == expect_raw
 
 
@@ -581,17 +482,13 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_timeseries()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_timeseries()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
     def test_single_flow_case(self):
         records_raw = [
@@ -602,17 +499,13 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_timeseries()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_timeseries()
-        t_expect = []
-        latency_expect = []
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = []
+        assert to_dict(response_time) == expect
 
     def test_double_flow_case(self):
         records_raw = [
@@ -624,18 +517,19 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_timeseries()
-        t_expect = [2]
-        latency_expect = [1]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = [
+            {'start_max': 2, 'response_time': 1}
+        ]
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_timeseries()
-        t_expect = [0]
-        latency_expect = [3]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = [
+            {'start_min': 0, 'response_time': 3}
+        ]
+        assert to_dict(response_time) == expect
 
+    # NOTE: Is this test up to specification?
     def test_cross_flow_case(self):
         records_raw = [
             {'start': 0, 'end': 10},
@@ -648,17 +542,19 @@ class TestResponseTimeseries:
         records = create_records(records_raw, columns)
         response = ResponseTime(records)
 
-        t, latency = response.to_best_case_timeseries()
-        t_expect = [3, 6]
-        latency_expect = [1, 0]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_best_case_records()
+        expect = [
+            {'start_max': 3, 'response_time': 1},
+            {'start_max': 6, 'response_time': 0}
+        ]
+        assert to_dict(response_time) == expect
 
-        t, latency = response.to_worst_case_timeseries()
-        t_expect = [0, 3]
-        latency_expect = [4, 3]
-        assert list(t) == t_expect
-        assert list(latency) == latency_expect
+        response_time = response.to_worst_case_records()
+        expect = [
+            {'start_min': 0, 'response_time': 4},
+            {'start_min': 3, 'response_time': 3}
+        ]
+        assert to_dict(response_time) == expect
 
     class TestMultiColumnCase:
         records_raw = [
@@ -685,7 +581,7 @@ class TestResponseTimeseries:
                 columns=self.column_names
             )
 
-            records = response.to_response_records()
+            records = response.to_stacked_bar()
 
             expect = [
                 # flow 1 input ~ flow 7 output
@@ -697,73 +593,29 @@ class TestResponseTimeseries:
             output_dict = to_dict(records)
             assert output_dict == expect
 
-        def test_to_records(self):
-            response = ResponseTime(
-                create_records(self.records_raw, self.columns),
-                columns=self.column_names
-            )
-            records = response.to_records(all_pattern=False)
-
-            expect = [
-                #  flow 1 input ~ flow 7 output
-                {'column0': 5, 'column1': 25, 'column2': 30},
-                #  flow 7 input
-                {'column0': 20, 'column1': 25, 'column2': 30},
-                #  flow 7 input ~ flow 8 output
-                {'column0': 20, 'column1': 40, 'column2': 45},
-                #  flow 8 input
-                {'column0': 35, 'column1': 40, 'column2': 45},
-            ]
-
-            output_dict = to_dict(records)
-            assert output_dict == expect
-
-        def test_to_records_all_pattern(self):
-            response = ResponseTime(
-                create_records(self.records_raw, self.columns),
-                columns=self.column_names
-            )
-            records = response.to_records(all_pattern=True)
-
-            expect = [
-                # flow 1 flow ~ flow1 output
-                {'column0': 5, 'column1': 10, 'column2': 15},
-                # flow 1 flow ~ flow2 output
-                {'column0': 5, 'column1': 12, 'column2': 17},
-                # flow 1 flow ~ flow 5 output
-                {'column0': 5, 'column1': 21, 'column2': 50},
-                # flow 1 flow ~ flow 7 output
-                {'column0': 5, 'column1': 25, 'column2': 30},
-                # flow 1 flow ~ flow 8 output
-                {'column0': 5, 'column1': 40, 'column2': 45},
-                # flow 5 flow ~ flow 5 output
-                {'column0': 8, 'column1': 21, 'column2': 50},
-                # flow 7 flow ~ flow 7 output
-                {'column0': 20, 'column1': 25, 'column2': 30},
-                # flow 8 flow ~ flow 8 output
-                {'column0': 35, 'column1': 40, 'column2': 45},
-            ]
-
-            output_dict = to_dict(records)
-            assert output_dict == expect
-
         def test_to_best_case_timeseries(self):
             response = ResponseTime(
                 create_records(self.records_raw, self.columns),
                 columns=self.column_names
             )
-            best_case_input_time, latency = response.to_best_case_timeseries()
-            assert list(best_case_input_time) == [20, 35]
-            assert list(latency) == [10, 10]
+            response_time = response.to_best_case_records()
+            expect = [
+                {'column0_max': 20, 'response_time': 10},
+                {'column0_max': 35, 'response_time': 10}
+            ]
+            assert to_dict(response_time) == expect
 
         def test_to_worst_case_timeseries(self):
             response = ResponseTime(
                 create_records(self.records_raw, self.columns),
                 columns=self.column_names
             )
-            worst_case_input_time, latency = response.to_worst_case_timeseries()
-            assert list(worst_case_input_time) == [5, 20]
-            assert list(latency) == [25, 25]
+            response_time = response.to_worst_case_records()
+            expect = [
+                {'column0_min': 5, 'response_time': 25},
+                {'column0_min': 20, 'response_time': 25}
+            ]
+            assert to_dict(response_time) == expect
 
 
 class TestResponseTimeWorstInInput:
