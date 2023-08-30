@@ -262,6 +262,54 @@ class ResponseMapAll:
                     self._start_timestamps[idx] = start_ts
                     self._end_timestamps[idx] = end_ts
 
+    def to_worst_records(self) -> RecordsInterface:
+        records = self._create_empty_records()
+
+        end_timestamps: list[int] = []
+        start_timestamps: list[int] = []
+        for start_ts, end_ts in zip(self._start_timestamps[:-1], self._end_timestamps[1:]):
+            if end_ts not in end_timestamps:
+                start_timestamps.append(start_ts)
+                end_timestamps.append(end_ts)
+            else:
+                idx = end_timestamps.index(end_ts)
+                if start_ts < start_timestamps[idx]:
+                    start_timestamps[idx] = start_ts
+                    end_timestamps[idx] = end_ts
+
+        for start_ts, end_ts in zip(start_timestamps, end_timestamps):
+            record = {
+                self._start_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
+            records.append(record)
+
+        return records
+
+    def to_best_records(self) -> RecordsInterface:
+        records = self._create_empty_records()
+
+        end_timestamps: list[int] = []
+        start_timestamps: list[int] = []
+        for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
+            if end_ts not in end_timestamps:
+                start_timestamps.append(start_ts)
+                end_timestamps.append(end_ts)
+            else:
+                idx = end_timestamps.index(end_ts)
+                if start_ts > start_timestamps[idx]:
+                    start_timestamps[idx] = start_ts
+                    end_timestamps[idx] = end_ts
+
+        for start_ts, end_ts in zip(start_timestamps, end_timestamps):
+            record = {
+                self._start_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
+            records.append(record)
+
+        return records
+
     def to_all_records(self) -> RecordsInterface:
         records = self._create_empty_records()
 
@@ -347,6 +395,12 @@ class ResponseTime:
         self._records = ResponseRecords(response_map)
         self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records, self._timeseries)
+
+    def to_best_records(self) -> RecordsInterface:
+        return self._response_map_all.to_best_records()
+
+    def to_worst_records(self) -> RecordsInterface:
+        return self._response_map_all.to_worst_records()
 
     def to_all_records(self) -> RecordsInterface:
         return self._response_map_all.to_all_records()
