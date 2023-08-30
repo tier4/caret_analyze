@@ -11,28 +11,32 @@
         <link rel="canonical" href="https://tier4.github.io/CARET_analyze/main/common/">
       
       
-        <link rel="prev" href="../exceptions/">
+        <link rel="prev" href="../architecture/">
       
       
-        <link rel="next" href="../record/">
+        <link rel="next" href="../exceptions/">
+      
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.2.5">
     
     
       
-        <title>common - CARET analyze API document</title>
+        <title>Common - CARET analyze API document</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.0e669242.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.85d0ee34.min.css">
       
       
 
+
     
+    
+      
     
     
       
@@ -104,10 +108,11 @@
     <a href=".." title="CARET analyze API document" class="md-header__button md-logo" aria-label="CARET analyze API document" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M135.2 117.4 109.1 192h293.8l-26.1-74.6c-4.5-12.8-16.6-21.4-30.2-21.4H165.4c-13.6 0-25.7 8.6-30.2 21.4zm-95.6 79.4L74.8 96.3C88.3 57.8 124.6 32 165.4 32h181.2c40.8 0 77.1 25.8 90.6 64.3l35.2 100.5c23.2 9.6 39.6 32.5 39.6 59.2v192c0 17.7-14.3 32-32 32h-32c-17.7 0-32-14.3-32-32v-48H96v48c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V256c0-26.7 16.4-49.6 39.6-59.2zM128 288a32 32 0 1 0-64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M135.2 117.4 109.1 192h293.8l-26.1-74.6c-4.5-12.8-16.6-21.4-30.2-21.4H165.4c-13.6 0-25.7 8.6-30.2 21.4zm-95.6 79.4L74.8 96.3C88.3 57.8 124.6 32 165.4 32h181.2c40.8 0 77.1 25.8 90.6 64.3l35.2 100.5c23.2 9.6 39.6 32.5 39.6 59.2v192c0 17.7-14.3 32-32 32h-32c-17.7 0-32-14.3-32-32v-48H96v48c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V256c0-26.7 16.4-49.6 39.6-59.2zM128 288a32 32 0 1 0-64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
+      
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
@@ -120,7 +125,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              common
+              Common
             
           </span>
         </div>
@@ -129,33 +134,34 @@
     
       
         <form class="md-header__option" data-md-component="palette">
-          
-            
-            
-            
-            <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
-            
-              <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
-              </label>
-            
-          
-            
-            
-            
-            <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="grey" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
-            
-              <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
-              </label>
-            
-          
-        </form>
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="grey" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+</form>
       
     
     
     
       <label class="md-header__button md-icon" for="__search">
+        
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
       </label>
       <div class="md-search" data-md-component="search" role="dialog">
@@ -164,12 +170,15 @@
     <form class="md-search__form" name="search">
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
+        
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
         </button>
       </nav>
@@ -193,7 +202,7 @@
         <a href="https://github.com/tier4/CARET_analyze" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -212,26 +221,32 @@
         
   
   
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+    
+  
+  CARET analyze
 
-
-  <li class="md-tabs__item">
-    <a href=".." class="md-tabs__link">
-      HOME
-    </a>
-  </li>
+      </a>
+    </li>
+  
 
       
         
   
   
-
-
-  
-  
   
     <li class="md-tabs__item">
       <a href="../architecture/" class="md-tabs__link">
-        API for user
+        
+  
+    
+  
+  Architecture
+
       </a>
     </li>
   
@@ -242,14 +257,117 @@
   
     
   
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Common
 
+      </a>
+    </li>
+  
 
+      
+        
   
   
   
     <li class="md-tabs__item">
-      <a href="./" class="md-tabs__link md-tabs__link--active">
-        API for developer
+      <a href="../exceptions/" class="md-tabs__link">
+        
+  
+    
+  
+  Exceptions
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../infra/" class="md-tabs__link">
+        
+  
+    
+  
+  Infra
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../plot/" class="md-tabs__link">
+        
+  
+    
+  
+  Plot
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../record/" class="md-tabs__link">
+        
+  
+    
+  
+  Record
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../runtime/" class="md-tabs__link">
+        
+  
+    
+  
+  Runtime
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../value_objects/" class="md-tabs__link">
+        
+  
+    
+  
+  Value objects
+
       </a>
     </li>
   
@@ -277,6 +395,7 @@
                   <div class="md-sidebar__inner">
                     
 
+
   
 
 
@@ -285,7 +404,7 @@
     <a href=".." title="CARET analyze API document" class="md-nav__button md-logo" aria-label="CARET analyze API document" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M135.2 117.4 109.1 192h293.8l-26.1-74.6c-4.5-12.8-16.6-21.4-30.2-21.4H165.4c-13.6 0-25.7 8.6-30.2 21.4zm-95.6 79.4L74.8 96.3C88.3 57.8 124.6 32 165.4 32h181.2c40.8 0 77.1 25.8 90.6 64.3l35.2 100.5c23.2 9.6 39.6 32.5 39.6 59.2v192c0 17.7-14.3 32-32 32h-32c-17.7 0-32-14.3-32-32v-48H96v48c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V256c0-26.7 16.4-49.6 39.6-59.2zM128 288a32 32 0 1 0-64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M135.2 117.4 109.1 192h293.8l-26.1-74.6c-4.5-12.8-16.6-21.4-30.2-21.4H165.4c-13.6 0-25.7 8.6-30.2 21.4zm-95.6 79.4L74.8 96.3C88.3 57.8 124.6 32 165.4 32h181.2c40.8 0 77.1 25.8 90.6 64.3l35.2 100.5c23.2 9.6 39.6 32.5 39.6 59.2v192c0 17.7-14.3 32-32 32h-32c-17.7 0-32-14.3-32-32v-48H96v48c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V256c0-26.7 16.4-49.6 39.6-59.2zM128 288a32 32 0 1 0-64 0 32 32 0 1 0 64 0zm288 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></svg>
 
     </a>
     CARET analyze API document
@@ -295,7 +414,7 @@
       <a href="https://github.com/tier4/CARET_analyze" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -307,14 +426,18 @@
     
       
       
-      
-
   
   
   
     <li class="md-nav__item">
       <a href=".." class="md-nav__link">
-        HOME
+        
+  
+  <span class="md-ellipsis">
+    CARET analyze
+  </span>
+  
+
       </a>
     </li>
   
@@ -322,164 +445,25 @@
     
       
       
-      
-
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-      
-      
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-      
-      
-        
-          
-        
-          
-        
-          
-        
-          
-        
-          
-        
-      
-      
-        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-          API for user
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_2">
-          <span class="md-nav__icon md-icon"></span>
-          API for user
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
   
   
   
     <li class="md-nav__item">
       <a href="../architecture/" class="md-nav__link">
-        architecture
-      </a>
-    </li>
+        
+  
+  <span class="md-ellipsis">
+    Architecture
+  </span>
   
 
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../infra/" class="md-nav__link">
-        infra
       </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../plot/" class="md-nav__link">
-        plot
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../runtime/" class="md-nav__link">
-        runtime
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../exceptions/" class="md-nav__link">
-        exceptions
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
     </li>
   
 
     
       
       
-      
-
-  
-  
-    
-  
-  
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-      
-      
-      
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
-      
-      
-        
-          
-        
-          
-        
-          
-        
-      
-      
-        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-          API for developer
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-        <label class="md-nav__title" for="__nav_3">
-          <span class="md-nav__icon md-icon"></span>
-          API for developer
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
   
   
     
@@ -492,12 +476,24 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          common
+          
+  
+  <span class="md-ellipsis">
+    Common
+  </span>
+  
+
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        common
+        
+  
+  <span class="md-ellipsis">
+    Common
+  </span>
+  
+
       </a>
       
         
@@ -515,7 +511,7 @@
       
         <li class="md-nav__item">
   <a href="#caret_analyze.common" class="md-nav__link">
-    caret_analyze.common
+    common
   </a>
   
 </li>
@@ -529,21 +525,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.clock_converter.ClockConverter.__init__" class="md-nav__link">
+  <a href="#caret_analyze.common.ClockConverter.__init__" class="md-nav__link">
     __init__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.clock_converter.ClockConverter.convert" class="md-nav__link">
+  <a href="#caret_analyze.common.ClockConverter.convert" class="md-nav__link">
     convert()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.clock_converter.ClockConverter.create_from_series" class="md-nav__link">
+  <a href="#caret_analyze.common.ClockConverter.create_from_series" class="md-nav__link">
     create_from_series()
   </a>
   
@@ -563,14 +559,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.progress.Progress.records_label" class="md-nav__link">
+  <a href="#caret_analyze.common.Progress.records_label" class="md-nav__link">
     records_label()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.progress.Progress.tqdm" class="md-nav__link">
+  <a href="#caret_analyze.common.Progress.tqdm" class="md-nav__link">
     tqdm()
   </a>
   
@@ -610,7 +606,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summarizable.summary" class="md-nav__link">
+  <a href="#caret_analyze.common.Summarizable.summary" class="md-nav__link">
     summary()
   </a>
   
@@ -637,21 +633,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summary.__eq__" class="md-nav__link">
+  <a href="#caret_analyze.common.Summary.__eq__" class="md-nav__link">
     __eq__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summary.__hash__" class="md-nav__link">
+  <a href="#caret_analyze.common.Summary.__hash__" class="md-nav__link">
     __hash__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summary.__str__" class="md-nav__link">
+  <a href="#caret_analyze.common.Summary.__str__" class="md-nav__link">
     __str__()
   </a>
   
@@ -671,35 +667,35 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.__add__" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.__add__" class="md-nav__link">
     __add__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.__iadd__" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.__iadd__" class="md-nav__link">
     __iadd__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.__init__" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.__init__" class="md-nav__link">
     __init__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.append" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.append" class="md-nav__link">
     append()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.as_list" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.as_list" class="md-nav__link">
     as_list()
   </a>
   
@@ -719,7 +715,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.ext" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.ext" class="md-nav__link">
     ext()
   </a>
   
@@ -727,7 +723,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.ext--note" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.ext--note" class="md-nav__link">
     Note
   </a>
   
@@ -739,42 +735,42 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.filter_items" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.filter_items" class="md-nav__link">
     filter_items()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.find_one" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.find_one" class="md-nav__link">
     find_one()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.find_similar_one" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.find_similar_one" class="md-nav__link">
     find_similar_one()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.find_similar_one_multi_keys" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.find_similar_one_multi_keys" class="md-nav__link">
     find_similar_one_multi_keys()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.flatten" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.flatten" class="md-nav__link">
     flatten()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.get_ext" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.get_ext" class="md-nav__link">
     get_ext()
   </a>
   
@@ -782,7 +778,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.get_ext--note" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.get_ext--note" class="md-nav__link">
     Note
   </a>
   
@@ -794,21 +790,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.ns_to_ms" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.ns_to_ms" class="md-nav__link">
     ns_to_ms()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.num_digit" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.num_digit" class="md-nav__link">
     num_digit()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.to_ns_and_name" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.to_ns_and_name" class="md-nav__link">
     to_ns_and_name()
   </a>
   
@@ -826,38 +822,117 @@
     </li>
   
 
-            
-          
-            
-              
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Exceptions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../infra/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Infra
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Plot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
   
   
   
     <li class="md-nav__item">
       <a href="../record/" class="md-nav__link">
-        record
+        
+  
+  <span class="md-ellipsis">
+    Record
+  </span>
+  
+
       </a>
     </li>
   
 
-            
-          
-            
-              
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
   
   
   
     <li class="md-nav__item">
       <a href="../value_objects/" class="md-nav__link">
-        value_objects
-      </a>
-    </li>
+        
+  
+  <span class="md-ellipsis">
+    Value objects
+  </span>
   
 
-            
-          
-        </ul>
-      </nav>
+      </a>
     </li>
   
 
@@ -888,7 +963,7 @@
       
         <li class="md-nav__item">
   <a href="#caret_analyze.common" class="md-nav__link">
-    caret_analyze.common
+    common
   </a>
   
 </li>
@@ -902,21 +977,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.clock_converter.ClockConverter.__init__" class="md-nav__link">
+  <a href="#caret_analyze.common.ClockConverter.__init__" class="md-nav__link">
     __init__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.clock_converter.ClockConverter.convert" class="md-nav__link">
+  <a href="#caret_analyze.common.ClockConverter.convert" class="md-nav__link">
     convert()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.clock_converter.ClockConverter.create_from_series" class="md-nav__link">
+  <a href="#caret_analyze.common.ClockConverter.create_from_series" class="md-nav__link">
     create_from_series()
   </a>
   
@@ -936,14 +1011,14 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.progress.Progress.records_label" class="md-nav__link">
+  <a href="#caret_analyze.common.Progress.records_label" class="md-nav__link">
     records_label()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.progress.Progress.tqdm" class="md-nav__link">
+  <a href="#caret_analyze.common.Progress.tqdm" class="md-nav__link">
     tqdm()
   </a>
   
@@ -983,7 +1058,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summarizable.summary" class="md-nav__link">
+  <a href="#caret_analyze.common.Summarizable.summary" class="md-nav__link">
     summary()
   </a>
   
@@ -1010,21 +1085,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summary.__eq__" class="md-nav__link">
+  <a href="#caret_analyze.common.Summary.__eq__" class="md-nav__link">
     __eq__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summary.__hash__" class="md-nav__link">
+  <a href="#caret_analyze.common.Summary.__hash__" class="md-nav__link">
     __hash__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.summary.Summary.__str__" class="md-nav__link">
+  <a href="#caret_analyze.common.Summary.__str__" class="md-nav__link">
     __str__()
   </a>
   
@@ -1044,35 +1119,35 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.__add__" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.__add__" class="md-nav__link">
     __add__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.__iadd__" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.__iadd__" class="md-nav__link">
     __iadd__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.__init__" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.__init__" class="md-nav__link">
     __init__()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.append" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.append" class="md-nav__link">
     append()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.unique_list.UniqueList.as_list" class="md-nav__link">
+  <a href="#caret_analyze.common.UniqueList.as_list" class="md-nav__link">
     as_list()
   </a>
   
@@ -1092,7 +1167,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.ext" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.ext" class="md-nav__link">
     ext()
   </a>
   
@@ -1100,7 +1175,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.ext--note" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.ext--note" class="md-nav__link">
     Note
   </a>
   
@@ -1112,42 +1187,42 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.filter_items" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.filter_items" class="md-nav__link">
     filter_items()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.find_one" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.find_one" class="md-nav__link">
     find_one()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.find_similar_one" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.find_similar_one" class="md-nav__link">
     find_similar_one()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.find_similar_one_multi_keys" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.find_similar_one_multi_keys" class="md-nav__link">
     find_similar_one_multi_keys()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.flatten" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.flatten" class="md-nav__link">
     flatten()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.get_ext" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.get_ext" class="md-nav__link">
     get_ext()
   </a>
   
@@ -1155,7 +1230,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.get_ext--note" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.get_ext--note" class="md-nav__link">
     Note
   </a>
   
@@ -1167,21 +1242,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.ns_to_ms" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.ns_to_ms" class="md-nav__link">
     ns_to_ms()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.num_digit" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.num_digit" class="md-nav__link">
     num_digit()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.common.util.Util.to_ns_and_name" class="md-nav__link">
+  <a href="#caret_analyze.common.Util.to_ns_and_name" class="md-nav__link">
     to_ns_and_name()
   </a>
   
@@ -1210,9 +1285,10 @@
   
 
 
-  <h1>common</h1>
+  <h1>Common</h1>
 
 <div class="doc doc-object doc-module">
+
 
 
 <a id="caret_analyze.common"></a>
@@ -1238,8 +1314,9 @@ Common functions should be placed under the Util class.</p>
 
 
 
+
 <h2 id="caret_analyze.common.ClockConverter" class="doc doc-heading">
-        <code>ClockConverter</code>
+          <code>ClockConverter</code>
 
 
 <a href="#caret_analyze.common.ClockConverter" class="headerlink" title="Permanent link">#</a></h2>
@@ -1250,7 +1327,6 @@ Common functions should be placed under the Util class.</p>
   
       <p>Class for time conversion. Converts a time given in linear form (y=ax+b) to another time.</p>
 <p>TODO(hsgwa): Migrate into record.</p>
-
 
 
   
@@ -1265,19 +1341,23 @@ Common functions should be placed under the Util class.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.clock_converter.ClockConverter.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.common.clock_converter.ClockConverter.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.ClockConverter.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.ClockConverter.__init__" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Construct an instance.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1325,19 +1405,23 @@ Common functions should be placed under the Util class.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.clock_converter.ClockConverter.convert" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">convert</span><span class="p">(</span><span class="n">time</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.common.clock_converter.ClockConverter.convert" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.ClockConverter.convert" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">convert</span><span class="p">(</span><span class="n">time</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.ClockConverter.convert" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Convert input time.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1367,6 +1451,8 @@ Common functions should be placed under the Util class.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -1394,23 +1480,27 @@ Conversion are done with y=ax+b.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.clock_converter.ClockConverter.create_from_series" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_from_series</span><span class="p">(</span><span class="n">times_from</span><span class="p">,</span> <span class="n">times_to</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.ClockConverter.create_from_series" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">create_from_series</span><span class="p">(</span><span class="n">times_from</span><span class="p">,</span> <span class="n">times_to</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.clock_converter.ClockConverter.create_from_series" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.ClockConverter.create_from_series" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Construct an instance from time series data.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1454,6 +1544,8 @@ Conversion are done with y=ax+b.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -1475,6 +1567,8 @@ Conversion are done with y=ax+b.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Raises:</strong></p>
   <table>
@@ -1514,8 +1608,9 @@ Conversion are done with y=ax+b.</p>
 
 
 
+
 <h2 id="caret_analyze.common.Progress" class="doc doc-heading">
-        <code>Progress</code>
+          <code>Progress</code>
 
 
 <a href="#caret_analyze.common.Progress" class="headerlink" title="Permanent link">#</a></h2>
@@ -1526,7 +1621,6 @@ Conversion are done with y=ax+b.</p>
   
       <p>Class that manages the progress bar.</p>
 <p>Set Progress.enable = True if to display progress bar.</p>
-
 
 
   
@@ -1541,23 +1635,27 @@ Conversion are done with y=ax+b.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.progress.Progress.records_label" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">records_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Progress.records_label" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">records_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.progress.Progress.records_label" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Progress.records_label" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Progress bar for the iterator in Records.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1587,6 +1685,8 @@ Conversion are done with y=ax+b.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -1614,23 +1714,27 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.progress.Progress.tqdm" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">tqdm</span><span class="p">(</span><span class="n">it</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Progress.tqdm" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">tqdm</span><span class="p">(</span><span class="n">it</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.progress.Progress.tqdm" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Progress.tqdm" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Progress bar for python iterators.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1659,6 +1763,8 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -1699,23 +1805,23 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 
 
 
+
 <h2 id="caret_analyze.common.Singleton" class="doc doc-heading">
-        <code>Singleton</code>
+          <code>Singleton</code>
 
 
 <a href="#caret_analyze.common.Singleton" class="headerlink" title="Permanent link">#</a></h2>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>object</code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code>object</code></p>
 
   
       <p>Singleton class.</p>
 <p>Inherited classes become singleton.</p>
 <h4 id="caret_analyze.common.Singleton--note">Note:<a class="headerlink" href="#caret_analyze.common.Singleton--note" title="Permanent link">#</a></h4>
 <p>Basically, implementation should avoid the use of Singleton.</p>
-
 
 
   
@@ -1742,8 +1848,9 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 
 
 
+
 <h2 id="caret_analyze.common.Summarizable" class="doc doc-heading">
-        <code>Summarizable</code>
+          <code>Summarizable</code>
 
 
 <a href="#caret_analyze.common.Summarizable" class="headerlink" title="Permanent link">#</a></h2>
@@ -1753,7 +1860,6 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 
   
       <p>Abstract base class that have summary property.</p>
-
 
 
   
@@ -1768,19 +1874,23 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.summary.Summarizable.summary" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">summary</span><span class="p">()</span></code>
 
-<a href="#caret_analyze.common.summary.Summarizable.summary" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.Summarizable.summary" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">summary</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.common.Summarizable.summary" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get summary.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -1820,16 +1930,17 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 
 
 
+
 <h2 id="caret_analyze.common.Summary" class="doc doc-heading">
-        <code>Summary</code>
+          <code>Summary</code>
 
 
 <a href="#caret_analyze.common.Summary" class="headerlink" title="Permanent link">#</a></h2>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="collections.UserDict">UserDict</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="collections.UserDict">UserDict</span></code></p>
 
   
       <p>Summary about value objects and runtime data objects.</p>
@@ -1837,7 +1948,6 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 <p>The class is used to get an overview of the instance
 without any effect to <strong>eq</strong> and  <strong>hash</strong>.
 Users can get an overview in dictionary form or check the overview in the standard output.</p>
-
 
 
   
@@ -1852,14 +1962,16 @@ Users can get an overview in dictionary form or check the overview in the standa
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.summary.Summary.__eq__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.common.summary.Summary.__eq__" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.Summary.__eq__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.Summary.__eq__" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
@@ -1870,14 +1982,16 @@ Users can get an overview in dictionary form or check the overview in the standa
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.summary.Summary.__hash__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__hash__</span><span class="p">()</span></code>
 
-<a href="#caret_analyze.common.summary.Summary.__hash__" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.Summary.__hash__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__hash__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.common.Summary.__hash__" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
@@ -1888,14 +2002,16 @@ Users can get an overview in dictionary form or check the overview in the standa
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.summary.Summary.__str__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__str__</span><span class="p">()</span></code>
 
-<a href="#caret_analyze.common.summary.Summary.__str__" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.Summary.__str__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__str__</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.common.Summary.__str__" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
@@ -1918,20 +2034,20 @@ Users can get an overview in dictionary form or check the overview in the standa
 
 
 
+
 <h2 id="caret_analyze.common.UniqueList" class="doc doc-heading">
-        <code>UniqueList</code>
+          <code>UniqueList</code>
 
 
 <a href="#caret_analyze.common.UniqueList" class="headerlink" title="Permanent link">#</a></h2>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="collections.UserList">UserList</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="collections.UserList">UserList</span></code></p>
 
   
       <p>An ordered list without duplicate values.</p>
-
 
 
   
@@ -1946,19 +2062,23 @@ Users can get an overview in dictionary form or check the overview in the standa
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.unique_list.UniqueList.__add__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.common.unique_list.UniqueList.__add__" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.UniqueList.__add__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.UniqueList.__add__" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Add other data.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1988,6 +2108,8 @@ Users can get an overview in dictionary form or check the overview in the standa
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2014,19 +2136,23 @@ Users can get an overview in dictionary form or check the overview in the standa
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.unique_list.UniqueList.__iadd__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__iadd__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.common.unique_list.UniqueList.__iadd__" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.UniqueList.__iadd__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__iadd__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.UniqueList.__iadd__" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Add other data.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2056,6 +2182,8 @@ Users can get an overview in dictionary form or check the overview in the standa
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2082,19 +2210,23 @@ Users can get an overview in dictionary form or check the overview in the standa
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.unique_list.UniqueList.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.common.unique_list.UniqueList.__init__" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.UniqueList.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.UniqueList.__init__" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Construct an instance.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2129,19 +2261,23 @@ If there are duplicate values, only the first value is inserted.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.unique_list.UniqueList.append" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></code>
 
-<a href="#caret_analyze.common.unique_list.UniqueList.append" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.UniqueList.append" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.common.UniqueList.append" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Append new data.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2176,19 +2312,23 @@ If there are duplicate values, only the first value is inserted.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.unique_list.UniqueList.as_list" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">as_list</span><span class="p">()</span></code>
 
-<a href="#caret_analyze.common.unique_list.UniqueList.as_list" class="headerlink" title="Permanent link">#</a></h3>
+<h3 id="caret_analyze.common.UniqueList.as_list" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">as_list</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.common.UniqueList.as_list" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get data as Python list.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2228,15 +2368,15 @@ If there are duplicate values, only the first value is inserted.</p>
 
 
 
+
 <h2 id="caret_analyze.common.Util" class="doc doc-heading">
-        <code>Util</code>
+          <code>Util</code>
 
 
 <a href="#caret_analyze.common.Util" class="headerlink" title="Permanent link">#</a></h2>
 
 
   <div class="doc doc-contents ">
-
 
 
 
@@ -2252,23 +2392,27 @@ If there are duplicate values, only the first value is inserted.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.ext" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">ext</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.ext" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">ext</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.ext" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.ext" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get extension from path.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2298,6 +2442,8 @@ If there are duplicate values, only the first value is inserted.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2319,7 +2465,7 @@ If there are duplicate values, only the first value is inserted.</p>
         </tr>
     </tbody>
   </table>
-      <h5 id="caret_analyze.common.util.Util.ext--note">Note<a class="headerlink" href="#caret_analyze.common.util.Util.ext--note" title="Permanent link">#</a></h5>
+      <h5 id="caret_analyze.common.Util.ext--note">Note<a class="headerlink" href="#caret_analyze.common.Util.ext--note" title="Permanent link">#</a></h5>
 <div class="codehilite"><pre><span></span><code>This function is duplicated. see: get_ext in Util.
 </code></pre></div>
 
@@ -2327,23 +2473,27 @@ If there are duplicate values, only the first value is inserted.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.filter_items" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">filter_items</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.filter_items" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">filter_items</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.filter_items" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.filter_items" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Filter iterable.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2387,6 +2537,8 @@ If there are duplicate values, only the first value is inserted.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2413,23 +2565,27 @@ If there are duplicate values, only the first value is inserted.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.find_one" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">find_one</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.find_one" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">find_one</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.find_one" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.find_one" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get a single item that matches the condition.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2473,6 +2629,8 @@ If there are duplicate values, only the first value is inserted.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2494,6 +2652,8 @@ If there are duplicate values, only the first value is inserted.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Raises:</strong></p>
   <table>
@@ -2531,23 +2691,27 @@ If there are duplicate values, only the first value is inserted.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.find_similar_one" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">find_similar_one</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">th</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.find_similar_one" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">find_similar_one</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">th</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.find_similar_one" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.find_similar_one" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get a single item that matches the condition.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2599,7 +2763,7 @@ If there are duplicate values, only the first value is inserted.</p>
             </div>
           </td>
           <td>
-                <code>lambda x: x</code>
+                <code>lambda : x</code>
           </td>
         </tr>
         <tr>
@@ -2619,6 +2783,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2641,6 +2807,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Raises:</strong></p>
   <table>
@@ -2678,23 +2846,27 @@ A candidate is mentioned only if it is higher than the threshold.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.find_similar_one_multi_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">find_similar_one_multi_keys</span><span class="p">(</span><span class="n">target_names</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">th</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.find_similar_one_multi_keys" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">find_similar_one_multi_keys</span><span class="p">(</span><span class="n">target_names</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="k">lambda</span> <span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">th</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.find_similar_one_multi_keys" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.find_similar_one_multi_keys" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get a single item that matches the multi conditions.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2746,7 +2918,7 @@ A candidate is mentioned only if it is higher than the threshold.</p>
             </div>
           </td>
           <td>
-                <code>lambda x: x</code>
+                <code>lambda : x</code>
           </td>
         </tr>
         <tr>
@@ -2766,6 +2938,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2788,6 +2962,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Raises:</strong></p>
   <table>
@@ -2825,23 +3001,27 @@ A candidate is mentioned only if it is higher than the threshold.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.flatten" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.flatten" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.flatten" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.flatten" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Expand double nested Iterable to List.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2871,6 +3051,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2897,23 +3079,27 @@ A candidate is mentioned only if it is higher than the threshold.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.get_ext" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_ext</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.get_ext" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_ext</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.get_ext" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.get_ext" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get extension from path.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2943,6 +3129,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2964,7 +3152,7 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </tr>
     </tbody>
   </table>
-      <h5 id="caret_analyze.common.util.Util.get_ext--note">Note<a class="headerlink" href="#caret_analyze.common.util.Util.get_ext--note" title="Permanent link">#</a></h5>
+      <h5 id="caret_analyze.common.Util.get_ext--note">Note<a class="headerlink" href="#caret_analyze.common.Util.get_ext--note" title="Permanent link">#</a></h5>
 <div class="codehilite"><pre><span></span><code>This function is duplicated. see: ext in Util.
 </code></pre></div>
 
@@ -2972,23 +3160,27 @@ A candidate is mentioned only if it is higher than the threshold.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.ns_to_ms" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">ns_to_ms</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.ns_to_ms" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">ns_to_ms</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.ns_to_ms" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.ns_to_ms" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Convert nanosecond to millisecond.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3018,6 +3210,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3044,23 +3238,27 @@ A candidate is mentioned only if it is higher than the threshold.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.num_digit" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">num_digit</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.num_digit" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">num_digit</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.num_digit" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.num_digit" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Get number of digits in decimal.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3090,6 +3288,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3116,23 +3316,27 @@ A candidate is mentioned only if it is higher than the threshold.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
-<h3 id="caret_analyze.common.util.Util.to_ns_and_name" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">to_ns_and_name</span><span class="p">(</span><span class="n">nodename</span><span class="p">)</span></code>
+
+<h3 id="caret_analyze.common.Util.to_ns_and_name" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_ns_and_name</span><span class="p">(</span><span class="n">nodename</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
   </span>
 
-<a href="#caret_analyze.common.util.Util.to_ns_and_name" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.common.Util.to_ns_and_name" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
       <p>Convert fully qualified node name.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3161,6 +3365,8 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3217,6 +3423,7 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </div>
         
           <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+            
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
             Back to top
           </button>
@@ -3250,18 +3457,14 @@ A candidate is mentioned only if it is higher than the threshold.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b425cdc4.min.js"></script>
+      <script src="../assets/javascripts/bundle.78eede0e.min.js"></script>
       
-        
-          <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
-        
+        <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
       
-        
-          <script src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
       
     
   </body>
