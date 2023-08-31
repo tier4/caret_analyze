@@ -20,7 +20,7 @@ from collections.abc import Sequence
 from bokeh.plotting import Figure
 
 from ..metrics_base import MetricsBase
-from ...record import Frequency, Latency, Period
+from ...record import Latency
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
@@ -90,7 +90,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
 
     def histogram(
         self,
-        metrics: list[Frequency | Latency | Period],
+        metrics: list[Latency],
         callback_names: list[str],
         data_type: str
     ) -> Figure:

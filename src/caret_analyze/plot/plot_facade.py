@@ -26,12 +26,6 @@ from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
                        Path, Publisher, Subscription)
-# from bokeh.plotting import Figure, show
-# from caret_analyze.record import Latency
-# from numpy import histogram
-# from bokeh.models import HoverTool
-
-# from collections.abc import Sequence
 
 logger = getLogger(__name__)
 
@@ -311,32 +305,6 @@ class Plot:
         return plot
 
     @staticmethod
-    def create_frequency_histogram_plot(
-        target_objects: HistogramTypes
-    ) -> PlotBase:
-        """
-        Get frequency histogram plot instance.
-
-        Parameters
-        ----------
-        target_objects : Collection[TimeSeriesTypes]
-            HistogramTypes = CallbackBase | Communication
-            Instances that are the sources of the plotting.
-            This also accepts multiple inputs by unpacking.
-
-        Returns
-        -------
-        PlotBase
-
-        """
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
-            'frequency', visualize_lib
-        )
-        return plot
-
-    @staticmethod
     def create_latency_histogram_plot(
         *target_objects: HistogramTypes
     ) -> PlotBase:
@@ -345,7 +313,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[TimeSeriesTypes]
+        target_objects : Collection[HistogramTypes]
             HistogramTypes = CallbackBase | Communication
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
@@ -359,31 +327,5 @@ class Plot:
         plot = HistogramPlotFactory.create_instance(
             parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
             'latency', visualize_lib
-        )
-        return plot
-
-    @staticmethod
-    def create_period_histogram_plot(
-        target_objects: HistogramTypes
-    ) -> PlotBase:
-        """
-        Get period histogram plot instance.
-
-        Parameters
-        ----------
-        target_objects : Collection[TimeSeriesTypes]
-            HistogramTypes = CallbackBase | Communication
-            Instances that are the sources of the plotting.
-            This also accepts multiple inputs by unpacking.
-
-        Returns
-        -------
-        PlotBase
-
-        """
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
-            'period', visualize_lib
         )
         return plot

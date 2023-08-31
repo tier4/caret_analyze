@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from bokeh.plotting import Figure
 
-from caret_analyze.record import Frequency, Latency, Period
+from caret_analyze.record import Latency
 
 import pandas as pd
 
@@ -26,15 +26,15 @@ from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication
 
 HistogramTypes = CallbackBase | Communication
-hist_types = list[Frequency | Latency | Period]
+Hist_Types = list[Latency]
 
 
 class HistogramPlot(PlotBase):
-    """Class that provides API for timeseries data."""
+    """Class that provides API for histogram data."""
 
     def __init__(
         self,
-        metrics: hist_types,
+        metrics: Hist_Types,
         visualize_lib: VisualizeLibInterface,
         callback_names: list[str],
         data_type: str
@@ -70,7 +70,7 @@ class HistogramPlot(PlotBase):
         full_legends: bool | None = None
     ) -> Figure:
         """
-        Get a timeseries graph for each object using the bokeh library.
+        Get a histogram graph for each object using the bokeh library.
 
         Parameters
         ----------

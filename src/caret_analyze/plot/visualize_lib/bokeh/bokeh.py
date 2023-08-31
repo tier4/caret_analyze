@@ -21,7 +21,7 @@ from bokeh.models import HoverTool
 
 from bokeh.plotting import Figure
 
-from caret_analyze.record import Frequency, Latency, Period
+from caret_analyze.record import Latency
 
 from numpy import histogram
 
@@ -169,20 +169,20 @@ class Bokeh(VisualizeLibInterface):
 
     def histogram(
         self,
-        metrics: list[Frequency | Latency | Period],
+        metrics: list[Latency],
         callback_names: list[str],
         data_type: str
     ) -> Figure:
-        plot = Figure(title=data_type+' histogram', x_axis_label='x', y_axis_label='y')
-        latencies: list[list[int]] = [
+        plot = Figure(title=data_type, x_axis_label='x', y_axis_label='y')
+        data_list: list[list[int]] = [
             [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
             for m in metrics
             ]
         color_selector = ColorSelectorFactory.create_instance('unique')
-        max_value = max(max(latencies, key=lambda x: max(x)))
-        min_value = min(min(latencies, key=lambda x: min(x)))
+        max_value = max(max(data_list, key=lambda x: max(x)))
+        min_value = min(min(data_list, key=lambda x: min(x)))
 
-        for latency, callback_name in zip(latencies, callback_names):
+        for latency, callback_name in zip(data_list, callback_names):
             hist, bins = histogram(latency, 20, (min_value, max_value))
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from caret_analyze.record import Frequency, Latency, Period
+from caret_analyze.record import Latency
 
 from .histogram_plot import HistogramPlot
 from ..visualize_lib import VisualizeLibInterface
@@ -28,65 +28,49 @@ HistogramPlotTypes = CallbackBase | Communication
 
 
 class HistogramPlotFactory:
-    """Factory class to create an instance of TimeSeriesPlot."""
+    """Factory class to create an instance of HistogramPlot."""
 
     @staticmethod
     @type_check_decorator
     def create_instance(
         target_objects: Sequence[HistogramPlotTypes],
-        metrics: str,
+        metrics_name: str,
         visualize_lib: VisualizeLibInterface
     ) -> HistogramPlot:
         """
-        Create an instance of TimeSeriesPlot.
+        Create an instance of HistogramPlot.
 
         Parameters
         ----------
-        target_objects : Sequence[TimeSeriesPlotTypes]
-            TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription)
-        metrics : str
-            Metrics for timeseries data.
+        target_objects : Sequence[HistogramPlotTypes]
+            HistogramPlotTypes = CallbackBase | Communication
+        metrics_name : str
+            Metrics for histogramplot data.
             supported metrics: [frequency/latency/period]
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
 
         Returns
         -------
-        TimeSeriesPlot
+        HistogramPlot
 
         Raises
         ------
         UnsupportedTypeError
-            Argument metrics is not "frequency", "latency", or "period".
+            Argument metrics is not "latency".
 
         """
-        metrics_: list[Frequency | Latency | Period] = []
-        # if all([isinstance(obj, CallbackBase) for obj in target_objects]):
-        #     callback_names = [obj.callback_name for obj in target_objects] # type: ignore
-        # elif all([isinstance(obj, Communication) for obj in target_objects]):
-        #     callback_names = [obj.column_names for obj in target_objects] # type: ignore
+        metrics: list[Latency] = []
         callback_names = [
             obj.callback_name if isinstance(obj, CallbackBase)
             else obj.column_names[0].split('/')[-1]
             for obj in target_objects
             ]
 
-        if metrics == 'frequency':
-            for target_object in target_objects:
-                frequency = Frequency(target_object.to_records())
-                metrics_.append(frequency)
-            return HistogramPlot(metrics_, visualize_lib, callback_names, metrics)
-        elif metrics == 'latency':
+        if metrics_name == 'latency':
             # Ignore the mypy type check because type_check_decorator is applied.
-            for target_object in target_objects:
-                latency = Latency(target_object.to_records())
-                metrics_.append(latency)
-            return HistogramPlot(metrics_, visualize_lib, callback_names, metrics)
-        elif metrics == 'period':
-            for target_object in target_objects:
-                period = Period(target_object.to_records())
-                metrics_.append(period)
-            return HistogramPlot(metrics_, visualize_lib, callback_names, metrics)
+            metrics = [Latency(target_object.to_records()) for target_object in target_objects]
+            return HistogramPlot(metrics, visualize_lib, callback_names, metrics_name)
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '
