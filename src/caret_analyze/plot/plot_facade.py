@@ -30,7 +30,7 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 logger = getLogger(__name__)
 
 TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
-HistogramTypes = CallbackBase | Communication
+HistTypes = CallbackBase | Communication
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
 
@@ -65,8 +65,8 @@ def parse_collection_or_unpack(
 
 
 def parse_collection_or_unpack_for_hist(
-    target_arg: tuple[Collection[HistogramTypes]] | tuple[HistogramTypes, ...]
-) -> list[HistogramTypes]:
+    target_arg: tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
+) -> list[HistTypes]:
     """
     Parse target argument.
 
@@ -75,15 +75,15 @@ def parse_collection_or_unpack_for_hist(
 
     Parameters
     ----------
-    target_arg : tuple[Collection[HistogramTypes]] | tuple[HistogramTypes, ...]
+    target_arg : tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
         Target objects.
 
     Returns
     -------
-    list[HistogramTypes]
+    list[HistTypes]
 
     """
-    parsed_target_objects: list[HistogramTypes]
+    parsed_target_objects: list[HistTypes]
     if isinstance(target_arg[0], Collection):
         assert len(target_arg) == 1
         parsed_target_objects = list(target_arg[0])
@@ -306,15 +306,15 @@ class Plot:
 
     @staticmethod
     def create_latency_histogram_plot(
-        *target_objects: HistogramTypes
+        *target_objects: HistTypes
     ) -> PlotBase:
         """
         Get latency histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[HistogramTypes]
-            HistogramTypes = CallbackBase | Communication
+        target_objects : Collection[HistTypes]
+            HistTypes = CallbackBase | Communication
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 

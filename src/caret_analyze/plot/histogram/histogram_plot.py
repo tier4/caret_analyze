@@ -23,10 +23,8 @@ import pandas as pd
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication
 
-HistogramTypes = CallbackBase | Communication
-Hist_Types = list[Latency]
+DataTypes = list[Latency]
 
 
 class HistogramPlot(PlotBase):
@@ -34,7 +32,7 @@ class HistogramPlot(PlotBase):
 
     def __init__(
         self,
-        metrics: Hist_Types,
+        metrics: DataTypes,
         visualize_lib: VisualizeLibInterface,
         callback_names: list[str],
         data_type: str
