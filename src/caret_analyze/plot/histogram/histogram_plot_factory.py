@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from caret_analyze.record import Latency
+from caret_analyze.record import Frequency, Latency, Period
 
 from .histogram_plot import HistogramPlot
 from ..visualize_lib import VisualizeLibInterface
@@ -24,7 +24,8 @@ from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication
 
-HistogramPlotTypes = CallbackBase | Communication
+HistTypes = Frequency | Latency | Period
+MetricsType = CallbackBase | Communication
 
 
 class HistogramPlotFactory:
@@ -33,7 +34,7 @@ class HistogramPlotFactory:
     @staticmethod
     @type_check_decorator
     def create_instance(
-        target_objects: Sequence[HistogramPlotTypes],
+        target_objects: Sequence[MetricsType],
         metrics_name: str,
         visualize_lib: VisualizeLibInterface
     ) -> HistogramPlot:
@@ -60,17 +61,39 @@ class HistogramPlotFactory:
             Argument metrics is not "latency".
 
         """
-        metrics: list[Latency] = []
+        metrics: list[HistTypes] = []
         callback_names = [
             obj.callback_name if isinstance(obj, CallbackBase)
             else obj.column_names[0].split('/')[-1]
             for obj in target_objects
             ]
 
-        if metrics_name == 'latency':
+        if metrics_name == 'frequency':
+            # Ignore the mypy type check because type_check_decorator is applied.
+            metrics = [Frequency(target_object.to_records()) for target_object in target_objects]
+            return HistogramPlot(
+                metrics,  # type: ignore
+                visualize_lib,
+                callback_names,
+                metrics_name
+                )
+        elif metrics_name == 'latency':
             # Ignore the mypy type check because type_check_decorator is applied.
             metrics = [Latency(target_object.to_records()) for target_object in target_objects]
-            return HistogramPlot(metrics, visualize_lib, callback_names, metrics_name)
+            return HistogramPlot(
+                metrics,  # type: ignore
+                visualize_lib,
+                callback_names,
+                metrics_name
+                )
+        elif metrics_name == 'period':
+            # Ignore the mypy type check because type_check_decorator is applied.
+            metrics = [Period(target_object.to_records()) for target_object in target_objects]
+            return HistogramPlot(
+                metrics,  # type: ignore
+                visualize_lib,
+                callback_names,
+                metrics_name)
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '

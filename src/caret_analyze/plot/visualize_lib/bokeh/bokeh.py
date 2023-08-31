@@ -21,7 +21,7 @@ from bokeh.models import HoverTool
 
 from bokeh.plotting import Figure
 
-from caret_analyze.record import Latency
+from caret_analyze.record import Frequency, Latency, Period
 
 from numpy import histogram
 
@@ -36,6 +36,7 @@ from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+HistTypes = Frequency | Latency | Period
 
 logger = getLogger(__name__)
 
@@ -169,7 +170,7 @@ class Bokeh(VisualizeLibInterface):
 
     def histogram(
         self,
-        metrics: list[Latency],
+        metrics: list[HistTypes],
         callback_names: list[str],
         data_type: str
     ) -> Figure:

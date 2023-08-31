@@ -20,10 +20,11 @@ from collections.abc import Sequence
 from bokeh.plotting import Figure
 
 from ..metrics_base import MetricsBase
-from ...record import Latency
+from ...record import Frequency, Latency, Period
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+HistTypes = Frequency | Latency | Period
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
@@ -90,7 +91,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
 
     def histogram(
         self,
-        metrics: list[Latency],
+        metrics: list[HistTypes],
         callback_names: list[str],
         data_type: str
     ) -> Figure:

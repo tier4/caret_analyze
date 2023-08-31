@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from bokeh.plotting import Figure
 
-from caret_analyze.record import Latency
+from caret_analyze.record import Frequency, Latency, Period
 
 import pandas as pd
 
@@ -24,7 +24,7 @@ from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 
-DataTypes = list[Latency]
+HistTypes = Frequency | Latency | Period
 
 
 class HistogramPlot(PlotBase):
@@ -32,7 +32,7 @@ class HistogramPlot(PlotBase):
 
     def __init__(
         self,
-        metrics: DataTypes,
+        metrics: HistTypes,
         visualize_lib: VisualizeLibInterface,
         callback_names: list[str],
         data_type: str
@@ -100,7 +100,11 @@ class HistogramPlot(PlotBase):
         # Validate
         self._validate_xaxis_type(xaxis_type)
 
-        return self._visualize_lib.histogram(self._metrics, self._callback_names, self._data_type)
+        return self._visualize_lib.histogram(
+            self._metrics,  # type: ignore
+            self._callback_names,
+            self._data_type
+            )
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:
         if xaxis_type not in ['system_time', 'sim_time', 'index']:
