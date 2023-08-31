@@ -44,28 +44,24 @@ class HistogramPlot(PlotBase):
         self._callback_names = callback_names
         self._data_type = data_type
 
-    def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+    def to_dataframe(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
         """
-        Get time series data for each object in pandas DataFrame format.
+        Get data in pandas DataFrame format.
 
         Parameters
         ----------
         xaxis_type : str
             Type of time for timestamp.
-            "system_time", "index", or "sim_time" can be specified, by default "system_time".
 
-        Raises
-        ------
-        UnsupportedTypeError
-            Argument xaxis_type is not "system_time", "index", or "sim_time".
-
-        Notes
-        -----
-        xaxis_type "system_time" and "index" return the same DataFrame.
+        Returns
+        -------
+        pd.DataFrame
 
         """
-        self._validate_xaxis_type(xaxis_type)
-        return self._metrics.to_dataframe(xaxis_type)
+        raise NotImplementedError()
 
     def figure(
         self,

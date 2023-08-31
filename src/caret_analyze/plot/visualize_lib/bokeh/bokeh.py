@@ -174,7 +174,10 @@ class Bokeh(VisualizeLibInterface):
         data_type: str
     ) -> Figure:
         plot = Figure(title=data_type+' histogram', x_axis_label='x', y_axis_label='y')
-        latencies: list[list[int]] = [m.to_records().get_column_series(data_type) for m in metrics]
+        latencies: list[list[int]] = [
+            [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
+            for m in metrics
+            ]
         color_selector = ColorSelectorFactory.create_instance('unique')
         max_value = max(max(latencies, key=lambda x: max(x)))
         min_value = min(min(latencies, key=lambda x: min(x)))

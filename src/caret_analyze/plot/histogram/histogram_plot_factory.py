@@ -20,7 +20,7 @@ from caret_analyze.record import Frequency, Latency, Period
 
 from .histogram_plot import HistogramPlot
 from ..visualize_lib import VisualizeLibInterface
-# from ...common import type_check_decorator
+from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication
 
@@ -31,9 +31,8 @@ class HistogramPlotFactory:
     """Factory class to create an instance of TimeSeriesPlot."""
 
     @staticmethod
-    # @type_check_decorator
+    @type_check_decorator
     def create_instance(
-        # target_objects: HistogramPlotTypes,
         target_objects: Sequence[HistogramPlotTypes],
         metrics: str,
         visualize_lib: VisualizeLibInterface
@@ -62,23 +61,31 @@ class HistogramPlotFactory:
 
         """
         metrics_: list[Frequency | Latency | Period] = []
-        callback_names = [obj.callback_name for obj in target_objects]
+        # if all([isinstance(obj, CallbackBase) for obj in target_objects]):
+        #     callback_names = [obj.callback_name for obj in target_objects] # type: ignore
+        # elif all([isinstance(obj, Communication) for obj in target_objects]):
+        #     callback_names = [obj.column_names for obj in target_objects] # type: ignore
+        callback_names = [
+            obj.callback_name if isinstance(obj, CallbackBase)
+            else obj.column_names[0].split('/')[-1]
+            for obj in target_objects
+            ]
 
         if metrics == 'frequency':
             for target_object in target_objects:
-                temp = Frequency(target_object.to_records())
-                metrics_.append(temp)
+                frequency = Frequency(target_object.to_records())
+                metrics_.append(frequency)
             return HistogramPlot(metrics_, visualize_lib, callback_names, metrics)
         elif metrics == 'latency':
             # Ignore the mypy type check because type_check_decorator is applied.
             for target_object in target_objects:
-                temp = Latency(target_object.to_records())
-                metrics_.append(temp)
+                latency = Latency(target_object.to_records())
+                metrics_.append(latency)
             return HistogramPlot(metrics_, visualize_lib, callback_names, metrics)
         elif metrics == 'period':
             for target_object in target_objects:
-                temp = Period(target_object.to_records())
-                metrics_.append(temp)
+                period = Period(target_object.to_records())
+                metrics_.append(period)
             return HistogramPlot(metrics_, visualize_lib, callback_names, metrics)
         else:
             raise UnsupportedTypeError(

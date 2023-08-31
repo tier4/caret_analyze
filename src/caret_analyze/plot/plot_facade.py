@@ -70,6 +70,35 @@ def parse_collection_or_unpack(
     return parsed_target_objects
 
 
+def parse_collection_or_unpack_for_hist(
+    target_arg: tuple[Collection[HistogramTypes]] | tuple[HistogramTypes, ...]
+) -> list[HistogramTypes]:
+    """
+    Parse target argument.
+
+    To address both cases where the target argument is passed in collection type
+    or unpacked, this function converts them to the same list format.
+
+    Parameters
+    ----------
+    target_arg : tuple[Collection[HistogramTypes]] | tuple[HistogramTypes, ...]
+        Target objects.
+
+    Returns
+    -------
+    list[HistogramTypes]
+
+    """
+    parsed_target_objects: list[HistogramTypes]
+    if isinstance(target_arg[0], Collection):
+        assert len(target_arg) == 1
+        parsed_target_objects = list(target_arg[0])
+    else:  # Unpacked case
+        parsed_target_objects = list(target_arg)  # type: ignore
+
+    return parsed_target_objects
+
+
 class Plot:
     """Facade class for plot."""
 
@@ -302,7 +331,8 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'frequency', visualize_lib
+            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
+            'frequency', visualize_lib
         )
         return plot
 
@@ -327,7 +357,8 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'latency', visualize_lib
+            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
+            'latency', visualize_lib
         )
         return plot
 
@@ -352,6 +383,7 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'period', visualize_lib
+            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
+            'period', visualize_lib
         )
         return plot
