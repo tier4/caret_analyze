@@ -275,7 +275,6 @@ class ResponseMapAll:
                 idx = end_timestamps.index(end_ts)
                 if start_ts < start_timestamps[idx]:
                     start_timestamps[idx] = start_ts
-                    end_timestamps[idx] = end_ts
 
         for start_ts, end_ts in zip(start_timestamps, end_timestamps):
             record = {
@@ -299,7 +298,6 @@ class ResponseMapAll:
                 idx = end_timestamps.index(end_ts)
                 if start_ts > start_timestamps[idx]:
                     start_timestamps[idx] = start_ts
-                    end_timestamps[idx] = end_ts
 
         for start_ts, end_ts in zip(start_timestamps, end_timestamps):
             record = {
