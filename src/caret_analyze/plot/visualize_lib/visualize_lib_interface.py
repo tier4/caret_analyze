@@ -24,7 +24,7 @@ from ...record import Frequency, Latency, Period
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
-HistTypes = Frequency | Latency | Period
+MetricsTypes = Frequency | Latency | Period
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
@@ -91,7 +91,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
 
     def histogram(
         self,
-        metrics: list[HistTypes],
+        metrics: list[MetricsTypes],
         callback_names: list[str],
         data_type: str
     ) -> Figure:

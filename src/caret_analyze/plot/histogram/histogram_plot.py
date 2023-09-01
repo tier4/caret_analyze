@@ -24,7 +24,7 @@ from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 
-HistTypes = Frequency | Latency | Period
+MetricsTypes = Frequency | Latency | Period
 
 
 class HistogramPlot(PlotBase):
@@ -32,7 +32,7 @@ class HistogramPlot(PlotBase):
 
     def __init__(
         self,
-        metrics: HistTypes,
+        metrics: list[MetricsTypes],
         visualize_lib: VisualizeLibInterface,
         callback_names: list[str],
         data_type: str
@@ -101,7 +101,7 @@ class HistogramPlot(PlotBase):
         self._validate_xaxis_type(xaxis_type)
 
         return self._visualize_lib.histogram(
-            self._metrics,  # type: ignore
+            self._metrics,
             self._callback_names,
             self._data_type
             )

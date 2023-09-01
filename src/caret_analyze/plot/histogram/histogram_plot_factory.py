@@ -24,8 +24,8 @@ from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication
 
-HistTypes = Frequency | Latency | Period
-MetricsType = CallbackBase | Communication
+MetricsType = Frequency | Latency | Period
+HistTypes = CallbackBase | Communication
 
 
 class HistogramPlotFactory:
@@ -34,7 +34,7 @@ class HistogramPlotFactory:
     @staticmethod
     @type_check_decorator
     def create_instance(
-        target_objects: Sequence[MetricsType],
+        target_objects: Sequence[HistTypes],
         metrics_name: str,
         visualize_lib: VisualizeLibInterface
     ) -> HistogramPlot:
@@ -43,8 +43,8 @@ class HistogramPlotFactory:
 
         Parameters
         ----------
-        target_objects : Sequence[HistogramPlotTypes]
-            HistogramPlotTypes = CallbackBase | Communication
+        target_objects : Sequence[HistTypes]
+            HistTypes = CallbackBase | Communication
         metrics_name : str
             Metrics for histogramplot data.
             supported metrics: [frequency/latency/period]
@@ -61,7 +61,7 @@ class HistogramPlotFactory:
             Argument metrics is not "latency".
 
         """
-        metrics: list[HistTypes] = []
+        metrics: list[MetricsType] = []
         callback_names = [
             obj.callback_name if isinstance(obj, CallbackBase)
             else obj.column_names[0].split('/')[-1]

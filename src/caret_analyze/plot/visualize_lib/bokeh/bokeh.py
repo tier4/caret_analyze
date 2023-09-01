@@ -36,7 +36,7 @@ from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
-HistTypes = Frequency | Latency | Period
+MetricsTypes = Frequency | Latency | Period
 
 logger = getLogger(__name__)
 
@@ -170,7 +170,7 @@ class Bokeh(VisualizeLibInterface):
 
     def histogram(
         self,
-        metrics: list[HistTypes],
+        metrics: list[MetricsTypes],
         callback_names: list[str],
         data_type: str
     ) -> Figure:

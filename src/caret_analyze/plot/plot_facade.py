@@ -30,7 +30,7 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 logger = getLogger(__name__)
 
 TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
-MetricsType = CallbackBase | Communication
+HistTypes = CallbackBase | Communication
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
 
@@ -65,8 +65,8 @@ def parse_collection_or_unpack(
 
 
 def parse_collection_or_unpack_for_hist(
-    target_arg: tuple[Collection[MetricsType]] | tuple[MetricsType, ...]
-) -> list[MetricsType]:
+    target_arg: tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
+) -> list[HistTypes]:
     """
     Parse target argument.
 
@@ -75,15 +75,15 @@ def parse_collection_or_unpack_for_hist(
 
     Parameters
     ----------
-    target_arg : tuple[Collection[MetricsType]] | tuple[MetricsType, ...]
+    target_arg : tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
         Target objects.
 
     Returns
     -------
-    list[MetricsType]
+    list[HistTypes]
 
     """
-    parsed_target_objects: list[MetricsType]
+    parsed_target_objects: list[HistTypes]
     if isinstance(target_arg[0], Collection):
         assert len(target_arg) == 1
         parsed_target_objects = list(target_arg[0])
@@ -306,15 +306,15 @@ class Plot:
 
     @staticmethod
     def create_frequency_histogram_plot(
-        *target_objects: MetricsType
+        *target_objects: HistTypes
     ) -> PlotBase:
         """
         Get frequency histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[MetricsType]
-            MetricsType = CallbackBase | Communication
+        target_objects : Collection[HistTypes]
+            HistTypes = CallbackBase | Communication
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -332,15 +332,15 @@ class Plot:
 
     @staticmethod
     def create_latency_histogram_plot(
-        *target_objects: MetricsType
+        *target_objects: HistTypes
     ) -> PlotBase:
         """
         Get latency histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[MetricsType]
-            MetricsType = CallbackBase | Communication
+        target_objects : Collection[HistTypes]
+            HistTypes = CallbackBase | Communication
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -358,15 +358,15 @@ class Plot:
 
     @staticmethod
     def create_period_histogram_plot(
-        *target_objects: MetricsType
+        *target_objects: HistTypes
     ) -> PlotBase:
         """
         Get period histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[MetricsType]
-            MetricsType = CallbackBase | Communication
+        target_objects : Collection[HistTypes]
+            HistTypes = CallbackBase | Communication
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
