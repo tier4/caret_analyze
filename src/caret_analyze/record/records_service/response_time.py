@@ -263,30 +263,36 @@ class ResponseMapAll:
                     self._end_timestamps[idx] = end_ts
 
     def to_worst_records(self) -> RecordsInterface:
-        records = self._create_empty_records()
 
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
-        for start_ts, end_ts in zip(self._start_timestamps[:-1], self._end_timestamps[1:]):
+        worst_to_best_timestamps: list[int] = []
+        for start_ts, end_ts, prev_start_ts in zip(self._start_timestamps[1:],
+                                                   self._end_timestamps[1:],
+                                                   self._start_timestamps[:-1]):
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
+                worst_to_best_timestamps.append(start_ts - prev_start_ts)
             else:
                 idx = end_timestamps.index(end_ts)
                 if start_ts < start_timestamps[idx]:
                     start_timestamps[idx] = start_ts
+                    worst_to_best_timestamps[idx] = start_ts - prev_start_ts
 
-        for start_ts, end_ts in zip(start_timestamps, end_timestamps):
+        records = self._create_empty_records()
+        for start_ts, end_ts, worst_to_best_ts in zip(start_timestamps,
+                                                      end_timestamps,
+                                                      worst_to_best_timestamps):
             record = {
-                self._start_column: start_ts,
-                'response_time': end_ts - start_ts
+                self._start_column: start_ts - worst_to_best_ts,
+                'response_time': end_ts - (start_ts - worst_to_best_ts)
             }
             records.append(record)
 
         return records
 
     def to_best_records(self) -> RecordsInterface:
-        records = self._create_empty_records()
 
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
@@ -299,6 +305,7 @@ class ResponseMapAll:
                 if start_ts > start_timestamps[idx]:
                     start_timestamps[idx] = start_ts
 
+        records = self._create_empty_records()
         for start_ts, end_ts in zip(start_timestamps, end_timestamps):
             record = {
                 self._start_column: start_ts,
