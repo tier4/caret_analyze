@@ -423,6 +423,7 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+            - tid
             - callback_object
             - callback_start_timestamp
             - publisher_handle
@@ -430,7 +431,6 @@ class RecordsSource():
             - message_timestamp
 
         """
-
         if self._info._distribution in ['iron', 'rolling']:
             return self.intra_proc_comm_records_iron
 
@@ -447,7 +447,7 @@ class RecordsSource():
             sink_stamp_key=COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
             sink_from_key=COLUMN_NAME.MESSAGE,
             columns=[
-                'tid',
+                COLUMN_NAME.TID,
                 COLUMN_NAME.DISPATCH_INTRA_PROCESS_SUBSCRIPTION_CALLBACK_TIMESTAMP,
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.CALLBACK_OBJECT,
@@ -522,7 +522,7 @@ class RecordsSource():
         Compose intra process communication records.
 
         Used tracepoints
-        - rclcpp_publish
+        - rclcpp_intra_publish
         - rclcpp_ring_buffer_enqueue
         - rclcpp_ring_buffer_dequeue
         - callback_start
@@ -531,11 +531,11 @@ class RecordsSource():
         -------
         RecordsInterface
             columns:
+            - tid
             - callback_object
             - callback_start_timestamp
             - publisher_handle
             - rclcpp_publish_timestamp
-            - message_timestamp
 
         """
         intra_pub = self._data.rclcpp_intra_publish_instances.clone()
@@ -551,10 +551,11 @@ class RecordsSource():
             join_left_key=COLUMN_NAME.TID,
             join_right_key=COLUMN_NAME.TID,
             columns=[
-                'tid',
-                'index',
-                'buffer',
+                COLUMN_NAME.TID,
+                COLUMN_NAME.INDEX,
+                COLUMN_NAME.BUFFER,
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP
             ],
             how='left'
@@ -568,9 +569,10 @@ class RecordsSource():
             join_left_key=COLUMN_NAME.TID,
             join_right_key=COLUMN_NAME.TID,
             columns=[
-                'tid',
-                'index',
-                'buffer',
+                COLUMN_NAME.TID,
+                COLUMN_NAME.INDEX,
+                COLUMN_NAME.BUFFER,
+                COLUMN_NAME.CALLBACK_OBJECT,
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP
             ],
@@ -585,9 +587,9 @@ class RecordsSource():
             join_left_key='index',
             join_right_key='index',
             columns=[
-                'tid',
-                'index',
-                'buffer',
+                COLUMN_NAME.TID,
+                COLUMN_NAME.PUBLISHER_HANDLE,
+                COLUMN_NAME.CALLBACK_OBJECT,
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
             ],

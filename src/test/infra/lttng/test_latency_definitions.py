@@ -1569,7 +1569,7 @@ class TestCommunicationRecords:
         index = 21
 
         data = Ros2DataModel()
-        data.add_caret_init(0,0,'iron')
+        data.add_caret_init(0, 0, 'iron')
         data.add_rclcpp_intra_publish_instance(
             tid, 1, pub_handle, message, message_stamp)
         data.add_rclcpp_ring_buffer_enqueue_instance(
@@ -1613,6 +1613,7 @@ class TestCommunicationRecords:
         )
 
         assert df.equals(df_expect)
+
 
 class TestTimerRecords:
 
