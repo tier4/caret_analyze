@@ -1547,6 +1547,72 @@ class TestCommunicationRecords:
 
         assert df.equals(df_expect)
 
+    def test_intra_proc_for_iron(
+        self,
+        mocker,
+        create_lttng,
+        create_publisher_lttng,
+        setup_bridge_get_publisher,
+        create_publisher_struct,
+        bridge_setup_get_callback,
+        create_subscription_lttng,
+        create_subscription_struct,
+        create_comm_struct
+    ):
+        pub_handle = 7
+        message = 8
+        message_stamp = 6
+        callback_obj = 12
+        # pid, tid = 58, 14
+        tid = 14
+        buffer = 20
+        index = 21
+
+        data = Ros2DataModel()
+        data.add_caret_init(0,0,'iron')
+        data.add_rclcpp_intra_publish_instance(
+            tid, 1, pub_handle, message, message_stamp)
+        data.add_rclcpp_ring_buffer_enqueue_instance(
+            tid, 2, buffer, index, 0, False)
+        data.add_rclcpp_ring_buffer_dequeue_instance(
+            tid, 3, buffer, index, 0)
+        data.add_callback_start_instance(tid, 6, callback_obj, True)
+        data.add_callback_end_instance(tid, 7, callback_obj)
+        data.finalize()
+
+        publisher = create_publisher_struct()
+        subscription = create_subscription_struct()
+        callback = subscription.callback
+        communication = create_comm_struct(publisher, subscription)
+        publisher_lttng = create_publisher_lttng(pub_handle)
+        sub_cb_lttng = create_subscription_lttng(callback_obj, 5, callback_obj)
+
+        setup_bridge_get_publisher(publisher, [publisher_lttng])
+        bridge_setup_get_callback(subscription.callback, sub_cb_lttng)
+
+        lttng = create_lttng(data)
+        provider = RecordsProviderLttng(lttng)
+        mocker.patch.object(
+            provider, 'is_intra_process_communication', return_value=True)
+
+        records = provider.communication_records(communication)
+        df = records.to_dataframe()
+
+        df_expect = pd.DataFrame(
+            [
+                {
+                    f'{communication.topic_name}/rclcpp_publish_timestamp': 1,
+                    f'{callback.callback_name}/callback_start_timestamp': 6,
+                }
+            ],
+            columns=[
+                f'{communication.topic_name}/rclcpp_publish_timestamp',
+                f'{callback.callback_name}/callback_start_timestamp',
+            ],
+            dtype='Int64'
+        )
+
+        assert df.equals(df_expect)
 
 class TestTimerRecords:
 
