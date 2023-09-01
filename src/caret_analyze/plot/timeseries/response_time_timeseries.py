@@ -19,7 +19,7 @@ from collections.abc import Sequence
 import pandas as pd
 
 from ..metrics_base import MetricsBase
-from ...record import ColumnValue, RecordsFactory, RecordsInterface, ResponseTime
+from ...record import RecordsInterface, ResponseTime
 from ...runtime import Path
 
 
@@ -76,6 +76,5 @@ class ResponsetimeTimeSeries(MetricsBase):
                 response_timeseries_list.append(response.to_worst_case_records())
             elif self._case == 'all':
                 response_timeseries_list.append(response.to_all_records())
-      
-        return response_timeseries_list
 
+        return response_timeseries_list

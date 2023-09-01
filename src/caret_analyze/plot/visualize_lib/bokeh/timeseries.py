@@ -46,6 +46,7 @@ class BokehTimeSeries:
         self._ywheel_zoom = ywheel_zoom
         self._full_legends = full_legends
         self._case = case
+
     def create_figure(self) -> Figure:
         target_objects = self._metrics.target_objects
         timeseries_records_list = self._metrics.to_timeseries_records_list(self._xaxis_type)

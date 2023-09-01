@@ -53,6 +53,8 @@ class TimeSeriesPlotFactory:
             supported metrics: [frequency/latency/period]
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
+        case : str
+            Parameter specifying best, worst or all. Use to create Responsetime timeseries graph.
 
         Returns
         -------

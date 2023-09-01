@@ -151,6 +151,9 @@ class Bokeh(VisualizeLibInterface):
         full_legends : bool
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
+        case : str
+            Parameter specifying best, worst or all. Use to create Responsetime timeseries graph.
+
 
         Returns
         -------
