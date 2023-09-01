@@ -67,6 +67,23 @@ class TestLttngInfo:
         info = LttngInfo(data)
         assert info.get_rmw_impl() == 'xxx_dds'
 
+    def test_distribution(self, mocker):
+        formatted_mock = mocker.Mock(spec=DataFrameFormatted)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
+                     return_value=formatted_mock)
+
+        data = Ros2DataModel()
+        data.finalize()
+
+        info = LttngInfo(data)
+        assert info.get_distribution() == 'NOTFOUND'
+
+        data = Ros2DataModel()
+        data.add_caret_init(0, 0, 'distribution')
+        data.finalize()
+        info = LttngInfo(data)
+        assert info.get_distribution() == 'distribution'
+
     def test_get_node_names(self, mocker):
         formatted_mock = mocker.Mock(spec=DataFrameFormatted)
         mocker.patch('caret_analyze.infra.lttng.lttng_info.DataFrameFormatted',
