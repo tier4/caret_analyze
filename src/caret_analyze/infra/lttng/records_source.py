@@ -430,8 +430,7 @@ class RecordsSource():
             - message_timestamp
 
         """
-        # If the trace data being analyzed is measured with an `iron` or later version
-        # if len(self._data.rclcpp_ring_buffer_enqueue_instances) != 0:
+
         if self._info._distribution in ['iron', 'rolling']:
             return self.intra_proc_comm_records_iron
 
