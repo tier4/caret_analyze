@@ -131,7 +131,8 @@ class Bokeh(VisualizeLibInterface):
         metrics: MetricsBase,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool
+        full_legends: bool,
+        case: str,
     ) -> Figure:
         """
         Get a timeseries figure.
@@ -157,5 +158,5 @@ class Bokeh(VisualizeLibInterface):
             Figure of timeseries.
 
         """
-        timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends)
+        timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends, case)
         return timeseries.create_figure()

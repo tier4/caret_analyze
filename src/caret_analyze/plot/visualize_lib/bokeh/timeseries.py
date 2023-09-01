@@ -38,13 +38,14 @@ class BokehTimeSeries:
         metrics: MetricsBase,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool
+        full_legends: bool,
+        case: str
     ) -> None:
         self._metrics = metrics
         self._xaxis_type = xaxis_type
         self._ywheel_zoom = ywheel_zoom
         self._full_legends = full_legends
-
+        self._case = case
     def create_figure(self) -> Figure:
         target_objects = self._metrics.target_objects
         timeseries_records_list = self._metrics.to_timeseries_records_list(self._xaxis_type)
@@ -53,8 +54,10 @@ class BokehTimeSeries:
         y_axis_label = timeseries_records_list[0].columns[1]
         if y_axis_label == 'frequency':
             y_axis_label = y_axis_label + ' [Hz]'
-        elif y_axis_label in ['period', 'latency', 'response_time']:
+        elif y_axis_label in ['period', 'latency']:
             y_axis_label = y_axis_label + ' [ms]'
+        elif y_axis_label == 'response_time':
+            y_axis_label = 'Response time' + ' [ms]'
         else:
             raise NotImplementedError()
         if isinstance(target_objects[0], CallbackBase):
@@ -62,7 +65,7 @@ class BokehTimeSeries:
         elif isinstance(target_objects[0], Communication):
             title = f'Time-line of communications {y_axis_label}'
         elif isinstance(target_objects[0], Path):
-            title = f'Time-line of Paths {y_axis_label}'
+            title = f'Time-line of Paths {y_axis_label} --- {self._case} case ---'
         else:
             title = f'Time-line of publishes/subscribes {y_axis_label}'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)

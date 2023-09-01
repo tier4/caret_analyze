@@ -33,10 +33,12 @@ class TimeSeriesPlot(PlotBase):
     def __init__(
         self,
         metrics: MetricsBase,
-        visualize_lib: VisualizeLibInterface
+        visualize_lib: VisualizeLibInterface,
+        case: str
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
+        self._case = case
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
         """
@@ -104,7 +106,8 @@ class TimeSeriesPlot(PlotBase):
             self._metrics,
             xaxis_type,
             ywheel_zoom,
-            full_legends
+            full_legends,
+            self._case
         )
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:

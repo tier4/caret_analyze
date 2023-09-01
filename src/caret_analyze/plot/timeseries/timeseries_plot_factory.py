@@ -38,7 +38,8 @@ class TimeSeriesPlotFactory:
     def create_instance(
         target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,
-        visualize_lib: VisualizeLibInterface
+        visualize_lib: VisualizeLibInterface,
+        case: str
     ) -> TimeSeriesPlot:
         """
         Create an instance of TimeSeriesPlot.
@@ -75,8 +76,8 @@ class TimeSeriesPlotFactory:
             metrics_ = PeriodTimeSeries(list(target_objects))
             return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'response_time':
-            metrics_ = ResponsetimeTimeSeries(list(target_objects))
-            return TimeSeriesPlot(metrics_, visualize_lib)
+            metrics_ = ResponsetimeTimeSeries(list(target_objects), case)
+            return TimeSeriesPlot(metrics_, visualize_lib, case)
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '

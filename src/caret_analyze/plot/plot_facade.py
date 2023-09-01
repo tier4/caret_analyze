@@ -175,7 +175,8 @@ class Plot:
         return plot
 
     def create_response_time_timeseries_plot(
-        *target_objects: Path
+        *target_objects: Path,
+        case: str
     ) -> PlotBase:
         """
         Get latency timeseries plot instance.
@@ -193,7 +194,7 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects), 'response_time', visualize_lib
+            parse_collection_or_unpack(target_objects), 'response_time', visualize_lib, case
         )
         return plot
 
