@@ -139,6 +139,7 @@ class TestResponseTimeAll:
         result = to_dict(response_time.to_all_records())
         assert result == expect_raw
 
+
 class TestResponseTimeBest:
 
     def test_empty_case(self):
@@ -243,6 +244,7 @@ class TestResponseTimeBest:
         ]
         result = to_dict(response_time.to_best_records())
         assert result == expect_raw
+
 
 class TestResponseTimeWorst:
 
