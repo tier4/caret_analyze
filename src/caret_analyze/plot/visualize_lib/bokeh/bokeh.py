@@ -183,8 +183,8 @@ class Bokeh(VisualizeLibInterface):
         max_value = max(max(data_list, key=lambda x: max(x)))
         min_value = min(min(data_list, key=lambda x: min(x)))
 
-        for latency, callback_name in zip(data_list, callback_names):
-            hist, bins = histogram(latency, 20, (min_value, max_value))
+        for hist_type, callback_name in zip(data_list, callback_names):
+            hist, bins = histogram(hist_type, 20, (min_value, max_value))
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5, legend_label=callback_name,

@@ -46,7 +46,7 @@ class HistogramPlotFactory:
         target_objects : Sequence[HistTypes]
             HistTypes = CallbackBase | Communication
         metrics_name : str
-            Metrics for histogramplot data.
+            Metrics for HistogramPlot data.
             supported metrics: [frequency/latency/period]
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
@@ -58,7 +58,7 @@ class HistogramPlotFactory:
         Raises
         ------
         UnsupportedTypeError
-            Argument metrics is not "latency".
+            Argument metrics is not "frequency", "latency", or "period".
 
         """
         metrics: list[MetricsType] = []
