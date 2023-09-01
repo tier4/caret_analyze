@@ -325,7 +325,7 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
+            parse_collection_or_unpack_for_hist(target_objects),
             'frequency', visualize_lib
         )
         return plot
@@ -351,7 +351,7 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
+            parse_collection_or_unpack_for_hist(target_objects),
             'latency', visualize_lib
         )
         return plot
@@ -377,7 +377,7 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),  # type: ignore
+            parse_collection_or_unpack_for_hist(target_objects),
             'period', visualize_lib
         )
         return plot

@@ -69,31 +69,29 @@ class HistogramPlotFactory:
             ]
 
         if metrics_name == 'frequency':
-            # Ignore the mypy type check because type_check_decorator is applied.
             metrics = [Frequency(target_object.to_records()) for target_object in target_objects]
             return HistogramPlot(
-                metrics,  # type: ignore
+                metrics,
                 visualize_lib,
                 callback_names,
                 metrics_name
                 )
         elif metrics_name == 'latency':
-            # Ignore the mypy type check because type_check_decorator is applied.
             metrics = [Latency(target_object.to_records()) for target_object in target_objects]
             return HistogramPlot(
-                metrics,  # type: ignore
+                metrics,
                 visualize_lib,
                 callback_names,
                 metrics_name
                 )
         elif metrics_name == 'period':
-            # Ignore the mypy type check because type_check_decorator is applied.
             metrics = [Period(target_object.to_records()) for target_object in target_objects]
             return HistogramPlot(
-                metrics,  # type: ignore
+                metrics,
                 visualize_lib,
                 callback_names,
-                metrics_name)
+                metrics_name
+                )
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '
