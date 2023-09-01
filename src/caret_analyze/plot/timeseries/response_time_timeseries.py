@@ -76,41 +76,6 @@ class ResponsetimeTimeSeries(MetricsBase):
                 response_timeseries_list.append(response.to_worst_case_records())
             elif self._case == 'all':
                 response_timeseries_list.append(response.to_all_records())
-           
+      
         return response_timeseries_list
 
-    # def _create_empty_records(
-    #     self
-    # ) -> RecordsInterface:
-    #     return RecordsFactory.create_instance(columns=[
-    #         ColumnValue(self._start_column), ColumnValue('response_time')
-    #     ])
-
-    # def _calcu_response_time(
-    #         self,
-    #         records: RecordsInterface,
-    # ) -> RecordsInterface:
-    #     start_column = records.columns[0]
-    #     end_column = records.columns[-1]
-    #     start_timestamps: list[int] = []
-    #     end_timestamps: list[int] = []
-
-    #     for record in records:
-    #         if (start_column not in record.columns or
-    #                 end_column not in record.columns):
-    #             continue
-    #         start_ts = record.get(start_column)
-    #         end_ts = record.get(end_column)
-
-    #         start_timestamps.append(start_ts)
-    #         end_timestamps.append(end_ts)
-
-    #     new_records = self._create_empty_records()
-    #     for start_ts, end_ts in zip(start_timestamps, end_timestamps):
-    #         record = {
-    #             self._start_column: start_ts,
-    #             'response_time': end_ts - start_ts
-    #         }
-    #         new_records.append(record)
-
-    #     return new_records
