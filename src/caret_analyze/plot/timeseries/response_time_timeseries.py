@@ -29,7 +29,7 @@ class ResponsetimeTimeSeries(MetricsBase):
     def __init__(
         self,
         target_objects: Sequence[Path],
-        case: str,
+        case: str
     ) -> None:
         super().__init__(target_objects)
         self._case = case
