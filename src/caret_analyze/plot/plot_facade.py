@@ -176,16 +176,19 @@ class Plot:
 
     def create_response_time_timeseries_plot(
         *target_objects: Path,
-        case: str
+        case: str = 'best'
     ) -> PlotBase:
         """
-        Get latency timeseries plot instance.
+        Get response time timeseries plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication]
+        target_objects : Collection[Path]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
+        case: str, optional
+            Response time calculation method, best by default.
+            supported case: [best/worst/all].
 
         Returns
         -------
