@@ -34,7 +34,7 @@ class TimeSeriesPlot(PlotBase):
         self,
         metrics: MetricsBase,
         visualize_lib: VisualizeLibInterface,
-        case: str
+        case: str = None
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib

@@ -39,7 +39,7 @@ class TimeSeriesPlotFactory:
         target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,
         visualize_lib: VisualizeLibInterface,
-        case: str
+        case: str = None
     ) -> TimeSeriesPlot:
         """
         Create an instance of TimeSeriesPlot.

@@ -132,7 +132,7 @@ class Bokeh(VisualizeLibInterface):
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool,
-        case: str
+        case: str = None
     ) -> Figure:
         """
         Get a timeseries figure.
