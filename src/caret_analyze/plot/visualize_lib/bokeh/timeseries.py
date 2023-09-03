@@ -70,6 +70,9 @@ class BokehTimeSeries:
         else:
             title = f'Time-line of publishes/subscribes {y_axis_label}'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
+        # if self._case is not None:
+        #     hover = HoverTool(tooltips=[("X軸", "@x"), ("Y軸", "@y")])
+        #     fig.add_tools(hover)
 
         # Apply xaxis offset
         records_range = Range([to.to_records() for to in target_objects])
