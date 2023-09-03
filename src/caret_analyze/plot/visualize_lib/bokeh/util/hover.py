@@ -150,7 +150,8 @@ class HoverKeysBase(metaclass=ABCMeta):
             if k == 'x':
                 tips_str += f'System time = @{k} <br>'
             elif k == 'y':
-                tips_str += f'Response time = @{k} <br>'  # 'x' and 'y' use only response time
+                tips_str += f'Response time = @{k} <br>'
+            # 'x' and 'y' use only response time at the moment.
             else:
                 tips_str += f'@{k} <br>'
         tips_str += '</div>'
