@@ -558,7 +558,7 @@ class RecordsSource():
                 COLUMN_NAME.PUBLISHER_HANDLE,
                 COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP
             ],
-            how='left'
+            how='left_use_latest'
         )
 
         sub_records = merge_sequential(
