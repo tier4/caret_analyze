@@ -575,22 +575,40 @@ class RecordsSource():
             how='inner'
         )
 
-        intra_records = merge_sequential(
-            left_records=pub_records,
-            right_records=sub_records,
-            left_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP,
-            right_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP,
-            join_left_key='index',
-            join_right_key='index',
-            columns=[
-                COLUMN_NAME.TID,
-                COLUMN_NAME.PUBLISHER_HANDLE,
-                COLUMN_NAME.CALLBACK_OBJECT,
-                COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
-                COLUMN_NAME.CALLBACK_START_TIMESTAMP,
-            ],
-            how='left'
+        grouped_pub_records = pub_records.groupby(['buffer'])
+        grouped_sub_records = sub_records.groupby(['buffer'])
+        intra_records = RecordsFactory.create_instance(
+            None,
+            [
+                ColumnValue(COLUMN_NAME.TID),
+                ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
+                ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
+                ColumnValue(COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP),
+                ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
+            ]
         )
+
+        for key in grouped_pub_records:
+            if key in grouped_sub_records:
+                pub = grouped_pub_records[key]
+                sub = grouped_sub_records[key]
+                intermediate_records = merge_sequential(
+                    left_records=pub,
+                    right_records=sub,
+                    left_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP,
+                    right_stamp_key=COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP,
+                    join_left_key='index',
+                    join_right_key='index',
+                    columns=[
+                        COLUMN_NAME.TID,
+                        COLUMN_NAME.PUBLISHER_HANDLE,
+                        COLUMN_NAME.CALLBACK_OBJECT,
+                        COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
+                        COLUMN_NAME.CALLBACK_START_TIMESTAMP,
+                    ],
+                    how='left'
+                )
+                intra_records.concat(intermediate_records)
 
         intra_records.rename_columns(
             {
