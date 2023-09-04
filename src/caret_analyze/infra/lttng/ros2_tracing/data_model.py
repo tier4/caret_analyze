@@ -625,7 +625,7 @@ class Ros2DataModel():
         self._buffer_to_ipbs.append(record)
 
     def add_ipb_to_subscription(
-        self, timestamp, subscription, ipb
+        self, timestamp, ipb, subscription
     ) -> None:
         record = {
             'timestamp': timestamp,
