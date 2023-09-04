@@ -576,7 +576,7 @@ class RecordsSource():
                 COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                 COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP
             ],
-            how='right'
+            how='inner'
         )
 
         intra_records = merge_sequential(
