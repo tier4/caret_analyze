@@ -36,7 +36,7 @@ class ResponseTimeTimeSeries(MetricsBase):
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
         """
-        Get Respomse time timeseries data for each object in pandas DataFrame format.
+        Get Response time timeseries data for each object in pandas DataFrame format.
 
         Parameters
         ----------
