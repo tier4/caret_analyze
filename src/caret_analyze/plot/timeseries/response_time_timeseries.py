@@ -23,7 +23,7 @@ from ...record import RecordsInterface, ResponseTime
 from ...runtime import Path
 
 
-class ResponsetimeTimeSeries(MetricsBase):
+class ResponseTimeTimeSeries(MetricsBase):
     """Class that provides latency timeseries data."""
 
     def __init__(
@@ -35,6 +35,26 @@ class ResponsetimeTimeSeries(MetricsBase):
         self._case = case
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+        """
+        Get Respomse time timeseries data for each object in pandas DataFrame format.
+
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Returns
+        -------
+        pd.DataFrame
+            Multi-column Response time DataFrame.
+
+        Notes
+        -----
+        xaxis_type "system_time" and "index" return the same DataFrame.
+
+        """
         timeseries_records_list = self.to_timeseries_records_list(xaxis_type)
         all_df = pd.DataFrame()
         for to, response_records in zip(self._target_objects, timeseries_records_list):
@@ -58,7 +78,22 @@ class ResponsetimeTimeSeries(MetricsBase):
         self,
         xaxis_type: str = 'system_time'
     ) -> list[RecordsInterface]:
+        """
+        Get Response time records list of all target objects.
 
+        Parameters
+        ----------
+        xaxis_type : str
+            Type of time for timestamp.
+            "system_time", "index", or "sim_time" can be specified.
+            The default is "system_time".
+
+        Returns
+        -------
+        list[RecordsInterface]
+            Response time records list of all target objects.
+
+        """
         timeseries_records_list: list[RecordsInterface] = [
             _.to_records() for _ in self._target_objects
         ]

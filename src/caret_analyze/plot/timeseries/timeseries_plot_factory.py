@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from .frequency_timeseries import FrequencyTimeSeries
 from .latency_timeseries import LatencyTimeSeries
 from .period_timeseries import PeriodTimeSeries
-from .response_time_timeseries import ResponsetimeTimeSeries
+from .response_time_timeseries import ResponseTimeTimeSeries
 from .timeseries_plot import TimeSeriesPlot
 from ..metrics_base import MetricsBase
 from ..visualize_lib import VisualizeLibInterface
@@ -54,7 +54,7 @@ class TimeSeriesPlotFactory:
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
         case : str
-            Parameter specifying best, worst or all. Use to create Responsetime timeseries graph.
+            Parameter specifying best, worst or all. Use to create Response time timeseries graph.
 
         Returns
         -------
@@ -78,7 +78,7 @@ class TimeSeriesPlotFactory:
             metrics_ = PeriodTimeSeries(list(target_objects))
             return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'response_time':
-            metrics_ = ResponsetimeTimeSeries(list(target_objects), case)
+            metrics_ = ResponseTimeTimeSeries(list(target_objects), case)
             return TimeSeriesPlot(metrics_, visualize_lib, case)
         else:
             raise UnsupportedTypeError(
