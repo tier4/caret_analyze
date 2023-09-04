@@ -513,10 +513,6 @@ class RecordsSource():
         return intra_records
 
     @cached_property
-    def enqueue_records(self) -> RecordsInterface:
-        return self._data.rclcpp_ring_buffer_enqueue_instances.clone()
-
-    @cached_property
     def intra_proc_comm_records_iron(self) -> RecordsInterface:
         """
         Compose intra process communication records.
