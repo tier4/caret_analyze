@@ -61,6 +61,8 @@ class ColumnName(NamedTuple):
     TID: str = 'tid'
     INDEX: str = 'index'
     BUFFER: str = 'buffer'
+    SIZE: str = 'size'
+    OVERWRITTEN: str = 'overwritten'
 
     TILDE_PUBLISHER: str = 'tilde_publisher'
     TILDE_SUBSCRIPTION: str = 'tilde_subscription'
