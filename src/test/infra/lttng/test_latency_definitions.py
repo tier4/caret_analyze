@@ -1645,6 +1645,7 @@ class TestCommunicationRecords:
 
         assert df.equals(df_expect)
 
+
 class TestTimerRecords:
 
     def test_empty_data(
