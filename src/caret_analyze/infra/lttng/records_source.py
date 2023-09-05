@@ -606,7 +606,7 @@ class RecordsSource():
                         COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP,
                         COLUMN_NAME.CALLBACK_START_TIMESTAMP,
                     ],
-                    how='left'
+                    how='left_use_latest'
                 )
                 intra_records.concat(intermediate_records)
 
