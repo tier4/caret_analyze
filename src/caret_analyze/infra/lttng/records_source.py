@@ -610,6 +610,19 @@ class RecordsSource():
                 )
                 intra_records.concat(intermediate_records)
 
+        intra_records.drop_columns(
+            [
+                COLUMN_NAME.MESSAGE,
+                COLUMN_NAME.MESSAGE_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_RING_BUFFER_ENQUEUE_TIMESTAMP,
+                COLUMN_NAME.RCLCPP_RING_BUFFER_DEQUEUE_TIMESTAMP,
+                COLUMN_NAME.BUFFER,
+                COLUMN_NAME.INDEX,
+                COLUMN_NAME.SIZE,
+                COLUMN_NAME.OVERWRITTEN
+            ]
+        )
+
         intra_records.rename_columns(
             {
                 COLUMN_NAME.RCLCPP_INTRA_PUBLISH_TIMESTAMP: COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP
