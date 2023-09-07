@@ -30,13 +30,14 @@ from .message_flow import BokehMessageFlow
 from .response_time_hist import BokehResponseTimeHist
 from .stacked_bar import BokehStackedBar
 from .timeseries import BokehTimeSeries
-from .util import ColorSelectorFactory
+from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 MetricsTypes = Frequency | Latency | Period
+HistTypes = CallbackBase | Communication
 
 logger = getLogger(__name__)
 
@@ -171,27 +172,41 @@ class Bokeh(VisualizeLibInterface):
     def histogram(
         self,
         metrics: list[MetricsTypes],
-        callback_names: list[str],
+        target_objects: Sequence[HistTypes],
         data_type: str
     ) -> Figure:
-        plot = Figure(title=data_type, x_axis_label='x', y_axis_label='y')
+        legend_manager = LegendManager()
+        if data_type == 'frequency':
+            x_label = data_type + ' [Hz]'
+        elif data_type in ['period', 'latency']:
+            x_label = data_type + ' [ms]'
+        else:
+            raise NotImplementedError()
+        plot = Figure(
+            title=data_type, x_axis_label=x_label, y_axis_label='Probability', plot_width=800
+            )
         data_list: list[list[int]] = [
             [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
             for m in metrics
             ]
         color_selector = ColorSelectorFactory.create_instance('unique')
+        if data_type in ['period', 'latency']:
+            data_list = [[_ *10**(-6) for _ in data] for data in data_list]
         max_value = max(max(data_list, key=lambda x: max(x)))
         min_value = min(min(data_list, key=lambda x: min(x)))
-
-        for hist_type, callback_name in zip(data_list, callback_names):
+        for hist_type, target_object in zip(data_list, target_objects):
             hist, bins = histogram(hist_type, 20, (min_value, max_value))
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
-                             line_color='white', alpha=0.5, legend_label=callback_name,
+                             line_color='white', alpha=0.5,
                              color=color_selector.get_color())
-            hover = HoverTool(tooltips=[('x', '@left'), ('y', '@top')], renderers=[quad])
+            legend_manager.add_legend(target_object, quad)
+            hover = HoverTool(
+                tooltips=[(x_label, '@left'), ('Probability', '@top')], renderers=[quad]
+                )
             plot.add_tools(hover)
-        plot.legend.title = 'Legend'
-        plot.legend.location = 'top_right'
-        plot.legend.label_text_font_size = '12pt'
+
+        legends = legend_manager.create_legends(20, True, location='top_right')
+        for legend in legends:
+            plot.add_layout(legend, 'right')
         return plot

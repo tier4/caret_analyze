@@ -61,35 +61,31 @@ class HistogramPlotFactory:
             Argument metrics is not "frequency", "latency", or "period".
 
         """
-        metrics: list[MetricsType] = []
-        callback_names = [
-            obj.callback_name if isinstance(obj, CallbackBase)
-            else obj.column_names[0].split('/')[-1]
-            for obj in target_objects
-            ]
-
         if metrics_name == 'frequency':
-            metrics = [Frequency(target_object.to_records()) for target_object in target_objects]
+            metrics_frequency: list[MetricsType] =\
+                  [Frequency(target_object.to_records()) for target_object in target_objects]
             return HistogramPlot(
-                metrics,
+                metrics_frequency,
                 visualize_lib,
-                callback_names,
+                target_objects,
                 metrics_name
                 )
         elif metrics_name == 'latency':
-            metrics = [Latency(target_object.to_records()) for target_object in target_objects]
+            metrics_latency: list[MetricsType] =\
+                  [Latency(target_object.to_records()) for target_object in target_objects]
             return HistogramPlot(
-                metrics,
+                metrics_latency,
                 visualize_lib,
-                callback_names,
+                target_objects,
                 metrics_name
                 )
         elif metrics_name == 'period':
-            metrics = [Period(target_object.to_records()) for target_object in target_objects]
+            metrics_period: list[MetricsType] =\
+                  [Period(target_object.to_records()) for target_object in target_objects]
             return HistogramPlot(
-                metrics,
+                metrics_period,
                 visualize_lib,
-                callback_names,
+                target_objects,
                 metrics_name
                 )
         else:

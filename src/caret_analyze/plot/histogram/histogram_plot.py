@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from bokeh.plotting import Figure
 
 from caret_analyze.record import Frequency, Latency, Period
@@ -23,8 +25,10 @@ import pandas as pd
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
+from ...runtime import CallbackBase, Communication
 
 MetricsTypes = Frequency | Latency | Period
+HistTypes = CallbackBase | Communication
 
 
 class HistogramPlot(PlotBase):
@@ -34,12 +38,12 @@ class HistogramPlot(PlotBase):
         self,
         metrics: list[MetricsTypes],
         visualize_lib: VisualizeLibInterface,
-        callback_names: list[str],
+        target_objects: Sequence[HistTypes],
         data_type: str
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
-        self._callback_names = callback_names
+        self._target_objects = target_objects
         self._data_type = data_type
 
     def to_dataframe(
@@ -102,7 +106,7 @@ class HistogramPlot(PlotBase):
 
         return self._visualize_lib.histogram(
             self._metrics,
-            self._callback_names,
+            self._target_objects,
             self._data_type
             )
 

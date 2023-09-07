@@ -25,6 +25,7 @@ from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publish
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 MetricsTypes = Frequency | Latency | Period
+HistTypes = CallbackBase | Communication
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
@@ -92,7 +93,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
     def histogram(
         self,
         metrics: list[MetricsTypes],
-        callback_names: list[str],
+        target_objects: Sequence[HistTypes],
         data_type: str
     ) -> Figure:
         raise NotImplementedError()
