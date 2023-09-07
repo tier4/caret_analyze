@@ -757,7 +757,7 @@ class Records(RecordsInterface):
                 for processing_record in records_need_to_merge:
                     processing_record.data[sink_from_keys].add(  # type: ignore
                         record.get(copy_from_key))
-                    merge_processing_record_keys(processing_record)
+                    merge_processing_record_keys(processing_record)  # type: ignore
                     # No need for subsequent loops since we integrated them.
                     break
 
@@ -767,9 +767,9 @@ class Records(RecordsInterface):
                     lambda x: record.get(source_key) in x.data[sink_from_keys],  # type: ignore
                     processing_records.values(),
                 ):
-                    addr = processing_record.get(sink_from_key)
+                    addr = processing_record.get(sink_from_key)  # type: ignore
                     merged_addresses.append(addr)
-                    processing_record.merge(record)
+                    processing_record.merge(record)  # type: ignore
                     merged_records.append(processing_record)
                 for addr in merged_addresses:
                     if addr in processing_records:
