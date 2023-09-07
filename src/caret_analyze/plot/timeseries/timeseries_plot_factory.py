@@ -39,7 +39,7 @@ class TimeSeriesPlotFactory:
         target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,
         visualize_lib: VisualizeLibInterface,
-        case: str = 'best' #case is only used for response time timeseries.
+        case: str = 'best'  # case is only used for response time timeseries.
     ) -> TimeSeriesPlot:
         """
         Create an instance of TimeSeriesPlot.
