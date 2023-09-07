@@ -86,6 +86,8 @@ class BokehTimeSeries:
                         provider = converter_cb._provider
                         converter = provider.get_sim_time_converter(frame_min, frame_max)
                         break
+            elif isinstance(target_objects[0], Path):
+                converter = None
             else:
                 provider = target_objects[0]._provider
                 converter = provider.get_sim_time_converter(frame_min, frame_max)

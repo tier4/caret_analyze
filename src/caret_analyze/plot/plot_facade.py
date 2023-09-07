@@ -29,7 +29,7 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 
 logger = getLogger(__name__)
 
-TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription | Path
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
 
