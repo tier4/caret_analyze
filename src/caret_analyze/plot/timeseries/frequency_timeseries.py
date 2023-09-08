@@ -20,9 +20,10 @@ import pandas as pd
 
 from ..metrics_base import MetricsBase
 from ...record import Frequency, RecordsInterface
-from ...runtime import CallbackBase, Communication, Publisher, Subscription
+from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+# Path class is not used in this file, only included to pass mypy through.
 
 
 class FrequencyTimeSeries(MetricsBase):

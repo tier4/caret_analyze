@@ -47,10 +47,10 @@ class TimeSeriesPlotFactory:
         Parameters
         ----------
         target_objects : Sequence[TimeSeriesPlotTypes]
-            TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription)
+            TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
         metrics : str
             Metrics for timeseries data.
-            supported metrics: [frequency/latency/period]
+            supported metrics: [frequency/latency/period/response_time]
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
         case : str
@@ -63,25 +63,25 @@ class TimeSeriesPlotFactory:
         Raises
         ------
         UnsupportedTypeError
-            Argument metrics is not "frequency", "latency", or "period".
+            Argument metrics is not "frequency", "latency", "period", or "response_time".
 
         """
         metrics_: MetricsBase
-        if metrics == 'frequency':
+        if metrics == 'frequency' and type(target_objects[0]) is not Path:
             metrics_ = FrequencyTimeSeries(list(target_objects))
             return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'latency':
             # Ignore the mypy type check because type_check_decorator is applied.
             metrics_ = LatencyTimeSeries(list(target_objects))  # type: ignore
             return TimeSeriesPlot(metrics_, visualize_lib)
-        elif metrics == 'period':
+        elif metrics == 'period' and type(target_objects[0]) is not Path:
             metrics_ = PeriodTimeSeries(list(target_objects))
             return TimeSeriesPlot(metrics_, visualize_lib)
-        elif metrics == 'response_time':
+        elif metrics == 'response_time' and type(target_objects[0]) is Path:
             metrics_ = ResponseTimeTimeSeries(list(target_objects), case)
             return TimeSeriesPlot(metrics_, visualize_lib, case)
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '
-                'Supported metrics: [frequency/latency/period]'
+                'Supported metrics: [frequency/latency/period/response_time]'
             )

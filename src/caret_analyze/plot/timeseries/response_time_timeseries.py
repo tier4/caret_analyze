@@ -20,7 +20,10 @@ import pandas as pd
 
 from ..metrics_base import MetricsBase
 from ...record import RecordsInterface, ResponseTime
-from ...runtime import Path
+from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
+
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+# These classes except Path are not used in this file, only included to pass mypy through.
 
 
 class ResponseTimeTimeSeries(MetricsBase):
@@ -28,7 +31,7 @@ class ResponseTimeTimeSeries(MetricsBase):
 
     def __init__(
         self,
-        target_objects: Sequence[Path],
+        target_objects: Sequence[TimeSeriesTypes],
         case: str
     ) -> None:
         super().__init__(target_objects)
