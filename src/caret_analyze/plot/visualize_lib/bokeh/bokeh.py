@@ -195,7 +195,7 @@ class Bokeh(VisualizeLibInterface):
         max_value = max(max(data_list, key=lambda x: max(x)))
         min_value = min(min(data_list, key=lambda x: min(x)))
         for hist_type, target_object in zip(data_list, target_objects):
-            hist, bins = histogram(hist_type, 20, (min_value, max_value))
+            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=True)
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5,
