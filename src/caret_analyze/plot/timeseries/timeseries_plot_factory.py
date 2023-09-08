@@ -67,18 +67,21 @@ class TimeSeriesPlotFactory:
 
         """
         metrics_: MetricsBase
-        if metrics == 'frequency' and type(target_objects[0]) is not Path:
-            metrics_ = FrequencyTimeSeries(list(target_objects))
+        PlotTypes = (CallbackBase, Communication, Publisher, Subscription)
+        if metrics == 'frequency':
+            metrics_ = FrequencyTimeSeries([_ for _ in target_objects if isinstance(_, PlotTypes)])
             return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'latency':
             # Ignore the mypy type check because type_check_decorator is applied.
             metrics_ = LatencyTimeSeries(list(target_objects))  # type: ignore
             return TimeSeriesPlot(metrics_, visualize_lib)
-        elif metrics == 'period' and type(target_objects[0]) is not Path:
-            metrics_ = PeriodTimeSeries(list(target_objects))
+        elif metrics == 'period':
+            metrics_ = PeriodTimeSeries([_ for _ in target_objects if isinstance(_, PlotTypes)])
             return TimeSeriesPlot(metrics_, visualize_lib)
-        elif metrics == 'response_time' and type(target_objects[0]) is Path:
-            metrics_ = ResponseTimeTimeSeries(list(target_objects), case)
+        elif metrics == 'response_time':
+            metrics_ = ResponseTimeTimeSeries(
+                [_ for _ in target_objects if isinstance(_, Path)], case
+            )
             return TimeSeriesPlot(metrics_, visualize_lib, case)
         else:
             raise UnsupportedTypeError(
