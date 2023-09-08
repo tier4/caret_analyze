@@ -23,7 +23,6 @@ from ...record import Period, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
-# Path class is not used in this file, only included to pass mypy through.
 
 
 class PeriodTimeSeries(MetricsBase):
