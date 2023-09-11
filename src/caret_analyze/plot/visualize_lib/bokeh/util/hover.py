@@ -147,7 +147,10 @@ class HoverKeysBase(metaclass=ABCMeta):
         """
         tips_str = '<div style="width:400px; word-wrap: break-word;">'
         for k in self.to_list():
-            tips_str += f'@{k} <br>'
+            if k == 'y':
+                tips_str += f'response time = @{k} <br>'
+            else:
+                tips_str += f'@{k} <br>'
         tips_str += '</div>'
 
         return HoverTool(
@@ -213,7 +216,7 @@ class TimeSeriesKeys(HoverKeysBase):
         elif isinstance(self._target_object, (Publisher, Subscription)):
             hover_keys = ['legend_label', 'node_name', 'topic_name']
         elif isinstance(self._target_object, Path):
-            hover_keys = ['legend_label', 'node_names', 'child_names']
+            hover_keys = ['legend_label', 'node_names', 'y']
 
         return hover_keys
 
