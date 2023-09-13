@@ -670,6 +670,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_response_time_timeseries_plot" class="md-nav__link">
+    create_response_time_timeseries_plot()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -905,6 +912,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.plot.Plot.create_response_time_stacked_bar_plot" class="md-nav__link">
     create_response_time_stacked_bar_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_response_time_timeseries_plot" class="md-nav__link">
+    create_response_time_timeseries_plot()
   </a>
   
 </li>
@@ -1865,6 +1879,96 @@ supported case: [best/worst].</p>
         <tr>
           <td>
                 <code><span title="caret_analyze.plot.stacked_bar.StackedBarPlot">StackedBarPlot</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="caret_analyze.plot.Plot.create_response_time_timeseries_plot" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">create_response_time_timeseries_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">)</span></code>
+
+<a href="#caret_analyze.plot.Plot.create_response_time_timeseries_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get response time timeseries plot instance.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>target_objects</code></td>
+          <td>
+                <code><span title="collections.abc.Collection">Collection</span>[<a class="autorefs autorefs-internal" title="caret_analyze.runtime.Path" href="../runtime/#caret_analyze.runtime.Path">Path</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Instances that are the sources of the plotting.
+This also accepts multiple inputs by unpacking.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>case</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Response time calculation method, best by default.
+supported case: [best/worst/all].</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;best&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.plot_base.PlotBase" href="#caret_analyze.plot.PlotBase">PlotBase</a></code>
           </td>
           <td>
             <div class="doc-md-description">
