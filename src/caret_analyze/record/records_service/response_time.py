@@ -318,7 +318,8 @@ class ResponseMapAll:
             filled_record_list.insert(0, record)
 
         columns = [ColumnValue(c) for c in self._columns]
-        stacked_bar_records = RecordsFactory.create_instance(init=filled_record_list, columns=columns)
+        stacked_bar_records =\
+            RecordsFactory.create_instance(init=filled_record_list, columns=columns)
         return stacked_bar_records
 
     def to_worst_in_input_case_stacked_bar(self) -> RecordsInterface:
@@ -347,10 +348,13 @@ class ResponseMapAll:
             if end_ts not in filtered_record_dict.keys():
                 filtered_record_dict[end_ts] = record
             else:
-                if record.get(self._start_column) < filtered_record_dict[end_ts].get(self._start_column):
+                if record.get(self._start_column)\
+                   < filtered_record_dict[end_ts].get(self._start_column):
                     filtered_record_dict[end_ts] = record
 
-        stacked_bar_records = RecordsFactory.create_instance(init=list(filtered_record_dict.values()), columns=columns)
+        stacked_bar_records =\
+            RecordsFactory.create_instance(init=list(filtered_record_dict.values()),
+                                           columns=columns)
         return stacked_bar_records
 
     def _create_empty_records(
