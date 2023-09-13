@@ -301,7 +301,27 @@ class ResponseMapAll:
 
         return records
 
-    def to_worst_in_input_stacked_bar(self) -> RecordsInterface:
+    def to_all_stacked_bar(self) -> RecordsInterface:
+        filled_record_list: list[RecordInterface] = []
+
+        # fill unrecorded data for each records
+        for record in reversed(self._records):
+            if len(filled_record_list) == 0:
+                filled_record_list.insert(0, record)
+                continue
+
+            next_record = filled_record_list[0]
+            # fill unrecorded data
+            for column in self._columns:
+                if column not in record.columns:
+                    record.add(column, next_record.get(column))
+            filled_record_list.insert(0, record)
+
+        columns = [ColumnValue(c) for c in self._columns]
+        stacked_bar_records = RecordsFactory.create_instance(init=filled_record_list, columns=columns)
+        return stacked_bar_records
+
+    def to_worst_in_input_case_stacked_bar(self) -> RecordsInterface:
         filled_record_list: list[RecordInterface] = []
 
         # fill unrecorded data for each records
@@ -450,7 +470,25 @@ class ResponseTime:
         """
         return self._records.to_range_records('best')
 
-    def to_worst_in_input_stacked_bar(self) -> RecordsInterface:
+    def to_all_stacked_bar(self) -> RecordsInterface:
+        """
+        Calculate records for stacked bar.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the all response time.
+
+            Columns
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
+
+        """
+        return self._response_map_all.to_all_stacked_bar()
+
+    def to_worst_in_input_case_stacked_bar(self) -> RecordsInterface:
         """
         Calculate records for stacked bar.
 
@@ -466,7 +504,7 @@ class ResponseTime:
             - {columns[n-1]}
 
         """
-        return self._response_map_all.to_worst_in_input_stacked_bar()
+        return self._response_map_all.to_worst_in_input_case_stacked_bar()
 
     def to_worst_case_stacked_bar(self) -> RecordsInterface:
         # NOTE:
