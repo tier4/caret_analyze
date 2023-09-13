@@ -111,5 +111,7 @@ class ResponseTimeTimeSeries(MetricsBase):
                 response_timeseries_list.append(response.to_worst_case_records())
             elif self._case == 'all':
                 response_timeseries_list.append(response.to_all_records())
+            elif self._case == 'worst_in_input':
+                response_timeseries_list.append(response.to_worst_in_input_records())
 
         return response_timeseries_list
