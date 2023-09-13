@@ -235,12 +235,15 @@ class ResponseMapAll:
         if columns:
             self._start_column = columns[0]
             self._end_column = columns[-1]
+            self._columns = columns
         else:
             self._start_column = records.columns[0]
             self._end_column = records.columns[-1]
+            self._columns = records.columns
 
         self._start_timestamps: list[int] = []
         self._end_timestamps: list[int] = []
+        self._records: list[RecordInterface] = []
 
         for record in reversed(records.data):
             if self._end_column in record.columns:
@@ -257,10 +260,12 @@ class ResponseMapAll:
             if start_ts not in self._start_timestamps:
                 self._start_timestamps.insert(0, start_ts)
                 self._end_timestamps.insert(0, end_ts)
+                self._records.insert(0, record)
             else:
                 idx = self._start_timestamps.index(start_ts)
                 if end_ts < self._end_timestamps[idx]:
                     self._end_timestamps[idx] = end_ts
+                    self._records[idx] = record
 
     def to_all_records(self) -> RecordsInterface:
         records = self._create_empty_records()
@@ -295,6 +300,38 @@ class ResponseMapAll:
             records.append(record)
 
         return records
+
+    def to_worst_in_input_stacked_bar(self) -> RecordsInterface:
+        filled_record_list: list[RecordInterface] = []
+
+        # fill unrecorded data for each records
+        for record in reversed(self._records):
+            if len(filled_record_list) == 0:
+                filled_record_list.insert(0, record)
+                continue
+
+            next_record = filled_record_list[0]
+            # fill unrecorded data
+            for column in self._columns:
+                if column not in record.columns:
+                    record.add(column, next_record.get(column))
+            filled_record_list.insert(0, record)
+
+        # {end_timestamp: record}
+        filtered_record_dict: dict[int, RecordInterface] = {}
+        columns = [ColumnValue(c) for c in self._columns]
+
+        # filter worst-in-input record
+        for record in self._records:
+            end_ts = record.get(self._end_column)
+            if end_ts not in filtered_record_dict.keys():
+                filtered_record_dict[end_ts] = record
+            else:
+                if record.get(self._start_column) < filtered_record_dict[end_ts].get(self._start_column):
+                    filtered_record_dict[end_ts] = record
+
+        stacked_bar_records = RecordsFactory.create_instance(init=list(filtered_record_dict.values()), columns=columns)
+        return stacked_bar_records
 
     def _create_empty_records(
         self
@@ -412,6 +449,24 @@ class ResponseTime:
 
         """
         return self._records.to_range_records('best')
+
+    def to_worst_in_input_stacked_bar(self) -> RecordsInterface:
+        """
+        Calculate records for stacked bar.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the worst-in-input cases response time.
+
+            Columns
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
+
+        """
+        return self._response_map_all.to_worst_in_input_stacked_bar()
 
     def to_worst_case_stacked_bar(self) -> RecordsInterface:
         # NOTE:
