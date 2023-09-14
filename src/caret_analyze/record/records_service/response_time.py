@@ -336,7 +336,8 @@ class ResponseMapAll:
 
         columns = [ColumnValue(c) for c in self._columns]
         stacked_bar_records: RecordsInterface =\
-            RecordsFactory.create_instance(init=sum(filled_records_dict.values(), []),
+            RecordsFactory.create_instance(init=[_.data for _
+                                                 in sum(filled_records_dict.values(), [])],
                                            columns=columns)
         stacked_bar_records.sort_column_order()
         return stacked_bar_records
@@ -369,7 +370,8 @@ class ResponseMapAll:
 
         columns = [ColumnValue(c) for c in self._columns]
         stacked_bar_records: RecordsInterface =\
-            RecordsFactory.create_instance(init=filled_record_list, columns=columns)
+            RecordsFactory.create_instance(init=[_.data for _ in filled_record_list],
+                                           columns=columns)
         stacked_bar_records.sort_column_order()
         return stacked_bar_records
 
