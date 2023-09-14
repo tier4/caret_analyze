@@ -302,59 +302,75 @@ class ResponseMapAll:
         return records
 
     def to_all_stacked_bar(self) -> RecordsInterface:
-        filled_record_list: list[RecordInterface] = []
+        end_column_record_dict: dict[int, list[RecordInterface]] = {}
 
-        # fill unrecorded data for each records
+        # classify records which have same end timestamp
+        end_ts = None
         for record in reversed(self._records):
-            if len(filled_record_list) == 0:
-                filled_record_list.insert(0, record)
+            if self._end_column in record.columns:
+                end_ts = record.get(self._end_column)
+            elif end_ts is None:
                 continue
 
-            next_record = filled_record_list[0]
-            # fill unrecorded data
-            for column in self._columns:
-                if column not in record.columns:
-                    record.add(column, next_record.get(column))
-            filled_record_list.insert(0, record)
+            if end_ts in end_column_record_dict.keys():
+                end_column_record_dict[end_ts].insert(0, record)
+            else:
+                end_column_record_dict[end_ts] = [record]
+
+        # fill empty data
+        filled_records_dict: dict[int, list[RecordInterface]] = {}
+        # for each records which have same end timestamp
+        for end_ts, record_list in end_column_record_dict.items():
+            filled_records_dict[end_ts] = []
+
+            for record in reversed(record_list):
+                # if record dont has some timestamps,
+                # record timestamps just after
+                for column in self._columns:
+                    if column in record.columns:
+                        continue
+                    timestamps = [record.get(column) for record in filled_records_dict[end_ts]
+                                  if column in record.columns]
+                    record.add(column, min(timestamps))
+                filled_records_dict[end_ts].append(record)
 
         columns = [ColumnValue(c) for c in self._columns]
-        stacked_bar_records =\
-            RecordsFactory.create_instance(init=filled_record_list, columns=columns)
+        stacked_bar_records: RecordsInterface =\
+            RecordsFactory.create_instance(init=sum(filled_records_dict.values(), []),
+                                           columns=columns)
+        stacked_bar_records.sort_column_order()
         return stacked_bar_records
 
     def to_worst_in_input_case_stacked_bar(self) -> RecordsInterface:
-        filled_record_list: list[RecordInterface] = []
+        end_column_record_dict: dict[int, list[RecordInterface]] = {}
 
-        # fill unrecorded data for each records
+        # classify records which have same end timestamp
+        end_ts = None
         for record in reversed(self._records):
-            if len(filled_record_list) == 0:
-                filled_record_list.insert(0, record)
+            if self._end_column in record.columns:
+                end_ts = record.get(self._end_column)
+            elif end_ts is None:
                 continue
 
-            next_record = filled_record_list[0]
-            # fill unrecorded data
-            for column in self._columns:
-                if column not in record.columns:
-                    record.add(column, next_record.get(column))
-            filled_record_list.insert(0, record)
-
-        # {end_timestamp: record}
-        filtered_record_dict: dict[int, RecordInterface] = {}
-        columns = [ColumnValue(c) for c in self._columns]
-
-        # filter worst-in-input record
-        for record in self._records:
-            end_ts = record.get(self._end_column)
-            if end_ts not in filtered_record_dict.keys():
-                filtered_record_dict[end_ts] = record
+            if end_ts in end_column_record_dict.keys():
+                end_column_record_dict[end_ts].append(record)
             else:
-                if record.get(self._start_column)\
-                   < filtered_record_dict[end_ts].get(self._start_column):
-                    filtered_record_dict[end_ts] = record
+                end_column_record_dict[end_ts] = [record]
 
-        stacked_bar_records =\
-            RecordsFactory.create_instance(init=list(filtered_record_dict.values()),
-                                           columns=columns)
+        # generate worst-case work flow
+        filled_record_list: list[RecordInterface] = []
+        for record_list in end_column_record_dict.values():
+            wirst_in_input_record = RecordFactory.create_instance()
+
+            for column in self._columns:
+                timestamps = [r.get(column) for r in record_list if column in r.columns]
+                wirst_in_input_record.add(column, min(timestamps))
+            filled_record_list.append(wirst_in_input_record)
+
+        columns = [ColumnValue(c) for c in self._columns]
+        stacked_bar_records: RecordsInterface =\
+            RecordsFactory.create_instance(init=filled_record_list, columns=columns)
+        stacked_bar_records.sort_column_order()
         return stacked_bar_records
 
     def _create_empty_records(
