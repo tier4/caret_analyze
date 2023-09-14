@@ -360,12 +360,12 @@ class ResponseMapAll:
         # generate worst-case work flow
         filled_record_list: list[RecordInterface] = []
         for record_list in end_column_record_dict.values():
-            wirst_in_input_record = RecordFactory.create_instance()
+            worst_in_input_record = RecordFactory.create_instance()
 
             for column in self._columns:
                 timestamps = [r.get(column) for r in record_list if column in r.columns]
-                wirst_in_input_record.add(column, min(timestamps))
-            filled_record_list.append(wirst_in_input_record)
+                worst_in_input_record.add(column, min(timestamps))
+            filled_record_list.append(worst_in_input_record)
 
         columns = [ColumnValue(c) for c in self._columns]
         stacked_bar_records: RecordsInterface =\
