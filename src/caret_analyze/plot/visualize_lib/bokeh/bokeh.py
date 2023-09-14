@@ -192,8 +192,14 @@ class Bokeh(VisualizeLibInterface):
         color_selector = ColorSelectorFactory.create_instance('unique')
         if data_type in ['period', 'latency']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
-        max_value = max(max(data_list, key=lambda x: max(x)))
-        min_value = min(min(data_list, key=lambda x: min(x)))
+        # max_value = max(max(data_list, key=lambda x: max(x)))
+        max_value = max(
+            max([max_len for max_len in data_list if len(max_len)], key=lambda x: max(x))
+            )
+        # min_value = min(min(data_list, key=lambda x: min(x)))
+        min_value = min(
+            min([min_len for min_len in data_list if len(min_len)], key=lambda x: min(x))
+            )
         for hist_type, target_object in zip(data_list, target_objects):
             hist, bins = histogram(hist_type, 20, (min_value, max_value), density=True)
             quad = plot.quad(top=hist, bottom=0,
@@ -206,7 +212,7 @@ class Bokeh(VisualizeLibInterface):
                 )
             plot.add_tools(hover)
 
-        legends = legend_manager.create_legends(20, True, location='top_right')
+        legends = legend_manager.create_legends(20, False, location='top_right')
         for legend in legends:
             plot.add_layout(legend, 'right')
         return plot
