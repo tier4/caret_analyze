@@ -26,9 +26,9 @@ from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param
 from ...metrics_base import MetricsBase
 from ....common import ClockConverter
 from ....record import Range, RecordsInterface
-from ....runtime import CallbackBase, Communication, Publisher, Subscription
+from ....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class BokehTimeSeries:
@@ -38,12 +38,14 @@ class BokehTimeSeries:
         metrics: MetricsBase,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool
+        full_legends: bool,
+        case: str = None
     ) -> None:
         self._metrics = metrics
         self._xaxis_type = xaxis_type
         self._ywheel_zoom = ywheel_zoom
         self._full_legends = full_legends
+        self._case = case
 
     def create_figure(self) -> Figure:
         target_objects = self._metrics.target_objects
@@ -55,12 +57,16 @@ class BokehTimeSeries:
             y_axis_label = y_axis_label + ' [Hz]'
         elif y_axis_label in ['period', 'latency']:
             y_axis_label = y_axis_label + ' [ms]'
+        elif y_axis_label == 'response_time':
+            y_axis_label = 'Response time' + ' [ms]'
         else:
             raise NotImplementedError()
         if isinstance(target_objects[0], CallbackBase):
             title = f'Time-line of callbacks {y_axis_label}'
         elif isinstance(target_objects[0], Communication):
             title = f'Time-line of communications {y_axis_label}'
+        elif isinstance(target_objects[0], Path):
+            title = f'Time-line of Paths {y_axis_label} --- {self._case} case ---'
         else:
             title = f'Time-line of publishes/subscribes {y_axis_label}'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
@@ -80,6 +86,8 @@ class BokehTimeSeries:
                         provider = converter_cb._provider
                         converter = provider.get_sim_time_converter(frame_min, frame_max)
                         break
+            elif isinstance(target_objects[0], Path):
+                converter = None
             else:
                 provider = target_objects[0]._provider
                 converter = provider.get_sim_time_converter(frame_min, frame_max)
@@ -223,7 +231,8 @@ class LineSource:
         value_column = timeseries_records.columns[1]
         timestamps = ensure_not_none(timeseries_records.get_column_series(ts_column))
         values = ensure_not_none(timeseries_records.get_column_series(value_column))
-        if 'latency' in value_column.lower() or 'period' in value_column.lower():
+        if 'latency' in value_column.lower() or 'period' in value_column.lower() or \
+                'response_time' in value_column.lower():
             values = [v*10**(-6) for v in values]  # [ns] -> [ms]
 
         x_item: list[int | float]

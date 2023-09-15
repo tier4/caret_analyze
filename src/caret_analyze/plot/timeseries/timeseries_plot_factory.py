@@ -19,14 +19,15 @@ from collections.abc import Sequence
 from .frequency_timeseries import FrequencyTimeSeries
 from .latency_timeseries import LatencyTimeSeries
 from .period_timeseries import PeriodTimeSeries
+from .response_time_timeseries import ResponseTimeTimeSeries
 from .timeseries_plot import TimeSeriesPlot
 from ..metrics_base import MetricsBase
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication, Publisher, Subscription
+from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class TimeSeriesPlotFactory:
@@ -37,7 +38,8 @@ class TimeSeriesPlotFactory:
     def create_instance(
         target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,
-        visualize_lib: VisualizeLibInterface
+        visualize_lib: VisualizeLibInterface,
+        case: str = 'best'  # case is only used for response time timeseries.
     ) -> TimeSeriesPlot:
         """
         Create an instance of TimeSeriesPlot.
@@ -45,12 +47,14 @@ class TimeSeriesPlotFactory:
         Parameters
         ----------
         target_objects : Sequence[TimeSeriesPlotTypes]
-            TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription)
+            TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
         metrics : str
             Metrics for timeseries data.
-            supported metrics: [frequency/latency/period]
+            supported metrics: [frequency/latency/period/response_time]
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
+        case : str
+            Parameter specifying best, worst or all. Use to create Response time timeseries graph.
 
         Returns
         -------
@@ -59,22 +63,28 @@ class TimeSeriesPlotFactory:
         Raises
         ------
         UnsupportedTypeError
-            Argument metrics is not "frequency", "latency", or "period".
+            Argument metrics is not "frequency", "latency", "period", or "response_time".
 
         """
         metrics_: MetricsBase
+        PlotTypes = (CallbackBase, Communication, Publisher, Subscription)
         if metrics == 'frequency':
-            metrics_ = FrequencyTimeSeries(list(target_objects))
+            metrics_ = FrequencyTimeSeries([_ for _ in target_objects if isinstance(_, PlotTypes)])
             return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'latency':
             # Ignore the mypy type check because type_check_decorator is applied.
             metrics_ = LatencyTimeSeries(list(target_objects))  # type: ignore
             return TimeSeriesPlot(metrics_, visualize_lib)
         elif metrics == 'period':
-            metrics_ = PeriodTimeSeries(list(target_objects))
+            metrics_ = PeriodTimeSeries([_ for _ in target_objects if isinstance(_, PlotTypes)])
             return TimeSeriesPlot(metrics_, visualize_lib)
+        elif metrics == 'response_time':
+            metrics_ = ResponseTimeTimeSeries(
+                [_ for _ in target_objects if isinstance(_, Path)], case
+            )
+            return TimeSeriesPlot(metrics_, visualize_lib, case)
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '
-                'Supported metrics: [frequency/latency/period]'
+                'Supported metrics: [frequency/latency/period/response_time]'
             )

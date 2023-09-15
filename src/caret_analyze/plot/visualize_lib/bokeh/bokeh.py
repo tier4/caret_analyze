@@ -35,9 +35,10 @@ from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 MetricsTypes = Frequency | Latency | Period
 HistTypes = CallbackBase | Communication
+
 
 logger = getLogger(__name__)
 
@@ -140,7 +141,8 @@ class Bokeh(VisualizeLibInterface):
         metrics: MetricsBase,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool
+        full_legends: bool,
+        case: str
     ) -> Figure:
         """
         Get a timeseries figure.
@@ -159,6 +161,9 @@ class Bokeh(VisualizeLibInterface):
         full_legends : bool
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
+        case : str
+            Parameter specifying best, worst or all. Use to create Response time timeseries graph.
+
 
         Returns
         -------
@@ -166,7 +171,7 @@ class Bokeh(VisualizeLibInterface):
             Figure of timeseries.
 
         """
-        timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends)
+        timeseries = BokehTimeSeries(metrics, xaxis_type, ywheel_zoom, full_legends, case)
         return timeseries.create_figure()
 
     def histogram(

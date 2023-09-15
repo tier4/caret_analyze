@@ -29,7 +29,7 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 
 logger = getLogger(__name__)
 
-TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription | Path
 HistTypes = CallbackBase | Communication
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
@@ -201,6 +201,33 @@ class Plot:
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects), 'latency', visualize_lib
+        )
+        return plot
+
+    def create_response_time_timeseries_plot(
+        *target_objects: Path,
+        case: str = 'best'
+    ) -> PlotBase:
+        """
+        Get response time timeseries plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[Path]
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+        case: str, optional
+            Response time calculation method, best by default.
+            supported case: [best/worst/all].
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = TimeSeriesPlotFactory.create_instance(
+            parse_collection_or_unpack(target_objects), 'response_time', visualize_lib, case
         )
         return plot
 

@@ -23,7 +23,7 @@ from bokeh.models import HoverTool
 from .....exceptions import InvalidArgumentError
 from .....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TargetTypes = (CallbackBase | Communication | Path | (Publisher | Subscription))
+TargetTypes = (CallbackBase | Communication | Path | (Publisher | Subscription)) | Path
 
 logger = getLogger(__name__)
 
@@ -147,7 +147,10 @@ class HoverKeysBase(metaclass=ABCMeta):
         """
         tips_str = '<div style="width:400px; word-wrap: break-word;">'
         for k in self.to_list():
-            tips_str += f'@{k} <br>'
+            if k == 'y':
+                tips_str += f'response time = @{k} <br>'
+            else:
+                tips_str += f'@{k} <br>'
         tips_str += '</div>'
 
         return HoverTool(
@@ -192,9 +195,13 @@ class TimeSeriesKeys(HoverKeysBase):
         super().__init__(target_object)
 
     def _validate(self, target_object: Any) -> None:
-        if not isinstance(target_object, (CallbackBase, Communication, Publisher, Subscription)):
+        if not isinstance(target_object, (CallbackBase,
+                                          Communication,
+                                          Publisher,
+                                          Subscription,
+                                          Path)):
             raise InvalidArgumentError(
-                "'target_object' must be [CallbackBase/Communication/Publisher/Subscription]"
+                "'target_object' must be [CallbackBase/Communication/Publisher/Subscription/Path]"
                 'in timeseries graph.'
             )
 
@@ -208,6 +215,8 @@ class TimeSeriesKeys(HoverKeysBase):
                           'publish_node_name', 'subscribe_node_name']
         elif isinstance(self._target_object, (Publisher, Subscription)):
             hover_keys = ['legend_label', 'node_name', 'topic_name']
+        elif isinstance(self._target_object, Path):
+            hover_keys = ['legend_label', 'node_names', 'y']
 
         return hover_keys
 

@@ -977,6 +977,20 @@ class DataFrameFormatted:
         # be issued, so they should be deleted.
         timers.drop_duplicate()
 
+        # workaround: remove duplication of callback_object.
+        #   We added this workaround because the duplication of callback_object happened in
+        #   real application.
+        duplicated_callback_objects = timers.drop_duplicated_callback_object()
+        if len(duplicated_callback_objects) > 0:
+            duplicated_callback_objects_str = [f'0x{c:X}' for c in duplicated_callback_objects]
+            logger.warning(
+                'Different timer callbacks have same callback_object value. '
+                'This can be caused by memory reclamation by the operating system. '
+                'Duplicated callbacks were removed except first one as a workaround. '
+                'This issue should be fixed in the future. '
+                'duplicated callback_objects = '
+                f'{duplicated_callback_objects_str}')
+
         return timers
 
     @staticmethod
