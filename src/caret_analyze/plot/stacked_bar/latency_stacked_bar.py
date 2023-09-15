@@ -106,6 +106,10 @@ class LatencyStackedBar:
         # include timestamp of response time (best, worst)
         if self._case == 'best':
             return response_time.to_best_case_stacked_bar()
+        if self._case == 'worst-in-input':
+            return response_time.to_worst_in_input_case_stacked_bar()
+        if self._case == 'all':
+            return response_time.to_all_stacked_bar()
 
         return response_time.to_stacked_bar()
 
