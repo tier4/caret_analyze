@@ -162,7 +162,7 @@ class Bokeh(VisualizeLibInterface):
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
         case : str
-            Parameter specifying best, worst, worst_in_input, or all.
+            Parameter specifying best, worst, worst-in-input, or all.
             Use to create Response time timeseries graph.
 
 
