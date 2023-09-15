@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
-from bokeh.models import HoverTool
+from bokeh.models import GlyphRenderer, HoverTool, Legend
 
 from bokeh.plotting import Figure
 
@@ -46,7 +46,7 @@ class Bokeh(VisualizeLibInterface):
     """Class that visualizes data using Bokeh library."""
 
     def __init__(self) -> None:
-        pass
+        self._legend_items: list[tuple[str, list[GlyphRenderer]]] = []
 
     def response_time_hist(
         self,
@@ -192,11 +192,9 @@ class Bokeh(VisualizeLibInterface):
         color_selector = ColorSelectorFactory.create_instance('unique')
         if data_type in ['period', 'latency']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
-        # max_value = max(max(data_list, key=lambda x: max(x)))
         max_value = max(
             max([max_len for max_len in data_list if len(max_len)], key=lambda x: max(x))
             )
-        # min_value = min(min(data_list, key=lambda x: min(x)))
         min_value = min(
             min([min_len for min_len in data_list if len(min_len)], key=lambda x: min(x))
             )
