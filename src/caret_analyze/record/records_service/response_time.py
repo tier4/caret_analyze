@@ -324,7 +324,7 @@ class ResponseMapAll:
             filled_records_dict[end_ts] = []
 
             for record in reversed(record_list):
-                # if record dont has some timestamps,
+                # if record doesn't have some timestamps,
                 # record timestamps just after
                 for column in self._columns:
                     if column in record.columns:
