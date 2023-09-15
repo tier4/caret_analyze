@@ -267,6 +267,48 @@ class Lttng(InfraBase):
 
     """
 
+    # sort order when timestamps are the same (sorting initialization-related trace events)
+    _prioritized_init_events = [
+        'ros2_caret:rcl_init',
+        'ros2:rcl_init',
+        'ros2_caret:rcl_node_init',
+        'ros2:rcl_node_init',
+        'ros2_caret:rcl_publisher_init',
+        'ros2:rcl_publisher_init',
+        'ros2_caret:rcl_subscription_init',
+        'ros2:rcl_subscription_init',
+        'ros2_caret:rclcpp_subscription_init',
+        'ros2:rclcpp_subscription_init',
+        'ros2_caret:rclcpp_subscription_callback_added',
+        'ros2:rclcpp_subscription_callback_added',
+        'ros2_caret:rcl_service_init',
+        'ros2:rcl_service_init',
+        'ros2_caret:rclcpp_service_callback_added',
+        'ros2:rclcpp_service_callback_added',
+        'ros2_caret:rcl_client_init',
+        'ros2:rcl_client_init',
+        'ros2_caret:rcl_timer_init',
+        'ros2:rcl_timer_init',
+        'ros2_caret:rclcpp_timer_callback_added',
+        'ros2:rclcpp_timer_callback_added',
+        'ros2_caret:rclcpp_timer_link_node',
+        'ros2:rclcpp_timer_link_node',
+        'ros2_caret:rclcpp_callback_register',
+        'ros2:rclcpp_callback_register',
+        'ros2_caret:rcl_lifecycle_state_machine_init',
+        'ros2:rcl_lifecycle_state_machine_init',
+        'ros2_caret:caret_init',
+        'ros2_caret:rmw_implementation',
+        'ros2_caret:construct_executor',
+        'ros2_caret:construct_static_executor',
+        'ros2_caret:add_callback_group',
+        'ros2_caret:add_callback_group_static_executor',
+        'ros2_caret:callback_group_add_timer',
+        'ros2_caret:callback_group_add_subscription',
+        'ros2_caret:callback_group_add_service',
+        'ros2_caret:callback_group_add_client',
+    ]
+
     def __init__(
         self,
         trace_dir_or_events: str | list[dict],
@@ -329,12 +371,60 @@ class Lttng(InfraBase):
 
             handler = Ros2Handler(data, offset)
 
-            filtered_event_count = 0
+            # トレースイベントの処理順が以下の様になっている必要がある
+            # (1)初期化系トレースイベントを最初にまとめて処理し、その後ランタイム系トレースイベントを処理する
+            # (2)初期化系トレースイベントを処理する際、あらかじめタイムスタンプでソートする。
+            #    タイムスタンプが同じ場合は、トレースイベントの種類により並び順を決める。
+            #    その際、依存関係の上位にある種類のイベントがより手前に来るようにする。
+            #    これは、ほぼ同時に発生した初期化系トレースポイントが同じタイムスタンプとなった場合への配慮である。
+            # init_events: list[dict] = {}
+            # run_events: list[dict] = {}
+            init_events = []
+            run_events = []
+
+            # 全てのトレースイベントを init_events, run_eventsに振り分ける
+            init_event_names = set(Lttng._prioritized_init_events)
+            for event in event_collection:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name in init_event_names:
+                    init_events.append(event)
+                else:   # MYK test
+                    run_events.append(event)
+
+            # init_events をソートする
+            import functools
+            init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
+            # 初期化系トレースイベントを処理する
+            handler.create_init_handler_map()
             for event in tqdm(
-                    iter(event_collection),
-                    total=len(event_collection),
+                    iter(init_events),
+                    total=len(init_events),
                     desc='loading',
                     mininterval=1.0):
+                event_name = event[LttngEventFilter.NAME]
+                if event_name in handler.handler_map:
+                    handler_ = handler.handler_map[event_name]
+                    handler_(event)
+
+            # ランタイム系トレースイベントを処理する
+            handler.create_runtime_handler_map()
+            # [memo] MYK
+            # このループはevent_collectionではなくrun_eventsで回す
+            #   event_collectionには50行ぐらい上ですでに処理済のinit_eventsを含んでいる
+            #   init_eventsのhandler_(event)をすると、eventからinit_timestampがなくなる
+            #   そのため、ここでhandler_(event)すると、init_timestampがないため例外となる
+            filtered_event_count = 0
+            for event in tqdm(
+                    iter(run_events),
+                    total=len(run_events),
+                    desc='loading',
+                    mininterval=1.0):
+                # MYK (memo)
+                # arch = Architecture('lttng', tracing_log_path)
+                #    event_filtersが設定されていて、このif文に入ってランタイム系トレースイベントはすべて処理されない。
+                #    初期化系トレースイベントは処理される。
+                # lttng = Lttng(tracing_log_path)
+                #    event_filtersは設定されないので、すべてのイベントが処理される
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
                     continue
@@ -345,13 +435,22 @@ class Lttng(InfraBase):
                     events.append(event_dict)
                 filtered_event_count += 1
                 event_name = event[LttngEventFilter.NAME]
-                handler_ = handler.handler_map[event_name]
-                handler_(event)
+                # MYK (memo)
+                # if handler.handler_map[event_name] in None:
+                # None判定だとKeyErrorになる
+                if event_name in handler.handler_map:
+                    handler_ = handler.handler_map[event_name]
+                    handler_(event)
 
             data.finalize()
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
+            ####################################################
+            # MYK ↓のNote: によると、デバック時しか入らないようだ。
+            # こっち側は修正はしたが一度も入らないのでテストしていない
+            ####################################################
+
             # Note: giving events as arguments is used only for debugging.
             filtered_event_count = 0
             events = trace_dir_or_events
@@ -368,7 +467,33 @@ class Lttng(InfraBase):
             begin = events[0][LttngEventFilter.TIMESTAMP]
             end = events[-1][LttngEventFilter.TIMESTAMP]
 
+            init_events = []
+            run_events = []
+
+            # 全てのトレースイベントを init_events, run_eventsに振り分ける
+            init_event_names = set(Lttng._prioritized_init_events)
             for event in events:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name in init_event_names:
+                    init_events.append(event)
+                else:   # MYK test
+                    run_events.append(event)
+
+            # init_events をソートする
+            import functools
+            init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
+            # 初期化系トレースイベントを処理する
+            handler.create_init_handler_map()
+            for event in init_events:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name in handler.handler_map:
+                    handler_ = handler.handler_map[event_name]
+                    handler_(event)
+
+            # ランタイム系トレースイベントを処理する
+            handler.create_runtime_handler_map()
+
+            for event in run_events:
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
                     continue
@@ -376,14 +501,42 @@ class Lttng(InfraBase):
                     events.append(event)
                 filtered_event_count += 1
                 event_name = event[LttngEventFilter.NAME]
-                handler_ = handler.handler_map[event_name]
-                handler_(event)
+                if event_name in handler.handler_map:
+                    handler_ = handler.handler_map[event_name]
+                    handler_(event)
             data.finalize()
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
+
+    @staticmethod
+    def _compare_init_event(
+        event1: dict,
+        event2: dict,
+    ) -> int:
+        """
+        Comparison function in sort function.
+
+        Returns
+        -------
+        str
+            1 if less, 0 if equal, and 1 if greater
+
+        """
+        if event2['_timestamp'] < event1['_timestamp']:
+            return 1
+        if event2['_timestamp'] > event1['_timestamp']:
+            return -1
+        # same timestamp
+        if Lttng._prioritized_init_events.index(event2['_name']) < \
+                Lttng._prioritized_init_events.index(event1['_name']):
+            return 1
+        if Lttng._prioritized_init_events.index(event2['_name']) > \
+                Lttng._prioritized_init_events.index(event1['_name']):
+            return -1
+        return 0
 
     def get_node_names_and_cb_symbols(
         self,
