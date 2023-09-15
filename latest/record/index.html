@@ -950,6 +950,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_all_stacked_bar" class="md-nav__link">
+    to_all_stacked_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_best_case_histogram" class="md-nav__link">
     to_best_case_histogram()
   </a>
@@ -994,6 +1001,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_worst_case_records" class="md-nav__link">
     to_worst_case_records()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="md-nav__link">
+    to_worst_in_input_case_stacked_bar()
   </a>
   
 </li>
@@ -1465,6 +1479,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_all_stacked_bar" class="md-nav__link">
+    to_all_stacked_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_best_case_histogram" class="md-nav__link">
     to_best_case_histogram()
   </a>
@@ -1509,6 +1530,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_worst_case_records" class="md-nav__link">
     to_worst_case_records()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="md-nav__link">
+    to_worst_in_input_case_stacked_bar()
   </a>
   
 </li>
@@ -4541,6 +4569,55 @@ If None, only first and last columns are used.</p>
 
 
 
+<h3 id="caret_analyze.record.ResponseTime.to_all_stacked_bar" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_all_stacked_bar</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.record.ResponseTime.to_all_stacked_bar" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculate records for stacked bar.</p>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Records of the all response time.</p>
+<p>Columns
+- {columns[0]}
+- {columns[1]}
+- {...}
+- {columns[n-1]}</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
 <h3 id="caret_analyze.record.ResponseTime.to_best_case_histogram" class="doc doc-heading">
           <code class="highlight language-python"><span class="n">to_best_case_histogram</span><span class="p">(</span><span class="n">binsize_ns</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
@@ -4907,6 +4984,55 @@ as well as delays caused by various factors such as lost messages.</p>
 <p>Columns
 - {columns[0]}
 - {'response_time'}</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_worst_in_input_case_stacked_bar</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculate records for stacked bar.</p>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Records of the worst-in-input cases response time.</p>
+<p>Columns
+- {columns[0]}
+- {columns[1]}
+- {...}
+- {columns[n-1]}</p>
             </div>
           </td>
         </tr>
