@@ -189,7 +189,7 @@ class Plot:
             This also accepts multiple inputs by unpacking.
         case: str, optional
             Response time calculation method, best by default.
-            supported case: [best/worst/worst_in_input/all].
+            supported case: [best/worst/worst-in-input/all].
 
         Returns
         -------
