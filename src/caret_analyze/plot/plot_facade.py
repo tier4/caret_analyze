@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Collection
 from logging import getLogger
+from typing import Any
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import HistogramPlotFactory
@@ -30,14 +31,13 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 logger = getLogger(__name__)
 
 TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription | Path
-HistTypes = CallbackBase | Communication
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
 
 
 def parse_collection_or_unpack(
-    target_arg: tuple[Collection[TimeSeriesTypes]] | tuple[TimeSeriesTypes, ...]
-) -> list[TimeSeriesTypes]:
+    target_arg: tuple[Collection[Any]] | tuple[Any, ...]
+) -> list[Any]:
     """
     Parse target argument.
 
@@ -46,44 +46,15 @@ def parse_collection_or_unpack(
 
     Parameters
     ----------
-    target_arg : tuple[Collection[TimeSeriesTypes]] | tuple[TimeSeriesTypes, ...]
+    target_arg : tuple[Collection[Any]] | tuple[Any, ...]
         Target objects.
 
     Returns
     -------
-    list[TimeSeriesTypes]
+    list[Any]
 
     """
-    parsed_target_objects: list[TimeSeriesTypes]
-    if isinstance(target_arg[0], Collection):
-        assert len(target_arg) == 1
-        parsed_target_objects = list(target_arg[0])
-    else:  # Unpacked case
-        parsed_target_objects = list(target_arg)  # type: ignore
-
-    return parsed_target_objects
-
-
-def parse_collection_or_unpack_for_hist(
-    target_arg: tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
-) -> list[HistTypes]:
-    """
-    Parse target argument.
-
-    To address both cases where the target argument is passed in collection type
-    or unpacked, this function converts them to the same list format.
-
-    Parameters
-    ----------
-    target_arg : tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
-        Target objects.
-
-    Returns
-    -------
-    list[HistTypes]
-
-    """
-    parsed_target_objects: list[HistTypes]
+    parsed_target_objects: list[Any]
     if isinstance(target_arg[0], Collection):
         assert len(target_arg) == 1
         parsed_target_objects = list(target_arg[0])
@@ -302,7 +273,7 @@ class Plot:
 
     @staticmethod
     def create_frequency_histogram_plot(
-        *target_objects: HistTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get frequency histogram plot instance.
@@ -321,14 +292,14 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),
+            parse_collection_or_unpack(target_objects),
             'frequency', visualize_lib
         )
         return plot
 
     @staticmethod
     def create_latency_histogram_plot(
-        *target_objects: HistTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get latency histogram plot instance.
@@ -347,14 +318,14 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),
+            parse_collection_or_unpack(target_objects),
             'latency', visualize_lib
         )
         return plot
 
     @staticmethod
     def create_period_histogram_plot(
-        *target_objects: HistTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get period histogram plot instance.
@@ -373,7 +344,7 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),
+            parse_collection_or_unpack(target_objects),
             'period', visualize_lib
         )
         return plot
