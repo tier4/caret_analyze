@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.2.7">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.3.2">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.046329b4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.30068a00.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.85d0ee34.min.css">
@@ -629,8 +629,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_frequency_histogram_plot" class="md-nav__link">
+    create_frequency_histogram_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.plot.Plot.create_frequency_timeseries_plot" class="md-nav__link">
     create_frequency_timeseries_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_latency_histogram_plot" class="md-nav__link">
+    create_latency_histogram_plot()
   </a>
   
 </li>
@@ -645,6 +659,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.plot.Plot.create_message_flow_plot" class="md-nav__link">
     create_message_flow_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_period_histogram_plot" class="md-nav__link">
+    create_period_histogram_plot()
   </a>
   
 </li>
@@ -875,8 +896,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_frequency_histogram_plot" class="md-nav__link">
+    create_frequency_histogram_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.plot.Plot.create_frequency_timeseries_plot" class="md-nav__link">
     create_frequency_timeseries_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_latency_histogram_plot" class="md-nav__link">
+    create_latency_histogram_plot()
   </a>
   
 </li>
@@ -891,6 +926,13 @@
           <li class="md-nav__item">
   <a href="#caret_analyze.plot.Plot.create_message_flow_plot" class="md-nav__link">
     create_message_flow_plot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.plot.Plot.create_period_histogram_plot" class="md-nav__link">
+    create_period_histogram_plot()
   </a>
   
 </li>
@@ -1309,6 +1351,86 @@ Instances that are the sources of the plotting.</p>
 
 
 
+<h3 id="caret_analyze.plot.Plot.create_frequency_histogram_plot" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">create_frequency_histogram_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.plot.Plot.create_frequency_histogram_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get frequency histogram plot instance.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>target_objects</code></td>
+          <td>
+                <code><span title="collections.abc.Collection">Collection</span>[<span title="caret_analyze.plot.plot_facade.HistTypes">HistTypes</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>HistTypes = CallbackBase | Communication
+Instances that are the sources of the plotting.
+This also accepts multiple inputs by unpacking.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.plot_base.PlotBase" href="#caret_analyze.plot.PlotBase">PlotBase</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
 <h3 id="caret_analyze.plot.Plot.create_frequency_timeseries_plot" class="doc doc-heading">
           <code class="highlight language-python"><span class="n">create_frequency_timeseries_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">)</span></code>
   
@@ -1344,6 +1466,86 @@ Instances that are the sources of the plotting.</p>
           <td>
             <div class="doc-md-description">
               <p>TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+Instances that are the sources of the plotting.
+This also accepts multiple inputs by unpacking.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.plot_base.PlotBase" href="#caret_analyze.plot.PlotBase">PlotBase</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="caret_analyze.plot.Plot.create_latency_histogram_plot" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">create_latency_histogram_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.plot.Plot.create_latency_histogram_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get latency histogram plot instance.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>target_objects</code></td>
+          <td>
+                <code><span title="collections.abc.Collection">Collection</span>[<span title="caret_analyze.plot.plot_facade.HistTypes">HistTypes</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>HistTypes = CallbackBase | Communication
 Instances that are the sources of the plotting.
 This also accepts multiple inputs by unpacking.</p>
             </div>
@@ -1583,6 +1785,86 @@ False by default.</p>
         <tr>
           <td>
                 <code><span title="caret_analyze.plot.message_flow.MessageFlowPlot">MessageFlowPlot</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="caret_analyze.plot.Plot.create_period_histogram_plot" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">create_period_histogram_plot</span><span class="p">(</span><span class="o">*</span><span class="n">target_objects</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#caret_analyze.plot.Plot.create_period_histogram_plot" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get period histogram plot instance.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>target_objects</code></td>
+          <td>
+                <code><span title="collections.abc.Collection">Collection</span>[<span title="caret_analyze.plot.plot_facade.HistTypes">HistTypes</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>HistTypes = CallbackBase | Communication
+Instances that are the sources of the plotting.
+This also accepts multiple inputs by unpacking.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.plot.plot_base.PlotBase" href="#caret_analyze.plot.PlotBase">PlotBase</a></code>
           </td>
           <td>
             <div class="doc-md-description">
