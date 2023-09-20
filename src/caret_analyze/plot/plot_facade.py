@@ -280,8 +280,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[HistTypes]
-            HistTypes = CallbackBase | Communication
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -306,8 +305,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[HistTypes]
-            HistTypes = CallbackBase | Communication
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -332,8 +330,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[HistTypes]
-            HistTypes = CallbackBase | Communication
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
