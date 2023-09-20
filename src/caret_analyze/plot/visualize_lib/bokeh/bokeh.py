@@ -181,6 +181,29 @@ class Bokeh(VisualizeLibInterface):
         data_type: str,
         case: str | None = None
     ) -> Figure:
+        """
+        Get a histogram figure.
+
+        Parameters
+        ----------
+        metrics : list[Frequency | Latency | Period | ResponseTime]
+            Data array to be visualized.
+        target_objects : list[CallbackBase | Communication | Path]
+            Object array to be visualized.
+        data_type : str
+            Name of metrics.
+            "frequency", "latency", "period" or "response_time" can be specified.
+        case : str
+            Parameter specifying best, worst, worst-in-input, or all.
+            Use to create Response time histogram graph.
+
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of histogram.
+
+        """
         legend_manager = LegendManager()
         if data_type == 'frequency':
             x_label = data_type + ' [Hz]'

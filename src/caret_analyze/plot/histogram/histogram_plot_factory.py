@@ -45,10 +45,13 @@ class HistogramPlotFactory:
         Parameters
         ----------
         target_objects : Sequence[HistTypes]
-            HistTypes = CallbackBase | Communication
+            HistTypes = CallbackBase | Communication | Path
         metrics_name : str
             Metrics for HistogramPlot data.
-            supported metrics: [frequency/latency/period]
+            supported metrics: [frequency/latency/period/response_time]
+        case : str, optional
+            Response time calculation method, used only for response time.
+            supported case: [best/worst/worst-in-input/all].
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
 

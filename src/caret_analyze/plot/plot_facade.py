@@ -232,37 +232,6 @@ class Plot:
         return plot
 
     @staticmethod
-    def create_response_time_histogram_plot(
-        *target_objects: Path,
-        case: str = 'best',
-    ) -> PlotBase:
-        """
-        Get ResponseTimePlot instance.
-
-        Parameters
-        ----------
-        paths : Collection[Path]
-            Target path.
-            This also accepts multiple path inputs by unpacking.
-        case : str, optional
-            Response time calculation method, best-to-worst by default.
-            supported case: [best-to-worst/best/worst].
-        binsize_ns : int, optional
-            binsize [ns], 1000000 by default.
-
-        Returns
-        -------
-        ResponseTimePlot
-
-        """
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack(target_objects),
-            'response_time', visualize_lib, case
-        )
-        return plot
-
-    @staticmethod
     def create_callback_scheduling_plot(
         target_objects: CallbackSchedTypes,
         lstrip_s: float = 0,
@@ -406,5 +375,34 @@ class Plot:
         plot = HistogramPlotFactory.create_instance(
             parse_collection_or_unpack_for_hist(target_objects),
             'period', visualize_lib
+        )
+        return plot
+
+    @staticmethod
+    def create_response_time_histogram_plot(
+        *target_objects: Path,
+        case: str = 'best',
+    ) -> PlotBase:
+        """
+        Get response time histogram plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[Path]
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+        case: str, optional
+            Response time calculation method, best by default.
+            supported case: [best/worst/worst-in-input/all].
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = HistogramPlotFactory.create_instance(
+            parse_collection_or_unpack(target_objects),
+            'response_time', visualize_lib, case
         )
         return plot
