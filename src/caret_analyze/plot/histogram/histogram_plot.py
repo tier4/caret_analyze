@@ -18,17 +18,17 @@ from collections.abc import Sequence
 
 from bokeh.plotting import Figure
 
-from caret_analyze.record import Frequency, Latency, Period
+from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
 import pandas as pd
 
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication
+from ...runtime import CallbackBase, Communication, Path
 
-MetricsTypes = Frequency | Latency | Period
-HistTypes = CallbackBase | Communication
+MetricsTypes = Frequency | Latency | Period | ResponseTime
+HistTypes = CallbackBase | Communication | Path
 
 
 class HistogramPlot(PlotBase):
@@ -39,12 +39,14 @@ class HistogramPlot(PlotBase):
         metrics: list[MetricsTypes],
         visualize_lib: VisualizeLibInterface,
         target_objects: Sequence[HistTypes],
-        data_type: str
+        data_type: str,
+        case: str | None = None
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
         self._target_objects = target_objects
         self._data_type = data_type
+        self._case = case
 
     def to_dataframe(
         self,
@@ -107,7 +109,8 @@ class HistogramPlot(PlotBase):
         return self._visualize_lib.histogram(
             self._metrics,
             self._target_objects,
-            self._data_type
+            self._data_type,
+            self._case
             )
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:

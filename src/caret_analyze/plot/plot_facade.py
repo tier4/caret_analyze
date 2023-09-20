@@ -18,7 +18,7 @@ from collections.abc import Collection
 from logging import getLogger
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
-from .histogram import HistogramPlotFactory, ResponseTimeHistPlot, ResponseTimeHistPlotFactory
+from .histogram import HistogramPlotFactory
 from .message_flow import MessageFlowPlot, MessageFlowPlotFactory
 from .plot_base import PlotBase
 from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
@@ -233,10 +233,9 @@ class Plot:
 
     @staticmethod
     def create_response_time_histogram_plot(
-        *paths: Path,
-        case: str = 'best-to-worst',
-        binsize_ns: int = 10000000
-    ) -> ResponseTimeHistPlot:
+        *target_objects: Path,
+        case: str = 'best',
+    ) -> PlotBase:
         """
         Get ResponseTimePlot instance.
 
@@ -257,8 +256,9 @@ class Plot:
 
         """
         visualize_lib = VisualizeLibFactory.create_instance()
-        plot = ResponseTimeHistPlotFactory.create_instance(
-            visualize_lib, list(paths), case, int(binsize_ns)
+        plot = HistogramPlotFactory.create_instance(
+            parse_collection_or_unpack(target_objects),
+            'response_time', visualize_lib, case
         )
         return plot
 
