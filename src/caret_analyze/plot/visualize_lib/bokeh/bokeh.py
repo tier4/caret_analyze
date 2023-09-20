@@ -213,7 +213,8 @@ class Bokeh(VisualizeLibInterface):
             raise NotImplementedError()
 
         plot: Figure = Figure(
-            title=data_type, x_axis_label=x_label, y_axis_label='Probability', plot_width=800
+            title=data_type if case is None else f'{data_type} --- {case} case ---',
+            x_axis_label=x_label, y_axis_label='Probability', plot_width=800
             )
 
         data_list: list[list[int]] = []
@@ -272,7 +273,7 @@ class Bokeh(VisualizeLibInterface):
                 )
             plot.add_tools(hover)
 
-        legends = legend_manager.create_legends(20, False, location='top_right')
+        legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
             plot.add_layout(legend, 'right')
         return plot
