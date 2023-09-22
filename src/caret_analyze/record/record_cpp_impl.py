@@ -20,7 +20,6 @@ from record_cpp_impl import RecordBase, RecordsBase
 
 from .column import Column, Columns, ColumnValue
 from .record import RecordInterface, Records, RecordsInterface, validate_rename_rule
-from ..common import Progress
 from ..exceptions import InvalidArgumentError
 
 
@@ -120,10 +119,7 @@ class RecordsCppImpl(RecordsInterface):
         join_right_key: str,
         columns: list[str],
         how: str,
-        *,
-        progress_label: str | None = None,
     ) -> RecordsCppImpl:
-        progress_label = progress_label or ''
         assert how in ['inner', 'left', 'right', 'outer']
         assert isinstance(right_records, RecordsCppImpl)
 
@@ -131,8 +127,7 @@ class RecordsCppImpl(RecordsInterface):
 
         merged_cpp_base = self._records.merge(
             right_records._records, join_left_key, join_right_key,
-            columns, how,
-            Progress.records_label(progress_label))
+            columns, how)
 
         column_values = [ColumnValue(c) for c in columns]
         merged = RecordsCppImpl(None, column_values)
@@ -244,10 +239,7 @@ class RecordsCppImpl(RecordsInterface):
         join_right_key: str | None,
         columns: list[str],
         how: str,
-        *,
-        progress_label: str | None = None,
     ) -> RecordsInterface:
-        progress_label = progress_label or ''
         Records._validate_merge_records(columns, self, right_records)
 
         assert isinstance(right_records, RecordsCppImpl)
@@ -259,7 +251,6 @@ class RecordsCppImpl(RecordsInterface):
             join_right_key or '',
             columns,
             how,
-            Progress.records_label(progress_label)
         )
 
         column_values = [ColumnValue(c) for c in columns]
@@ -279,15 +270,12 @@ class RecordsCppImpl(RecordsInterface):
         sink_stamp_key: str,
         sink_from_key: str,
         columns: list[str],
-        *,
-        progress_label: str | None = None,
     ) -> RecordsInterface:
         assert isinstance(copy_records, RecordsCppImpl)
         assert isinstance(sink_records, RecordsCppImpl)
 
         Records._validate_merge_records(columns, self, copy_records, sink_records)
 
-        progress_label = progress_label or ''
         merged_cpp_base = self._records.merge_sequential_for_addr_track(
             source_stamp_key,
             source_key,
@@ -298,7 +286,6 @@ class RecordsCppImpl(RecordsInterface):
             sink_records._records,
             sink_stamp_key,
             sink_from_key,
-            Progress.records_label(progress_label)
         )
 
         column_values = [ColumnValue(c) for c in columns]

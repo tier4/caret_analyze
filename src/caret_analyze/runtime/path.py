@@ -185,7 +185,6 @@ class RecordsMerged:
                         left_records.columns + right_records.columns
                     ).column_names,
                     how='left_use_latest',
-                    progress_label='binding: node records'
                 )
             else:
                 left_records = merge(
