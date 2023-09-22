@@ -89,3 +89,4 @@ class TimeSeriesPlotFactory:
                 'Unsupported metrics specified. '
                 'Supported metrics: [frequency/latency/period/response_time]'
             )
+
