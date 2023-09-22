@@ -16,9 +16,10 @@ from __future__ import annotations
 
 from collections.abc import Collection
 from logging import getLogger
+from typing import Any
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
-from .histogram import HistogramPlotFactory, ResponseTimeHistPlot, ResponseTimeHistPlotFactory
+from .histogram import HistogramPlotFactory
 from .message_flow import MessageFlowPlot, MessageFlowPlotFactory
 from .plot_base import PlotBase
 from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
@@ -30,14 +31,13 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 logger = getLogger(__name__)
 
 TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription | Path
-HistTypes = CallbackBase | Communication
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
 
 
 def parse_collection_or_unpack(
-    target_arg: tuple[Collection[TimeSeriesTypes]] | tuple[TimeSeriesTypes, ...]
-) -> list[TimeSeriesTypes]:
+    target_arg: tuple[Collection[Any]] | tuple[Any, ...]
+) -> list[Any]:
     """
     Parse target argument.
 
@@ -46,44 +46,15 @@ def parse_collection_or_unpack(
 
     Parameters
     ----------
-    target_arg : tuple[Collection[TimeSeriesTypes]] | tuple[TimeSeriesTypes, ...]
+    target_arg : tuple[Collection[Any]] | tuple[Any, ...]
         Target objects.
 
     Returns
     -------
-    list[TimeSeriesTypes]
+    list[Any]
 
     """
-    parsed_target_objects: list[TimeSeriesTypes]
-    if isinstance(target_arg[0], Collection):
-        assert len(target_arg) == 1
-        parsed_target_objects = list(target_arg[0])
-    else:  # Unpacked case
-        parsed_target_objects = list(target_arg)  # type: ignore
-
-    return parsed_target_objects
-
-
-def parse_collection_or_unpack_for_hist(
-    target_arg: tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
-) -> list[HistTypes]:
-    """
-    Parse target argument.
-
-    To address both cases where the target argument is passed in collection type
-    or unpacked, this function converts them to the same list format.
-
-    Parameters
-    ----------
-    target_arg : tuple[Collection[HistTypes]] | tuple[HistTypes, ...]
-        Target objects.
-
-    Returns
-    -------
-    list[HistTypes]
-
-    """
-    parsed_target_objects: list[HistTypes]
+    parsed_target_objects: list[Any]
     if isinstance(target_arg[0], Collection):
         assert len(target_arg) == 1
         parsed_target_objects = list(target_arg[0])
@@ -232,37 +203,6 @@ class Plot:
         return plot
 
     @staticmethod
-    def create_response_time_histogram_plot(
-        *paths: Path,
-        case: str = 'best-to-worst',
-        binsize_ns: int = 10000000
-    ) -> ResponseTimeHistPlot:
-        """
-        Get ResponseTimePlot instance.
-
-        Parameters
-        ----------
-        paths : Collection[Path]
-            Target path.
-            This also accepts multiple path inputs by unpacking.
-        case : str, optional
-            Response time calculation method, best-to-worst by default.
-            supported case: [best-to-worst/best/worst].
-        binsize_ns : int, optional
-            binsize [ns], 1000000 by default.
-
-        Returns
-        -------
-        ResponseTimePlot
-
-        """
-        visualize_lib = VisualizeLibFactory.create_instance()
-        plot = ResponseTimeHistPlotFactory.create_instance(
-            visualize_lib, list(paths), case, int(binsize_ns)
-        )
-        return plot
-
-    @staticmethod
     def create_callback_scheduling_plot(
         target_objects: CallbackSchedTypes,
         lstrip_s: float = 0,
@@ -333,15 +273,14 @@ class Plot:
 
     @staticmethod
     def create_frequency_histogram_plot(
-        *target_objects: HistTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get frequency histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[HistTypes]
-            HistTypes = CallbackBase | Communication
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -352,22 +291,21 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),
+            parse_collection_or_unpack(target_objects),
             'frequency', visualize_lib
         )
         return plot
 
     @staticmethod
     def create_latency_histogram_plot(
-        *target_objects: HistTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get latency histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[HistTypes]
-            HistTypes = CallbackBase | Communication
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -378,22 +316,21 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),
+            parse_collection_or_unpack(target_objects),
             'latency', visualize_lib
         )
         return plot
 
     @staticmethod
     def create_period_histogram_plot(
-        *target_objects: HistTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get period histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[HistTypes]
-            HistTypes = CallbackBase | Communication
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -404,7 +341,36 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            parse_collection_or_unpack_for_hist(target_objects),
+            parse_collection_or_unpack(target_objects),
             'period', visualize_lib
+        )
+        return plot
+
+    @staticmethod
+    def create_response_time_histogram_plot(
+        *target_objects: Path,
+        case: str = 'best',
+    ) -> PlotBase:
+        """
+        Get response time histogram plot instance.
+
+        Parameters
+        ----------
+        target_objects : Collection[Path]
+            Instances that are the sources of the plotting.
+            This also accepts multiple inputs by unpacking.
+        case: str, optional
+            Response time calculation method, best by default.
+            supported case: [best/worst/worst-in-input/all].
+
+        Returns
+        -------
+        PlotBase
+
+        """
+        visualize_lib = VisualizeLibFactory.create_instance()
+        plot = HistogramPlotFactory.create_instance(
+            parse_collection_or_unpack(target_objects),
+            'response_time', visualize_lib, case
         )
         return plot
