@@ -49,24 +49,3 @@ class Progress:
         if cls.enable:
             return tqdm(it, *args)
         return it
-
-    @classmethod
-    def records_label(cls, label: str) -> str:
-        """
-        Progress bar for the iterator in Records.
-
-        Parameters
-        ----------
-        label : str
-            operation label.
-
-        Returns
-        -------
-        str
-            '' if Progress.enables == True, label otherwise.
-            progress bar is enabled if Progress.enable == True, disabled otherwise.
-
-        """
-        if cls.enable:
-            return label
-        return ''

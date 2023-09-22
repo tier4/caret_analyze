@@ -14,8 +14,12 @@
 
 from .histogram import ResponseTimeHistPlot
 from .histogram_factory import ResponseTimeHistPlotFactory
+from .histogram_plot import HistogramPlot
+from .histogram_plot_factory import HistogramPlotFactory
 
 __all__ = [
     'ResponseTimeHistPlot',
-    'ResponseTimeHistPlotFactory'
+    'ResponseTimeHistPlotFactory',
+    'HistogramPlotFactory',
+    'HistogramPlot'
 ]

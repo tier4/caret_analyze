@@ -383,8 +383,6 @@ class Records(RecordsInterface):
         join_right_key: str,
         columns: list[str],
         how: str,
-        *,
-        progress_label: str | None = None  # unused
     ) -> Records:
         maxsize = 2**64 - 1
 
@@ -508,8 +506,6 @@ class Records(RecordsInterface):
         join_right_key: str | None,
         columns: list[str],
         how: str,
-        *,
-        progress_label: str | None = None  # unused
     ) -> RecordsInterface:
         maxsize = 2**64 - 1
         self._validate(None, columns)
@@ -685,8 +681,6 @@ class Records(RecordsInterface):
         sink_stamp_key: str,
         sink_from_key: str,
         columns: list[str],
-        *,
-        progress_label: str | None = None  # unused
     ) -> Records:
         assert isinstance(copy_records, Records)
         assert isinstance(sink_records, Records)
@@ -807,8 +801,6 @@ def merge(
     join_right_key: str,
     columns: list[str],
     how: str,
-    *,
-    progress_label: str | None = None
 ) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
@@ -818,7 +810,6 @@ def merge(
         join_right_key,
         columns,
         how,
-        progress_label=progress_label
     )
 
 
@@ -831,8 +822,6 @@ def merge_sequential(
     join_right_key: str | None,
     columns: list[str],
     how: str,
-    *,
-    progress_label: str | None = None,
 ) -> RecordsInterface:
     assert type(left_records) == type(right_records)
 
@@ -844,7 +833,6 @@ def merge_sequential(
         join_right_key,
         columns,
         how,
-        progress_label=progress_label,
     )
 
 
@@ -866,8 +854,6 @@ def merge_sequential_for_addr_track(
     sink_stamp_key: str,
     sink_from_key: str,
     columns: list[str],
-    *,
-    progress_label: str | None = None
 ):
     assert type(source_records) == type(copy_records) and type(
         copy_records) == type(sink_records)
@@ -883,7 +869,6 @@ def merge_sequential_for_addr_track(
         sink_stamp_key,
         sink_from_key,
         columns,
-        progress_label=progress_label,
     )
 
 

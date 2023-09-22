@@ -301,7 +301,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 columns=Columns.from_str(
                     sub_records.columns + tilde_records.columns
                 ).column_names,
-                progress_label='binding: tilde_records',
             )
 
         columns = [
@@ -442,7 +441,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 tilde_records.columns + pub_records.columns
             ).column_names,
             how='right',
-            progress_label='binding: tilde_records',
         )
 
         columns = [
@@ -549,7 +547,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
                 sub_records.columns + pub_records.columns
             ).column_names,
             how='left',
-            progress_label='binding: tilde pub and sub records'
         )
 
         columns = [
@@ -633,7 +630,6 @@ class RecordsProviderLttng(RuntimeDataProvider):
             join_right_key=None,
             columns=columns,
             how='left_use_latest',
-            progress_label='binding: callback_end and callback_start'
         )
 
         merged_records.sort(columns[0])
@@ -1071,7 +1067,6 @@ class NodeRecordsCallbackChain:
                         records.columns + records_.columns
                     ).column_names,
                     how='left',
-                    progress_label='binding: callback_start and callback end'
                 )
                 continue
 
@@ -1088,7 +1083,6 @@ class NodeRecordsCallbackChain:
                         records.columns + records_.columns
                     ).column_names,
                     how='left',
-                    progress_label='binding: callback_end and callback start'
                 )
                 continue
 
@@ -1115,7 +1109,6 @@ class NodeRecordsCallbackChain:
                     records.columns + publish_records.columns
                 ).column_names,
                 how='left',
-                progress_label='binding: callback_start and publish',
             )
             records.drop_columns(list(set(records.columns) - set(columns)))
             records.reindex(columns)
@@ -1188,7 +1181,6 @@ class NodeRecordsInheritUniqueTimestamp:
                 sub_records.columns + pub_records.columns
             ).column_names,
             how='left_use_latest',
-            progress_label='binding: inherit unique timestamp',
         )
 
         drop_columns = list(set(pub_sub_records.columns) - set(columns))
@@ -1252,7 +1244,6 @@ class NodeRecordsUseLatestMessage:
                 sub_records.columns + pub_records.columns
             ).column_names,
             how='left_use_latest',
-            progress_label='binding use_latest_message.'
         )
 
         drop_columns = list(set(pub_sub_records.columns) - set(columns))
@@ -1316,7 +1307,6 @@ class NodeRecordsTilde:
                 sub_records.columns + tilde_records.columns
             ).column_names,
             how='left',
-            progress_label='binding tilde subscribe records.'
         )
 
         left_stamp_key = Util.find_one(
@@ -1331,7 +1321,6 @@ class NodeRecordsTilde:
                 records.columns + pub_records.columns
             ).column_names,
             how='left',
-            progress_label='binding tilde publish records.'
         )
 
         columns = [
