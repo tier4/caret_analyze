@@ -21,7 +21,7 @@ from bokeh.models import GlyphRenderer, HoverTool
 
 from bokeh.plotting import Figure
 
-from caret_analyze.record import Frequency, Latency, Period
+from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
 from numpy import histogram
 
@@ -36,8 +36,8 @@ from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
-MetricsTypes = Frequency | Latency | Period
-HistTypes = CallbackBase | Communication
+MetricsTypes = Frequency | Latency | Period | ResponseTime
+HistTypes = CallbackBase | Communication | Path
 
 
 logger = getLogger(__name__)
@@ -178,31 +178,89 @@ class Bokeh(VisualizeLibInterface):
         self,
         metrics: list[MetricsTypes],
         target_objects: Sequence[HistTypes],
-        data_type: str
+        data_type: str,
+        case: str | None = None
     ) -> Figure:
+        """
+        Get a histogram figure.
+
+        Parameters
+        ----------
+        metrics : list[Frequency | Latency | Period | ResponseTime]
+            Data array to be visualized.
+        target_objects : list[CallbackBase | Communication | Path]
+            Object array to be visualized.
+        data_type : str
+            Name of metrics.
+            "frequency", "latency", "period" or "response_time" can be specified.
+        case : str
+            Parameter specifying best, worst, worst-in-input, or all.
+            Use to create Response time histogram graph.
+
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            Figure of histogram.
+
+        """
         legend_manager = LegendManager()
         if data_type == 'frequency':
             x_label = data_type + ' [Hz]'
-        elif data_type in ['period', 'latency']:
+        elif data_type in ['period', 'latency', 'response_time']:
             x_label = data_type + ' [ms]'
         else:
             raise NotImplementedError()
-        plot = Figure(
-            title=data_type, x_axis_label=x_label, y_axis_label='Probability', plot_width=800
+
+        plot: Figure = Figure(
+            title=data_type if case is None else f'{data_type} --- {case} case ---',
+            x_axis_label=x_label, y_axis_label='Probability', plot_width=800
             )
-        data_list: list[list[int]] = [
-            [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
-            for m in metrics
-            ]
+
+        data_list: list[list[int]] = []
+        if data_type == 'response_time':
+            if case == 'worst':
+                data_list = [
+                    [_ for _ in m.to_worst_case_records().get_column_series(data_type)
+                     if _ is not None]
+                    for m in metrics if isinstance(m, ResponseTime)
+                    ]
+            elif case == 'worst-in-input':
+                data_list = [
+                    [_ for _ in m.to_worst_in_input_records().get_column_series(data_type)
+                     if _ is not None]
+                    for m in metrics if isinstance(m, ResponseTime)
+                    ]
+            elif case == 'all':
+                data_list = [
+                    [_ for _ in m.to_all_records().get_column_series(data_type)
+                     if _ is not None]
+                    for m in metrics if isinstance(m, ResponseTime)
+                    ]
+            else:
+                data_list = [
+                    [_ for _ in m.to_best_case_records().get_column_series(data_type)
+                     if _ is not None]
+                    for m in metrics if isinstance(m, ResponseTime)
+                    ]
+        else:
+            data_list = [
+                [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
+                for m in metrics if not isinstance(m, ResponseTime)
+                ]
+
         color_selector = ColorSelectorFactory.create_instance('unique')
-        if data_type in ['period', 'latency']:
+
+        if data_type in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
+
         max_value = max(
             max([max_len for max_len in data_list if len(max_len)], key=lambda x: max(x))
             )
         min_value = min(
             min([min_len for min_len in data_list if len(min_len)], key=lambda x: min(x))
             )
+
         for hist_type, target_object in zip(data_list, target_objects):
             hist, bins = histogram(hist_type, 20, (min_value, max_value), density=True)
             quad = plot.quad(top=hist, bottom=0,
@@ -215,7 +273,7 @@ class Bokeh(VisualizeLibInterface):
                 )
             plot.add_tools(hover)
 
-        legends = legend_manager.create_legends(20, False, location='top_right')
+        legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
             plot.add_layout(legend, 'right')
         return plot

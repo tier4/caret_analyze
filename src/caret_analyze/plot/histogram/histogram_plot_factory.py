@@ -16,16 +16,16 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from caret_analyze.record import Frequency, Latency, Period
+from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
 from .histogram_plot import HistogramPlot
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication
+from ...runtime import CallbackBase, Communication, Path
 
-MetricsType = Frequency | Latency | Period
-HistTypes = CallbackBase | Communication
+MetricsType = Frequency | Latency | Period | ResponseTime
+HistTypes = CallbackBase | Communication | Path
 
 
 class HistogramPlotFactory:
@@ -36,7 +36,8 @@ class HistogramPlotFactory:
     def create_instance(
         target_objects: Sequence[HistTypes],
         metrics_name: str,
-        visualize_lib: VisualizeLibInterface
+        visualize_lib: VisualizeLibInterface,
+        case: str | None = None
     ) -> HistogramPlot:
         """
         Create an instance of HistogramPlot.
@@ -44,10 +45,13 @@ class HistogramPlotFactory:
         Parameters
         ----------
         target_objects : Sequence[HistTypes]
-            HistTypes = CallbackBase | Communication
+            HistTypes = CallbackBase | Communication | Path
         metrics_name : str
             Metrics for HistogramPlot data.
-            supported metrics: [frequency/latency/period]
+            supported metrics: [frequency/latency/period/response_time]
+        case : str, optional
+            Response time calculation method, used only for response time.
+            supported case: [best/worst/worst-in-input/all].
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
 
@@ -87,6 +91,16 @@ class HistogramPlotFactory:
                 visualize_lib,
                 target_objects,
                 metrics_name
+                )
+        elif metrics_name == 'response_time':
+            metrics_response_time: list[MetricsType] =\
+                  [ResponseTime(target_object.to_records()) for target_object in target_objects]
+            return HistogramPlot(
+                metrics_response_time,
+                visualize_lib,
+                target_objects,
+                metrics_name,
+                case
                 )
         else:
             raise UnsupportedTypeError(
