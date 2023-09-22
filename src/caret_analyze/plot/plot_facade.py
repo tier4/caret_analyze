@@ -175,6 +175,7 @@ class Plot:
         )
         return plot
 
+    @staticmethod
     def create_response_time_timeseries_plot(
         *target_objects: Path,
         case: str = 'best'
