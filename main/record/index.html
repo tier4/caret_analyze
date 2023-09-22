@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.3.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.0">
     
     
       
@@ -26,10 +26,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.30068a00.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.9f615399.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.85d0ee34.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.649f08f9.min.css">
       
       
 
@@ -3503,7 +3503,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
 
 <h3 id="caret_analyze.record.RecordsInterface.merge" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">merge</span><span class="p">(</span><span class="n">right_records</span><span class="p">,</span> <span class="n">join_left_key</span><span class="p">,</span> <span class="n">join_right_key</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">how</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">progress_label</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">merge</span><span class="p">(</span><span class="n">right_records</span><span class="p">,</span> <span class="n">join_left_key</span><span class="p">,</span> <span class="n">join_right_key</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">how</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -3599,20 +3599,6 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
               <em>required</em>
           </td>
         </tr>
-        <tr>
-          <td><code>progress_label</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>label for progress bar. cpp impl only.</p>
-            </div>
-          </td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
     </tbody>
   </table>
 
@@ -3670,7 +3656,7 @@ To avoid conflicts with the pybind metaclass, ABC is not used.</p>
 
 
 <h3 id="caret_analyze.record.RecordsInterface.merge_sequential" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">merge_sequential</span><span class="p">(</span><span class="n">right_records</span><span class="p">,</span> <span class="n">left_stamp_key</span><span class="p">,</span> <span class="n">right_stamp_key</span><span class="p">,</span> <span class="n">join_left_key</span><span class="p">,</span> <span class="n">join_right_key</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">how</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">progress_label</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">merge_sequential</span><span class="p">(</span><span class="n">right_records</span><span class="p">,</span> <span class="n">left_stamp_key</span><span class="p">,</span> <span class="n">right_stamp_key</span><span class="p">,</span> <span class="n">join_left_key</span><span class="p">,</span> <span class="n">join_right_key</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">how</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -3797,20 +3783,6 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
               <em>required</em>
           </td>
         </tr>
-        <tr>
-          <td><code>progress_label</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>label for progress bar. cpp impl only.</p>
-            </div>
-          </td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
     </tbody>
   </table>
       <h5 id="caret_analyze.record.RecordsInterface.merge_sequential--records">Records<a class="headerlink" href="#caret_analyze.record.RecordsInterface.merge_sequential--records" title="Permanent link">#</a></h5>
@@ -3849,7 +3821,7 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
 
 
 <h3 id="caret_analyze.record.RecordsInterface.merge_sequential_for_addr_track" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">merge_sequential_for_addr_track</span><span class="p">(</span><span class="n">source_stamp_key</span><span class="p">,</span> <span class="n">source_key</span><span class="p">,</span> <span class="n">copy_records</span><span class="p">,</span> <span class="n">copy_stamp_key</span><span class="p">,</span> <span class="n">copy_from_key</span><span class="p">,</span> <span class="n">copy_to_key</span><span class="p">,</span> <span class="n">sink_records</span><span class="p">,</span> <span class="n">sink_stamp_key</span><span class="p">,</span> <span class="n">sink_from_key</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">progress_label</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">merge_sequential_for_addr_track</span><span class="p">(</span><span class="n">source_stamp_key</span><span class="p">,</span> <span class="n">source_key</span><span class="p">,</span> <span class="n">copy_records</span><span class="p">,</span> <span class="n">copy_stamp_key</span><span class="p">,</span> <span class="n">copy_from_key</span><span class="p">,</span> <span class="n">copy_to_key</span><span class="p">,</span> <span class="n">sink_records</span><span class="p">,</span> <span class="n">sink_stamp_key</span><span class="p">,</span> <span class="n">sink_from_key</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -4013,20 +3985,6 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
           </td>
           <td>
               <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>progress_label</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>label for progress bar. cpp impl only.</p>
-            </div>
-          </td>
-          <td>
-                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -5260,10 +5218,10 @@ as well as delays caused by various factors such as lost messages.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.dff1b7c8.min.js"></script>
+      <script src="../assets/javascripts/bundle.4e0fa4ba.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
       
