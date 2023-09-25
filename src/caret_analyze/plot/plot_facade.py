@@ -84,7 +84,7 @@ class Plot:
             Metrics for stacked bar graph.
             supported metrics: [latency]
         case : str, optional
-            Response time calculation method, worst by default.
+            Response time calculation method, all by default.
             supported case: [all/best/worst/worst-with-external-latency].
 
         Returns
@@ -189,7 +189,7 @@ class Plot:
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
         case: str, optional
-            Response time calculation method, best by default.
+            Response time calculation method, all by default.
             supported case: [all/best/worst/worst-with-external-latency].
 
         Returns
@@ -361,7 +361,7 @@ class Plot:
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
         case: str, optional
-            Response time calculation method, best by default.
+            Response time calculation method, all by default.
             supported case: [all/best/worst/worst-with-external-latency].
 
         Returns

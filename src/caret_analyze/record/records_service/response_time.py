@@ -279,7 +279,7 @@ class ResponseMapAll:
 
         return records
 
-    def to_worst_records(self) -> RecordsInterface:
+    def to_worst_case_records(self) -> RecordsInterface:
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
@@ -342,7 +342,7 @@ class ResponseMapAll:
         stacked_bar_records.sort_column_order()
         return stacked_bar_records
 
-    def to_worst_stacked_bar(self) -> RecordsInterface:
+    def to_worst_case_stacked_bar(self) -> RecordsInterface:
         end_column_record_dict: dict[int, list[RecordInterface]] = {}
 
         # classify records which have same end timestamp
@@ -471,7 +471,7 @@ class ResponseTime:
         """
         Calculate the worst case records data for response time.
 
-        The best worst for response time are included message flow latency.
+        The worst case for response time are included message flow latency.
 
         Returns
         -------
@@ -483,7 +483,7 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._response_map_all.to_worst_records()
+        return self._response_map_all.to_worst_case_records()
 
     def to_best_case_records(self) -> RecordsInterface:
         """
@@ -520,7 +520,7 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._timeseries.to_worst_with_external_latency()
+        return self._timeseries.to_worst_with_external_latency_case_records()
 
     def to_all_stacked_bar(self) -> RecordsInterface:
         """
@@ -556,7 +556,7 @@ class ResponseTime:
             - {columns[n-1]}
 
         """
-        return self._response_map_all.to_worst_stacked_bar()
+        return self._response_map_all.to_worst_case_stacked_bar()
 
     def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
@@ -576,7 +576,7 @@ class ResponseTime:
         """
         return self._records.to_range_records('best')
 
-    def to_worst_with_external_latency_stacked_bar(self) -> RecordsInterface:
+    def to_worst_with_external_latency_case_stacked_bar(self) -> RecordsInterface:
         """
         Calculate records for stacked bar.
 
@@ -988,7 +988,7 @@ class ResponseTimeseries:
         output_column = records.columns[-1]
         return self._to_records(input_column, output_column)
 
-    def to_worst_with_external_latency(self) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[0]
         output_column = records.columns[-1]
@@ -1170,7 +1170,8 @@ class ResponseHistogram:
 
         """
         latency_ns =\
-            self._timeseries.to_worst_with_external_latency().get_column_series('response_time')
+            self._timeseries.to_worst_with_external_latency_case_records()\
+                .get_column_series('response_time')
         return self._to_histogram([_ for _ in latency_ns if _ is not None], binsize_ns, density)
 
     @staticmethod

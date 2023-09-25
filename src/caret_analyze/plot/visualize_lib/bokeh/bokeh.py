@@ -85,7 +85,7 @@ class Bokeh(VisualizeLibInterface):
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool,
-        case: str,  # best or worst
+        case: str,  # all, best, worst or worst-with-external-latency
     ) -> Figure:
         stacked_bar = BokehStackedBar(metrics, xaxis_type, ywheel_zoom, full_legends, case)
         return stacked_bar.create_figure()
