@@ -71,7 +71,7 @@ class Plot:
     def create_response_time_stacked_bar_plot(
         target_object: Path,
         metrics: str = 'latency',
-        case: str = 'worst'
+        case: str = 'all'
     ) -> StackedBarPlot:
         """
         Get StackedBarPlot instance.
@@ -178,7 +178,7 @@ class Plot:
     @staticmethod
     def create_response_time_timeseries_plot(
         *target_objects: Path,
-        case: str = 'best'
+        case: str = 'all'
     ) -> PlotBase:
         """
         Get response time timeseries plot instance.
@@ -350,7 +350,7 @@ class Plot:
     @staticmethod
     def create_response_time_histogram_plot(
         *target_objects: Path,
-        case: str = 'best',
+        case: str = 'all',
     ) -> PlotBase:
         """
         Get response time histogram plot instance.
