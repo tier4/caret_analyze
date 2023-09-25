@@ -85,7 +85,7 @@ class Plot:
             supported metrics: [latency]
         case : str, optional
             Response time calculation method, worst by default.
-            supported case: [best/worst].
+            supported case: [all/best/worst/worst-with-external-latency].
 
         Returns
         -------

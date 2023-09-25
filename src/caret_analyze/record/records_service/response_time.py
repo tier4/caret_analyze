@@ -522,24 +522,41 @@ class ResponseTime:
         """
         return self._timeseries.to_worst_with_external_latency()
 
-    def to_stacked_bar(self) -> RecordsInterface:
+    def to_all_stacked_bar(self) -> RecordsInterface:
         """
         Calculate records for stacked bar.
 
         Returns
         -------
         RecordsInterface
-            The best and worst cases are separated into separate columns.
+            Records of the all response time.
 
             Columns
-            - {columns[0]}_min
-            - {columns[0]}_max
+            - {columns[0]}
             - {columns[1]}
             - {...}
             - {columns[n-1]}
 
         """
-        return self._records.to_range_records()
+        return self._response_map_all.to_all_stacked_bar()
+
+    def to_worst_case_stacked_bar(self) -> RecordsInterface:
+        """
+        Calculate records for stacked bar.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the worst-with-external-latency cases response time.
+
+            Columns
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
+
+        """
+        return self._response_map_all.to_worst_stacked_bar()
 
     def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
@@ -559,47 +576,24 @@ class ResponseTime:
         """
         return self._records.to_range_records('best')
 
-    def to_all_stacked_bar(self) -> RecordsInterface:
+    def to_worst_with_external_latency_stacked_bar(self) -> RecordsInterface:
         """
         Calculate records for stacked bar.
 
         Returns
         -------
         RecordsInterface
-            Records of the all response time.
+            The best and worst cases are separated into separate columns.
 
             Columns
-            - {columns[0]}
+            - {columns[0]}_min
+            - {columns[0]}_max
             - {columns[1]}
             - {...}
             - {columns[n-1]}
 
         """
-        return self._response_map_all.to_all_stacked_bar()
-
-    def to_worst_in_input_case_stacked_bar(self) -> RecordsInterface:
-        """
-        Calculate records for stacked bar.
-
-        Returns
-        -------
-        RecordsInterface
-            Records of the worst-in-input cases response time.
-
-            Columns
-            - {columns[0]}
-            - {columns[1]}
-            - {...}
-            - {columns[n-1]}
-
-        """
-        return self._response_map_all.to_worst_stacked_bar()
-
-    def to_worst_case_stacked_bar(self) -> RecordsInterface:
-        # NOTE:
-        # We think this function is unnecessary.
-        # If necessary, please contact us.
-        raise NotImplementedError()
+        return self._records.to_range_records('worst-with-external-latency')
 
     def to_best_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
         warn('This API will be moved to the Plot package in the near future.', DeprecationWarning)
@@ -719,7 +713,7 @@ class ResponseRecords:
 
     def to_range_records(
         self,
-        case: str = 'worst',
+        case: str = 'worst-with-external-latency',
     ) -> RecordsInterface:
         """
         Calculate response time records.
@@ -727,7 +721,7 @@ class ResponseRecords:
         Returns
         -------
         RecordsInterface
-            The best and worst cases are separated into separate columns.
+            The best and worst-with-external-latency cases are separated into separate columns.
             Columns
             - {columns[0]}_min
             - {columns[0]}_max

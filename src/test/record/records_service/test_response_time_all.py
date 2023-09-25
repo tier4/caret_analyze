@@ -238,7 +238,7 @@ class TestWorstInInputStackedBar:
         response_time = ResponseTime(records, columns=self.column_names)
 
         expect_raw = []
-        result = to_dict(response_time.to_worst_in_input_case_stacked_bar())
+        result = to_dict(response_time.to_worst_case_stacked_bar())
         assert result == expect_raw
 
     def test_single_case(self):
@@ -256,7 +256,7 @@ class TestWorstInInputStackedBar:
             {'start': 4, 'middle0': 5, 'middle1': 7, 'end': 8},
             {'start': 6, 'middle0': 7, 'middle1': 8, 'end': 9}
         ]
-        result = to_dict(response_time.to_worst_in_input_case_stacked_bar())
+        result = to_dict(response_time.to_worst_case_stacked_bar())
         assert result == expect_raw
 
     def test_multi_case(self):
@@ -274,7 +274,7 @@ class TestWorstInInputStackedBar:
             {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
             {'start': 2, 'middle0': 3, 'middle1': 5, 'end': 6},
         ]
-        result = to_dict(response_time.to_worst_in_input_case_stacked_bar())
+        result = to_dict(response_time.to_worst_case_stacked_bar())
         assert result == expect_raw
 
     def test_drop_case(self):
@@ -292,5 +292,5 @@ class TestWorstInInputStackedBar:
             {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
             {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 6},
         ]
-        result = to_dict(response_time.to_worst_in_input_case_stacked_bar())
+        result = to_dict(response_time.to_worst_case_stacked_bar())
         assert result == expect_raw
