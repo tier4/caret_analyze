@@ -175,6 +175,7 @@ class Plot:
         )
         return plot
 
+    @staticmethod
     def create_response_time_timeseries_plot(
         *target_objects: Path,
         case: str = 'best'
@@ -189,7 +190,7 @@ class Plot:
             This also accepts multiple inputs by unpacking.
         case: str, optional
             Response time calculation method, best by default.
-            supported case: [best/worst/all].
+            supported case: [best/worst/worst-in-input/all].
 
         Returns
         -------
