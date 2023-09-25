@@ -162,7 +162,7 @@ class Bokeh(VisualizeLibInterface):
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
         case : str
-            Parameter specifying best, worst, worst-in-input, or all.
+            Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time timeseries graph.
 
 
@@ -195,7 +195,7 @@ class Bokeh(VisualizeLibInterface):
             Name of metrics.
             "frequency", "latency", "period" or "response_time" can be specified.
         case : str
-            Parameter specifying best, worst, worst-in-input, or all.
+            Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time histogram graph.
 
 
@@ -220,30 +220,34 @@ class Bokeh(VisualizeLibInterface):
 
         data_list: list[list[int]] = []
         if data_type == 'response_time':
-            if case == 'worst':
-                data_list = [
-                    [_ for _ in m.to_worst_case_records().get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
-                    ]
-            elif case == 'worst-in-input':
-                data_list = [
-                    [_ for _ in m.to_worst_in_input_records().get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
-                    ]
-            elif case == 'all':
+            if case == 'all':
                 data_list = [
                     [_ for _ in m.to_all_records().get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
-            else:
+            elif case == 'best':
                 data_list = [
                     [_ for _ in m.to_best_case_records().get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
+            elif case == 'worst':
+                data_list = [
+                    [_ for _ in m.to_worst_case_records().get_column_series(data_type)
+                     if _ is not None]
+                    for m in metrics if isinstance(m, ResponseTime)
+                    ]
+            elif case == 'worst-with-external-latency':
+                data_list = [
+                    [_ for _ in
+                     m.to_worst_with_external_latency_case_records().get_column_series(data_type)
+                     if _ is not None]
+                    for m in metrics if isinstance(m, ResponseTime)
+                    ]
+            else:
+                raise ValueError('optional argument "case" must be following: \
+                                 "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
                 [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
