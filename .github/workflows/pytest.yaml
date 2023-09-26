@@ -30,6 +30,19 @@ jobs:
       - name: Install dependent packages
         run: python3 -m pip install -r src/requirements.txt
 
+      - name: Get package list
+        run: |
+          dpkg -l > package_list.txt
+          python3 -m pip list > pip_list.txt
+
+      - name: Upload package list
+        uses: actions/upload-artifact@v3
+        with:
+          name: package_list
+          path: |
+            package_list.txt
+            pip_list.txt
+
       - name: Run pytest
         run: |
           . /opt/ros/humble/setup.sh
