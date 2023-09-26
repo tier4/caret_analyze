@@ -453,7 +453,8 @@ class ResponseTime:
         """
         Calculate the data of all records for response time.
 
-        This represents the response time for all cases of message flows with the same output.
+        This represents the response time for all cases
+        of message flows with the same output.
 
         Returns
         -------
@@ -471,7 +472,8 @@ class ResponseTime:
         """
         Calculate data of the worst case records for response time.
 
-        This represents the response time for the oldest case in the message flow with the same output.
+        This represents the response time for the oldest case
+        in the message flow with the same output.
 
         Returns
         -------
@@ -489,7 +491,8 @@ class ResponseTime:
         """
         Calculate data of the best case records for response time.
 
-        This represents the response time for the newest case in the message flow with the same output.
+        This represents the response time for the newest case
+        in the message flow with the same output.
 
         Returns
         -------
@@ -507,7 +510,8 @@ class ResponseTime:
         """
         Calculate data of the worst-with-external-latency case records for response time.
 
-        This represents the response time for the newest case in the message flow with the same output
+        This represents the response time for the oldest case
+        in the message flow with the same output
         as well as delays caused by various factors such as lost messages.
 
         Returns
