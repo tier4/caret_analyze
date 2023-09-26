@@ -451,7 +451,7 @@ class ResponseTime:
 
     def to_all_records(self) -> RecordsInterface:
         """
-        Calculate the all records data for response time.
+        Calculate the data of all records for response time.
 
         The all for response time are included message flow latency.
 
@@ -469,7 +469,7 @@ class ResponseTime:
 
     def to_worst_case_records(self) -> RecordsInterface:
         """
-        Calculate the worst case records data for response time.
+        Calculate data of the worst case records for response time.
 
         The worst case for response time are included message flow latency.
 
@@ -487,7 +487,7 @@ class ResponseTime:
 
     def to_best_case_records(self) -> RecordsInterface:
         """
-        Calculate the best case records data for response time.
+        Calculate data of the best case records for response time.
 
         The best case for response time are included message flow latency.
 
@@ -505,7 +505,7 @@ class ResponseTime:
 
     def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
         """
-        Calculate the worst-with-external-latency case records data for response time.
+        Calculate data of the worst-with-external-latency case records for response time.
 
         The worst-with-external-latency case in response time includes message flow latencies
         as well as delays caused by various factors such as lost messages.
