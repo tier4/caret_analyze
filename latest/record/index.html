@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.1">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.2">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.72749a73.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.d451bc0e.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a5377069.min.css">
@@ -950,6 +950,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_all_records" class="md-nav__link">
+    to_all_records()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_all_stacked_bar" class="md-nav__link">
     to_all_stacked_bar()
   </a>
@@ -985,13 +992,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.record.ResponseTime.to_stacked_bar" class="md-nav__link">
-    to_stacked_bar()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_worst_case_histogram" class="md-nav__link">
     to_worst_case_histogram()
   </a>
@@ -1006,8 +1006,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="md-nav__link">
-    to_worst_in_input_case_stacked_bar()
+  <a href="#caret_analyze.record.ResponseTime.to_worst_case_stacked_bar" class="md-nav__link">
+    to_worst_case_stacked_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_records" class="md-nav__link">
+    to_worst_with_external_latency_case_records()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_stacked_bar" class="md-nav__link">
+    to_worst_with_external_latency_case_stacked_bar()
   </a>
   
 </li>
@@ -1479,6 +1493,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_all_records" class="md-nav__link">
+    to_all_records()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_all_stacked_bar" class="md-nav__link">
     to_all_stacked_bar()
   </a>
@@ -1514,13 +1535,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.record.ResponseTime.to_stacked_bar" class="md-nav__link">
-    to_stacked_bar()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#caret_analyze.record.ResponseTime.to_worst_case_histogram" class="md-nav__link">
     to_worst_case_histogram()
   </a>
@@ -1535,8 +1549,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="md-nav__link">
-    to_worst_in_input_case_stacked_bar()
+  <a href="#caret_analyze.record.ResponseTime.to_worst_case_stacked_bar" class="md-nav__link">
+    to_worst_case_stacked_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_records" class="md-nav__link">
+    to_worst_with_external_latency_case_records()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_stacked_bar" class="md-nav__link">
+    to_worst_with_external_latency_case_stacked_bar()
   </a>
   
 </li>
@@ -4527,6 +4555,55 @@ If None, only first and last columns are used.</p>
 
 
 
+<h3 id="caret_analyze.record.ResponseTime.to_all_records" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_all_records</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.record.ResponseTime.to_all_records" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculate the data of all records for response time.</p>
+<p>This represents the response time for all cases
+of message flows with the same output.</p>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Records of the all response time.</p>
+<p>Columns
+- {columns[0]}
+- {'response_time'}</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
 <h3 id="caret_analyze.record.ResponseTime.to_all_stacked_bar" class="doc doc-heading">
           <code class="highlight language-python"><span class="n">to_all_stacked_bar</span><span class="p">()</span></code>
 
@@ -4630,8 +4707,9 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p>
 
   <div class="doc doc-contents ">
   
-      <p>Calculate the best-case records data for response time.</p>
-<p>The best case for response time are included message flow latency.</p>
+      <p>Calculate data of the best case records for response time.</p>
+<p>This represents the response time for the newest case
+in the message flow with the same output.</p>
 
 
 
@@ -4812,56 +4890,6 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p>
 
 
 
-<h3 id="caret_analyze.record.ResponseTime.to_stacked_bar" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">to_stacked_bar</span><span class="p">()</span></code>
-
-<a href="#caret_analyze.record.ResponseTime.to_stacked_bar" class="headerlink" title="Permanent link">#</a></h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Calculate records for stacked bar.</p>
-
-
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>The best and worst cases are separated into separate columns.</p>
-<p>Columns
-- {columns[0]}_min
-- {columns[0]}_max
-- {columns[1]}
-- {...}
-- {columns[n-1]}</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-
-<div class="doc doc-object doc-function">
-
-
-
-
 <h3 id="caret_analyze.record.ResponseTime.to_worst_case_histogram" class="doc doc-heading">
           <code class="highlight language-python"><span class="n">to_worst_case_histogram</span><span class="p">(</span><span class="n">binsize_ns</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
@@ -4917,9 +4945,9 @@ ref.  https://numpy.org/doc/stable/reference/generated/numpy.histogram.html</p>
 
   <div class="doc doc-contents ">
   
-      <p>Calculate the worst-case records data for response time.</p>
-<p>The worst case in response time includes message flow latencies
-as well as delays caused by various factors such as lost messages.</p>
+      <p>Calculate data of the worst case records for response time.</p>
+<p>This represents the response time for the oldest case
+in the message flow with the same output.</p>
 
 
 
@@ -4958,10 +4986,10 @@ as well as delays caused by various factors such as lost messages.</p>
 
 
 
-<h3 id="caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">to_worst_in_input_case_stacked_bar</span><span class="p">()</span></code>
+<h3 id="caret_analyze.record.ResponseTime.to_worst_case_stacked_bar" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_worst_case_stacked_bar</span><span class="p">()</span></code>
 
-<a href="#caret_analyze.record.ResponseTime.to_worst_in_input_case_stacked_bar" class="headerlink" title="Permanent link">#</a></h3>
+<a href="#caret_analyze.record.ResponseTime.to_worst_case_stacked_bar" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
@@ -4985,9 +5013,109 @@ as well as delays caused by various factors such as lost messages.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Records of the worst-in-input cases response time.</p>
+              <p>Records of the worst-with-external-latency cases response time.</p>
 <p>Columns
 - {columns[0]}
+- {columns[1]}
+- {...}
+- {columns[n-1]}</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_records" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_worst_with_external_latency_case_records</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_records" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculate data of the worst-with-external-latency case records for response time.</p>
+<p>This represents the response time for the oldest case
+in the message flow with the same output
+as well as delays caused by various factors such as lost messages.</p>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Records of the worst-with-external-latency cases response time.</p>
+<p>Columns
+- {columns[0]}
+- {'response_time'}</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_stacked_bar" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_worst_with_external_latency_case_stacked_bar</span><span class="p">()</span></code>
+
+<a href="#caret_analyze.record.ResponseTime.to_worst_with_external_latency_case_stacked_bar" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculate records for stacked bar.</p>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.record.interface.RecordsInterface" href="#caret_analyze.record.RecordsInterface">RecordsInterface</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The best and worst cases are separated into separate columns.</p>
+<p>Columns
+- {columns[0]}_min
+- {columns[0]}_max
 - {columns[1]}
 - {...}
 - {columns[n-1]}</p>
@@ -5221,7 +5349,7 @@ as well as delays caused by various factors such as lost messages.</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.4e0fa4ba.min.js"></script>
+      <script src="../assets/javascripts/bundle.726fbb30.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
       
