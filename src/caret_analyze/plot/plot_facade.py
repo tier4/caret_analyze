@@ -71,7 +71,7 @@ class Plot:
     def create_response_time_stacked_bar_plot(
         target_object: Path,
         metrics: str = 'latency',
-        case: str = 'worst'
+        case: str = 'all'
     ) -> StackedBarPlot:
         """
         Get StackedBarPlot instance.
@@ -84,8 +84,8 @@ class Plot:
             Metrics for stacked bar graph.
             supported metrics: [latency]
         case : str, optional
-            Response time calculation method, worst by default.
-            supported case: [best/worst].
+            Response time calculation method, all by default.
+            supported case: [all/best/worst/worst-with-external-latency].
 
         Returns
         -------
@@ -178,7 +178,7 @@ class Plot:
     @staticmethod
     def create_response_time_timeseries_plot(
         *target_objects: Path,
-        case: str = 'best'
+        case: str = 'all'
     ) -> PlotBase:
         """
         Get response time timeseries plot instance.
@@ -189,8 +189,8 @@ class Plot:
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
         case: str, optional
-            Response time calculation method, best by default.
-            supported case: [best/worst/worst-in-input/all].
+            Response time calculation method, all by default.
+            supported case: [all/best/worst/worst-with-external-latency].
 
         Returns
         -------
@@ -350,7 +350,7 @@ class Plot:
     @staticmethod
     def create_response_time_histogram_plot(
         *target_objects: Path,
-        case: str = 'best',
+        case: str = 'all',
     ) -> PlotBase:
         """
         Get response time histogram plot instance.
@@ -361,8 +361,8 @@ class Plot:
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
         case: str, optional
-            Response time calculation method, best by default.
-            supported case: [best/worst/worst-in-input/all].
+            Response time calculation method, all by default.
+            supported case: [all/best/worst/worst-with-external-latency].
 
         Returns
         -------

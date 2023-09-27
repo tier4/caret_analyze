@@ -54,7 +54,7 @@ class TimeSeriesPlotFactory:
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
         case : str
-            Parameter specifying best, worst, worst-in-input, or all.
+            Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time timeseries graph.
 
         Returns
