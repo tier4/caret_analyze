@@ -332,6 +332,7 @@ class ResponseMapAll:
                     timestamps = [record.get(column) for record in filled_records_dict[end_ts]
                                   if column in record.columns]
                     record.add(column, min(timestamps))
+                record.drop_columns(list(record.columns - set(self._columns)))
                 filled_records_dict[end_ts].append(record)
 
         columns = [ColumnValue(c) for c in self._columns]
@@ -366,6 +367,7 @@ class ResponseMapAll:
             for column in self._columns:
                 timestamps = [r.get(column) for r in record_list if column in r.columns]
                 worst_record.add(column, min(timestamps))
+            worst_record.drop_columns(list(worst_record.columns - set(self._columns)))
             filled_record_list.append(worst_record)
 
         columns = [ColumnValue(c) for c in self._columns]
