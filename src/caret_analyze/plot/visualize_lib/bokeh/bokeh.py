@@ -17,7 +17,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
-from bokeh.models import GlyphRenderer, HoverTool
+from bokeh.models import HoverTool
+from bokeh.models.renderers import GlyphRenderer
 
 from bokeh.plotting import figure as Figure
 
