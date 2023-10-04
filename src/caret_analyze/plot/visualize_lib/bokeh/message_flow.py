@@ -228,7 +228,7 @@ class MessageFlowLineSource:
         df: pd.DataFrame,
         converter: ClockConverter | None,
         offset: Offset
-    ) -> ColumnDataSource:
+    ) -> list[ColumnDataSource]:
         """
         Generate message flow line source.
 
@@ -247,7 +247,7 @@ class MessageFlowLineSource:
 
         """
         tick_labels = YAxisProperty(df)
-        line_sources = []
+        line_sources: list[ColumnDataSource] = []
 
         for i, row in df.iterrows():
             row_values = row.dropna().values

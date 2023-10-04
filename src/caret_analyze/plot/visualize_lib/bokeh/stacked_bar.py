@@ -224,7 +224,7 @@ class StackedBarSource:
         # add 'latency' data to each bar due to display hover
         for bar in stacked_bar:
             bar.data_source.add(['latency = ' + str(latency)
-                                 for latency in self._data[bar.name]], 'latency')
+                                 for latency in self._data[bar.name or '']], 'latency')
 
     def to_source(
         self,
