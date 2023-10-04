@@ -20,7 +20,7 @@ from functools import cached_property
 from typing import Any
 
 from bokeh.models import CrosshairTool, HoverTool
-from bokeh.plotting import ColumnDataSource, Figure
+from bokeh.plotting import ColumnDataSource, figure as Figure
 
 import numpy as np
 

@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from collections.abc import Sequence
 
-from bokeh.plotting import Figure
+from bokeh.plotting import figure as Figure
 
 from ..metrics_base import MetricsBase
 from ...record import Frequency, Latency, Period, ResponseTime

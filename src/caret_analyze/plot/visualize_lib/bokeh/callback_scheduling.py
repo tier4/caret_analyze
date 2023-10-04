@@ -18,7 +18,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from bokeh.models import Arrow, HoverTool, NormalHead
-from bokeh.plotting import ColumnDataSource, Figure
+from bokeh.plotting import ColumnDataSource, figure as Figure
 
 import pandas as pd
 

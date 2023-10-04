@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 from bokeh.models import GraphRenderer, Legend
-from bokeh.plotting import Figure
+from bokeh.plotting import figure as Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)

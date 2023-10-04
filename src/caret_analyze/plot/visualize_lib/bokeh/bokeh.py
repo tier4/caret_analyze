@@ -19,7 +19,7 @@ from logging import getLogger
 
 from bokeh.models import GlyphRenderer, HoverTool
 
-from bokeh.plotting import Figure
+from bokeh.plotting import figure as Figure
 
 from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
