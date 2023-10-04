@@ -49,7 +49,7 @@ class Ros2DataModel():
         self._timers = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'period', 'tid'])
         self._caret_init = TracePointIntermediateData(
-            ['timestamp', 'clock_offset'])
+            ['timestamp', 'clock_offset', 'distribution'])
         self._timer_node_links = TracePointIntermediateData(
             ['timer_handle', 'timestamp', 'node_handle'])
         self._callback_objects = TracePointIntermediateData(
@@ -74,6 +74,12 @@ class Ros2DataModel():
             ['timestamp', 'callback_group_addr', 'service_handle'])
         self._callback_group_client = TracePointIntermediateData(
             ['timestamp', 'callback_group_addr', 'client_handle'])
+        self._buffer_to_ipbs = TracePointIntermediateData(
+            ['timestamp', 'buffer', 'ipb'])
+        self._ipb_to_subscriptions = TracePointIntermediateData(
+            ['timestamp', 'ipb', 'subscription'])
+        self._ring_buffers = TracePointIntermediateData(
+            ['timestamp', 'buffer', 'capacity'])
         self._rmw_impl = TracePointIntermediateData(
             ['rmw_impl'])
 
@@ -140,6 +146,25 @@ class Ros2DataModel():
                 ColumnValue('publisher_handle'),
                 ColumnValue('message'),
                 ColumnValue('message_timestamp'),
+            ]
+        )
+        self.rclcpp_ring_buffer_enqueue_instances = RecordsFactory.create_instance(
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_ring_buffer_enqueue_timestamp'),
+                ColumnValue('buffer'),
+                ColumnValue('index'),
+                ColumnValue('size'),
+                ColumnValue('overwritten'),
+            ]
+        )
+        self.rclcpp_ring_buffer_dequeue_instances = RecordsFactory.create_instance(
+            None, [
+                ColumnValue('tid'),
+                ColumnValue('rclcpp_ring_buffer_dequeue_timestamp'),
+                ColumnValue('buffer'),
+                ColumnValue('index'),
+                ColumnValue('size'),
             ]
         )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
@@ -414,6 +439,42 @@ class Ros2DataModel():
         }
         self.rclcpp_intra_publish_instances.append(record)
 
+    def add_rclcpp_ring_buffer_enqueue_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        buffer: int,
+        index: int,
+        size: int,
+        overwritten: bool,
+    ) -> None:
+        record = {
+            'tid': tid,
+            'rclcpp_ring_buffer_enqueue_timestamp': timestamp,
+            'buffer': buffer,
+            'index': index,
+            'size': size,
+            'overwritten': overwritten,
+        }
+        self.rclcpp_ring_buffer_enqueue_instances.append(record)
+
+    def add_rclcpp_ring_buffer_dequeue_instance(
+        self,
+        tid: int,
+        timestamp: int,
+        buffer: int,
+        index: int,
+        size: int,
+    ) -> None:
+        record = {
+            'tid': tid,
+            'rclcpp_ring_buffer_dequeue_timestamp': timestamp,
+            'buffer': buffer,
+            'index': index,
+            'size': size,
+        }
+        self.rclcpp_ring_buffer_dequeue_instances.append(record)
+
     def add_rclcpp_publish_instance(
         self,
         tid: int,
@@ -552,6 +613,36 @@ class Ros2DataModel():
             'sim_time': sim_time
         }
         self.sim_time.append(record)
+
+    def add_buffer_to_ipb(
+        self, timestamp, buffer, ipb
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'buffer': buffer,
+            'ipb': ipb,
+        }
+        self._buffer_to_ipbs.append(record)
+
+    def add_ipb_to_subscription(
+        self, timestamp, ipb, subscription
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'ipb': ipb,
+            'subscription': subscription,
+        }
+        self._ipb_to_subscriptions.append(record)
+
+    def add_ring_buffer(
+        self, timestamp, buffer, capacity
+    ) -> None:
+        record = {
+            'timestamp': timestamp,
+            'buffer': buffer,
+            'capacity': capacity,
+        }
+        self._ring_buffers.append(record)
 
     def add_rmw_implementation(self, rmw_impl: str):
         record = {'rmw_impl': rmw_impl}
@@ -714,11 +805,13 @@ class Ros2DataModel():
     def add_caret_init(
         self,
         clock_offset: int,
-        timestamp: int
+        timestamp: int,
+        distribution: str,
     ) -> None:
         record = {
             'timestamp': timestamp,
             'clock_offset': clock_offset,
+            'distribution': distribution,
         }
         self._caret_init.append(record)
 
@@ -802,6 +895,15 @@ class Ros2DataModel():
 
         self.tilde_subscribe_added = self._tilde_subscribe_added.get_finalized('subscription_id')
         del self._tilde_subscribe_added
+
+        self.buffer_to_ipbs = self._buffer_to_ipbs.get_finalized()
+        del self._buffer_to_ipbs
+
+        self.ipb_to_subscriptions = self._ipb_to_subscriptions.get_finalized()
+        del self._ipb_to_subscriptions
+
+        self.ring_buffers = self._ring_buffers.get_finalized()
+        del self._ring_buffers
 
         self.rmw_impl = self._rmw_impl.get_finalized()
         del self._rmw_impl

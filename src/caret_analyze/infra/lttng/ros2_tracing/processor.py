@@ -107,6 +107,13 @@ class Ros2Handler():
         handler_map['ros2:rclcpp_publish'] = self._handle_rclcpp_publish
         handler_map['ros2:message_construct'] = self._handle_message_construct
         handler_map['ros2:rclcpp_intra_publish'] = self._handle_rclcpp_intra_publish
+        handler_map['ros2:rclcpp_ring_buffer_enqueue'] = self._handle_rclcpp_ring_buffer_enqueue
+        handler_map['ros2:rclcpp_ring_buffer_dequeue'] = self._handle_rclcpp_ring_buffer_dequeue
+        handler_map['ros2:rclcpp_buffer_to_ipb'] = self._handle_rclcpp_buffer_to_ipb
+        handler_map['ros2:rclcpp_ipb_to_subscription'] = self._handle_rclcpp_ipb_to_subscription
+        handler_map['ros2:rclcpp_construct_ring_buffer'] = \
+            self._handle_rclcpp_construct_ring_buffer
+
         handler_map['ros2:dispatch_subscription_callback'] = \
             self._handle_dispatch_subscription_callback
         handler_map['ros2:rmw_take'] = self._handle_rmw_take
@@ -193,6 +200,14 @@ class Ros2Handler():
         handler_map['ros2_caret:rcl_lifecycle_state_machine_init'] = \
             self._create_handler(self._handle_rcl_lifecycle_state_machine_init)
 
+        # The iron trace points of initialization redefined in CARET.
+        handler_map['ros2_caret:rclcpp_buffer_to_ipb'] = \
+            self._create_handler(self._handle_rclcpp_buffer_to_ipb)
+        handler_map['ros2_caret:rclcpp_ipb_to_subscription'] = \
+            self._create_handler(self._handle_rclcpp_ipb_to_subscription)
+        handler_map['ros2_caret:rclcpp_construct_ring_buffer'] = \
+            self._create_handler(self._handle_rclcpp_construct_ring_buffer)
+
         self._monotonic_to_system_offset: int | None = monotonic_to_system_time_offset
         self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
         self.handler_map = handler_map
@@ -224,6 +239,8 @@ class Ros2Handler():
             'ros2:rclcpp_publish',
             'ros2:message_construct',
             'ros2:rclcpp_intra_publish',
+            'ros2:rclcpp_ring_buffer_enqueue',
+            'ros2:rclcpp_ring_buffer_dequeue',
             'ros2:dispatch_subscription_callback',
             'ros2:rmw_take',
             'ros2:dispatch_intra_process_subscription_callback',
@@ -248,6 +265,9 @@ class Ros2Handler():
             'ros2_caret:tilde_publish',
             'ros2_caret:tilde_subscribe_added',
             'ros2_caret:sim_time',
+            'ros2:rclcpp_buffer_to_ipb',
+            'ros2:rclcpp_ipb_to_subscription',
+            'ros2:rclcpp_construct_ring_buffer',
         ]
 
         if include_wrapped_tracepoints:
@@ -267,6 +287,9 @@ class Ros2Handler():
                     'ros2_caret:rclcpp_timer_link_node',
                     'ros2_caret:rclcpp_callback_register',
                     'ros2_caret:rcl_lifecycle_state_machine_init',
+                    'ros2_caret:rclcpp_buffer_to_ipb',
+                    'ros2_caret:rclcpp_ipb_to_subscription',
+                    'ros2_caret:rclcpp_construct_ring_buffer',
                 ]
             )
         return tracepoints
@@ -354,6 +377,45 @@ class Ros2Handler():
             rmw_handle,
             topic_name,
             depth,
+        )
+
+    def _handle_rclcpp_buffer_to_ipb(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        buffer = get_field(event, 'buffer')
+        ipb = get_field(event, 'ipb')
+        self.data.add_buffer_to_ipb(
+            timestamp,
+            buffer,
+            ipb
+        )
+
+    def _handle_rclcpp_ipb_to_subscription(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        ipb = get_field(event, 'ipb')
+        subscription = get_field(event, 'subscription')
+        self.data.add_ipb_to_subscription(
+            timestamp,
+            ipb,
+            subscription,
+        )
+
+    def _handle_rclcpp_construct_ring_buffer(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        buffer = get_field(event, 'buffer')
+        capacity = get_field(event, 'capacity')
+        self.data.add_ring_buffer(
+            timestamp,
+            buffer,
+            capacity,
         )
 
     def _handle_rclcpp_subscription_init(
@@ -451,7 +513,11 @@ class Ros2Handler():
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         clock_offset = get_field(event, 'clock_offset')
-        self.data.add_caret_init(clock_offset, timestamp)  # type: ignore
+        if 'distribution' in event.keys():
+            distribution = get_field(event, 'distribution')
+        else:
+            distribution = 'NOTFOUND'
+        self.data.add_caret_init(clock_offset, timestamp, distribution)  # type: ignore
         pid = get_field(event, '_vpid')
         assert isinstance(pid, int)
         self._caret_init_recorded[pid] = True
@@ -605,6 +671,37 @@ class Ros2Handler():
         tid = get_field(event, '_vtid')
         self.data.add_rclcpp_intra_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
+
+    def _handle_rclcpp_ring_buffer_enqueue(
+        self,
+        event: dict,
+    ) -> None:
+        if not self._is_valid_data(event):
+            return
+
+        buffer = get_field(event, 'buffer')
+        index = get_field(event, 'index')
+        size = get_field(event, 'size')
+        overwritten = get_field(event, 'overwritten')
+        timestamp = get_field(event, '_timestamp')
+        tid = get_field(event, '_vtid')
+        self.data.add_rclcpp_ring_buffer_enqueue_instance(
+            tid, timestamp, buffer, index, size, overwritten)
+
+    def _handle_rclcpp_ring_buffer_dequeue(
+        self,
+        event: dict,
+    ) -> None:
+        if not self._is_valid_data(event):
+            return
+
+        buffer = get_field(event, 'buffer')
+        index = get_field(event, 'index')
+        size = get_field(event, 'size')
+        timestamp = get_field(event, '_timestamp')
+        tid = get_field(event, '_vtid')
+        self.data.add_rclcpp_ring_buffer_dequeue_instance(
+            tid, timestamp, buffer, index, size)
 
     def _handle_dispatch_subscription_callback(
         self,

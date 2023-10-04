@@ -44,7 +44,7 @@ class TestEventCounter:
         data.add_rclcpp_subscription(0, 0, 0)
         data.add_service(0, 0, 0, 0, 0)
         data.add_client(0, 0, 0, 0, 0)
-        data.add_caret_init(0, 0)
+        data.add_caret_init(0, 0, 'distribution')
         data.add_timer(0, 0, 0, 0)
         data.add_tilde_subscribe_added(0, 0, 0, 0)
         data.add_timer_node_link(0, 0, 0)
@@ -57,6 +57,8 @@ class TestEventCounter:
         data.add_callback_start_instance(0, 0, 0, False)
         data.add_callback_end_instance(0, 0, 0)
         data.add_rclcpp_intra_publish_instance(0, 0, 0, 0, 0)
+        data.add_rclcpp_ring_buffer_enqueue_instance(0, 0, 0, 0, 0, True)
+        data.add_rclcpp_ring_buffer_dequeue_instance(0, 0, 0, 0, 0)
         data.add_rclcpp_publish_instance(0, 0, 0, 0, 0)
         data.add_rcl_publish_instance(0, 0, 0, 0)
         data.add_dds_write_instance(0, 0, 0)
@@ -79,6 +81,9 @@ class TestEventCounter:
         data.callback_group_add_subscription(0, 0, 0)
         data.callback_group_add_service(0, 0, 0)
         data.callback_group_add_client(0, 0, 0)
+        data.add_buffer_to_ipb(0, 0, 0)
+        data.add_ipb_to_subscription(0, 0, 0)
+        data.add_ring_buffer(0, 0, 0)
 
         data.finalize()
 
@@ -172,6 +177,44 @@ class TestEventCounter:
             with caplog.at_level(WARNING):
                 EventCounter(data)
                 assert 'without caret-rclcpp' in caplog.messages[0]
+
+    def test_distributions(
+        self,
+        mocker,
+    ):
+        data = Ros2DataModel()
+
+        distribution = 'distribution'
+        data.add_caret_init(0, 0, distribution)
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
+        data.finalize()
+
+        event_counter = EventCounter(data)
+        assert event_counter._distribution == distribution
+
+    @pytest.mark.parametrize(
+        'distribution',
+        ['humble', 'iron'],
+    )
+    def test_validation_with_distribution(
+        self,
+        caplog,
+        distribution,
+    ):
+        data = Ros2DataModel()
+        data.add_caret_init(0, 0, distribution)
+        data.add_dds_write_instance(0, 0, 0)  # pass LD_PRELOAD check
+        data.finalize()
+
+        logger = getLogger('caret_analyze.infra.lttng.event_counter')
+        logger.propagate = True
+
+        with caplog.at_level(WARNING):
+            EventCounter(data)
+            if distribution == 'iron':
+                assert len(caplog.messages) == 0
+            if distribution == 'humble':
+                assert 'caret-rclcpp' in caplog.messages[0]
 
     def test_validation_valid_case(
         self,
