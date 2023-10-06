@@ -46,10 +46,6 @@ from .ros2_tracing.processor import get_field
 # from ...value_objects import  \
 #     CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos, TimerValue
 
-Event = dict[str, int]
-
-logger = getLogger(__name__)
-
 
 class IDRemappingInfo():
     def __init__(
@@ -83,10 +79,10 @@ class IDRemapper():
         # reader = ArchitectureReaderFactory.create_instance(
         #     file_type, file_path)
         # loaded = ArchitectureLoaded(reader, ignore_topics)
-        self.addr_to_init_event_: dict = defaultdict(list)
-        self.addr_to_remapping_info_: dict = {}
-        self.all_object_ids_: set = set()
-        self.next_object_id_ = 1
+        self._addr_to_init_event: dict = defaultdict(list)
+        self._addr_to_remapping_info: dict = {}
+        self._all_object_ids: set = set()
+        self._next_object_id = 1
 
     def register_and_get_object_id(
         self,
@@ -94,69 +90,70 @@ class IDRemapper():
         event: dict,
     ) -> int:
         # MYK test
-        # self.all_object_ids_.add(1)
-        # self.all_object_ids_.add(2)
-        # self.all_object_ids_.add(3)
-        # while self.next_object_id_ in self.all_object_ids_:
-        #     self.next_object_id_ += 1
+        # self._all_object_ids.add(1)
+        # self._all_object_ids.add(2)
+        # self._all_object_ids.add(3)
+        # while self._next_object_id in self._all_object_ids:
+        #     self._next_object_id += 1
         # remap_info = IDRemappingInfo(
-        #     get_field(event, '_timestamp'), get_field(event, '_vpid'), self.next_object_id_)
-        # self.addr_to_remapping_info_[addr] = remap_info
-        # self.addr_to_remapping_info_[addr+1] = remap_info
+        #     get_field(event, '_timestamp'), get_field(event, '_vpid'), self._next_object_id)
+        # self._addr_to_remapping_info[addr] = remap_info
+        # self._addr_to_remapping_info[addr+1] = remap_info
 
         # register initialization trace event
-        if len(self.addr_to_init_event_[addr]) == 0:
-            self.addr_to_init_event_[addr].append(event)
-            self.all_object_ids_.add(addr)
+        if not addr in self._all_object_ids:
+            self._addr_to_init_event[addr].append(event)
+            self._all_object_ids.add(addr)
             return addr
         else:
             # 同じアドレスがすでに使われている
-            for val_event in self.addr_to_init_event_[addr]:
+            for val_event in self._addr_to_init_event[addr]:
                 if val_event == event:
                     # 内容が完全に一致するイベント（記録時の都合で重複出力されたイベント）は
                     # 一つのみを登録するので、これは無視
                     return addr
             # 同じアドレスだが内容が不一致なので置き換えが必要
-            self.addr_to_init_event_[addr].append(event)
-            # self.all_object_ids_ に self.next_object_id_ が含まれないことを確認。含まれる場合は、
-            # 含まれなくなるまで self.next_object_id_ を増やす。
-            while self.next_object_id_ in self.all_object_ids_:
-                self.next_object_id_ += 1
+            self._addr_to_init_event[addr].append(event)
+            # self._all_object_ids に self._next_object_id が含まれないことを確認。含まれる場合は、
+            # 含まれなくなるまで self._next_object_id を増やす。
+            while self._next_object_id in self._all_object_ids:
+                self._next_object_id += 1
             remap_info = IDRemappingInfo(get_field(event, '_timestamp'),
-                                         get_field(event, '_vpid'), self.next_object_id_)
-            self.addr_to_remapping_info_.setdefault(addr, []).append(remap_info)
-            self.all_object_ids_.add(self.next_object_id_)
-            self.next_object_id_ += 1
-            return self.next_object_id_ - 1
+                                         get_field(event, '_vpid'),
+                                         self._next_object_id)
+            self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
+            self._all_object_ids.add(self._next_object_id)
+            self._next_object_id += 1
+            return self._next_object_id - 1
 
         # 仕様通りの実装だとコレ
-        # if len(self.addr_to_init_event_[addr]) == 1:
+        # if len(self._addr_to_init_event[addr]) == 1:
         #    # 全てのオブジェクト ID を含む Set。元々のオブジェクトアドレスに加えて、置き換え後オブジェクト ID も含む。
-        #    # MYK ↑が正しいとすると、ここで self.all_object_ids_.add(addr)が必要な気がする
+        #    # MYK ↑が正しいとすると、ここで self._all_object_ids.add(addr)が必要な気がする
         #    return addr
         # else:
-        #    # self.all_object_ids_ に self.next_object_id_ が含まれないことを確認。含まれる場合は、
-        #       含まれなくなるまで self.next_object_id_ を増やす。
-        #    while self.next_object_id_ in self.all_object_ids_:
-        #        self.next_object_id_ += 1
+        #    # self._all_object_ids に self._next_object_id が含まれないことを確認。含まれる場合は、
+        #       含まれなくなるまで self._next_object_id を増やす。
+        #    while self._next_object_id in self._all_object_ids:
+        #        self._next_object_id += 1
         #    remap_info = IDRemappingInfo( get_field(event, '_timestamp'),
-        #                                 get_field(event, '_vpid'), self.next_object_id_)
-        #    self.addr_to_remapping_info_.setdefault(addr, []).append(remap_info)
-        #    self.all_object_ids_.add(self.next_object_id_)
-        #    self.next_object_id_ += 1
-        #    return self.next_object_id_ - 1
+        #                                 get_field(event, '_vpid'), self._next_object_id)
+        #    self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
+        #    self._all_object_ids.add(self._next_object_id)
+        #    self._next_object_id += 1
+        #    return self._next_object_id - 1
 
     def get_object_id(
         self,
         addr: int,
         event: dict,
     ) -> int:
-        if addr in self.addr_to_remapping_info_:
+        if addr in self._addr_to_remapping_info:
             pid = get_field(event, '_vpid')
             timestamp = get_field(event, '_timestamp')
             # pid が event['_pid'] に一致し、timestamp が event['_timestamp'] 以下の要素を検索する
             list_search = \
-                [item for item in self.addr_to_remapping_info_[addr]
+                [item for item in self._addr_to_remapping_info[addr]
                  if item.pid == pid and item.timestamp <= timestamp]
             if len(list_search) == 0:
                 # pidが一致しない場合はaddrを返す
@@ -166,9 +163,7 @@ class IDRemapper():
                 return list_search[0].remapped_id
 
             # 複数見つかった場合は、その中で timestamp が最も大きい要素の remapped_id を返す
-            max_remapped_id = list_search[0].timestamp
-            max_remapped_id = \
-                [item.remapped_id for item in list_search if item.timestamp > max_remapped_id]
-            return max_remapped_id[0]
+            max_item = max(list_search, key=lambda item: item.timestamp)
+            return max_item.remapped_id
         else:
             return addr

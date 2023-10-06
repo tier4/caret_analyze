@@ -402,9 +402,8 @@ class Lttng(InfraBase):
                     desc='loading',
                     mininterval=1.0):
                 event_name = event[LttngEventFilter.NAME]
-                if event_name in handler.handler_map:
-                    handler_ = handler.handler_map[event_name]
-                    handler_(event)
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
 
             # ランタイム系トレースイベントを処理する
             handler.create_runtime_handler_map()
@@ -435,12 +434,8 @@ class Lttng(InfraBase):
                     events.append(event_dict)
                 filtered_event_count += 1
                 event_name = event[LttngEventFilter.NAME]
-                # MYK (memo)
-                # if handler.handler_map[event_name] in None:
-                # None判定だとKeyErrorになる
-                if event_name in handler.handler_map:
-                    handler_ = handler.handler_map[event_name]
-                    handler_(event)
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
 
             data.finalize()
             if len(event_filters) > 0:
@@ -486,9 +481,8 @@ class Lttng(InfraBase):
             handler.create_init_handler_map()
             for event in init_events:
                 event_name = event[LttngEventFilter.NAME]
-                if event_name in handler.handler_map:
-                    handler_ = handler.handler_map[event_name]
-                    handler_(event)
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
 
             # ランタイム系トレースイベントを処理する
             handler.create_runtime_handler_map()
@@ -501,9 +495,8 @@ class Lttng(InfraBase):
                     events.append(event)
                 filtered_event_count += 1
                 event_name = event[LttngEventFilter.NAME]
-                if event_name in handler.handler_map:
-                    handler_ = handler.handler_map[event_name]
-                    handler_(event)
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
             data.finalize()
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
@@ -516,15 +509,6 @@ class Lttng(InfraBase):
         event1: dict,
         event2: dict,
     ) -> int:
-        """
-        Comparison function in sort function.
-
-        Returns
-        -------
-        str
-            1 if less, 0 if equal, and 1 if greater
-
-        """
         if event2['_timestamp'] < event1['_timestamp']:
             return 1
         if event2['_timestamp'] > event1['_timestamp']:
