@@ -51,6 +51,7 @@ class LttngInfo:
 
         # TODO(hsgwa): check rmw_impl for each process.
         self._rmw_implementation = data.rmw_impl.iat(0, 0) if len(data.rmw_impl) > 0 else ''
+        self._distribution = self._get_distribution(data)
 
         self._id_to_topic: dict[str, str] = {}
         self._id_to_service: dict[str, str] = {}
@@ -90,6 +91,29 @@ class LttngInfo:
 
         """
         return self._rmw_implementation
+
+    def _get_distribution(self, data: Ros2DataModel) -> str:
+        caret_init_df = data.caret_init.df
+        distributions = list(caret_init_df['distribution'].unique())
+        if len(distributions) > 1:
+            logger.info('Multiple ros distributions are found.')
+
+        if len(distributions) == 0:
+            return 'NOTFOUND'
+
+        return distributions[0]
+
+    def get_distribution(self) -> str:
+        """
+        Get ROS Distribution.
+
+        Returns
+        -------
+        str
+            ROS Distribution
+
+        """
+        return self._distribution
 
     @lru_cache
     def _load_timer_cbs_without_pub(self) -> dict[str, list[TimerCallbackValueLttng]]:
