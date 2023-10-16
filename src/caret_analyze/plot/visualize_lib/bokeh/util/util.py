@@ -112,8 +112,8 @@ def apply_x_axis_offset(
     applied_range = Range1d(start=0, end=end_s)
 
     # Set ranges
-    fig.extra_x_ranges = {x_range_name: actual_range}
-    fig.x_range = applied_range
+    fig.extra_x_ranges = {x_range_name: actual_range}  # type: ignore
+    fig.x_range = applied_range  # type: ignore
 
     # Add xaxis for actual_range
     xaxis = LinearAxis(x_range_name=x_range_name)
