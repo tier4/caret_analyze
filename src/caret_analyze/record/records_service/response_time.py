@@ -362,7 +362,7 @@ class ResponseMapAll:
         # generate worst-case work flow
         filled_record_list: list[RecordInterface] = []
         for record_list in end_column_record_dict.values():
-            worst_record = RecordFactory.create_instance(None)
+            worst_record = RecordFactory.create_instance()
 
             for column in self._columns:
                 timestamps = [r.get(column) for r in record_list if column in r.columns]
