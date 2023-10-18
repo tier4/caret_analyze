@@ -20,7 +20,9 @@ import pytest
 
 
 def create_records(data, columns):
-    records = RecordsFactory.create_instance(data, [ColumnValue(column) for column in columns])
+    columns = [ColumnValue(column) for column in columns]
+    records = RecordsFactory.create_instance(
+        data, columns=columns)
     return records
 
 
