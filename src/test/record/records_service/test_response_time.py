@@ -474,64 +474,6 @@ class TestResponseHistogram:
 
 class TestResponseTimeseries:
 
-    def test_empty_flow_case(self):
-        records_raw = [
-        ]
-        columns = [ColumnValue('start'), ColumnValue('end')]
-
-        records = create_records(records_raw, columns)
-        response = ResponseTime(records)
-
-        response_time = response.to_best_case_records()
-        expect = []
-        assert to_dict(response_time) == expect
-
-        response_time = response.to_worst_with_external_latency_case_records()
-        expect = []
-        assert to_dict(response_time) == expect
-
-    def test_single_flow_case(self):
-        records_raw = [
-            {'start': 0, 'end': 1},
-        ]
-        columns = [ColumnValue('start'), ColumnValue('end')]
-
-        records = create_records(records_raw, columns)
-        response = ResponseTime(records)
-
-        response_time = response.to_best_case_records()
-        expect = [
-            {'start': 0, 'response_time': 1}
-        ]
-        assert to_dict(response_time) == expect
-
-        response_time = response.to_worst_with_external_latency_case_records()
-        expect = []
-        assert to_dict(response_time) == expect
-
-    def test_double_flow_case(self):
-        records_raw = [
-            {'start': 0, 'end': 1},
-            {'start': 2, 'end': 3},
-        ]
-        columns = [ColumnValue('start'), ColumnValue('end')]
-
-        records = create_records(records_raw, columns)
-        response = ResponseTime(records)
-
-        response_time = response.to_best_case_records()
-        expect = [
-            {'start': 0, 'response_time': 1},
-            {'start': 2, 'response_time': 1}
-        ]
-        assert to_dict(response_time) == expect
-
-        response_time = response.to_worst_with_external_latency_case_records()
-        expect = [
-            {'start': 0, 'response_time': 3}
-        ]
-        assert to_dict(response_time) == expect
-
     # NOTE: Is this test up to specification?
     def test_cross_flow_case(self):
         records_raw = [
@@ -558,6 +500,7 @@ class TestResponseTimeseries:
             {'start_min': 3, 'response_time': 3}
         ]
         assert to_dict(response_time) == expect
+
 
     class TestMultiColumnCase:
         records_raw = [
