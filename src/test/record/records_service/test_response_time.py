@@ -500,7 +500,9 @@ class TestResponseTimeseries:
         response = ResponseTime(records)
 
         response_time = response.to_best_case_records()
-        expect = []
+        expect = [
+            {'start': 0, 'response_time': 1}
+        ]
         assert to_dict(response_time) == expect
 
         response_time = response.to_worst_with_external_latency_case_records()
@@ -519,13 +521,14 @@ class TestResponseTimeseries:
 
         response_time = response.to_best_case_records()
         expect = [
-            {'start_max': 2, 'response_time': 1}
+            {'start': 0, 'response_time': 1},
+            {'start': 2, 'response_time': 1}
         ]
         assert to_dict(response_time) == expect
 
         response_time = response.to_worst_with_external_latency_case_records()
         expect = [
-            {'start_min': 0, 'response_time': 3}
+            {'start': 0, 'response_time': 3}
         ]
         assert to_dict(response_time) == expect
 
@@ -617,106 +620,3 @@ class TestResponseTimeseries:
             ]
             assert to_dict(response_time) == expect
 
-
-class TestResponseTimeWorstInInput:
-
-    def test_empty_case(self):
-        records_raw = []
-        columns = [ColumnValue('start'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
-
-        response_time = ResponseTime(records)
-
-        expect_raw = []
-        result = to_dict(response_time.to_worst_case_records())
-        assert result == expect_raw
-
-    def test_two_column_default_case(self):
-        records_raw = [
-            {'start': 0, 'end': 2},
-            {'start': 3, 'end': 4},
-            {'start': 11, 'end': 12}
-        ]
-        columns = [ColumnValue('start'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
-
-        response_time = ResponseTime(records)
-
-        expect_raw = [
-            {'start': 0, 'response_time': 2},
-            {'start': 3, 'response_time': 1},
-            {'start': 11, 'response_time': 1}
-        ]
-        result = to_dict(response_time.to_worst_case_records())
-        assert result == expect_raw
-
-    def test_three_column_default_case(self):
-        records_raw = [
-            {'start': 0, 'middle': 1, 'end': 2},
-            {'start': 3, 'middle': 4, 'end': 6},
-            {'start': 11, 'middle': 13, 'end': 16}
-        ]
-        columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
-
-        response_time = ResponseTime(records)
-
-        expect_raw = [
-            {'start': 0, 'response_time': 2},
-            {'start': 3, 'response_time': 3},
-            {'start': 11, 'response_time': 5}
-        ]
-        result = to_dict(response_time.to_worst_case_records())
-        assert result == expect_raw
-
-    def test_single_input_multi_output_case(self):
-        records_raw = [
-            {'start': 0, 'middle': 4, 'end': 5},
-            {'start': 0, 'middle': 4, 'end': 6},
-            {'start': 0, 'middle': 12, 'end': 13}
-        ]
-        columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
-
-        response_time = ResponseTime(records)
-
-        expect_raw = [
-            {'start': 0, 'response_time': 5}
-        ]
-        result = to_dict(response_time.to_worst_case_records())
-        assert result == expect_raw
-
-    def test_multi_input_single_output_case(self):
-        records_raw = [
-            {'start': 0, 'middle': 4, 'end': 13},
-            {'start': 1, 'middle': 4, 'end': 13},
-            {'start': 5, 'middle': 12, 'end': 13}
-        ]
-        columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
-
-        response_time = ResponseTime(records)
-
-        expect_raw = [
-            {'start': 0, 'response_time': 13}
-        ]
-        result = to_dict(response_time.to_worst_case_records())
-        assert result == expect_raw
-
-    def test_drop_case(self):
-        records_raw = [
-            {'start': 0, 'middle': 4, 'end': 8},
-            {'start': 1, 'middle': 4},
-            {'start': 5, 'middle': 12, 'end': 13}
-        ]
-        columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
-
-        response_time = ResponseTime(records)
-
-        expect_raw = [
-            {'start': 0, 'response_time': 8},
-            {'start': 1, 'response_time': 12}
-        ]
-        result = to_dict(response_time.to_worst_case_records())
-        assert result == expect_raw

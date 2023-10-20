@@ -267,7 +267,7 @@ class ResponseMapAll:
                     self._end_timestamps[idx] = end_ts
                     self._records[idx] = record
 
-    def to_worst_records(self) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
 
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
@@ -297,7 +297,7 @@ class ResponseMapAll:
 
         return records
 
-    def to_best_records(self) -> RecordsInterface:
+    def to_best_case_records(self) -> RecordsInterface:
 
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
@@ -504,12 +504,6 @@ class ResponseTime:
         self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records, self._timeseries)
 
-    def to_best_records(self) -> RecordsInterface:
-        return self._response_map_all.to_best_records()
-
-    def to_worst_records(self) -> RecordsInterface:
-        return self._response_map_all.to_worst_records()
-
     def to_all_records(self) -> RecordsInterface:
         """
         Calculate the data of all records for response time.
@@ -565,7 +559,7 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._timeseries.to_best_case_records()
+        return self._response_map_all.to_best_case_records()
 
     def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
         """
@@ -585,7 +579,7 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._timeseries.to_worst_with_external_latency_case_records()
+        return self._response_map_all.to_worst_with_external_latency_case_records()
 
     def to_all_stacked_bar(self) -> RecordsInterface:
         """
