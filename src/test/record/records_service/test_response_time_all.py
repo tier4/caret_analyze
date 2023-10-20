@@ -227,24 +227,6 @@ class TestResponseTimeBest:
         result = to_dict(response_time.to_best_records())
         assert result == expect_raw
 
-    def test_drop_case(self):
-        records_raw = [
-            {'start': 0, 'middle': 4, 'end': 8},
-            {'start': 1, 'middle': 4},
-            {'start': 5, 'middle': 12, 'end': 13}
-        ]
-        columns = [ColumnValue('start'), ColumnValue('middle'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
-
-        response_time = ResponseTime(records)
-
-        expect_raw = [
-            {'start': 0, 'response_time': 8},
-            {'start': 5, 'response_time': 8}
-        ]
-        result = to_dict(response_time.to_best_records())
-        assert result == expect_raw
-
 
 class TestResponseTimeWorst:
 
@@ -344,7 +326,163 @@ class TestResponseTimeWorst:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 13}
+            {'start': 0, 'response_time': 8},
+            {'start': 5, 'response_time': 8}
         ]
-        result = to_dict(response_time.to_worst_records())
+        result = to_dict(response_time.to_best_records())
+        assert result == expect_raw
+
+
+class TestAllStackedBar:
+
+    @property
+    def columns(self) -> list[ColumnValue]:
+        return [ColumnValue('start'), ColumnValue('middle0'),
+                ColumnValue('middle1'), ColumnValue('end')]
+
+    @property
+    def column_names(self) -> list[str]:
+        return ['start', 'middle0', 'middle1', 'end']
+
+    def test_empty_case(self):
+        records_raw = []
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = []
+        result = to_dict(response_time.to_all_stacked_bar())
+        assert result == expect_raw
+
+    def test_single_case(self):
+        records_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
+            {'start': 4, 'middle0': 5, 'middle1': 7, 'end': 8},
+            {'start': 6, 'middle0': 7, 'middle1': 8, 'end': 9}
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
+            {'start': 4, 'middle0': 5, 'middle1': 7, 'end': 8},
+            {'start': 6, 'middle0': 7, 'middle1': 8, 'end': 9}
+        ]
+        result = to_dict(response_time.to_all_stacked_bar())
+        assert result == expect_raw
+
+    def test_multi_case(self):
+        records_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
+            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 5, 'end': 6},
+            {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
+            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 5, 'end': 6},
+            {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
+        ]
+        result = to_dict(response_time.to_all_stacked_bar())
+        assert result == expect_raw
+
+    def test_drop_case(self):
+        records_raw = [
+            {'start': 0, 'middle0': 1},
+            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 4},
+            {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
+            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 6},
+            {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
+        ]
+        result = to_dict(response_time.to_all_stacked_bar())
+        assert result == expect_raw
+
+class TestWorstInInputStackedBar:
+
+    @property
+    def columns(self) -> list[ColumnValue]:
+        return [ColumnValue('start'), ColumnValue('middle0'),
+                ColumnValue('middle1'), ColumnValue('end')]
+
+    @property
+    def column_names(self) -> list[str]:
+        return ['start', 'middle0', 'middle1', 'end']
+
+    def test_empty_case(self):
+        records_raw = []
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = []
+        result = to_dict(response_time.to_worst_case_stacked_bar())
+        assert result == expect_raw
+
+    def test_single_case(self):
+        records_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
+            {'start': 4, 'middle0': 5, 'middle1': 7, 'end': 8},
+            {'start': 6, 'middle0': 7, 'middle1': 8, 'end': 9}
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
+            {'start': 4, 'middle0': 5, 'middle1': 7, 'end': 8},
+            {'start': 6, 'middle0': 7, 'middle1': 8, 'end': 9}
+        ]
+        result = to_dict(response_time.to_worst_case_stacked_bar())
+        assert result == expect_raw
+
+    def test_multi_case(self):
+        records_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
+            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 5, 'end': 6},
+            {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 5, 'end': 6},
+        ]
+        result = to_dict(response_time.to_worst_case_stacked_bar())
+        assert result == expect_raw
+
+    def test_drop_case(self):
+        records_raw = [
+            {'start': 0, 'middle0': 1},
+            {'start': 1, 'middle0': 2, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 4},
+            {'start': 3, 'middle0': 4, 'middle1': 5, 'end': 6}
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 0, 'middle0': 1, 'middle1': 3, 'end': 4},
+            {'start': 2, 'middle0': 3, 'middle1': 4, 'end': 6},
+        ]
+        result = to_dict(response_time.to_worst_case_stacked_bar())
         assert result == expect_raw

@@ -20,9 +20,12 @@ from collections.abc import Sequence
 from bokeh.plotting import Figure
 
 from ..metrics_base import MetricsBase
+from ...record import Frequency, Latency, Period, ResponseTime
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+MetricsTypes = Frequency | Latency | Period | ResponseTime
+HistTypes = CallbackBase | Communication | Path
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):
@@ -72,7 +75,8 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         metrics: MetricsBase,
         xaxis_type: str,
         ywheel_zoom: bool,
-        full_legends: bool
+        full_legends: bool,
+        case: str
     ) -> Figure:
         raise NotImplementedError()
 
@@ -84,5 +88,14 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         ywheel_zoom: bool,
         full_legends: bool,
         case: str,
+    ) -> Figure:
+        raise NotImplementedError()
+
+    def histogram(
+        self,
+        metrics: list[MetricsTypes],
+        target_objects: Sequence[HistTypes],
+        data_type: str,
+        case: str | None = None
     ) -> Figure:
         raise NotImplementedError()

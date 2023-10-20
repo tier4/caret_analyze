@@ -235,12 +235,15 @@ class ResponseMapAll:
         if columns:
             self._start_column = columns[0]
             self._end_column = columns[-1]
+            self._columns = columns
         else:
             self._start_column = records.columns[0]
             self._end_column = records.columns[-1]
+            self._columns = records.columns
 
         self._start_timestamps: list[int] = []
         self._end_timestamps: list[int] = []
+        self._records: list[RecordInterface] = []
 
         for record in reversed(records.data):
             if self._end_column in record.columns:
@@ -257,10 +260,12 @@ class ResponseMapAll:
             if start_ts not in self._start_timestamps:
                 self._start_timestamps.insert(0, start_ts)
                 self._end_timestamps.insert(0, end_ts)
+                self._records.insert(0, record)
             else:
                 idx = self._start_timestamps.index(start_ts)
                 if end_ts < self._end_timestamps[idx]:
                     self._end_timestamps[idx] = end_ts
+                    self._records[idx] = record
 
     def to_worst_records(self) -> RecordsInterface:
 
@@ -327,7 +332,7 @@ class ResponseMapAll:
 
         return records
 
-    def to_worst_in_input_records(self) -> RecordsInterface:
+    def to_worst_case_records(self) -> RecordsInterface:
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
@@ -348,6 +353,82 @@ class ResponseMapAll:
             records.append(record)
 
         return records
+
+    def to_all_stacked_bar(self) -> RecordsInterface:
+        end_column_record_dict: dict[int, list[RecordInterface]] = {}
+
+        # classify records which have same end timestamp
+        end_ts = None
+        for record in reversed(self._records):
+            if self._end_column in record.columns:
+                end_ts = record.get(self._end_column)
+            elif end_ts is None:
+                continue
+
+            if end_ts in end_column_record_dict.keys():
+                end_column_record_dict[end_ts].insert(0, record)
+            else:
+                end_column_record_dict[end_ts] = [record]
+
+        # fill empty data
+        filled_records_dict: dict[int, list[RecordInterface]] = {}
+        # for each records which have same end timestamp
+        for end_ts, record_list in end_column_record_dict.items():
+            filled_records_dict[end_ts] = []
+
+            for record in reversed(record_list):
+                # if record doesn't have some timestamps,
+                # record timestamps just after
+                for column in self._columns:
+                    if column in record.columns:
+                        continue
+                    timestamps = [record.get(column) for record in filled_records_dict[end_ts]
+                                  if column in record.columns]
+                    record.add(column, min(timestamps))
+                record.drop_columns(list(record.columns - set(self._columns)))
+                filled_records_dict[end_ts].append(record)
+
+        columns = [ColumnValue(c) for c in self._columns]
+        stacked_bar_records: RecordsInterface =\
+            RecordsFactory.create_instance(init=[_.data for _
+                                                 in sum(filled_records_dict.values(), [])],
+                                           columns=columns)
+        stacked_bar_records.sort_column_order()
+        return stacked_bar_records
+
+    def to_worst_case_stacked_bar(self) -> RecordsInterface:
+        end_column_record_dict: dict[int, list[RecordInterface]] = {}
+
+        # classify records which have same end timestamp
+        end_ts = None
+        for record in reversed(self._records):
+            if self._end_column in record.columns:
+                end_ts = record.get(self._end_column)
+            elif end_ts is None:
+                continue
+
+            if end_ts in end_column_record_dict.keys():
+                end_column_record_dict[end_ts].append(record)
+            else:
+                end_column_record_dict[end_ts] = [record]
+
+        # generate worst-case work flow
+        filled_record_list: list[RecordInterface] = []
+        for record_list in end_column_record_dict.values():
+            worst_record = RecordFactory.create_instance()
+
+            for column in self._columns:
+                timestamps = [r.get(column) for r in record_list if column in r.columns]
+                worst_record.add(column, min(timestamps))
+            worst_record.drop_columns(list(worst_record.columns - set(self._columns)))
+            filled_record_list.append(worst_record)
+
+        columns = [ColumnValue(c) for c in self._columns]
+        stacked_bar_records: RecordsInterface =\
+            RecordsFactory.create_instance(init=[_.data for _ in filled_record_list],
+                                           columns=columns)
+        stacked_bar_records.sort_column_order()
+        return stacked_bar_records
 
     def _create_empty_records(
         self
@@ -430,29 +511,117 @@ class ResponseTime:
         return self._response_map_all.to_worst_records()
 
     def to_all_records(self) -> RecordsInterface:
+        """
+        Calculate the data of all records for response time.
+
+        This represents the response time for all cases
+        of message flows with the same output.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the all response time.
+
+            Columns
+            - {columns[0]}
+            - {'response_time'}
+
+        """
         return self._response_map_all.to_all_records()
 
-    def to_worst_in_input_records(self) -> RecordsInterface:
-        return self._response_map_all.to_worst_in_input_records()
+    def to_worst_case_records(self) -> RecordsInterface:
+        """
+        Calculate data of the worst case records for response time.
 
-    def to_stacked_bar(self) -> RecordsInterface:
+        This represents the response time for the oldest case
+        in the message flow with the same output.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the worst cases response time.
+
+            Columns
+            - {columns[0]}
+            - {'response_time'}
+
+        """
+        return self._response_map_all.to_worst_case_records()
+
+    def to_best_case_records(self) -> RecordsInterface:
+        """
+        Calculate data of the best case records for response time.
+
+        This represents the response time for the newest case
+        in the message flow with the same output.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the best cases response time.
+
+            Columns
+            - {columns[0]}
+            - {'response_time'}
+
+        """
+        return self._timeseries.to_best_case_records()
+
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
+        """
+        Calculate data of the worst-with-external-latency case records for response time.
+
+        This represents the response time for the oldest case
+        in the message flow with the same output
+        as well as delays caused by various factors such as lost messages.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the worst-with-external-latency cases response time.
+
+            Columns
+            - {columns[0]}
+            - {'response_time'}
+
+        """
+        return self._timeseries.to_worst_with_external_latency_case_records()
+
+    def to_all_stacked_bar(self) -> RecordsInterface:
         """
         Calculate records for stacked bar.
 
         Returns
         -------
         RecordsInterface
-            The best and worst cases are separated into separate columns.
+            Records of the all response time.
 
             Columns
-            - {columns[0]}_min
-            - {columns[0]}_max
+            - {columns[0]}
             - {columns[1]}
             - {...}
             - {columns[n-1]}
 
         """
-        return self._records.to_range_records()
+        return self._response_map_all.to_all_stacked_bar()
+
+    def to_worst_case_stacked_bar(self) -> RecordsInterface:
+        """
+        Calculate records for stacked bar.
+
+        Returns
+        -------
+        RecordsInterface
+            Records of the worst-with-external-latency cases response time.
+
+            Columns
+            - {columns[0]}
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
+
+        """
+        return self._response_map_all.to_worst_case_stacked_bar()
 
     def to_best_case_stacked_bar(self) -> RecordsInterface:
         """
@@ -472,48 +641,24 @@ class ResponseTime:
         """
         return self._records.to_range_records('best')
 
-    def to_worst_case_stacked_bar(self) -> RecordsInterface:
-        # NOTE:
-        # We think this function is unnecessary.
-        # If necessary, please contact us.
-        raise NotImplementedError()
-
-    def to_best_case_records(self) -> RecordsInterface:
+    def to_worst_with_external_latency_case_stacked_bar(self) -> RecordsInterface:
         """
-        Calculate the best-case records data for response time.
-
-        The best case for response time are included message flow latency.
+        Calculate records for stacked bar.
 
         Returns
         -------
         RecordsInterface
-            Records of the best cases response time.
+            The best and worst cases are separated into separate columns.
 
             Columns
-            - {columns[0]}
-            - {'response_time'}
+            - {columns[0]}_min
+            - {columns[0]}_max
+            - {columns[1]}
+            - {...}
+            - {columns[n-1]}
 
         """
-        return self._timeseries.to_best_case_records()
-
-    def to_worst_case_records(self) -> RecordsInterface:
-        """
-        Calculate the worst-case records data for response time.
-
-        The worst case in response time includes message flow latencies
-        as well as delays caused by various factors such as lost messages.
-
-        Returns
-        -------
-        RecordsInterface
-            Records of the worst cases response time.
-
-            Columns
-            - {columns[0]}
-            - {'response_time'}
-
-        """
-        return self._timeseries.to_worst_case_records()
+        return self._records.to_range_records('worst-with-external-latency')
 
     def to_best_case_timeseries(self) -> tuple[np.ndarray, np.ndarray]:
         warn('This API will be moved to the Plot package in the near future.', DeprecationWarning)
@@ -633,7 +778,7 @@ class ResponseRecords:
 
     def to_range_records(
         self,
-        case: str = 'worst',
+        case: str = 'worst-with-external-latency',
     ) -> RecordsInterface:
         """
         Calculate response time records.
@@ -641,7 +786,7 @@ class ResponseRecords:
         Returns
         -------
         RecordsInterface
-            The best and worst cases are separated into separate columns.
+            The best and worst-with-external-latency cases are separated into separate columns.
             Columns
             - {columns[0]}_min
             - {columns[0]}_max
@@ -908,7 +1053,7 @@ class ResponseTimeseries:
         output_column = records.columns[-1]
         return self._to_records(input_column, output_column)
 
-    def to_worst_case_records(self) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[0]
         output_column = records.columns[-1]
@@ -1089,7 +1234,9 @@ class ResponseHistogram:
             Occurs when the number of response latencies is insufficient.
 
         """
-        latency_ns = self._timeseries.to_worst_case_records().get_column_series('response_time')
+        latency_ns =\
+            self._timeseries.to_worst_with_external_latency_case_records()\
+                .get_column_series('response_time')
         return self._to_histogram([_ for _ in latency_ns if _ is not None], binsize_ns, density)
 
     @staticmethod

@@ -14,54 +14,58 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from bokeh.plotting import Figure
+
+from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
 import pandas as pd
 
-from ..metrics_base import MetricsBase
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
-from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
+from ...runtime import CallbackBase, Communication, Path
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+MetricsTypes = Frequency | Latency | Period | ResponseTime
+HistTypes = CallbackBase | Communication | Path
 
 
-class TimeSeriesPlot(PlotBase):
-    """Class that provides API for timeseries data."""
+class HistogramPlot(PlotBase):
+    """Class that provides API for histogram data."""
 
     def __init__(
         self,
-        metrics: MetricsBase,
+        metrics: list[MetricsTypes],
         visualize_lib: VisualizeLibInterface,
-        case: str = 'best'  # case is only used for response time timeseries.
+        target_objects: Sequence[HistTypes],
+        data_type: str,
+        case: str | None = None
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
+        self._target_objects = target_objects
+        self._data_type = data_type
         self._case = case
 
-    def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
+    def to_dataframe(
+        self,
+        xaxis_type: str
+    ) -> pd.DataFrame:
         """
-        Get time series data for each object in pandas DataFrame format.
+        Get data in pandas DataFrame format.
 
         Parameters
         ----------
         xaxis_type : str
             Type of time for timestamp.
-            "system_time", "index", or "sim_time" can be specified, by default "system_time".
 
-        Raises
-        ------
-        UnsupportedTypeError
-            Argument xaxis_type is not "system_time", "index", or "sim_time".
-
-        Notes
-        -----
-        xaxis_type "system_time" and "index" return the same DataFrame.
+        Returns
+        -------
+        pd.DataFrame
 
         """
-        self._validate_xaxis_type(xaxis_type)
-        return self._metrics.to_dataframe(xaxis_type)
+        raise NotImplementedError()
 
     def figure(
         self,
@@ -70,7 +74,7 @@ class TimeSeriesPlot(PlotBase):
         full_legends: bool | None = None
     ) -> Figure:
         """
-        Get a timeseries graph for each object using the bokeh library.
+        Get a histogram graph for each object using the bokeh library.
 
         Parameters
         ----------
@@ -102,13 +106,12 @@ class TimeSeriesPlot(PlotBase):
         # Validate
         self._validate_xaxis_type(xaxis_type)
 
-        return self._visualize_lib.timeseries(
+        return self._visualize_lib.histogram(
             self._metrics,
-            xaxis_type,
-            ywheel_zoom,
-            full_legends,
+            self._target_objects,
+            self._data_type,
             self._case
-        )
+            )
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:
         if xaxis_type not in ['system_time', 'sim_time', 'index']:

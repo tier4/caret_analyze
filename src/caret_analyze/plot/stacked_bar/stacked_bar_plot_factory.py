@@ -27,7 +27,7 @@ class StackedBarPlotFactory:
         target_objects: Path,
         visualize_lib: VisualizeLibInterface,
         metrics: str = 'latency',
-        case: str = 'worst',
+        case: str = 'all',
     ) -> StackedBarPlot:
         """
         Create stacked bar class.
@@ -42,7 +42,7 @@ class StackedBarPlotFactory:
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
         case : str
-            To choose best or worst case response time.
+            To choose all, best, worst, or worst-with-external-latency case response time.
 
         Returns
         -------
