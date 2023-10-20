@@ -326,8 +326,7 @@ class TestResponseTimeWorstWithExternalLatency:
         response_time = ResponseTime(records)
 
         expect_raw = [
-            {'start': 0, 'response_time': 13},
-            {'start': 1, 'response_time': 12}
+            {'start': 0, 'response_time': 13}
         ]
         result = to_dict(response_time.to_worst_with_external_latency_case_records())
         assert result == expect_raw

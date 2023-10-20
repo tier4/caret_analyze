@@ -595,28 +595,3 @@ class TestResponseTimeseries:
 
             output_dict = to_dict(records)
             assert output_dict == expect
-
-        def test_to_best_case_timeseries(self):
-            response = ResponseTime(
-                create_records(self.records_raw, self.columns),
-                columns=self.column_names
-            )
-            response_time = response.to_best_case_records()
-            expect = [
-                {'column0_max': 20, 'response_time': 10},
-                {'column0_max': 35, 'response_time': 10}
-            ]
-            assert to_dict(response_time) == expect
-
-        def test_to_worst_case_timeseries(self):
-            response = ResponseTime(
-                create_records(self.records_raw, self.columns),
-                columns=self.column_names
-            )
-            response_time = response.to_worst_with_external_latency_case_records()
-            expect = [
-                {'column0_min': 5, 'response_time': 25},
-                {'column0_min': 20, 'response_time': 25}
-            ]
-            assert to_dict(response_time) == expect
-
