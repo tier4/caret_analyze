@@ -225,7 +225,8 @@ class StackedBar:
 
         if len(records.data) == 0:
             new_records: RecordsInterface = \
-                RecordsFactory.create_instance(record_dict, [ColumnValue(column)])
+                RecordsFactory.create_instance(
+                    record_dict, [ColumnValue(column)])
             records.concat(new_records)
         else:
             records.append_column(ColumnValue(column), series)
