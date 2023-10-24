@@ -43,7 +43,37 @@ jobs:
             package_list.txt
             pip_list.txt
 
+      - name: Clone caret_analyze_cpp_imple
+        run: |
+          git clone https://github.com/tier4/caret_analyze_cpp_impl.git
+          cd caret_analyze_cpp_impl/
+          mv CARET_analyze_cpp_impl src
+
+      - name: Restore Cache
+        id: cppimpl-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: caret_analyze_cpp_impl/install
+          key: ${{ runner.os }}-node-cppimple-${{ hashFiles('caret_analyze_cpp_impl/src/**') }}
+
+      - name: Build caret_analyze_cpp_imple
+        if: steps.cppimpl-cache.outputs.cache-hit != 'true'
+        run: |
+          source /opt/ros/humble/setup.bash
+          cd caret_analyze_cpp_impl/
+          colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+        shell: bash
+
+      - name: Cache caret_analyze_cpp_imple
+        if: steps.cppimpl-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: caret_analyze_cpp_impl/install
+          key: ${{ runner.os }}-node-cppimple-${{ hashFiles('caret_analyze_cpp_impl/src/**') }}
+
       - name: Run pytest
         run: |
+          mv caret_analyze_cpp_impl/install /__w
+          export PYTHONPATH=/__w/install/caret_analyze_cpp_impl/lib/python3.10/site-packages:$PYTHONPATH
           . /opt/ros/humble/setup.sh
           python3 -m pytest
