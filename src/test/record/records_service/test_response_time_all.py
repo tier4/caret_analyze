@@ -139,6 +139,27 @@ class TestResponseTimeAll:
         result = to_dict(response_time.to_all_records())
         assert result == expect_raw
 
+    def test_cross_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 10},
+            {'start': 3, 'end': 4},
+            {'start': 4, 'end': 10},
+            {'start': 6, 'end': 6},
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        response_time = response.to_all_records()
+        expect = [
+            {'start': 0, 'response_time': 10},
+            {'start': 3, 'response_time': 1},
+            {'start': 4, 'response_time': 6},
+            {'start': 6, 'response_time': 0}
+        ]
+        assert to_dict(response_time) == expect
+
 
 class TestResponseTimeBest:
 
@@ -226,6 +247,26 @@ class TestResponseTimeBest:
         ]
         result = to_dict(response_time.to_best_case_records())
         assert result == expect_raw
+
+    def test_cross_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 10},
+            {'start': 3, 'end': 4},
+            {'start': 4, 'end': 10},
+            {'start': 6, 'end': 6},
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        response_time = response.to_best_case_records()
+        expect = [
+            {'start': 3, 'response_time': 1},
+            {'start': 4, 'response_time': 6},
+            {'start': 6, 'response_time': 0}
+        ]
+        assert to_dict(response_time) == expect
 
 
 class TestResponseTimeWorstWithExternalLatency:
@@ -331,6 +372,26 @@ class TestResponseTimeWorstWithExternalLatency:
         result = to_dict(response_time.to_worst_with_external_latency_case_records())
         assert result == expect_raw
 
+    def test_cross_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 10},
+            {'start': 3, 'end': 4},
+            {'start': 4, 'end': 10},
+            {'start': 6, 'end': 6},
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        response_time = response.to_worst_with_external_latency_case_records()
+        expect = [
+            {'start': 0, 'response_time': 4},
+            {'start': 3, 'response_time': 7},
+            {'start': 4, 'response_time': 2}
+        ]
+        assert to_dict(response_time) == expect
+
 
 class TestResponseTimeWorst:
 
@@ -434,6 +495,26 @@ class TestResponseTimeWorst:
         ]
         result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
+
+    def test_cross_flow_case(self):
+        records_raw = [
+            {'start': 0, 'end': 10},
+            {'start': 3, 'end': 4},
+            {'start': 4, 'end': 10},
+            {'start': 6, 'end': 6},
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+
+        records = create_records(records_raw, columns)
+        response = ResponseTime(records)
+
+        response_time = response.to_worst_case_records()
+        expect = [
+            {'start': 0, 'response_time': 10},
+            {'start': 3, 'response_time': 1},
+            {'start': 6, 'response_time': 0}
+        ]
+        assert to_dict(response_time) == expect
 
 
 class TestAllStackedBar:

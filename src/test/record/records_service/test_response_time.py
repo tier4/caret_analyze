@@ -474,34 +474,6 @@ class TestResponseHistogram:
 
 class TestResponseTimeseries:
 
-    # NOTE: Is this test up to specification?
-    def test_cross_flow_case(self):
-        records_raw = [
-            {'start': 0, 'end': 10},
-            {'start': 3, 'end': 4},
-            {'start': 4, 'end': 8},
-            {'start': 6, 'end': 6},
-        ]
-        columns = [ColumnValue('start'), ColumnValue('end')]
-
-        records = create_records(records_raw, columns)
-        response = ResponseTime(records)
-
-        response_time = response.to_best_case_records()
-        expect = [
-            {'start_max': 3, 'response_time': 1},
-            {'start_max': 6, 'response_time': 0}
-        ]
-        assert to_dict(response_time) == expect
-
-        response_time = response.to_worst_with_external_latency_case_records()
-        expect = [
-            {'start_min': 0, 'response_time': 4},
-            {'start_min': 3, 'response_time': 3}
-        ]
-        assert to_dict(response_time) == expect
-
-
     class TestMultiColumnCase:
         records_raw = [
             {'column0': 5, 'column1': 10, 'column2': 15},  # flow 1 [used as first data]
