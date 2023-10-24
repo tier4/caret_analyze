@@ -286,9 +286,10 @@ class ResponseMapAll:
                     worst_to_best_timestamps[idx] = start_ts - prev_start_ts
 
         records = self._create_empty_records()
-        for start_ts, end_ts, worst_to_best_ts in zip(start_timestamps,
-                                                      end_timestamps,
-                                                      worst_to_best_timestamps):
+        for start_ts, end_ts, worst_to_best_ts in sorted(zip(start_timestamps,
+                                                             end_timestamps,
+                                                             worst_to_best_timestamps),
+                                                         key=lambda x: x[0]):
             record = {
                 self._start_column: start_ts - worst_to_best_ts,
                 'response_time': end_ts - (start_ts - worst_to_best_ts)
@@ -311,7 +312,7 @@ class ResponseMapAll:
                     start_timestamps[idx] = start_ts
 
         records = self._create_empty_records()
-        for start_ts, end_ts in zip(start_timestamps, end_timestamps):
+        for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
             record = {
                 self._start_column: start_ts,
                 'response_time': end_ts - start_ts
@@ -345,7 +346,7 @@ class ResponseMapAll:
                     start_timestamps[idx] = start_ts
 
         records = self._create_empty_records()
-        for start_ts, end_ts in zip(start_timestamps, end_timestamps):
+        for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
             record = {
                 self._start_column: start_ts,
                 'response_time': end_ts - start_ts
