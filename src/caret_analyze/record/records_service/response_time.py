@@ -849,7 +849,7 @@ class ResponseRecords:
         columns = columns or [ColumnValue(column) for column in self._columns]
         return RecordsFactory.create_instance(
             None,
-            columns
+            columns=columns
         )
 
     def _create_all_pattern_records(self) -> RecordsInterface:
