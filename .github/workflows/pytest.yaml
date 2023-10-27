@@ -46,15 +46,13 @@ jobs:
       - name: Clone caret_analyze_cpp_impl
         run: |
           git clone https://github.com/tier4/caret_analyze_cpp_impl.git
-          cd caret_analyze_cpp_impl/
-          mv CARET_analyze_cpp_impl src
 
       - name: Restore Cache
         id: cpp_impl-cache
         uses: actions/cache/restore@v3
         with:
           path: caret_analyze_cpp_impl/install
-          key: ${{ runner.os }}-node-cpp_impl-${{ hashFiles('caret_analyze_cpp_impl/src/**') }}
+          key: ${{ runner.os }}-node-cpp_impl-${{ hashFiles('caret_analyze_cpp_impl/CARET_analyze_cpp_impl/**') }}
 
       - name: Build caret_analyze_cpp_impl
         if: steps.cpp_impl-cache.outputs.cache-hit != 'true'
@@ -69,11 +67,12 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: caret_analyze_cpp_impl/install
-          key: ${{ runner.os }}-node-cpp_impl-${{ hashFiles('caret_analyze_cpp_impl/src/**') }}
+          key: ${{ runner.os }}-node-cpp_impl-${{ hashFiles('caret_analyze_cpp_impl/CARET_analyze_cpp_impl/**') }}
 
       - name: Run pytest
         run: |
-          mv caret_analyze_cpp_impl/install /__w
-          export PYTHONPATH=/__w/install/caret_analyze_cpp_impl/lib/python3.10/site-packages:$PYTHONPATH
           . /opt/ros/humble/setup.sh
+          source caret_analyze_cpp_impl/install/setup.bash
+          cd src
           python3 -m pytest
+        shell: bash
