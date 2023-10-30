@@ -20,10 +20,6 @@ from bokeh.plotting import Figure
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
 
-from ....runtime import CallbackBase, Communication, Path, Publisher, Subscription
-
-# StackedBarTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
-
 
 class BokehStackedBar:
 

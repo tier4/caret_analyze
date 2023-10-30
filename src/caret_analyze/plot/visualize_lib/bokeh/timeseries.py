@@ -53,7 +53,6 @@ class BokehTimeSeries:
 
         # Initialize figure
         y_axis_label = timeseries_records_list[0].columns[1]
-        caption = y_axis_label
         data_type = y_axis_label
         if y_axis_label == 'frequency':
             y_axis_label = y_axis_label + ' [Hz]'
@@ -64,7 +63,7 @@ class BokehTimeSeries:
         else:
             raise NotImplementedError()
         title: str = f'Histogram of {data_type}'if self._case is None else\
-              f'histogram of {data_type} --- {self._case} case ---'
+            f'histogram of {data_type} --- {self._case} case ---'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
 
         # Apply xaxis offset
