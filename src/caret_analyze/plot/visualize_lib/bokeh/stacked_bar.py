@@ -20,6 +20,10 @@ from bokeh.plotting import Figure
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
 
+from ....runtime import CallbackBase, Communication, Path, Publisher, Subscription
+
+# StackedBarTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+
 
 class BokehStackedBar:
 
@@ -59,7 +63,8 @@ class BokehStackedBar:
         # # get stacked bar data
         data: dict[str, list[int | float]]
         y_labels: list[str] = []
-        y_axis_label = 'latency [ms]'
+        caption = 'latency'
+        y_axis_label = caption + ' [ms]'
         target_objects = self._metrics.target_objects
         data, y_labels = self._metrics.to_stacked_bar_data()
         title: str = f'Stacked bar of  Response Time --- {self._case} case ---'

@@ -54,6 +54,7 @@ class BokehTimeSeries:
         # Initialize figure
         y_axis_label = timeseries_records_list[0].columns[1]
         caption = y_axis_label
+        data_type = y_axis_label
         if y_axis_label == 'frequency':
             y_axis_label = y_axis_label + ' [Hz]'
         elif y_axis_label in ['period', 'latency']:
@@ -62,14 +63,8 @@ class BokehTimeSeries:
             y_axis_label = 'Response time' + ' [ms]'
         else:
             raise NotImplementedError()
-        if isinstance(target_objects[0], CallbackBase):
-            title = f'Time-line of callbacks {caption}'
-        elif isinstance(target_objects[0], Communication):
-            title = f'Time-line of communications {caption}'
-        elif isinstance(target_objects[0], Path):
-            title = f'Time-line of Paths {caption} --- {self._case} case ---'
-        else:
-            title = f'Time-line of publishes/subscribes {caption}'
+        title: str = f'Histogram of {data_type}'if self._case is None else\
+              f'histogram of {data_type} --- {self._case} case ---'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
 
         # Apply xaxis offset
