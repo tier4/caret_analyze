@@ -83,6 +83,6 @@ class Latency:
     def _create_empty_records(
         self
     ) -> RecordsInterface:
-        return RecordsFactory.create_instance(columns=[
+        return RecordsFactory.create_instance(None, columns=[
             ColumnValue(self._start_column), ColumnValue('latency')
         ])

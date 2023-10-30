@@ -38,7 +38,7 @@ try:
 except ModuleNotFoundError as e:
     if 'GITHUB_ACTION' in os.environ:
         # skip cpp_impl tests
-        # Because CARET_analyze does not use CARET_analyze_cpp_Impl on github actions.
+        # Because caret_analyze does not use caret_analyze_cpp_Impl on github actions.
         RecordCppImpl = None
         RecordsCppImpl = None
         CppImplEnabled = False

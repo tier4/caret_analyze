@@ -23,7 +23,8 @@ import pytest
 @pytest.fixture
 def create_mock(mocker):
     def _create_mock(data, columns):
-        records = RecordsFactory.create_instance(data, [ColumnValue(column) for column in columns])
+        records_columns = [ColumnValue(column) for column in columns]
+        records = RecordsFactory.create_instance(data, columns=records_columns)
         target_objects = mocker.Mock(spec=Path)
         stacked_bar_plot = LatencyStackedBar(target_objects)
         column_map = {}
