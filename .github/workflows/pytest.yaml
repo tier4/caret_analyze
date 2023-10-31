@@ -26,7 +26,6 @@ jobs:
           # sudo rosdep init
           rosdep update
           rosdep install -i --from-paths . -y --rosdistro humble
-
       - name: Install dependent packages
         run: python3 -m pip install -r src/requirements.txt
 
@@ -34,7 +33,6 @@ jobs:
         run: |
           dpkg -l > package_list.txt
           python3 -m pip list > pip_list.txt
-
       - name: Upload package list
         uses: actions/upload-artifact@v3
         with:
@@ -42,11 +40,9 @@ jobs:
           path: |
             package_list.txt
             pip_list.txt
-
       - name: Clone caret_analyze_cpp_impl
         run: |
           git clone https://github.com/tier4/caret_analyze_cpp_impl.git
-
       - name: Restore Cache
         id: cpp_impl-cache
         uses: actions/cache/restore@v3
@@ -70,13 +66,16 @@ jobs:
           key: ${{ runner.os }}-node-cpp_impl-${{ hashFiles('caret_analyze_cpp_impl/CARET_analyze_cpp_impl/**') }}
 
       - name: Run pytest
+        id: pytest_action
         run: |
           . /opt/ros/humble/setup.sh
           source caret_analyze_cpp_impl/install/setup.bash
           cd src
           python3 -m pytest
-          if [ $? -ne 0 ]; then
-          echo "Are you sending both caret_analyze_cpp_impl and caret_analyze on this PR?"
-          echo "this pytest action may fail because it tests new caret_analyze in combination with old caret_analyze_cpp_impl"
-          fi
         shell: bash
+
+      - name: If pytest failure
+        if: failure() && steps.pytest_action.outcome == 'failure'
+        run: |
+          echo "If pytest failure, are you sending both caret_analyze_cpp_impl and caret_analyze on this PR?"
+          echo "this pytest action may fail because it tests new caret_analyze in combination with old caret_analyze_cpp_impl."
