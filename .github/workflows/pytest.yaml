@@ -79,3 +79,4 @@ jobs:
         run: |
           echo "If pytest failure, are you sending both caret_analyze_cpp_impl and caret_analyze on this PR?"
           echo "this pytest action may fail because it tests new caret_analyze in combination with old caret_analyze_cpp_impl."
+          exit 1
