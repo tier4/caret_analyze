@@ -75,4 +75,8 @@ jobs:
           source caret_analyze_cpp_impl/install/setup.bash
           cd src
           python3 -m pytest
+          if [ $? -ne 0 ]; then
+          echo "Are you sending both caret_analyze_cpp_impl and caret_analyze on this PR?"
+          echo "this pytest action may fail because it tests new caret_analyze in combination with old caret_analyze_cpp_impl"
+          fi
         shell: bash
