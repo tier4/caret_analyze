@@ -62,8 +62,8 @@ class BokehTimeSeries:
             y_axis_label = 'Response time' + ' [ms]'
         else:
             raise NotImplementedError()
-        title: str = f'Histogram of {data_type}'if self._case is None else\
-            f'histogram of {data_type} --- {self._case} case ---'
+        title: str = f'Timeseries of {data_type} --- {self._case} case --- \
+            'if data_type == 'response_time' else f'Timeseries of {data_type}'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
 
         # Apply xaxis offset

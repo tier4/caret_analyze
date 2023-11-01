@@ -63,7 +63,7 @@ class BokehStackedBar:
         y_axis_label = caption + ' [ms]'
         target_objects = self._metrics.target_objects
         data, y_labels = self._metrics.to_stacked_bar_data()
-        title: str = f'Stacked bar of  Response Time --- {self._case} case ---'
+        title: str = f'Stacked bar of response Time --- {self._case} case ---'
 
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
