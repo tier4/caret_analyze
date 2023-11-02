@@ -390,9 +390,9 @@ class ResponseMapAll:
                 filled_records_dict[end_ts].append(record)
 
         columns = [ColumnValue(c) for c in self._columns]
+        init = [_.data for _ in sum(filled_records_dict.values(), [])]
         stacked_bar_records: RecordsInterface =\
-            RecordsFactory.create_instance(init=[_.data for _
-                                                 in sum(filled_records_dict.values(), [])],
+            RecordsFactory.create_instance(init,
                                            columns=columns)
         stacked_bar_records.sort_column_order()
         return stacked_bar_records
@@ -425,8 +425,9 @@ class ResponseMapAll:
             filled_record_list.append(worst_record)
 
         columns = [ColumnValue(c) for c in self._columns]
+        init = [_.data for _ in filled_record_list]
         stacked_bar_records: RecordsInterface =\
-            RecordsFactory.create_instance(init=[_.data for _ in filled_record_list],
+            RecordsFactory.create_instance(init,
                                            columns=columns)
         stacked_bar_records.sort_column_order()
         return stacked_bar_records
@@ -434,7 +435,7 @@ class ResponseMapAll:
     def _create_empty_records(
         self
     ) -> RecordsInterface:
-        return RecordsFactory.create_instance(columns=[
+        return RecordsFactory.create_instance(None, columns=[
             ColumnValue(self._start_column), ColumnValue('response_time')
         ])
 
@@ -902,7 +903,7 @@ class ResponseRecords:
         columns = columns or [ColumnValue(column) for column in self._columns]
         return RecordsFactory.create_instance(
             None,
-            columns
+            columns=columns
         )
 
     def _create_all_pattern_records(self) -> RecordsInterface:
@@ -1076,7 +1077,7 @@ class ResponseTimeseries:
         self,
         input_column: str
     ) -> RecordsInterface:
-        return RecordsFactory.create_instance(columns=[
+        return RecordsFactory.create_instance(None, columns=[
             ColumnValue(input_column), ColumnValue('response_time')
         ])
 

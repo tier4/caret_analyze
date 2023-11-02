@@ -6,4 +6,4 @@ graphviz
 types-pyyaml
 pydantic>=1.9.0
 mypy==0.981
-multimethod<1.10
+multimethod>=1.10

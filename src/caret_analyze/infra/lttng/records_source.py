@@ -211,7 +211,7 @@ class RecordsSource():
                     ColumnValue(COLUMN_NAME.TIMER_EVENT_TIMESTAMP),
                 ]
 
-                records = RecordsFactory.create_instance(None, columns)
+                records = RecordsFactory.create_instance(None, columns=columns)
                 for control in self._controls:
 
                     if isinstance(control, TimerInit):
@@ -282,7 +282,7 @@ class RecordsSource():
     def intra_callback_records(self) -> RecordsInterface:
         intra_proc_subscribe = RecordsFactory.create_instance(
             None,
-            [
+            columns=[
                 ColumnValue('callback_start_timestamp'),
                 ColumnValue('callback_object'),
                 ColumnValue('is_intra_process'),
@@ -298,7 +298,7 @@ class RecordsSource():
     def inter_callback_records(self) -> RecordsInterface:
         inter_proc_subscribe = RecordsFactory.create_instance(
             None,
-            [
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('callback_start_timestamp'),
                 ColumnValue('callback_object'),
@@ -374,7 +374,7 @@ class RecordsSource():
 
         inter_proc_subscribe = RecordsFactory.create_instance(
             None,
-            [
+            columns=[
                 ColumnValue(COLUMN_NAME.CALLBACK_START_TIMESTAMP),
                 ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
                 ColumnValue(COLUMN_NAME.IS_INTRA_PROCESS),
@@ -570,7 +570,7 @@ class RecordsSource():
         grouped_sub_records = sub_records.groupby(['buffer'])
         intra_records = RecordsFactory.create_instance(
             None,
-            [
+            columns=[
                 ColumnValue(COLUMN_NAME.TID),
                 ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
                 ColumnValue(COLUMN_NAME.CALLBACK_OBJECT),
