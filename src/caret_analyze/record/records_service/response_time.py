@@ -257,6 +257,12 @@ class ResponseMapAll:
                 continue
             start_ts = record.get(self._start_column)
 
+            if end_ts < start_ts:
+                warn('Record data is invalid. '
+                     'The end time of the path is recorded before the start time.',
+                     UserWarning)
+                continue
+
             if start_ts not in self._start_timestamps:
                 self._start_timestamps.insert(0, start_ts)
                 self._end_timestamps.insert(0, end_ts)

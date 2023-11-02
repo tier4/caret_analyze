@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
+
 from caret_analyze.record import ColumnValue
 from caret_analyze.record import ResponseTime
 from caret_analyze.record.record_factory import RecordsFactory
@@ -160,6 +162,36 @@ class TestResponseTimeAll:
         ]
         assert to_dict(response_time) == expect
 
+    def test_invalid_value_case(self):
+        records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 3, 'end': 2},
+            {'start': 3, 'end': 4},
+            {'start': 11, 'end': 12},
+            {'start': 13, 'end': 12}
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+        records = create_records(records_raw, columns)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            warning_message =\
+                'Record data is invalid. '\
+                'The end time of the path is recorded before the start time.'
+
+            response_time = ResponseTime(records)
+
+            assert issubclass(w[0].category, UserWarning)
+            assert str(w[0].message) == warning_message
+
+            expect_raw = [
+                {'start': 0, 'response_time': 2},
+                {'start': 3, 'response_time': 1},
+                {'start': 11, 'response_time': 1}
+            ]
+            result = to_dict(response_time.to_all_records())
+            assert result == expect_raw
+
 
 class TestResponseTimeBest:
 
@@ -267,6 +299,36 @@ class TestResponseTimeBest:
             {'start': 6, 'response_time': 0}
         ]
         assert to_dict(response_time) == expect
+
+    def test_invalid_value_case(self):
+        records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 3, 'end': 2},
+            {'start': 3, 'end': 4},
+            {'start': 11, 'end': 12},
+            {'start': 13, 'end': 12}
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+        records = create_records(records_raw, columns)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            warning_message =\
+                'Record data is invalid. '\
+                'The end time of the path is recorded before the start time.'
+
+            response_time = ResponseTime(records)
+
+            assert issubclass(w[0].category, UserWarning)
+            assert str(w[0].message) == warning_message
+
+            expect_raw = [
+                {'start': 0, 'response_time': 2},
+                {'start': 3, 'response_time': 1},
+                {'start': 11, 'response_time': 1},
+            ]
+            result = to_dict(response_time.to_best_case_records())
+            assert result == expect_raw
 
 
 class TestResponseTimeWorstWithExternalLatency:
@@ -392,6 +454,35 @@ class TestResponseTimeWorstWithExternalLatency:
         ]
         assert to_dict(response_time) == expect
 
+    def test_invalid_value_case(self):
+        records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 3, 'end': 2},
+            {'start': 3, 'end': 4},
+            {'start': 11, 'end': 12},
+            {'start': 13, 'end': 12}
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+        records = create_records(records_raw, columns)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            warning_message =\
+                'Record data is invalid. '\
+                'The end time of the path is recorded before the start time.'
+
+            response_time = ResponseTime(records)
+
+            assert issubclass(w[0].category, UserWarning)
+            assert str(w[0].message) == warning_message
+
+            expect_raw = [
+                {'start': 0, 'response_time': 4},
+                {'start': 3, 'response_time': 9}
+            ]
+            result = to_dict(response_time.to_worst_with_external_latency_case_records())
+            assert result == expect_raw
+
 
 class TestResponseTimeWorst:
 
@@ -515,6 +606,36 @@ class TestResponseTimeWorst:
             {'start': 6, 'response_time': 0}
         ]
         assert to_dict(response_time) == expect
+
+    def test_invalid_value_case(self):
+        records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 3, 'end': 2},
+            {'start': 3, 'end': 4},
+            {'start': 11, 'end': 12},
+            {'start': 13, 'end': 12}
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+        records = create_records(records_raw, columns)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            warning_message =\
+                'Record data is invalid. '\
+                'The end time of the path is recorded before the start time.'
+
+            response_time = ResponseTime(records)
+
+            assert issubclass(w[0].category, UserWarning)
+            assert str(w[0].message) == warning_message
+
+            expect_raw = [
+                {'start': 0, 'response_time': 2},
+                {'start': 3, 'response_time': 1},
+                {'start': 11, 'response_time': 1},
+            ]
+            result = to_dict(response_time.to_worst_case_records())
+            assert result == expect_raw
 
 
 class TestAllStackedBar:
