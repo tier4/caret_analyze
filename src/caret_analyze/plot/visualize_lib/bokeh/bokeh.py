@@ -17,9 +17,10 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
-from bokeh.models import GlyphRenderer, HoverTool
+from bokeh.models import HoverTool
+from bokeh.models.renderers import GlyphRenderer
 
-from bokeh.plotting import Figure
+from bokeh.plotting import figure as Figure
 
 from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
@@ -215,7 +216,7 @@ class Bokeh(VisualizeLibInterface):
 
         plot: Figure = Figure(
             title=data_type if case is None else f'{data_type} --- {case} case ---',
-            x_axis_label=x_label, y_axis_label='Probability', plot_width=800
+            x_axis_label=x_label, y_axis_label='Probability', width=800
             )
 
         data_list: list[list[int]] = []

@@ -17,7 +17,7 @@ from __future__ import annotations
 import datetime
 
 from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
-from bokeh.plotting import Figure, figure
+from bokeh.plotting import figure as Figure
 
 import numpy as np
 
@@ -75,7 +75,7 @@ def init_figure(
         tools = ['xwheel_zoom', 'xpan', 'save', 'reset']
         active_scroll = 'xwheel_zoom'
 
-    return figure(
+    return Figure(
         frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
         x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
     )
@@ -112,8 +112,8 @@ def apply_x_axis_offset(
     applied_range = Range1d(start=0, end=end_s)
 
     # Set ranges
-    fig.extra_x_ranges = {x_range_name: actual_range}
-    fig.x_range = applied_range
+    fig.extra_x_ranges = {x_range_name: actual_range}  # type: ignore
+    fig.x_range = applied_range  # type: ignore
 
     # Add xaxis for actual_range
     xaxis = LinearAxis(x_range_name=x_range_name)
