@@ -377,99 +377,115 @@ class TestEventCollection:
         init_events = []
         event_collection = {}
         # _timestampで並び替えテスト用
-        event_collection[0] = {'_name': 'ros2_caret:rclcpp_callback_register',
-                               '_timestamp': 503, }
-        event_collection[1] = {'_name': 'ros2_caret:rclcpp_callback_register',
-                               '_timestamp': 500, }
-        event_collection[2] = {'_name': 'ros2_caret:rclcpp_callback_register',
-                               '_timestamp': 502, }
-        event_collection[3] = {'_name': 'ros2_caret:rclcpp_callback_register',
-                               '_timestamp': 501, }
+        TIME_ORDER = 0
+        event_collection[TIME_ORDER+0] = {
+            '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 503, }
+        event_collection[TIME_ORDER+1] = {
+            '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 500, }
+        event_collection[TIME_ORDER+2] = {
+            '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 502, }
+        event_collection[TIME_ORDER+3] = {
+            '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 501, }
         # 以下は_timestampは一緒
         # _prioritized_init_events の並び順を逆向きに定義している(優先度が低い順)
-        event_collection[4] = {'_name': 'ros2_caret:callback_group_add_client',
-                               '_timestamp': 600, }
-        event_collection[5] = {'_name': 'ros2_caret:callback_group_add_service',
-                               '_timestamp': 600, }
-        event_collection[6] = {'_name': 'ros2_caret:callback_group_add_subscription',
-                               '_timestamp': 600, }
-        event_collection[7] = {'_name': 'ros2_caret:callback_group_add_timer',
-                               '_timestamp': 600, }
-        event_collection[8] = {'_name': 'ros2_caret:add_callback_group_static_executor',
-                               '_timestamp': 600, }
-        event_collection[9] = {'_name': 'ros2_caret:add_callback_group',
-                               '_timestamp': 600, }
-        event_collection[10] = {'_name': 'ros2_caret:construct_static_executor',
-                                '_timestamp': 600, }
-        event_collection[11] = {'_name': 'ros2_caret:construct_executor',
-                                '_timestamp': 600, }
-        event_collection[12] = {'_name': 'ros2_caret:rmw_implementation',
-                                '_timestamp': 600, }
-        event_collection[13] = {'_name': 'ros2_caret:caret_init',
-                                '_timestamp': 600, }
-        event_collection[14] = {'_name': 'ros2:rcl_lifecycle_state_machine_init',
-                                '_timestamp': 600, }
-        event_collection[15] = {'_name': 'ros2_caret:rcl_lifecycle_state_machine_init',
-                                '_timestamp': 600, }
-        event_collection[16] = {'_name': 'ros2:rclcpp_callback_register',
-                                '_timestamp': 600, }
-        event_collection[17] = {'_name': 'ros2_caret:rclcpp_callback_register',
-                                '_timestamp': 600, }
-        event_collection[18] = {'_name': 'ros2:rclcpp_timer_link_node',
-                                '_timestamp': 600, }
-        event_collection[19] = {'_name': 'ros2_caret:rclcpp_timer_link_node',
-                                '_timestamp': 600, }
-        event_collection[20] = {'_name': 'ros2:rclcpp_timer_callback_added',
-                                '_timestamp': 600, }
-        event_collection[21] = {'_name': 'ros2_caret:rclcpp_timer_callback_added',
-                                '_timestamp': 600, }
-        event_collection[22] = {'_name': 'ros2:rcl_timer_init',
-                                '_timestamp': 600, }
-        event_collection[23] = {'_name': 'ros2_caret:rcl_timer_init',
-                                '_timestamp': 600, }
-        event_collection[24] = {'_name': 'ros2:rcl_client_init',
-                                '_timestamp': 600, }
-        event_collection[25] = {'_name': 'ros2_caret:rcl_client_init',
-                                '_timestamp': 600, }
-        event_collection[26] = {'_name': 'ros2:rclcpp_service_callback_added',
-                                '_timestamp': 600, }
-        event_collection[27] = {'_name': 'ros2_caret:rclcpp_service_callback_added',
-                                '_timestamp': 600, }
-        event_collection[28] = {'_name': 'ros2:rcl_service_init',
-                                '_timestamp': 600, }
-        event_collection[29] = {'_name': 'ros2_caret:rcl_service_init',
-                                '_timestamp': 600, }
-        event_collection[30] = {'_name': 'ros2:rclcpp_subscription_callback_added',
-                                '_timestamp': 600, }
-        event_collection[31] = {'_name': 'ros2_caret:rclcpp_subscription_callback_added',
-                                '_timestamp': 600, }
-        event_collection[32] = {'_name': 'ros2:rclcpp_subscription_init',
-                                '_timestamp': 600, }
-        event_collection[33] = {'_name': 'ros2_caret:rclcpp_subscription_init',
-                                '_timestamp': 600, }
-        event_collection[34] = {'_name': 'ros2:rcl_subscription_init',
-                                '_timestamp': 600, }
-        event_collection[35] = {'_name': 'ros2_caret:rcl_subscription_init',
-                                '_timestamp': 600, }
-        event_collection[36] = {'_name': 'ros2:rcl_publisher_init',
-                                '_timestamp': 600, }
-        event_collection[37] = {'_name': 'ros2_caret:rcl_publisher_init',
-                                '_timestamp': 600, }
-        event_collection[38] = {'_name': 'ros2:rcl_node_init',
-                                '_timestamp': 600, }
-        event_collection[39] = {'_name': 'ros2_caret:rcl_node_init',
-                                '_timestamp': 600, }
-        event_collection[40] = {'_name': 'ros2:rcl_init',
-                                '_timestamp': 600, }
-        event_collection[41] = {'_name': 'ros2_caret:rcl_init',
-                                '_timestamp': 600, }
+        SORT_ORDER_ADD_IRON = 4
+        event_collection[SORT_ORDER_ADD_IRON+0] = {
+            '_name': 'ros2:rclcpp_ipb_to_subscription', '_timestamp': 600, }
+        event_collection[SORT_ORDER_ADD_IRON+1] = {
+            '_name': 'ros2_caret:rclcpp_ipb_to_subscription', '_timestamp': 600, }
+        event_collection[SORT_ORDER_ADD_IRON+2] = {
+            '_name': 'ros2:rclcpp_buffer_to_ipb', '_timestamp': 600, }
+        event_collection[SORT_ORDER_ADD_IRON+3] = {
+            '_name': 'ros2_caret:rclcpp_buffer_to_ipb', '_timestamp': 600, }
+        event_collection[SORT_ORDER_ADD_IRON+4] = {
+            '_name': 'ros2:rclcpp_construct_ring_buffer', '_timestamp': 600, }
+        event_collection[SORT_ORDER_ADD_IRON+5] = {
+            '_name': 'ros2_caret:rclcpp_construct_ring_buffer', '_timestamp': 600, }
+        SORT_ORDER = 10
+        event_collection[SORT_ORDER+0] = {
+            '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 600, }
+        event_collection[SORT_ORDER+1] = {
+            '_name': 'ros2_caret:callback_group_add_service', '_timestamp': 600, }
+        event_collection[SORT_ORDER+2] = {
+            '_name': 'ros2_caret:callback_group_add_subscription', '_timestamp': 600, }
+        event_collection[SORT_ORDER+3] = {
+            '_name': 'ros2_caret:callback_group_add_timer', '_timestamp': 600, }
+        event_collection[SORT_ORDER+4] = {
+            '_name': 'ros2_caret:add_callback_group_static_executor', '_timestamp': 600, }
+        event_collection[SORT_ORDER+5] = {
+            '_name': 'ros2_caret:add_callback_group', '_timestamp': 600, }
+        event_collection[SORT_ORDER+6] = {
+            '_name': 'ros2_caret:construct_static_executor', '_timestamp': 600, }
+        event_collection[SORT_ORDER+7] = {
+            '_name': 'ros2_caret:construct_executor', '_timestamp': 600, }
+        event_collection[SORT_ORDER+8] = {
+            '_name': 'ros2_caret:rmw_implementation', '_timestamp': 600, }
+        event_collection[SORT_ORDER+9] = {
+            '_name': 'ros2_caret:caret_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+10] = {
+            '_name': 'ros2:rcl_lifecycle_state_machine_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+11] = {
+            '_name': 'ros2_caret:rcl_lifecycle_state_machine_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+12] = {
+            '_name': 'ros2:rclcpp_callback_register', '_timestamp': 600, }
+        event_collection[SORT_ORDER+13] = {
+            '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 600, }
+        event_collection[SORT_ORDER+14] = {
+            '_name': 'ros2:rclcpp_timer_link_node', '_timestamp': 600, }
+        event_collection[SORT_ORDER+15] = {
+            '_name': 'ros2_caret:rclcpp_timer_link_node', '_timestamp': 600, }
+        event_collection[SORT_ORDER+16] = {
+            '_name': 'ros2:rclcpp_timer_callback_added', '_timestamp': 600, }
+        event_collection[SORT_ORDER+17] = {
+            '_name': 'ros2_caret:rclcpp_timer_callback_added', '_timestamp': 600, }
+        event_collection[SORT_ORDER+18] = {
+            '_name': 'ros2:rcl_timer_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+19] = {
+            '_name': 'ros2_caret:rcl_timer_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+20] = {
+            '_name': 'ros2:rcl_client_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+21] = {
+            '_name': 'ros2_caret:rcl_client_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+22] = {
+            '_name': 'ros2:rclcpp_service_callback_added', '_timestamp': 600, }
+        event_collection[SORT_ORDER+23] = {
+            '_name': 'ros2_caret:rclcpp_service_callback_added', '_timestamp': 600, }
+        event_collection[SORT_ORDER+24] = {
+            '_name': 'ros2:rcl_service_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+25] = {
+            '_name': 'ros2_caret:rcl_service_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+26] = {
+            '_name': 'ros2:rclcpp_subscription_callback_added', '_timestamp': 600, }
+        event_collection[SORT_ORDER+27] = {
+            '_name': 'ros2_caret:rclcpp_subscription_callback_added', '_timestamp': 600, }
+        event_collection[SORT_ORDER+28] = {
+            '_name': 'ros2:rclcpp_subscription_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+29] = {
+            '_name': 'ros2_caret:rclcpp_subscription_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+30] = {
+            '_name': 'ros2:rcl_subscription_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+31] = {
+            '_name': 'ros2_caret:rcl_subscription_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+32] = {
+            '_name': 'ros2:rcl_publisher_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+33] = {
+            '_name': 'ros2_caret:rcl_publisher_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+34] = {
+            '_name': 'ros2:rcl_node_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+35] = {
+            '_name': 'ros2_caret:rcl_node_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+36] = {
+            '_name': 'ros2:rcl_init', '_timestamp': 600, }
+        event_collection[SORT_ORDER+37] = {
+            '_name': 'ros2_caret:rcl_init', '_timestamp': 600, }
         # _timestampが小さい時も確認
-        event_collection[42] = {'_name': 'ros2_caret:callback_group_add_client',
-                                '_timestamp': 400, }
-        event_collection[43] = {'_name': 'ros2_caret:callback_group_add_service',
-                                '_timestamp': 400, }
-        event_collection[44] = {'_name': 'ros2_caret:callback_group_add_subscription',
-                                '_timestamp': 400, }
+        SMOLL_ORDER = 48
+        event_collection[SMOLL_ORDER+0] = {
+            '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 400, }
+        event_collection[SMOLL_ORDER+1] = {
+            '_name': 'ros2_caret:callback_group_add_service', '_timestamp': 400, }
+        event_collection[SMOLL_ORDER+2] = {
+            '_name': 'ros2_caret:callback_group_add_subscription', '_timestamp': 400, }
 
         for i in range(len(event_collection)):
             init_events.append(event_collection[i])
@@ -565,3 +581,15 @@ class TestEventCollection:
             init_events[43]['_name'] == 'ros2_caret:callback_group_add_service'
         assert init_events[44]['_timestamp'] == 600 and \
             init_events[44]['_name'] == 'ros2_caret:callback_group_add_client'
+        assert init_events[45]['_timestamp'] == 600 and \
+            init_events[45]['_name'] == 'ros2_caret:rclcpp_construct_ring_buffer'
+        assert init_events[46]['_timestamp'] == 600 and \
+            init_events[46]['_name'] == 'ros2:rclcpp_construct_ring_buffer'
+        assert init_events[47]['_timestamp'] == 600 and \
+            init_events[47]['_name'] == 'ros2_caret:rclcpp_buffer_to_ipb'
+        assert init_events[48]['_timestamp'] == 600 and \
+            init_events[48]['_name'] == 'ros2:rclcpp_buffer_to_ipb'
+        assert init_events[49]['_timestamp'] == 600 and \
+            init_events[49]['_name'] == 'ros2_caret:rclcpp_ipb_to_subscription'
+        assert init_events[50]['_timestamp'] == 600 and \
+            init_events[50]['_name'] == 'ros2:rclcpp_ipb_to_subscription'

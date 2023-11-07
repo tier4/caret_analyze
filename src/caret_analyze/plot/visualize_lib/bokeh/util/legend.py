@@ -64,7 +64,8 @@ class LegendManager:
         self,
         max_legends: int = 20,
         full_legends: bool = False,
-        location: str = 'top_right'
+        location: str = 'top_right',
+        separate: int | None = None
     ) -> list[Legend]:
         """
         Create legends.
@@ -78,6 +79,8 @@ class LegendManager:
         location : str
             Specify the position where you want the legend to be displayed.
             Specify bottom_left only if you want it to appear at the bottom left.
+        separate : int | None
+            Maximum number of legends to display on one column.
 
         Returns
         -------
@@ -85,7 +88,9 @@ class LegendManager:
             List of Legend instances separated by location argument.
 
         """
-        if location == 'top_right':
+        if separate is not None:
+            separate_num = separate
+        elif location == 'top_right':
             separate_num = 10
         else:
             separate_num = len(self._legend_items)

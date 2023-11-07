@@ -90,6 +90,8 @@ class Ros2Handler():
         self._entities_collector_addr_remapper = IDRemapper()
         self._callback_group_addr_remapper = IDRemapper()
         self._callback_remapper = IDRemapper()
+        self._buffer_remapper = IDRemapper()
+        self._ipb_remapper = IDRemapper()
 
         self._monotonic_to_system_offset: int | None = monotonic_to_system_time_offset
         self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
@@ -121,6 +123,8 @@ class Ros2Handler():
             'ros2:rclcpp_publish',
             'ros2:message_construct',
             'ros2:rclcpp_intra_publish',
+            'ros2:rclcpp_ring_buffer_enqueue',
+            'ros2:rclcpp_ring_buffer_dequeue',
             'ros2:dispatch_subscription_callback',
             'ros2:rmw_take',
             'ros2:dispatch_intra_process_subscription_callback',
@@ -145,6 +149,9 @@ class Ros2Handler():
             'ros2_caret:tilde_publish',
             'ros2_caret:tilde_subscribe_added',
             'ros2_caret:sim_time',
+            'ros2:rclcpp_buffer_to_ipb',
+            'ros2:rclcpp_ipb_to_subscription',
+            'ros2:rclcpp_construct_ring_buffer',
         ]
 
         if include_wrapped_tracepoints:
@@ -164,6 +171,9 @@ class Ros2Handler():
                     'ros2_caret:rclcpp_timer_link_node',
                     'ros2_caret:rclcpp_callback_register',
                     'ros2_caret:rcl_lifecycle_state_machine_init',
+                    'ros2_caret:rclcpp_buffer_to_ipb',
+                    'ros2_caret:rclcpp_ipb_to_subscription',
+                    'ros2_caret:rclcpp_construct_ring_buffer',
                 ]
             )
         return tracepoints
@@ -208,6 +218,12 @@ class Ros2Handler():
         handler_map[
             'ros2:rcl_lifecycle_state_machine_init'
         ] = self._handle_rcl_lifecycle_state_machine_init
+
+        #  Support iron useful tracepoints
+        handler_map['ros2:rclcpp_buffer_to_ipb'] = self._handle_rclcpp_buffer_to_ipb
+        handler_map['ros2:rclcpp_ipb_to_subscription'] = self._handle_rclcpp_ipb_to_subscription
+        handler_map['ros2:rclcpp_construct_ring_buffer'] = \
+            self._handle_rclcpp_construct_ring_buffer
 
         #  Trace points of initialization defined by caret_trace
         handler_map['ros2_caret:rmw_implementation'] = \
@@ -272,6 +288,14 @@ class Ros2Handler():
         handler_map['ros2_caret:rcl_lifecycle_state_machine_init'] = \
             self._create_handler(self._handle_rcl_lifecycle_state_machine_init)
 
+        # The iron trace points of initialization redefined in CARET.
+        handler_map['ros2_caret:rclcpp_buffer_to_ipb'] = \
+            self._create_handler(self._handle_rclcpp_buffer_to_ipb)
+        handler_map['ros2_caret:rclcpp_ipb_to_subscription'] = \
+            self._create_handler(self._handle_rclcpp_ipb_to_subscription)
+        handler_map['ros2_caret:rclcpp_construct_ring_buffer'] = \
+            self._create_handler(self._handle_rclcpp_construct_ring_buffer)
+
         self.handler_map = handler_map
 
     def create_runtime_handler_map(
@@ -312,6 +336,10 @@ class Ros2Handler():
         #  Trace points for measurements defined by caret_trace
         handler_map['ros2_caret:sim_time'] = \
             self._create_handler(self._handle_sim_time, True)
+
+        #  Support iron useful tracepoints
+        handler_map['ros2:rclcpp_ring_buffer_enqueue'] = self._handle_rclcpp_ring_buffer_enqueue
+        handler_map['ros2:rclcpp_ring_buffer_dequeue'] = self._handle_rclcpp_ring_buffer_dequeue
 
         self.handler_map = handler_map
 
@@ -414,6 +442,60 @@ class Ros2Handler():
             depth,
         )
 
+    def _handle_rclcpp_buffer_to_ipb(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        buffer = get_field(event, 'buffer')
+        ipb = get_field(event, 'ipb')
+
+        # △ buffer
+        # 〇 ipb
+        buffer = self._buffer_remapper.get_object_id(buffer, event)
+        ipb = self._ipb_remapper.register_and_get_object_id(ipb, event)
+
+        self.data.add_buffer_to_ipb(
+            timestamp,
+            buffer,
+            ipb
+        )
+
+    def _handle_rclcpp_ipb_to_subscription(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        ipb = get_field(event, 'ipb')
+        subscription = get_field(event, 'subscription')
+
+        # △ ipb
+        # △ subscription
+        ipb = self._ipb_remapper.get_object_id(ipb, event)
+        subscription = self._subscription_remapper.get_object_id(subscription, event)
+
+        self.data.add_ipb_to_subscription(
+            timestamp,
+            ipb,
+            subscription,
+        )
+
+    def _handle_rclcpp_construct_ring_buffer(
+        self,
+        event: dict,
+    ) -> None:
+        timestamp = get_field(event, '_timestamp')
+        buffer = get_field(event, 'buffer')
+        capacity = get_field(event, 'capacity')
+
+        # 〇 buffer
+        buffer = self._buffer_remapper.register_and_get_object_id(buffer, event)
+        self.data.add_ring_buffer(
+            timestamp,
+            buffer,
+            capacity,
+        )
+
     def _handle_rclcpp_subscription_init(
         self,
         event: dict,
@@ -441,7 +523,8 @@ class Ros2Handler():
         # 〇 callback
         subscription_pointer = self._subscription_remapper.get_object_id(
             subscription_pointer, event)
-        callback_object = self._callback_remapper.register_and_get_object_id(callback_object, event)
+        callback_object = \
+            self._callback_remapper.register_and_get_object_id(callback_object, event)
         self.data.add_callback_object(
             subscription_pointer, timestamp, callback_object)
 
@@ -460,7 +543,8 @@ class Ros2Handler():
         # 〇 rmw_service_handle
         handle = self._service_handle_remapper.register_and_get_object_id(handle, event)
         node_handle = self._node_handle_remapper.get_object_id(node_handle, event)
-        rmw_handle = self._rmw_service_handle_remapper.register_and_get_object_id(rmw_handle, event)
+        rmw_handle = \
+            self._rmw_service_handle_remapper.register_and_get_object_id(rmw_handle, event)
         self.data.add_service(
             handle, timestamp, node_handle, rmw_handle, service_name)
 
@@ -475,7 +559,8 @@ class Ros2Handler():
         # △ service_handle
         # 〇 callback
         handle = self._service_handle_remapper.get_object_id(handle, event)
-        callback_object = self._callback_remapper.register_and_get_object_id(callback_object, event)
+        callback_object = \
+            self._callback_remapper.register_and_get_object_id(callback_object, event)
         self.data.add_callback_object(handle, timestamp, callback_object)
 
     def _handle_rcl_client_init(
@@ -542,7 +627,11 @@ class Ros2Handler():
     ) -> None:
         timestamp = get_field(event, '_timestamp')
         clock_offset = get_field(event, 'clock_offset')
-        self.data.add_caret_init(clock_offset, timestamp)  # type: ignore
+        if 'distribution' in event.keys():
+            distribution = get_field(event, 'distribution')
+        else:
+            distribution = 'NOTFOUND'
+        self.data.add_caret_init(clock_offset, timestamp, distribution)  # type: ignore
         pid = get_field(event, '_vpid')
         assert isinstance(pid, int)
         self._caret_init_recorded[pid] = True
@@ -563,27 +652,28 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         callback_object = get_field(event, 'callback')
 
-        ############################### MYK テスト完了後あとで消す -->
+        # ############################## MYK テスト完了後あとで消す -->
         # MYK test
-        if callback_object == 139926729236880:
-            myk = 1
-            print(myk)
+        # if callback_object == 139926729236880:
+        #     myk = 1
+        #     print(myk)
         #    callback_object = self._timer_handle_remapper.register_and_get_object_id(
         #       callback_object, event)
         #    print("_handle_rclcpp_timer_callback_added()
         #       _timer_handle_remapper.register_and_get_object_id : ",callback_object)
-            # from caret_analyze.infra.lttng.id_remapper import IDRemapper
-            # id_remap = IDRemapper()
-            # handle = id_remap.register_and_get_object_id(handle, event)
-            # print(len(self._data._callback_objects._data['callback_object']))
-            # print(event)
+        #    # from caret_analyze.infra.lttng.id_remapper import IDRemapper
+        #    # id_remap = IDRemapper()
+        #    # handle = id_remap.register_and_get_object_id(handle, event)
+        #    # print(len(self._data._callback_objects._data['callback_object']))
+        #    # print(event)
         # 1回目 handle=139926685567680, callback_object=139926729236880 addr_to_remapping_info_
-        ############################### MYK テスト完了後あとで消す <--
+        # ############################## MYK テスト完了後あとで消す <--
 
         # △ timer_handle
         # 〇 callback
         handle = self._timer_handle_remapper.get_object_id(handle, event)
-        callback_object = self._callback_remapper.register_and_get_object_id(callback_object, event)
+        callback_object = \
+            self._callback_remapper.register_and_get_object_id(callback_object, event)
         self.data.add_callback_object(handle, timestamp, callback_object)
 
     def _handle_rclcpp_timer_link_node(
@@ -608,7 +698,7 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         symbol = get_field(event, 'symbol')
 
-        ############################### MYK テスト完了後あとで消す -->
+        # ############################## MYK テスト完了後あとで消す -->
         # MYK test
         if callback_object == 139926729236880:
             myk = 1
@@ -624,7 +714,7 @@ class Ros2Handler():
         #       _timer_handle_remapper.get_object_id : ",callback_object)
         #    print(len(self._data._callback_symbols._data['callback_object']))
         #    print(event)
-        ############################### MYK テスト完了後あとで消す <--
+        # ############################## MYK テスト完了後あとで消す <--
 
         # △ callback
         callback_object = self._callback_remapper.get_object_id(callback_object, event)
@@ -704,8 +794,8 @@ class Ros2Handler():
         if 'publisher_handle' in event.keys():
             publisher_handle = get_field(event, 'publisher_handle')
             # △ publisher_handle
-            # 【TODO】message
-            publisher_handle = self._publisher_handle_remapper.get_object_id(publisher_handle, event)
+            publisher_handle = \
+                self._publisher_handle_remapper.get_object_id(publisher_handle, event)
         else:
             publisher_handle = 0
         timestamp = get_field(event, '_timestamp')
@@ -732,7 +822,6 @@ class Ros2Handler():
         message = get_field(event, 'message')
 
         # △ publisher_handle
-        # 【TODO】message
         publisher_handle = self._publisher_handle_remapper.get_object_id(publisher_handle, event)
         self.data.add_rcl_publish_instance(
             tid, timestamp, publisher_handle, message)
@@ -770,10 +859,46 @@ class Ros2Handler():
         tid = get_field(event, '_vtid')
 
         # △ publisher_handle
-        # 【TODO】message
         publisher_handle = self._publisher_handle_remapper.get_object_id(publisher_handle, event)
         self.data.add_rclcpp_intra_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
+
+    def _handle_rclcpp_ring_buffer_enqueue(
+        self,
+        event: dict,
+    ) -> None:
+        if not self._is_valid_data(event):
+            return
+
+        buffer = get_field(event, 'buffer')
+        index = get_field(event, 'index')
+        size = get_field(event, 'size')
+        overwritten = get_field(event, 'overwritten')
+        timestamp = get_field(event, '_timestamp')
+        tid = get_field(event, '_vtid')
+
+        # △ buffer
+        buffer = self._buffer_remapper.get_object_id(buffer, event)
+        self.data.add_rclcpp_ring_buffer_enqueue_instance(
+            tid, timestamp, buffer, index, size, overwritten)
+
+    def _handle_rclcpp_ring_buffer_dequeue(
+        self,
+        event: dict,
+    ) -> None:
+        if not self._is_valid_data(event):
+            return
+
+        buffer = get_field(event, 'buffer')
+        index = get_field(event, 'index')
+        size = get_field(event, 'size')
+        timestamp = get_field(event, '_timestamp')
+        tid = get_field(event, '_vtid')
+
+        # △ buffer
+        buffer = self._buffer_remapper.get_object_id(buffer, event)
+        self.data.add_rclcpp_ring_buffer_dequeue_instance(
+            tid, timestamp, buffer, index, size)
 
     def _handle_dispatch_subscription_callback(
         self,
@@ -788,7 +913,6 @@ class Ros2Handler():
         source_stamp = get_field(event, 'source_stamp')
         message_timestamp = get_field(event, 'message_timestamp')
 
-        # 【TODO】message
         # △ callback
         callback_object = self._callback_remapper.get_object_id(callback_object, event)
         self.data.add_dispatch_subscription_callback_instance(
@@ -809,7 +933,6 @@ class Ros2Handler():
         source_stamp = get_field(event, 'source_timestamp')
 
         # △ rmw_subscription_handle
-        # 【TODO】message
         rmw_subscription_handle = self._rmw_subscription_handle_remapper.get_object_id(
             rmw_subscription_handle, event)
         self.data.add_rmw_take_instance(
@@ -828,7 +951,6 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         message_timestamp = get_field(event, 'message_timestamp')
 
-        # 【TODO】message
         # △ callback
         callback_object = self._callback_remapper.get_object_id(callback_object, event)
         self.data.add_dispatch_intra_process_subscription_callback_instance(
@@ -857,7 +979,6 @@ class Ros2Handler():
         message = get_field(event, 'message')
         tid = get_field(event, '_vtid')
 
-        # 【TODO】message
         self.data.add_dds_write_instance(tid, timestamp, message)
 
     def _handle_dds_bind_addr_to_stamp(
@@ -935,6 +1056,10 @@ class Ros2Handler():
         executor_addr = get_field(event, 'executor_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
+        # MYK
+        # if callback_group_addr == 94130489350512:
+        #     myk = 1
+        #     print("add_callback_group")
 
         # △ executor_addr
         # 〇 callback_group_addr
@@ -952,10 +1077,15 @@ class Ros2Handler():
         collector_addr = get_field(event, 'entities_collector_addr')
         callback_group_addr = get_field(event, 'callback_group_addr')
         group_type_name = get_field(event, 'group_type_name')
+        # MYK
+        # if callback_group_addr == 94130489350512:
+        #     myk = 1
+        #     print("add_callback_group_static_executor")
 
         # △ entities_collector_addr
         # 〇 callback_group_addr
-        collector_addr = self._entities_collector_addr_remapper.get_object_id(collector_addr, event)
+        collector_addr = \
+            self._entities_collector_addr_remapper.get_object_id(collector_addr, event)
         callback_group_addr = self._callback_group_addr_remapper.register_and_get_object_id(
             callback_group_addr, event)
         self.data.add_callback_group_static_executor(
@@ -968,6 +1098,10 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         timer_handle = get_field(event, 'timer_handle')
+        # MYK
+        # if callback_group_addr == 94130489350512:
+        #     myk = 1
+        #     print("callback_group_add_timer")
 
         # △ callback_group_addr
         # △ timer_handle
@@ -983,6 +1117,10 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         subscription_handle = get_field(event, 'subscription_handle')
+        # MYK
+        # if callback_group_addr == 94130489350512:
+        #     myk = 1
+        #     print("callback_group_add_subscription")
 
         # △ callback_group_addr
         # △ subscription_handle
@@ -1000,6 +1138,10 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         service_handle = get_field(event, 'service_handle')
+        # MYK
+        # if callback_group_addr == 94130489350512:
+        #     myk = 1
+        #     print("callback_group_add_service")
 
         # △ callback_group_addr
         # △ service_handle
@@ -1015,6 +1157,10 @@ class Ros2Handler():
         timestamp = get_field(event, '_timestamp')
         callback_group_addr = get_field(event, 'callback_group_addr')
         client_handle = get_field(event, 'client_handle')
+        # MYK
+        # if callback_group_addr == 94130489350512:
+        #     myk = 1
+        #     print("callback_group_add_client")
 
         # △ callback_group_addr
         # △ client_handle

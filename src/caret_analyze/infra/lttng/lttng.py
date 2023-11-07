@@ -307,6 +307,12 @@ class Lttng(InfraBase):
         'ros2_caret:callback_group_add_subscription',
         'ros2_caret:callback_group_add_service',
         'ros2_caret:callback_group_add_client',
+        'ros2_caret:rclcpp_construct_ring_buffer',
+        'ros2:rclcpp_construct_ring_buffer',
+        'ros2_caret:rclcpp_buffer_to_ipb',
+        'ros2:rclcpp_buffer_to_ipb',
+        'ros2_caret:rclcpp_ipb_to_subscription',
+        'ros2:rclcpp_ipb_to_subscription',
     ]
 
     def __init__(
@@ -781,6 +787,9 @@ class Lttng(InfraBase):
 
         """
         return datetime.fromtimestamp(self._begin * 1.0e-9)
+
+    def compose_enq_records(self):
+        return self._source.enqueue_records.clone()
 
     def compose_intra_proc_comm_records(
         self,

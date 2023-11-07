@@ -51,7 +51,7 @@ class TestResponseRecords:
         response = ResponseTime(records)
 
         expect_raw = []
-        result = to_dict(response.to_stacked_bar())
+        result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
     def test_single_flow_case(self):
@@ -65,7 +65,7 @@ class TestResponseRecords:
 
         expect_raw = [
         ]
-        result = to_dict(response.to_stacked_bar())
+        result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
     def test_double_flow_case(self):
@@ -81,7 +81,7 @@ class TestResponseRecords:
         expect_raw = [
             {'start_min': 0, 'start_max': 2, 'end': 3},
         ]
-        result = to_dict(response.to_stacked_bar())
+        result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
@@ -107,7 +107,7 @@ class TestResponseRecords:
             {'start_min': 0, 'start_max': 3, 'end': 4},
             {'start_min': 3, 'start_max': 6, 'end': 6},
         ]
-        result = to_dict(response.to_stacked_bar())
+        result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
@@ -132,7 +132,7 @@ class TestResponseRecords:
             {'start_min': 0, 'start_max': 2, 'end': 3},
             {'start_min': 2, 'start_max': 10, 'end': 11},
         ]
-        result = to_dict(response.to_stacked_bar())
+        result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
         expect_raw = [
@@ -156,7 +156,7 @@ class TestResponseRecords:
         expect_raw = [
             {'start_min': 0, 'start_max': 2, 'end': 3},
         ]
-        result = to_dict(response.to_stacked_bar())
+        result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
     def test_drop_case(self):
@@ -174,7 +174,7 @@ class TestResponseRecords:
         expect_raw = [
             {'start_min': 2, 'start_max': 3, 'end': 4},
         ]
-        result = to_dict(response.to_stacked_bar())
+        result = to_dict(response.to_worst_with_external_latency_case_stacked_bar())
         assert result == expect_raw
 
 
@@ -486,7 +486,7 @@ class TestResponseTimeseries:
         expect = []
         assert to_dict(response_time) == expect
 
-        response_time = response.to_worst_case_records()
+        response_time = response.to_worst_with_external_latency_case_records()
         expect = []
         assert to_dict(response_time) == expect
 
@@ -503,7 +503,7 @@ class TestResponseTimeseries:
         expect = []
         assert to_dict(response_time) == expect
 
-        response_time = response.to_worst_case_records()
+        response_time = response.to_worst_with_external_latency_case_records()
         expect = []
         assert to_dict(response_time) == expect
 
@@ -523,7 +523,7 @@ class TestResponseTimeseries:
         ]
         assert to_dict(response_time) == expect
 
-        response_time = response.to_worst_case_records()
+        response_time = response.to_worst_with_external_latency_case_records()
         expect = [
             {'start_min': 0, 'response_time': 3}
         ]
@@ -549,7 +549,7 @@ class TestResponseTimeseries:
         ]
         assert to_dict(response_time) == expect
 
-        response_time = response.to_worst_case_records()
+        response_time = response.to_worst_with_external_latency_case_records()
         expect = [
             {'start_min': 0, 'response_time': 4},
             {'start_min': 3, 'response_time': 3}
@@ -581,7 +581,7 @@ class TestResponseTimeseries:
                 columns=self.column_names
             )
 
-            records = response.to_stacked_bar()
+            records = response.to_worst_with_external_latency_case_stacked_bar()
 
             expect = [
                 # flow 1 input ~ flow 7 output
@@ -610,7 +610,7 @@ class TestResponseTimeseries:
                 create_records(self.records_raw, self.columns),
                 columns=self.column_names
             )
-            response_time = response.to_worst_case_records()
+            response_time = response.to_worst_with_external_latency_case_records()
             expect = [
                 {'column0_min': 5, 'response_time': 25},
                 {'column0_min': 20, 'response_time': 25}
@@ -628,7 +628,7 @@ class TestResponseTimeWorstInInput:
         response_time = ResponseTime(records)
 
         expect_raw = []
-        result = to_dict(response_time.to_worst_in_input_records())
+        result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
     def test_two_column_default_case(self):
@@ -647,7 +647,7 @@ class TestResponseTimeWorstInInput:
             {'start': 3, 'response_time': 1},
             {'start': 11, 'response_time': 1}
         ]
-        result = to_dict(response_time.to_worst_in_input_records())
+        result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
     def test_three_column_default_case(self):
@@ -666,7 +666,7 @@ class TestResponseTimeWorstInInput:
             {'start': 3, 'response_time': 3},
             {'start': 11, 'response_time': 5}
         ]
-        result = to_dict(response_time.to_worst_in_input_records())
+        result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
     def test_single_input_multi_output_case(self):
@@ -683,7 +683,7 @@ class TestResponseTimeWorstInInput:
         expect_raw = [
             {'start': 0, 'response_time': 5}
         ]
-        result = to_dict(response_time.to_worst_in_input_records())
+        result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
     def test_multi_input_single_output_case(self):
@@ -700,7 +700,7 @@ class TestResponseTimeWorstInInput:
         expect_raw = [
             {'start': 0, 'response_time': 13}
         ]
-        result = to_dict(response_time.to_worst_in_input_records())
+        result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw
 
     def test_drop_case(self):
@@ -718,5 +718,5 @@ class TestResponseTimeWorstInInput:
             {'start': 0, 'response_time': 8},
             {'start': 1, 'response_time': 12}
         ]
-        result = to_dict(response_time.to_worst_in_input_records())
+        result = to_dict(response_time.to_worst_case_records())
         assert result == expect_raw

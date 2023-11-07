@@ -126,7 +126,15 @@ class NodesLoaded:
         self._nodes: list[Node] = []
         for node_value in node_values:
             try:
+                # MYK ->
+                # print("MYK1:",node_value.node_name,"self.callbacks =",
+                # len(self.callbacks),len(node_value.callback_groups))
+                # <- MYK
                 self._nodes.append(self._to_runtime(node_value, provider))
+                # MYK ->
+                # print("MYK2:",node_value.node_name,"self.callbacks =",
+                # len(self.callbacks),len(node_value.callback_groups))
+                # <- MYK
             except Error as e:
                 logger.warning(e)
 
@@ -724,12 +732,38 @@ class CommunicationsLoaded:
         nodes_loaded: NodesLoaded,
     ) -> None:
         self._data: list[Communication] = []
+        # MYK ->
+        # for aaa in communication_values:
+        #    print(aaa.publish_node_name,aaa.publish_callback_names,
+        # aaa.publisher_construction_order,aaa.subscribe_node_name,
+        # aaa.subscribe_callback_name,aaa.subscription_construction_order)
+        # <- MYK
+        # print("MYK")
+        # myk1 = 0
+        # myk2 = 0
         for comm_value in communication_values:
             try:
                 comm = self._to_runtime(comm_value, provider, nodes_loaded)
+                # myk1 = myk1 + 1
                 self._data.append(comm)
+                # print(myk1, comm.publish_node, comm.publisher_construction_order,
+                # comm.subscribe_node, comm.subscription_construction_order)
             except (ItemNotFoundError, MultipleItemFoundError):
                 pass
+                # myk2 = myk2 + 1
+                # print(myk2)
+                # print("MYK err" ,comm_value.publish_node, comm_value.
+                # publisher_construction_order, comm_value.subscribe_node,
+                #  comm_value.subscription_construction_order)
+
+        # MYK ->
+        # print("len=",len(self._data))
+        # for bbb in self.data:
+        #    print(bbb.publish_node_name,bbb.publish_node_name,
+        # bbb.publisher_construction_order, bbb.callback_publish,
+        # bbb.subscribe_node_name,bbb.subscribe_node_name,
+        # bbb.subscription_construction_order,bbb._callback_subscription)
+        # <- MYK
 
     @property
     def data(self) -> list[Communication]:

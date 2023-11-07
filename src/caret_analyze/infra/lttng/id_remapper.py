@@ -13,39 +13,10 @@
 # limitations under the License.
 
 from __future__ import annotations
-
-# from abc import ABCMeta, abstractmethod, abstractproperty
-# from collections.abc import Iterable, Iterator, Sequence, Sized
-# from datetime import datetime
-# from functools import cached_property
 from collections import defaultdict
 
-from logging import getLogger
-# import os
-# import pickle
-# from typing import Any
 
-# import bt2
-# import pandas as pd
-# from tqdm import tqdm
-# from .events_factory import EventsFactory
-# from .lttng_event_filter import LttngEventFilter
-# from .ros2_tracing.data_model import Ros2DataModel
-# from .ros2_tracing.data_model_service import DataModelService
-# from .ros2_tracing.processor import get_field, Ros2Handler
 from .ros2_tracing.processor import get_field
-# from .value_objects import (CallbackGroupId,
-#                             PublisherValueLttng,
-#                             ServiceCallbackValueLttng,
-#                             SubscriptionCallbackValueLttng,
-#                             TimerCallbackValueLttng)
-# from ..infra_base import InfraBase
-# from ...common import ClockConverter
-# from ...exceptions import InvalidArgumentError
-# from ...record import RecordsInterface
-# from ...value_objects import  \
-#     CallbackGroupValue, ExecutorValue, NodeValue, NodeValueWithId, Qos, TimerValue
-
 
 class IDRemappingInfo():
     def __init__(
@@ -101,7 +72,7 @@ class IDRemapper():
         # self._addr_to_remapping_info[addr+1] = remap_info
 
         # register initialization trace event
-        if not addr in self._all_object_ids:
+        if addr not in self._all_object_ids:
             self._addr_to_init_event[addr].append(event)
             self._all_object_ids.add(addr)
             return addr

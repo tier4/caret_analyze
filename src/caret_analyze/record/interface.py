@@ -437,8 +437,6 @@ class RecordsInterface:
         join_right_key: str,
         columns: list[str],
         how: str,
-        *,
-        progress_label: str | None = None
     ) -> RecordsInterface:
         """
         Merge records by key match.
@@ -455,8 +453,6 @@ class RecordsInterface:
             columns
         how : str
             merge type. [inner/right/left/outer]
-        progress_label : str
-            label for progress bar. cpp impl only.
 
         Returns
         -------
@@ -492,8 +488,6 @@ class RecordsInterface:
         join_right_key: str | None,
         columns: list[str],
         how: str,
-        *,
-        progress_label: str | None = None
     ) -> RecordsInterface:
         """
         Merge chronologically contiguous records.
@@ -519,8 +513,6 @@ class RecordsInterface:
             merge type. [inner/right/left/outer]
         columns : list[str]
             columns
-        progress_label : str
-            label for progress bar. cpp impl only.
 
         Records
         -------
@@ -563,8 +555,6 @@ class RecordsInterface:
         sink_stamp_key: str,
         sink_from_key: str,
         columns: list[str],
-        *,
-        progress_label: str | None = None
     ) -> RecordsInterface:
         """
         Merge for tracking addresses when copying occurs.
@@ -591,8 +581,6 @@ class RecordsInterface:
             Key name indicating the address of the copy destination
         columns : list[str]
             columns
-        progress_label : str
-            label for progress bar. cpp impl only.
 
         Returns
         -------
