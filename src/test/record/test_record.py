@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-import os
 from typing import Any
 
 from caret_analyze.exceptions import InvalidArgumentError
@@ -36,16 +35,9 @@ try:
     RecordsCppImpl = cpp_impl.RecordsCppImpl
     CppImplEnabled = True
 except ModuleNotFoundError as e:
-    if 'GITHUB_ACTION' in os.environ:
-        # skip cpp_impl tests
-        # Because caret_analyze does not use caret_analyze_cpp_Impl on github actions.
-        RecordCppImpl = None
-        RecordsCppImpl = None
-        CppImplEnabled = False
-    else:
-        raise ModuleNotFoundError(
-            'Failed to load RecordsCppImpl, ',
-            'possibly due to missing information in the PYTHONPATH environment variable.') from e
+    raise ModuleNotFoundError(
+        'Failed to load RecordsCppImpl, ',
+        'possibly due to missing information in the PYTHONPATH environment variable.') from e
 
 
 def to_cpp_record(record: RecordInterface) -> RecordCppImpl | None:

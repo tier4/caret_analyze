@@ -20,7 +20,7 @@ from functools import cached_property
 from typing import Any
 
 from bokeh.models import CrosshairTool, HoverTool
-from bokeh.plotting import ColumnDataSource, Figure
+from bokeh.plotting import ColumnDataSource, figure as Figure
 
 import numpy as np
 
@@ -228,7 +228,7 @@ class MessageFlowLineSource:
         df: pd.DataFrame,
         converter: ClockConverter | None,
         offset: Offset
-    ) -> ColumnDataSource:
+    ) -> list[ColumnDataSource]:
         """
         Generate message flow line source.
 
@@ -247,7 +247,7 @@ class MessageFlowLineSource:
 
         """
         tick_labels = YAxisProperty(df)
-        line_sources = []
+        line_sources: list[ColumnDataSource] = []
 
         for i, row in df.iterrows():
             row_values = row.dropna().values

@@ -18,7 +18,8 @@ from collections import defaultdict
 from logging import getLogger
 from typing import Any
 
-from bokeh.models import GlyphRenderer, Legend
+from bokeh.models.annotations import Legend
+from bokeh.models.renderers import GlyphRenderer
 
 from .....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 

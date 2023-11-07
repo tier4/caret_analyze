@@ -156,7 +156,7 @@ class StackedBar:
         series = records.get_column_series(column)
         record_dict = [{xlabel: _} for _ in series]
         record: RecordsInterface = \
-            RecordsFactory.create_instance(record_dict, [ColumnValue(xlabel)])
+            RecordsFactory.create_instance(record_dict, columns=[ColumnValue(xlabel)])
         return record
 
     def _to_stacked_bar_records(
@@ -225,7 +225,8 @@ class StackedBar:
 
         if len(records.data) == 0:
             new_records: RecordsInterface = \
-                RecordsFactory.create_instance(record_dict, [ColumnValue(column)])
+                RecordsFactory.create_instance(
+                    record_dict, columns=[ColumnValue(column)])
             records.concat(new_records)
         else:
             records.append_column(ColumnValue(column), series)

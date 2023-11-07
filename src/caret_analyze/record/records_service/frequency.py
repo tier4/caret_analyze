@@ -114,7 +114,7 @@ class Frequency:
     def _create_empty_records(
         self
     ) -> RecordsInterface:
-        return RecordsFactory.create_instance(columns=[
+        return RecordsFactory.create_instance(None, columns=[
             ColumnValue(self._target_column), ColumnValue('frequency')
         ])
 

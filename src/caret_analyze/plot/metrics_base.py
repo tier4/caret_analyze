@@ -88,7 +88,7 @@ class MetricsBase(metaclass=ABCMeta):
             columns: list[ColumnValue] = \
                 [ColumnValue(_) for _ in records.columns]
 
-            converted_records_list.append(RecordsFactory.create_instance(values, columns))
+            converted_records_list.append(RecordsFactory.create_instance(values, columns=columns))
 
         return converted_records_list
 
