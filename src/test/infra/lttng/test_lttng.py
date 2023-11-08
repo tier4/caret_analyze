@@ -376,7 +376,7 @@ class TestEventCollection:
         import functools
         init_events = []
         event_collection = {}
-        # _timestampで並び替えテスト用
+        # for testing sorting with _timestamp
         TIME_ORDER = 0
         event_collection[TIME_ORDER+0] = {
             '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 503, }
@@ -386,8 +386,9 @@ class TestEventCollection:
             '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 502, }
         event_collection[TIME_ORDER+3] = {
             '_name': 'ros2_caret:rclcpp_callback_register', '_timestamp': 501, }
-        # 以下は_timestampは一緒
-        # _prioritized_init_events の並び順を逆向きに定義している(優先度が低い順)
+        # below, _timestamp is the same
+        # the order of _prioritized_init_events is defined in reverse order
+        # (lowest priority first)
         SORT_ORDER_ADD_IRON = 4
         event_collection[SORT_ORDER_ADD_IRON+0] = {
             '_name': 'ros2:rclcpp_ipb_to_subscription', '_timestamp': 600, }
@@ -478,13 +479,13 @@ class TestEventCollection:
             '_name': 'ros2:rcl_init', '_timestamp': 600, }
         event_collection[SORT_ORDER+37] = {
             '_name': 'ros2_caret:rcl_init', '_timestamp': 600, }
-        # _timestampが小さい時も確認
-        SMOLL_ORDER = 48
-        event_collection[SMOLL_ORDER+0] = {
+        # also check when _timestamp is small
+        SMALL_ORDER = 48
+        event_collection[SMALL_ORDER+0] = {
             '_name': 'ros2_caret:callback_group_add_client', '_timestamp': 400, }
-        event_collection[SMOLL_ORDER+1] = {
+        event_collection[SMALL_ORDER+1] = {
             '_name': 'ros2_caret:callback_group_add_service', '_timestamp': 400, }
-        event_collection[SMOLL_ORDER+2] = {
+        event_collection[SMALL_ORDER+2] = {
             '_name': 'ros2_caret:callback_group_add_subscription', '_timestamp': 400, }
 
         for i in range(len(event_collection)):
@@ -492,19 +493,19 @@ class TestEventCollection:
 
         init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
 
-        # 0-2 : _timestampが_timestampだけのものより若く かつ _nameでsortされる試験
+        # 0-2 : tests where _timestamp is younger than _timestamp alone and is sorted by _name
         assert init_events[0]['_timestamp'] == 400 and \
             init_events[0]['_name'] == 'ros2_caret:callback_group_add_subscription'
         assert init_events[1]['_timestamp'] == 400 and \
             init_events[1]['_name'] == 'ros2_caret:callback_group_add_service'
         assert init_events[2]['_timestamp'] == 400 and \
             init_events[2]['_name'] == 'ros2_caret:callback_group_add_client'
-        # 3-6 : _timestampでsortされる試験
+        # 3-6 : exams sorted by _timestamp
         assert init_events[3]['_timestamp'] == 500
         assert init_events[4]['_timestamp'] == 501
         assert init_events[5]['_timestamp'] == 502
         assert init_events[6]['_timestamp'] == 503
-        # 7-44 : _prioritized_init_events の並び順でsortされる試験
+        # 7-44 : tests sorted by _prioritized_init_events order
         assert init_events[7]['_timestamp'] == 600 and \
             init_events[7]['_name'] == 'ros2_caret:rcl_init'
         assert init_events[8]['_timestamp'] == 600 and \

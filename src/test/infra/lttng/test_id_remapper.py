@@ -90,7 +90,7 @@ class TestIdRemapper:
         new_handle = id_remap.register_and_get_object_id(handle, event[0])
         assert handle == new_handle
 
-        # publisher_handle(same remaped handle)
+        # publisher_handle(same remaped handle) # type: ignore
         handle = 1
         new_handle = id_remap.register_and_get_object_id(handle, event[2])
         assert 3 == new_handle
