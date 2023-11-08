@@ -377,30 +377,20 @@ class Lttng(InfraBase):
 
             handler = Ros2Handler(data, offset)
 
-            # トレースイベントの処理順が以下の様になっている必要がある
-            # (1)初期化系トレースイベントを最初にまとめて処理し、その後ランタイム系トレースイベントを処理する
-            # (2)初期化系トレースイベントを処理する際、あらかじめタイムスタンプでソートする。
-            #    タイムスタンプが同じ場合は、トレースイベントの種類により並び順を決める。
-            #    その際、依存関係の上位にある種類のイベントがより手前に来るようにする。
-            #    これは、ほぼ同時に発生した初期化系トレースポイントが同じタイムスタンプとなった場合への配慮である。
-            # init_events: list[dict] = {}
-            # run_events: list[dict] = {}
             init_events = []
             run_events = []
 
-            # 全てのトレースイベントを init_events, run_eventsに振り分ける
+            # distribute all trace events to init_events and run_events
             init_event_names = set(Lttng._prioritized_init_events)
             for event in event_collection:
                 event_name = event[LttngEventFilter.NAME]
                 if event_name in init_event_names:
                     init_events.append(event)
-                else:   # MYK test
+                else:
                     run_events.append(event)
 
-            # init_events をソートする
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
-            # 初期化系トレースイベントを処理する
             handler.create_init_handler_map()
             for event in tqdm(
                     iter(init_events),
@@ -411,27 +401,22 @@ class Lttng(InfraBase):
                 handler_ = handler.handler_map[event_name]
                 handler_(event)
 
-            # ランタイム系トレースイベントを処理する
             handler.create_runtime_handler_map()
-            # [memo] MYK
-            # このループはevent_collectionではなくrun_eventsで回す
-            #   event_collectionには50行ぐらい上ですでに処理済のinit_eventsを含んでいる
-            #   init_eventsのhandler_(event)をすると、eventからinit_timestampがなくなる
-            #   そのため、ここでhandler_(event)すると、init_timestampがないため例外となる
             filtered_event_count = 0
             for event in tqdm(
                     iter(run_events),
                     total=len(run_events),
                     desc='loading',
                     mininterval=1.0):
-                # MYK (memo)
-                # arch = Architecture('lttng', tracing_log_path)
-                #    event_filtersが設定されていて、このif文に入ってランタイム系トレースイベントはすべて処理されない。
-                #    初期化系トレースイベントは処理される。
-                # lttng = Lttng(tracing_log_path)
-                #    event_filtersは設定されないので、すべてのイベントが処理される
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
+                    # memo:
+                    # case1 : arch = Architecture('lttng', tracing_log_path)
+                    # since event_filters is set,
+                    # initialization-related trace events are processed,
+                    # but all runtime-related trace events are not processed.
+                    # case2 : lttng = Lttng(tracing_log_path)
+                    # event_filters are not set, so all events are processed
                     continue
                 if store_events:
                     event_dict = {
@@ -447,11 +432,6 @@ class Lttng(InfraBase):
             if len(event_filters) > 0:
                 print('filtered to {} events.'.format(filtered_event_count))
         else:
-            ####################################################
-            # MYK ↓のNote: によると、デバック時しか入らないようだ。
-            # こっち側は修正はしたが一度も入らないのでテストしていない
-            ####################################################
-
             # Note: giving events as arguments is used only for debugging.
             filtered_event_count = 0
             events = trace_dir_or_events
@@ -471,28 +451,24 @@ class Lttng(InfraBase):
             init_events = []
             run_events = []
 
-            # 全てのトレースイベントを init_events, run_eventsに振り分ける
+            # distribute all trace events to init_events and run_events
             init_event_names = set(Lttng._prioritized_init_events)
             for event in events:
                 event_name = event[LttngEventFilter.NAME]
                 if event_name in init_event_names:
                     init_events.append(event)
-                else:   # MYK test
+                else:
                     run_events.append(event)
 
-            # init_events をソートする
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
-            # 初期化系トレースイベントを処理する
             handler.create_init_handler_map()
             for event in init_events:
                 event_name = event[LttngEventFilter.NAME]
                 handler_ = handler.handler_map[event_name]
                 handler_(event)
 
-            # ランタイム系トレースイベントを処理する
             handler.create_runtime_handler_map()
-
             for event in run_events:
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
