@@ -222,7 +222,8 @@ class Bokeh(VisualizeLibInterface):
         x_label = x_label + label_str
         
         plot: Figure = Figure(
-            title=data_type if case is None else f'{data_type} --- {case} case ---',
+            title=f'Histogram of {data_type}'
+            if case is None else f'Histogram of {data_type} --- {case} case ---',
             x_axis_label=x_label, y_axis_label='Probability', width=800
             )
 
