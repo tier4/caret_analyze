@@ -276,7 +276,7 @@ class Bokeh(VisualizeLibInterface):
                              color=color_selector.get_color())
             legend_manager.add_legend(target_object, quad)
             hover = HoverTool(
-                tooltips=[(x_label, '@left'), ('Number', '@top')], renderers=[quad]
+                tooltips=[(x_label, '@left'), ('The number of samples', '@top')], renderers=[quad]
                 )
             plot.add_tools(hover)
 
