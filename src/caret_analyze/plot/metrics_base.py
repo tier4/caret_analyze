@@ -66,7 +66,9 @@ class MetricsBase(metaclass=ABCMeta):
             provider = converter_cb._provider
             converter = provider.get_sim_time_converter(frame_min, frame_max)
         elif isinstance(self._target_objects[0], Path):
-            pass
+            assert len(self._target_objects[0].child) > 0
+            provider = self._target_objects[0].child[0]._provider
+            converter = provider.get_sim_time_converter(frame_min, frame_max)
         else:
             provider = self._target_objects[0]._provider
             converter = provider.get_sim_time_converter(frame_min, frame_max)
