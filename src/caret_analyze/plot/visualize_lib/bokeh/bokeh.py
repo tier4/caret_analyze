@@ -217,7 +217,7 @@ class Bokeh(VisualizeLibInterface):
         plot: Figure = Figure(
             title=f'Histogram of {data_type}'
             if case is None else f'Histogram of {data_type} --- {case} case ---',
-            x_axis_label=x_label, y_axis_label='Probability', width=800
+            x_axis_label=x_label, y_axis_label='The number of samples', width=800
             )
 
         data_list: list[list[int]] = []
@@ -269,14 +269,14 @@ class Bokeh(VisualizeLibInterface):
             )
 
         for hist_type, target_object in zip(data_list, target_objects):
-            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=True)
+            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=False)
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5,
                              color=color_selector.get_color())
             legend_manager.add_legend(target_object, quad)
             hover = HoverTool(
-                tooltips=[(x_label, '@left'), ('Probability', '@top')], renderers=[quad]
+                tooltips=[(x_label, '@left'), ('The number of samples', '@top')], renderers=[quad]
                 )
             plot.add_tools(hover)
 
