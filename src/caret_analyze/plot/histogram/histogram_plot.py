@@ -26,6 +26,8 @@ from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path
+from ...record import Range
+from ...common import ClockConverter
 
 MetricsTypes = Frequency | Latency | Period | ResponseTime
 HistTypes = CallbackBase | Communication | Path
@@ -106,11 +108,33 @@ class HistogramPlot(PlotBase):
         # Validate
         self._validate_xaxis_type(xaxis_type)
 
+        # get converter
+        converter: ClockConverter | None = None
+        if xaxis_type == 'sim_time':
+            records_range = Range([to.to_records() for to in self._target_objects])
+            frame_min, frame_max = records_range.get_range()
+            if isinstance(self._target_objects[0], Communication):
+                for comm in self._target_objects:
+                    assert isinstance(comm, Communication)
+                    if comm._callback_subscription:
+                        converter_cb = comm._callback_subscription
+                        break
+                provider = converter_cb._provider
+                converter = provider.get_sim_time_converter(frame_min, frame_max)
+            elif isinstance(self._target_objects[0], Path):
+                assert len(self._target_objects[0].child) > 0
+                provider = self._target_objects[0].child[0]._provider
+                converter = provider.get_sim_time_converter(frame_min, frame_max)
+            else:
+                provider = self._target_objects[0]._provider
+                converter = provider.get_sim_time_converter(frame_min, frame_max)
+
         return self._visualize_lib.histogram(
             self._metrics,
             self._target_objects,
             self._data_type,
-            self._case
+            self._case,
+            converter
             )
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:

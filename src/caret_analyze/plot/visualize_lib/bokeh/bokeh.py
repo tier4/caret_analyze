@@ -34,7 +34,9 @@ from .timeseries import BokehTimeSeries
 from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
+from ....record import ColumnValue, Range, RecordFactory, RecordsFactory, RecordsInterface
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
+from ....common import ClockConverter
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 MetricsTypes = Frequency | Latency | Period | ResponseTime
@@ -181,7 +183,8 @@ class Bokeh(VisualizeLibInterface):
         metrics: list[MetricsTypes],
         target_objects: Sequence[HistTypes],
         data_type: str,
-        case: str | None = None
+        case: str | None = None,
+        converter: ClockConverter | None = None,
     ) -> Figure:
         """
         Get a histogram figure.
@@ -192,6 +195,8 @@ class Bokeh(VisualizeLibInterface):
             Data array to be visualized.
         target_objects : list[CallbackBase | Communication | Path]
             Object array to be visualized.
+        converter: ClockConverter
+            Time conversion function at sim_time.
         data_type : str
             Name of metrics.
             "frequency", "latency", "period" or "response_time" can be specified.
@@ -213,7 +218,9 @@ class Bokeh(VisualizeLibInterface):
             x_label = data_type + ' [ms]'
         else:
             raise NotImplementedError()
-
+        label_str = ' - simulation time -' if converter else ' - system time -'
+        x_label = x_label + label_str
+        
         plot: Figure = Figure(
             title=data_type if case is None else f'{data_type} --- {case} case ---',
             x_axis_label=x_label, y_axis_label='Probability', width=800
@@ -223,26 +230,26 @@ class Bokeh(VisualizeLibInterface):
         if data_type == 'response_time':
             if case == 'all':
                 data_list = [
-                    [_ for _ in m.to_all_records().get_column_series(data_type)
+                    [_ for _ in m.to_all_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'best':
                 data_list = [
-                    [_ for _ in m.to_best_case_records().get_column_series(data_type)
+                    [_ for _ in m.to_best_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst':
                 data_list = [
-                    [_ for _ in m.to_worst_case_records().get_column_series(data_type)
+                    [_ for _ in m.to_worst_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst-with-external-latency':
                 data_list = [
                     [_ for _ in
-                     m.to_worst_with_external_latency_case_records().get_column_series(data_type)
+                     m.to_worst_with_external_latency_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
@@ -251,7 +258,7 @@ class Bokeh(VisualizeLibInterface):
                                  "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
+                [_ for _ in m.to_records(converter=converter).get_column_series(data_type) if _ is not None]
                 for m in metrics if not isinstance(m, ResponseTime)
                 ]
 
