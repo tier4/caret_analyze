@@ -212,7 +212,7 @@ class InheritUniqueStamp(MessageContext):
         return MessageContextType.INHERIT_UNIQUE_STAMP
 
     def verify(self) -> bool:
-        return True
+        return False
 
 
 class CallbackChain(MessageContext):
