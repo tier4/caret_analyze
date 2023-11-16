@@ -184,7 +184,7 @@ class Bokeh(VisualizeLibInterface):
         target_objects: Sequence[HistTypes],
         data_type: str,
         case: str | None = None,
-        converter: ClockConverter | None = None,
+        converter: ClockConverter | None = None
     ) -> Figure:
         """
         Get a histogram figure.
@@ -195,14 +195,14 @@ class Bokeh(VisualizeLibInterface):
             Data array to be visualized.
         target_objects : list[CallbackBase | Communication | Path]
             Object array to be visualized.
-        converter: ClockConverter
-            Time conversion function at sim_time.
         data_type : str
             Name of metrics.
             "frequency", "latency", "period" or "response_time" can be specified.
         case : str
             Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time histogram graph.
+        converter: ClockConverter
+            Time conversion function at sim_time.
 
 
         Returns

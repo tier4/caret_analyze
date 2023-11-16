@@ -18,6 +18,7 @@ import pandas as pd
 
 from ...record import RecordsInterface, ResponseTime, StackedBar
 from ...runtime import Path
+from ...common import ClockConverter
 
 
 class LatencyStackedBar:
@@ -67,9 +68,15 @@ class LatencyStackedBar:
 
     def to_stacked_bar_data(
         self,
+        converter : ClockConverter | None = None
     ) -> tuple[dict[str, list[int]], list[str]]:
         """
         Get stacked bar dict and columns.
+
+        Parameters
+        ----------
+        converter : ClockConverter | None, optional
+            Converter to simulation time.
 
         Returns
         -------
@@ -80,7 +87,7 @@ class LatencyStackedBar:
         """
         response_records: RecordsInterface = \
             self._get_response_time_record(self._target_objects)
-        stacked_bar = StackedBar(response_records)
+        stacked_bar = StackedBar(response_records, converter)
         return stacked_bar.to_dict(), stacked_bar.columns
 
     def _get_response_time_record(

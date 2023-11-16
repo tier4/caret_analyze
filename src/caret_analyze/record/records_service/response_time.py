@@ -556,6 +556,8 @@ class ResponseTime:
         -------
         RecordsInterface
             Records of the all response time.
+        converter : ClockConverter | None, optional
+            Converter to simulation time.
 
         Parameters
         ----------
@@ -1111,19 +1113,19 @@ class ResponseTimeseries:
 
         return t_in, latency
 
-    def to_best_case_records(self) -> RecordsInterface:
+    def to_best_case_records(self, coverter) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[1]
         output_column = records.columns[-1]
-        return self._to_records(input_column, output_column)
+        return self._to_records(input_column, output_column, coverter)
 
-    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self, coverter) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[0]
         output_column = records.columns[-1]
-        return self._to_records(input_column, output_column)
+        return self._to_records(input_column, output_column, coverter)
 
-    def _to_records(self, input_column, output_column) -> RecordsInterface:
+    def _to_records(self, input_column, output_column, coverter) -> RecordsInterface:
         records: RecordsInterface = self._create_empty_records(input_column)
 
         range_records = self._records.to_range_records()
@@ -1131,6 +1133,9 @@ class ResponseTimeseries:
         t_out = range_records.get_column_series(output_column)
 
         for start_ts, end_ts in zip(t_in, t_out):
+            if converter:
+                start_ts = round(converter.convert(start_ts))
+                end_ts = round(converter.convert(end_ts))
             if start_ts is None or end_ts is None:
                 continue
             record = {
