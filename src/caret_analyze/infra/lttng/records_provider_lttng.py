@@ -1613,7 +1613,7 @@ class FilteredRecordsSource:
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
-        sample_records = list(grouped_records.values())[0]
+        sample_records = grouped_records[publisher_handles[0]]
         column_values = Columns.from_str(sample_records.columns).to_value()
         pub_records = RecordsFactory.create_instance(None, columns=column_values)
 
@@ -1792,6 +1792,10 @@ class FilteredRecordsSource:
     def _grouped_publish_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_publish_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
+        for records_key in group:
+            if(group[records_key].check_null() == False):
+                null_columns = group[records_key].get_null_columns()
+                group[records_key].drop_columns(null_columns)
         return self._expand_key_tuple(group)
 
     @cached_property
