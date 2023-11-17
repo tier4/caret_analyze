@@ -2285,3 +2285,29 @@ class TestRecords:
                     sink_from_key='sink_addr',
                     columns=['unknown'],
                 )
+
+    def test_check_null(self):
+        records = Records(
+            [
+                Record({'stamp0': 0, "stamp1": 1 }),
+            ],
+            [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
+        )
+        assert records.check_null() == False
+
+        records2 = Records(
+            [
+                Record({'stamp0': 0, 'stamp1': 1 }),
+            ],
+            [ColumnValue('stamp0'), ColumnValue('stamp1')]
+        )
+        assert records2.check_null()
+
+    def test_get_null_coumns(self):
+        records = Records(
+            [
+                Record({'stamp0': 0, 'stamp1': 1 }),
+            ],
+            [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
+        )
+        assert records.get_null_columns(self) == ['stamp2']
