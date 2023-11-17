@@ -290,4 +290,5 @@ class Bokeh(VisualizeLibInterface):
         legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
             plot.add_layout(legend, 'right')
+        plot.legend.click_policy = 'hide'
         return plot
