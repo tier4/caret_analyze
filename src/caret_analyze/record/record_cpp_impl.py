@@ -294,18 +294,15 @@ class RecordsCppImpl(RecordsInterface):
         return merged
 
     def check_null(self) -> bool:
-        """
-        Conpare records.coulmns with record.columns.
-        'record[0]' is representive value under the assumprion that record has same columns.
+        """Compare records.columns with record.columns.
+        'record[0]' is sample value under the assumption that record has same columns.
         """
         record = self.data[0]
         return len(record.columns) == len(self.columns)
 
-
     def get_null_columns(self) -> list[str]:
-        """
-        Conpare records.coulmns with record.columns.
-        'record[0]' is representive value under the assumprion that record has same columns.
+        """Compare records.columns with record.columns.
+        'record[0]' is sample value under the assumption that record has same columns.
         """
         record = self.data[0]
         null_columns = set(self.columns) - record.columns

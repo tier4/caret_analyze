@@ -2289,24 +2289,24 @@ class TestRecords:
     def test_check_null(self):
         records = Records(
             [
-                Record({'stamp0': 0, "stamp1": 1 }),
+                Record({'stamp0': 0, 'stamp1': 1}),
             ],
             [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
         )
-        assert records.check_null() == False
+        assert not records.check_null()
 
         records2 = Records(
             [
-                Record({'stamp0': 0, 'stamp1': 1 }),
+                Record({'stamp0': 0, 'stamp1': 1}),
             ],
             [ColumnValue('stamp0'), ColumnValue('stamp1')]
         )
         assert records2.check_null()
 
-    def test_get_null_coumns(self):
+    def test_get_null_columns(self):
         records = Records(
             [
-                Record({'stamp0': 0, 'stamp1': 1 }),
+                Record({'stamp0': 0, 'stamp1': 1}),
             ],
             [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
         )

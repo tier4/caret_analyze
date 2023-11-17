@@ -1793,7 +1793,7 @@ class FilteredRecordsSource:
         records = self._lttng.compose_publish_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         for records_key in group:
-            if(group[records_key].check_null() == False):
+            if not group[records_key].check_null():
                 null_columns = group[records_key].get_null_columns()
                 group[records_key].drop_columns(null_columns)
         return self._expand_key_tuple(group)
