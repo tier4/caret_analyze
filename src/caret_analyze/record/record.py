@@ -795,14 +795,21 @@ class Records(RecordsInterface):
 
 
     def check_null(self) -> bool:
+        """
+        Conpare records.coulmns with record.columns.
+        'record[0]' is representive value under the assumprion that record has same columns.
+        """
         record = self.data[0]
-        if(len(record.columns) == len(self.columns)):
-            return True
-        else:
-            return False
+        return len(record.columns) == len(self.columns)
+
 
     def get_null_columns(self) -> list[str]:
-        null_columns = set(self.columns) - self.data[0].columns
+        """
+        Conpare records.coulmns with record.columns.
+        'record[0]' is representive value under the assumprion that record has same columns.
+        """
+        record = self.data[0]
+        null_columns = set(self.columns) - record.columns
         return list(null_columns)
 
 
