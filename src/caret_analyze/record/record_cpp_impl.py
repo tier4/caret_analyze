@@ -292,3 +292,14 @@ class RecordsCppImpl(RecordsInterface):
         merged = RecordsCppImpl(None, column_values)
         merged._insert_records(merged_cpp_base)
         return merged
+
+    def check_null(self) -> bool:
+        record = self.data[0]
+        if(len(record.columns) == len(self.columns)):
+            return True
+        else:
+            return False
+
+    def get_null_columns(self) -> list[str]:
+        null_columns = set(self.columns) - self.data[0].columns
+        return list(null_columns)
