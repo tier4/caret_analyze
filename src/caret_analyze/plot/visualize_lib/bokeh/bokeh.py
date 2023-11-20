@@ -251,7 +251,7 @@ class Bokeh(VisualizeLibInterface):
             elif case == 'worst-with-external-latency':
                 data_list = [
                     [
-                        _ for _ in 
+                        _ for _ in
                         m.to_worst_with_external_latency_case_records(converter=converter)
                         .get_column_series(data_type)
                         if _ is not None
