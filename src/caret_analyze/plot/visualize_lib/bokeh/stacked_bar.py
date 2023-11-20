@@ -72,14 +72,15 @@ class BokehStackedBar:
         frame_min = data['start time'][0]
         frame_max = data['start time'][-1]
         x_label = 'start time'
-        converter: ClockConverter | None = None
         if self._xaxis_type == 'system_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
+            converter = None
         elif self._xaxis_type == 'index':
             x_label = 'index'
+            converter = None
         else:  # sim_time
             assert len(target_objects.child) > 0
-            provider = target_objects.child[0]._provider
+            provider = target_objects.child[0]._provider  # type: ignore
             converter = provider.get_sim_time_converter(frame_min, frame_max)
             data, y_labels = self._metrics.to_stacked_bar_data(converter)
             frame_min = converter.convert(frame_min)
@@ -92,7 +93,7 @@ class BokehStackedBar:
             color_selector.get_color()
         colors = [color_selector.get_color(y_label) for y_label in y_labels]
 
-        source = StackedBarSource(data, y_labels, self._xaxis_type, x_label, converter)
+        source = StackedBarSource(data, y_labels, self._xaxis_type, x_label, converter=converter)
         # reverse the order of y_labels to reverse the order in which bars are stacked.
         stacked_bar = fig.vbar_stack(list(reversed(y_labels)), x='start time',
                                      width='x_width_list', color=list(reversed(colors)),
