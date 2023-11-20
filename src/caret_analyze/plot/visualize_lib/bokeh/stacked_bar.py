@@ -60,10 +60,12 @@ class BokehStackedBar:
         # # get stacked bar data
         data: dict[str, list[int | float]]
         y_labels: list[str] = []
-        y_axis_label = 'latency [ms]'
+        caption = 'latency'
+        y_axis_label = caption + ' [ms]'
         target_objects = self._metrics.target_objects
         data, y_labels = self._metrics.to_stacked_bar_data()
-        title: str = f"Stacked bar of '{getattr(target_objects, 'path_name')}'"
+        path_name = target_objects.path_name
+        title: str = f'Stacked bar of response_time of {path_name} --- {self._case} case ---'
 
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
