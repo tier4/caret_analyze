@@ -17,7 +17,7 @@ from __future__ import annotations
 from bokeh.models.annotations import Legend
 from bokeh.models.renderers import GraphRenderer
 from bokeh.plotting import figure as Figure
-    
+
 from ....common import ClockConverter
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
@@ -165,7 +165,7 @@ class StackedBarSource:
             for key in data.keys():
                 if converter:
                     output_data[key] = [converter.convert(d) * unit for d in data[key]]
-                else:    
+                else:
                     output_data[key] = [d * unit for d in data[key]]
         else:
             output_data = data
