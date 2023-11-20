@@ -651,8 +651,9 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._response_map_all
-                   .to_worst_with_external_latency_case_records(converter=converter)
+        return self._response_map_all.to_worst_with_external_latency_case_records(
+            converter=converter
+        )
 
     def to_all_stacked_bar(self) -> RecordsInterface:
         """
