@@ -82,6 +82,7 @@ class MetricsBase(metaclass=ABCMeta):
                     k: round(converter.convert(v))
                     for k, v
                     in record.data.items()
+                    if isinstance(k, str)  # Skip unless k is of type str.
                 })
                 for record
                 in records
