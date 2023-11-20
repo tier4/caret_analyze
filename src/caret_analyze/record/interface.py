@@ -648,3 +648,13 @@ class RecordsInterface:
     def groupby(self, columns: list[str]) -> dict[tuple[int, ...], RecordsInterface]:
         """Split based on the value of the given column name."""
         pass
+
+    @abstractmethod
+    def check_null(self) -> bool:
+        """To dataframe, return null column exists."""
+        pass
+
+    @abstractmethod
+    def get_null_columns(self) -> list[str]:
+        """To dataframe, return null column name."""
+        pass
