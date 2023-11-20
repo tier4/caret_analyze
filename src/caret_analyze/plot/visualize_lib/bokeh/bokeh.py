@@ -250,19 +250,24 @@ class Bokeh(VisualizeLibInterface):
                     ]
             elif case == 'worst-with-external-latency':
                 data_list = [
-                    [_ for _ in
+                    [
+                        _ for _ in 
                         m.to_worst_with_external_latency_case_records(converter=converter)
-                            .get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
+                        .get_column_series(data_type)
+                        if _ is not None
                     ]
+                    for m in metrics
+                    if isinstance(m, ResponseTime)
+                ]
             else:
                 raise ValueError('optional argument "case" must be following: \
                                  "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in m.to_records(converter=converter).get_column_series(data_type)\
-                    if _ is not None]
+                [_ for _ in
+                    m.to_records(converter=converter).get_column_series(data_type)
+                    if _ is not None
+                ]
                 for m in metrics if not isinstance(m, ResponseTime)
             ]
 
