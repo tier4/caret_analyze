@@ -264,11 +264,13 @@ class Bokeh(VisualizeLibInterface):
                                  "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in
+                [
+                    _ for _ in
                     m.to_records(converter=converter).get_column_series(data_type)
                     if _ is not None
                 ]
-                for m in metrics if not isinstance(m, ResponseTime)
+                for m in metrics
+                if not isinstance(m, ResponseTime)
             ]
 
         color_selector = ColorSelectorFactory.create_instance('unique')
