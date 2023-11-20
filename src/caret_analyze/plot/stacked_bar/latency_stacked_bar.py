@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from ...record import RecordsInterface, ResponseTime, StackedBar
 from ...common import ClockConverter
+from ...record import RecordsInterface, ResponseTime, StackedBar
 from ...runtime import Path
 
 

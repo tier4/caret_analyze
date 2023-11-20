@@ -20,8 +20,8 @@ from collections.abc import Sequence
 from bokeh.plotting import figure as Figure
 
 from ..metrics_base import MetricsBase
-from ...record import Frequency, Latency, Period, ResponseTime
 from ...common import ClockConverter
+from ...record import Frequency, Latency, Period, ResponseTime
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)

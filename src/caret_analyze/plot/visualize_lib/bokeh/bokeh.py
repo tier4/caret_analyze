@@ -236,14 +236,14 @@ class Bokeh(VisualizeLibInterface):
                     ]
             elif case == 'best':
                 data_list = [
-                    [_ for _ in \
-                     m.to_best_case_records(converter=converter).get_column_series(data_type)
+                    [_ for _ in
+                        m.to_best_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst':
                 data_list = [
-                    [_ for _ in \
+                    [_ for _ in
                         m.to_worst_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
@@ -251,8 +251,8 @@ class Bokeh(VisualizeLibInterface):
             elif case == 'worst-with-external-latency':
                 data_list = [
                     [_ for _ in
-                     m.to_worst_with_external_latency_case_records(converter=converter)\
-                         .get_column_series(data_type)
+                        m.to_worst_with_external_latency_case_records(converter=converter)
+                            .get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
@@ -261,10 +261,10 @@ class Bokeh(VisualizeLibInterface):
                                  "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in m.to_records(converter=converter).get_column_series(data_type) \
+                [_ for _ in m.to_records(converter=converter).get_column_series(data_type)\
                     if _ is not None]
                 for m in metrics if not isinstance(m, ResponseTime)
-                ]
+            ]
 
         color_selector = ColorSelectorFactory.create_instance('unique')
 

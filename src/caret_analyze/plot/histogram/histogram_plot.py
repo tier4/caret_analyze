@@ -24,8 +24,8 @@ import pandas as pd
 
 from ..plot_base import PlotBase
 from ..visualize_lib import VisualizeLibInterface
-from ...exceptions import UnsupportedTypeError
 from ...common import ClockConverter
+from ...exceptions import UnsupportedTypeError
 from ...record import Range
 from ...runtime import CallbackBase, Communication, Path
 
