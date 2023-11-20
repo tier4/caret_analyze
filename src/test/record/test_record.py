@@ -2310,4 +2310,4 @@ class TestRecords:
             ],
             [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
         )
-        assert records.get_null_columns(self) == ['stamp2']
+        assert records.get_null_columns() == ['stamp2']
