@@ -18,9 +18,9 @@ from bokeh.models.annotations import Legend
 from bokeh.models.renderers import GraphRenderer
 from bokeh.plotting import figure as Figure
 
-from ....common import ClockConverter
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
+from ....common import ClockConverter
 
 
 class BokehStackedBar:

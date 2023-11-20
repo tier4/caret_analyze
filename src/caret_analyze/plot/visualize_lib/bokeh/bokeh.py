@@ -34,9 +34,8 @@ from .timeseries import BokehTimeSeries
 from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
-from ....record import ColumnValue, Range, RecordFactory, RecordsFactory, RecordsInterface
-from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 from ....common import ClockConverter
+from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
 MetricsTypes = Frequency | Latency | Period | ResponseTime
@@ -237,20 +236,23 @@ class Bokeh(VisualizeLibInterface):
                     ]
             elif case == 'best':
                 data_list = [
-                    [_ for _ in m.to_best_case_records(converter=converter).get_column_series(data_type)
+                    [_ for _ in \
+                     m.to_best_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst':
                 data_list = [
-                    [_ for _ in m.to_worst_case_records(converter=converter).get_column_series(data_type)
+                    [_ for _ in \
+                        m.to_worst_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst-with-external-latency':
                 data_list = [
                     [_ for _ in
-                     m.to_worst_with_external_latency_case_records(converter=converter).get_column_series(data_type)
+                     m.to_worst_with_external_latency_case_records(converter=converter)\
+                         .get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
@@ -259,7 +261,8 @@ class Bokeh(VisualizeLibInterface):
                                  "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in m.to_records(converter=converter).get_column_series(data_type) if _ is not None]
+                [_ for _ in m.to_records(converter=converter).get_column_series(data_type) \
+                    if _ is not None]
                 for m in metrics if not isinstance(m, ResponseTime)
                 ]
 

@@ -83,7 +83,7 @@ class BokehTimeSeries:
                         break
             elif isinstance(target_objects[0], Path):
                 assert len(target_objects[0].child) > 0
-                provider = target_objects[0].child[0]._provider # type: ignore
+                provider = target_objects[0].child[0]._provider  # type: ignore
                 converter = provider.get_sim_time_converter(frame_min, frame_max)
             else:
                 provider = target_objects[0]._provider

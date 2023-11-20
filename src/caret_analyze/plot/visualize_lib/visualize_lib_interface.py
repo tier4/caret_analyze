@@ -21,8 +21,8 @@ from bokeh.plotting import figure as Figure
 
 from ..metrics_base import MetricsBase
 from ...record import Frequency, Latency, Period, ResponseTime
-from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 from ...common import ClockConverter
+from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
 MetricsTypes = Frequency | Latency | Period | ResponseTime

@@ -91,7 +91,8 @@ class Period:
             if converter:
                 record = {
                     self._target_column: round(converter.convert(self._target_timestamps[i-1])),
-                    'period': round(converter.convert(self._target_timestamps[i]) - converter.convert(self._target_timestamps[i-1]))
+                    'period': round(converter.convert(self._target_timestamps[i]) \
+                        - converter.convert(self._target_timestamps[i-1]))
                 }
             else:
                 record = {

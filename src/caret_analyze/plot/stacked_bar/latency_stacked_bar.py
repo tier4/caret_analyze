@@ -17,8 +17,8 @@ from __future__ import annotations
 import pandas as pd
 
 from ...record import RecordsInterface, ResponseTime, StackedBar
-from ...runtime import Path
 from ...common import ClockConverter
+from ...runtime import Path
 
 
 class LatencyStackedBar:
@@ -68,7 +68,7 @@ class LatencyStackedBar:
 
     def to_stacked_bar_data(
         self,
-        converter : ClockConverter | None = None
+        converter: ClockConverter | None = None
     ) -> tuple[dict[str, list[int]], list[str]]:
         """
         Get stacked bar dict and columns.
