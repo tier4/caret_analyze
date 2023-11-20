@@ -1113,19 +1113,19 @@ class ResponseTimeseries:
 
         return t_in, latency
 
-    def to_best_case_records(self, coverter) -> RecordsInterface:
+    def to_best_case_records(self, converter) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[1]
         output_column = records.columns[-1]
-        return self._to_records(input_column, output_column, coverter)
+        return self._to_records(input_column, output_column, converter)
 
-    def to_worst_with_external_latency_case_records(self, coverter) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self, converter) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[0]
         output_column = records.columns[-1]
-        return self._to_records(input_column, output_column, coverter)
+        return self._to_records(input_column, output_column, converter)
 
-    def _to_records(self, input_column, output_column, coverter) -> RecordsInterface:
+    def _to_records(self, input_column, output_column, converter) -> RecordsInterface:
         records: RecordsInterface = self._create_empty_records(input_column)
 
         range_records = self._records.to_range_records()
