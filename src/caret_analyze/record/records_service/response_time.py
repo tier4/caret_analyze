@@ -289,7 +289,7 @@ class ResponseMapAll:
                 start_ts = round(converter.convert(start_ts))
                 end_ts = round(converter.convert(end_ts))
                 prev_start_ts = round(converter.convert(prev_start_ts))
-                
+
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
@@ -563,7 +563,7 @@ class ResponseTime:
         ----------
         converter : ClockConverter | None, optional
             Converter to simulation time.
-        
+
             Columns
             - {columns[0]}
             - {'response_time'}
@@ -585,7 +585,7 @@ class ResponseTime:
         ----------
         converter : ClockConverter | None, optional
             Converter to simulation time.
-        
+
         Returns
         -------
         RecordsInterface
@@ -612,7 +612,7 @@ class ResponseTime:
         ----------
         converter : ClockConverter | None, optional
             Converter to simulation time.
-        
+
         Returns
         -------
         RecordsInterface
@@ -640,7 +640,7 @@ class ResponseTime:
         ----------
         converter : ClockConverter | None, optional
             Converter to simulation time.
-        
+
         Returns
         -------
         RecordsInterface

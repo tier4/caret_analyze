@@ -38,7 +38,7 @@ class StackedBar:
             Records of response time.
         converter : ClockConverter | None, optional
             Converter to simulation time.
-        
+
         Raises
         ------
         ValueError

@@ -220,7 +220,7 @@ class Bokeh(VisualizeLibInterface):
             raise NotImplementedError()
         label_str = ' - simulation time -' if converter else ' - system time -'
         x_label = x_label + label_str
-        
+
         plot: Figure = Figure(
             title=f'Histogram of {data_type}'
             if case is None else f'Histogram of {data_type} --- {case} case ---',

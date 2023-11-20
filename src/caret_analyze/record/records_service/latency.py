@@ -68,7 +68,7 @@ class Latency:
         ----------
         converter : ClockConverter | None, optional
             Converter to simulation time.
-        
+
         Returns
         -------
         RecordsInterface

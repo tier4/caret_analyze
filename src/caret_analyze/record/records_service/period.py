@@ -75,7 +75,7 @@ class Period:
         ----------
         converter : ClockConverter | None, optional
             Converter to simulation time.
-        
+
         Returns
         -------
         RecordsInterface
