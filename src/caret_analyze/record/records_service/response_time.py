@@ -1116,7 +1116,6 @@ class ResponseTimeseries:
 
     def to_best_case_records(
         self,
-        self,
         converter: ClockConverter | None = None
     ) -> RecordsInterface:
         records = self._records.to_range_records()
