@@ -1795,7 +1795,9 @@ class FilteredRecordsSource:
         for records_key in group:
             if not group[records_key].check_null():
                 null_columns = group[records_key].get_null_columns()
-                group[records_key].drop_columns(null_columns)
+                drop_list = {COLUMN_NAME.RCL_PUBLISH_TIMESTAMP, COLUMN_NAME.DDS_WRITE_TIMESTAMP}
+                columns = list(drop_list & set(null_columns))
+                group[records_key].drop_columns(columns)
         return self._expand_key_tuple(group)
 
     @cached_property
