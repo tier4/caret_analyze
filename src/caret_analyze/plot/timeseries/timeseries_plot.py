@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import TypeAlias
+
 from bokeh.plotting import figure as Figure
 
 import pandas as pd
@@ -24,7 +26,7 @@ from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+TimeSeriesTypes: TypeAlias = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class TimeSeriesPlot(PlotBase):

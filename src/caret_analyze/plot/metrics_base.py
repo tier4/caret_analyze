@@ -16,13 +16,14 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from collections.abc import Sequence
+from typing import TypeAlias
 
 import pandas as pd
 
 from ..record import ColumnValue, Range, RecordFactory, RecordsFactory, RecordsInterface
 from ..runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+TimeSeriesTypes: TypeAlias = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class MetricsBase(metaclass=ABCMeta):

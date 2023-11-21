@@ -18,6 +18,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from functools import cached_property, lru_cache
 from logging import getLogger, WARN
+from typing import TypeAlias
 
 
 from caret_analyze.infra.lttng.value_objects.timer_control import TimerInit
@@ -1062,7 +1063,7 @@ class DataFrameFormatted:
 
         return subscriptions
 
-    KeyType = tuple[int | str, int | str, str | int]
+    KeyType: TypeAlias = tuple[int | str, int | str, str | int]
 
     @staticmethod
     def _add_construction_order(
@@ -1088,7 +1089,7 @@ class DataFrameFormatted:
 
         data.add_column(column_name, construct_order)
 
-    KeyTypePubSub = tuple[int | str, str | int]
+    KeyTypePubSub: TypeAlias = tuple[int | str, str | int]
 
     @staticmethod
     def _add_construction_order_publisher_or_subscription(

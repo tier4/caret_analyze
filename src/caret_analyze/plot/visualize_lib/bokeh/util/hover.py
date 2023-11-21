@@ -16,14 +16,14 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
-from typing import Any
+from typing import Any, TypeAlias
 
 from bokeh.models import HoverTool
 
 from .....exceptions import InvalidArgumentError
 from .....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TargetTypes = (CallbackBase | Communication | Path | (Publisher | Subscription)) | Path
+TargetTypes: TypeAlias = (CallbackBase | Communication | Path | (Publisher | Subscription))
 
 logger = getLogger(__name__)
 

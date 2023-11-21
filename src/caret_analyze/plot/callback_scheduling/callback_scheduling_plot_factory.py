@@ -15,14 +15,15 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TypeAlias
 
 from .callback_scheduling_plot import CallbackSchedulingPlot
 from ..visualize_lib import VisualizeLibInterface
 from ...common import type_check_decorator
 from ...runtime import Application, CallbackGroup, Executor, Node, Path
 
-CallbackGroupTypes = (Application | Executor | Path | Node |
-                      CallbackGroup | Sequence[CallbackGroup])
+CallbackGroupTypes: TypeAlias = (Application | Executor | Path | Node |
+                                 CallbackGroup | Sequence[CallbackGroup])
 
 
 class CallbackSchedulingPlotFactory:

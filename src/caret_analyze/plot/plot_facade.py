@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Collection
 from logging import getLogger
-from typing import Any
+from typing import Any, TypeAlias
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
 from .histogram import HistogramPlotFactory
@@ -30,9 +30,9 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 
 logger = getLogger(__name__)
 
-TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription | Path
-CallbackSchedTypes = (Application | Executor | Path |
-                      Node | CallbackGroup | Collection[CallbackGroup])
+TimeSeriesTypes: TypeAlias = CallbackBase | Communication | Publisher | Subscription | Path
+CallbackSchedTypes: TypeAlias = (Application | Executor | Path |
+                                 Node | CallbackGroup | Collection[CallbackGroup])
 
 
 def parse_collection_or_unpack(

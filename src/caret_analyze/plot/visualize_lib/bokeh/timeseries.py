@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, TypeAlias
 
 from bokeh.models import HoverTool
 from bokeh.plotting import ColumnDataSource, figure as Figure
@@ -28,7 +28,7 @@ from ....common import ClockConverter
 from ....record import Range, RecordsInterface
 from ....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+TimeSeriesTypes: TypeAlias = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class BokehTimeSeries:

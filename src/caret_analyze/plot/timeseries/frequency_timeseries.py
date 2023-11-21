@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TypeAlias
 
 import pandas as pd
 
@@ -22,7 +23,7 @@ from ..metrics_base import MetricsBase
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
+TimeSeriesTypes: TypeAlias = CallbackBase | Communication | (Publisher | Subscription)
 
 
 class FrequencyTimeSeries(MetricsBase):

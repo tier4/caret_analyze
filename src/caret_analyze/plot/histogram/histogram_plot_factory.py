@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TypeAlias
 
 from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
@@ -24,8 +25,8 @@ from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path
 
-MetricsType = Frequency | Latency | Period | ResponseTime
-HistTypes = CallbackBase | Communication | Path
+MetricsType: TypeAlias = Frequency | Latency | Period | ResponseTime
+HistTypes: TypeAlias = CallbackBase | Communication | Path
 
 
 class HistogramPlotFactory:

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from logging import getLogger
+from typing import TypeAlias
 
 from bokeh.models import HoverTool
 from bokeh.models.renderers import GlyphRenderer
@@ -36,9 +37,9 @@ from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
-MetricsTypes = Frequency | Latency | Period | ResponseTime
-HistTypes = CallbackBase | Communication | Path
+TimeSeriesTypes: TypeAlias = CallbackBase | Communication | (Publisher | Subscription) | Path
+MetricsTypes: TypeAlias = Frequency | Latency | Period | ResponseTime
+HistTypes: TypeAlias = CallbackBase | Communication | Path
 
 
 logger = getLogger(__name__)
