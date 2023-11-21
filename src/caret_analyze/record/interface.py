@@ -656,5 +656,5 @@ class RecordsInterface:
 
     @abstractmethod
     def get_null_columns(self) -> list[str]:
-        """To dataframe, return null column name."""
+        """To dataframe, return null columns name."""
         pass
