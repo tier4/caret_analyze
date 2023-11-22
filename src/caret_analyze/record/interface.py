@@ -648,4 +648,3 @@ class RecordsInterface:
     def groupby(self, columns: list[str]) -> dict[tuple[int, ...], RecordsInterface]:
         """Split based on the value of the given column name."""
         pass
-
