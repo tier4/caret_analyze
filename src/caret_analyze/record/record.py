@@ -793,10 +793,11 @@ class Records(RecordsInterface):
 
         return group
 
-    def has_mismatched_columns(self) -> bool:
+    def has_matched_columns(self) -> bool:
         """
         Compare records.columns with record.columns.
 
+        If records has mismatched columns compared to record, return False.
         'record[0]' is sample value under the assumption that record has same columns.
         """
         record = self.data[0]

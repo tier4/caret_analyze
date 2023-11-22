@@ -1793,7 +1793,7 @@ class FilteredRecordsSource:
         records = self._lttng.compose_publish_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
         for records_key in group:
-            if not group[records_key].has_mismatched_columns():
+            if not group[records_key].has_matched_columns():
                 null_columns = group[records_key].get_null_columns()
                 optional_columns = {
                     COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
