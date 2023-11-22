@@ -1795,7 +1795,10 @@ class FilteredRecordsSource:
         for records_key in group:
             if not group[records_key].has_mismatched_columns():
                 null_columns = group[records_key].get_null_columns()
-                optional_columns = {COLUMN_NAME.RCL_PUBLISH_TIMESTAMP, COLUMN_NAME.DDS_WRITE_TIMESTAMP}
+                optional_columns = {
+                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.DDS_WRITE_TIMESTAMP
+                    }
                 mismatched_columns = list(optional_columns & set(null_columns))
                 group[records_key].drop_columns(mismatched_columns)
         return self._expand_key_tuple(group)
