@@ -649,12 +649,3 @@ class RecordsInterface:
         """Split based on the value of the given column name."""
         pass
 
-    @abstractmethod
-    def has_matched_columns(self) -> bool:
-        """To dataframe, return null column exists."""
-        pass
-
-    @abstractmethod
-    def get_null_columns(self) -> list[str]:
-        """To dataframe, return null columns name."""
-        pass

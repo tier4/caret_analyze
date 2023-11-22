@@ -292,23 +292,3 @@ class RecordsCppImpl(RecordsInterface):
         merged = RecordsCppImpl(None, column_values)
         merged._insert_records(merged_cpp_base)
         return merged
-
-    def has_matched_columns(self) -> bool:
-        """
-        Compare records.columns with record.columns.
-
-        If records has mismatched columns compared to record, return False.
-        'record[0]' is sample value under the assumption that record has same columns.
-        """
-        record = self.data[0]
-        return len(record.columns) == len(self.columns)
-
-    def get_null_columns(self) -> list[str]:
-        """
-        Compare records.columns with record.columns.
-
-        'record[0]' is sample value under the assumption that record has same columns.
-        """
-        record = self.data[0]
-        null_columns = set(self.columns) - record.columns
-        return list(null_columns)

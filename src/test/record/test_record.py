@@ -2285,29 +2285,3 @@ class TestRecords:
                     sink_from_key='sink_addr',
                     columns=['unknown'],
                 )
-
-    def test_has_matched_columns(self):
-        records = Records(
-            [
-                Record({'stamp0': 0, 'stamp1': 1}),
-            ],
-            [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
-        )
-        assert not records.has_matched_columns()
-
-        records2 = Records(
-            [
-                Record({'stamp0': 0, 'stamp1': 1}),
-            ],
-            [ColumnValue('stamp0'), ColumnValue('stamp1')]
-        )
-        assert records2.has_matched_columns()
-
-    def test_get_null_columns(self):
-        records = Records(
-            [
-                Record({'stamp0': 0, 'stamp1': 1}),
-            ],
-            [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
-        )
-        assert records.get_null_columns() == ['stamp2']
