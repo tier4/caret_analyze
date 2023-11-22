@@ -793,7 +793,7 @@ class Records(RecordsInterface):
 
         return group
 
-    def check_null(self) -> bool:
+    def has_mismatched_columns(self) -> bool:
         """
         Compare records.columns with record.columns.
 

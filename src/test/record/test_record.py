@@ -2286,14 +2286,14 @@ class TestRecords:
                     columns=['unknown'],
                 )
 
-    def test_check_null(self):
+    def test_has_mismatched_columns(self):
         records = Records(
             [
                 Record({'stamp0': 0, 'stamp1': 1}),
             ],
             [ColumnValue('stamp0'), ColumnValue('stamp1'), ColumnValue('stamp2')]
         )
-        assert not records.check_null()
+        assert not records.has_mismatched_columns()
 
         records2 = Records(
             [
@@ -2301,7 +2301,7 @@ class TestRecords:
             ],
             [ColumnValue('stamp0'), ColumnValue('stamp1')]
         )
-        assert records2.check_null()
+        assert records2.has_mismatched_columns()
 
     def test_get_null_columns(self):
         records = Records(

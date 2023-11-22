@@ -650,7 +650,7 @@ class RecordsInterface:
         pass
 
     @abstractmethod
-    def check_null(self) -> bool:
+    def has_mismatched_columns(self) -> bool:
         """To dataframe, return null column exists."""
         pass
 

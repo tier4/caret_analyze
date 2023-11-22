@@ -293,7 +293,7 @@ class RecordsCppImpl(RecordsInterface):
         merged._insert_records(merged_cpp_base)
         return merged
 
-    def check_null(self) -> bool:
+    def has_mismatched_columns(self) -> bool:
         """
         Compare records.columns with record.columns.
 
