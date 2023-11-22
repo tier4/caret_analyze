@@ -1800,10 +1800,13 @@ class FilteredRecordsSource:
         """
         for records_key in group:
             sample_records_columns = set(group[records_key].columns)
-            sample_record_columns:set = group[records_key].data[0].columns
+            sample_record_columns: set = group[records_key].data[0].columns
             mismatched_columns = sample_records_columns - sample_record_columns
             if mismatched_columns:
-                optional_columns = {COLUMN_NAME.RCL_PUBLISH_TIMESTAMP, COLUMN_NAME.DDS_WRITE_TIMESTAMP}
+                optional_columns = {
+                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.DDS_WRITE_TIMESTAMP
+                    }
                 drop_columns = list(optional_columns & mismatched_columns)
                 group[records_key].drop_columns(drop_columns)
         return self._expand_key_tuple(group)
