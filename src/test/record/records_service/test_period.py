@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from caret_analyze.common import ClockConverter
 from caret_analyze.record import ColumnValue, Period, RecordInterface
 from caret_analyze.record.record_factory import RecordsFactory
+
+import pytest
 
 
 def create_records(records_raw, columns):
@@ -30,9 +33,31 @@ def to_dict(records):
     return [record.data for record in records]
 
 
+class Converter:
+
+    def __init__(self):
+        self._system_times = [0, 1, 2, 3, 4]
+        self._sim_times = [20, 21, 22, 23, 24]
+        self._converter = ClockConverter.create_from_series(self._system_times, self._sim_times)
+
+    def convert(self, v):
+        return self._converter.convert(v)
+
+    def rconvert(self, v):
+        return round(self._converter.convert(v))
+
+    def get_converter(self):
+        return self._converter
+
+
+@pytest.fixture(scope='module')
+def create_converter():
+    return Converter()
+
+
 class TestPeriodRecords:
 
-    def test_empty_case(self):
+    def test_empty_case(self, create_converter):
         records_raw = [
         ]
         columns = [ColumnValue('timestamp')]
@@ -45,7 +70,10 @@ class TestPeriodRecords:
         result = to_dict(period.to_records())
         assert result == expect_raw
 
-    def test_one_column_default_case(self):
+        result = to_dict(period.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_one_column_default_case(self, create_converter):
         records_raw = [
             {'timestamp': 0},
             {'timestamp': 1},
@@ -65,7 +93,15 @@ class TestPeriodRecords:
         result = to_dict(period.to_records())
         assert result == expect_raw
 
-    def test_two_column_default_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.rconvert(0), 'period': 1},
+            {'timestamp': create_converter.rconvert(1), 'period': 10},
+            {'timestamp': create_converter.rconvert(11), 'period': 1}
+        ]
+        result = to_dict(period.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_two_column_default_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3, 'timestamp2': 4},
@@ -85,7 +121,15 @@ class TestPeriodRecords:
         result = to_dict(period.to_records())
         assert result == expect_raw
 
-    def test_specify_target_column_case(self):
+        expect_raw = [
+            {'timestamp1': create_converter.rconvert(0), 'period': 3},
+            {'timestamp1': create_converter.rconvert(3), 'period': 8},
+            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+        ]
+        result = to_dict(period.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_specify_target_column_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3, 'timestamp2': 4},
@@ -105,7 +149,15 @@ class TestPeriodRecords:
         result = to_dict(period.to_records())
         assert result == expect_raw
 
-    def test_drop_case(self):
+        expect_raw = [
+            {'timestamp2': create_converter.rconvert(2), 'period': 2},
+            {'timestamp2': create_converter.rconvert(4), 'period': 8},
+            {'timestamp2': create_converter.rconvert(12), 'period': 2}
+        ]
+        result = to_dict(period.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_drop_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp2': 4},
@@ -124,7 +176,14 @@ class TestPeriodRecords:
         result = to_dict(period.to_records())
         assert result == expect_raw
 
-    def test_two_column_drop_non_target_column_case(self):
+        expect_raw = [
+            {'timestamp1': create_converter.rconvert(0), 'period': 11},
+            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+        ]
+        result = to_dict(period.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_two_column_drop_non_target_column_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3},
@@ -144,7 +203,15 @@ class TestPeriodRecords:
         result = to_dict(period.to_records())
         assert result == expect_raw
 
-    def test_two_column_apply_row_filter_case(self):
+        expect_raw = [
+            {'timestamp1': create_converter.rconvert(0), 'period': 3},
+            {'timestamp1': create_converter.rconvert(3), 'period': 8},
+            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+        ]
+        result = to_dict(period.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_two_column_apply_row_filter_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3},
@@ -170,4 +237,11 @@ class TestPeriodRecords:
             {'timestamp1': 11, 'period': 2}
         ]
         result = to_dict(period.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'timestamp1': create_converter.rconvert(0), 'period': 11},
+            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+        ]
+        result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
