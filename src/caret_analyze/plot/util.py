@@ -45,5 +45,3 @@ def get_clock_converter(
         converter = provider.get_sim_time_converter(frame_min, frame_max)
 
     return converter
-
-
