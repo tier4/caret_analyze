@@ -217,8 +217,6 @@ class Bokeh(VisualizeLibInterface):
             x_label = data_type + ' [ms]'
         else:
             raise NotImplementedError()
-        label_str = ' - simulation time -' if converter else ' - system time -'
-        x_label = x_label + label_str
 
         plot: Figure = Figure(
             title=f'Histogram of {data_type}'
@@ -300,5 +298,4 @@ class Bokeh(VisualizeLibInterface):
         legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
             plot.add_layout(legend, 'right')
-        plot.legend.click_policy = 'hide'
         return plot

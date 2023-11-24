@@ -85,8 +85,7 @@ class BokehStackedBar:
             data, y_labels = self._metrics.to_stacked_bar_data(converter)
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
-            x_range_name = 'x_plot_axis'
-            apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
+            apply_x_axis_offset(fig, frame_min, frame_max)
 
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         if self._case == 'best':
@@ -129,7 +128,7 @@ class StackedBarSource:
 
         # Convert the data unit to second
         data = self._updated_with_unit(data, y_labels, 1e-6)
-        data = self._updated_with_unit(data, ['start time'], 1e-9, converter)
+        data = self._updated_with_unit(data, [x_label], 1e-9, converter)
 
         # Calculate the stacked y values
         for prev_, next_ in zip(reversed(y_labels[:-1]), reversed(y_labels[1:])):
