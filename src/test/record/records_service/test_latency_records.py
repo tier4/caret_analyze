@@ -45,7 +45,7 @@ class Converter:
     def convert(self, v):
         return self._converter.convert(v)
 
-    def rconvert(self, v):
+    def round_convert(self, v):
         return round(self._converter.convert(v))
 
     def get_converter(self):
@@ -95,9 +95,9 @@ class TestLatencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.rconvert(0), 'latency': 2},
-            {'start': create_converter.rconvert(3), 'latency': 1},
-            {'start': create_converter.rconvert(11), 'latency': 1}
+            {'start': create_converter.round_convert(0), 'latency': 2},
+            {'start': create_converter.round_convert(3), 'latency': 1},
+            {'start': create_converter.round_convert(11), 'latency': 1}
         ]
         result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -122,9 +122,9 @@ class TestLatencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.rconvert(0), 'latency': 2},
-            {'start': create_converter.rconvert(3), 'latency': 2},
-            {'start': create_converter.rconvert(11), 'latency': 2}
+            {'start': create_converter.round_convert(0), 'latency': 2},
+            {'start': create_converter.round_convert(3), 'latency': 2},
+            {'start': create_converter.round_convert(11), 'latency': 2}
         ]
         result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -149,9 +149,9 @@ class TestLatencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.rconvert(0), 'latency': 1},
-            {'start': create_converter.rconvert(3), 'latency': 1},
-            {'start': create_converter.rconvert(11), 'latency': 1}
+            {'start': create_converter.round_convert(0), 'latency': 1},
+            {'start': create_converter.round_convert(3), 'latency': 1},
+            {'start': create_converter.round_convert(11), 'latency': 1}
         ]
         result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -175,8 +175,8 @@ class TestLatencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'start': create_converter.rconvert(0), 'latency': 2},
-            {'start': create_converter.rconvert(11), 'latency': 1}
+            {'start': create_converter.round_convert(0), 'latency': 2},
+            {'start': create_converter.round_convert(11), 'latency': 1}
         ]
         result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw

@@ -43,7 +43,7 @@ class Converter:
     def convert(self, v):
         return self._converter.convert(v)
 
-    def rconvert(self, v):
+    def round_convert(self, v):
         return round(self._converter.convert(v))
 
     def get_converter(self):
@@ -94,9 +94,9 @@ class TestPeriodRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(0), 'period': 1},
-            {'timestamp': create_converter.rconvert(1), 'period': 10},
-            {'timestamp': create_converter.rconvert(11), 'period': 1}
+            {'timestamp': create_converter.round_convert(0), 'period': 1},
+            {'timestamp': create_converter.round_convert(1), 'period': 10},
+            {'timestamp': create_converter.round_convert(11), 'period': 1}
         ]
         result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -122,9 +122,9 @@ class TestPeriodRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'period': 3},
-            {'timestamp1': create_converter.rconvert(3), 'period': 8},
-            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+            {'timestamp1': create_converter.round_convert(0), 'period': 3},
+            {'timestamp1': create_converter.round_convert(3), 'period': 8},
+            {'timestamp1': create_converter.round_convert(11), 'period': 2}
         ]
         result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -150,9 +150,9 @@ class TestPeriodRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp2': create_converter.rconvert(2), 'period': 2},
-            {'timestamp2': create_converter.rconvert(4), 'period': 8},
-            {'timestamp2': create_converter.rconvert(12), 'period': 2}
+            {'timestamp2': create_converter.round_convert(2), 'period': 2},
+            {'timestamp2': create_converter.round_convert(4), 'period': 8},
+            {'timestamp2': create_converter.round_convert(12), 'period': 2}
         ]
         result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -177,8 +177,8 @@ class TestPeriodRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'period': 11},
-            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+            {'timestamp1': create_converter.round_convert(0), 'period': 11},
+            {'timestamp1': create_converter.round_convert(11), 'period': 2}
         ]
         result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -204,9 +204,9 @@ class TestPeriodRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'period': 3},
-            {'timestamp1': create_converter.rconvert(3), 'period': 8},
-            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+            {'timestamp1': create_converter.round_convert(0), 'period': 3},
+            {'timestamp1': create_converter.round_convert(3), 'period': 8},
+            {'timestamp1': create_converter.round_convert(11), 'period': 2}
         ]
         result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
@@ -240,8 +240,8 @@ class TestPeriodRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'period': 11},
-            {'timestamp1': create_converter.rconvert(11), 'period': 2}
+            {'timestamp1': create_converter.round_convert(0), 'period': 11},
+            {'timestamp1': create_converter.round_convert(11), 'period': 2}
         ]
         result = to_dict(period.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw

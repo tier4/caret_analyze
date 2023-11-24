@@ -44,7 +44,7 @@ class Converter:
     def convert(self, v):
         return self._converter.convert(v)
 
-    def rconvert(self, v):
+    def round_convert(self, v):
         return round(self._converter.convert(v))
 
     def get_converter(self):
@@ -95,8 +95,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(0), 'frequency': 2},
-            {'timestamp': create_converter.rconvert(10), 'frequency': 3}
+            {'timestamp': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(10), 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
@@ -123,9 +123,9 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(
+            {'timestamp': create_converter.round_convert(
                 1000000000), 'frequency': 4},
-            {'timestamp': create_converter.rconvert(
+            {'timestamp': create_converter.round_convert(
                 3000000000), 'frequency': 1}
         ]
         result = to_dict(frequency.to_records(
@@ -154,8 +154,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(4), 'frequency': 4},
-            {'timestamp': create_converter.rconvert(14), 'frequency': 1}
+            {'timestamp': create_converter.round_convert(4), 'frequency': 4},
+            {'timestamp': create_converter.round_convert(14), 'frequency': 1}
         ]
         result = to_dict(frequency.to_records(interval_ns=10,
                                               base_timestamp=4,
@@ -180,8 +180,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(5), 'frequency': 2},
-            {'timestamp': create_converter.rconvert(15), 'frequency': 0},
+            {'timestamp': create_converter.round_convert(5), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(15), 'frequency': 0},
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, until_timestamp=20, converter=create_converter.get_converter()))
@@ -208,8 +208,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'frequency': 2},
-            {'timestamp1': create_converter.rconvert(10), 'frequency': 3}
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
@@ -236,8 +236,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp2': create_converter.rconvert(2), 'frequency': 2},
-            {'timestamp2': create_converter.rconvert(12), 'frequency': 3}
+            {'timestamp2': create_converter.round_convert(2), 'frequency': 2},
+            {'timestamp2': create_converter.round_convert(12), 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
@@ -264,8 +264,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'frequency': 1},
-            {'timestamp1': create_converter.rconvert(10), 'frequency': 3}
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 1},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
@@ -291,7 +291,7 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(0), 'frequency': 5}
+            {'timestamp': create_converter.round_convert(0), 'frequency': 5}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
@@ -319,9 +319,9 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(0), 'frequency': 2},
-            {'timestamp': create_converter.rconvert(10), 'frequency': 0},
-            {'timestamp': create_converter.rconvert(20), 'frequency': 3}
+            {'timestamp': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(10), 'frequency': 0},
+            {'timestamp': create_converter.round_convert(20), 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
@@ -349,8 +349,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp': create_converter.rconvert(10), 'frequency': 2},
-            {'timestamp': create_converter.rconvert(20), 'frequency': 1}
+            {'timestamp': create_converter.round_convert(10), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(20), 'frequency': 1}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, base_timestamp=10, converter=create_converter.get_converter()))
@@ -377,8 +377,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'frequency': 2},
-            {'timestamp1': create_converter.rconvert(10), 'frequency': 3}
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
@@ -415,8 +415,8 @@ class TestFrequencyRecords:
         assert result == expect_raw
 
         expect_raw = [
-            {'timestamp1': create_converter.rconvert(0), 'frequency': 1},
-            {'timestamp1': create_converter.rconvert(10), 'frequency': 3}
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 1},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(
             interval_ns=10, converter=create_converter.get_converter()))
