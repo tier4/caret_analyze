@@ -23,11 +23,10 @@ from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 import pandas as pd
 
 from ..plot_base import PlotBase
-from ..visualize_lib import VisualizeLibInterface
 from ..util import get_clock_converter
+from ..visualize_lib import VisualizeLibInterface
 from ...common import ClockConverter
 from ...exceptions import UnsupportedTypeError
-from ...record import Range
 from ...runtime import CallbackBase, Communication, Path
 
 MetricsTypes = Frequency | Latency | Period | ResponseTime

@@ -112,7 +112,8 @@ class ResponseTimeTimeSeries(MetricsBase):
             elif self._case == 'best':
                 response_timeseries_list.append(response.to_best_case_records(converter=converter))
             elif self._case == 'worst':
-                response_timeseries_list.append(response.to_worst_case_records(converter=converter))
+                response_timeseries_list.append(response.to_worst_case_records(
+                    converter=converter))
             elif self._case == 'worst-with-external-latency':
                 response_timeseries_list.append(
                     response.to_worst_with_external_latency_case_records(converter=converter))

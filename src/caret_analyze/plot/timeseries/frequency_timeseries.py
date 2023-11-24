@@ -118,7 +118,9 @@ class FrequencyTimeSeries(MetricsBase):
         if xaxis_type == 'sim_time':
             converter = get_clock_converter(self._target_objects)
 
-        min_time, max_time = self._get_timestamp_range(timeseries_records_list, converter=converter)
+        min_time, max_time = self._get_timestamp_range(
+            timeseries_records_list,
+            converter=converter)
 
         frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
