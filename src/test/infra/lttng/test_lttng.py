@@ -556,7 +556,7 @@ class TestLttng:
                 'publisher_handle': HDL_PUBLISHER,
                 'node_handle': HDL_NODE,
                 'rmw_publisher_handle': HDL_RMW_PUBLISHER,
-                '_timestamp': 100100202,  # Note: This value is correct(node1<pub1<node2)
+                '_timestamp': 100100202,
                 'topic_name': 'my_topic_name',
                 'queue_depth': 1,
                 '_vtid': VTID1,
@@ -578,7 +578,7 @@ class TestLttng:
                 'subscription_handle': HDL_SUBSCRIPTION,
                 'node_handle': HDL_NODE,
                 'rmw_subscription_handle': HDL_RMW_SUBSCRIPTION,
-                '_timestamp': 100100202,  # Note: This value is correct(node1<sub1<node2)
+                '_timestamp': 100100202,
                 'topic_name': 'my_topic_name',
                 'queue_depth': 1,
                 '_vtid': VTID1,
@@ -610,7 +610,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_subscription_init',
                 'subscription': SUBSCRIPTION,
                 'subscription_handle': HDL_SUBSCRIPTION,
-                '_timestamp': 100100403,  # Note: This value is correct(sub2<rclcpp1<sub3)
+                '_timestamp': 100100403,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -626,7 +626,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_subscription_callback_added',
                 'subscription': SUBSCRIPTION,
                 'callback': SUBSCRIPTION_CALLBACK,
-                '_timestamp': 100100450,  # Note: This value is correct(rclsub2<cb1<rclsub3)
+                '_timestamp': 100100450,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -643,7 +643,7 @@ class TestLttng:
                 'service_handle': HDL_SERVICE,
                 'node_handle': HDL_NODE,
                 'rmw_service_handle': HDL_RMW_SERVICE,
-                '_timestamp': 100100202,  # Note: This value is correct(node1<ser1<node2)
+                '_timestamp': 100100202,
                 'service_name': 'my_service_name',
                 '_vtid': VTID1,
                 '_vpid': VPID1
@@ -662,7 +662,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_service_callback_added',
                 'service_handle': HDL_SERVICE,
                 'callback': SERVICE_CALLBACK,
-                '_timestamp': 100100500,  # Note: This value is correct(ser1<cb1<ser2)
+                '_timestamp': 100100500,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -679,7 +679,7 @@ class TestLttng:
                 'client_handle': HDL_CLIENT,
                 'node_handle': HDL_NODE,
                 'rmw_client_handle': HDL_RMW_CLIENT,
-                '_timestamp': 100100202,  # Note: This value is correct(node1<client1<node2)
+                '_timestamp': 100100202,
                 'service_name': 'my_service_name',
                 '_vtid': VTID1,
                 '_vpid': VPID1
@@ -714,7 +714,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_timer_callback_added',
                 'timer_handle': HDL_TIMER,
                 'callback': TIMER_CALLBACK,
-                '_timestamp': 100100702,  # Note: This value is correct(time1<cb1<time2)
+                '_timestamp': 100100702,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -730,7 +730,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_timer_link_node',
                 'timer_handle': HDL_TIMER,
                 'node_handle': HDL_NODE,
-                '_timestamp': 100100702,  # Note: This value is correct(time1<link1<time2)
+                '_timestamp': 100100702,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -738,7 +738,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_timer_link_node',
                 'timer_handle': HDL_TIMER,
                 'node_handle': HDL_NODE,
-                '_timestamp': 100100772,  # Note: This value is correct(time1<cb1<time2)
+                '_timestamp': 100100772,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -746,7 +746,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_callback_register',
                 'callback': TIMER_CALLBACK,
                 'symbol': 100,
-                '_timestamp': 100100750,  # Note: This value is correct(tcb1<cbr1<tcb2)
+                '_timestamp': 100100750,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -762,7 +762,7 @@ class TestLttng:
                 '_name': 'ros2:rcl_lifecycle_state_machine_init',
                 'node_handle': HDL_NODE,
                 'state_machine': STATE_MACHINE,
-                '_timestamp': 100100202,  # Note: This value is correct(node1<state1<node2)
+                '_timestamp': 100100202,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -811,7 +811,7 @@ class TestLttng:
                 'executor_addr': HDL_EXECUTOR_STATIC,
                 'entities_collector_addr': HDL_ENTITIES,
                 'executor_type_name': 'my_executor_name',
-                '_timestamp': 100101102,  # Note: This value is correct(exe1<sta1<exe2)
+                '_timestamp': 100101102,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -838,7 +838,7 @@ class TestLttng:
                 'executor_addr': HDL_EXECUTOR_STATIC,
                 'callback_group_addr': EXECUTOR_CALLBACK,
                 'group_type_name': 'my_group_name',
-                '_timestamp': 100101102,  # Note: This value is correct(exe1<sta1<exe2)
+                '_timestamp': 100101102,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -856,7 +856,7 @@ class TestLttng:
                 'entities_collector_addr': HDL_ENTITIES,
                 'callback_group_addr': EXECUTOR_STA_CALLBACK,
                 'group_type_name': 'my_group_name',
-                '_timestamp': 100101204,  # Note: This value is correct(sta2<cbsta1<sta3)
+                '_timestamp': 100101204,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -873,7 +873,7 @@ class TestLttng:
                 '_name': 'ros2_caret:callback_group_add_timer',
                 'timer_handle': HDL_TIMER,
                 'callback_group_addr': EXECUTOR_CALLBACK,
-                '_timestamp': 100100702,  # Note: This value is correct(time1<cbat1<time2)
+                '_timestamp': 100100702,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -889,7 +889,7 @@ class TestLttng:
                 '_name': 'ros2_caret:callback_group_add_subscription',
                 'subscription_handle': HDL_SUBSCRIPTION,
                 'callback_group_addr': EXECUTOR_CALLBACK,
-                '_timestamp': 100100401,  # Note: This value is correct(sub2<cbas1<sub3)
+                '_timestamp': 100100401,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -905,7 +905,7 @@ class TestLttng:
                 '_name': 'ros2_caret:callback_group_add_service',
                 'service_handle': HDL_SERVICE,
                 'callback_group_addr': EXECUTOR_CALLBACK,
-                '_timestamp': 100100501,  # Note: This value is correct(ser1<cbas1<ser2)
+                '_timestamp': 100100501,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -921,7 +921,7 @@ class TestLttng:
                 '_name': 'ros2_caret:callback_group_add_client',
                 'client_handle': HDL_CLIENT,
                 'callback_group_addr': EXECUTOR_CALLBACK,
-                '_timestamp': 100100601,  # Note: This value is correct(clt1<cbac1<clt2)
+                '_timestamp': 100100601,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -953,7 +953,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_buffer_to_ipb',
                 'ipb': BUFFER_JPB,
                 'buffer': RING_BUFFER,
-                '_timestamp': 100101702,  # Note: This value is correct(buf1<jpb1<buf2)
+                '_timestamp': 100101702,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -969,7 +969,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_ipb_to_subscription',
                 'ipb': BUFFER_JPB,
                 'subscription': SUBSCRIPTION,
-                '_timestamp': 100101802,  # Note: This value is correct(jpb1<jpbsub1<jpb2)
+                '_timestamp': 100101802,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -986,7 +986,7 @@ class TestLttng:
                 '_name': 'ros2:callback_start',
                 'callback': TIMER_CALLBACK,
                 'is_intra_process': 100,
-                '_timestamp': 100100750,  # Note: This value is correct(tcb1<cbs1<tcb2)
+                '_timestamp': 100100750,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -1001,7 +1001,7 @@ class TestLttng:
             {
                 '_name': 'ros2:callback_end',
                 'callback': SERVICE_CALLBACK,
-                '_timestamp': 100100501,  # Note: This value is correct(scb1<cbe1<scb2)
+                '_timestamp': 100100501,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -1024,7 +1024,7 @@ class TestLttng:
                 '_name': 'ros2:rclcpp_intra_publish',
                 'publisher_handle': HDL_PUBLISHER,
                 'message': 100,
-                '_timestamp': 100100302,  # Note: This value is correct(pub1<ipub1<pub2)
+                '_timestamp': 100100302,
                 'message_timestamp': 100100305,
                 '_vtid': VTID1,
                 '_vpid': VPID1
@@ -1041,7 +1041,7 @@ class TestLttng:
             {
                 '_name': 'ros2:dispatch_subscription_callback',
                 'callback': SUBSCRIPTION_CALLBACK,
-                '_timestamp': 100100450,  # Note: This value is correct(rclsub2<dscb1<rclsub3)
+                '_timestamp': 100100450,
                 'message': 100,
                 'source_stamp': 100100453,
                 'message_timestamp': 100100454,
@@ -1061,7 +1061,7 @@ class TestLttng:
             {
                 '_name': 'ros2:rmw_take',
                 'rmw_subscription_handle': HDL_RMW_SUBSCRIPTION,
-                '_timestamp': 100100401,  # Note: This value is correct(rmwsub1<take1<rmwsub2)
+                '_timestamp': 100100401,
                 'message': 100,
                 'source_timestamp': 100100453,
                 '_vtid': VTID1,
@@ -1079,7 +1079,7 @@ class TestLttng:
             {
                 '_name': 'ros2:dispatch_intra_process_subscription_callback',
                 'callback': SUBSCRIPTION_CALLBACK,
-                '_timestamp': 100100450,  # Note: This value is correct(rclsub2<dscb1<rclsub3)
+                '_timestamp': 100100450,
                 'message': 100,
                 'message_timestamp': 100100454,
                 '_vtid': VTID1,
@@ -1098,7 +1098,7 @@ class TestLttng:
                 '_name': 'ros2:rcl_publish',
                 'publisher_handle': HDL_PUBLISHER,
                 'message': 100,
-                '_timestamp': 100100302,  # Note: This value is correct(pub1<rpub1<pub2)
+                '_timestamp': 100100302,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -1115,7 +1115,7 @@ class TestLttng:
                 'publisher_handle': HDL_PUBLISHER,
                 'message': 100,
                 'message_timestamp': 100100306,
-                '_timestamp': 100100302,  # Note: This value is correct(pub1<rcpub1<pub2)
+                '_timestamp': 100100302,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -1165,7 +1165,7 @@ class TestLttng:
                 'state_machine': STATE_MACHINE,
                 'start_label': 100,
                 'goal_label': 101,
-                '_timestamp': 100100801,  # Note: This value is correct(sta1<tran1<sta2)
+                '_timestamp': 100100801,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -1198,7 +1198,7 @@ class TestLttng:
                 'index': 100,
                 'size': 101,
                 'overwritten': 102,
-                '_timestamp': 100101702,  # Note: This value is correct(buf1<rbe1<buf2)
+                '_timestamp': 100101702,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
@@ -1217,7 +1217,7 @@ class TestLttng:
                 'buffer': RING_BUFFER,
                 'index': 100,
                 'size': 101,
-                '_timestamp': 100101702,  # Note: This value is correct(buf1<rbd1<buf2)
+                '_timestamp': 100101702,
                 '_vtid': VTID1,
                 '_vpid': VPID1
             },
