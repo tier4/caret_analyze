@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from ..util import get_clock_converter
 from ...common import ClockConverter
 from ...record import RecordsInterface, ResponseTime, StackedBar
 from ...runtime import Path
@@ -51,19 +52,20 @@ class LatencyStackedBar:
             Latency dataframe.
 
         """
+        converter: ClockConverter | None = None
+        if xaxis_type == 'sim_time':
+            converter = get_clock_converter([self._target_objects])
         # NOTE: returned columns aren't used because they don't include 'start time'
         # TODO: delete 1e-6
-        stacked_bar_dict, _ = self.to_stacked_bar_data()
+        stacked_bar_dict, _ = self.to_stacked_bar_data(converter=converter)
         millisecond_dict: dict[str, list[float]] = {}
-        if xaxis_type == 'system_time':
+        if xaxis_type == 'system_time' or xaxis_type == 'sim_time':
             for column in stacked_bar_dict:
                 millisecond_dict[column] = \
                     [timestamp * 1e-6 for timestamp in stacked_bar_dict[column]]
             df = pd.DataFrame(millisecond_dict)
             return df
-        elif xaxis_type == 'index':
-            raise NotImplementedError()
-        else:  # sim_time
+        else:  # index
             raise NotImplementedError()
 
     def to_stacked_bar_data(
