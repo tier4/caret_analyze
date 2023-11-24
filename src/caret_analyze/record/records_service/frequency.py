@@ -69,7 +69,8 @@ class Frequency:
         interval_ns: int = 1000000000,
         base_timestamp: int | None = None,
         until_timestamp: int | None = None,
-        converter: ClockConverter | None = None
+        converter: ClockConverter | None = None,
+        is_base_ts_convert: bool = True
     ) -> RecordsInterface:
         """
         Calculate frequency records.
@@ -87,6 +88,9 @@ class Frequency:
             If None, oldest timestamp is used.
         converter : ClockConverter | None, optional
             Converter to simulation time.
+        is_base_ts_convert : cool, optional
+            If False, the time is not converted even if there is a converter;
+            if True and there is a converter, it is converted.
 
         Returns
         -------
@@ -105,7 +109,8 @@ class Frequency:
             interval_ns,
             base_timestamp or self._target_timestamps[0],
             until_timestamp or self._target_timestamps[-1],
-            converter
+            converter=converter,
+            is_base_ts_convert=is_base_ts_convert
         )
         for ts, freq in zip(timestamp_list, frequency_list):
             record = {
@@ -128,9 +133,11 @@ class Frequency:
         interval_ns: int,
         base_timestamp: int,
         until_timestamp: int,
-        converter: ClockConverter | None = None
+        converter: ClockConverter | None = None,
+        is_base_ts_convert: bool = True
+        
     ) -> tuple[list[int], list[int]]:
-        if converter:
+        if is_base_ts_convert and converter:
             base_timestamp = round(converter.convert(base_timestamp))
             until_timestamp = round(converter.convert(until_timestamp))
         timestamp_list: list[int] = [base_timestamp]

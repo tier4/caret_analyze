@@ -19,6 +19,8 @@ from collections.abc import Sequence
 import pandas as pd
 
 from ..metrics_base import MetricsBase
+from ..util import get_clock_converter
+from ...common import ClockConverter
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -112,12 +114,12 @@ class FrequencyTimeSeries(MetricsBase):
             _.to_records() for _ in self._target_objects
         ]
 
+        converter: ClockConverter | None = None
         if xaxis_type == 'sim_time':
-            timeseries_records_list = \
-                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+            converter = get_clock_converter(self._target_objects)
 
-        min_time, max_time = self._get_timestamp_range(timeseries_records_list)
-
+        min_time, max_time = self._get_timestamp_range(timeseries_records_list, converter=converter)
+            
         frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
             frequency = Frequency(
@@ -126,7 +128,9 @@ class FrequencyTimeSeries(MetricsBase):
                 if isinstance(records, Communication) else None
             )
             frequency_timeseries_list.append(frequency.to_records(
-                base_timestamp=min_time, until_timestamp=max_time
+                base_timestamp=min_time, until_timestamp=max_time,
+                converter=converter,
+                is_base_ts_convert=False
             ))
 
         return frequency_timeseries_list
@@ -134,7 +138,8 @@ class FrequencyTimeSeries(MetricsBase):
     # TODO: Migrate into record.
     @staticmethod
     def _get_timestamp_range(
-        timeseries_records_list: list[RecordsInterface]
+        timeseries_records_list: list[RecordsInterface],
+        converter: ClockConverter | None = None
     ) -> tuple[int, int]:
         first_timestamps = []
         last_timestamps = []
@@ -142,9 +147,13 @@ class FrequencyTimeSeries(MetricsBase):
             if len(records) == 0:
                 continue
             first_timestamp = records.get_column_series(records.columns[0])[0]
+            if converter:
+                first_timestamp = round(converter.convert(first_timestamp))
             if isinstance(first_timestamp, int):
                 first_timestamps.append(first_timestamp)
             last_timestamp = records.get_column_series(records.columns[0])[-1]
+            if converter:
+                last_timestamp = round(converter.convert(last_timestamp))
             if isinstance(last_timestamp, int):
                 last_timestamps.append(last_timestamp)
 

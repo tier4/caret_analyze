@@ -19,6 +19,8 @@ from collections.abc import Sequence
 import pandas as pd
 
 from ..metrics_base import MetricsBase
+from ..util import get_clock_converter
+from ...common import ClockConverter
 from ...record import RecordsInterface, ResponseTime
 from ...runtime import Path
 
@@ -98,22 +100,22 @@ class ResponseTimeTimeSeries(MetricsBase):
             _.to_records() for _ in self._target_objects
         ]
 
+        converter: ClockConverter | None = None
         if xaxis_type == 'sim_time':
-            timeseries_records_list = \
-                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+            converter = get_clock_converter(self._target_objects)
 
         response_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
             response = ResponseTime(records)
             if self._case == 'all':
-                response_timeseries_list.append(response.to_all_records())
+                response_timeseries_list.append(response.to_all_records(converter=converter))
             elif self._case == 'best':
-                response_timeseries_list.append(response.to_best_case_records())
+                response_timeseries_list.append(response.to_best_case_records(converter=converter))
             elif self._case == 'worst':
-                response_timeseries_list.append(response.to_worst_case_records())
+                response_timeseries_list.append(response.to_worst_case_records(converter=converter))
             elif self._case == 'worst-with-external-latency':
                 response_timeseries_list.append(
-                    response.to_worst_with_external_latency_case_records())
+                    response.to_worst_with_external_latency_case_records(converter=converter))
             else:
                 raise ValueError('optional argument "case" must be following: \
                                  "all", "best", "worst", "worst-with-external-latency".')
