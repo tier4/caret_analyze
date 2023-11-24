@@ -163,7 +163,7 @@ class TestIdRemapper:
                     '_vtid': T_ID2,
                     '_vpid': P_ID1,
                     }
-        # Patterns with the same callback but different pids
+        # Patterns with the same callback but different pid
         event[5] = {'_name': 'ros2_caret:rclcpp_callback_register',
                     'callback': CALLBACK_ID1,
                     '_timestamp': 5020,
