@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.processor import get_field
 
 
@@ -72,8 +73,8 @@ class IDRemapper():
             self._addr_to_init_event[addr].append(event)
             while self._next_object_id in self._all_object_ids:
                 self._next_object_id += 1
-            remap_info = IDRemappingInfo(get_field(event, '_timestamp'),
-                                         get_field(event, '_vpid'),
+            remap_info = IDRemappingInfo(get_field(event, LttngEventFilter.TIMESTAMP),
+                                         get_field(event, LttngEventFilter.VPID),
                                          self._next_object_id)
             self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
             self._all_object_ids.add(self._next_object_id)
@@ -86,8 +87,8 @@ class IDRemapper():
         event: dict,
     ) -> int:
         if addr in self._addr_to_remapping_info:
-            pid = get_field(event, '_vpid')
-            timestamp = get_field(event, '_timestamp')
+            pid = get_field(event, LttngEventFilter.VPID)
+            timestamp = get_field(event, LttngEventFilter.TIMESTAMP)
             list_search = \
                 [item for item in self._addr_to_remapping_info[addr]
                  if item.pid == pid and item.timestamp <= timestamp]

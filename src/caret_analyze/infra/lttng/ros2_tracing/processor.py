@@ -219,7 +219,7 @@ class Ros2Handler():
             'ros2:rcl_lifecycle_state_machine_init'
         ] = self._handle_rcl_lifecycle_state_machine_init
 
-        #  Support iron useful tracepoints
+        #  The iron trace points for measurements defined by ros2_tracing
         handler_map['ros2:rclcpp_buffer_to_ipb'] = self._handle_rclcpp_buffer_to_ipb
         handler_map['ros2:rclcpp_ipb_to_subscription'] = self._handle_rclcpp_ipb_to_subscription
         handler_map['ros2:rclcpp_construct_ring_buffer'] = \
@@ -337,7 +337,7 @@ class Ros2Handler():
         handler_map['ros2_caret:sim_time'] = \
             self._create_handler(self._handle_sim_time, True)
 
-        #  Support iron useful tracepoints
+        #  The iron trace points for measurements defined by ros2_tracing
         handler_map['ros2:rclcpp_ring_buffer_enqueue'] = self._handle_rclcpp_ring_buffer_enqueue
         handler_map['ros2:rclcpp_ring_buffer_dequeue'] = self._handle_rclcpp_ring_buffer_dequeue
 

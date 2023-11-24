@@ -724,7 +724,6 @@ class CommunicationsLoaded:
         nodes_loaded: NodesLoaded,
     ) -> None:
         self._data: list[Communication] = []
-
         for comm_value in communication_values:
             try:
                 comm = self._to_runtime(comm_value, provider, nodes_loaded)

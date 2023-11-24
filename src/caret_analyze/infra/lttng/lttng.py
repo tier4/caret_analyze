@@ -491,16 +491,16 @@ class Lttng(InfraBase):
         event1: dict,
         event2: dict,
     ) -> int:
-        if event2['_timestamp'] < event1['_timestamp']:
+        if event2[LttngEventFilter.TIMESTAMP] < event1[LttngEventFilter.TIMESTAMP]:
             return 1
-        if event2['_timestamp'] > event1['_timestamp']:
+        if event2[LttngEventFilter.TIMESTAMP] > event1[LttngEventFilter.TIMESTAMP]:
             return -1
         # same timestamp
-        if Lttng._prioritized_init_events.index(event2['_name']) < \
-                Lttng._prioritized_init_events.index(event1['_name']):
+        if Lttng._prioritized_init_events.index(event2[LttngEventFilter.NAME]) < \
+                Lttng._prioritized_init_events.index(event1[LttngEventFilter.NAME]):
             return 1
-        if Lttng._prioritized_init_events.index(event2['_name']) > \
-                Lttng._prioritized_init_events.index(event1['_name']):
+        if Lttng._prioritized_init_events.index(event2[LttngEventFilter.NAME]) > \
+                Lttng._prioritized_init_events.index(event1[LttngEventFilter.NAME]):
             return -1
         return 0
 
