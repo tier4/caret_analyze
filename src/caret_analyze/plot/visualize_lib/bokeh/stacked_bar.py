@@ -20,6 +20,7 @@ from bokeh.plotting import figure as Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
+from ...util import get_clock_converter
 from ....common import ClockConverter
 
 
@@ -71,17 +72,14 @@ class BokehStackedBar:
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
         frame_max = data['start time'][-1]
+        converter: ClockConverter | None = None
         x_label = 'start time'
         if self._xaxis_type == 'system_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
-            converter = None
         elif self._xaxis_type == 'index':
             x_label = 'index'
-            converter = None
         else:  # sim_time
-            assert len(target_objects.child) > 0
-            provider = target_objects.child[0]._provider  # type: ignore
-            converter = provider.get_sim_time_converter(frame_min, frame_max)
+            converter = get_clock_converter([target_objects])
             data, y_labels = self._metrics.to_stacked_bar_data(converter)
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)

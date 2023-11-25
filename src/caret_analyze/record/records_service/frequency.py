@@ -135,7 +135,6 @@ class Frequency:
         until_timestamp: int,
         converter: ClockConverter | None = None,
         is_base_ts_convert: bool = True
-
     ) -> tuple[list[int], list[int]]:
         if is_base_ts_convert and converter:
             base_timestamp = round(converter.convert(base_timestamp))

@@ -151,12 +151,12 @@ class FrequencyTimeSeries(MetricsBase):
             first_timestamp = records.get_column_series(records.columns[0])[0]
             if isinstance(first_timestamp, int):
                 if converter:
-                    first_timestamp = round(converter.convert(float(first_timestamp)))
+                    first_timestamp = round(converter.convert(first_timestamp))
                 first_timestamps.append(first_timestamp)
             last_timestamp = records.get_column_series(records.columns[0])[-1]
             if isinstance(last_timestamp, int):
                 if converter:
-                    last_timestamp = round(converter.convert(float(last_timestamp)))
+                    last_timestamp = round(converter.convert(last_timestamp))
                 last_timestamps.append(last_timestamp)
 
         if len(first_timestamps) == 0 or len(last_timestamps) == 0:
