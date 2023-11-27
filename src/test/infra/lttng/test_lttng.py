@@ -1494,13 +1494,13 @@ class TestLttng:
 
         # buffer_to_ipbs
         # ['timestamp', 'buffer']
-        assert lttng.data.buffer_to_ipbs.df.index[0] == BUFFER_JPB and \
+        assert lttng.data.buffer_to_ipbs.df.index[0] == RING_BUFFER and \
             lttng.data.buffer_to_ipbs.df.iloc[0]['timestamp'] == 100101702 and \
-            lttng.data.buffer_to_ipbs.df.iloc[0]['buffer'] == RING_BUFFER
+            lttng.data.buffer_to_ipbs.df.iloc[0]['ipb'] == BUFFER_JPB
 
         assert lttng.data.buffer_to_ipbs.df.index[1] == 1 and \
             lttng.data.buffer_to_ipbs.df.iloc[1]['timestamp'] == 100101803 and \
-            lttng.data.buffer_to_ipbs.df.iloc[1]['buffer'] == 1
+            lttng.data.buffer_to_ipbs.df.iloc[1]['ipb'] == 1
 
         # ipb_to_subscriptions
         # ['tid', 'callback_start_timestamp', 'callback_object', 'is_intra_process']

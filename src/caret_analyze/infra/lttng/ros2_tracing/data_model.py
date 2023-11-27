@@ -896,7 +896,7 @@ class Ros2DataModel():
         self.tilde_subscribe_added = self._tilde_subscribe_added.get_finalized('subscription_id')
         del self._tilde_subscribe_added
 
-        self.buffer_to_ipbs = self._buffer_to_ipbs.get_finalized('ipb')
+        self.buffer_to_ipbs = self._buffer_to_ipbs.get_finalized('buffer')
         del self._buffer_to_ipbs
 
         self.ipb_to_subscriptions = self._ipb_to_subscriptions.get_finalized('ipb')

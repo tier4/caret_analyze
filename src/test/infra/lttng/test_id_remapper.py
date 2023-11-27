@@ -205,11 +205,67 @@ class TestIdRemapper:
         id_remap.register_and_get_object_id(callback, event[7])  # pid2 timestamp5030
         id_remap.register_and_get_object_id(callback, event[8])  # maximum timestamp
 
-        # addr_to_remapping_info_ : {1, 2, 3, 4, 5, 6, 7, 10000, 10100}
+        # registered addr_to_remapping_info_ : {1, 2, 3, 4, 5, 6, 7, 10000, 10100}
+
+        event_test = {}
+        event_test[0] = {'_name': 'ros2:callback_start',
+                         'callback': CALLBACK_ID1,
+                         '_timestamp': 4980,
+                         '_vtid': T_ID1,
+                         '_vpid': P_ID1,
+                         }
+        event_test[1] = {'_name': 'ros2:callback_start',
+                         'callback': CALLBACK_ID1,
+                         '_timestamp': 4990,
+                         '_vtid': T_ID2,
+                         '_vpid': P_ID1,
+                         }
+        event_test[3] = {'_name': 'ros2:callback_start',
+                         'callback': CALLBACK_ID1,
+                         '_timestamp': 5000,
+                         '_vtid': T_ID1,
+                         '_vpid': P_ID1,
+                         }
+        event_test[4] = {'_name': 'ros2:callback_start',
+                         'callback': CALLBACK_ID2,
+                         '_timestamp': 5010,
+                         '_vtid': T_ID2,
+                         '_vpid': P_ID1,
+                         }
+        event_test[8] = {'_name': 'ros2:callback_start',
+                         'callback': CALLBACK_ID1,
+                         '_timestamp': 5040,
+                         '_vtid': T_ID1,
+                         '_vpid': P_ID1,
+                         }
+        event_test[11] = {'_name': 'ros2:callback_start',
+                          'callback': CALLBACK_ID1,
+                          '_timestamp': 4970,
+                          '_vtid': T_ID1,
+                          '_vpid': P_ID1,
+                          }
+        event_test[12] = {'_name': 'ros2:callback_start',
+                          'callback': CALLBACK_ID1,
+                          '_timestamp': 5050,
+                          '_vtid': T_ID1,
+                          '_vpid': P_ID1,
+                          }
+        event_test[13] = {'_name': 'ros2:callback_start',
+                          'callback': CALLBACK_ID1,
+                          '_timestamp': 4985,
+                          '_vtid': T_ID1,
+                          '_vpid': P_ID1,
+                          }
+        event_test[14] = {'_name': 'ros2:callback_start',
+                          'callback': CALLBACK_ID1,
+                          '_timestamp': 5035,
+                          '_vtid': T_ID1,
+                          '_vpid': P_ID1,
+                          }
 
         # If key addr does not exist in _self.addr_to_remapping_info_
         callback = CALLBACK_ID2
-        ret_value = id_remap.get_object_id(callback, event[4])
+        ret_value = id_remap.get_object_id(callback, event_test[4])
         assert ret_value == CALLBACK_ID2
 
         # same pid & maximum timestamp
@@ -217,23 +273,43 @@ class TestIdRemapper:
         # same pid = (0 1 3 6 8) & event timestamp(maximum:5040)
         #   -> Returns the remapped_id of the element with the largest timestamp.
         callback = CALLBACK_ID1
-        ret_value = id_remap.get_object_id(callback, event[8])
+        ret_value = id_remap.get_object_id(callback, event_test[8])
         assert ret_value == 7
         # same pid = (0 1 3) & event timestamp(middle:5000)
         #   -> event['_timestamp'] Exclude elements greater than or equal to
         #   -> Returns the remapped_id of the element with the largest timestamp.
         callback = CALLBACK_ID1
-        ret_value = id_remap.get_object_id(callback, event[3])
+        ret_value = id_remap.get_object_id(callback, event_test[3])
         assert ret_value == 3
 
         # same pid = (0 1) & event timestamp(small:4990)
         #   -> list_search=1
         callback = CALLBACK_ID1
-        ret_value = id_remap.get_object_id(callback, event[1])
+        ret_value = id_remap.get_object_id(callback, event_test[1])
         assert ret_value == 1
 
         # same pid = (0) & event timestamp(minimum:4980)
         #   -> list_search=0
         callback = CALLBACK_ID1
-        ret_value = id_remap.get_object_id(callback, event[0])
+        ret_value = id_remap.get_object_id(callback, event_test[0])
         assert ret_value == CALLBACK_ID1
+
+        # minimum value not registered in addr_to_remapping_info_
+        callback = CALLBACK_ID1
+        ret_value = id_remap.get_object_id(callback, event_test[11])
+        assert ret_value == CALLBACK_ID1
+
+        # maximum value not registered in addr_to_remapping_info_
+        callback = CALLBACK_ID1
+        ret_value = id_remap.get_object_id(callback, event_test[12])
+        assert ret_value == 7
+
+        # value between the registered values in addr_to_remapping_info_
+        callback = CALLBACK_ID1
+        ret_value = id_remap.get_object_id(callback, event_test[13])
+        assert ret_value == CALLBACK_ID1
+
+        # value between the registered values in addr_to_remapping_info_
+        callback = CALLBACK_ID1
+        ret_value = id_remap.get_object_id(callback, event_test[14])
+        assert ret_value == 5
