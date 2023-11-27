@@ -72,7 +72,7 @@ class TestLatencyRecords:
         result = to_dict(latency.to_records())
         assert result == expect_raw
 
-        result = to_dict(latency.to_records())
+        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
 
     def test_two_column_default_case(self, create_converter):

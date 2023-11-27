@@ -118,9 +118,7 @@ class FrequencyTimeSeries(MetricsBase):
         if xaxis_type == 'sim_time':
             converter = get_clock_converter(self._target_objects)
 
-        min_time, max_time = self._get_timestamp_range(
-            timeseries_records_list,
-            converter=converter)
+        min_time, max_time = self._get_timestamp_range(timeseries_records_list)
 
         frequency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
@@ -131,8 +129,7 @@ class FrequencyTimeSeries(MetricsBase):
             )
             frequency_timeseries_list.append(frequency.to_records(
                 base_timestamp=min_time, until_timestamp=max_time,
-                converter=converter,
-                is_base_ts_convert=False
+                converter=converter
             ))
 
         return frequency_timeseries_list
@@ -140,8 +137,7 @@ class FrequencyTimeSeries(MetricsBase):
     # TODO: Migrate into record.
     @staticmethod
     def _get_timestamp_range(
-        timeseries_records_list: list[RecordsInterface],
-        converter: ClockConverter | None = None
+        timeseries_records_list: list[RecordsInterface]
     ) -> tuple[int, int]:
         first_timestamps = []
         last_timestamps = []
@@ -150,13 +146,9 @@ class FrequencyTimeSeries(MetricsBase):
                 continue
             first_timestamp = records.get_column_series(records.columns[0])[0]
             if isinstance(first_timestamp, int):
-                if converter:
-                    first_timestamp = round(converter.convert(first_timestamp))
                 first_timestamps.append(first_timestamp)
             last_timestamp = records.get_column_series(records.columns[0])[-1]
             if isinstance(last_timestamp, int):
-                if converter:
-                    last_timestamp = round(converter.convert(last_timestamp))
                 last_timestamps.append(last_timestamp)
 
         if len(first_timestamps) == 0 or len(last_timestamps) == 0:
