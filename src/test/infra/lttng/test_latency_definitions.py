@@ -736,7 +736,7 @@ class TestPublisherRecords:
     ):
         data = Ros2DataModel()
 
-        #publisher
+        # publisher
         tid = 15
         pub_handle = 17
         message_timestamp = 7
@@ -747,13 +747,14 @@ class TestPublisherRecords:
         data.add_dds_write_instance(tid, 4, message_addr)
         data.add_dds_bind_addr_to_stamp(tid, 6, message_addr, source_timestamp)
 
-        #generic_publisher
+        # generic_publisher
         generic_pub_handle = 3
         tid = 11
         message_timestamp = 4
         source_timestamp = 5
         message_addr = 6
-        data.add_rclcpp_publish_instance(tid, 1, generic_pub_handle, message_addr, message_timestamp)
+        data.add_rclcpp_publish_instance(tid, 1, generic_pub_handle,
+                                         message_addr, message_timestamp)
         data.add_dds_bind_addr_to_stamp(tid, 4, message_addr, source_timestamp)
         data.finalize()
 
