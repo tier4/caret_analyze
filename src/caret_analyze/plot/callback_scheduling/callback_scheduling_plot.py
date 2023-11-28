@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from logging import getLogger
+from typing import TypeAlias
 
 from bokeh.plotting import figure as Figure, save, show
 from bokeh.resources import CDN
@@ -28,8 +29,8 @@ from ...common import UniqueList
 from ...exceptions import UnsupportedTypeError
 from ...runtime import Application, CallbackGroup, Executor, Node, Path
 
-CallbackGroupTypes = (Application | Executor | Path | Node |
-                      CallbackGroup | Sequence[CallbackGroup])
+CallbackGroupTypes: TypeAlias = (Application | Executor | Path | Node |
+                                 CallbackGroup | Sequence[CallbackGroup])
 
 logger = getLogger(__name__)
 

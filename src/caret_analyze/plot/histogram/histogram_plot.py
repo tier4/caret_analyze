@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TypeAlias
 
 from bokeh.plotting import figure as Figure
 
@@ -27,8 +28,8 @@ from ..visualize_lib import VisualizeLibInterface
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path
 
-MetricsTypes = Frequency | Latency | Period | ResponseTime
-HistTypes = CallbackBase | Communication | Path
+MetricsTypes: TypeAlias = Frequency | Latency | Period | ResponseTime
+HistTypes: TypeAlias = CallbackBase | Communication | Path
 
 
 class HistogramPlot(PlotBase):

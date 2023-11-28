@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TypeAlias
 
 from .frequency_timeseries import FrequencyTimeSeries
 from .latency_timeseries import LatencyTimeSeries
@@ -27,7 +28,7 @@ from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+TimeSeriesPlotTypes: TypeAlias = CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class TimeSeriesPlotFactory:

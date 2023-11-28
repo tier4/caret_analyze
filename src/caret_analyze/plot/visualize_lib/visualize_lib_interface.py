@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from collections.abc import Sequence
+from typing import TypeAlias
 
 from bokeh.plotting import figure as Figure
 
@@ -23,9 +24,9 @@ from ..metrics_base import MetricsBase
 from ...record import Frequency, Latency, Period, ResponseTime
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
-TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription)
-MetricsTypes = Frequency | Latency | Period | ResponseTime
-HistTypes = CallbackBase | Communication | Path
+TimeSeriesTypes: TypeAlias = CallbackBase | Communication | (Publisher | Subscription)
+MetricsTypes: TypeAlias = Frequency | Latency | Period | ResponseTime
+HistTypes: TypeAlias = CallbackBase | Communication | Path
 
 
 class VisualizeLibInterface(metaclass=ABCMeta):

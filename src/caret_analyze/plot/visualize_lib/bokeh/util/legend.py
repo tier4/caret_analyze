@@ -16,14 +16,14 @@ from __future__ import annotations
 
 from collections import defaultdict
 from logging import getLogger
-from typing import Any
+from typing import Any, TypeAlias
 
 from bokeh.models.annotations import Legend
 from bokeh.models.renderers import GlyphRenderer
 
 from .....runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TargetTypes = (CallbackBase | Communication | Path | (Publisher | Subscription))
+TargetTypes: TypeAlias = (CallbackBase | Communication | Path | (Publisher | Subscription))
 
 logger = getLogger(__name__)
 
