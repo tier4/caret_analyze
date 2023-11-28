@@ -727,6 +727,64 @@ class TestPublisherRecords:
 
         assert df.equals(df_expect)
 
+    def test_generic_publisher(
+        self,
+        create_lttng,
+        create_publisher_lttng,
+        setup_bridge_get_publisher,
+        create_publisher_struct,
+    ):
+        data = Ros2DataModel()
+
+        #publisher
+        tid = 15
+        pub_handle = 17
+        message_timestamp = 7
+        source_timestamp = 8
+        message_addr = 9
+        data.add_rclcpp_publish_instance(tid, 2, pub_handle, message_addr, message_timestamp)
+        data.add_rcl_publish_instance(tid, 3, pub_handle, message_addr)
+        data.add_dds_write_instance(tid, 4, message_addr)
+        data.add_dds_bind_addr_to_stamp(tid, 6, message_addr, source_timestamp)
+
+        #generic_publisher
+        generic_pub_handle = 3
+        tid = 11
+        message_timestamp = 4
+        source_timestamp = 5
+        message_addr = 6
+        data.add_rclcpp_publish_instance(tid, 1, generic_pub_handle, message_addr, message_timestamp)
+        data.add_dds_bind_addr_to_stamp(tid, 4, message_addr, source_timestamp)
+        data.finalize()
+
+        generic_publisher_lttng_mock = create_publisher_lttng(generic_pub_handle)
+        generic_publisher_struct_mock = create_publisher_struct('generic_topic')
+        setup_bridge_get_publisher(generic_publisher_struct_mock, [
+                                   generic_publisher_lttng_mock])
+
+        lttng = create_lttng(data)
+        provider = RecordsProviderLttng(lttng)
+        records = provider.publish_records(generic_publisher_struct_mock)
+        df = records.to_dataframe()
+
+        df_expect = pd.DataFrame(
+            [
+                {
+                    f'{generic_publisher_struct_mock.topic_name}/rclcpp_publish_timestamp': 1,
+                    f'{generic_publisher_struct_mock.topic_name}/message_timestamp': 4,
+                    f'{generic_publisher_struct_mock.topic_name}/source_timestamp': 5,
+                }
+            ],
+            columns=[
+                f'{generic_publisher_struct_mock.topic_name}/rclcpp_publish_timestamp',
+                f'{generic_publisher_struct_mock.topic_name}/message_timestamp',
+                f'{generic_publisher_struct_mock.topic_name}/source_timestamp',
+            ],
+            dtype='Int64'
+        )
+
+        assert df.equals(df_expect)
+
 
 class TestSubscriptionRecords:
 
