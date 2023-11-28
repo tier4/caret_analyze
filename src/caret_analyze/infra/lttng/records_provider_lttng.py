@@ -1792,12 +1792,11 @@ class FilteredRecordsSource:
     def _grouped_publish_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_publish_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
-        """
-        Compare records.columns with record.columns, drop mismatch columns.
 
-        using RelayNode generic publisher, trace point are not output.
-        'sample_' variable is sample value and record has same columns.
-        """
+        # Compare records.columns with record.columns, drop mismatch columns.
+        # using RelayNode generic publisher, trace point are not output.
+        # 'sample_' variable is sample value and record has same columns.
+
         for records_key in group:
             sample_records_columns = set(group[records_key].columns)
             sample_record_columns: set = group[records_key].data[0].columns
