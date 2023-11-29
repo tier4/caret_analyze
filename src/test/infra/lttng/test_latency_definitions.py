@@ -758,17 +758,47 @@ class TestPublisherRecords:
         data.add_dds_bind_addr_to_stamp(tid, 4, message_addr, source_timestamp)
         data.finalize()
 
+        lttng = create_lttng(data)
+        provider = RecordsProviderLttng(lttng)
+
+        # publisher test
+        publisher_lttng_mock = create_publisher_lttng(pub_handle)
+        publisher_struct_mock = create_publisher_struct('pub_topic')
+        setup_bridge_get_publisher(publisher_struct_mock, [publisher_lttng_mock])
+
+        pub_records = provider.publish_records(publisher_struct_mock)
+        pub_df = pub_records.to_dataframe()
+        pub_df_expect = pd.DataFrame(
+            [
+                {
+                    f'{publisher_struct_mock.topic_name}/rclcpp_publish_timestamp': 2,
+                    f'{publisher_struct_mock.topic_name}/rcl_publish_timestamp': 3,
+                    f'{publisher_struct_mock.topic_name}/dds_write_timestamp': 4,
+                    f'{publisher_struct_mock.topic_name}/message_timestamp': 7,
+                    f'{publisher_struct_mock.topic_name}/source_timestamp': 8,
+                }
+            ],
+            columns=[
+                f'{publisher_struct_mock.topic_name}/rclcpp_publish_timestamp',
+                f'{publisher_struct_mock.topic_name}/rcl_publish_timestamp',
+                f'{publisher_struct_mock.topic_name}/dds_write_timestamp',
+                f'{publisher_struct_mock.topic_name}/message_timestamp',
+                f'{publisher_struct_mock.topic_name}/source_timestamp',
+            ],
+            dtype='Int64'
+        )
+        assert pub_df.equals(pub_df_expect)
+
+        # generic_publisher test
         generic_publisher_lttng_mock = create_publisher_lttng(generic_pub_handle)
         generic_publisher_struct_mock = create_publisher_struct('generic_topic')
         setup_bridge_get_publisher(generic_publisher_struct_mock, [
                                    generic_publisher_lttng_mock])
 
-        lttng = create_lttng(data)
-        provider = RecordsProviderLttng(lttng)
-        records = provider.publish_records(generic_publisher_struct_mock)
-        df = records.to_dataframe()
+        generic_records = provider.publish_records(generic_publisher_struct_mock)
+        generic_df = generic_records.to_dataframe()
 
-        df_expect = pd.DataFrame(
+        generic_df_expect = pd.DataFrame(
             [
                 {
                     f'{generic_publisher_struct_mock.topic_name}/rclcpp_publish_timestamp': 1,
@@ -784,7 +814,7 @@ class TestPublisherRecords:
             dtype='Int64'
         )
 
-        assert df.equals(df_expect)
+        assert generic_df.equals(generic_df_expect)
 
 
 class TestSubscriptionRecords:
