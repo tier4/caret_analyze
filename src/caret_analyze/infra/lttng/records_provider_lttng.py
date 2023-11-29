@@ -1794,10 +1794,9 @@ class FilteredRecordsSource:
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
 
         # Compare records.columns with record.columns, drop mismatch columns.
-        # using RelayNode generic publisher, trace point are not output.
-        # 'sample_' variable is sample value and record has same columns.
-
+        # When Node has generic publisher, some trace event are not output.
         for records_key in group:
+            # sample_record_columns is sample value because record.data[N] has same columns.
             sample_records_columns = set(group[records_key].columns)
             sample_record_columns: set = group[records_key].data[0].columns
             mismatched_columns = sample_records_columns - sample_record_columns
