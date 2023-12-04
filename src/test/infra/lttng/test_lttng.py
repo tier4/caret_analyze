@@ -1504,7 +1504,7 @@ class TestLttng:
             lttng.data.buffer_to_ipbs.df.iloc[1]['ipb'] == 1
 
         # ipb_to_subscriptions
-        # ['tid', 'callback_start_timestamp', 'callback_object', 'is_intra_process']
+        # ['timestamp', 'ipb', 'subscription']
         assert lttng.data.ipb_to_subscriptions.df.index[0] == BUFFER_JPB and \
             lttng.data.ipb_to_subscriptions.df.iloc[0]['timestamp'] == 100101802 and \
             lttng.data.ipb_to_subscriptions.df.iloc[0]['subscription'] == 1
