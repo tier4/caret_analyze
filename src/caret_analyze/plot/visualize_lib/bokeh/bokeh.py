@@ -28,7 +28,6 @@ from numpy import histogram
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
-from .response_time_hist import BokehResponseTimeHist
 from .stacked_bar import BokehStackedBar
 from .timeseries import BokehTimeSeries
 from .util import ColorSelectorFactory, LegendManager
@@ -49,20 +48,6 @@ class Bokeh(VisualizeLibInterface):
 
     def __init__(self) -> None:
         self._legend_items: list[tuple[str, list[GlyphRenderer]]] = []
-
-    def response_time_hist(
-        self,
-        target_paths: Sequence[Path],
-        case: str,
-        binsize_ns: int,
-        xaxis_type: str,
-        ywheel_zoom: bool,
-        full_legends: bool,
-    ) -> Figure:
-        response_time_hist = BokehResponseTimeHist(
-            target_paths, case, binsize_ns, xaxis_type, ywheel_zoom, full_legends
-        )
-        return response_time_hist.create_figure()
 
     def message_flow(
         self,
