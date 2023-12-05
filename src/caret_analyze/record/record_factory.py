@@ -71,8 +71,8 @@ class RecordsFactory:
     @staticmethod
     @create_instance.register
     def _create_instance_record(
-        init: Sequence[RecordInterface] | None = None,
-        columns: Sequence[ColumnValue] | None = None
+        init: Sequence[RecordInterface],
+        columns: Sequence[ColumnValue] | None
     ) -> RecordsInterface:
         if use_cpp_impl:
             return RecordsFactory._create_cpp_instance(init, columns)

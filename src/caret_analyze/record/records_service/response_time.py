@@ -257,6 +257,12 @@ class ResponseMapAll:
                 continue
             start_ts = record.get(self._start_column)
 
+            if end_ts < start_ts:
+                warn('Record data is invalid. '
+                     'The end time of the path is recorded before the start time.',
+                     UserWarning)
+                continue
+
             if start_ts not in self._start_timestamps:
                 self._start_timestamps.insert(0, start_ts)
                 self._end_timestamps.insert(0, end_ts)
@@ -266,6 +272,60 @@ class ResponseMapAll:
                 if end_ts < self._end_timestamps[idx]:
                     self._end_timestamps[idx] = end_ts
                     self._records[idx] = record
+
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
+
+        end_timestamps: list[int] = []
+        start_timestamps: list[int] = []
+        worst_to_best_timestamps: list[int] = []
+        for start_ts, end_ts, prev_start_ts in zip(self._start_timestamps[1:],
+                                                   self._end_timestamps[1:],
+                                                   self._start_timestamps[:-1]):
+            if end_ts not in end_timestamps:
+                start_timestamps.append(start_ts)
+                end_timestamps.append(end_ts)
+                worst_to_best_timestamps.append(start_ts - prev_start_ts)
+            else:
+                idx = end_timestamps.index(end_ts)
+                if start_ts < start_timestamps[idx]:
+                    start_timestamps[idx] = start_ts
+                    worst_to_best_timestamps[idx] = start_ts - prev_start_ts
+
+        records = self._create_empty_records()
+        for start_ts, end_ts, worst_to_best_ts in sorted(zip(start_timestamps,
+                                                             end_timestamps,
+                                                             worst_to_best_timestamps),
+                                                         key=lambda x: x[0]):
+            record = {
+                self._start_column: start_ts - worst_to_best_ts,
+                'response_time': end_ts - (start_ts - worst_to_best_ts)
+            }
+            records.append(record)
+
+        return records
+
+    def to_best_case_records(self) -> RecordsInterface:
+
+        end_timestamps: list[int] = []
+        start_timestamps: list[int] = []
+        for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
+            if end_ts not in end_timestamps:
+                start_timestamps.append(start_ts)
+                end_timestamps.append(end_ts)
+            else:
+                idx = end_timestamps.index(end_ts)
+                if start_ts > start_timestamps[idx]:
+                    start_timestamps[idx] = start_ts
+
+        records = self._create_empty_records()
+        for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
+            record = {
+                self._start_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
+            records.append(record)
+
+        return records
 
     def to_all_records(self) -> RecordsInterface:
         records = self._create_empty_records()
@@ -292,7 +352,7 @@ class ResponseMapAll:
                     start_timestamps[idx] = start_ts
 
         records = self._create_empty_records()
-        for start_ts, end_ts in zip(start_timestamps, end_timestamps):
+        for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
             record = {
                 self._start_column: start_ts,
                 'response_time': end_ts - start_ts
@@ -336,9 +396,9 @@ class ResponseMapAll:
                 filled_records_dict[end_ts].append(record)
 
         columns = [ColumnValue(c) for c in self._columns]
+        init = [_.data for _ in sum(filled_records_dict.values(), [])]
         stacked_bar_records: RecordsInterface =\
-            RecordsFactory.create_instance(init=[_.data for _
-                                                 in sum(filled_records_dict.values(), [])],
+            RecordsFactory.create_instance(init,
                                            columns=columns)
         stacked_bar_records.sort_column_order()
         return stacked_bar_records
@@ -371,8 +431,9 @@ class ResponseMapAll:
             filled_record_list.append(worst_record)
 
         columns = [ColumnValue(c) for c in self._columns]
+        init = [_.data for _ in filled_record_list]
         stacked_bar_records: RecordsInterface =\
-            RecordsFactory.create_instance(init=[_.data for _ in filled_record_list],
+            RecordsFactory.create_instance(init,
                                            columns=columns)
         stacked_bar_records.sort_column_order()
         return stacked_bar_records
@@ -380,7 +441,7 @@ class ResponseMapAll:
     def _create_empty_records(
         self
     ) -> RecordsInterface:
-        return RecordsFactory.create_instance(columns=[
+        return RecordsFactory.create_instance(None, columns=[
             ColumnValue(self._start_column), ColumnValue('response_time')
         ])
 
@@ -506,7 +567,7 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._timeseries.to_best_case_records()
+        return self._response_map_all.to_best_case_records()
 
     def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
         """
@@ -526,7 +587,7 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._timeseries.to_worst_with_external_latency_case_records()
+        return self._response_map_all.to_worst_with_external_latency_case_records()
 
     def to_all_stacked_bar(self) -> RecordsInterface:
         """
@@ -848,7 +909,7 @@ class ResponseRecords:
         columns = columns or [ColumnValue(column) for column in self._columns]
         return RecordsFactory.create_instance(
             None,
-            columns
+            columns=columns
         )
 
     def _create_all_pattern_records(self) -> RecordsInterface:
@@ -1022,7 +1083,7 @@ class ResponseTimeseries:
         self,
         input_column: str
     ) -> RecordsInterface:
-        return RecordsFactory.create_instance(columns=[
+        return RecordsFactory.create_instance(None, columns=[
             ColumnValue(input_column), ColumnValue('response_time')
         ])
 

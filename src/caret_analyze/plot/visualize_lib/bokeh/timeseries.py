@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from bokeh.models import HoverTool
-from bokeh.plotting import ColumnDataSource, Figure
+from bokeh.plotting import ColumnDataSource, figure as Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager)
@@ -39,7 +39,7 @@ class BokehTimeSeries:
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool,
-        case: str = None
+        case: str | None = None
     ) -> None:
         self._metrics = metrics
         self._xaxis_type = xaxis_type
@@ -53,6 +53,7 @@ class BokehTimeSeries:
 
         # Initialize figure
         y_axis_label = timeseries_records_list[0].columns[1]
+        data_type = y_axis_label
         if y_axis_label == 'frequency':
             y_axis_label = y_axis_label + ' [Hz]'
         elif y_axis_label in ['period', 'latency']:
@@ -61,14 +62,8 @@ class BokehTimeSeries:
             y_axis_label = 'Response time' + ' [ms]'
         else:
             raise NotImplementedError()
-        if isinstance(target_objects[0], CallbackBase):
-            title = f'Time-line of callbacks {y_axis_label}'
-        elif isinstance(target_objects[0], Communication):
-            title = f'Time-line of communications {y_axis_label}'
-        elif isinstance(target_objects[0], Path):
-            title = f'Time-line of Paths {y_axis_label} --- {self._case} case ---'
-        else:
-            title = f'Time-line of publishes/subscribes {y_axis_label}'
+        title: str = f'Timeseries of {data_type} --- {self._case} case --- \
+            'if data_type == 'response_time' else f'Timeseries of {data_type}'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
 
         # Apply xaxis offset

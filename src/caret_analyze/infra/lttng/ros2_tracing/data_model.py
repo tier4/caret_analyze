@@ -97,7 +97,8 @@ class Ros2DataModel():
 
         # Events (multiple instances, may not have a meaningful index)
         self.callback_start_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('callback_start_timestamp'),
                 ColumnValue('callback_object'),
@@ -105,21 +106,24 @@ class Ros2DataModel():
             ]
         )
         self.callback_end_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('callback_end_timestamp'),
                 ColumnValue('callback_object'),
             ]
         )
         self.dds_write_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('dds_write_timestamp'),
                 ColumnValue('message'),
             ]
         )
         self.dds_bind_addr_to_stamp = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('dds_bind_addr_to_stamp_timestamp'),
                 ColumnValue('addr'),
@@ -127,20 +131,23 @@ class Ros2DataModel():
             ]
         )
         self.dds_bind_addr_to_addr = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('dds_bind_addr_to_addr_timestamp'),
                 ColumnValue('addr_from'),
                 ColumnValue('addr_to'),
             ]
         )
         self.on_data_available_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('on_data_available_timestamp'),
                 ColumnValue('source_timestamp'),
             ]
         )
         self.rclcpp_intra_publish_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('rclcpp_intra_publish_timestamp'),
                 ColumnValue('publisher_handle'),
@@ -149,7 +156,8 @@ class Ros2DataModel():
             ]
         )
         self.rclcpp_ring_buffer_enqueue_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('rclcpp_ring_buffer_enqueue_timestamp'),
                 ColumnValue('buffer'),
@@ -159,7 +167,8 @@ class Ros2DataModel():
             ]
         )
         self.rclcpp_ring_buffer_dequeue_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('rclcpp_ring_buffer_dequeue_timestamp'),
                 ColumnValue('buffer'),
@@ -168,7 +177,8 @@ class Ros2DataModel():
             ]
         )
         self.rclcpp_publish_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('rclcpp_publish_timestamp'),
                 ColumnValue('publisher_handle'),
@@ -177,7 +187,8 @@ class Ros2DataModel():
             ]
         )
         self.rcl_publish_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('rcl_publish_timestamp'),
                 ColumnValue('publisher_handle'),
@@ -185,25 +196,29 @@ class Ros2DataModel():
             ]
         )
         self.dispatch_subscription_callback_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('dispatch_subscription_callback_timestamp'),
                 ColumnValue('callback_object'),
                 ColumnValue('message'),
                 ColumnValue('source_timestamp'),
                 ColumnValue('message_timestamp'),
-            ])
+            ]
+        )
         self.rmw_take_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tid'),
                 ColumnValue('rmw_take_timestamp'),
                 ColumnValue('rmw_subscription_handle'),
                 ColumnValue('message'),
                 ColumnValue('source_timestamp')
-            ])
+            ]
+        )
         self.dispatch_intra_process_subscription_callback_instances = \
             RecordsFactory.create_instance(
                 None,
-                [
+                columns=[
                     ColumnValue('dispatch_intra_process_subscription_callback_timestamp'),
                     ColumnValue('callback_object'),
                     ColumnValue('message'),
@@ -211,23 +226,24 @@ class Ros2DataModel():
                 ]
             )
         self.message_construct_instances = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('message_construct_timestamp'),
                 ColumnValue('original_message'),
                 ColumnValue('constructed_message'),
             ]
         )
-
         self.tilde_subscribe = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tilde_subscribe_timestamp'),
                 ColumnValue('subscription'),
                 ColumnValue('tilde_message_id'),
             ]
         )
-
         self.tilde_publish = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('tilde_publish_timestamp'),
                 ColumnValue('publisher'),
                 ColumnValue('subscription_id'),
@@ -235,13 +251,15 @@ class Ros2DataModel():
             ]
         )
         self.sim_time = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('system_time'),
                 ColumnValue('sim_time'),
             ]
         )
         self.timer_event = RecordsFactory.create_instance(
-            None, [
+            None,
+            columns=[
                 ColumnValue('time_event_stamp'),
             ]
         )
