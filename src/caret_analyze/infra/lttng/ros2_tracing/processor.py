@@ -765,8 +765,6 @@ class Ros2Handler():
         constructed_message = get_field(event, 'constructed_message')
         timestamp = get_field(event, '_timestamp')
 
-        # 【TODO】original_message
-        # 【TODO】constructed_message
         self.data.add_message_construct_instance(
             timestamp, original_message, constructed_message)
 
@@ -915,7 +913,6 @@ class Ros2Handler():
         tid = get_field(event, '_vtid')
         source_stamp = get_field(event, 'source_stamp')
 
-        # 【TODO】addr
         self.data.add_dds_bind_addr_to_stamp(tid, timestamp, addr, source_stamp)
 
     def _handle_dds_bind_addr_to_addr(
@@ -929,8 +926,6 @@ class Ros2Handler():
         addr_from = get_field(event, 'addr_from')
         addr_to = get_field(event, 'addr_to')
 
-        # 【TODO】addr_from
-        # 【TODO】addr_to
         self.data.add_dds_bind_addr_to_addr(timestamp, addr_from, addr_to)
 
     def _handle_rmw_implementation(
