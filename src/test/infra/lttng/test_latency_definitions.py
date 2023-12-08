@@ -816,9 +816,9 @@ class TestPublisherRecords:
 
         assert generic_df.equals(generic_df_expect)
 
-        # non_comunication
-        non_comunicate_pub_handle = 20
-        publisher_lttng_mock = create_publisher_lttng(non_comunicate_pub_handle)
+        # non_communication
+        non_communicate_pub_handle = 20
+        publisher_lttng_mock = create_publisher_lttng(non_communicate_pub_handle)
         publisher_struct_mock = create_publisher_struct('pub_topic')
         setup_bridge_get_publisher(publisher_struct_mock, [publisher_lttng_mock])
         pub_records = provider.publish_records(publisher_struct_mock)
