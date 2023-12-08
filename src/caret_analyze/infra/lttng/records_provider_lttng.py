@@ -1613,9 +1613,8 @@ class FilteredRecordsSource:
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
-        # NOTE: publisher_handles should have only one handle.
-        # We need to check publisher_handles has multiple handles.
-        if publisher_handles[0] not in list(grouped_records.keys()):
+        # NOTE: There is concern that publisher_handles has only one publisher_handle.
+        if not set(publisher_handles) & set(grouped_records.keys()):
             return RecordsFactory.create_instance(
                 None,
                 columns=[
