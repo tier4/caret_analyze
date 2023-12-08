@@ -823,7 +823,6 @@ class TestPublisherRecords:
         setup_bridge_get_publisher(publisher_struct_mock, [publisher_lttng_mock])
         pub_records = provider.publish_records(publisher_struct_mock)
         pub_df = pub_records.to_dataframe()
-        print(pub_df)
         pub_df_expect = pd.DataFrame(
             [],
             columns=[
