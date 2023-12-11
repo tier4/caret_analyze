@@ -39,6 +39,31 @@ class TestLttng:
             with pytest.raises(FileNotFoundError):
                 Lttng('', force_conversion=True)
 
+    @pytest.mark.parametrize(
+        'need_validate',
+        [True, False]
+    )
+    def test_multihost_validate(self, caplog, mocker, need_validate):
+        data_mock = mocker.Mock(spec=Ros2DataModel)
+        mocker.patch.object(Lttng, '_parse_lttng_data',
+                            return_value=(data_mock, {}, 0, 1))
+        lttng_info_mock = mocker.Mock(spec=LttngInfo)
+        mocker.patch('caret_analyze.infra.lttng.lttng_info.LttngInfo',
+                     return_value=lttng_info_mock)
+        source_mock = mocker.Mock(spec=RecordsSource)
+        mocker.patch('caret_analyze.infra.lttng.records_source.RecordsSource',
+                     return_value=source_mock)
+        counter_mock = mocker.Mock(spec=EventCounter)
+        mocker.patch('caret_analyze.infra.lttng.event_counter.EventCounter',
+                     return_value=counter_mock)
+        mocker.patch('os.path.exists', return_value=True)
+
+        Lttng(['test1', 'test2'], validate=need_validate)
+        if need_validate:
+            assert 'multiple LTTng log is not supported.' in caplog.messages[0]
+        else:
+            assert len(caplog.messages)==0
+
     def test_get_nodes(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data',
