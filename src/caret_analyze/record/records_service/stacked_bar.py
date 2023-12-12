@@ -27,7 +27,6 @@ class StackedBar:
     def __init__(
         self,
         records: RecordsInterface,
-        converter: ClockConverter | None = None
     ) -> None:
         """
         Generate records for stacked bar.
@@ -36,8 +35,6 @@ class StackedBar:
         ----------
         records : RecordsInterface
             Records of response time.
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Raises
         ------
@@ -48,7 +45,6 @@ class StackedBar:
         # rename columns to nodes and topics granularity
         self._records = records
         self._first_latency_name = '[worst - best] response time'
-        self._converter = converter
         rename_map: dict[str, str] = \
             self._get_rename_column_map(self._records.columns)
         renamed_records: RecordsInterface = \
@@ -192,9 +188,9 @@ class StackedBar:
 
         for column_from, column_to in zip(columns[:-1], columns[1:]):
             latency_handler = Latency(records, column_from, column_to)
-            assert record_size == len(latency_handler.to_records(self._converter))
+            assert record_size == len(latency_handler.to_records())
 
-            latency_records = latency_handler.to_records(self._converter)
+            latency_records = latency_handler.to_records()
             latency_seq: Sequence[int | None] = latency_records.get_column_series('latency')
             latency_list: list[int] = self._convert_sequence_to_list(latency_seq)
 

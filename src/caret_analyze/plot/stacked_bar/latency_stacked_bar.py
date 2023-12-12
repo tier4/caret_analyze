@@ -89,7 +89,7 @@ class LatencyStackedBar:
         """
         response_records: RecordsInterface = \
             self._get_response_time_record(self._target_objects)
-        stacked_bar = StackedBar(response_records, converter)
+        stacked_bar = StackedBar(response_records)
         return stacked_bar.to_dict(), stacked_bar.columns
 
     def _get_response_time_record(
