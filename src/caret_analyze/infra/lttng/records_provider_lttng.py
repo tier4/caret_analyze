@@ -1613,6 +1613,17 @@ class FilteredRecordsSource:
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
+        # NOTE: There is concern that publisher_handles has only one publisher_handle.
+        if not set(publisher_handles) & set(grouped_records.keys()):
+            return RecordsFactory.create_instance(
+                None,
+                columns=[
+                    ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
+                    ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ]
+            )
         sample_records = grouped_records[publisher_handles[0]]
         column_values = Columns.from_str(sample_records.columns).to_value()
         pub_records = RecordsFactory.create_instance(None, columns=column_values)
