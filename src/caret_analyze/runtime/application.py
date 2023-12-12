@@ -234,8 +234,6 @@ class Application(Summarizable):
             Given argument type is invalid.
         ItemNotFoundError
             Failed to find an item that matches the condition.
-        MultipleItemFoundError
-            Failed to identify an item that matches the condition.
 
         """
         if not isinstance(executor_name, str):
@@ -471,8 +469,6 @@ class Application(Summarizable):
             Occurs when the given argument type is invalid.
         ItemNotFoundError
             Occurs when no items were found.
-        MultipleItemFoundError
-            Occurs when several items were found.
 
         """
         if not isinstance(node_name, str) or \
