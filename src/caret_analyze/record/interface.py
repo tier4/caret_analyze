@@ -648,7 +648,7 @@ class RecordsInterface:
         ----------
         columns : list[str]
             columns to be dropped.
-        
+
         Returns
         -------
         dict[tuple[int, ...], RecordsInterface]
