@@ -415,15 +415,19 @@ class Lttng(InfraBase):
         if isinstance(trace_dir_or_events, str):
             trace_dir_or_events = [trace_dir_or_events]
 
+        assert (len(trace_dir_or_events)!=0)
+
         # TODO(hsgwa): Same implementation duplicated. Refactoring required.
-        if isinstance(trace_dir_or_events, list):
+        if isinstance(trace_dir_or_events[0], str):
+            tid_remapper = MultiHostIdRemapper('_vtid')
+            pid_remapper = MultiHostIdRemapper('_vpid')
             for trace_dir_or_event in trace_dir_or_events:
                 if not isinstance(trace_dir_or_event, str):
-                    logger.warning(f'{trace_dir_or_events} is an invalid input. '
+                    logger.warning(f'{trace_dir_or_event} is an invalid input. '
                                    f'Type of {trace_dir_or_event} is must be `str`.')
                     continue
                 event_collection = EventCollection(
-                    trace_dir_or_events, force_conversion)
+                    trace_dir_or_event, force_conversion)
                 print('{} events found.'.format(len(event_collection)))
 
                 common = LttngEventFilter.Common()
@@ -468,28 +472,33 @@ class Lttng(InfraBase):
                         mininterval=1.0):
                     event_name = event[LttngEventFilter.NAME]
                     handler_ = handler.handler_map[event_name]
+                    tid_remapper.remap(event)
+                    pid_remapper.remap(event)
                     handler_(event)
 
-            handler.create_runtime_handler_map()
-            filtered_event_count = 0
-            for event in tqdm(
-                    iter(run_events),
-                    total=len(run_events),
-                    desc='loading',
-                    mininterval=1.0):
-                if store_events:
-                    event_dict = {
-                        k: get_field(event, k) for k in event
-                    }
-                    events.append(event_dict)
-                filtered_event_count += 1
-                event_name = event[LttngEventFilter.NAME]
-                handler_ = handler.handler_map[event_name]
-                handler_(event)
-
-                data.finalize()
+                handler.create_runtime_handler_map()
+                filtered_event_count = 0
+                for event in tqdm(
+                        iter(run_events),
+                        total=len(run_events),
+                        desc='loading',
+                        mininterval=1.0):
+                    if store_events:
+                        event_dict = {
+                            k: get_field(event, k) for k in event
+                        }
+                        events.append(event_dict)
+                    filtered_event_count += 1
+                    event_name = event[LttngEventFilter.NAME]
+                    handler_ = handler.handler_map[event_name]
+                    tid_remapper.remap(event)
+                    pid_remapper.remap(event)
+                    handler_(event)
+                tid_remapper.change_host()
+                pid_remapper.change_host()
                 if len(event_filters) > 0:
                     print('filtered to {} events.'.format(filtered_event_count))
+            data.finalize()
         else:
             # Note: giving events as arguments is used only for debugging.
             common = LttngEventFilter.Common()

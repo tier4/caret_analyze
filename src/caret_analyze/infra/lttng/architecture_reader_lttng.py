@@ -40,7 +40,7 @@ from ...value_objects import (
 class ArchitectureReaderLttng(ArchitectureReader):
     def __init__(
         self,
-        trace_dir: str
+        trace_dir: str | list[str]
     ) -> None:
         from .lttng import Lttng
         self._lttng = Lttng(
