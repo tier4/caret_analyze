@@ -64,7 +64,6 @@ class BokehMessageFlow:
         strip = Strip(self._lstrip_s, self._rstrip_s)
         clip = strip.to_clip(df)
         df = clip.execute(df)
-        offset = Offset(clip.min_ns)
 
         # Apply xaxis offset
         frame_min: float = clip.min_ns
@@ -78,8 +77,8 @@ class BokehMessageFlow:
         if converter:
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
-        x_range_name = 'x_plot_axis'
-        apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
+        offset = Offset(converter.convert(clip.min_ns)) if converter else Offset(clip.min_ns)
+        apply_x_axis_offset(fig, frame_min - offset.value, frame_max - offset.value)
 
         # Format
         formatter = FormatterFactory.create(self._target_path, self._granularity)
@@ -102,8 +101,7 @@ class BokehMessageFlow:
             color='black',
             alpha=0.15,
             hover_fill_color='black',
-            hover_alpha=0.4,
-            x_range_name=x_range_name
+            hover_alpha=0.4
         )
         fig.add_tools(rect_source.create_hover({'renderers': [rect]}))
 
@@ -117,8 +115,7 @@ class BokehMessageFlow:
                 line_width=1.5,
                 line_color=color_selector.get_color(),
                 line_alpha=1,
-                source=source,
-                x_range_name=x_range_name
+                source=source
             )
             fig.add_tools(flow_source.create_hover({'renderers': [line]}))
 
@@ -192,7 +189,7 @@ class MessageFlowRectSource:
                     if converter:
                         callback_start = converter.convert(callback_start)
                         callback_end = converter.convert(callback_end)
-                    rect = RectValues(callback_start, callback_end, y_min, y_max)
+                    rect = RectValues((callback_start - offset.value) * 10**-9, (callback_end - offset.value) * 10**-9, y_min, y_max)
                     rect_source.stream({
                         **{'x': [rect.x],
                            'y': [rect.y],
@@ -260,7 +257,7 @@ class MessageFlowLineSource:
             t_start_s = to_format_str(x_min-offset.value)
             t_end_s = to_format_str(x_max-offset.value)
             line_source = ColumnDataSource({
-                'x': row_values,
+                'x': [(value - offset.value) * 10**-9 for value in row_values],
                 'y': tick_labels.values[:len(row_values)],
                 'width': [width]*len(row_values),
                 'height': [0]*len(row_values),
