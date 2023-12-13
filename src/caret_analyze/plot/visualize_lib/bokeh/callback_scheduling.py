@@ -297,7 +297,7 @@ class CallbackSchedBarSource:
 
         """
         rect = RectValues(
-            (self._frame_min - self._frame_min) * 10**-9,
+            0,
             (self._frame_max - self._frame_min) * 10**-9,
             rect_y_base - 0.5,
             rect_y_base + 0.5

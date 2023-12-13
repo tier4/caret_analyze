@@ -79,7 +79,7 @@ class BokehMessageFlow:
             frame_max = converter.convert(frame_max)
         offset =\
             Offset(round(converter.convert(clip.min_ns))) if converter else Offset(clip.min_ns)
-        apply_x_axis_offset(fig, frame_min - offset.value, frame_max - offset.value)
+        apply_x_axis_offset(fig, frame_min, frame_max)
 
         # Format
         formatter = FormatterFactory.create(self._target_path, self._granularity)
