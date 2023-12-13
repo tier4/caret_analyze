@@ -321,8 +321,6 @@ class RecordsInterface:
         ----------
         f : Callable[[RecordInterface], bool]
             condition function.
-        inplace : bool
-            inplace original instance if true.
 
         """
         pass
