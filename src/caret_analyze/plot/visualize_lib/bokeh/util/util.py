@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import datetime
 
-from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
+from bokeh.models import AdaptiveTicker, Range1d
 from bokeh.plotting import figure as Figure
 
 import numpy as np

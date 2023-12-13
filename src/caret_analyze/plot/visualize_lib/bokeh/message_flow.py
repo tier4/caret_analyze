@@ -189,7 +189,9 @@ class MessageFlowRectSource:
                     if converter:
                         callback_start = converter.convert(callback_start)
                         callback_end = converter.convert(callback_end)
-                    rect = RectValues((callback_start - offset.value) * 10**-9, (callback_end - offset.value) * 10**-9, y_min, y_max)
+                    rect = RectValues((callback_start - offset.value) * 10**-9,
+                                      (callback_end - offset.value) * 10**-9,
+                                      y_min, y_max)
                     rect_source.stream({
                         **{'x': [rect.x],
                            'y': [rect.y],

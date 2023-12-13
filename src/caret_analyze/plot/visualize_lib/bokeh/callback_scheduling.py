@@ -78,7 +78,8 @@ class BokehCallbackSched:
         # Draw callback scheduling
         color_selector = ColorSelectorFactory.create_instance(self._coloring_rule)
         legend_manager = LegendManager()
-        rect_source_gen = CallbackSchedRectSource(legend_manager, callbacks[0], clip, frame_min, converter)
+        rect_source_gen = CallbackSchedRectSource(legend_manager, callbacks[0],
+                                                  clip, frame_min, converter)
         bar_source_gen = CallbackSchedBarSource(legend_manager, callbacks[0], frame_min, frame_max)
 
         for cbg in self._callback_groups:
@@ -219,7 +220,8 @@ class CallbackSchedRectSource:
             callback_start = self._converter.convert(row[1]) if self._converter else row[1]
             callback_end = self._converter.convert(row[-1]) if self._converter else row[-1]
             rect = RectValues(
-                (callback_start - self._frame_min) * 10**-9, (callback_end - self._frame_min) * 10**-9,
+                (callback_start - self._frame_min) * 10**-9,
+                (callback_end - self._frame_min) * 10**-9,
                 (self._rect_y_base-self.RECT_HEIGHT),
                 (self._rect_y_base+self.RECT_HEIGHT)
             )
@@ -295,7 +297,8 @@ class CallbackSchedBarSource:
 
         """
         rect = RectValues(
-            (self._frame_min - self._frame_min) * 10**-9, (self._frame_max - self._frame_min) * 10**-9,
+            (self._frame_min - self._frame_min) * 10**-9,
+            (self._frame_max - self._frame_min) * 10**-9,
             rect_y_base - 0.5,
             rect_y_base + 0.5
         )
