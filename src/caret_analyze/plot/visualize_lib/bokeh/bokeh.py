@@ -34,6 +34,7 @@ from .timeseries import BokehTimeSeries
 from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
+from ....common import ClockConverter
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
@@ -181,7 +182,8 @@ class Bokeh(VisualizeLibInterface):
         metrics: list[MetricsTypes],
         target_objects: Sequence[HistTypes],
         data_type: str,
-        case: str | None = None
+        case: str | None = None,
+        converter: ClockConverter | None = None
     ) -> Figure:
         """
         Get a histogram figure.
@@ -198,6 +200,8 @@ class Bokeh(VisualizeLibInterface):
         case : str
             Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time histogram graph.
+        converter: ClockConverter
+            Time conversion function at sim_time.
 
 
         Returns
@@ -224,37 +228,48 @@ class Bokeh(VisualizeLibInterface):
         if data_type == 'response_time':
             if case == 'all':
                 data_list = [
-                    [_ for _ in m.to_all_records().get_column_series(data_type)
+                    [_ for _ in m.to_all_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'best':
                 data_list = [
-                    [_ for _ in m.to_best_case_records().get_column_series(data_type)
+                    [_ for _ in
+                        m.to_best_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst':
                 data_list = [
-                    [_ for _ in m.to_worst_case_records().get_column_series(data_type)
+                    [_ for _ in
+                        m.to_worst_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst-with-external-latency':
                 data_list = [
-                    [_ for _ in
-                     m.to_worst_with_external_latency_case_records().get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
+                    [
+                        _ for _ in
+                        m.to_worst_with_external_latency_case_records(converter=converter)
+                        .get_column_series(data_type)
+                        if _ is not None
                     ]
+                    for m in metrics
+                    if isinstance(m, ResponseTime)
+                ]
             else:
                 raise ValueError('optional argument "case" must be following: \
                                  "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
-                for m in metrics if not isinstance(m, ResponseTime)
+                [
+                    _ for _ in
+                    m.to_records(converter=converter).get_column_series(data_type)
+                    if _ is not None
                 ]
+                for m in metrics
+                if not isinstance(m, ResponseTime)
+            ]
 
         color_selector = ColorSelectorFactory.create_instance('unique')
 
