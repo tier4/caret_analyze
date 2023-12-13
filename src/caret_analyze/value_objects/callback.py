@@ -453,18 +453,54 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
     @property
     def callback_type_name(self) -> str:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        str
+            callback type name
+
+        """
         return str(self.callback_type)
 
     @property
     def subscribe_topic_name(self) -> str | None:
+        """
+        Get subscribe topic name.
+
+        Returns
+        -------
+        str
+            subscribe topic name
+
+        """
         return self._subscribe_topic_name
 
     @property
     def service_name(self) -> str | None:
+        """
+        Get service name.
+
+        Returns
+        -------
+        str
+            service name
+
+        """
         return self._service_name
 
     @property
     def publish_topic_names(self) -> tuple[str, ...] | None:
+        """
+        Get publish topic name.
+
+        Returns
+        -------
+        tuple[str, ...]
+            publish topic name
+
+        """
         return self._publish_topic_names
 
     @property
@@ -483,6 +519,15 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
     @property
     @abstractmethod
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            summary info.
+
+        """
         pass
 
 
