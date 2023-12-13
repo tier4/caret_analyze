@@ -645,7 +645,7 @@ class RecordsInterface:
         Parameters
         ----------
         columns : list[str]
-            columns to be dropped.
+            columns name list.
 
         Returns
         -------
