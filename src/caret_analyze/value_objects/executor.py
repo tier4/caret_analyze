@@ -159,7 +159,7 @@ class ExecutorStructValue(ValueObject, Summarizable):
     def callback_group_names(self) -> tuple[str, ...]:
         """
         Get callback group names.
-        
+
         Returns
         -------
         tuple[str, ...]
