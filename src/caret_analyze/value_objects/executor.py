@@ -32,7 +32,7 @@ class ExecutorType(ValueObject):
         Construct an instance.
 
         Parameters
-        -------
+        ----------
         type_name : str
             Type name.
 
