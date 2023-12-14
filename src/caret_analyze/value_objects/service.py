@@ -30,6 +30,25 @@ class ServiceValue(ValueObject):
         callback_id: str | None,
         construction_order: int
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        service_name : str | None
+            Service name.
+        node_name : str
+            Node name.
+        node_id : str
+            Node unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        callback_id : str
+            Callback unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        construction_order : int
+            Order of instance creation within the identical node.
+
+        """
         self._node_name = node_name
         self._node_id = node_id
         self._service_name = service_name
@@ -38,22 +57,66 @@ class ServiceValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def node_id(self) -> str | None:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str | None
+            Node id.
+
+        """
         return self._node_id
 
     @property
     def service_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+        """
         return self._service_name
 
     @property
     def callback_id(self) -> str | None:
+        """
+        Get callback id.
+
+        Returns
+        -------
+        str
+            Callback unique id.
+
+        """
         return self._callback_id
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            Construction order.
+
+        """
         return self._construction_order
 
 
