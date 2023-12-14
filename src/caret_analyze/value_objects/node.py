@@ -340,6 +340,22 @@ class DiffNode:
         self._right_node = right_node
 
     def diff_node_pubs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of publish topic names.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture
+        right_node : NodeStructValue
+            Node in architecture
+
+        Returns
+        -------
+        tuple[tuple[str,...], tuple[str,...]]
+            Returns publish topic names that exist only in the respective nodes.
+
+        """
         set_left_pubs = set(self._left_node.publish_topic_names)
         set_right_pubs = set(self._right_node.publish_topic_names)
         common_node_pubs = set_left_pubs & set_right_pubs
@@ -348,6 +364,23 @@ class DiffNode:
         return left_only_pubs, right_only_pubs
 
     def diff_node_subs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of \
+        subscribe topic names.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture
+        right_node : NodeStructValue
+            Node in architecture
+
+        Returns
+        -------
+        tuple[tuple[str,...], tuple[str,...]]
+            Returns subscribe topic names that exist only in the respective nodes.
+
+        """
         set_left_subs = set(self._left_node.subscribe_topic_names)
         set_right_subs = set(self._right_node.subscribe_topic_names)
         common_node_subs = set_left_subs & set_right_subs
