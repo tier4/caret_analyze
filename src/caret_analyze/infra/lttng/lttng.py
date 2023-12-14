@@ -258,43 +258,42 @@ class CtfEventCollection(IterableEvents):
 
         return events
 
+
 class MultiHostIdRemapper:
-  """
-  Class for remapping pid/tid of LTTng event to make it unique across multiple hosts.
-  """
+    """Class for remapping pid/tid of LTTng event to make it unique across multiple hosts."""
 
-  def __init__(self, id_key: str):
-    self._id_key = id_key
-    self._other_host_ids: set[int] = set()
-    self._current_host_remapped_ids: set[int] = set()
-    self._current_host_not_remapped_ids: set[int] = set()
-    self._current_host_id_map: dict[int, int] = dict()
-    self._next_id = 1000000000
+    def __init__(self, id_key: str):
+        self._id_key = id_key
+        self._other_host_ids: set[int] = set()
+        self._current_host_remapped_ids: set[int] = set()
+        self._current_host_not_remapped_ids: set[int] = set()
+        self._current_host_id_map: dict[int, int] = {}
+        self._next_id = 1000000000
 
-  def remap(self, event: dict):
-    id = get_field(event, self._id_key)
-    if id in self._other_host_ids or \
-       id in self._current_host_remapped_ids:
-      if id in self._current_host_id_map:
-        event[self._id_key] = self._current_host_id_map[id]
-      else:
-        while next_id in self._other_host_ids or \
-              next_id in self._current_host_remapped_ids:
-          self._next_id += 1
-        remapped_id = self._next_id
-        self._next_id += 1
-        self._current_host_id_map[id] = remapped_id
-        self._current_host_remapped_ids.add(remapped_id)
-        event[self._id_key] = remapped_id
-    else:
-      self._current_host_not_remapped_ids.add(id)
+    def remap(self, event: dict):
+        target_id = get_field(event, self._id_key)
+        if target_id in self._other_host_ids or target_id in self._current_host_remapped_ids:
+            if target_id in self._current_host_id_map:
+                event[self._id_key] = self._current_host_id_map[target_id]
+            else:
+                while self._next_id in self._other_host_ids or \
+                        self._next_id in self._current_host_remapped_ids:
+                    self._next_id += 1
+            remapped_id = self._next_id
+            self._next_id += 1
+            self._current_host_id_map[target_id] = remapped_id
+            self._current_host_remapped_ids.add(remapped_id)
+            event[self._id_key] = remapped_id
+        else:
+            self._current_host_not_remapped_ids.add(target_id)
 
-  def change_host(self):
-    self._other_host_ids |= self._current_host_remapped_ids
-    self._other_host_ids |= self._current_host_not_remapped_ids
-    self._current_host_remapped_ids.clear()
-    self._current_host_not_remapped_ids.clear()
-    self._current_host_id_map.clear()
+    def change_host(self):
+        self._other_host_ids |= self._current_host_remapped_ids
+        self._other_host_ids |= self._current_host_not_remapped_ids
+        self._current_host_remapped_ids.clear()
+        self._current_host_not_remapped_ids.clear()
+        self._current_host_id_map.clear()
+
 
 class Lttng(InfraBase):
     """
@@ -415,7 +414,7 @@ class Lttng(InfraBase):
         if isinstance(trace_dir_or_events, str):
             trace_dir_or_events = [trace_dir_or_events]
 
-        assert (len(trace_dir_or_events)!=0)
+        assert (len(trace_dir_or_events) != 0)
 
         # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events[0], str):
@@ -434,7 +433,8 @@ class Lttng(InfraBase):
                 begin, end = event_collection.time_range()
                 common.start_time, common.end_time = begin, end
 
-                # Offset is obtained for conversion from the monotonic clock time to the system time.
+                # Offset is obtained for conversion from
+                # the monotonic clock time to the system time.
                 for event in event_collection:
                     event_name = event[LttngEventFilter.NAME]
                     if event_name == 'ros2_caret:caret_init':

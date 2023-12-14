@@ -62,7 +62,7 @@ class TestLttng:
         if need_validate:
             assert 'multiple LTTng log is not supported.' in caplog.messages[0]
         else:
-            assert len(caplog.messages)==0
+            assert len(caplog.messages) == 0
 
     def test_get_nodes(self, mocker):
         data_mock = mocker.Mock(spec=Ros2DataModel)
