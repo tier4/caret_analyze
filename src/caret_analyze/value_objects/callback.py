@@ -622,6 +622,26 @@ class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
         construction_order: int,
         callback_name: str,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        symbol : str
+            Symbol name of the service callback.
+        service_name : str | None
+            Service name which the service callback service.
+        publish_topic_names : tuple[str, ...] | None
+            Topic name which the service callback publishes.
+        construction_order: int
+            Order of instance creation within the identical node.
+        callback_name: str
+            Service callback name, by default None.
+            This argument is used by ArchitectureReaderYaml.
+
+        """
         super().__init__(
             node_name=node_name,
             symbol=symbol,
@@ -633,10 +653,28 @@ class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
 
     @property
     def callback_type(self) -> CallbackType:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        CallbackType
+            callback type
+
+        """
         return CallbackType.SERVICE
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'name': self.callback_name,
             'node': self.node_name,
