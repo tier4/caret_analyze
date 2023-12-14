@@ -1045,6 +1045,8 @@ class NodeRecordsCallbackChain:
         self._val = node_path
 
     def to_records(self):
+        assert self._val.child is not None
+
         chain_info = self._val.child
 
         if isinstance(chain_info[0], CallbackStructValue):
@@ -1160,6 +1162,8 @@ class NodeRecordsInheritUniqueTimestamp:
         self._node_path = node_path
 
     def to_records(self):
+        assert self._node_path.subscription is not None and self._node_path.publisher is not None
+
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
@@ -1225,6 +1229,8 @@ class NodeRecordsUseLatestMessage:
         self._node_path = node_path
 
     def to_records(self):
+        assert self._node_path.subscription is not None and self._node_path.publisher is not None
+
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
@@ -1288,6 +1294,8 @@ class NodeRecordsTilde:
         self._node_path = node_path
 
     def to_records(self):
+        assert self._node_path.subscription is not None and self._node_path.publisher is not None
+
         tilde_records = self._provider.tilde_records(
             self._node_path.subscription, self._node_path.publisher)
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
@@ -1604,6 +1612,17 @@ class FilteredRecordsSource:
         """
         grouped_records = self._grouped_publish_records
         if len(grouped_records) == 0:
+            return RecordsFactory.create_instance(
+                None,
+                columns=[
+                    ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
+                    ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ]
+            )
+        # NOTE: There is concern that publisher_handles has only one publisher_handle.
+        if not set(publisher_handles) & set(grouped_records.keys()):
             return RecordsFactory.create_instance(
                 None,
                 columns=[

@@ -215,6 +215,15 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
 
     @property
     def service_name(self) -> str | None:
+        """
+        Get service name.
+
+        Returns
+        -------
+        str
+            Service name.
+
+        """
         return self._service_name
 
     @property
