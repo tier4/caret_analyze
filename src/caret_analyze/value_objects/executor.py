@@ -31,7 +31,7 @@ class ExecutorType(ValueObject):
         """
         Construct an instance.
 
-        Parametors
+        Parameters
         -------
         type_name : str
             Type name.
