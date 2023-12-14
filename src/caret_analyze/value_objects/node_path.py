@@ -336,7 +336,7 @@ class NodePathStructValue(ValueObject, Summarizable):
     @property
     def subscription(self) -> SubscriptionStructValue | None:
         """
-        Get a subscription.
+        Get subscription.
 
         Returns
         -------
@@ -349,7 +349,7 @@ class NodePathStructValue(ValueObject, Summarizable):
     @property
     def subscription_callback(self) -> SubscriptionCallbackStructValue | None:
         """
-        Get a subscription callback.
+        Get subscription callback.
 
         Returns
         -------
