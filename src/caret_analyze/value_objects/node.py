@@ -130,34 +130,106 @@ class NodeStructValue(ValueObject, Summarizable):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def publishers(self) -> tuple[PublisherStructValue, ...]:
+        """
+        Get publishers.
+
+        Returns
+        -------
+        tuple[PublisherStructValue, ...]
+            Node path publishers.
+
+        """
         return self._publishers
 
     @property
     def publish_topic_names(self) -> tuple[str, ...]:
+        """
+        Get topic names to publish.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Topic names to publish.
+
+        """
         return tuple(p.topic_name for p in self._publishers)
 
     @property
     def subscribe_topic_names(self) -> tuple[str, ...]:
+        """
+        Get topic names to subscribe to.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Topic names to subscribe to.
+
+        """
         return tuple(s.topic_name for s in self._subscriptions)
 
     @property
     def subscriptions(self) -> tuple[SubscriptionStructValue, ...]:
+        """
+        Get subscriptions.
+
+        Returns
+        -------
+        tuple[SubscriptionStructValue, ...]
+            Subscriptions to subscribe to.
+
+        """
         return self._subscriptions
 
     @property
     def service_names(self) -> tuple[str, ...]:
+        """
+        Get service names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Service names that the node contains.
+
+        """
         return tuple(s.service_name for s in self._services)
 
     @property
     def services(self) -> tuple[ServiceStructValue, ...]:
+        """
+        Get services.
+
+        Returns
+        -------
+        tuple[ServiceStructValue, ...]
+            Services that the node contains.
+
+        """
         return self._services
 
     @property
     def timers(self) -> tuple[TimerStructValue, ...]:
+        """
+        Get timers.
+
+        Returns
+        -------
+        tuple[TimerStructValue, ...]
+            timers that the node contains.
+
+        """
         return self._timers
 
     def get_path(
@@ -165,6 +237,29 @@ class NodeStructValue(ValueObject, Summarizable):
         subscribe_topic_name: str,
         publish_topic_name: str
     ) -> NodePathStructValue:
+        """
+        Get node path.
+
+        Parameters
+        ----------
+        subscribe_topic_name : str | None
+            topic name to which the node subscribes.
+        publish_topic_name : str | None
+            topic name to which the node publishes.
+
+        Returns
+        -------
+        NodePathStructValue
+            node path that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         def is_target(path: NodePathStructValue):
             return path.publish_topic_name == publish_topic_name and \
                 path.subscribe_topic_name == subscribe_topic_name
@@ -173,32 +268,88 @@ class NodeStructValue(ValueObject, Summarizable):
 
     @property
     def callbacks(self) -> tuple[CallbackStructValue, ...] | None:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        tuple[CallbackStructValue, ...] | None
+            Callbacks that the node contains.
+
+        """
         if self._callback_groups is None:
             return None
         return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
     def callback_names(self) -> tuple[str, ...] | None:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        tuple[str, ...] | None
+            Callback names that the node contains.
+
+        """
         if self.callbacks is None:
             return None
         return tuple(_.callback_name for _ in self.callbacks)
 
     @property
     def callback_groups(self) -> tuple[CallbackGroupStructValue, ...] | None:
+        """
+        Get callback groups.
+
+        Returns
+        -------
+        tuple[CallbackGroupStructValue, ...] | None
+            Callback groups that the node contains.
+
+        """
         return self._callback_groups
 
     @property
     def callback_group_names(self) -> tuple[str, ...] | None:
+        """
+        Get callback group names.
+
+        Returns
+        -------
+        tuple[str, ...] | None
+            Callback group names that the node contains.
+
+        """
         if self.callback_groups is None:
             return None
         return tuple(_.callback_group_name for _ in self.callback_groups)
 
     @property
     def paths(self) -> tuple[NodePathStructValue, ...]:
+        """
+        Get node paths.
+
+        Node paths are defined by subscription and publisher pair.
+
+        Returns
+        -------
+        tuple[NodePathStructValue, ...]
+            node paths that the node contains.
+
+        """
         return self._node_paths
 
     @property
     def variable_passings(self) -> tuple[VariablePassingStructValue, ...] | None:
+        """
+        Get variable passings.
+
+        Returns
+        -------
+        tuple[VariablePassingStructValue, ...] | None
+            Variable passings in all child elements that the node contains.
+
+        """
         return self._variable_passings_info
 
     def get_subscription(
@@ -206,7 +357,27 @@ class NodeStructValue(ValueObject, Summarizable):
         subscribe_topic_name: str,
         construction_order: int | None
     ) -> SubscriptionStructValue:
+        """
+        Get subscription.
 
+        Parameters
+        ----------
+        topic_name : str
+            topic name to get.
+        construction_order : int | None
+            construction order to get.
+
+        Returns
+        -------
+        SubscriptionStructValue
+            Subscription instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_subscribe(subscribe: SubscriptionStructValue):
                 subscribe_topic_name_match = subscribe.topic_name == subscribe_topic_name
@@ -227,7 +398,27 @@ class NodeStructValue(ValueObject, Summarizable):
         service_name: str,
         construction_order: int | None
     ) -> ServiceStructValue:
+        """
+        Get service.
 
+        Parameters
+        ----------
+        service_name : str
+            service name to get.
+        construction_order : int | None
+            construction order to get.
+
+        Returns
+        -------
+        ServiceStructValue
+            Service instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_service(service: ServiceStructValue):
                 service_name_match = service.service_name == service_name
@@ -248,6 +439,27 @@ class NodeStructValue(ValueObject, Summarizable):
         publish_topic_name: str,
         construction_order: int | None
     ) -> PublisherStructValue:
+        """
+        Get publisher.
+
+        Parameters
+        ----------
+        topic_name : str
+            publisher topic name to get.
+        construction_order : int | None
+            construction order to get.
+
+        Returns
+        -------
+        PublisherStructValue
+            A publisher that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_publisher(publisher: PublisherStructValue):
                 publish_topic_name_match = publisher.topic_name == publish_topic_name
@@ -268,6 +480,27 @@ class NodeStructValue(ValueObject, Summarizable):
         timer_period: str,
         construction_order: int | None
     ) -> TimerStructValue:
+        """
+        Get timer.
+
+        Parameters
+        ----------
+        timer_period: str
+            timer period to get.
+        construction_order : int | None
+            construction order to get.
+
+        Returns
+        -------
+        TimerStructValue
+            A timer that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_timer(timer: TimerStructValue):
                 timer_node_name_match = timer.node_name == timer_period
@@ -285,6 +518,15 @@ class NodeStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         d: Summary = Summary()
         d['node'] = self.node_name
         d['callbacks'] = self.callback_names
