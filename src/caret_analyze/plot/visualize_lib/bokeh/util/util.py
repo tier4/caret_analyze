@@ -99,9 +99,6 @@ def apply_x_axis_offset(
         Minimum UNIX time.
     max_ns : float
         Maximum UNIX time.
-    x_range_name : str, optional
-        Name of the actual range, by default ''.
-        Specify this if you want to refer to the actual range later.
 
     """
     # Initialize variables
