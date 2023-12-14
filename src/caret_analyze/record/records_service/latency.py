@@ -84,12 +84,12 @@ class Latency:
             if converter:
                 record = {
                     self._start_column: round(converter.convert(start_ts)),
-                    'latency': end_ts - start_ts
+                    'latency': max(end_ts - start_ts, 0)
                 }
             else:
                 record = {
                     self._start_column: start_ts,
-                    'latency': end_ts - start_ts
+                    'latency': max(end_ts - start_ts, 0)
                 }
             records.append(record)
 

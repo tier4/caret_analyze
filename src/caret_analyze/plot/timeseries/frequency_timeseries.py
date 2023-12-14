@@ -20,7 +20,7 @@ import pandas as pd
 
 from ..metrics_base import MetricsBase
 from ..util import get_clock_converter
-from ...common import ClockConverter
+from ...common import ClockConverter, Util
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -139,19 +139,14 @@ class FrequencyTimeSeries(MetricsBase):
     def _get_timestamp_range(
         timeseries_records_list: list[RecordsInterface]
     ) -> tuple[int, int]:
-        first_timestamps = []
-        last_timestamps = []
+        all_timestamps = []
         for records in timeseries_records_list:
             if len(records) == 0:
                 continue
-            first_timestamp = records.get_column_series(records.columns[0])[0]
-            if isinstance(first_timestamp, int):
-                first_timestamps.append(first_timestamp)
-            last_timestamp = records.get_column_series(records.columns[0])[-1]
-            if isinstance(last_timestamp, int):
-                last_timestamps.append(last_timestamp)
+            timestamps = records.get_column_series(records.columns[0])
+            all_timestamps.extend(Util.filter_items(lambda x, : isinstance(x, int), timestamps))
 
-        if len(first_timestamps) == 0 or len(last_timestamps) == 0:
+        if len(all_timestamps) == 0 or len(all_timestamps) == 0:
             return 0, 1  # Intended to show an empty figure.
         else:
-            return min(first_timestamps), max(last_timestamps)
+            return min(all_timestamps), max(all_timestamps)
