@@ -342,7 +342,7 @@ class SubscriptionCallbackValue(CallbackValue):
 
 
 class ServiceCallbackValue(CallbackValue):
-    """Service callback value."""
+    """Value object class for representing a service."""
 
     def __init__(
         self,
@@ -356,6 +356,32 @@ class ServiceCallbackValue(CallbackValue):
         *,  # for yaml reader only.
         callback_name: str | None = None,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        callback_id : str
+            Callback unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        node_name : str
+            Node name.
+        node_id : str
+            Node unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        symbol : str
+            Symbol name of the service callback.
+        service_name : str | None
+            Service name which the service callback service.
+        publish_topic_names : tuple[str, ...] | None
+            Topic name which the service callback publishes.
+        construction_order: int
+            Order of instance creation within the identical node.
+        callback_name: str
+            Service callback name, by default None.
+            This argument is used by ArchitectureReaderYaml.
+
+        """
         self.__service_name = service_name
         super().__init__(
             callback_id=callback_id,
@@ -370,10 +396,28 @@ class ServiceCallbackValue(CallbackValue):
 
     @property
     def callback_type(self) -> CallbackType:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        CallbackType
+            callback type
+
+        """
         return CallbackType.SERVICE
 
     @property
     def service_name(self) -> str:
+        """
+        Get service name.
+
+        Returns
+        -------
+        str
+            Service name.
+
+        """
         return self.__service_name
 
 
