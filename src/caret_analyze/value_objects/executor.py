@@ -29,12 +29,12 @@ class ExecutorType(ValueObject):
 
     def __init__(self, type_name: str) -> None:
         """
-        Construct an instance..
+        Construct an instance.
 
         Parametors
         -------
         type_name : str
-            type name.
+            Type name.
 
         """
         self._type_name = type_name
