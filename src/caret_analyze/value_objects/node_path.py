@@ -69,22 +69,67 @@ class NodePathValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def publish_topic_name(self) -> str | None:
+        """
+        Get a topic name to publish.
+
+        Returns
+        -------
+        str | None
+            Topic name to publish.
+
+        """
         return self._publish_topic_name
 
     @property
     def subscribe_topic_name(self) -> str | None:
+        """
+        Get a topic name to subscribe to.
+
+        Returns
+        -------
+        str | None
+            Topic name to subscribe to.
+
+        """
         return self._subscribe_topic_name
 
     @property
     def publisher_construction_order(self) -> int | None:
+        """
+        Get a construction order of publisher.
+
+        Returns
+        -------
+        int | None
+            Construction order of publisher.
+
+        """
         return self._publisher_construction_order
 
     @property
     def subscription_construction_order(self) -> int | None:
+        """
+        Get a construction order of subscription.
+
+        Returns
+        -------
+        int | None
+            Construction order of subscription.
+
+        """
         return self._subscription_construction_order
 
 
