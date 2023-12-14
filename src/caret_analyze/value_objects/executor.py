@@ -28,6 +28,15 @@ class ExecutorType(ValueObject):
     MULTI_THREADED_EXECUTOR: ExecutorType
 
     def __init__(self, type_name: str) -> None:
+        """
+        Construct an instance..
+
+        Parametors
+        -------
+        type_name : str
+            type name.
+
+        """
         self._type_name = type_name
 
     @property
