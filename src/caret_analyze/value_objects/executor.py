@@ -61,6 +61,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
         executor_name: str,
     ) -> None:
         """
+        Construct an instance.
+
         Parameters
         ----------
         executor_type : ExecutorType
@@ -78,6 +80,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def callbacks(self) -> tuple[CallbackStructValue, ...]:
         """
+        Get Callbacks.
+
         Returns
         -------
         tuple[CallbackStructValue, ...]
@@ -89,6 +93,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def callback_names(self) -> tuple[str, ...]:
         """
+        Get callback name list.
+
         Returns
         -------
         tuple[str, ...]
@@ -100,6 +106,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def executor_type(self) -> ExecutorType:
         """
+        Get executor type.
+
         Returns
         -------
         ExecutorType
@@ -111,6 +119,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def executor_type_name(self) -> str:
         """
+        Get executor type name.
+
         Returns
         -------
         str
@@ -122,6 +132,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def executor_name(self) -> str:
         """
+        Get executor name.
+
         Returns
         -------
         str
@@ -133,6 +145,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
         """
+        Get callback groups.
+
         Returns
         -------
         tuple[CallbackGroupStructValue, ...]
@@ -144,6 +158,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def callback_group_names(self) -> tuple[str, ...]:
         """
+        Get callback group names.
+        
         Returns
         -------
         tuple[str, ...]
@@ -156,6 +172,8 @@ class ExecutorStructValue(ValueObject, Summarizable):
     @property
     def summary(self) -> Summary:
         """
+        Get summary.
+
         Returns
         -------
         Summary
