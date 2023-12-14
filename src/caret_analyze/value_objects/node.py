@@ -115,6 +115,15 @@ class NodeValueWithId(NodeValue):
 
     @property
     def node_id(self) -> str:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str | None
+            Node id.
+
+        """
         return self._node_id
 
 
