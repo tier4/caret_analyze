@@ -60,41 +60,108 @@ class ExecutorStructValue(ValueObject, Summarizable):
         callback_group_values: tuple[CallbackGroupStructValue, ...],
         executor_name: str,
     ) -> None:
+        """
+        Parameters
+        ----------
+        executor_type : ExecutorType
+            Executor type.
+        callback_group_values : tuple[CallbackGroupStructValue, ...]
+            Callback group values.
+        executor_name : str
+            Executor name.
+
+        """
         self._executor_type = executor_type
         self._cbg_values: tuple[CallbackGroupStructValue, ...] = callback_group_values
         self._executor_name = executor_name
 
     @property
     def callbacks(self) -> tuple[CallbackStructValue, ...]:
+        """
+        Returns
+        -------
+        tuple[CallbackStructValue, ...]
+            Callback value base.
+
+        """
         return tuple(Util.flatten([cbg.callbacks for cbg in self._cbg_values]))
 
     @property
     def callback_names(self) -> tuple[str, ...]:
+        """
+        Returns
+        -------
+        tuple[str, ...]
+            Callback names.
+
+        """
         return tuple(c.callback_name for c in self.callbacks)
 
     @property
     def executor_type(self) -> ExecutorType:
+        """
+        Returns
+        -------
+        ExecutorType
+            Executor type.
+
+        """
         return self._executor_type
 
     @property
     def executor_type_name(self) -> str:
+        """
+        Returns
+        -------
+        str
+            Executor type name.
+
+        """
         return self._executor_type.type_name
 
     @property
     def executor_name(self) -> str:
+        """
+        Returns
+        -------
+        str
+            Executor name.
+
+        """
         return self._executor_name
 
     @property
     def callback_groups(self) -> tuple[CallbackGroupStructValue, ...]:
+        """
+        Returns
+        -------
+        tuple[CallbackGroupStructValue, ...]
+            Construct callback group value object.
+
+        """
         return self._cbg_values
 
     @property
     def callback_group_names(self) -> tuple[str, ...]:
+        """
+        Returns
+        -------
+        tuple[str, ...]
+            Callback group names.
+
+        """
         cbg_names = [cbg.callback_group_name for cbg in self._cbg_values]
         return tuple(cbg_names)
 
     @property
     def summary(self) -> Summary:
+        """
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'name': self.executor_name,
             'type': self.executor_type_name,
