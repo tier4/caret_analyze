@@ -362,7 +362,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
         Parameters
         ----------
-        topic_name : str
+        subscribe_topic_name : str
             topic name to get.
         construction_order : int | None
             construction order to get.
@@ -444,7 +444,7 @@ class NodeStructValue(ValueObject, Summarizable):
 
         Parameters
         ----------
-        topic_name : str
+        publish_topic_name : str
             publisher topic name to get.
         construction_order : int | None
             construction order to get.
