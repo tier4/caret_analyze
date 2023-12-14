@@ -221,7 +221,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         str
-            Service name
+            Service name.
 
         """
         return self._service_name
