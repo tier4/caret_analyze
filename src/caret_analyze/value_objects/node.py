@@ -59,10 +59,28 @@ class NodeValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self.__node_name
 
     @property
     def node_id(self) -> str | None:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str | None
+            Node id.
+
+        """
         return self.__node_id
 
 
