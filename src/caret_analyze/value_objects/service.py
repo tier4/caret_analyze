@@ -130,6 +130,21 @@ class ServiceStructValue(ValueObject, Summarizable):
         callback_info: ServiceCallbackStructValue | None,
         construction_order: int
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        service_name : str
+            Service name.
+        callback_info : SubscriptionCallbackStructValue | None
+            static info of callback.
+        construction_order : int
+            Order of instance creation within the identical node.
+
+        """
         self._node_name: str = node_name
         self._service_name: str = service_name
         self._callback_value = callback_info
@@ -137,14 +152,40 @@ class ServiceStructValue(ValueObject, Summarizable):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def service_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+        """
         return self._service_name
 
     @property
     def callback_name(self) -> str | None:
+        """
+        Get callback name.
+
+        Returns
+        -------
+        str
+            Callback name.
+
+        """
         if self._callback_value is None:
             return None
 
@@ -152,6 +193,15 @@ class ServiceStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'node': self.node_name,
             'service_name': self.service_name,
@@ -160,8 +210,26 @@ class ServiceStructValue(ValueObject, Summarizable):
 
     @property
     def callback(self) -> ServiceCallbackStructValue | None:
+        """
+        Get callback.
+
+        Returns
+        -------
+        str
+            Callback.
+
+        """
         return self._callback_value
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            Construction order.
+
+        """
         return self._construction_order
