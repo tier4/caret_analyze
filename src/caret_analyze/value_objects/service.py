@@ -140,7 +140,7 @@ class ServiceStructValue(ValueObject, Summarizable):
         service_name : str
             Service name.
         callback_info : SubscriptionCallbackStructValue | None
-            static info of callback.
+            Static info of callback.
         construction_order : int
             Order of instance creation within the identical node.
 
