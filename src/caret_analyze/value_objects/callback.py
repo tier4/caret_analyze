@@ -537,6 +537,25 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
         construction_order: int,
         callback_name: str
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        symbol : str
+            Symbol name of the callback.
+        subscribe_topic_name : str
+            Topic name which the callback subscribes.
+        publish_topic_names : tuple[str, ...] | None
+            Topic name which the callback publishes.
+        construction_order: int
+            Order of instance creation within the identical node.
+        callback_name : str
+            Callback name.
+
+        """
         super().__init__(
             node_name=node_name,
             symbol=symbol,
@@ -548,10 +567,28 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
 
     @property
     def callback_type(self) -> CallbackType:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        CallbackType
+            callback type
+
+        """
         return CallbackType.SUBSCRIPTION
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'name': self.callback_name,
             'node': self.node_name,
@@ -561,6 +598,15 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
 
     @property
     def subscribe_topic_name(self) -> str:
+        """
+        Get subscription topic name.
+
+        Returns
+        -------
+        str
+            Topic name which the callback subscribes.
+
+        """
         topic_name = super().subscribe_topic_name
         assert topic_name is not None
         return topic_name
