@@ -107,9 +107,9 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
             Service name which the callback service.
         publish_topic_names : tuple[str, ...] | None
             Topic name which the callback publishes.
-        construction_order: int
+        construction_order : int
             Order of instance creation within the identical node.
-        callback_name: str
+        callback_name : str
             Callback name, by default None. This argument is used by ArchitectureReaderYaml.
 
         """
