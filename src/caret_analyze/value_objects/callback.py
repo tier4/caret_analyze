@@ -109,7 +109,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
             Topic name which the callback publishes.
         construction_order : int
             Order of instance creation within the identical node.
-        callback_name : str
+        callback_name : str | None
             Callback name, by default None. This argument is used by ArchitectureReaderYaml.
 
         """
