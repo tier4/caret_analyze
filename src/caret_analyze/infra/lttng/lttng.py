@@ -499,12 +499,10 @@ class Lttng(InfraBase):
                 if len(event_filters) > 0:
                     print('filtered to {} events.'.format(filtered_event_count))
             data.finalize()
-        else:
+        elif isinstance(trace_dir_or_events[0], dict):
             # Note: giving events as arguments is used only for debugging.
             common = LttngEventFilter.Common()
             filtered_event_count = 0
-            if isinstance(trace_dir_or_events[0], dict):
-                raise Exception()
             events = trace_dir_or_events
 
             # Offset is obtained for conversion from the monotonic clock time to the system time.
