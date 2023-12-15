@@ -320,6 +320,31 @@ class SubscriptionCallbackValue(CallbackValue):
         *,  # for yaml reader only.
         callback_name: str | None = None,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        callback_id : str
+            Callback unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        node_name : str
+            Node name.
+        node_id : str
+            Node unique id,
+            a value that can be identified when retrieved from the Architecture reader.
+        symbol : str
+            Symbol name of the callback.
+        subscribe_topic_name : str
+            Topic name which the callback subscribes.
+        publish_topic_names : tuple[str, ...] | None
+            Topic name which the callback publishes.
+        construction_order : int
+            Order of instance creation within the identical node.
+        callback_name : str | None
+            Callback name, by default None. This argument is used by ArchitectureReaderYaml.
+
+        """
         self.__subscribe_topic_name = subscribe_topic_name
         super().__init__(
             callback_id=callback_id,
@@ -334,10 +359,29 @@ class SubscriptionCallbackValue(CallbackValue):
 
     @property
     def callback_type(self) -> CallbackType:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        CallbackType
+            callback type
+
+        """
         return CallbackType.SUBSCRIPTION
 
     @property
     def subscribe_topic_name(self) -> str:
+        """
+        Get subscription topic name.
+
+        Returns
+        -------
+        str
+            Topic name which the callback subscribes.
+
+
+        """
         return self.__subscribe_topic_name
 
 
