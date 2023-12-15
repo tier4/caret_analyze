@@ -103,7 +103,7 @@ class ExecutorStructValue(ValueObject, Summarizable):
 
 
 class ExecutorValue(ValueObject):
-    """Executor vlue class."""
+    """Executor value class."""
 
     def __init__(
         self,

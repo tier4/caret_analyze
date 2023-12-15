@@ -406,7 +406,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            Node name.
+            node name
 
         """
         return self._node_name
@@ -419,7 +419,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            Callback symbol name.
+            callback symbol name
 
         """
         return self._symbol
@@ -432,7 +432,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            Callback name.
+            callback name
 
         """
         return self._callback_name
@@ -446,88 +446,34 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         CallbackType
-            Callback type.
+            callback type
 
         """
         pass
 
     @property
     def callback_type_name(self) -> str:
-        """
-        Get callback type name.
-
-        Returns
-        -------
-        str
-            Callback type name.
-
-        """
         return str(self.callback_type)
 
     @property
     def subscribe_topic_name(self) -> str | None:
-        """
-        Get subscribe topic name.
-
-        Returns
-        -------
-        str
-            Subscribe topic name.
-
-        """
         return self._subscribe_topic_name
 
     @property
     def service_name(self) -> str | None:
-        """
-        Get service name.
-
-        Returns
-        -------
-        str
-            Service name.
-
-        """
         return self._service_name
 
     @property
     def publish_topic_names(self) -> tuple[str, ...] | None:
-        """
-        Get publish topic name.
-
-        Returns
-        -------
-        tuple[str, ...]
-            Publish topic name.
-
-        """
         return self._publish_topic_names
 
     @property
     def construction_order(self) -> int:
-        """
-        Get construction order.
-
-        Returns
-        -------
-        int
-            Construction order.
-
-        """
         return self._construction_order
 
     @property
     @abstractmethod
     def summary(self) -> Summary:
-        """
-        Get summary.
-
-        Returns
-        -------
-        Summary
-            Summary info.
-
-        """
         pass
 
 
