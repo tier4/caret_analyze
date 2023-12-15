@@ -250,7 +250,7 @@ class NodeStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[TimerStructValue, ...]
-            timers that the node contains.
+            Timers that the node contains.
 
         """
         return self._timers
@@ -266,14 +266,14 @@ class NodeStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         subscribe_topic_name : str | None
-            topic name to which the node subscribes.
+            Topic name to which the node subscribes.
         publish_topic_name : str | None
-            topic name to which the node publishes.
+            Topic name to which the node publishes.
 
         Returns
         -------
         NodePathStructValue
-            node path that matches the condition.
+            Node path that matches the condition.
 
         Raises
         ------
@@ -357,7 +357,7 @@ class NodeStructValue(ValueObject, Summarizable):
         Returns
         -------
         tuple[NodePathStructValue, ...]
-            node paths that the node contains.
+            Node paths that the node contains.
 
         """
         return self._node_paths
@@ -386,9 +386,9 @@ class NodeStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         subscribe_topic_name : str
-            topic name to get.
+            Topic name to get.
         construction_order : int | None
-            construction order to get.
+            Construction order to get.
 
         Returns
         -------
@@ -427,9 +427,9 @@ class NodeStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         service_name : str
-            service name to get.
+            Service name to get.
         construction_order : int | None
-            construction order to get.
+            Construction order to get.
 
         Returns
         -------
@@ -468,9 +468,9 @@ class NodeStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         publish_topic_name : str
-            publisher topic name to get.
+            Publisher topic name to get.
         construction_order : int | None
-            construction order to get.
+            Construction order to get.
 
         Returns
         -------
@@ -509,9 +509,9 @@ class NodeStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         timer_period: str
-            timer period to get.
+            Timer period to get.
         construction_order : int | None
-            construction order to get.
+            Construction order to get.
 
         Returns
         -------
