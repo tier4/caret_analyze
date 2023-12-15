@@ -120,7 +120,7 @@ class NodeValueWithId(NodeValue):
 
         Returns
         -------
-        str | None
+        str
             Node id.
 
         """
