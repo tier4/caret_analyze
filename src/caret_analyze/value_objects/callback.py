@@ -469,6 +469,15 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            construction order
+
+        """
         return self._construction_order
 
     @property
