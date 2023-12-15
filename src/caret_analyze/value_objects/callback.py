@@ -371,13 +371,13 @@ class ServiceCallbackValue(CallbackValue):
             a value that can be identified when retrieved from the Architecture reader.
         symbol : str
             Symbol name of the service callback.
-        service_name : str | None
+        service_name : str
             Service name which the service callback service.
         publish_topic_names : tuple[str, ...] | None
             Topic name which the service callback publishes.
-        construction_order: int
+        construction_order : int
             Order of instance creation within the identical node.
-        callback_name: str
+        callback_name : str | None
             Service callback name, by default None.
             This argument is used by ArchitectureReaderYaml.
 
@@ -402,7 +402,7 @@ class ServiceCallbackValue(CallbackValue):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         return CallbackType.SERVICE
@@ -631,15 +631,14 @@ class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
             Node name.
         symbol : str
             Symbol name of the service callback.
-        service_name : str | None
+        service_name : str
             Service name which the service callback service.
         publish_topic_names : tuple[str, ...] | None
             Topic name which the service callback publishes.
         construction_order: int
             Order of instance creation within the identical node.
         callback_name: str
-            Service callback name, by default None.
-            This argument is used by ArchitectureReaderYaml.
+            Service callback name. This argument is used by ArchitectureReaderYaml.
 
         """
         super().__init__(
@@ -659,7 +658,7 @@ class ServiceCallbackStructValue(CallbackStructValue, ValueObject):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         return CallbackType.SERVICE
