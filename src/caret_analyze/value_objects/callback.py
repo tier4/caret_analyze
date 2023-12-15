@@ -471,7 +471,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
         Returns
         -------
-        str
+        str | None
             Subscribe topic name.
 
         """
@@ -484,7 +484,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
         Returns
         -------
-        str
+        str | None
             Service name.
 
         """
