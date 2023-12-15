@@ -121,7 +121,7 @@ class ExecutorValue(ValueObject):
             Executor type name.
         callback_group_ids : tuple[str, ...]
             Callback group ids.
-        executor_name: str | None
+        executor_name: str | None = None
             Executor name.
 
         """
@@ -162,7 +162,7 @@ class ExecutorValue(ValueObject):
 
         Returns
         -------
-        str
+        str | None
             Executor name.
 
         """
