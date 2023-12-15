@@ -406,7 +406,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -419,7 +419,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback symbol name
+            Callback symbol name.
 
         """
         return self._symbol
@@ -432,7 +432,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback name
+            Callback name.
 
         """
         return self._callback_name
@@ -446,7 +446,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         pass
@@ -459,7 +459,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback type name
+            Callback type name.
 
         """
         return str(self.callback_type)
@@ -472,7 +472,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            subscribe topic name
+            Subscribe topic name.
 
         """
         return self._subscribe_topic_name
@@ -485,7 +485,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            service name
+            Service name.
 
         """
         return self._service_name
@@ -498,7 +498,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         tuple[str, ...]
-            publish topic name
+            Publish topic name.
 
         """
         return self._publish_topic_names
@@ -511,7 +511,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         int
-            construction order
+            Construction order.
 
         """
         return self._construction_order
@@ -525,7 +525,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         Summary
-            summary info.
+            Summary info.
 
         """
         pass
