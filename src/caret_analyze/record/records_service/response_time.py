@@ -480,14 +480,6 @@ class ResponseTime:
     """
     Class which calculates response time.
 
-    Parameters
-    ----------
-    records : RecordsInterface
-        records to calculate response time.
-    columns : str
-        List of column names to be used in return value.
-        If None, the first and last columns are used.
-
     Examples
     --------
     >>> from caret_analyze import Application, Architecture, Lttng

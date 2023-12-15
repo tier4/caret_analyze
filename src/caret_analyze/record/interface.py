@@ -269,11 +269,6 @@ class RecordsInterface:
         other : RecordsInterface
             records to be concatenated.
 
-        Returns
-        -------
-        RecordsInterface
-            concatenated records if inplace=False, otherwise None.
-
         """
         pass
 
@@ -326,8 +321,6 @@ class RecordsInterface:
         ----------
         f : Callable[[RecordInterface], bool]
             condition function.
-        inplace : bool
-            inplace original instance if true.
 
         """
         pass
@@ -646,5 +639,18 @@ class RecordsInterface:
 
     @abstractmethod
     def groupby(self, columns: list[str]) -> dict[tuple[int, ...], RecordsInterface]:
-        """Split based on the value of the given column name."""
+        """
+        Split based on the value of the given column name.
+
+        Parameters
+        ----------
+        columns : list[str]
+            columns name list.
+
+        Returns
+        -------
+        dict[tuple[int, ...], RecordsInterface]
+            deep-copied records.
+
+        """
         pass
