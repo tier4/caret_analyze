@@ -33,7 +33,7 @@ class ExecutorType(ValueObject):
     @property
     def type_name(self) -> str:
         """
-        Return executor type name.
+        Get executor type name.
 
         Returns
         -------
@@ -113,7 +113,7 @@ class ExecutorValue(ValueObject):
         executor_name: str | None = None
     ) -> None:
         """
-        Return executor type name.
+        Get executor type name.
 
         Parameters
         ----------
@@ -132,7 +132,7 @@ class ExecutorValue(ValueObject):
     @property
     def executor_type(self) -> ExecutorType:
         """
-        Return executor type.
+        Get executor type.
 
         Returns
         -------
@@ -145,7 +145,7 @@ class ExecutorValue(ValueObject):
     @property
     def callback_group_ids(self) -> tuple[str, ...]:
         """
-        Return callback group ids.
+        Get callback group ids.
 
         Returns
         -------
@@ -158,7 +158,7 @@ class ExecutorValue(ValueObject):
     @property
     def executor_name(self) -> str | None:
         """
-        Return executor name.
+        Get executor name.
 
         Returns
         -------
