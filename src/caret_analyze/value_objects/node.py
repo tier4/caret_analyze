@@ -119,6 +119,29 @@ class NodeStructValue(ValueObject, Summarizable):
         callback_groups: tuple[CallbackGroupStructValue, ...] | None,
         variable_passings: tuple[VariablePassingStructValue, ...] | None,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        publishers : tuple[PublisherStructValue, ...]
+            Publishers in the node.
+        subscription_info : tuple[SubscriptionStructValue, ...]
+            Subscriptions info in the node.
+        services_info : tuple[ServiceStructValue, ...]
+            Services info in the node.
+        timers : tuple[TimerStructValue, ...]
+            Timers in the node.
+        node_paths : tuple[NodePathStructValue, ...]
+            Node paths in the node.
+        callback_groups : tuple[CallbackGroupStructValue, ...] | None
+            Callback groups in the node.
+        variable_passings : tuple[VariablePassingStructValue, ...] | None
+            Variable passings in the node.
+
+        """
         self._node_name = node_name
         self._publishers = publishers
         self._subscriptions = subscriptions_info
