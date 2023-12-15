@@ -59,10 +59,28 @@ class NodeValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self.__node_name
 
     @property
     def node_id(self) -> str | None:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str | None
+            Node id.
+
+        """
         return self.__node_id
 
 
@@ -97,6 +115,15 @@ class NodeValueWithId(NodeValue):
 
     @property
     def node_id(self) -> str:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str
+            Node id.
+
+        """
         return self._node_id
 
 
@@ -574,10 +601,30 @@ class DiffNode:
         left_node: NodeStructValue,
         right_node: NodeStructValue
     ):
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture.
+        right_node : NodeStructValue
+            Node in architecture.
+
+        """
         self._left_node = left_node
         self._right_node = right_node
 
     def diff_node_pubs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of publish topic names.
+
+        Returns
+        -------
+        tuple[tuple[str, ...], tuple[str, ...]]
+            Returns publish topic names that exist only in the respective nodes.
+
+        """
         set_left_pubs = set(self._left_node.publish_topic_names)
         set_right_pubs = set(self._right_node.publish_topic_names)
         common_node_pubs = set_left_pubs & set_right_pubs
@@ -586,6 +633,16 @@ class DiffNode:
         return left_only_pubs, right_only_pubs
 
     def diff_node_subs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of \
+        subscribe topic names.
+
+        Returns
+        -------
+        tuple[tuple[str, ...], tuple[str, ...]]
+            Returns subscribe topic names that exist only in the respective nodes.
+
+        """
         set_left_subs = set(self._left_node.subscribe_topic_names)
         set_right_subs = set(self._right_node.subscribe_topic_names)
         common_node_subs = set_left_subs & set_right_subs
