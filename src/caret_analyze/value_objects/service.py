@@ -35,14 +35,14 @@ class ServiceValue(ValueObject):
 
         Parameters
         ----------
-        service_name : str | None
+        service_name : str
             Service name.
         node_name : str
             Node name.
-        node_id : str
+        node_id : str | None
             Node unique id,
             a value that can be identified when retrieved from the Architecture reader.
-        callback_id : str
+        callback_id : str | None
             Callback unique id,
             a value that can be identified when retrieved from the Architecture reader.
         construction_order : int
@@ -100,7 +100,7 @@ class ServiceValue(ValueObject):
 
         Returns
         -------
-        str
+        str | None
             Callback unique id.
 
         """
@@ -182,7 +182,7 @@ class ServiceStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        str
+        str | None
             Callback name.
 
         """
@@ -215,7 +215,7 @@ class ServiceStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        str
+        str | None
             Callback.
 
         """
