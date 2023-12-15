@@ -42,7 +42,7 @@ class ExecutorType(ValueObject):
     @property
     def type_name(self) -> str:
         """
-        Return executor type name.
+        Get executor type name.
 
         Returns
         -------
@@ -197,7 +197,7 @@ class ExecutorStructValue(ValueObject, Summarizable):
 
 
 class ExecutorValue(ValueObject):
-    """Executor info for architecture."""
+    """Executor value class."""
 
     def __init__(
         self,
@@ -206,18 +206,58 @@ class ExecutorValue(ValueObject):
         *,
         executor_name: str | None = None
     ) -> None:
+        """
+        Get executor type name.
+
+        Parameters
+        ----------
+        executor_type_name : str
+            Executor type name.
+        callback_group_ids : tuple[str, ...]
+            Callback group ids.
+        executor_name: str | None = None
+            Executor name.
+
+        """
         self._executor_type = ExecutorType(executor_type_name)
         self._cbg_ids = callback_group_ids
         self._executor_name = executor_name
 
     @property
     def executor_type(self) -> ExecutorType:
+        """
+        Get executor type.
+
+        Returns
+        -------
+        ExecutorType
+            Executor type.
+
+        """
         return self._executor_type
 
     @property
     def callback_group_ids(self) -> tuple[str, ...]:
+        """
+        Get callback group ids.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Callback group id list.
+
+        """
         return self._cbg_ids
 
     @property
     def executor_name(self) -> str | None:
+        """
+        Get executor name.
+
+        Returns
+        -------
+        str | None
+            Executor name.
+
+        """
         return self._executor_name

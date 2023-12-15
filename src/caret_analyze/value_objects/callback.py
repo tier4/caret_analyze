@@ -459,7 +459,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            Node name.
+            node name
 
         """
         return self._node_name
@@ -472,7 +472,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            Callback symbol name.
+            callback symbol name
 
         """
         return self._symbol
@@ -485,7 +485,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            Callback name.
+            callback name
 
         """
         return self._callback_name
@@ -499,22 +499,13 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         CallbackType
-            Callback type.
+            callback type
 
         """
         pass
 
     @property
     def callback_type_name(self) -> str:
-        """
-        Get callback type name.
-
-        Returns
-        -------
-        str
-            Callback type name.
-
-        """
         return str(self.callback_type)
 
     @property
@@ -545,15 +536,6 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
     @property
     def publish_topic_names(self) -> tuple[str, ...] | None:
-        """
-        Get publish topic name.
-
-        Returns
-        -------
-        tuple[str, ...]
-            Publish topic name.
-
-        """
         return self._publish_topic_names
 
     @property
@@ -564,7 +546,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         int
-            Construction order.
+            construction order
 
         """
         return self._construction_order
@@ -572,15 +554,6 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
     @property
     @abstractmethod
     def summary(self) -> Summary:
-        """
-        Get summary.
-
-        Returns
-        -------
-        Summary
-            Summary info.
-
-        """
         pass
 
 
