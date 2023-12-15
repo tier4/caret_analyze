@@ -365,7 +365,7 @@ class SubscriptionCallbackValue(CallbackValue):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         return CallbackType.SUBSCRIPTION
@@ -617,7 +617,7 @@ class SubscriptionCallbackStructValue(CallbackStructValue, ValueObject):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         return CallbackType.SUBSCRIPTION
