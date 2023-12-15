@@ -415,7 +415,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -428,7 +428,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback symbol name
+            Callback symbol name.
 
         """
         return self._symbol
@@ -441,7 +441,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback name
+            Callback name.
 
         """
         return self._callback_name
@@ -455,25 +455,61 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         pass
 
     @property
     def callback_type_name(self) -> str:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        str
+            Callback type name.
+
+        """
         return str(self.callback_type)
 
     @property
     def subscribe_topic_name(self) -> str | None:
+        """
+        Get subscribe topic name.
+
+        Returns
+        -------
+        str | None
+            Subscribe topic name.
+
+        """
         return self._subscribe_topic_name
 
     @property
     def service_name(self) -> str | None:
+        """
+        Get service name.
+
+        Returns
+        -------
+        str | None
+            Service name.
+
+        """
         return self._service_name
 
     @property
     def publish_topic_names(self) -> tuple[str, ...] | None:
+        """
+        Get publish topic name.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Publish topic name.
+
+        """
         return self._publish_topic_names
 
     @property
@@ -484,7 +520,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         int
-            construction order
+            Construction order.
 
         """
         return self._construction_order
@@ -492,6 +528,15 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
     @property
     @abstractmethod
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary info.
+
+        """
         pass
 
 
