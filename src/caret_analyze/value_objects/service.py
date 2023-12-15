@@ -217,7 +217,7 @@ class ServiceStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        str | None
+        ServiceCallbackStructValue | None
             Callback.
 
         """
