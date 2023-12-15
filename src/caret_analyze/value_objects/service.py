@@ -90,6 +90,7 @@ class ServiceValue(ValueObject):
         -------
         str
             Node name.
+
         """
         return self._service_name
 
@@ -172,6 +173,7 @@ class ServiceStructValue(ValueObject, Summarizable):
         -------
         str
             Node name.
+
         """
         return self._service_name
 
