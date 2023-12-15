@@ -336,6 +336,17 @@ class DiffNode:
         left_node: NodeStructValue,
         right_node: NodeStructValue
     ):
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture.
+        right_node : NodeStructValue
+            Node in architecture.
+
+        """
         self._left_node = left_node
         self._right_node = right_node
 
@@ -343,16 +354,9 @@ class DiffNode:
         """
         Compare two nodes of architecture objects and return the difference of publish topic names.
 
-        Parameters
-        ----------
-        left_node : NodeStructValue
-            Node in architecture
-        right_node : NodeStructValue
-            Node in architecture
-
         Returns
         -------
-        tuple[tuple[str,...], tuple[str,...]]
+        tuple[tuple[str, ...], tuple[str, ...]]
             Returns publish topic names that exist only in the respective nodes.
 
         """
@@ -368,16 +372,9 @@ class DiffNode:
         Compare two nodes of architecture objects and return the difference of \
         subscribe topic names.
 
-        Parameters
-        ----------
-        left_node : NodeStructValue
-            Node in architecture
-        right_node : NodeStructValue
-            Node in architecture
-
         Returns
         -------
-        tuple[tuple[str,...], tuple[str,...]]
+        tuple[tuple[str, ...], tuple[str, ...]]
             Returns subscribe topic names that exist only in the respective nodes.
 
         """
