@@ -128,7 +128,7 @@ class NodeStructValue(ValueObject, Summarizable):
             Node name.
         publishers : tuple[PublisherStructValue, ...]
             Publishers in the node.
-        subscription_info : tuple[SubscriptionStructValue, ...]
+        subscriptions_info : tuple[SubscriptionStructValue, ...]
             Subscriptions info in the node.
         services_info : tuple[ServiceStructValue, ...]
             Services info in the node.
