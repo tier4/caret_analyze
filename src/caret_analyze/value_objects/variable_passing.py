@@ -55,7 +55,7 @@ class VariablePassingValue(ValueObject):
         Returns
         -------
         str
-            node name
+            Node name
 
         """
         return self._node_name
@@ -68,7 +68,7 @@ class VariablePassingValue(ValueObject):
         Returns
         -------
         str
-            write-side callback id.
+            Write-side callback id.
 
         """
         return self._callback_id_write
@@ -81,7 +81,7 @@ class VariablePassingValue(ValueObject):
         Returns
         -------
         str
-            read-side callback id.
+            Read-side callback id.
 
         """
         return self._callback_id_read
