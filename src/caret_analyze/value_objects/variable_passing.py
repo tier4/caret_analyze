@@ -96,6 +96,19 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         callback_write: CallbackStructValue,
         callback_read: CallbackStructValue,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        callback_id_write : str
+            Write callback.
+        callback_id_read : str
+            Read callback.
+
+        """
         self._node_name = node_name
         self._cb_write = callback_write
         self._cb_read = callback_read
@@ -108,7 +121,7 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         Returns
         -------
         str
-            node name
+            Node name
 
         """
         return self._node_name
@@ -120,8 +133,8 @@ class VariablePassingStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        [str]
-            write-side callback name.
+        str
+            Write-side callback name.
 
         """
         return self._cb_write.callback_name
@@ -133,22 +146,49 @@ class VariablePassingStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        [str]
-            read-side callback name.
+        str
+            Read-side callback name.
 
         """
         return self._cb_read.callback_name
 
     @property
     def callback_write(self) -> CallbackStructValue:
+        """
+        Get write-side callback.
+
+        Returns
+        -------
+        str
+            Write-side callback.
+
+        """
         return self._cb_write
 
     @property
     def callback_read(self) -> CallbackStructValue:
+        """
+        Get read-side callback.
+
+        Returns
+        -------
+        str
+            Read-side callback.
+
+        """
         return self._cb_read
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'node': self.node_name,
             'write': self.callback_name_write,
