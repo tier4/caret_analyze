@@ -541,6 +541,25 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
         construction_order: int,
         callback_name: str,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        symbol : str
+            Symbol name of the callback.
+        period_ns : int
+            Period of the timer.
+        publish_topic_names : tuple[str, ...] | None
+            Topic name which the callback publishes.
+        construction_order: int
+            Order of instance creation within the identical node.
+        callback_name: str
+            Callback name, by default None. This argument is used by ArchitectureReaderYaml.
+
+        """
         super().__init__(
             node_name=node_name,
             symbol=symbol,
@@ -553,14 +572,41 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
 
     @property
     def callback_type(self) -> CallbackType:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        CallbackType
+            callback type
+
+        """
         return CallbackType.TIMER
 
     @property
     def period_ns(self) -> int:
+        """
+        Get period.
+
+        Returns
+        -------
+        int
+            Period of the timer.
+
+        """
         return self._period_ns
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'name': self.callback_name,
             'type': self.callback_type_name,
