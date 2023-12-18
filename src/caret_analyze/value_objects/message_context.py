@@ -41,13 +41,40 @@ class MessageContextType(ValueObject):
         self,
         type_name: str
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameter
+        ---------
+        type_name : str
+            Type name.
+
+        """
         self._type_name = type_name
 
     @property
     def type_name(self) -> str:
+        """
+        Get type name.
+
+        Parameter
+        ---------
+        str
+            Type name.
+
+        """
         return self._type_name
 
     def __str__(self) -> str:
+        """
+        Get type name.
+
+        Parameter
+        ---------
+        str
+            Type name.
+
+        """
         return self.type_name
 
 
