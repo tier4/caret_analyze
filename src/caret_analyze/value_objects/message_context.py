@@ -227,6 +227,7 @@ class InheritUniqueStamp(MessageContext):
         Returns
         -------
         bool
+            Same or difference.
 
         """
         return False
