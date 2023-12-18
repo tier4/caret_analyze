@@ -84,7 +84,7 @@ class MessageContext(ValueObject, Summarizable):
         publisher : PublisherStructValue | None
             Target publisher.
         child : tuple[CallbackStructValue, ...] | None
-            Childs.
+            Child elements.
 
         """
         # Since it is used as a value object,
@@ -306,7 +306,7 @@ class MessageContext(ValueObject, Summarizable):
         publisher: PublisherStructValue | None
             Target publisher.
         child : tuple[CallbackStructValue, ...] | None
-            Childs.
+            Child elements.
 
         Returns
         -------
