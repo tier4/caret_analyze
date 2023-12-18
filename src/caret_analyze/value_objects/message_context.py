@@ -320,8 +320,8 @@ class Tilde(MessageContext):
             Target subscription value.
         publisher : PublisherStructValue | None
             Target publisher.
-        child : tuple[CallbackStructValue, ...] | None
-            Child elements.
+        callbacks : tuple[CallbackStructValue, ...] | None
+            Callbacks.
 
         """
         super().__init__(node_name,
