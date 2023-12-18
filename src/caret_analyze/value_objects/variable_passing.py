@@ -103,9 +103,9 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         ----------
         node_name : str
             Node name.
-        callback_id_write : str
+        callback_write : CallbackStructValue
             Write callback.
-        callback_id_read : str
+        callback_read : CallbackStructValue
             Read callback.
 
         """
