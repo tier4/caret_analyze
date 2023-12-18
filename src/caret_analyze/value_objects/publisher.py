@@ -76,16 +76,16 @@ class PublisherStructValue(ValueObject, Summarizable):
         """
         Construct an instance.
 
-        Parametor
-        ---------
+        Parameters
+        ----------
         node_name : str
             Node name.
         topic_name: str
             Topic name.
         callback_values: tuple[CallbackStructValue, ...] | None
-            Callback vlaues
+            Callback values.
         construction_order: int
-            Construction order
+            Construction order.
 
         """
         self._node_name = node_name
@@ -104,8 +104,8 @@ class PublisherStructValue(ValueObject, Summarizable):
         """
         Get node name.
 
-        Return
-        ---------
+        Returns
+        -------
         str
             Node name.
 
@@ -117,8 +117,8 @@ class PublisherStructValue(ValueObject, Summarizable):
         """
         Get topic name.
 
-        Return
-        ---------
+        Returns
+        -------
         str
             Topic name.
 
@@ -130,8 +130,8 @@ class PublisherStructValue(ValueObject, Summarizable):
         """
         Get callbacks.
 
-        Return
-        ---------
+        Returns
+        -------
         tuple[CallbackStructValue, ...] | None
             Callbacks.
 
@@ -143,8 +143,8 @@ class PublisherStructValue(ValueObject, Summarizable):
         """
         Get callback names.
 
-        Return
-        ---------
+        Returns
+        -------
         tuple[str, ...] | None
             Callback names.
 
@@ -158,8 +158,8 @@ class PublisherStructValue(ValueObject, Summarizable):
         """
         Get construction order.
 
-        Return
-        ---------
+        Returns
+        -------
         int
             Construction order.
 
@@ -171,8 +171,8 @@ class PublisherStructValue(ValueObject, Summarizable):
         """
         Get summary.
 
-        Return
-        ---------
+        Returns
+        -------
         Summary
             Summary.
 
