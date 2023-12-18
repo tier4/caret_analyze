@@ -28,6 +28,21 @@ class VariablePassingValue(ValueObject):
         callback_id_write: str,
         callback_id_read: str,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        callback_id_write : str
+            Unique id of write callback,
+            a value that can be identified when retrieved from the Architecture reader.
+        callback_id_read : str
+            Unique id of read callback,
+            a value that can be identified when retrieved from the Architecture reader.
+
+        """
         self._node_name = node_name
         self._callback_id_write = callback_id_write
         self._callback_id_read = callback_id_read
@@ -52,7 +67,7 @@ class VariablePassingValue(ValueObject):
 
         Returns
         -------
-        [str]
+        str
             write-side callback id.
 
         """
@@ -65,7 +80,7 @@ class VariablePassingValue(ValueObject):
 
         Returns
         -------
-        [str]
+        str
             read-side callback id.
 
         """
