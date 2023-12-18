@@ -42,7 +42,7 @@ class PathValue(ValueObject):
         alias : str
             Alias.
         node_path_values : tuple[NodePathValue, ...]
-            Node path value.
+            Node path values.
 
         """
         self._alias = alias
@@ -69,7 +69,7 @@ class PathValue(ValueObject):
         Returns
         -------
         tuple[NodePathValue, ...]
-            Node path value.
+            Node path values.
 
         """
         return self._node_paths_info
