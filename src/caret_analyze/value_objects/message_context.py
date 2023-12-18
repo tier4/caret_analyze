@@ -209,9 +209,27 @@ class InheritUniqueStamp(MessageContext):
 
     @property
     def context_type(self) -> MessageContextType:
+        """
+        Get context type.
+
+        Returns
+        -------
+        MessageContextType
+            Message context type.
+
+        """
         return MessageContextType.INHERIT_UNIQUE_STAMP
 
     def verify(self) -> bool:
+        """
+        Get verify.
+
+        Returns
+        -------
+        bool
+            Same or difference.
+
+        """
         return False
 
 
