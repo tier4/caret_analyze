@@ -304,12 +304,12 @@ class ResponseMapAll:
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
-                worst_to_best_timestamps.append(max(start_ts - prev_start_ts, 0))
+                worst_to_best_timestamps.append(start_ts - prev_start_ts)
             else:
                 idx = end_timestamps.index(end_ts)
                 if start_ts < start_timestamps[idx]:
                     start_timestamps[idx] = start_ts
-                    worst_to_best_timestamps[idx] = max(start_ts - prev_start_ts, 0)
+                    worst_to_best_timestamps[idx] = start_ts - prev_start_ts
 
         records = self._create_empty_records()
         for start_ts, end_ts, worst_to_best_ts in sorted(zip(start_timestamps,
@@ -349,16 +349,10 @@ class ResponseMapAll:
 
         records = self._create_empty_records()
         for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
-            if converter:
-                record = {
-                    self._start_column: round(converter.convert(start_ts)),
-                    'response_time': max(end_ts - start_ts, 0)
-                }
-            else:
-                record = {
-                    self._start_column: start_ts,
-                    'response_time': max(end_ts - start_ts, 0)
-                }
+            record = {
+                self._start_column: start_ts,
+                'response_time': max(end_ts - start_ts, 0)
+            }
             records.append(record)
 
         return records
@@ -371,15 +365,13 @@ class ResponseMapAll:
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
             if converter:
-                record = {
-                    self._start_column: round(converter.convert(start_ts)),
-                    'response_time': max(end_ts - start_ts, 0)
-                }
-            else:
-                record = {
-                    self._start_column: start_ts,
-                    'response_time': max(end_ts - start_ts, 0)
-                }
+                start_ts = round(converter.convert(start_ts))
+                end_ts = round(converter.convert(end_ts))
+
+            record = {
+                self._start_column: start_ts,
+                'response_time': max(end_ts - start_ts, 0)
+            }
             records.append(record)
 
         return records
@@ -401,16 +393,10 @@ class ResponseMapAll:
 
         records = self._create_empty_records()
         for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
-            if converter:
-                record = {
-                    self._start_column: round(converter.convert(start_ts)),
-                    'response_time': max(end_ts - start_ts, 0)
-                }
-            else:
-                record = {
-                    self._start_column: start_ts,
-                    'response_time': max(end_ts - start_ts, 0)
-                }
+            record = {
+                self._start_column: start_ts,
+                'response_time': max(end_ts - start_ts, 0)
+            }
             records.append(record)
 
         return records
@@ -1025,7 +1011,7 @@ class ResponseTimeseries:
         t_out_ = records.get_column_series(output_column)
         t_out = np.array(t_out_, dtype=np.int64)
 
-        latency = t_out - t_in
+        latency = max(t_out - t_in, 0)
 
         return t_in, latency
 

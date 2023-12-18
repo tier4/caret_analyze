@@ -180,3 +180,30 @@ class TestLatencyRecords:
         ]
         result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
+
+    def test_colapsed_time_case(self, create_converter):
+        records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 5, 'end': 4},
+            {'start': 10, 'end': 12}
+        ]
+        columns = [ColumnValue('start'), ColumnValue('end')]
+        records = create_records(records_raw, columns)
+
+        latency = Latency(records)
+
+        expect_raw = [
+            {'start': 0, 'latency': 2},
+            {'start': 5, 'latency': 0},
+            {'start': 10, 'latency': 2}
+        ]
+        result = to_dict(latency.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'start': create_converter.round_convert(0), 'latency': 2},
+            {'start': create_converter.round_convert(5), 'latency': 0},
+            {'start': create_converter.round_convert(10), 'latency': 2}
+        ]
+        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
