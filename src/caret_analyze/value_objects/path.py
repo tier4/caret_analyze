@@ -34,15 +34,44 @@ class PathValue(ValueObject):
         alias: str,
         node_path_values: tuple[NodePathValue, ...]
     ) -> None:
+        """
+        Construct an instance.
+
+        Returns
+        -------
+        alias : str
+            Alias.
+        node_path_values : tuple[NodePathValue, ...]
+            Node path values.
+
+        """
         self._alias = alias
         self._node_paths_info = node_path_values
 
     @property
     def path_name(self) -> str:
+        """
+        Get path name.
+
+        Returns
+        -------
+        str
+            Path name.
+
+        """
         return self._alias
 
     @property
     def node_path_values(self) -> tuple[NodePathValue, ...]:
+        """
+        Get node path value.
+
+        Returns
+        -------
+        tuple[NodePathValue, ...]
+            Node path values.
+
+        """
         return self._node_paths_info
 
 
