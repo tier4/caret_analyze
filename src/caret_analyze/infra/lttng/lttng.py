@@ -559,7 +559,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[ExecutorInfo]
+        Sequence[ExecutorValue]
 
         """
         return self._info.get_executors()
@@ -604,6 +604,11 @@ class Lttng(InfraBase):
         """
         Get timers information.
 
+        Parameters
+        ----------
+        node : NodeValue
+            target node name.
+
         Returns
         -------
         Sequence[TimerValue]
@@ -625,7 +630,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[TimerCallbackInfoLttng]
+        Sequence[TimerCallbackValueLttng]
 
         """
         return self._info.get_timer_callbacks(node)
@@ -644,7 +649,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[SubscriptionCallbackInfoLttng]
+        Sequence[SubscriptionCallbackValueLttng]
 
         """
         return self._info.get_subscription_callbacks(node)
@@ -663,7 +668,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[ServiceCallbackInfoLttng]
+        Sequence[ServiceCallbackValueLttng]
 
         """
         return self._info.get_service_callbacks(node)
@@ -763,9 +768,6 @@ class Lttng(InfraBase):
 
         """
         return datetime.fromtimestamp(self._begin * 1.0e-9)
-
-    def compose_enq_records(self):
-        return self._source.enqueue_records.clone()
 
     def compose_intra_proc_comm_records(
         self,

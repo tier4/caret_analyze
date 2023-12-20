@@ -2,14 +2,17 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>caret_analyze</name>
-  <version>0.2.2</version>
+  <version>0.4.22</version>
   <description>CARET's tools for analyzing trace results</description>
   <maintainer email="yamasaki@isp.co.jp">ymski</maintainer>
   <maintainer email="uetsuki@isp.co.jp">isp-uetsuki</maintainer>
   <license>Apache License 2.0</license>
 
-  <depend>python3-multimethod-pip</depend>
-  <exec_depend>tracetools_analysis</exec_depend>
+  <depend>graphviz</depend>
+  <build_depend>graphviz-dev</build_depend>
+  <depend>python3-setuptools</depend>
+  <depend>python3-colorcet</depend>
+  <depend>python3-graphviz</depend>
   <exec_depend>python3-tqdm</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
   <test_depend>ament_copyright</test_depend>
