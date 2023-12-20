@@ -186,7 +186,7 @@ class MessageContext(ValueObject, Summarizable):
         Returns
         -------
         bool
-            Same or difference.
+            True if applicable path, false otherwise.
 
         """
         return self._sub == subscription and self._pub == publisher
@@ -214,7 +214,7 @@ class MessageContext(ValueObject, Summarizable):
         Returns
         -------
         str | None
-            subscription topic name.
+            Subscription topic name.
 
         """
         if self._sub is None:
@@ -276,7 +276,7 @@ class MessageContext(ValueObject, Summarizable):
         Returns
         -------
         bool
-            Same or difference.
+            Verify or not.
 
         """
         pass
