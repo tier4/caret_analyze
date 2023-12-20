@@ -38,7 +38,7 @@ from .value_objects import (CallbackGroupId,
                             SubscriptionCallbackValueLttng,
                             TimerCallbackValueLttng)
 from ..infra_base import InfraBase
-from ...common import ClockConverter
+from ...common import ClockConverter, Util
 from ...exceptions import InvalidArgumentError
 from ...record import RecordsInterface
 from ...value_objects import  \
@@ -414,19 +414,23 @@ class Lttng(InfraBase):
         if isinstance(trace_dir_or_events, str):
             trace_dir_or_events = [trace_dir_or_events]
 
-        assert (len(trace_dir_or_events) != 0)
+        if len(trace_dir_or_events) == 0:
+            raise InvalidArgumentError('not empty')
+
+        # validate list[str] case
+        first_element_type = type(trace_dir_or_events[0])
+        if len(trace_dir_or_events) != len(Util.filter_items(
+                lambda x: isinstance(x, first_element_type), trace_dir_or_events)):
+            raise InvalidArgumentError(f'all elements of {trace_dir_or_events} \
+                                         must be same type: {first_element_type}.')
 
         # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events[0], str):
             tid_remapper = MultiHostIdRemapper('_vtid')
             pid_remapper = MultiHostIdRemapper('_vpid')
             for trace_dir_or_event in trace_dir_or_events:
-                if not isinstance(trace_dir_or_event, str):
-                    logger.warning(f'{trace_dir_or_event} is an invalid input. '
-                                   f'Type of {trace_dir_or_event} is must be `str`.')
-                    continue
                 event_collection = EventCollection(
-                    trace_dir_or_event, force_conversion)
+                    trace_dir_or_event, force_conversion) #  type: ignore
                 print('{} events found.'.format(len(event_collection)))
 
                 common = LttngEventFilter.Common()
@@ -499,11 +503,11 @@ class Lttng(InfraBase):
                 if len(event_filters) > 0:
                     print('filtered to {} events.'.format(filtered_event_count))
             data.finalize()
-        elif isinstance(trace_dir_or_events[0], dict):
+        else:
             # Note: giving events as arguments is used only for debugging.
             common = LttngEventFilter.Common()
             filtered_event_count = 0
-            events = trace_dir_or_events
+            events = trace_dir_or_events #  type: ignore
 
             # Offset is obtained for conversion from the monotonic clock time to the system time.
             for event in events:
