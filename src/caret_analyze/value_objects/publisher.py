@@ -73,6 +73,21 @@ class PublisherStructValue(ValueObject, Summarizable):
         callback_values: tuple[CallbackStructValue, ...] | None,
         construction_order: int
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        topic_name: str
+            Topic name.
+        callback_values: tuple[CallbackStructValue, ...] | None
+            Callback values.
+        construction_order: int
+            Construction order.
+
+        """
         self._node_name = node_name
         self._topic_name = topic_name
         self._callbacks = callback_values
@@ -86,28 +101,82 @@ class PublisherStructValue(ValueObject, Summarizable):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def topic_name(self) -> str:
+        """
+        Get topic name.
+
+        Returns
+        -------
+        str
+            Topic name.
+
+        """
         return self._topic_name
 
     @property
     def callbacks(self) -> tuple[CallbackStructValue, ...] | None:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        tuple[CallbackStructValue, ...] | None
+            Callbacks.
+
+        """
         return self._callbacks
 
     @property
     def callback_names(self) -> tuple[str, ...] | None:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        tuple[str, ...] | None
+            Callback names.
+
+        """
         if self._callbacks is None:
             return None
         return tuple(c.callback_name for c in self._callbacks)
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            Construction order.
+
+        """
         return self._construction_order
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary.
+
+        """
         return Summary({
             'node': self.node_name,
             'topic_name': self.topic_name,
