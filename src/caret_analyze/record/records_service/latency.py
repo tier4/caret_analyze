@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from warnings import warn
+
 from ..column import ColumnValue
 from ..interface import RecordsInterface
 from ..record_factory import RecordsFactory
@@ -81,6 +83,12 @@ class Latency:
         records = self._create_empty_records()
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
+            latency = end_ts - start_ts
+            if latency < 0:
+                warn('Record data is invalid. '
+                     'The end time of the path is recorded before the start time.',
+                     UserWarning)
+                continue
             if converter:
                 record = {
                     self._start_column: round(converter.convert(start_ts)),

@@ -181,29 +181,29 @@ class TestLatencyRecords:
         result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
 
-    def test_colapsed_time_case(self, create_converter):
-        records_raw = [
+    def test_invalid_vs_valid_case(self, create_converter):
+        invalid_records_raw = [
             {'start': 0, 'end': 2},
             {'start': 5, 'end': 4},
             {'start': 10, 'end': 12}
         ]
+        valid_records_raw = [
+            {'start': 0, 'end': 2},
+            {'start': 10, 'end': 12}
+        ]
         columns = [ColumnValue('start'), ColumnValue('end')]
-        records = create_records(records_raw, columns)
+        invalid_records = create_records(invalid_records_raw, columns)
+        valid_records = create_records(valid_records_raw, columns)
 
-        latency = Latency(records)
+        invalid_latency = Latency(invalid_records)
+        valid_latency = Latency(valid_records)
 
-        expect_raw = [
-            {'start': 0, 'latency': 2},
-            {'start': 5, 'latency': 0},
-            {'start': 10, 'latency': 2}
-        ]
-        result = to_dict(latency.to_records())
-        assert result == expect_raw
+        invalid_result = to_dict(invalid_latency.to_records())
+        valid_result = to_dict(valid_latency.to_records())
+        assert invalid_result == valid_result
 
-        expect_raw = [
-            {'start': create_converter.round_convert(0), 'latency': 2},
-            {'start': create_converter.round_convert(5), 'latency': 0},
-            {'start': create_converter.round_convert(10), 'latency': 2}
-        ]
-        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
-        assert result == expect_raw
+        invalid_result = to_dict(invalid_latency.to_records(
+            converter=create_converter.get_converter()))
+        valid_result = to_dict(valid_latency.to_records(
+            converter=create_converter.get_converter()))
+        assert invalid_result == valid_result

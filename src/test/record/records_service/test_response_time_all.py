@@ -1022,3 +1022,20 @@ class TestWorstInInputStackedBar:
         ]
         result = to_dict(response_time.to_worst_case_stacked_bar())
         assert result == expect_raw
+
+    def test_invalid_value_case(self):
+        records_raw = [
+            {'start': 10, 'middle0': 11},
+            {'start': 11, 'middle0': 12, 'middle1': 3, 'end': 4},
+            {'start': 12, 'middle0': 13, 'middle1': 14, 'end': 15},
+            {'start': 13, 'middle0': 14, 'middle1': 5, 'end': 6},
+        ]
+        records = create_records(records_raw, self.columns)
+
+        response_time = ResponseTime(records, columns=self.column_names)
+
+        expect_raw = [
+            {'start': 10, 'middle0': 11, 'middle1': 14, 'end': 15},
+        ]
+        result = to_dict(response_time.to_worst_case_stacked_bar())
+        assert result == expect_raw

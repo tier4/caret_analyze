@@ -132,6 +132,12 @@ class ResponseMap():
 
             input_time, output_time = data.get(self.input_column), data.get(self.output_column)
 
+            if output_time < input_time:
+                warn('Record data is invalid. '
+                     'The end time of the path is recorded before the start time.',
+                     UserWarning)
+                continue
+
             if input_min_time is None:
                 input_min_time = input_time
 
