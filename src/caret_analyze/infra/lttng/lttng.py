@@ -430,7 +430,7 @@ class Lttng(InfraBase):
             pid_remapper = MultiHostIdRemapper('_vpid')
             for trace_dir_or_event in trace_dir_or_events:
                 event_collection = EventCollection(
-                    trace_dir_or_event, force_conversion) #  type: ignore
+                    trace_dir_or_event, force_conversion)  # type: ignore
                 print('{} events found.'.format(len(event_collection)))
 
                 common = LttngEventFilter.Common()
@@ -507,7 +507,7 @@ class Lttng(InfraBase):
             # Note: giving events as arguments is used only for debugging.
             common = LttngEventFilter.Common()
             filtered_event_count = 0
-            events = trace_dir_or_events #  type: ignore
+            events = trace_dir_or_events  # type: ignore
 
             # Offset is obtained for conversion from the monotonic clock time to the system time.
             for event in events:

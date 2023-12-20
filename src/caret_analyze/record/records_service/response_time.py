@@ -1145,10 +1145,6 @@ class ResponseHistogram:
             output_time = record.get(output_column)
             input_time_min = record.get(input_min_column)
             input_time_max = record.get(input_max_column)
-            # invalid timestamp order caused by multihost record
-            if output_time - input_time_max < 0:
-                logger.warning('invalid time stamps: multihost')
-                continue
             bin_sized_latency_min = to_bin_sized(output_time - input_time_max)
 
             for input_time in range(input_time_min, input_time_max + binsize_ns, binsize_ns):
