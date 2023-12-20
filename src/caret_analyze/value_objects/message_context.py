@@ -71,7 +71,7 @@ class MessageContext(ValueObject, Summarizable):
         child: tuple[CallbackStructValue, ...] | None,
     ) -> None:
         """
-        Get node name.
+        Construct an instance.
 
         Parameters
         ----------
