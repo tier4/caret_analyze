@@ -30,6 +30,23 @@ class PublisherValue(ValueObject):
         callback_ids: tuple[str, ...] | None,
         construction_order: int
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        topic_name : str
+            Topic name.
+        node_name : str
+            Node name.
+        node_id : str
+            Node id.
+        callback_ids : tuple[str, ...] | None
+            Callback id.
+        construction_order : int
+            Construction order.
+
+        """
         self._node_id = node_id
         self._node_name = node_name
         self._topic_name = topic_name
@@ -38,21 +55,66 @@ class PublisherValue(ValueObject):
 
     @property
     def node_id(self) -> str:
+        """
+        Construct an instance.
+
+        Returns
+        -------
+        str
+            Node id.
+
+        """
         return self._node_id
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node id.
+
+        """
         return self._node_name
 
     @property
     def topic_name(self) -> str:
+        """
+        Get topic name.
+
+        Returns
+        -------
+        str
+            Topic name.
+
+        """
         return self._topic_name
 
     @property
     def callback_ids(self) -> tuple[str, ...] | None:
+        """
+        Get topic name.
+
+        Returns
+        -------
+        str
+            Topic name.
+
+        """
         return self._callback_ids
 
     def __str__(self) -> str:
+        """
+        Get message.
+
+        Returns
+        -------
+        str
+            Message.
+
+        """
         msg = ''
         msg += f'node_name: {self.node_name}, '
         msg += f'topic_name: {self.topic_name}, '
@@ -60,6 +122,15 @@ class PublisherValue(ValueObject):
 
     @property
     def construction_order(self) -> int:
+        """
+        Get construction order.
+
+        Returns
+        -------
+        int
+            Construction order.
+
+        """
         return self._construction_order
 
 
