@@ -20,7 +20,6 @@ from .latency import Latency
 from ..interface import RecordsInterface
 from ..record import ColumnValue
 from ..record_factory import RecordsFactory
-from ...common import ClockConverter
 
 
 class StackedBar:
