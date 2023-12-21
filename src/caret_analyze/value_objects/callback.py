@@ -380,7 +380,6 @@ class SubscriptionCallbackValue(CallbackValue):
         str
             Topic name which the callback subscribes.
 
-
         """
         return self.__subscribe_topic_name
 
