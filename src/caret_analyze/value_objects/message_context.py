@@ -293,7 +293,7 @@ class Tilde(MessageContext):
     TYPE_NAME = 'tilde'
 
     """
-    tilde.
+    Tilde.
 
     Latency is calculated from tilde.
 
@@ -349,6 +349,24 @@ class Tilde(MessageContext):
         publisher: PublisherStructValue | None,
         callbacks: tuple[CallbackStructValue, ...] | None
     ) -> bool:
+        """
+        Get applicable path.
+
+        Parameters
+        ----------
+        subscription : SubscriptionStructValue | None
+            Target subscription value.
+        publisher : PublisherStructValue | None
+            Target publisher value.
+        callbacks : tuple[CallbackStructValue, ...] | None
+            Target callbacks.
+
+        Returns
+        -------
+        bool
+            True if applicable path, false otherwise.
+
+        """
         if not super().is_applicable_path(subscription, publisher, callbacks):
             return False
         return True
@@ -360,7 +378,7 @@ class Tilde(MessageContext):
         Returns
         -------
         bool
-            Same or difference.
+            Verify or not.
 
         """
         return True
