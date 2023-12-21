@@ -185,7 +185,7 @@ class TimerStructValue(ValueObject, Summarizable):
         Returns
         -------
         str | None
-            Callback name
+            Callback name.
 
         """
         if self._callback_value is None:
