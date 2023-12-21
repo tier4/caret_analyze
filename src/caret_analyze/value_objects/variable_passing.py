@@ -55,7 +55,7 @@ class VariablePassingValue(ValueObject):
         Returns
         -------
         str
-            Node name
+            Node name.
 
         """
         return self._node_name
@@ -121,7 +121,7 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         Returns
         -------
         str
-            Node name
+            Node name.
 
         """
         return self._node_name
