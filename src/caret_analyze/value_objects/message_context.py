@@ -190,10 +190,28 @@ class UseLatestMessage(MessageContext):
     """Use message context"""
 
     def verify(self) -> bool:
+        """
+        Get verify.
+
+        Returns
+        -------
+        bool
+            Verify or not.
+
+        """
         return True
 
     @property
     def context_type(self) -> MessageContextType:
+        """
+        Get context type.
+
+        Returns
+        -------
+        MessageContextType
+            Message context type.
+
+        """
         return MessageContextType.USE_LATEST_MESSAGE
 
 
