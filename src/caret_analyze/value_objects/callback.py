@@ -329,7 +329,7 @@ class TimerCallbackValue(CallbackValue):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         return CallbackType.TIMER
@@ -578,7 +578,7 @@ class TimerCallbackStructValue(CallbackStructValue, ValueObject):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         return CallbackType.TIMER
