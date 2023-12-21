@@ -28,14 +28,41 @@ class Qos(ValueObject, Summarizable):
     """
 
     def __init__(self, depth: int) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        depth : int
+            Depth.
+
+        """
         self._depth = depth
 
     @property
     def depth(self) -> int:
+        """
+        Get depth.
+
+        Returns
+        -------
+        int
+            Depth.
+
+        """
         return self._depth
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary.
+
+        """
         d: Summary = Summary()
         d['depth'] = self.depth
 
