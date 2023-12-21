@@ -259,7 +259,7 @@ class MessageContext(ValueObject, Summarizable):
         Returns
         -------
         Summary
-            summary.
+            Summary.
 
         """
         return Summary({
