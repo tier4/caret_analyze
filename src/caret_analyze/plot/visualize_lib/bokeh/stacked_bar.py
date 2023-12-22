@@ -80,7 +80,6 @@ class BokehStackedBar:
             x_label = 'index'
         else:  # sim_time
             converter = get_clock_converter([target_objects])
-            data, y_labels = self._metrics.to_stacked_bar_data(converter)
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
             apply_x_axis_offset(fig, frame_min, frame_max)

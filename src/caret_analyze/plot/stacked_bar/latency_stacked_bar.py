@@ -57,28 +57,28 @@ class LatencyStackedBar:
             converter = get_clock_converter([self._target_objects])
         # NOTE: returned columns aren't used because they don't include 'start time'
         # TODO: delete 1e-6
-        stacked_bar_dict, _ = self.to_stacked_bar_data(converter=converter)
+        stacked_bar_dict, _ = self.to_stacked_bar_data()
         millisecond_dict: dict[str, list[float]] = {}
         if xaxis_type == 'system_time' or xaxis_type == 'sim_time':
             for column in stacked_bar_dict:
-                millisecond_dict[column] = \
-                    [timestamp * 1e-6 for timestamp in stacked_bar_dict[column]]
+                if converter and column == 'start time':
+                    millisecond_dict[column] = \
+                        [round(converter.convert(timestamp)) * 1e-6 
+                         for timestamp 
+                         in stacked_bar_dict[column]]
+                else:
+                    millisecond_dict[column] = \
+                        [timestamp * 1e-6 for timestamp in stacked_bar_dict[column]]
             df = pd.DataFrame(millisecond_dict)
             return df
         else:  # index
             raise NotImplementedError()
 
     def to_stacked_bar_data(
-        self,
-        converter: ClockConverter | None = None
+        self
     ) -> tuple[dict[str, list[int]], list[str]]:
         """
         Get stacked bar dict and columns.
-
-        Parameters
-        ----------
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Returns
         -------

@@ -16,12 +16,10 @@ from .graphviz.chain_latency import chain_latency
 from .plot_base import PlotBase
 from .plot_facade import Plot
 from .stacked_bar import LatencyStackedBar
-from .util import get_clock_converter
 
 __all__ = [
     'Plot',
     'PlotBase',
     'chain_latency',
     'LatencyStackedBar',
-    'get_clock_converter',
 ]
