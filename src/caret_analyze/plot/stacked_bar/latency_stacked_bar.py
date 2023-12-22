@@ -63,8 +63,8 @@ class LatencyStackedBar:
             for column in stacked_bar_dict:
                 if converter and column == 'start time':
                     millisecond_dict[column] = \
-                        [round(converter.convert(timestamp)) * 1e-6 
-                         for timestamp 
+                        [round(converter.convert(timestamp)) * 1e-6
+                         for timestamp
                          in stacked_bar_dict[column]]
                 else:
                     millisecond_dict[column] = \
