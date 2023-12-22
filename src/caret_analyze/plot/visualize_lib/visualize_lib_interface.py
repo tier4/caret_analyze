@@ -20,6 +20,7 @@ from collections.abc import Sequence
 from bokeh.plotting import figure as Figure
 
 from ..metrics_base import MetricsBase
+from ...common import ClockConverter
 from ...record import Frequency, Latency, Period, ResponseTime
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
@@ -84,6 +85,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         metrics: list[MetricsTypes],
         target_objects: Sequence[HistTypes],
         data_type: str,
-        case: str | None = None
+        case: str | None = None,
+        converter: ClockConverter | None = None,
     ) -> Figure:
         raise NotImplementedError()

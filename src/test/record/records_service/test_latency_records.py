@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from caret_analyze.common import ClockConverter
 from caret_analyze.record import ColumnValue
 from caret_analyze.record import Latency
 from caret_analyze.record.record_factory import RecordsFactory
+
+import pytest
 
 
 def create_records(records_raw, columns):
@@ -31,9 +34,32 @@ def to_dict(records):
     return [record.data for record in records]
 
 
+class Converter:
+
+    def __init__(self):
+        self._system_times = [0, 1, 2, 3, 4]
+        self._sim_times = [20, 21, 22, 23, 24]
+        self._converter = ClockConverter.create_from_series(
+            self._system_times, self._sim_times)
+
+    def convert(self, v):
+        return self._converter.convert(v)
+
+    def round_convert(self, v):
+        return round(self._converter.convert(v))
+
+    def get_converter(self):
+        return self._converter
+
+
+@pytest.fixture(scope='module')
+def create_converter():
+    return Converter()
+
+
 class TestLatencyRecords:
 
-    def test_empty_case(self):
+    def test_empty_case(self, create_converter):
         records_raw = [
         ]
         columns = [ColumnValue('start'), ColumnValue('end')]
@@ -46,7 +72,10 @@ class TestLatencyRecords:
         result = to_dict(latency.to_records())
         assert result == expect_raw
 
-    def test_two_column_default_case(self):
+        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_two_column_default_case(self, create_converter):
         records_raw = [
             {'start': 0, 'end': 2},
             {'start': 3, 'end': 4},
@@ -65,7 +94,15 @@ class TestLatencyRecords:
         result = to_dict(latency.to_records())
         assert result == expect_raw
 
-    def test_three_column_default_case(self):
+        expect_raw = [
+            {'start': create_converter.round_convert(0), 'latency': 2},
+            {'start': create_converter.round_convert(3), 'latency': 1},
+            {'start': create_converter.round_convert(11), 'latency': 1}
+        ]
+        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_three_column_default_case(self, create_converter):
         records_raw = [
             {'start': 0, 'ts': 1, 'end': 2},
             {'start': 3, 'ts': 4, 'end': 5},
@@ -84,7 +121,15 @@ class TestLatencyRecords:
         result = to_dict(latency.to_records())
         assert result == expect_raw
 
-    def test_specify_target_column_case(self):
+        expect_raw = [
+            {'start': create_converter.round_convert(0), 'latency': 2},
+            {'start': create_converter.round_convert(3), 'latency': 2},
+            {'start': create_converter.round_convert(11), 'latency': 2}
+        ]
+        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_specify_target_column_case(self, create_converter):
         records_raw = [
             {'start': 0, 'end': 1, 'ts': 2},
             {'start': 3, 'end': 4, 'ts': 5},
@@ -103,7 +148,15 @@ class TestLatencyRecords:
         result = to_dict(latency.to_records())
         assert result == expect_raw
 
-    def test_drop_case(self):
+        expect_raw = [
+            {'start': create_converter.round_convert(0), 'latency': 1},
+            {'start': create_converter.round_convert(3), 'latency': 1},
+            {'start': create_converter.round_convert(11), 'latency': 1}
+        ]
+        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_drop_case(self, create_converter):
         records_raw = [
             {'start': 0, 'end': 2},
             {'start': 3},
@@ -119,4 +172,11 @@ class TestLatencyRecords:
             {'start': 11, 'latency': 1}
         ]
         result = to_dict(latency.to_records())
+        assert result == expect_raw
+
+        expect_raw = [
+            {'start': create_converter.round_convert(0), 'latency': 2},
+            {'start': create_converter.round_convert(11), 'latency': 1}
+        ]
+        result = to_dict(latency.to_records(converter=create_converter.get_converter()))
         assert result == expect_raw
