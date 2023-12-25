@@ -266,7 +266,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         int
-            construction order
+            Construction order.
 
         """
         return self._construction_order
