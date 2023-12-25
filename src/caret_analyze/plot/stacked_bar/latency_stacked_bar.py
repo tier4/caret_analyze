@@ -51,9 +51,6 @@ class LatencyStackedBar:
             Latency dataframe.
 
         """
-        converter: ClockConverter | None = None
-        if xaxis_type == 'sim_time':
-            converter = get_clock_converter([self._target_objects])
         # NOTE: returned columns aren't used because they don't include 'start time'
         # TODO: delete 1e-6
         stacked_bar_dict, _ = self.to_stacked_bar_data(xaxis_type)

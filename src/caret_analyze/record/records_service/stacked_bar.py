@@ -64,7 +64,7 @@ class StackedBar:
         stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
         series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
         if converter:
-            series_seq = [round(converter.convert(t)) for t in series_seq]
+            series_seq = [round(converter.convert(float(t))) for t in series_seq if t is not None]
         series_list: list[int] = self._convert_sequence_to_list(series_seq)
         stacked_bar_records = \
             self._merge_column_series(

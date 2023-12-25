@@ -20,8 +20,6 @@ from bokeh.plotting import figure as Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
-from ...util import get_clock_converter
-from ....common import ClockConverter
 
 
 class BokehStackedBar:
@@ -75,7 +73,7 @@ class BokehStackedBar:
         x_label = 'start time'
         if self._xaxis_type == 'system_time' or self._xaxis_type == 'sim_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
-        else: # index
+        else:  # index
             x_label = 'index'
 
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
