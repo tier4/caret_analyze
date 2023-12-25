@@ -253,7 +253,7 @@ class CallbackValue(ValueObject, metaclass=ABCMeta):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         pass
