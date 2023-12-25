@@ -53,6 +53,15 @@ class ExecutorType(ValueObject):
         return self._type_name
 
     def __str__(self) -> str:
+        """
+        Convert to string.
+
+        Returns
+        -------
+        str
+            Type name.
+
+        """
         return self.type_name
 
 
