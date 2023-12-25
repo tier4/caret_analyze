@@ -47,7 +47,7 @@ class ExecutorType(ValueObject):
         Returns
         -------
         str
-            type name.
+            Type name.
 
         """
         return self._type_name
