@@ -61,8 +61,10 @@ class StackedBar:
         xlabel: str = 'start time'
         x_axis_values: RecordsInterface = \
             self._get_x_axis_values(renamed_records, columns[0], xlabel)
-        stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns, converter=converter)
+        stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
         series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
+        if converter:
+            series_seq = [round(converter.convert(t)) for t in series_seq]
         series_list: list[int] = self._convert_sequence_to_list(series_seq)
         stacked_bar_records = \
             self._merge_column_series(
@@ -168,7 +170,6 @@ class StackedBar:
         self,
         records: RecordsInterface,
         columns: list[str],
-        converter: ClockConverter | None = None
     ) -> RecordsInterface:
         """
         Calculate stacked bar data.
@@ -179,8 +180,6 @@ class StackedBar:
             Target records.
         columns : list[str]
             Target columns (Node/Topic granularity).
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Returns
         -------
@@ -195,9 +194,9 @@ class StackedBar:
 
         for column_from, column_to in zip(columns[:-1], columns[1:]):
             latency_handler = Latency(records, column_from, column_to)
-            assert record_size == len(latency_handler.to_records(converter=converter))
+            assert record_size == len(latency_handler.to_records())
 
-            latency_records = latency_handler.to_records(converter=converter)
+            latency_records = latency_handler.to_records()
             latency_seq: Sequence[int | None] = latency_records.get_column_series('latency')
             latency_list: list[int] = self._convert_sequence_to_list(latency_seq)
 
