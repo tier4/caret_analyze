@@ -529,6 +529,27 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         construction_order: int,
         callback_name: str
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        symbol : str
+            Symbol name of the callback.
+        subscribe_topic_name : str | None
+            Topic name which the callback subscribes.
+        service_name : str | None
+            Service name which the service callback service.
+        publish_topic_names : tuple[str, ...] | None
+            Topic name which the callback publishes.
+        construction_order: int
+            Order of instance creation within the identical node.
+        callback_name : str
+            Callback name.
+
+        """
         self._node_name = node_name
         self._callback_name = callback_name
         self._symbol = symbol
@@ -592,6 +613,15 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
     @property
     def callback_type_name(self) -> str:
+        """
+        Get callback type name.
+
+        Returns
+        -------
+        str
+            Callback type name.
+
+        """
         return str(self.callback_type)
 
     @property
@@ -622,6 +652,15 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
 
     @property
     def publish_topic_names(self) -> tuple[str, ...] | None:
+        """
+        Get publisher topic names.
+
+        Returns
+        -------
+        tuple[str, ...] | None
+            Topic names which the callback publishes.
+
+        """
         return self._publish_topic_names
 
     @property
@@ -640,6 +679,15 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
     @property
     @abstractmethod
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         pass
 
 
