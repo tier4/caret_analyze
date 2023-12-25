@@ -60,14 +60,8 @@ class LatencyStackedBar:
         millisecond_dict: dict[str, list[float]] = {}
         if xaxis_type == 'system_time' or xaxis_type == 'sim_time':
             for column in stacked_bar_dict:
-                if converter and column == 'start time':
-                    millisecond_dict[column] = \
-                        [round(converter.convert(timestamp)) * 1e-6
-                         for timestamp
-                         in stacked_bar_dict[column]]
-                else:
-                    millisecond_dict[column] = \
-                        [timestamp * 1e-6 for timestamp in stacked_bar_dict[column]]
+                millisecond_dict[column] = \
+                    [timestamp * 1e-6 for timestamp in stacked_bar_dict[column]]
             df = pd.DataFrame(millisecond_dict)
             return df
         else:  # index
@@ -97,7 +91,7 @@ class LatencyStackedBar:
             converter = get_clock_converter([self._target_objects])
         response_records: RecordsInterface = \
             self._get_response_time_record(self._target_objects)
-        stacked_bar = StackedBar(response_records, converter)
+        stacked_bar = StackedBar(response_records, converter=converter)
         return stacked_bar.to_dict(), stacked_bar.columns
 
     def _get_response_time_record(
