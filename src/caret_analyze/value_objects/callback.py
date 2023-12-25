@@ -566,7 +566,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -579,7 +579,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback symbol name
+            Callback symbol name.
 
         """
         return self._symbol
@@ -592,7 +592,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         str
-            callback name
+            Callback name.
 
         """
         return self._callback_name
@@ -606,7 +606,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         CallbackType
-            callback type
+            Callback type.
 
         """
         pass
@@ -671,7 +671,7 @@ class CallbackStructValue(Summarizable, metaclass=ABCMeta):
         Returns
         -------
         int
-            construction order
+            Construction order.
 
         """
         return self._construction_order
