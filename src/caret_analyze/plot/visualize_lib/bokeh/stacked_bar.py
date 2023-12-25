@@ -65,7 +65,7 @@ class BokehStackedBar:
         caption = 'latency'
         y_axis_label = caption + ' [ms]'
         target_objects = self._metrics.target_objects
-        data, y_labels = self._metrics.to_stacked_bar_data()
+        data, y_labels = self._metrics.to_stacked_bar_data('system_time')
         path_name = target_objects.path_name
         title: str = f'Stacked bar of response_time of {path_name} --- {self._case} case ---'
 
@@ -80,6 +80,7 @@ class BokehStackedBar:
             x_label = 'index'
         else:  # sim_time
             converter = get_clock_converter([target_objects])
+            data, y_labels = self._metrics.to_stacked_bar_data(self._xaxis_type)
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
             apply_x_axis_offset(fig, frame_min, frame_max)
@@ -125,7 +126,7 @@ class StackedBarSource:
 
         # Convert the data unit to second
         data = self._updated_with_unit(data, y_labels, 1e-6)
-        data = self._updated_with_unit(data, [x_label], 1e-9, converter)
+        data = self._updated_with_unit(data, [x_label], 1e-9, converter=converter)
 
         # Calculate the stacked y values
         for prev_, next_ in zip(reversed(y_labels[:-1]), reversed(y_labels[1:])):

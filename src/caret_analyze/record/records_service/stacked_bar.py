@@ -20,12 +20,14 @@ from .latency import Latency
 from ..interface import RecordsInterface
 from ..record import ColumnValue
 from ..record_factory import RecordsFactory
+from ...common import ClockConverter
 
 
 class StackedBar:
     def __init__(
         self,
         records: RecordsInterface,
+        converter: ClockConverter | None = None
     ) -> None:
         """
         Generate records for stacked bar.
@@ -34,6 +36,9 @@ class StackedBar:
         ----------
         records : RecordsInterface
             Records of response time.
+            
+        converter : ClockConverter | None, optional
+            Converter to simulation time.
 
         Raises
         ------
@@ -56,7 +61,7 @@ class StackedBar:
         xlabel: str = 'start time'
         x_axis_values: RecordsInterface = \
             self._get_x_axis_values(renamed_records, columns[0], xlabel)
-        stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
+        stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns, converter=converter)
         series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
         series_list: list[int] = self._convert_sequence_to_list(series_seq)
         stacked_bar_records = \
@@ -163,6 +168,7 @@ class StackedBar:
         self,
         records: RecordsInterface,
         columns: list[str],
+        converter: ClockConverter | None = None
     ) -> RecordsInterface:
         """
         Calculate stacked bar data.
@@ -173,6 +179,8 @@ class StackedBar:
             Target records.
         columns : list[str]
             Target columns (Node/Topic granularity).
+        converter : ClockConverter | None, optional
+            Converter to simulation time.
 
         Returns
         -------
@@ -187,9 +195,9 @@ class StackedBar:
 
         for column_from, column_to in zip(columns[:-1], columns[1:]):
             latency_handler = Latency(records, column_from, column_to)
-            assert record_size == len(latency_handler.to_records())
+            assert record_size == len(latency_handler.to_records(converter=converter))
 
-            latency_records = latency_handler.to_records()
+            latency_records = latency_handler.to_records(converter=converter)
             latency_seq: Sequence[int | None] = latency_records.get_column_series('latency')
             latency_list: list[int] = self._convert_sequence_to_list(latency_seq)
 
