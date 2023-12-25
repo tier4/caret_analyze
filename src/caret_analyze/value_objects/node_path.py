@@ -156,7 +156,7 @@ class NodePathStructValue(ValueObject, Summarizable):
         Parameters
         ----------
         node_name : str
-            Node name
+            Node name.
         subscription : SubscriptionStructValue | None
             Subscription which the node path subscribes.
         publisher : PublisherStructValue | None
