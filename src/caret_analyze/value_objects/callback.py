@@ -34,7 +34,7 @@ class CallbackType(ValueObject):
         Parameters
         ----------
         name : str
-            callback type name ['timer_callback', 'subscription_callback', 'service_callback']
+            Callback type name ['timer_callback', 'subscription_callback', 'service_callback'].
 
         """
         if name not in ['timer_callback', 'subscription_callback', 'service_callback']:
@@ -43,6 +43,15 @@ class CallbackType(ValueObject):
         self._name = name
 
     def __str__(self) -> str:
+        """
+        Convert to string.
+
+        Returns
+        -------
+        str
+            Type name.
+
+        """
         return self.type_name
 
     @property
@@ -53,7 +62,7 @@ class CallbackType(ValueObject):
         Returns
         -------
         str
-            type name.
+            Type name.
 
         """
         return self._name
