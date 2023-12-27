@@ -764,6 +764,9 @@ class Lttng(InfraBase):
         """
         return datetime.fromtimestamp(self._begin * 1.0e-9)
 
+    def compose_enq_records(self):
+        return self._source.enqueue_records.clone()
+
     def compose_intra_proc_comm_records(
         self,
     ) -> RecordsInterface:
