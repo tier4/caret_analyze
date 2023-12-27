@@ -36,7 +36,6 @@ class StackedBar:
         ----------
         records : RecordsInterface
             Records of response time.
-
         converter : ClockConverter | None, optional
             Converter to simulation time.
 
