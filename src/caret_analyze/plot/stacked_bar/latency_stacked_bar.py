@@ -44,7 +44,6 @@ class LatencyStackedBar:
         ----------
         xaxis_type : str, optional
             X axis value's type , by default 'system_time'.
-            # TODO: apply xaxis_type, now only support system time.
 
         Returns
         -------
@@ -52,12 +51,9 @@ class LatencyStackedBar:
             Latency dataframe.
 
         """
-        converter: ClockConverter | None = None
-        if xaxis_type == 'sim_time':
-            converter = get_clock_converter([self._target_objects])
         # NOTE: returned columns aren't used because they don't include 'start time'
         # TODO: delete 1e-6
-        stacked_bar_dict, _ = self.to_stacked_bar_data(converter=converter)
+        stacked_bar_dict, _ = self.to_stacked_bar_data(xaxis_type)
         millisecond_dict: dict[str, list[float]] = {}
         if xaxis_type == 'system_time' or xaxis_type == 'sim_time':
             for column in stacked_bar_dict:
@@ -70,15 +66,15 @@ class LatencyStackedBar:
 
     def to_stacked_bar_data(
         self,
-        converter: ClockConverter | None = None
+        xaxis_type: str = 'system_time'
     ) -> tuple[dict[str, list[int]], list[str]]:
         """
         Get stacked bar dict and columns.
 
         Parameters
         ----------
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
+        xaxis_type : str, optional
+            X axis value's type , by default 'system_time'.
 
         Returns
         -------
@@ -87,9 +83,12 @@ class LatencyStackedBar:
             Columns (not include 'start time').
 
         """
+        converter: ClockConverter | None = None
+        if xaxis_type == 'sim_time':
+            converter = get_clock_converter([self._target_objects])
         response_records: RecordsInterface = \
             self._get_response_time_record(self._target_objects)
-        stacked_bar = StackedBar(response_records, converter)
+        stacked_bar = StackedBar(response_records, converter=converter)
         return stacked_bar.to_dict(), stacked_bar.columns
 
     def _get_response_time_record(
