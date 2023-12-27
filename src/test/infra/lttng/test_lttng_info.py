@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from logging import WARNING
+
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -670,6 +672,79 @@ class TestDataFrameFormatted:
             ]
         ).convert_dtypes()
         assert timer.df.equals(expect)
+
+    def test_build_timer_callbacks_df_duplication_workaround(self, caplog):
+        data = Ros2DataModel()
+
+        node_handle = 1
+        timer_handles = [3, 4, 5, 6, 7, 8]
+        rmw_handle = 9
+        period_ns = 10
+        callback_objects = [0x1000, 0x1001, 0x1002, 0x1001, 0x1002, 0x1001]
+        callback_group_addr = 13
+        symbols = [
+            'symbol1', 'symbol2', 'symbol3', 'symbol4', 'symbol5', 'symbol6'
+        ]
+
+        caplog.set_level(WARNING)
+
+        data.add_node(0, node_handle, 0, rmw_handle, 'node1', '/')
+
+        for i in range(len(timer_handles)):
+            data.add_timer(0, timer_handles[i], 0, period_ns)
+            data.add_callback_object(timer_handles[i], 0, callback_objects[i])
+            data.add_timer_node_link(timer_handles[i], 0, node_handle)
+            data.add_callback_symbol(callback_objects[i], 0, symbols[i])
+            data.callback_group_add_timer(
+                callback_group_addr, 0, timer_handles[i]
+            )
+
+        data.finalize()
+
+        caplog.clear()
+        timer = DataFrameFormatted._build_timer_callbacks(data)
+        # caplog.record_tuples is list of tuple. Each tuple is
+        # (logger, level, message). Following assertion makes sure log message
+        # contains duplicated callback_object.
+        assert len(caplog.record_tuples) == 1 and \
+            f'0x{callback_objects[1]:X}' in caplog.record_tuples[0][2] and \
+            f'0x{callback_objects[2]:X}' in caplog.record_tuples[0][2]
+
+        expect = pd.DataFrame.from_dict(
+            [
+                {
+                    'callback_id': f'timer_callback_{callback_objects[0]}',
+                    'callback_object': callback_objects[0],
+                    'node_handle': node_handle,
+                    'timer_handle': timer_handles[0],
+                    'callback_group_addr': callback_group_addr,
+                    'period_ns': period_ns,
+                    'symbol': symbols[0],
+                    'construction_order': 0,
+                },
+                {
+                    'callback_id': f'timer_callback_{callback_objects[1]}',
+                    'callback_object': callback_objects[1],
+                    'node_handle': node_handle,
+                    'timer_handle': timer_handles[1],
+                    'callback_group_addr': callback_group_addr,
+                    'period_ns': period_ns,
+                    'symbol': symbols[1],
+                    'construction_order': 0,
+                },
+                {
+                    'callback_id': f'timer_callback_{callback_objects[2]}',
+                    'callback_object': callback_objects[2],
+                    'node_handle': node_handle,
+                    'timer_handle': timer_handles[2],
+                    'callback_group_addr': callback_group_addr,
+                    'period_ns': period_ns,
+                    'symbol': symbols[2],
+                    'construction_order': 0,
+                },
+            ]
+        ).convert_dtypes()
+        assert timer.df.reset_index(drop=True).equals(expect)
 
     def test_build_timer_control_df(self):
         data = Ros2DataModel()
