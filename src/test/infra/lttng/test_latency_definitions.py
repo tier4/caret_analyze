@@ -972,7 +972,7 @@ class TestNodeRecords:
                             f'{callback.callback_name}/callback_end_timestamp': 2,
                         }
                     ],
-                    columns=[
+                    [
                         ColumnValue(f'{callback.callback_name}/callback_start_timestamp'),
                         ColumnValue(f'{callback.callback_name}/callback_end_timestamp'),
                     ]
@@ -984,7 +984,7 @@ class TestNodeRecords:
                         f'{callback_.callback_name}/callback_end_timestamp': 4,
                     }
                 ],
-                columns=[
+                [
                     ColumnValue(f'{callback_.callback_name}/callback_start_timestamp'),
                     ColumnValue(f'{callback_.callback_name}/callback_end_timestamp'),
                 ]
@@ -1000,7 +1000,7 @@ class TestNodeRecords:
                         f'{callback_.callback_name}/callback_start_timestamp': 3,
                     }
                 ],
-                columns=[
+                [
                     ColumnValue(f'{callback.callback_name}/callback_end_timestamp'),
                     ColumnValue(f'{callback_.callback_name}/callback_start_timestamp'),
                 ]
