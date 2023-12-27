@@ -688,7 +688,7 @@ class NodePathSearcher:
     ) -> SubscriptionStruct:
         node: NodeStruct
         node = Util.find_one(lambda x: x.node_name == node_name, nodes)
-        return node.get_subscription_from_construction_order(topic_name, construction_order)
+        return node.get_subscription(topic_name, construction_order)
 
     @staticmethod
     def _create_head_dummy_node_path(
