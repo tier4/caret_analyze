@@ -764,7 +764,7 @@ class NodePathSearcher:
                 topic_name_,
                 topic_name,
                 edge_.node_to.node_name,
-                sub_const_,
+                sub_const,
                 pub_const,
             )
 
