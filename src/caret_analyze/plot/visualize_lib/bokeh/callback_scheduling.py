@@ -17,9 +17,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
-from bokeh.models import HoverTool
-from bokeh.models.annotations import Arrow, NormalHead
-from bokeh.plotting import ColumnDataSource, figure as Figure
+from bokeh.models import Arrow, HoverTool, NormalHead
+from bokeh.plotting import ColumnDataSource, Figure
 
 import pandas as pd
 

@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
-from bokeh.plotting import figure as Figure
+from bokeh.plotting import Figure
 
 import pandas as pd
 

@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from bokeh.models import HoverTool
-from bokeh.plotting import ColumnDataSource, figure as Figure
+from bokeh.plotting import ColumnDataSource, Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager)

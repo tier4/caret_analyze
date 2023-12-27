@@ -14,9 +14,8 @@
 
 from __future__ import annotations
 
-from bokeh.models.annotations import Legend
-from bokeh.models.renderers import GraphRenderer
-from bokeh.plotting import figure as Figure
+from bokeh.models import GraphRenderer, Legend
+from bokeh.plotting import Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
@@ -224,7 +223,7 @@ class StackedBarSource:
         # add 'latency' data to each bar due to display hover
         for bar in stacked_bar:
             bar.data_source.add(['latency = ' + str(latency)
-                                 for latency in self._data[bar.name or '']], 'latency')
+                                 for latency in self._data[bar.name]], 'latency')
 
     def to_source(
         self,

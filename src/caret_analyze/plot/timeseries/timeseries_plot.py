@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from bokeh.plotting import figure as Figure
+from bokeh.plotting import Figure
 
 import pandas as pd
 

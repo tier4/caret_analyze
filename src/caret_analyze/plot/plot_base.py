@@ -17,7 +17,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from logging import getLogger
 
-from bokeh.plotting import figure as Figure, save, show
+from bokeh.plotting import Figure, save, show
 from bokeh.resources import CDN
 
 import pandas as pd

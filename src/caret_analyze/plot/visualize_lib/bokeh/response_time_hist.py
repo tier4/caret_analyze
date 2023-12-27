@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from bokeh.plotting import figure as Figure
+from bokeh.plotting import Figure
 
 from caret_analyze.record import ResponseTime
 
