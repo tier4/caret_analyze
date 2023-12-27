@@ -42,7 +42,7 @@ class GraphEdgeCore(ValueObject):
 
 class GraphPathCore(UserList):
 
-    def __init__(self, init: list[GraphEdgeCore] | None = None):
+    def __init__(self, init: list[GraphEdgeCore] = None):
         init = init or []
         super().__init__(init)
 
@@ -227,7 +227,7 @@ class GraphEdge(ValueObject):
 
 class GraphPath(UserList):
 
-    def __init__(self, init: list[GraphEdge] | None = None):
+    def __init__(self, init: list[GraphEdge] = None):
         init = init or []
         super().__init__(init)
 

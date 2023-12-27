@@ -39,7 +39,7 @@ class BokehTimeSeries:
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool,
-        case: str | None = None
+        case: str = None
     ) -> None:
         self._metrics = metrics
         self._xaxis_type = xaxis_type
