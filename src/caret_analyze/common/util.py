@@ -183,6 +183,8 @@ class Util:
         ------
         ItemNotFoundError
             Failed to find an item that matches the condition.
+        MultipleItemFoundError
+            Failed to identify an item that matches the condition.
 
         """
         similarity = 0.0
@@ -233,6 +235,8 @@ class Util:
         ------
         ItemNotFoundError
             Failed to find an item that matches the conditions.
+        MultipleItemFoundError
+            Failed to identify an item that matches the conditions.
 
         """
         max_similarity = 0.0

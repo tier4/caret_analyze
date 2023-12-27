@@ -559,7 +559,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[ExecutorValue]
+        Sequence[ExecutorInfo]
 
         """
         return self._info.get_executors()
@@ -604,11 +604,6 @@ class Lttng(InfraBase):
         """
         Get timers information.
 
-        Parameters
-        ----------
-        node : NodeValue
-            target node name.
-
         Returns
         -------
         Sequence[TimerValue]
@@ -630,7 +625,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[TimerCallbackValueLttng]
+        Sequence[TimerCallbackInfoLttng]
 
         """
         return self._info.get_timer_callbacks(node)
@@ -649,7 +644,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[SubscriptionCallbackValueLttng]
+        Sequence[SubscriptionCallbackInfoLttng]
 
         """
         return self._info.get_subscription_callbacks(node)
@@ -668,7 +663,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[ServiceCallbackValueLttng]
+        Sequence[ServiceCallbackInfoLttng]
 
         """
         return self._info.get_service_callbacks(node)
