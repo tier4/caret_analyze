@@ -285,6 +285,11 @@ class ResponseMapAll:
         for start_ts, end_ts, prev_start_ts in zip(self._start_timestamps[1:],
                                                    self._end_timestamps[1:],
                                                    self._start_timestamps[:-1]):
+            if converter:
+                start_ts = round(converter.convert(start_ts))
+                end_ts = round(converter.convert(end_ts))
+                prev_start_ts = round(converter.convert(prev_start_ts))
+
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
@@ -300,16 +305,10 @@ class ResponseMapAll:
                                                              end_timestamps,
                                                              worst_to_best_timestamps),
                                                          key=lambda x: x[0]):
-            if converter:
-                record = {
-                    self._start_column: round(converter.convert(start_ts - worst_to_best_ts)),
-                    'response_time': end_ts - (start_ts - worst_to_best_ts)
-                }
-            else:
-                record = {
-                    self._start_column: start_ts - worst_to_best_ts,
-                    'response_time': end_ts - (start_ts - worst_to_best_ts)
-                }
+            record = {
+                self._start_column: start_ts - worst_to_best_ts,
+                'response_time': end_ts - (start_ts - worst_to_best_ts)
+            }
             records.append(record)
 
         return records
@@ -322,6 +321,9 @@ class ResponseMapAll:
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
+            if converter:
+                start_ts = round(converter.convert(start_ts))
+                end_ts = round(converter.convert(end_ts))
 
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
@@ -333,16 +335,10 @@ class ResponseMapAll:
 
         records = self._create_empty_records()
         for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
-            if converter:
-                record = {
-                    self._start_column: round(converter.convert(start_ts)),
-                    'response_time': end_ts - start_ts
-                }
-            else:
-                record = {
-                    self._start_column: start_ts,
-                    'response_time': end_ts - start_ts
-                }
+            record = {
+                self._start_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
             records.append(record)
 
         return records
@@ -355,15 +351,13 @@ class ResponseMapAll:
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
             if converter:
-                record = {
-                    self._start_column: round(converter.convert(start_ts)),
-                    'response_time': end_ts - start_ts
-                }
-            else:
-                record = {
-                    self._start_column: start_ts,
-                    'response_time': end_ts - start_ts
-                }
+                start_ts = round(converter.convert(start_ts))
+                end_ts = round(converter.convert(end_ts))
+
+            record = {
+                self._start_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
             records.append(record)
 
         return records
@@ -375,6 +369,10 @@ class ResponseMapAll:
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
+            if converter:
+                start_ts = round(converter.convert(start_ts))
+                end_ts = round(converter.convert(end_ts))
+
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
@@ -385,16 +383,10 @@ class ResponseMapAll:
 
         records = self._create_empty_records()
         for start_ts, end_ts in sorted(zip(start_timestamps, end_timestamps), key=lambda x: x[0]):
-            if converter:
-                record = {
-                    self._start_column: round(converter.convert(start_ts)),
-                    'response_time': end_ts - start_ts
-                }
-            else:
-                record = {
-                    self._start_column: start_ts,
-                    'response_time': end_ts - start_ts
-                }
+            record = {
+                self._start_column: start_ts,
+                'response_time': end_ts - start_ts
+            }
             records.append(record)
 
         return records
