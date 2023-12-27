@@ -24,6 +24,8 @@ from bokeh.plotting import ColumnDataSource, figure as Figure
 from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager)
 from ...metrics_base import MetricsBase
+from ...util import get_clock_converter
+
 from ....common import ClockConverter
 from ....record import Range, RecordsInterface
 from ....runtime import CallbackBase, Communication, Path, Publisher, Subscription
@@ -39,7 +41,7 @@ class BokehTimeSeries:
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool,
-        case: str = None
+        case: str | None = None
     ) -> None:
         self._metrics = metrics
         self._xaxis_type = xaxis_type
@@ -53,6 +55,7 @@ class BokehTimeSeries:
 
         # Initialize figure
         y_axis_label = timeseries_records_list[0].columns[1]
+        data_type = y_axis_label
         if y_axis_label == 'frequency':
             y_axis_label = y_axis_label + ' [Hz]'
         elif y_axis_label in ['period', 'latency']:
@@ -61,14 +64,8 @@ class BokehTimeSeries:
             y_axis_label = 'Response time' + ' [ms]'
         else:
             raise NotImplementedError()
-        if isinstance(target_objects[0], CallbackBase):
-            title = f'Time-line of callbacks {y_axis_label}'
-        elif isinstance(target_objects[0], Communication):
-            title = f'Time-line of communications {y_axis_label}'
-        elif isinstance(target_objects[0], Path):
-            title = f'Time-line of Paths {y_axis_label} --- {self._case} case ---'
-        else:
-            title = f'Time-line of publishes/subscribes {y_axis_label}'
+        title: str = f'Timeseries of {data_type} --- {self._case} case --- \
+            'if data_type == 'response_time' else f'Timeseries of {data_type}'
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
 
         # Apply xaxis offset
@@ -76,26 +73,10 @@ class BokehTimeSeries:
         frame_min, frame_max = records_range.get_range()
         converter: ClockConverter | None = None
         if self._xaxis_type == 'sim_time':
-            # TODO: refactor
-            # get converter
-            if isinstance(target_objects[0], Communication):
-                for comm in target_objects:
-                    assert isinstance(comm, Communication)
-                    if comm.callback_subscription:
-                        converter_cb = comm.callback_subscription
-                        provider = converter_cb._provider
-                        converter = provider.get_sim_time_converter(frame_min, frame_max)
-                        break
-            elif isinstance(target_objects[0], Path):
-                converter = None
-            else:
-                provider = target_objects[0]._provider
-                converter = provider.get_sim_time_converter(frame_min, frame_max)
-        if converter:
+            converter = get_clock_converter(target_objects)
             frame_min_convert = converter.convert(frame_min)
             frame_max_convert = converter.convert(frame_max)
-            x_range_name = 'x_plot_axis'
-            apply_x_axis_offset(fig, frame_min_convert, frame_max_convert, x_range_name)
+            apply_x_axis_offset(fig, frame_min_convert, frame_max_convert)
         elif self._xaxis_type == 'system_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
 
@@ -110,19 +91,11 @@ class BokehTimeSeries:
                 LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
         fig.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
-            if converter:
-                renderer = fig.line(
-                    'x', 'y',
-                    source=line_source.generate(to, timeseries),
-                    color=color_selector.get_color(),
-                    x_range_name=x_range_name
-                )
-            else:
-                renderer = fig.line(
-                    'x', 'y',
-                    source=line_source.generate(to, timeseries),
-                    color=color_selector.get_color()
-                )
+            renderer = fig.line(
+                'x', 'y',
+                source=line_source.generate(to, timeseries),
+                color=color_selector.get_color()
+            )
             legend_manager.add_legend(to, renderer)
 
         # Draw legends
@@ -237,11 +210,9 @@ class LineSource:
 
         x_item: list[int | float]
         y_item: list[int | float] = values
-        if self._xaxis_type == 'system_time':
+        if self._xaxis_type == 'system_time' or self._xaxis_type == 'sim_time':
             x_item = [(ts-self._frame_min)*10**(-9) for ts in timestamps]
         elif self._xaxis_type == 'index':
             x_item = list(range(0, len(values)))
-        elif self._xaxis_type == 'sim_time':
-            x_item = timestamps
 
         return x_item, y_item

@@ -34,7 +34,7 @@ jobs:
           dpkg -l > package_list.txt
           python3 -m pip list > pip_list.txt
       - name: Upload package list
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: package_list
           path: |
@@ -55,7 +55,7 @@ jobs:
         run: |
           source /opt/ros/humble/setup.bash
           cd caret_analyze_cpp_impl/
-          colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+          colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
         shell: bash
 
       - name: Cache caret_analyze_cpp_impl
@@ -68,7 +68,7 @@ jobs:
       - name: Run pytest
         id: pytest_action
         run: |
-          . /opt/ros/humble/setup.sh
+          source /opt/ros/humble/setup.bash
           source caret_analyze_cpp_impl/install/setup.bash
           cd src
           python3 -m pytest

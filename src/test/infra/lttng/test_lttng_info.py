@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-from logging import WARNING
-
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel

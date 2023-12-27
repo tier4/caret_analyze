@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from caret_analyze.common import ClockConverter
 from caret_analyze.record import ColumnValue, Frequency, RecordInterface
 from caret_analyze.record.record_factory import RecordsFactory
+
+import pytest
 
 
 def create_records(records_raw, columns):
@@ -30,9 +33,32 @@ def to_dict(records):
     return [record.data for record in records]
 
 
+class Converter:
+
+    def __init__(self):
+        self._system_times = [0, 1, 2, 3, 4]
+        self._sim_times = [20, 21, 22, 23, 24]
+        self._converter = ClockConverter.create_from_series(
+            self._system_times, self._sim_times)
+
+    def convert(self, v):
+        return self._converter.convert(v)
+
+    def round_convert(self, v):
+        return round(self._converter.convert(v))
+
+    def get_converter(self):
+        return self._converter
+
+
+@pytest.fixture(scope='module')
+def create_converter():
+    return Converter()
+
+
 class TestFrequencyRecords:
 
-    def test_empty_case(self):
+    def test_empty_case(self, create_converter):
         records_raw = [
         ]
         columns = [ColumnValue('timestamp')]
@@ -45,7 +71,10 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records())
         assert result == expect_raw
 
-    def test_one_column_default_case(self):
+        result = to_dict(frequency.to_records(converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_one_column_default_case(self, create_converter):
         records_raw = [
             {'timestamp': 0},
             {'timestamp': 1},
@@ -65,7 +94,15 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
-    def test_specify_interval_ns_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(10), 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_specify_interval_ns_case(self, create_converter):
         records_raw = [
             {'timestamp': 1000000000},
             {'timestamp': 1000500000},
@@ -85,7 +122,17 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=2000000000))
         assert result == expect_raw
 
-    def test_specify_base_timestamp_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.round_convert(
+                1000000000), 'frequency': 4},
+            {'timestamp': create_converter.round_convert(
+                3000000000), 'frequency': 1}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=2000000000, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_specify_base_timestamp_case(self, create_converter):
         records_raw = [
             {'timestamp': 5},
             {'timestamp': 6},
@@ -106,7 +153,16 @@ class TestFrequencyRecords:
                                               base_timestamp=4))
         assert result == expect_raw
 
-    def test_specify_until_timestamp_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.round_convert(4), 'frequency': 4},
+            {'timestamp': create_converter.round_convert(14), 'frequency': 1}
+        ]
+        result = to_dict(frequency.to_records(interval_ns=10,
+                                              base_timestamp=4,
+                                              converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_specify_until_timestamp_case(self, create_converter):
         records_raw = [
             {'timestamp': 5},
             {'timestamp': 6},
@@ -123,7 +179,15 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10, until_timestamp=20))
         assert result == expect_raw
 
-    def test_two_column_default_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.round_convert(5), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(15), 'frequency': 0},
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, until_timestamp=20, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_two_column_default_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3, 'timestamp2': 4},
@@ -143,7 +207,15 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
-    def test_specify_target_column_case(self):
+        expect_raw = [
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_specify_target_column_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3, 'timestamp2': 4},
@@ -163,7 +235,15 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
-    def test_drop_case(self):
+        expect_raw = [
+            {'timestamp2': create_converter.round_convert(2), 'frequency': 2},
+            {'timestamp2': create_converter.round_convert(12), 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_drop_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp2': 4},
@@ -183,7 +263,15 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
-    def test_one_interval_contains_all_timestamps_case(self):
+        expect_raw = [
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 1},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_one_interval_contains_all_timestamps_case(self, create_converter):
         records_raw = [
             {'timestamp': 0},
             {'timestamp': 1},
@@ -202,7 +290,14 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
-    def test_exist_zero_frequency_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.round_convert(0), 'frequency': 5}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_exist_zero_frequency_case(self, create_converter):
         records_raw = [
             {'timestamp': 0},
             {'timestamp': 1},
@@ -223,7 +318,16 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
-    def test_base_ts_greater_than_min_ts_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(10), 'frequency': 0},
+            {'timestamp': create_converter.round_convert(20), 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_base_ts_greater_than_min_ts_case(self, create_converter):
         records_raw = [
             {'timestamp': 0},
             {'timestamp': 1},
@@ -240,10 +344,19 @@ class TestFrequencyRecords:
             {'timestamp': 10, 'frequency': 2},
             {'timestamp': 20, 'frequency': 1}
         ]
-        result = to_dict(frequency.to_records(interval_ns=10, base_timestamp=10))
+        result = to_dict(frequency.to_records(
+            interval_ns=10, base_timestamp=10))
         assert result == expect_raw
 
-    def test_two_column_drop_non_target_column_case(self):
+        expect_raw = [
+            {'timestamp': create_converter.round_convert(10), 'frequency': 2},
+            {'timestamp': create_converter.round_convert(20), 'frequency': 1}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, base_timestamp=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_two_column_drop_non_target_column_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3},
@@ -263,7 +376,15 @@ class TestFrequencyRecords:
         result = to_dict(frequency.to_records(interval_ns=10))
         assert result == expect_raw
 
-    def test_two_column_apply_row_filter_case(self):
+        expect_raw = [
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 2},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
+        assert result == expect_raw
+
+    def test_two_column_apply_row_filter_case(self, create_converter):
         records_raw = [
             {'timestamp1': 0, 'timestamp2': 2},
             {'timestamp1': 3},
@@ -283,11 +404,20 @@ class TestFrequencyRecords:
             else:
                 return False
 
-        frequency = Frequency(records, target_column='timestamp1', row_filter=row_filter)
+        frequency = Frequency(
+            records, target_column='timestamp1', row_filter=row_filter)
 
         expect_raw = [
             {'timestamp1': 0, 'frequency': 1},
             {'timestamp1': 10, 'frequency': 3}
         ]
         result = to_dict(frequency.to_records(interval_ns=10))
+        assert result == expect_raw
+
+        expect_raw = [
+            {'timestamp1': create_converter.round_convert(0), 'frequency': 1},
+            {'timestamp1': create_converter.round_convert(10), 'frequency': 3}
+        ]
+        result = to_dict(frequency.to_records(
+            interval_ns=10, converter=create_converter.get_converter()))
         assert result == expect_raw
