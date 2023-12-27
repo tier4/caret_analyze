@@ -23,9 +23,7 @@ from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 import pandas as pd
 
 from ..plot_base import PlotBase
-from ..util import get_clock_converter
 from ..visualize_lib import VisualizeLibInterface
-from ...common import ClockConverter
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path
 
@@ -108,17 +106,11 @@ class HistogramPlot(PlotBase):
         # Validate
         self._validate_xaxis_type(xaxis_type)
 
-        # get converter
-        converter: ClockConverter | None = None
-        if xaxis_type == 'sim_time':
-            converter = get_clock_converter(self._target_objects)
-
         return self._visualize_lib.histogram(
             self._metrics,
             self._target_objects,
             self._data_type,
-            self._case,
-            converter=converter
+            self._case
             )
 
     def _validate_xaxis_type(self, xaxis_type: str) -> None:

@@ -73,13 +73,13 @@ class BokehCallbackSched:
             converter = None
             frame_min = clip.min_ns
             frame_max = clip.max_ns
-        apply_x_axis_offset(fig, frame_min, frame_max)
+        x_range_name = 'x_plot_axis'
+        apply_x_axis_offset(fig, frame_min, frame_max, x_range_name)
 
         # Draw callback scheduling
         color_selector = ColorSelectorFactory.create_instance(self._coloring_rule)
         legend_manager = LegendManager()
-        rect_source_gen = CallbackSchedRectSource(legend_manager, callbacks[0],
-                                                  clip, frame_min, converter)
+        rect_source_gen = CallbackSchedRectSource(legend_manager, callbacks[0], clip, converter)
         bar_source_gen = CallbackSchedBarSource(legend_manager, callbacks[0], frame_min, frame_max)
 
         for cbg in self._callback_groups:
@@ -96,7 +96,8 @@ class BokehCallbackSched:
                     color=color,
                     alpha=1.0,
                     hover_fill_color=color,
-                    hover_alpha=1.0
+                    hover_alpha=1.0,
+                    x_range_name=x_range_name
                 )
                 legend_manager.add_legend(callback, rect)
                 fig.add_tools(rect_source_gen.create_hover(
@@ -109,7 +110,8 @@ class BokehCallbackSched:
                     hover_fill_color=color,
                     hover_alpha=0.1,
                     fill_alpha=0.1,
-                    level='underlay'
+                    level='underlay',
+                    x_range_name=x_range_name
                 )
                 fig.add_tools(bar_source_gen.create_hover(
                     {'attachment': 'below', 'renderers': [bar]}
@@ -166,7 +168,6 @@ class CallbackSchedRectSource:
         legend_manager: LegendManager,
         target_object: CallbackBase,
         clip: Clip,
-        frame_min: float,
         converter: ClockConverter | None = None
     ) -> None:
         self._hover_keys = HoverKeysFactory.create_instance(
@@ -174,7 +175,6 @@ class CallbackSchedRectSource:
         self._hover_source = HoverSource(self._hover_keys)
         self._legend_manager = legend_manager
         self._clip = clip
-        self._frame_min = frame_min
         self._converter = converter
         self._rect_y_base = 0.0
 
@@ -220,8 +220,7 @@ class CallbackSchedRectSource:
             callback_start = self._converter.convert(row[1]) if self._converter else row[1]
             callback_end = self._converter.convert(row[-1]) if self._converter else row[-1]
             rect = RectValues(
-                (callback_start - self._frame_min) * 10**-9,
-                (callback_end - self._frame_min) * 10**-9,
+                callback_start, callback_end,
                 (self._rect_y_base-self.RECT_HEIGHT),
                 (self._rect_y_base+self.RECT_HEIGHT)
             )
@@ -297,8 +296,7 @@ class CallbackSchedBarSource:
 
         """
         rect = RectValues(
-            0,
-            (self._frame_max - self._frame_min) * 10**-9,
+            self._frame_min, self._frame_max,
             rect_y_base - 0.5,
             rect_y_base + 0.5
         )

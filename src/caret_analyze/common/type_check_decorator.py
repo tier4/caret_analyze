@@ -23,8 +23,7 @@ from ..exceptions import UnsupportedTypeError
 
 
 try:
-    from pydantic import ValidationError
-    from pydantic.deprecated.decorator import validate_arguments
+    from pydantic import validate_arguments, ValidationError
 
     def _get_expected_types(e: ValidationError, signature: Signature) -> str:
         """
