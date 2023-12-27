@@ -4,8 +4,7 @@
   <name>caret_analyze</name>
   <version>0.2.2</version>
   <description>CARET's tools for analyzing trace results</description>
-  <maintainer email="yamasaki@isp.co.jp">ymski</maintainer>
-  <maintainer email="uetsuki@isp.co.jp">isp-uetsuki</maintainer>
+  <maintainer email="hasegawa@isp.co.jp">hsgwa</maintainer>
   <license>Apache License 2.0</license>
 
   <depend>python3-multimethod-pip</depend>
