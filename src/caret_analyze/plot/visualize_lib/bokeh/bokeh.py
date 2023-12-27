@@ -215,8 +215,7 @@ class Bokeh(VisualizeLibInterface):
             raise NotImplementedError()
 
         plot: Figure = Figure(
-            title=f'Histogram of {data_type}'
-            if case is None else f'Histogram of {data_type} --- {case} case ---',
+            title=data_type if case is None else f'{data_type} --- {case} case ---',
             x_axis_label=x_label, y_axis_label='Probability', width=800
             )
 
