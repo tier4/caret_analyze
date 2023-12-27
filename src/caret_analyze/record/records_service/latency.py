@@ -17,7 +17,6 @@ from __future__ import annotations
 from ..column import ColumnValue
 from ..interface import RecordsInterface
 from ..record_factory import RecordsFactory
-from ...common import ClockConverter
 
 
 class Latency:
@@ -57,17 +56,9 @@ class Latency:
             end_ts = record.get(self._end_column)
             self._end_timestamps.append(end_ts)
 
-    def to_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_records(self) -> RecordsInterface:
         """
         Calculate latency records.
-
-        Parameters
-        ----------
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Returns
         -------
@@ -81,9 +72,6 @@ class Latency:
         records = self._create_empty_records()
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
-            if converter:
-                start_ts = round(converter.convert(start_ts))
-                end_ts = round(converter.convert(end_ts))
             record = {
                 self._start_column: start_ts,
                 'latency': end_ts - start_ts

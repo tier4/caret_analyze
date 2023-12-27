@@ -24,7 +24,6 @@ import numpy as np
 from ..column import ColumnValue
 from ..interface import RecordInterface, RecordsInterface
 from ..record_factory import RecordFactory, RecordsFactory
-from ...common import ClockConverter
 from ...exceptions import InvalidRecordsError
 
 
@@ -274,10 +273,7 @@ class ResponseMapAll:
                     self._end_timestamps[idx] = end_ts
                     self._records[idx] = record
 
-    def to_worst_with_external_latency_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
 
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
@@ -285,11 +281,6 @@ class ResponseMapAll:
         for start_ts, end_ts, prev_start_ts in zip(self._start_timestamps[1:],
                                                    self._end_timestamps[1:],
                                                    self._start_timestamps[:-1]):
-            if converter:
-                start_ts = round(converter.convert(start_ts))
-                end_ts = round(converter.convert(end_ts))
-                prev_start_ts = round(converter.convert(prev_start_ts))
-
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
@@ -313,18 +304,11 @@ class ResponseMapAll:
 
         return records
 
-    def to_best_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_best_case_records(self) -> RecordsInterface:
 
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
-            if converter:
-                start_ts = round(converter.convert(start_ts))
-                end_ts = round(converter.convert(end_ts))
-
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
@@ -343,17 +327,10 @@ class ResponseMapAll:
 
         return records
 
-    def to_all_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_all_records(self) -> RecordsInterface:
         records = self._create_empty_records()
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
-            if converter:
-                start_ts = round(converter.convert(start_ts))
-                end_ts = round(converter.convert(end_ts))
-
             record = {
                 self._start_column: start_ts,
                 'response_time': end_ts - start_ts
@@ -362,17 +339,10 @@ class ResponseMapAll:
 
         return records
 
-    def to_worst_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_worst_case_records(self) -> RecordsInterface:
         end_timestamps: list[int] = []
         start_timestamps: list[int] = []
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
-            if converter:
-                start_ts = round(converter.convert(start_ts))
-                end_ts = round(converter.convert(end_ts))
-
             if end_ts not in end_timestamps:
                 start_timestamps.append(start_ts)
                 end_timestamps.append(end_ts)
@@ -542,10 +512,7 @@ class ResponseTime:
         self._timeseries = ResponseTimeseries(self._records)
         self._histogram = ResponseHistogram(self._records, self._timeseries)
 
-    def to_all_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_all_records(self) -> RecordsInterface:
         """
         Calculate the data of all records for response time.
 
@@ -556,35 +523,20 @@ class ResponseTime:
         -------
         RecordsInterface
             Records of the all response time.
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
-
-        Parameters
-        ----------
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
             Columns
             - {columns[0]}
             - {'response_time'}
 
         """
-        return self._response_map_all.to_all_records(converter=converter)
+        return self._response_map_all.to_all_records()
 
-    def to_worst_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_worst_case_records(self) -> RecordsInterface:
         """
         Calculate data of the worst case records for response time.
 
         This represents the response time for the oldest case
         in the message flow with the same output.
-
-        Parameters
-        ----------
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Returns
         -------
@@ -596,22 +548,14 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._response_map_all.to_worst_case_records(converter=converter)
+        return self._response_map_all.to_worst_case_records()
 
-    def to_best_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_best_case_records(self) -> RecordsInterface:
         """
         Calculate data of the best case records for response time.
 
         This represents the response time for the newest case
         in the message flow with the same output.
-
-        Parameters
-        ----------
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Returns
         -------
@@ -623,23 +567,15 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._response_map_all.to_best_case_records(converter=converter)
+        return self._response_map_all.to_best_case_records()
 
-    def to_worst_with_external_latency_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
         """
         Calculate data of the worst-with-external-latency case records for response time.
 
         This represents the response time for the oldest case
         in the message flow with the same output
         as well as delays caused by various factors such as lost messages.
-
-        Parameters
-        ----------
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Returns
         -------
@@ -651,9 +587,7 @@ class ResponseTime:
             - {'response_time'}
 
         """
-        return self._response_map_all.to_worst_with_external_latency_case_records(
-            converter=converter
-        )
+        return self._response_map_all.to_worst_with_external_latency_case_records()
 
     def to_all_stacked_bar(self) -> RecordsInterface:
         """
@@ -1115,30 +1049,19 @@ class ResponseTimeseries:
 
         return t_in, latency
 
-    def to_best_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_best_case_records(self) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[1]
         output_column = records.columns[-1]
-        return self._to_records(input_column, output_column, converter)
+        return self._to_records(input_column, output_column)
 
-    def to_worst_with_external_latency_case_records(
-        self,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def to_worst_with_external_latency_case_records(self) -> RecordsInterface:
         records = self._records.to_range_records()
         input_column = records.columns[0]
         output_column = records.columns[-1]
-        return self._to_records(input_column, output_column, converter)
+        return self._to_records(input_column, output_column)
 
-    def _to_records(
-        self,
-        input_column: str,
-        output_column: str,
-        converter: ClockConverter | None = None
-    ) -> RecordsInterface:
+    def _to_records(self, input_column, output_column) -> RecordsInterface:
         records: RecordsInterface = self._create_empty_records(input_column)
 
         range_records = self._records.to_range_records()
@@ -1148,9 +1071,6 @@ class ResponseTimeseries:
         for start_ts, end_ts in zip(t_in, t_out):
             if start_ts is None or end_ts is None:
                 continue
-            if converter:
-                start_ts = round(converter.convert(start_ts))
-                end_ts = round(converter.convert(end_ts))
             record = {
                 input_column: start_ts,
                 'response_time': end_ts - start_ts

@@ -19,7 +19,6 @@ from collections.abc import Callable
 from ..column import ColumnValue
 from ..interface import RecordsInterface
 from ..record_factory import RecordsFactory
-from ...common import ClockConverter
 
 
 class Frequency:
@@ -69,7 +68,6 @@ class Frequency:
         interval_ns: int = 1000000000,
         base_timestamp: int | None = None,
         until_timestamp: int | None = None,
-        converter: ClockConverter | None = None
     ) -> RecordsInterface:
         """
         Calculate frequency records.
@@ -85,8 +83,6 @@ class Frequency:
         until_timestamp : int | None, optional
             End time of measurement.
             If None, oldest timestamp is used.
-        converter : ClockConverter | None, optional
-            Converter to simulation time.
 
         Returns
         -------
@@ -104,8 +100,7 @@ class Frequency:
         timestamp_list, frequency_list = self._get_frequency_with_timestamp(
             interval_ns,
             base_timestamp or self._target_timestamps[0],
-            until_timestamp or self._target_timestamps[-1],
-            converter=converter
+            until_timestamp or self._target_timestamps[-1]
         )
         for ts, freq in zip(timestamp_list, frequency_list):
             record = {
@@ -127,19 +122,13 @@ class Frequency:
         self,
         interval_ns: int,
         base_timestamp: int,
-        until_timestamp: int,
-        converter: ClockConverter | None = None
+        until_timestamp: int
     ) -> tuple[list[int], list[int]]:
-        if converter:
-            base_timestamp = round(converter.convert(base_timestamp))
-            until_timestamp = round(converter.convert(until_timestamp))
         timestamp_list: list[int] = [base_timestamp]
         frequency_list: list[int] = [0]
         interval_start_time = base_timestamp
 
         for timestamp in self._target_timestamps:
-            if converter:
-                timestamp = round(converter.convert(timestamp))
             if timestamp < base_timestamp:
                 continue
             while not (interval_start_time <= timestamp < interval_start_time + interval_ns):

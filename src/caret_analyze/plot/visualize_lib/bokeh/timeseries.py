@@ -24,8 +24,6 @@ from bokeh.plotting import ColumnDataSource, figure as Figure
 from .util import (apply_x_axis_offset, ColorSelectorFactory, get_callback_param_desc,
                    HoverKeysFactory, HoverSource, init_figure, LegendManager)
 from ...metrics_base import MetricsBase
-from ...util import get_clock_converter
-
 from ....common import ClockConverter
 from ....record import Range, RecordsInterface
 from ....runtime import CallbackBase, Communication, Path, Publisher, Subscription
@@ -73,7 +71,22 @@ class BokehTimeSeries:
         frame_min, frame_max = records_range.get_range()
         converter: ClockConverter | None = None
         if self._xaxis_type == 'sim_time':
-            converter = get_clock_converter(target_objects)
+            # TODO: refactor
+            # get converter
+            if isinstance(target_objects[0], Communication):
+                for comm in target_objects:
+                    assert isinstance(comm, Communication)
+                    if comm.callback_subscription:
+                        converter_cb = comm.callback_subscription
+                        provider = converter_cb._provider
+                        converter = provider.get_sim_time_converter(frame_min, frame_max)
+                        break
+            elif isinstance(target_objects[0], Path):
+                converter = None
+            else:
+                provider = target_objects[0]._provider
+                converter = provider.get_sim_time_converter(frame_min, frame_max)
+        if converter:
             frame_min_convert = converter.convert(frame_min)
             frame_max_convert = converter.convert(frame_max)
             x_range_name = 'x_plot_axis'

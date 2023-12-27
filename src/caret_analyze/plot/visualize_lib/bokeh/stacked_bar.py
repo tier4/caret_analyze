@@ -20,8 +20,6 @@ from bokeh.plotting import figure as Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
-from ...util import get_clock_converter
-from ....common import ClockConverter
 
 
 class BokehStackedBar:
@@ -72,25 +70,20 @@ class BokehStackedBar:
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
         frame_max = data['start time'][-1]
-        converter: ClockConverter | None = None
         x_label = 'start time'
         if self._xaxis_type == 'system_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
         elif self._xaxis_type == 'index':
             x_label = 'index'
         else:  # sim_time
-            converter = get_clock_converter([target_objects])
-            data, y_labels = self._metrics.to_stacked_bar_data(converter)
-            frame_min = converter.convert(frame_min)
-            frame_max = converter.convert(frame_max)
-            apply_x_axis_offset(fig, frame_min, frame_max)
+            raise NotImplementedError()
 
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         if self._case == 'best':
             color_selector.get_color()
         colors = [color_selector.get_color(y_label) for y_label in y_labels]
 
-        source = StackedBarSource(data, y_labels, self._xaxis_type, x_label, converter=converter)
+        source = StackedBarSource(data, y_labels, self._xaxis_type, x_label)
         # reverse the order of y_labels to reverse the order in which bars are stacked.
         stacked_bar = fig.vbar_stack(list(reversed(y_labels)), x='start time',
                                      width='x_width_list', color=list(reversed(colors)),
@@ -119,20 +112,19 @@ class StackedBarSource:
         data: dict[str, list[int | float]],
         y_labels: list[str],
         xaxis_type: str,
-        x_label: str,
-        converter: ClockConverter | None = None
+        x_label: str
     ) -> None:
         x_width_list: list[float] = []
 
         # Convert the data unit to second
         data = self._updated_with_unit(data, y_labels, 1e-6)
-        data = self._updated_with_unit(data, [x_label], 1e-9, converter)
+        data = self._updated_with_unit(data, ['start time'], 1e-9)
 
         # Calculate the stacked y values
         for prev_, next_ in zip(reversed(y_labels[:-1]), reversed(y_labels[1:])):
             data[prev_] = [data[prev_][i] + data[next_][i] for i in range(len(data[next_]))]
 
-        if xaxis_type == 'system_time' or xaxis_type == 'sim_time':
+        if xaxis_type == 'system_time':
             # Update the timestamps from absolutely time to offset time
             data[x_label] = self._updated_timestamps_to_offset_time(
                 data[x_label])
@@ -142,6 +134,8 @@ class StackedBarSource:
 
             # Slide x axis values so that the bottom left of bars are the start time.
             data[x_label] = self._add_shift_value(data[x_label], half_width_list)
+        elif xaxis_type == 'sim_time':
+            raise NotImplementedError()
         else:  # index
             data[x_label] = list(range(0, len(data[y_labels[0]])))
             x_width_list = self._get_x_width_list(data[x_label])
@@ -154,25 +148,17 @@ class StackedBarSource:
         data: dict[str, list[int | float]],
         columns: list[str] | None,
         unit: float,
-        converter: ClockConverter | None = None
     ) -> dict[str, list[float]]:
         # TODO: make timeseries and callback scheduling function use this function.
         #       create bokeh_util.py
         if columns is None:
             output_data: dict[str, list[float]] = {}
             for key in data.keys():
-                if converter:
-                    output_data[key] = [converter.convert(d) * unit for d in data[key]]
-                else:
-                    output_data[key] = [d * unit for d in data[key]]
+                output_data[key] = [d * unit for d in data[key]]
         else:
             output_data = data
             for key in columns:
-                if converter:
-                    output_data[key] = [converter.convert(d) * unit for d in data[key]]
-                else:
-                    output_data[key] = [d * unit for d in data[key]]
-
+                output_data[key] = [d * unit for d in data[key]]
         return output_data
 
     def _get_x_width_list(self, x_values: list[float]) -> list[float]:

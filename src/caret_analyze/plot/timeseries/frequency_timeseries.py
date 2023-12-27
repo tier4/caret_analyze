@@ -19,8 +19,6 @@ from collections.abc import Sequence
 import pandas as pd
 
 from ..metrics_base import MetricsBase
-from ..util import get_clock_converter
-from ...common import ClockConverter
 from ...record import Frequency, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -114,9 +112,9 @@ class FrequencyTimeSeries(MetricsBase):
             _.to_records() for _ in self._target_objects
         ]
 
-        converter: ClockConverter | None = None
         if xaxis_type == 'sim_time':
-            converter = get_clock_converter(self._target_objects)
+            timeseries_records_list = \
+                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
 
         min_time, max_time = self._get_timestamp_range(timeseries_records_list)
 
@@ -128,8 +126,7 @@ class FrequencyTimeSeries(MetricsBase):
                 if isinstance(records, Communication) else None
             )
             frequency_timeseries_list.append(frequency.to_records(
-                base_timestamp=min_time, until_timestamp=max_time,
-                converter=converter
+                base_timestamp=min_time, until_timestamp=max_time
             ))
 
         return frequency_timeseries_list
