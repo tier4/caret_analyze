@@ -76,7 +76,8 @@ class BokehTimeSeries:
             converter = get_clock_converter(target_objects)
             frame_min_convert = converter.convert(frame_min)
             frame_max_convert = converter.convert(frame_max)
-            apply_x_axis_offset(fig, frame_min_convert, frame_max_convert)
+            x_range_name = 'x_plot_axis'
+            apply_x_axis_offset(fig, frame_min_convert, frame_max_convert, x_range_name)
         elif self._xaxis_type == 'system_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
 
@@ -91,11 +92,19 @@ class BokehTimeSeries:
                 LineSource(legend_manager, target_objects[0], frame_min, self._xaxis_type)
         fig.add_tools(line_source.create_hover())
         for to, timeseries in zip(target_objects, timeseries_records_list):
-            renderer = fig.line(
-                'x', 'y',
-                source=line_source.generate(to, timeseries),
-                color=color_selector.get_color()
-            )
+            if converter:
+                renderer = fig.line(
+                    'x', 'y',
+                    source=line_source.generate(to, timeseries),
+                    color=color_selector.get_color(),
+                    x_range_name=x_range_name
+                )
+            else:
+                renderer = fig.line(
+                    'x', 'y',
+                    source=line_source.generate(to, timeseries),
+                    color=color_selector.get_color()
+                )
             legend_manager.add_legend(to, renderer)
 
         # Draw legends
@@ -210,9 +219,11 @@ class LineSource:
 
         x_item: list[int | float]
         y_item: list[int | float] = values
-        if self._xaxis_type == 'system_time' or self._xaxis_type == 'sim_time':
+        if self._xaxis_type == 'system_time':
             x_item = [(ts-self._frame_min)*10**(-9) for ts in timestamps]
         elif self._xaxis_type == 'index':
             x_item = list(range(0, len(values)))
+        elif self._xaxis_type == 'sim_time':
+            x_item = timestamps
 
         return x_item, y_item
