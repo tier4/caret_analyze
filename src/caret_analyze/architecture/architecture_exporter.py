@@ -52,9 +52,9 @@ class ArchitectureExporter():
         return yaml.dump(obj, indent=2, default_flow_style=False, sort_keys=False)
 
     def to_dict(self):
-        named_path_dicts = NamedPathsDicts(self._named_path_values)
-        executor_dicts = ExecutorsDicts(self._executor_values)
-        nodes_dicts = NodesDicts(self._node_values)
+        named_path_dicts = NamedPathsDicts(list(self._named_path_values))
+        executor_dicts = ExecutorsDicts(list(self._executor_values))
+        nodes_dicts = NodesDicts(list(self._node_values))
         return {
             'named_paths': named_path_dicts.data,
             'executors': executor_dicts.data,

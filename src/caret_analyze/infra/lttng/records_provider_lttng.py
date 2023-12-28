@@ -1045,6 +1045,8 @@ class NodeRecordsCallbackChain:
         self._val = node_path
 
     def to_records(self):
+        assert self._val.child is not None
+
         chain_info = self._val.child
 
         if isinstance(chain_info[0], CallbackStructValue):
@@ -1161,6 +1163,8 @@ class NodeRecordsInheritUniqueTimestamp:
         self._node_path = node_path
 
     def to_records(self):
+        assert self._node_path.subscription is not None and self._node_path.publisher is not None
+
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
@@ -1230,6 +1234,8 @@ class NodeRecordsUseLatestMessage:
         self._node_path = node_path
 
     def to_records(self):
+        assert self._node_path.subscription is not None and self._node_path.publisher is not None
+
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
         pub_records = self._provider.publish_records(self._node_path.publisher)
 
@@ -1298,6 +1304,8 @@ class NodeRecordsTilde:
         self._node_path = node_path
 
     def to_records(self):
+        assert self._node_path.subscription is not None and self._node_path.publisher is not None
+
         tilde_records = self._provider.tilde_records(
             self._node_path.subscription, self._node_path.publisher)
         sub_records = self._provider.subscribe_records(self._node_path.subscription)
@@ -1623,7 +1631,18 @@ class FilteredRecordsSource:
                     ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
                 ]
             )
-        sample_records = list(grouped_records.values())[0]
+        # NOTE: There is concern that publisher_handles has only one publisher_handle.
+        if not set(publisher_handles) & set(grouped_records.keys()):
+            return RecordsFactory.create_instance(
+                None,
+                columns=[
+                    ColumnValue(COLUMN_NAME.PUBLISHER_HANDLE),
+                    ColumnValue(COLUMN_NAME.RCLCPP_PUBLISH_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.MESSAGE_TIMESTAMP),
+                    ColumnValue(COLUMN_NAME.SOURCE_TIMESTAMP),
+                ]
+            )
+        sample_records = grouped_records[publisher_handles[0]]
         column_values = Columns.from_str(sample_records.columns).to_value()
         pub_records = RecordsFactory.create_instance(None, columns=column_values)
 
@@ -1802,6 +1821,21 @@ class FilteredRecordsSource:
     def _grouped_publish_records(self) -> dict[int, RecordsInterface]:
         records = self._lttng.compose_publish_records()
         group = records.groupby([COLUMN_NAME.PUBLISHER_HANDLE])
+
+        # Compare records.columns with record.columns, and drop mismatched columns.
+        # When node has GenericPublisher, some trace event are not output.
+        for records_key in group:
+            # sample_record_columns is sample value because record.data[N] has same columns.
+            sample_records_columns = set(group[records_key].columns)
+            sample_record_columns: set = group[records_key].data[0].columns
+            mismatched_columns = sample_records_columns - sample_record_columns
+            if mismatched_columns:
+                optional_columns = {
+                    COLUMN_NAME.RCL_PUBLISH_TIMESTAMP,
+                    COLUMN_NAME.DDS_WRITE_TIMESTAMP
+                    }
+                drop_columns = list(optional_columns & mismatched_columns)
+                group[records_key].drop_columns(drop_columns)
         return self._expand_key_tuple(group)
 
     @cached_property

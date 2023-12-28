@@ -34,6 +34,7 @@ from .timeseries import BokehTimeSeries
 from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
+from ....common import ClockConverter
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
@@ -181,7 +182,8 @@ class Bokeh(VisualizeLibInterface):
         metrics: list[MetricsTypes],
         target_objects: Sequence[HistTypes],
         data_type: str,
-        case: str | None = None
+        case: str | None = None,
+        converter: ClockConverter | None = None
     ) -> Figure:
         """
         Get a histogram figure.
@@ -198,6 +200,8 @@ class Bokeh(VisualizeLibInterface):
         case : str
             Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time histogram graph.
+        converter: ClockConverter
+            Time conversion function at sim_time.
 
 
         Returns
@@ -215,45 +219,57 @@ class Bokeh(VisualizeLibInterface):
             raise NotImplementedError()
 
         plot: Figure = Figure(
-            title=data_type if case is None else f'{data_type} --- {case} case ---',
-            x_axis_label=x_label, y_axis_label='Probability', width=800
+            title=f'Histogram of {data_type}'
+            if case is None else f'Histogram of {data_type} --- {case} case ---',
+            x_axis_label=x_label, y_axis_label='The number of samples', width=800
             )
 
         data_list: list[list[int]] = []
         if data_type == 'response_time':
             if case == 'all':
                 data_list = [
-                    [_ for _ in m.to_all_records().get_column_series(data_type)
+                    [_ for _ in m.to_all_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'best':
                 data_list = [
-                    [_ for _ in m.to_best_case_records().get_column_series(data_type)
+                    [_ for _ in
+                        m.to_best_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst':
                 data_list = [
-                    [_ for _ in m.to_worst_case_records().get_column_series(data_type)
+                    [_ for _ in
+                        m.to_worst_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
             elif case == 'worst-with-external-latency':
                 data_list = [
-                    [_ for _ in
-                     m.to_worst_with_external_latency_case_records().get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
+                    [
+                        _ for _ in
+                        m.to_worst_with_external_latency_case_records(converter=converter)
+                        .get_column_series(data_type)
+                        if _ is not None
                     ]
+                    for m in metrics
+                    if isinstance(m, ResponseTime)
+                ]
             else:
                 raise ValueError('optional argument "case" must be following: \
                                  "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
-                for m in metrics if not isinstance(m, ResponseTime)
+                [
+                    _ for _ in
+                    m.to_records(converter=converter).get_column_series(data_type)
+                    if _ is not None
                 ]
+                for m in metrics
+                if not isinstance(m, ResponseTime)
+            ]
 
         color_selector = ColorSelectorFactory.create_instance('unique')
 
@@ -268,14 +284,14 @@ class Bokeh(VisualizeLibInterface):
             )
 
         for hist_type, target_object in zip(data_list, target_objects):
-            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=True)
+            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=False)
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5,
                              color=color_selector.get_color())
             legend_manager.add_legend(target_object, quad)
             hover = HoverTool(
-                tooltips=[(x_label, '@left'), ('Probability', '@top')], renderers=[quad]
+                tooltips=[(x_label, '@left'), ('The number of samples', '@top')], renderers=[quad]
                 )
             plot.add_tools(hover)
 
