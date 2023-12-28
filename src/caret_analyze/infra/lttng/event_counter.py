@@ -96,7 +96,7 @@ class EventCounter:
 
         # For after iron distributions
         # No need to check trace points added by fork-rclcpp
-        if self._distribution in ['iron', 'rolling']:
+        if self._distribution[0] >= 'i':
             return
 
         has_forked_inter_process_trace_points = len(

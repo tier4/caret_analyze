@@ -82,12 +82,15 @@ class Latency:
 
         for start_ts, end_ts in zip(self._start_timestamps, self._end_timestamps):
             if converter:
-                start_ts = round(converter.convert(start_ts))
-                end_ts = round(converter.convert(end_ts))
-            record = {
-                self._start_column: start_ts,
-                'latency': end_ts - start_ts
-            }
+                record = {
+                    self._start_column: round(converter.convert(start_ts)),
+                    'latency': end_ts - start_ts
+                }
+            else:
+                record = {
+                    self._start_column: start_ts,
+                    'latency': end_ts - start_ts
+                }
             records.append(record)
 
         return records
