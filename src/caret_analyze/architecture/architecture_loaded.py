@@ -265,6 +265,7 @@ class CommValuesLoaded():
             match = self._subscription.topic_name == callback.subscribe_topic_name
             if self._subscription.callback_name:
                 match &= self._subscription.callback_name == callback.callback_name
+                match &= self._subscription.construction_order == callback.construction_order
 
             return match
 

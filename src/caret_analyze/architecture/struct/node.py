@@ -78,17 +78,6 @@ class NodeStruct():
     def timers(self) -> list[TimerStruct]:
         return self._timers
 
-    def get_path(
-        self,
-        subscribe_topic_name: str,
-        publish_topic_name: str
-    ) -> NodePathStruct:
-        def is_target(path: NodePathStruct):
-            return path.publish_topic_name == publish_topic_name and \
-                path.subscribe_topic_name == subscribe_topic_name
-
-        return Util.find_one(is_target, self.paths)
-
     @property
     def callbacks(self) -> list[CallbackStruct] | None:
         if self._callback_groups is None:
@@ -119,7 +108,7 @@ class NodeStruct():
     def variable_passings(self) -> list[VariablePassingStruct] | None:
         return self._variable_passings_info
 
-    def get_subscription_from_construction_order(
+    def get_subscription(
         self,
         subscribe_topic_name: str,
         construction_order: int | None = None
@@ -129,25 +118,6 @@ class NodeStruct():
             match = subscription.topic_name == subscribe_topic_name
             if construction_order is not None:
                 match &= subscription.construction_order == construction_order
-            return match
-
-        try:
-            return Util.find_one(is_target, self._subscriptions)
-        except ItemNotFoundError:
-            msg = 'Failed to find subscription info. '
-            msg += f'topic_name: {subscribe_topic_name}'
-            raise ItemNotFoundError(msg)
-
-    def get_subscription(
-        self,
-        subscribe_topic_name: str,
-        callback_name: str | None = None
-    ) -> SubscriptionStruct:
-
-        def is_target(subscription: SubscriptionStruct):
-            match = subscription.topic_name == subscribe_topic_name
-            if callback_name:
-                match &= subscription.callback_name == callback_name
             return match
 
         try:
@@ -225,13 +195,28 @@ class NodeStruct():
     #     # TODO: Refactoring module dependency
     #     pass
 
-    def insert_publisher_callback(self, publish_topic_name: str, callback_name: str) -> None:
+    def insert_publisher_callback(self,
+                                  publish_topic_name: str,
+                                  callback_name: str,
+                                  publisher_construction_order: int) -> None:
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
         callback.insert_publisher(publish_topic_name)
 
-        publisher: PublisherStruct = \
-            Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
+        def is_target(publish: PublisherStruct):
+            match = publish.topic_name == publish_topic_name
+            match &= publish.construction_order == publisher_construction_order
+            return match
+
+        try:
+            publisher: PublisherStruct = \
+                Util.find_one(is_target, self._publishers)
+        except ItemNotFoundError:
+            msg = 'Failed to find subscription info. '
+            msg += f'topic_name: {publish_topic_name} '
+            msg += f'construction_order: {publisher_construction_order}'
+            raise ItemNotFoundError(msg)
+
         publisher.insert_callback(callback)
 
     def insert_variable_passing(self, callback_name_write: str, callback_name_read: str) -> None:
@@ -248,13 +233,28 @@ class NodeStruct():
                     for passing in self._variable_passings_info]:
             self._variable_passings_info.append(passing)
 
-    def remove_publisher_and_callback(self, publish_topic_name: str, callback_name: str) -> None:
+    def remove_publisher_and_callback(self,
+                                      publish_topic_name: str,
+                                      callback_name: str,
+                                      publisher_construction_order: int) -> None:
         callback: CallbackStruct = \
             Util.find_one(lambda x: x.callback_name == callback_name, self.callbacks)
         callback.remove_publisher(publish_topic_name)
 
-        publisher: PublisherStruct = \
-            Util.find_one(lambda x: x.topic_name == publish_topic_name, self._publishers)
+        def is_target(publish: PublisherStruct):
+            match = publish.topic_name == publish_topic_name
+            match &= publish.construction_order == publisher_construction_order
+            return match
+
+        try:
+            publisher: PublisherStruct = \
+                Util.find_one(is_target, self._publishers)
+        except ItemNotFoundError:
+            msg = 'Failed to find subscription info. '
+            msg += f'topic_name: {publish_topic_name} '
+            msg += f'construction_order: {publisher_construction_order}'
+            raise ItemNotFoundError(msg)
+
         publisher.remove_callback(callback)
 
     def remove_variable_passing(self, callback_name_write: str, callback_name_read: str) -> None:
