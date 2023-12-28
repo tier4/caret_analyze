@@ -986,7 +986,7 @@ class DataFrameFormatted:
         merge(timers, symbols, 'callback_object', merge_drop_columns=merge_drop_columns)
 
         DataFrameFormatted._add_construction_order(
-            timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns', 'symbol')
+            timers, 'construction_order', 'timestamp', 'node_handle', 'period_ns')
 
         callback_group_timer = data.callback_group_timer.clone()
         callback_group_timer.reset_index()
@@ -1049,7 +1049,7 @@ class DataFrameFormatted:
 
         DataFrameFormatted._add_construction_order(
             subscriptions, 'construction_order', 'timestamp',
-            'node_handle', 'topic_name', 'symbol')
+            'node_handle', 'topic_name')
 
         callback_group_subscription = data.callback_group_subscription.clone()
         callback_group_subscription.reset_index()
@@ -1071,7 +1071,6 @@ class DataFrameFormatted:
         timestamp_column: str,
         node_handle_column: str,
         callback_parameter_column: str,
-        symbol_column: str
     ) -> None:
 
         data.sort(timestamp_column)
@@ -1080,8 +1079,7 @@ class DataFrameFormatted:
         def construct_order(row: pd.Series) -> int:
             node = row[node_handle_column]
             callback_param = row[callback_parameter_column]
-            symbol = row[symbol_column]
-            key: DataFrameFormatted.KeyType = node, callback_param, symbol
+            key: DataFrameFormatted.KeyType = node, callback_param
             order_ = int(order[key])
             order[key] += 1
             return order_
@@ -1142,7 +1140,7 @@ class DataFrameFormatted:
 
         DataFrameFormatted._add_construction_order(
             services, 'construction_order',
-            'timestamp', 'node_handle', 'service_name', 'symbol')
+            'timestamp', 'node_handle', 'service_name')
 
         callback_group_service = data.callback_group_service.clone()
         callback_group_service.reset_index()

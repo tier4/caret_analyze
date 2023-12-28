@@ -1640,6 +1640,7 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(pub_mock, 'node_name', pub_node_name)
         mocker.patch.object(sub_mock, 'node_name', sub_node_name)
         mocker.patch.object(sub_mock, 'callback_name', callback_name)
+        mocker.patch.object(sub_mock, 'construction_order', 1)
 
         mocker.patch.object(node_pub_mock, 'publishers', [pub_mock])
         mocker.patch.object(node_sub_mock, 'subscriptions', [sub_mock])
@@ -1655,20 +1656,30 @@ class TestCommunicationInfoLoaded:
         mocker.patch.object(sub_cb_mock, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub_cb_mock, 'node_name', sub_node_name)
         mocker.patch.object(sub_cb_mock, 'callback_name', callback_name)
+        mocker.patch.object(sub_cb_mock, 'construction_order', 0)
+
+        sub_cb_mock2 = mocker.Mock(spec=CallbackStruct)
+        mocker.patch.object(sub_cb_mock2, 'publish_topic_names', [])
+        mocker.patch.object(sub_cb_mock2, 'subscribe_topic_name', topic_name)
+        mocker.patch.object(sub_cb_mock2, 'node_name', sub_node_name)
+        mocker.patch.object(sub_cb_mock2, 'callback_name', callback_name)
+        mocker.patch.object(sub_cb_mock2, 'construction_order', 1)
 
         mocker.patch.object(
-            nodes_loaded_mock, 'get_callbacks', return_value=(pub_cb_mock, sub_cb_mock))
+            nodes_loaded_mock, 'get_callbacks',
+            return_value=(pub_cb_mock, sub_cb_mock, sub_cb_mock2))
 
         comm_info: CommunicationStruct = CommValuesLoaded._to_struct(
             nodes_loaded_mock, pub_mock, sub_mock, node_pub_mock, node_sub_mock
         )
 
         assert comm_info.publish_callbacks == [pub_cb_mock]
-        assert comm_info.subscribe_callback == sub_cb_mock
+        assert comm_info.subscribe_callback == sub_cb_mock2
         assert comm_info.publish_node == node_pub_mock
         assert comm_info.subscribe_node == node_sub_mock
         assert comm_info.publisher == pub_mock
         assert comm_info.subscription == sub_mock
+        assert comm_info.subscription_construction_order == 1
 
     def test_find_communication(self, mocker):
         nodes_loaded_mock = mocker.Mock(spec=NodeValuesLoaded)

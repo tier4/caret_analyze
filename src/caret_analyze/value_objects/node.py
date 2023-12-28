@@ -163,11 +163,15 @@ class NodeStructValue(ValueObject, Summarizable):
     def get_path(
         self,
         subscribe_topic_name: str,
-        publish_topic_name: str
+        subscription_construction_order: int | None,
+        publish_topic_name: str,
+        publisher_construction_order: int | None
     ) -> NodePathStructValue:
         def is_target(path: NodePathStructValue):
             return path.publish_topic_name == publish_topic_name and \
-                path.subscribe_topic_name == subscribe_topic_name
+                path.subscribe_topic_name == subscribe_topic_name and \
+                path.publisher_construction_order == publisher_construction_order and \
+                path.subscription_construction_order == subscription_construction_order
 
         return Util.find_one(is_target, self.paths)
 

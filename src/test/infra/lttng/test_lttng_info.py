@@ -730,7 +730,7 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr,
                     'period_ns': period_ns,
                     'symbol': symbols[1],
-                    'construction_order': 0,
+                    'construction_order': 1,
                 },
                 {
                     'callback_id': f'timer_callback_{callback_objects[2]}',
@@ -740,7 +740,7 @@ class TestDataFrameFormatted:
                     'callback_group_addr': callback_group_addr,
                     'period_ns': period_ns,
                     'symbol': symbols[2],
-                    'construction_order': 0,
+                    'construction_order': 10,
                 },
             ]
         ).convert_dtypes()

@@ -41,6 +41,7 @@ from caret_analyze.value_objects import (
     UseLatestMessage,
     VariablePassingStructValue,
 )
+from caret_analyze.exceptions import (UnsupportedNodeRecordsError)
 
 import pandas as pd
 
@@ -137,11 +138,13 @@ def create_subscription_struct(
         node_name: str = 'node_name',
         topic_name: str = 'topic_name',
         callback_name: str = 'callback_name',
+        construction_order: int = 0,
     ) -> SubscriptionStructValue:
         sub_cb = mocker.Mock(spec=SubscriptionCallbackStructValue)
         mocker.patch.object(sub_cb, 'subscribe_topic_name', topic_name)
         mocker.patch.object(sub_cb, 'node_name', node_name)
         mocker.patch.object(sub_cb, 'callback_name', callback_name)
+        mocker.patch.object(sub_cb, 'construction_order', construction_order)
 
         subscription = mocker.Mock(spec=SubscriptionStructValue)
         mocker.patch.object(subscription, 'topic_name', topic_name)
@@ -189,6 +192,7 @@ def create_timer_struct(mocker):
     def _create_timer_struct(
         callback_name: str,
         period: int,
+        construction_order: int,
     ):
         timer = mocker.Mock(spec=TimerStructValue)
         mocker.patch.object(timer, 'callback_name', callback_name)
@@ -196,6 +200,7 @@ def create_timer_struct(mocker):
 
         callback = mocker.Mock(spec=TimerCallbackStructValue)
         mocker.patch.object(callback, 'callback_name', callback_name)
+        mocker.patch.object(callback, 'construction_order', construction_order)
 
         mocker.patch.object(timer, 'callback', callback)
 
@@ -925,10 +930,10 @@ class TestNodeRecords:
         publisher_lttng = create_publisher_lttng(pub_handle)
         setup_bridge_get_publisher(publisher, [publisher_lttng])
 
-        subscription = create_subscription_struct('node_name', 'sub_topic_name', 'sub_callback')
+        subscription = create_subscription_struct('node_name', 'sub_topic_name', 'sub_callback', 1)
         sub_cb_lttng = create_subscription_lttng(callback_object, 58)
         timer_cb_lttng = create_timer_cb_lttng(callback_object_, 59)
-        timer = create_timer_struct('timer_callback', period=100)
+        timer = create_timer_struct('timer_callback', period=100, construction_order=2)
 
         callback = subscription.callback
         callback_ = timer.callback
@@ -945,6 +950,8 @@ class TestNodeRecords:
         mocker.patch.object(node_path, 'publish_topic_name', 'pub_topic_name')
         mocker.patch.object(
             node_path, 'subscribe_topic_name', 'sub_topic_name')
+        mocker.patch.object(node_path, 'publisher_construction_order', 0)
+        mocker.patch.object(node_path, 'subscription_construction_order', 1)
         mocker.patch.object(node_path, 'subscription', subscription)
         mocker.patch.object(node_path, 'publisher', publisher)
         mocker.patch.object(node_path, 'callbacks', [callback, callback_])
@@ -1033,6 +1040,11 @@ class TestNodeRecords:
 
         assert df.equals(df_expect)
 
+        mocker.patch.object(node_path, 'publisher_construction_order', 1)
+        mocker.patch.object(node_path, 'subscription_construction_order', 2)
+        with pytest.raises(UnsupportedNodeRecordsError):
+            provider.node_records(node_path)
+
     def test_use_latest_message(
         self,
         mocker,
@@ -1075,20 +1087,34 @@ class TestNodeRecords:
         mocker.patch.object(node_path, 'message_context_type',
                             MessageContextType.USE_LATEST_MESSAGE)
         mocker.patch.object(node_path, 'publish_topic_name', 'pub_topic_name')
+        mocker.patch.object(node_path, 'publisher_construction_order', 1)
         mocker.patch.object(node_path, 'publisher', publisher)
         mocker.patch.object(
             node_path, 'subscribe_topic_name', 'sub_topic_name')
+        mocker.patch.object(node_path, 'subscription_construction_order', 2)
 
         message_context = mocker.Mock(spec=UseLatestMessage)
         mocker.patch.object(
             message_context, 'publisher_topic_name', 'pub_topic_name')
         mocker.patch.object(
             message_context, 'subscription_topic_name', 'sub_topic_name')
+        mocker.patch.object(
+            message_context, 'publisher_construction_order', 0)
+        mocker.patch.object(
+            message_context, 'subscription_construction_order', 2)
         mocker.patch.object(node_path, 'message_context', message_context)
         mocker.patch.object(
             node_path, 'subscription_callback', subscription.callback)
         mocker.patch.object(
             node_path, 'subscription', subscription)
+
+        with pytest.raises(UnsupportedNodeRecordsError):
+            provider.node_records(node_path)
+
+        mocker.patch.object(
+            message_context, 'publisher_construction_order', 1)
+        mocker.patch.object(
+            message_context, 'subscription_construction_order', 2)
         records = provider.node_records(node_path)
 
         df = records.to_dataframe()
@@ -1667,7 +1693,7 @@ class TestTimerRecords:
         provider = RecordsProviderLttng(lttng)
         mocker.patch.object(provider, 'is_intra_process_communication', return_value=False)
 
-        timer = create_timer_struct('callback_name', period)
+        timer = create_timer_struct('callback_name', period, 0)
         timer_callback_lttng = create_timer_cb_lttng(callback_obj, handle)
         bridge_setup_get_callback(timer.callback,  timer_callback_lttng)
 
@@ -1711,7 +1737,7 @@ class TestTimerRecords:
         mocker.patch.object(
             provider, 'is_intra_process_communication', return_value=False)
 
-        timer = create_timer_struct('callback_name', period)
+        timer = create_timer_struct('callback_name', period, 0)
         timer_callback_lttng = create_timer_cb_lttng(callback_obj, handle)
         bridge_setup_get_callback(timer.callback,  timer_callback_lttng)
 
