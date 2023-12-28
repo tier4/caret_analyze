@@ -19,6 +19,8 @@ from collections.abc import Sequence
 import pandas as pd
 
 from ..metrics_base import MetricsBase
+from ..util import get_clock_converter
+from ...common import ClockConverter
 from ...record import Latency, RecordsInterface
 from ...runtime import CallbackBase, Communication
 
@@ -96,13 +98,13 @@ class LatencyTimeSeries(MetricsBase):
             _.to_records() for _ in self._target_objects
         ]
 
+        converter: ClockConverter | None = None
         if xaxis_type == 'sim_time':
-            timeseries_records_list = \
-                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+            converter = get_clock_converter(self._target_objects)
 
         latency_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
             latency = Latency(records)
-            latency_timeseries_list.append(latency.to_records())
+            latency_timeseries_list.append(latency.to_records(converter=converter))
 
         return latency_timeseries_list

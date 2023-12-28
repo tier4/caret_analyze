@@ -399,18 +399,6 @@ class TracePointData:
         """Remove duplicated rows."""
         self._df.drop_duplicates(inplace=True)
 
-    def drop_duplicated_callback_object(self) -> list[int]:
-        duplicated = self._df.duplicated(subset='callback_object', keep='first')
-        duplicated_callback_objects: list[int]
-        if duplicated.size > 0:
-            duplicated_series = self._df.loc[duplicated]['callback_object']
-            duplicated_series = duplicated_series.drop_duplicates(keep='first')
-            duplicated_callback_objects = duplicated_series.to_list()
-            self._df = self._df.loc[~duplicated]
-        else:
-            duplicated_callback_objects = []
-        return duplicated_callback_objects
-
     def drop_row(self, index: Sequence[int]) -> None:
         """
         Drop row.

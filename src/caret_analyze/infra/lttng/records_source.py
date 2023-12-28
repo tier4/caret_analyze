@@ -424,7 +424,7 @@ class RecordsSource():
             - message_timestamp
 
         """
-        if self._info.get_distribution() in ['iron', 'rolling']:
+        if self._info.get_distribution()[0] >= 'i':
             return self.intra_proc_comm_records_iron
 
         sink_records = self._data.dispatch_intra_process_subscription_callback_instances
