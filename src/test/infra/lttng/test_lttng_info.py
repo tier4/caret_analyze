@@ -16,6 +16,7 @@ from logging import WARNING
 
 from caret_analyze.infra.lttng.lttng_info import (DataFrameFormatted,
                                                   LttngInfo)
+from caret_analyze.infra.trace_point_data import TracePointData
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
 from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
                                                      NodeValueLttng,
@@ -23,7 +24,6 @@ from caret_analyze.infra.lttng.value_objects import (CallbackGroupValueLttng,
                                                      ServiceCallbackValueLttng,
                                                      SubscriptionCallbackValueLttng,
                                                      TimerCallbackValueLttng)
-from caret_analyze.infra.trace_point_data import TracePointData
 from caret_analyze.value_objects import (CallbackGroupType, ExecutorType,
                                          ExecutorValue)
 
