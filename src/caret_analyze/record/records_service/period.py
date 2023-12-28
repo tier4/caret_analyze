@@ -19,6 +19,7 @@ from collections.abc import Callable
 from ..column import ColumnValue
 from ..interface import RecordsInterface
 from ..record_factory import RecordsFactory
+from ...common import ClockConverter
 
 
 class Period:
@@ -63,9 +64,17 @@ class Period:
                 timestamp = record.get(self._target_column)
                 self._target_timestamps.append(timestamp)
 
-    def to_records(self) -> RecordsInterface:
+    def to_records(
+        self,
+        converter: ClockConverter | None = None
+    ) -> RecordsInterface:
         """
         Calculate period records.
+
+        Parameters
+        ----------
+        converter : ClockConverter | None, optional
+            Converter to simulation time.
 
         Returns
         -------
@@ -79,10 +88,17 @@ class Period:
         records = self._create_empty_records()
 
         for i in range(1, len(self._target_timestamps)):
-            record = {
-                self._target_column: self._target_timestamps[i-1],
-                'period': self._target_timestamps[i] - self._target_timestamps[i-1]
-            }
+            if converter:
+                record = {
+                    self._target_column: round(converter.convert(self._target_timestamps[i-1])),
+                    'period': round(converter.convert(self._target_timestamps[i])
+                                    - converter.convert(self._target_timestamps[i-1]))
+                }
+            else:
+                record = {
+                    self._target_column: self._target_timestamps[i-1],
+                    'period': self._target_timestamps[i] - self._target_timestamps[i-1]
+                }
             records.append(record)
 
         return records
@@ -90,6 +106,6 @@ class Period:
     def _create_empty_records(
         self
     ) -> RecordsInterface:
-        return RecordsFactory.create_instance(columns=[
+        return RecordsFactory.create_instance(None, columns=[
             ColumnValue(self._target_column), ColumnValue('period')
         ])

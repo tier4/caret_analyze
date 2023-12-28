@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import datetime
 
-from bokeh.models import AdaptiveTicker, LinearAxis, Range1d
-from bokeh.plotting import Figure, figure
+from bokeh.models import AdaptiveTicker, Range1d
+from bokeh.plotting import figure as Figure
 
 import numpy as np
 
@@ -75,7 +75,7 @@ def init_figure(
         tools = ['xwheel_zoom', 'xpan', 'save', 'reset']
         active_scroll = 'xwheel_zoom'
 
-    return figure(
+    return Figure(
         frame_height=270, frame_width=800, title=title, y_axis_label=y_axis_label or '',
         x_axis_label=x_axis_label, tools=tools, active_scroll=active_scroll
     )
@@ -84,8 +84,7 @@ def init_figure(
 def apply_x_axis_offset(
     fig: Figure,
     min_ns: float,
-    max_ns: float,
-    x_range_name: str = ''
+    max_ns: float
 ) -> None:
     """
     Apply an offset to the x-axis of the graph.
@@ -100,25 +99,17 @@ def apply_x_axis_offset(
         Minimum UNIX time.
     max_ns : float
         Maximum UNIX time.
-    x_range_name : str, optional
-        Name of the actual range, by default ''.
-        Specify this if you want to refer to the actual range later.
 
     """
     # Initialize variables
     offset_s = min_ns*1.0e-9
     end_s = (max_ns-min_ns)*1.0e-9
-    actual_range = Range1d(start=min_ns, end=max_ns)
     applied_range = Range1d(start=0, end=end_s)
 
     # Set ranges
-    fig.extra_x_ranges = {x_range_name: actual_range}
-    fig.x_range = applied_range
+    fig.x_range = applied_range  # type: ignore
 
-    # Add xaxis for actual_range
-    xaxis = LinearAxis(x_range_name=x_range_name)
-    xaxis.visible = False  # type: ignore
-    fig.add_layout(xaxis, 'below')
+    # set ticker
     fig.xaxis.ticker = AdaptiveTicker(min_interval=0.1, mantissas=[1, 2, 5])
 
     # Add xgrid

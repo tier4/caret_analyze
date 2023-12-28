@@ -19,6 +19,8 @@ from collections.abc import Sequence
 import pandas as pd
 
 from ..metrics_base import MetricsBase
+from ..util import get_clock_converter
+from ...common import ClockConverter
 from ...record import Period, RecordsInterface
 from ...runtime import CallbackBase, Communication, Publisher, Subscription
 
@@ -118,9 +120,9 @@ class PeriodTimeSeries(MetricsBase):
             _.to_records() for _ in self._target_objects
         ]
 
+        converter: ClockConverter | None = None
         if xaxis_type == 'sim_time':
-            timeseries_records_list = \
-                self._convert_timeseries_records_to_sim_time(timeseries_records_list)
+            converter = get_clock_converter(self._target_objects)
 
         period_timeseries_list: list[RecordsInterface] = []
         for records in timeseries_records_list:
@@ -129,6 +131,6 @@ class PeriodTimeSeries(MetricsBase):
                 row_filter=row_filter_communication
                 if isinstance(records, Communication) else None
             )
-            period_timeseries_list.append(period.to_records())
+            period_timeseries_list.append(period.to_records(converter=converter))
 
         return period_timeseries_list

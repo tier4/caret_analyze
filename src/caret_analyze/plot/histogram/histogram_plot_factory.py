@@ -51,7 +51,7 @@ class HistogramPlotFactory:
             supported metrics: [frequency/latency/period/response_time]
         case : str, optional
             Response time calculation method, used only for response time.
-            supported case: [best/worst/worst-in-input/all].
+            supported case: [all/best/worst/worst-with-external-latency].
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
 

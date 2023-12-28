@@ -266,7 +266,7 @@ class Architecture(Summarizable):
         # Print message before search
         msg_detail_page = (
             'For details, '
-            'see https://tier4.github.io/CARET_doc/latest/configuration/inter_node_data_path/.'
+            'see https://tier4.github.io/caret_doc/latest/configuration/inter_node_data_path/.'
         )
         if max_node_depth > default_depth:
             msg = (

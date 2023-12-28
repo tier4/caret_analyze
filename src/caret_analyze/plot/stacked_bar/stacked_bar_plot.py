@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from bokeh.plotting import Figure
+from bokeh.plotting import figure as Figure
 
 import pandas as pd
 
@@ -30,7 +30,7 @@ class StackedBarPlot(PlotBase):
         self,
         metrics: LatencyStackedBar,
         visualize_lib: VisualizeLibInterface,
-        case: str = 'worst',
+        case: str = 'all',
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib

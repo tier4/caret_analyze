@@ -31,6 +31,7 @@ class EventCounter:
         self._count_df = self._build_count_df(data)
         self._has_intra_process = self._check_intra_process_communication(data)
         self._has_original_rclcpp_publish = self._check_original_rclcpp_publish(data)
+        self._distribution = self._get_distribution(data)
         if validate:
             self._validate()
 
@@ -93,6 +94,11 @@ class EventCounter:
                 'The measurement may have been performed without setting LD_PRELOAD.'
             )
 
+        # For after iron distributions
+        # No need to check trace points added by fork-rclcpp
+        if self._distribution[0] >= 'i':
+            return
+
         has_forked_inter_process_trace_points = len(
             set(recorded_trace_points) & trace_points_added_by_fork_rclcpp_for_inter_process) != 0
         has_forked_intra_process_trace_points = len(
@@ -130,6 +136,17 @@ class EventCounter:
     def _check_original_rclcpp_publish(self, data: Ros2DataModel) -> bool:
         return 0 in data.rclcpp_publish_instances.get_column_series('publisher_handle')
 
+    def _get_distribution(self, data: Ros2DataModel) -> str:
+        caret_init_df = data.caret_init.df
+        distributions = list(caret_init_df['distribution'].unique())
+        if len(distributions) > 1:
+            logger.info('Multiple ros distributions are found.')
+
+        if len(distributions) == 0:
+            return 'NOTFOUND'
+
+        return distributions[0]
+
     @staticmethod
     def _build_count_df(data: Ros2DataModel) -> pd.DataFrame:
         # TODO(hsgwa): Definitions on tracepoint types are scattered. Refactor required.
@@ -160,12 +177,19 @@ class EventCounter:
             'ros2_caret:tilde_publisher_init': data.tilde_publishers.df,
             'ros2_caret:tilde_subscribe_added': data.tilde_subscribe_added.df,
             'ros2:rcl_lifecycle_transition': data.lifecycle_transitions.df,
+            'ros2:rclcpp_buffer_to_ipb': data.buffer_to_ipbs.df,
+            'ros2:rclcpp_ipb_to_subscription': data.ipb_to_subscriptions.df,
+            'ros2:rclcpp_construct_ring_buffer': data.ring_buffers.df,
             'ros2_caret:rmw_implementation': data.rmw_impl.df,
 
             'ros2:callback_start': data.callback_start_instances.to_dataframe(),
             'ros2:callback_end': data.callback_end_instances.to_dataframe(),
             'ros2:rclcpp_publish': data.rclcpp_publish_instances.to_dataframe(),
             'ros2:rclcpp_intra_publish': data.rclcpp_intra_publish_instances.to_dataframe(),
+            'ros2:rclcpp_ring_buffer_enqueue':
+                data.rclcpp_ring_buffer_enqueue_instances.to_dataframe(),
+            'ros2:rclcpp_ring_buffer_dequeue':
+                data.rclcpp_ring_buffer_dequeue_instances.to_dataframe(),
             'ros2:message_construct': data.message_construct_instances.to_dataframe(),
             'ros2:dispatch_subscription_callback':
                 data.dispatch_subscription_callback_instances.to_dataframe(),

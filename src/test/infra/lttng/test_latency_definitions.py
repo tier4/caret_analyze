@@ -727,6 +727,113 @@ class TestPublisherRecords:
 
         assert df.equals(df_expect)
 
+    def test_generic_publisher(
+        self,
+        create_lttng,
+        create_publisher_lttng,
+        setup_bridge_get_publisher,
+        create_publisher_struct,
+    ):
+        data = Ros2DataModel()
+
+        # publisher
+        tid = 15
+        pub_handle = 17
+        message_timestamp = 7
+        source_timestamp = 8
+        message_addr = 9
+        data.add_rclcpp_publish_instance(tid, 2, pub_handle, message_addr, message_timestamp)
+        data.add_rcl_publish_instance(tid, 3, pub_handle, message_addr)
+        data.add_dds_write_instance(tid, 4, message_addr)
+        data.add_dds_bind_addr_to_stamp(tid, 6, message_addr, source_timestamp)
+
+        # generic_publisher
+        generic_pub_handle = 3
+        tid = 11
+        message_timestamp = 4
+        source_timestamp = 5
+        message_addr = 6
+        data.add_rclcpp_publish_instance(tid, 1, generic_pub_handle,
+                                         message_addr, message_timestamp)
+        data.add_dds_bind_addr_to_stamp(tid, 4, message_addr, source_timestamp)
+        data.finalize()
+
+        lttng = create_lttng(data)
+        provider = RecordsProviderLttng(lttng)
+
+        # publisher test
+        publisher_lttng_mock = create_publisher_lttng(pub_handle)
+        publisher_struct_mock = create_publisher_struct('pub_topic')
+        setup_bridge_get_publisher(publisher_struct_mock, [publisher_lttng_mock])
+
+        pub_records = provider.publish_records(publisher_struct_mock)
+        pub_df = pub_records.to_dataframe()
+        pub_df_expect = pd.DataFrame(
+            [
+                {
+                    f'{publisher_struct_mock.topic_name}/rclcpp_publish_timestamp': 2,
+                    f'{publisher_struct_mock.topic_name}/rcl_publish_timestamp': 3,
+                    f'{publisher_struct_mock.topic_name}/dds_write_timestamp': 4,
+                    f'{publisher_struct_mock.topic_name}/message_timestamp': 7,
+                    f'{publisher_struct_mock.topic_name}/source_timestamp': 8,
+                }
+            ],
+            columns=[
+                f'{publisher_struct_mock.topic_name}/rclcpp_publish_timestamp',
+                f'{publisher_struct_mock.topic_name}/rcl_publish_timestamp',
+                f'{publisher_struct_mock.topic_name}/dds_write_timestamp',
+                f'{publisher_struct_mock.topic_name}/message_timestamp',
+                f'{publisher_struct_mock.topic_name}/source_timestamp',
+            ],
+            dtype='Int64'
+        )
+        assert pub_df.equals(pub_df_expect)
+
+        # generic_publisher test
+        generic_publisher_lttng_mock = create_publisher_lttng(generic_pub_handle)
+        generic_publisher_struct_mock = create_publisher_struct('generic_topic')
+        setup_bridge_get_publisher(generic_publisher_struct_mock, [
+                                   generic_publisher_lttng_mock])
+
+        generic_records = provider.publish_records(generic_publisher_struct_mock)
+        generic_df = generic_records.to_dataframe()
+
+        generic_df_expect = pd.DataFrame(
+            [
+                {
+                    f'{generic_publisher_struct_mock.topic_name}/rclcpp_publish_timestamp': 1,
+                    f'{generic_publisher_struct_mock.topic_name}/message_timestamp': 4,
+                    f'{generic_publisher_struct_mock.topic_name}/source_timestamp': 5,
+                }
+            ],
+            columns=[
+                f'{generic_publisher_struct_mock.topic_name}/rclcpp_publish_timestamp',
+                f'{generic_publisher_struct_mock.topic_name}/message_timestamp',
+                f'{generic_publisher_struct_mock.topic_name}/source_timestamp',
+            ],
+            dtype='Int64'
+        )
+
+        assert generic_df.equals(generic_df_expect)
+
+        # non_communication
+        non_communicate_pub_handle = 20
+        publisher_lttng_mock = create_publisher_lttng(non_communicate_pub_handle)
+        publisher_struct_mock = create_publisher_struct('pub_topic')
+        setup_bridge_get_publisher(publisher_struct_mock, [publisher_lttng_mock])
+        pub_records = provider.publish_records(publisher_struct_mock)
+        pub_df = pub_records.to_dataframe()
+        pub_df_expect = pd.DataFrame(
+            [],
+            columns=[
+                f'{publisher_struct_mock.topic_name}/rclcpp_publish_timestamp',
+                f'{publisher_struct_mock.topic_name}/message_timestamp',
+                f'{publisher_struct_mock.topic_name}/source_timestamp',
+            ],
+            dtype='Int64'
+        )
+        assert pub_df.equals(pub_df_expect)
+
 
 class TestSubscriptionRecords:
 
@@ -972,7 +1079,7 @@ class TestNodeRecords:
                             f'{callback.callback_name}/callback_end_timestamp': 2,
                         }
                     ],
-                    [
+                    columns=[
                         ColumnValue(f'{callback.callback_name}/callback_start_timestamp'),
                         ColumnValue(f'{callback.callback_name}/callback_end_timestamp'),
                     ]
@@ -984,7 +1091,7 @@ class TestNodeRecords:
                         f'{callback_.callback_name}/callback_end_timestamp': 4,
                     }
                 ],
-                [
+                columns=[
                     ColumnValue(f'{callback_.callback_name}/callback_start_timestamp'),
                     ColumnValue(f'{callback_.callback_name}/callback_end_timestamp'),
                 ]
@@ -1000,7 +1107,7 @@ class TestNodeRecords:
                         f'{callback_.callback_name}/callback_start_timestamp': 3,
                     }
                 ],
-                [
+                columns=[
                     ColumnValue(f'{callback.callback_name}/callback_end_timestamp'),
                     ColumnValue(f'{callback_.callback_name}/callback_start_timestamp'),
                 ]
@@ -1540,6 +1647,104 @@ class TestCommunicationRecords:
             columns=[
                 f'{communication.topic_name}/rclcpp_publish_timestamp',
                 # f'{communication.topic_name}/message_timestamp',
+                f'{callback.callback_name}/callback_start_timestamp',
+            ],
+            dtype='Int64'
+        )
+
+        assert df.equals(df_expect)
+
+    def test_intra_proc_for_iron(
+        self,
+        mocker,
+        create_lttng,
+        create_publisher_lttng,
+        setup_bridge_get_publisher,
+        create_publisher_struct,
+        bridge_setup_get_callback,
+        create_subscription_lttng,
+        create_subscription_struct,
+        create_comm_struct
+    ):
+        pub_handle = 7
+        message = 8
+        message_stamp = 6
+        callback_obj = 12
+        # pid, tid = 58, 14
+        tid = 14
+        buffer = 20
+        index = 21
+        buffer_ = 22
+        callback_obj_ = 23
+
+        data = Ros2DataModel()
+        data.add_caret_init(0, 0, 'iron')
+        data.add_rclcpp_intra_publish_instance(
+            tid, 1, pub_handle, message, message_stamp)
+        data.add_rclcpp_ring_buffer_enqueue_instance(
+            tid, 2, buffer, index, 0, False)
+        data.add_rclcpp_ring_buffer_dequeue_instance(
+            tid, 3, buffer, index, 0)
+        data.add_callback_start_instance(tid, 6, callback_obj, True)
+        data.add_callback_end_instance(tid, 7, callback_obj)
+
+        data.add_rclcpp_ring_buffer_enqueue_instance(
+            tid, 8, buffer_, index, 0, False)
+        data.add_rclcpp_ring_buffer_dequeue_instance(
+            tid, 9, buffer_, index, 0)
+        data.add_callback_start_instance(tid, 10, callback_obj_, True)
+        data.add_callback_end_instance(tid, 11, callback_obj_)
+        data.finalize()
+
+        publisher = create_publisher_struct()
+        subscription = create_subscription_struct()
+        callback = subscription.callback
+        communication = create_comm_struct(publisher, subscription)
+        publisher_lttng = create_publisher_lttng(pub_handle)
+        sub_cb_lttng = create_subscription_lttng(0, 5, callback_obj)
+
+        setup_bridge_get_publisher(publisher, [publisher_lttng])
+        bridge_setup_get_callback(subscription.callback, sub_cb_lttng)
+
+        lttng = create_lttng(data)
+        provider = RecordsProviderLttng(lttng)
+        mocker.patch.object(
+            provider, 'is_intra_process_communication', return_value=True)
+
+        records = provider.communication_records(communication)
+        df = records.to_dataframe()
+
+        df_expect = pd.DataFrame(
+            [
+                {
+                    f'{communication.topic_name}/rclcpp_publish_timestamp': 1,
+                    f'{callback.callback_name}/callback_start_timestamp': 6,
+                }
+            ],
+            columns=[
+                f'{communication.topic_name}/rclcpp_publish_timestamp',
+                f'{callback.callback_name}/callback_start_timestamp',
+            ],
+            dtype='Int64'
+        )
+
+        assert df.equals(df_expect)
+
+        sub_cb_lttng = create_subscription_lttng(0, 5, callback_obj_)
+        bridge_setup_get_callback(subscription.callback, sub_cb_lttng)
+
+        records = provider.communication_records(communication)
+        df = records.to_dataframe()
+
+        df_expect = pd.DataFrame(
+            [
+                {
+                    f'{communication.topic_name}/rclcpp_publish_timestamp': 1,
+                    f'{callback.callback_name}/callback_start_timestamp': 10,
+                }
+            ],
+            columns=[
+                f'{communication.topic_name}/rclcpp_publish_timestamp',
                 f'{callback.callback_name}/callback_start_timestamp',
             ],
             dtype='Int64'

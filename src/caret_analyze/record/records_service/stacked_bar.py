@@ -20,12 +20,14 @@ from .latency import Latency
 from ..interface import RecordsInterface
 from ..record import ColumnValue
 from ..record_factory import RecordsFactory
+from ...common import ClockConverter
 
 
 class StackedBar:
     def __init__(
         self,
         records: RecordsInterface,
+        converter: ClockConverter | None = None
     ) -> None:
         """
         Generate records for stacked bar.
@@ -34,6 +36,9 @@ class StackedBar:
         ----------
         records : RecordsInterface
             Records of response time.
+
+        converter : ClockConverter | None, optional
+            Converter to simulation time.
 
         Raises
         ------
@@ -58,6 +63,8 @@ class StackedBar:
             self._get_x_axis_values(renamed_records, columns[0], xlabel)
         stacked_bar_records = self._to_stacked_bar_records(renamed_records, columns)
         series_seq: Sequence[int | None] = x_axis_values.get_column_series(xlabel)
+        if converter:
+            series_seq = [round(converter.convert(float(t))) for t in series_seq if t is not None]
         series_list: list[int] = self._convert_sequence_to_list(series_seq)
         stacked_bar_records = \
             self._merge_column_series(
@@ -156,7 +163,7 @@ class StackedBar:
         series = records.get_column_series(column)
         record_dict = [{xlabel: _} for _ in series]
         record: RecordsInterface = \
-            RecordsFactory.create_instance(record_dict, [ColumnValue(xlabel)])
+            RecordsFactory.create_instance(record_dict, columns=[ColumnValue(xlabel)])
         return record
 
     def _to_stacked_bar_records(
@@ -225,7 +232,8 @@ class StackedBar:
 
         if len(records.data) == 0:
             new_records: RecordsInterface = \
-                RecordsFactory.create_instance(record_dict, [ColumnValue(column)])
+                RecordsFactory.create_instance(
+                    record_dict, columns=[ColumnValue(column)])
             records.concat(new_records)
         else:
             records.append_column(ColumnValue(column), series)

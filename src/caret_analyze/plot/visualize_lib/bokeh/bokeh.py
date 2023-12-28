@@ -17,9 +17,10 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
-from bokeh.models import GlyphRenderer, HoverTool
+from bokeh.models import HoverTool
+from bokeh.models.renderers import GlyphRenderer
 
-from bokeh.plotting import Figure
+from bokeh.plotting import figure as Figure
 
 from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
@@ -27,12 +28,12 @@ from numpy import histogram
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
-from .response_time_hist import BokehResponseTimeHist
 from .stacked_bar import BokehStackedBar
 from .timeseries import BokehTimeSeries
 from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
+from ....common import ClockConverter
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
@@ -48,20 +49,6 @@ class Bokeh(VisualizeLibInterface):
 
     def __init__(self) -> None:
         self._legend_items: list[tuple[str, list[GlyphRenderer]]] = []
-
-    def response_time_hist(
-        self,
-        target_paths: Sequence[Path],
-        case: str,
-        binsize_ns: int,
-        xaxis_type: str,
-        ywheel_zoom: bool,
-        full_legends: bool,
-    ) -> Figure:
-        response_time_hist = BokehResponseTimeHist(
-            target_paths, case, binsize_ns, xaxis_type, ywheel_zoom, full_legends
-        )
-        return response_time_hist.create_figure()
 
     def message_flow(
         self,
@@ -85,7 +72,7 @@ class Bokeh(VisualizeLibInterface):
         xaxis_type: str,
         ywheel_zoom: bool,
         full_legends: bool,
-        case: str,  # best or worst
+        case: str,  # all, best, worst or worst-with-external-latency
     ) -> Figure:
         stacked_bar = BokehStackedBar(metrics, xaxis_type, ywheel_zoom, full_legends, case)
         return stacked_bar.create_figure()
@@ -162,7 +149,8 @@ class Bokeh(VisualizeLibInterface):
             If True, all legends are drawn
             even if the number of legends exceeds the threshold.
         case : str
-            Parameter specifying best, worst or all. Use to create Response time timeseries graph.
+            Parameter specifying all, best, worst, or worst-with-external-latency.
+            Use to create Response time timeseries graph.
 
 
         Returns
@@ -179,7 +167,8 @@ class Bokeh(VisualizeLibInterface):
         metrics: list[MetricsTypes],
         target_objects: Sequence[HistTypes],
         data_type: str,
-        case: str | None = None
+        case: str | None = None,
+        converter: ClockConverter | None = None
     ) -> Figure:
         """
         Get a histogram figure.
@@ -194,8 +183,10 @@ class Bokeh(VisualizeLibInterface):
             Name of metrics.
             "frequency", "latency", "period" or "response_time" can be specified.
         case : str
-            Parameter specifying best, worst, worst-in-input, or all.
+            Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time histogram graph.
+        converter: ClockConverter
+            Time conversion function at sim_time.
 
 
         Returns
@@ -213,41 +204,57 @@ class Bokeh(VisualizeLibInterface):
             raise NotImplementedError()
 
         plot: Figure = Figure(
-            title=data_type if case is None else f'{data_type} --- {case} case ---',
-            x_axis_label=x_label, y_axis_label='Probability', plot_width=800
+            title=f'Histogram of {data_type}'
+            if case is None else f'Histogram of {data_type} --- {case} case ---',
+            x_axis_label=x_label, y_axis_label='The number of samples', width=800
             )
 
         data_list: list[list[int]] = []
         if data_type == 'response_time':
-            if case == 'worst':
+            if case == 'all':
                 data_list = [
-                    [_ for _ in m.to_worst_case_records().get_column_series(data_type)
+                    [_ for _ in m.to_all_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
-            elif case == 'worst-in-input':
+            elif case == 'best':
                 data_list = [
-                    [_ for _ in m.to_worst_in_input_records().get_column_series(data_type)
+                    [_ for _ in
+                        m.to_best_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
-            elif case == 'all':
+            elif case == 'worst':
                 data_list = [
-                    [_ for _ in m.to_all_records().get_column_series(data_type)
+                    [_ for _ in
+                        m.to_worst_case_records(converter=converter).get_column_series(data_type)
                      if _ is not None]
                     for m in metrics if isinstance(m, ResponseTime)
                     ]
+            elif case == 'worst-with-external-latency':
+                data_list = [
+                    [
+                        _ for _ in
+                        m.to_worst_with_external_latency_case_records(converter=converter)
+                        .get_column_series(data_type)
+                        if _ is not None
+                    ]
+                    for m in metrics
+                    if isinstance(m, ResponseTime)
+                ]
             else:
-                data_list = [
-                    [_ for _ in m.to_best_case_records().get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
-                    ]
+                raise ValueError('optional argument "case" must be following: \
+                                 "all", "best", "worst", "worst-with-external-latency".')
         else:
             data_list = [
-                [_ for _ in m.to_records().get_column_series(data_type) if _ is not None]
-                for m in metrics if not isinstance(m, ResponseTime)
+                [
+                    _ for _ in
+                    m.to_records(converter=converter).get_column_series(data_type)
+                    if _ is not None
                 ]
+                for m in metrics
+                if not isinstance(m, ResponseTime)
+            ]
 
         color_selector = ColorSelectorFactory.create_instance('unique')
 
@@ -262,14 +269,14 @@ class Bokeh(VisualizeLibInterface):
             )
 
         for hist_type, target_object in zip(data_list, target_objects):
-            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=True)
+            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=False)
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5,
                              color=color_selector.get_color())
             legend_manager.add_legend(target_object, quad)
             hover = HoverTool(
-                tooltips=[(x_label, '@left'), ('Probability', '@top')], renderers=[quad]
+                tooltips=[(x_label, '@left'), ('The number of samples', '@top')], renderers=[quad]
                 )
             plot.add_tools(hover)
 

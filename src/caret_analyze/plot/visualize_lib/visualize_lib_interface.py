@@ -17,9 +17,10 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from collections.abc import Sequence
 
-from bokeh.plotting import Figure
+from bokeh.plotting import figure as Figure
 
 from ..metrics_base import MetricsBase
+from ...common import ClockConverter
 from ...record import Frequency, Latency, Period, ResponseTime
 from ...runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
@@ -30,18 +31,6 @@ HistTypes = CallbackBase | Communication | Path
 
 class VisualizeLibInterface(metaclass=ABCMeta):
     """Interface class for VisualizeLib."""
-
-    @abstractmethod
-    def response_time_hist(
-        self,
-        target_paths: Sequence[Path],
-        case: str,
-        binsize_ns: int,
-        xaxis_type: str,
-        ywheel_zoom: bool,
-        full_legends: bool,
-    ) -> Figure:
-        raise NotImplementedError()
 
     @abstractmethod
     def message_flow(
@@ -96,6 +85,7 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         metrics: list[MetricsTypes],
         target_objects: Sequence[HistTypes],
         data_type: str,
-        case: str | None = None
+        case: str | None = None,
+        converter: ClockConverter | None = None,
     ) -> Figure:
         raise NotImplementedError()

@@ -1,8 +1,9 @@
-setuptools<68.0.0
+setuptools>=68.2.2
 colorcet
-pandas>=1.4.0,<2.1.0
-bokeh<3
+pandas>=2.1.1
+bokeh>=3
 graphviz
 types-pyyaml
 pydantic>=1.9.0
-mypy==0.981
+mypy>1
+multimethod>=1.10

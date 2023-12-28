@@ -14,8 +14,9 @@
 
 from __future__ import annotations
 
-from bokeh.models import GraphRenderer, Legend
-from bokeh.plotting import Figure
+from bokeh.models.annotations import Legend
+from bokeh.models.renderers import GraphRenderer
+from bokeh.plotting import figure as Figure
 
 from .util import (apply_x_axis_offset, ColorSelectorFactory,
                    HoverKeysFactory, init_figure)
@@ -59,21 +60,21 @@ class BokehStackedBar:
         # # get stacked bar data
         data: dict[str, list[int | float]]
         y_labels: list[str] = []
-        y_axis_label = 'latency [ms]'
+        caption = 'latency'
+        y_axis_label = caption + ' [ms]'
         target_objects = self._metrics.target_objects
-        data, y_labels = self._metrics.to_stacked_bar_data()
-        title: str = f"Stacked bar of '{getattr(target_objects, 'path_name')}'"
+        data, y_labels = self._metrics.to_stacked_bar_data(self._xaxis_type)
+        path_name = target_objects.path_name
+        title: str = f'Stacked bar of response_time of {path_name} --- {self._case} case ---'
 
         fig = init_figure(title, self._ywheel_zoom, self._xaxis_type, y_axis_label)
         frame_min = data['start time'][0]
         frame_max = data['start time'][-1]
         x_label = 'start time'
-        if self._xaxis_type == 'system_time':
+        if self._xaxis_type == 'system_time' or self._xaxis_type == 'sim_time':
             apply_x_axis_offset(fig, frame_min, frame_max)
-        elif self._xaxis_type == 'index':
+        else:  # index
             x_label = 'index'
-        else:  # sim_time
-            raise NotImplementedError()
 
         color_selector = ColorSelectorFactory.create_instance(coloring_rule='unique')
         if self._case == 'best':
@@ -109,19 +110,19 @@ class StackedBarSource:
         data: dict[str, list[int | float]],
         y_labels: list[str],
         xaxis_type: str,
-        x_label: str
+        x_label: str,
     ) -> None:
         x_width_list: list[float] = []
 
         # Convert the data unit to second
         data = self._updated_with_unit(data, y_labels, 1e-6)
-        data = self._updated_with_unit(data, ['start time'], 1e-9)
+        data = self._updated_with_unit(data, [x_label], 1e-9)
 
         # Calculate the stacked y values
         for prev_, next_ in zip(reversed(y_labels[:-1]), reversed(y_labels[1:])):
             data[prev_] = [data[prev_][i] + data[next_][i] for i in range(len(data[next_]))]
 
-        if xaxis_type == 'system_time':
+        if xaxis_type == 'system_time' or xaxis_type == 'sim_time':
             # Update the timestamps from absolutely time to offset time
             data[x_label] = self._updated_timestamps_to_offset_time(
                 data[x_label])
@@ -131,8 +132,6 @@ class StackedBarSource:
 
             # Slide x axis values so that the bottom left of bars are the start time.
             data[x_label] = self._add_shift_value(data[x_label], half_width_list)
-        elif xaxis_type == 'sim_time':
-            raise NotImplementedError()
         else:  # index
             data[x_label] = list(range(0, len(data[y_labels[0]])))
             x_width_list = self._get_x_width_list(data[x_label])
@@ -156,6 +155,7 @@ class StackedBarSource:
             output_data = data
             for key in columns:
                 output_data[key] = [d * unit for d in data[key]]
+
         return output_data
 
     def _get_x_width_list(self, x_values: list[float]) -> list[float]:
@@ -223,7 +223,7 @@ class StackedBarSource:
         # add 'latency' data to each bar due to display hover
         for bar in stacked_bar:
             bar.data_source.add(['latency = ' + str(latency)
-                                 for latency in self._data[bar.name]], 'latency')
+                                 for latency in self._data[bar.name or '']], 'latency')
 
     def to_source(
         self,

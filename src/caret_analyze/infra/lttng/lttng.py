@@ -267,6 +267,54 @@ class Lttng(InfraBase):
 
     """
 
+    # sort order when timestamps are the same (sorting initialization-related trace events)
+    _prioritized_init_events = [
+        'ros2_caret:rcl_init',
+        'ros2:rcl_init',
+        'ros2_caret:rcl_node_init',
+        'ros2:rcl_node_init',
+        'ros2_caret:rcl_publisher_init',
+        'ros2:rcl_publisher_init',
+        'ros2_caret:rcl_subscription_init',
+        'ros2:rcl_subscription_init',
+        'ros2_caret:rclcpp_subscription_init',
+        'ros2:rclcpp_subscription_init',
+        'ros2_caret:rclcpp_subscription_callback_added',
+        'ros2:rclcpp_subscription_callback_added',
+        'ros2_caret:rcl_service_init',
+        'ros2:rcl_service_init',
+        'ros2_caret:rclcpp_service_callback_added',
+        'ros2:rclcpp_service_callback_added',
+        'ros2_caret:rcl_client_init',
+        'ros2:rcl_client_init',
+        'ros2_caret:rcl_timer_init',
+        'ros2:rcl_timer_init',
+        'ros2_caret:rclcpp_timer_callback_added',
+        'ros2:rclcpp_timer_callback_added',
+        'ros2_caret:rclcpp_timer_link_node',
+        'ros2:rclcpp_timer_link_node',
+        'ros2_caret:rclcpp_callback_register',
+        'ros2:rclcpp_callback_register',
+        'ros2_caret:rcl_lifecycle_state_machine_init',
+        'ros2:rcl_lifecycle_state_machine_init',
+        'ros2_caret:caret_init',
+        'ros2_caret:rmw_implementation',
+        'ros2_caret:construct_executor',
+        'ros2_caret:construct_static_executor',
+        'ros2_caret:add_callback_group',
+        'ros2_caret:add_callback_group_static_executor',
+        'ros2_caret:callback_group_add_timer',
+        'ros2_caret:callback_group_add_subscription',
+        'ros2_caret:callback_group_add_service',
+        'ros2_caret:callback_group_add_client',
+        'ros2_caret:rclcpp_construct_ring_buffer',
+        'ros2:rclcpp_construct_ring_buffer',
+        'ros2_caret:rclcpp_buffer_to_ipb',
+        'ros2:rclcpp_buffer_to_ipb',
+        'ros2_caret:rclcpp_ipb_to_subscription',
+        'ros2:rclcpp_ipb_to_subscription',
+    ]
+
     def __init__(
         self,
         trace_dir_or_events: str | list[dict],
@@ -329,14 +377,46 @@ class Lttng(InfraBase):
 
             handler = Ros2Handler(data, offset)
 
+            init_events = []
+            run_events = []
+
+            # distribute all trace events to init_events and run_events
+            init_event_names = set(Lttng._prioritized_init_events)
+            for event in event_collection:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name in init_event_names:
+                    init_events.append(event)
+                else:
+                    run_events.append(event)
+
+            import functools
+            init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
+            handler.create_init_handler_map()
+            for event in tqdm(
+                    iter(init_events),
+                    total=len(init_events),
+                    desc='loading',
+                    mininterval=1.0):
+                event_name = event[LttngEventFilter.NAME]
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
+
+            handler.create_runtime_handler_map()
             filtered_event_count = 0
             for event in tqdm(
-                    iter(event_collection),
-                    total=len(event_collection),
+                    iter(run_events),
+                    total=len(run_events),
                     desc='loading',
                     mininterval=1.0):
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
+                    # memo:
+                    # case1 : arch = Architecture('lttng', tracing_log_path)
+                    # since event_filters is set,
+                    # initialization-related trace events are processed,
+                    # but all runtime-related trace events are not processed.
+                    # case2 : lttng = Lttng(tracing_log_path)
+                    # event_filters are not set, so all events are processed
                     continue
                 if store_events:
                     event_dict = {
@@ -368,7 +448,28 @@ class Lttng(InfraBase):
             begin = events[0][LttngEventFilter.TIMESTAMP]
             end = events[-1][LttngEventFilter.TIMESTAMP]
 
+            init_events = []
+            run_events = []
+
+            # distribute all trace events to init_events and run_events
+            init_event_names = set(Lttng._prioritized_init_events)
             for event in events:
+                event_name = event[LttngEventFilter.NAME]
+                if event_name in init_event_names:
+                    init_events.append(event)
+                else:
+                    run_events.append(event)
+
+            import functools
+            init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
+            handler.create_init_handler_map()
+            for event in init_events:
+                event_name = event[LttngEventFilter.NAME]
+                handler_ = handler.handler_map[event_name]
+                handler_(event)
+
+            handler.create_runtime_handler_map()
+            for event in run_events:
                 if len(event_filters) > 0 and \
                         any(not f.accept(event, common) for f in event_filters):
                     continue
@@ -384,6 +485,24 @@ class Lttng(InfraBase):
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
+
+    @staticmethod
+    def _compare_init_event(
+        event1: dict,
+        event2: dict,
+    ) -> int:
+        if event2[LttngEventFilter.TIMESTAMP] < event1[LttngEventFilter.TIMESTAMP]:
+            return 1
+        if event2[LttngEventFilter.TIMESTAMP] > event1[LttngEventFilter.TIMESTAMP]:
+            return -1
+        # same timestamp
+        if Lttng._prioritized_init_events.index(event2[LttngEventFilter.NAME]) < \
+                Lttng._prioritized_init_events.index(event1[LttngEventFilter.NAME]):
+            return 1
+        if Lttng._prioritized_init_events.index(event2[LttngEventFilter.NAME]) > \
+                Lttng._prioritized_init_events.index(event1[LttngEventFilter.NAME]):
+            return -1
+        return 0
 
     def get_node_names_and_cb_symbols(
         self,
@@ -440,7 +559,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[ExecutorInfo]
+        Sequence[ExecutorValue]
 
         """
         return self._info.get_executors()
@@ -485,6 +604,11 @@ class Lttng(InfraBase):
         """
         Get timers information.
 
+        Parameters
+        ----------
+        node : NodeValue
+            target node name.
+
         Returns
         -------
         Sequence[TimerValue]
@@ -506,7 +630,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[TimerCallbackInfoLttng]
+        Sequence[TimerCallbackValueLttng]
 
         """
         return self._info.get_timer_callbacks(node)
@@ -525,7 +649,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[SubscriptionCallbackInfoLttng]
+        Sequence[SubscriptionCallbackValueLttng]
 
         """
         return self._info.get_subscription_callbacks(node)
@@ -544,7 +668,7 @@ class Lttng(InfraBase):
 
         Returns
         -------
-        Sequence[ServiceCallbackInfoLttng]
+        Sequence[ServiceCallbackValueLttng]
 
         """
         return self._info.get_service_callbacks(node)
