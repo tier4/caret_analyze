@@ -59,6 +59,7 @@ plugins:
   - search
   - autorefs
   - mkdocstrings:
+      docs_dir: docs
       default_handler: python
       handlers:
         python:
