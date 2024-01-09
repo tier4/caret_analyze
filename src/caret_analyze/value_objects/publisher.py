@@ -56,7 +56,7 @@ class PublisherValue(ValueObject):
     @property
     def node_id(self) -> str:
         """
-        Construct an instance.
+        Get node id.
 
         Returns
         -------
@@ -95,12 +95,12 @@ class PublisherValue(ValueObject):
     @property
     def callback_ids(self) -> tuple[str, ...] | None:
         """
-        Get topic name.
+        Get callback ids.
 
         Returns
         -------
-        str
-            Topic name.
+        tuple[str, ...]
+            Callback ids.
 
         """
         return self._callback_ids
