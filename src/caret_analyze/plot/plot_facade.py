@@ -26,11 +26,10 @@ from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
-                       Path, Publisher, Subscription)
+                       Path)
 
 logger = getLogger(__name__)
 
-TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription | Path
 CallbackSchedTypes = (Application | Executor | Path |
                       Node | CallbackGroup | Collection[CallbackGroup])
 
@@ -103,15 +102,14 @@ class Plot:
 
     @staticmethod
     def create_period_timeseries_plot(
-        *target_objects: TimeSeriesTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get period timeseries plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[TimeSeriesTypes]
-            TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -128,15 +126,14 @@ class Plot:
 
     @staticmethod
     def create_frequency_timeseries_plot(
-        *target_objects: TimeSeriesTypes
+        *target_objects: CallbackBase | Communication
     ) -> PlotBase:
         """
         Get frequency timeseries plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[TimeSeriesTypes]
-            TimeSeriesTypes = CallbackBase | Communication | Publisher | Subscription
+        target_objects : Collection[CallbackBase | Communication]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
