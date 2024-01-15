@@ -261,15 +261,17 @@ class Bokeh(VisualizeLibInterface):
         if data_type in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
 
-        max_value = max(
-            max([max_len for max_len in data_list if len(max_len)], key=lambda x: max(x))
-            )
-        min_value = min(
-            min([min_len for min_len in data_list if len(min_len)], key=lambda x: min(x))
-            )
+        meanful_data_list = [data for data in data_list if len(data)]
+        if len(meanful_data_list) != 0:
+            max_value = max(max(meanful_data_list, key=lambda x: max(x)))
+            min_value = min(min(meanful_data_list, key=lambda x: min(x)))
+            data_range = (min_value, max_value)
+        else:
+            data_range = None
+
 
         for hist_type, target_object in zip(data_list, target_objects):
-            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=False)
+            hist, bins = histogram(hist_type, 20, data_range, density=False)
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5,
