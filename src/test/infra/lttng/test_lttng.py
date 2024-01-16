@@ -43,7 +43,7 @@ class TestLttng:
         'need_validate',
         [True, False]
     )
-    def test_multihost_validate(self, caplog, mocker, need_validate):
+    def test_multi_host_validate(self, caplog, mocker, need_validate):
         data_mock = mocker.Mock(spec=Ros2DataModel)
         mocker.patch.object(Lttng, '_parse_lttng_data',
                             return_value=(data_mock, {}, 0, 1))
