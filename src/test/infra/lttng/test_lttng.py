@@ -17,7 +17,7 @@ from datetime import datetime
 
 from caret_analyze.infra.lttng import Lttng
 from caret_analyze.infra.lttng.event_counter import EventCounter
-from caret_analyze.infra.lttng.lttng import EventCollection, IterableEvents
+from caret_analyze.infra.lttng.lttng import EventCollection, IterableEvents, MultiHostIdRemapper
 from caret_analyze.infra.lttng.lttng_info import LttngInfo
 from caret_analyze.infra.lttng.records_source import RecordsSource
 from caret_analyze.infra.lttng.ros2_tracing.data_model import Ros2DataModel
@@ -2586,3 +2586,175 @@ class TestEventCollection:
 
         EventCollection('', False, store_cache=False)
         assert 'Converted to' in caplog.messages[0]
+
+
+class TestMultiHostIdRemapper:
+
+    def test_remap(self):
+        original_event = {'_vtid': 1000}
+        event = original_event.copy()
+        id_remapper = MultiHostIdRemapper('_vtid')
+
+        id_remapper.remap(event)
+        assert original_event == event
+        id_remapper.remap(event)
+        assert original_event == event  # Duplicate ids are not converted within the same host
+
+        id_remapper.change_host()
+        id_remapper.remap(event)
+        assert original_event != event
+
+    def test_change_host(self):
+        original_event = {'_vtid': 1000}
+        event = original_event.copy()
+        id_remapper = MultiHostIdRemapper('_vtid')
+
+        id_remapper.remap(event)
+
+        assert len(id_remapper._other_host_ids) == 0
+        assert len(id_remapper._current_host_remapped_ids) == 0
+        assert len(id_remapper._current_host_not_remapped_ids) == 1
+        assert len(id_remapper._current_host_id_map) == 0
+
+        id_remapper.change_host()
+
+        assert len(id_remapper._other_host_ids) == 1
+        assert len(id_remapper._current_host_remapped_ids) == 0
+        assert len(id_remapper._current_host_not_remapped_ids) == 0
+        assert len(id_remapper._current_host_id_map) == 0
+
+    def test_single_host_case(self):
+        host1_events = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+        ]
+        id_remapper = MultiHostIdRemapper('_vtid')
+        for event in host1_events:
+            id_remapper.remap(event)
+
+        expect = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+        ]
+
+        assert host1_events == expect
+
+    def test_two_host_case_without_duplicated_ids(self):
+        host1_events = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+        ]
+
+        host2_events = [
+            {'_vtid': 1003},
+            {'_vtid': 1004},
+            {'_vtid': 1005},
+        ]
+
+        id_remapper = MultiHostIdRemapper('_vtid')
+        for event in host1_events:
+            id_remapper.remap(event)
+        id_remapper.change_host()
+        for event in host2_events:
+            id_remapper.remap(event)
+
+        remapped_events = []
+        remapped_events.extend(host1_events)
+        remapped_events.extend(host2_events)
+
+        expect = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+            {'_vtid': 1003},
+            {'_vtid': 1004},
+            {'_vtid': 1005},
+        ]
+
+        assert remapped_events == expect
+
+    def test_two_host_case_with_duplicated_ids(self):
+        host1_events = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+        ]
+
+        host2_events = [
+            {'_vtid': 1003},
+            {'_vtid': 1001},  # duplicated id
+            {'_vtid': 1002},  # duplicated id
+        ]
+
+        id_remapper = MultiHostIdRemapper('_vtid')
+        for event in host1_events:
+            id_remapper.remap(event)
+        id_remapper.change_host()
+        for event in host2_events:
+            id_remapper.remap(event)
+
+        remapped_events = []
+        remapped_events.extend(host1_events)
+        remapped_events.extend(host2_events)
+
+        expect = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+            {'_vtid': 1003},
+            {'_vtid': 1000000000},  # host2 _vtid: 1001
+            {'_vtid': 1000000001},  # host2 _vtid: 1002
+        ]
+
+        assert remapped_events == expect
+
+    def test_three_host_case_with_duplicated_ids(self):
+        host1_events = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+        ]
+
+        host2_events = [
+            {'_vtid': 1003},
+            {'_vtid': 1001},  # duplicated id
+            {'_vtid': 1002},  # duplicated id
+        ]
+
+        host3_events = [
+            {'_vtid': 1003},  # duplicated id
+            {'_vtid': 1004},
+            {'_vtid': 1005},
+        ]
+
+        id_remapper = MultiHostIdRemapper('_vtid')
+        for event in host1_events:
+            id_remapper.remap(event)
+        id_remapper.change_host()
+        for event in host2_events:
+            id_remapper.remap(event)
+        id_remapper.change_host()
+        for event in host3_events:
+            id_remapper.remap(event)
+
+        remapped_events = []
+        remapped_events.extend(host1_events)
+        remapped_events.extend(host2_events)
+        remapped_events.extend(host3_events)
+
+        expect = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+            {'_vtid': 1003},
+            {'_vtid': 1000000000},  # host2 _vtid: 1001
+            {'_vtid': 1000000001},  # host2 _vtid: 1002
+            {'_vtid': 1000000002},  # host3 _vtid: 1003
+            {'_vtid': 1004},
+            {'_vtid': 1005},
+        ]
+
+        assert remapped_events == expect
