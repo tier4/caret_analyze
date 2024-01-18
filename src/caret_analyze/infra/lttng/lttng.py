@@ -389,6 +389,8 @@ class Lttng(InfraBase):
                 else:
                     run_events.append(event)
 
+            Lttng.apply_init_timestamp(init_events,offset)
+
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
             handler.create_init_handler_map()
@@ -460,6 +462,8 @@ class Lttng(InfraBase):
                 else:
                     run_events.append(event)
 
+            Lttng.apply_init_timestamp(init_events,offset)
+
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
             handler.create_init_handler_map()
@@ -485,6 +489,16 @@ class Lttng(InfraBase):
 
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
+
+    def apply_init_timestamp(
+        events: list,
+        monotonic_to_system_offset: int | None,
+    ):
+        for event in events:
+            if monotonic_to_system_offset != None:
+                if 'init_timestamp' in event:
+                    init_timestamp: int = event.pop('init_timestamp')
+                    event['_timestamp'] = init_timestamp + monotonic_to_system_offset
 
     @staticmethod
     def _compare_init_event(

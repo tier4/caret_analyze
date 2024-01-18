@@ -227,74 +227,74 @@ class Ros2Handler():
 
         #  Trace points of initialization defined by caret_trace
         handler_map['ros2_caret:rmw_implementation'] = \
-            self._create_handler(self._handle_rmw_implementation, True)
+            self._handle_rmw_implementation
         handler_map['ros2_caret:add_callback_group'] = \
-            self._create_handler(self._handle_add_callback_group, True)
+            self._handle_add_callback_group
         handler_map['ros2_caret:add_callback_group_static_executor'] = \
-            self._create_handler(self._handle_add_callback_group_static_executor, True)
+            self._handle_add_callback_group_static_executor
         handler_map['ros2_caret:construct_executor'] = \
-            self._create_handler(self._handle_construct_executor, True)
+            self._handle_construct_executor
         handler_map['ros2_caret:construct_static_executor'] = \
-            self._create_handler(self._handle_construct_static_executor, True)
+            self._handle_construct_static_executor
         handler_map['ros2_caret:callback_group_add_timer'] = \
-            self._create_handler(self._handle_callback_group_add_timer, True)
+            self._handle_callback_group_add_timer
         handler_map['ros2_caret:callback_group_add_subscription'] = \
-            self._create_handler(self._handle_callback_group_add_subscription, True)
+            self._handle_callback_group_add_subscription
         handler_map['ros2_caret:callback_group_add_service'] = \
-            self._create_handler(self._handle_callback_group_add_service, True)
+            self._handle_callback_group_add_service
         handler_map['ros2_caret:callback_group_add_client'] = \
-            self._create_handler(self._handle_callback_group_add_client, True)
+            self._handle_callback_group_add_client
 
         #  Trace points of initialization defined in TILDE
         handler_map['ros2_caret:tilde_subscription_init'] = \
-            self._create_handler(self._handle_tilde_subscription_init, True)
+            self._handle_tilde_subscription_init
         handler_map['ros2_caret:tilde_publisher_init'] = \
-            self._create_handler(self._handle_tilde_publisher_init, True)
+            self._handle_tilde_publisher_init
 
         #  Trace points of initialization defined in TILDE
         handler_map['ros2_caret:tilde_subscribe_added'] = \
-            self._create_handler(self._handle_tilde_subscribe_added, True)
+            self._handle_tilde_subscribe_added
 
         #  Trace points of initialization redefined in caret_trace
         handler_map['ros2_caret:rcl_timer_init'] = \
-            self._create_handler(self._handle_rcl_timer_init)
+            self._handle_rcl_timer_init
         handler_map['ros2_caret:caret_init'] = self._handle_caret_init
 
         #  Trace points of initialization redefined in caret_trace
         handler_map['ros2_caret:rcl_init'] = \
-            self._create_handler(self._handle_rcl_init)
+            self._handle_rcl_init
         handler_map['ros2_caret:rcl_node_init'] = \
-            self._create_handler(self._handle_rcl_node_init)
+            self._handle_rcl_node_init
         handler_map['ros2_caret:rcl_publisher_init'] = \
-            self._create_handler(self._handle_rcl_publisher_init)
+            self._handle_rcl_publisher_init
         handler_map['ros2_caret:rcl_subscription_init'] = \
-            self._create_handler(self._handle_rcl_subscription_init)
+            self._handle_rcl_subscription_init
         handler_map['ros2_caret:rclcpp_subscription_init'] = \
-            self._create_handler(self._handle_rclcpp_subscription_init)
+            self._handle_rclcpp_subscription_init
         handler_map['ros2_caret:rclcpp_subscription_callback_added'] = \
-            self._create_handler(self._handle_rclcpp_subscription_callback_added)
+            self._handle_rclcpp_subscription_callback_added
         handler_map['ros2_caret:rcl_service_init'] = \
-            self._create_handler(self._handle_rcl_service_init)
+            self._handle_rcl_service_init
         handler_map['ros2_caret:rclcpp_service_callback_added'] = \
-            self._create_handler(self._handle_rclcpp_service_callback_added)
+            self._handle_rclcpp_service_callback_added
         handler_map['ros2_caret:rcl_client_init'] = \
-            self._create_handler(self._handle_rcl_client_init)
+            self._handle_rcl_client_init
         handler_map['ros2_caret:rclcpp_timer_callback_added'] = \
-            self._create_handler(self._handle_rclcpp_timer_callback_added)
+            self._handle_rclcpp_timer_callback_added
         handler_map['ros2_caret:rclcpp_timer_link_node'] = \
-            self._create_handler(self._handle_rclcpp_timer_link_node)
+            self._handle_rclcpp_timer_link_node
         handler_map['ros2_caret:rclcpp_callback_register'] = \
-            self._create_handler(self._handle_rclcpp_callback_register)
+            self._handle_rclcpp_callback_register
         handler_map['ros2_caret:rcl_lifecycle_state_machine_init'] = \
-            self._create_handler(self._handle_rcl_lifecycle_state_machine_init)
+            self._handle_rcl_lifecycle_state_machine_init
 
         # The iron trace points of initialization redefined in CARET.
         handler_map['ros2_caret:rclcpp_buffer_to_ipb'] = \
-            self._create_handler(self._handle_rclcpp_buffer_to_ipb)
+            self._handle_rclcpp_buffer_to_ipb
         handler_map['ros2_caret:rclcpp_ipb_to_subscription'] = \
-            self._create_handler(self._handle_rclcpp_ipb_to_subscription)
+            self._handle_rclcpp_ipb_to_subscription
         handler_map['ros2_caret:rclcpp_construct_ring_buffer'] = \
-            self._create_handler(self._handle_rclcpp_construct_ring_buffer)
+            self._handle_rclcpp_construct_ring_buffer
 
         self.handler_map = handler_map
 
@@ -335,7 +335,7 @@ class Ros2Handler():
 
         #  Trace points for measurements defined by caret_trace
         handler_map['ros2_caret:sim_time'] = \
-            self._create_handler(self._handle_sim_time, True)
+            self._handle_sim_time
 
         #  The iron trace points for measurements defined by ros2_tracing
         handler_map['ros2:rclcpp_ring_buffer_enqueue'] = self._handle_rclcpp_ring_buffer_enqueue
@@ -569,32 +569,6 @@ class Ros2Handler():
 
         handle = self._timer_handle_remapper.register_and_get_object_id(handle, event)
         self.data.add_timer(tid, handle, timestamp, period)
-
-    def _create_handler(
-        self, handler: Callable,
-        is_init_timestamp_optional=False
-    ):
-        def _handler(
-            event: dict,
-        ) -> None:
-            if 'init_timestamp' not in event and is_init_timestamp_optional:
-                # init_timestamp is the value added in the record from the middle of the process.
-                # In old trace points, init_timestamp does not exist.
-                # If 'init_timestamp' does not exist, the original handler is executed.
-                handler(event)
-            else:
-                # For runtime measurement, _timestamp is the Lttng trace point execution time.
-                # The original function execution time is recorded in
-                # 'init_timestamp' with the monotonic clock.
-                # The 'init_timestamp' is converted to the original
-                # measurement time and passed to the handler.
-                if self._monotonic_to_system_offset:
-                    init_timestamp: int = pop_field(event, 'init_timestamp')  # type: ignore
-                    event['_timestamp'] = init_timestamp + self._monotonic_to_system_offset
-                    handler(event)
-                else:
-                    handler(event)
-        return _handler
 
     def _handle_caret_init(
         self,
