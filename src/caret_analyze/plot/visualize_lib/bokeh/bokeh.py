@@ -269,7 +269,6 @@ class Bokeh(VisualizeLibInterface):
         else:
             data_range = None
 
-
         for hist_type, target_object in zip(data_list, target_objects):
             hist, bins = histogram(hist_type, 20, data_range, density=False)
             quad = plot.quad(top=hist, bottom=0,
