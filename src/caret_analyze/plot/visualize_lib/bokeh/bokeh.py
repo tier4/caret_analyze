@@ -261,10 +261,10 @@ class Bokeh(VisualizeLibInterface):
         if data_type in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
 
-        meanful_data_list = [data for data in data_list if len(data)]
-        if len(meanful_data_list) != 0:
-            max_value = max(max(meanful_data_list, key=lambda x: max(x)))
-            min_value = min(min(meanful_data_list, key=lambda x: min(x)))
+        filled_data_list = [data for data in data_list if len(data)]
+        if len(filled_data_list) != 0:
+            max_value = max(max(filled_data_list, key=lambda x: max(x)))
+            min_value = min(min(filled_data_list, key=lambda x: min(x)))
             data_range = (min_value, max_value)
         else:
             data_range = None
