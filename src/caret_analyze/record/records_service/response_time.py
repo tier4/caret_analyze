@@ -320,13 +320,13 @@ class ResponseMapAll:
             if converter:
                 record = {
                     self._start_column: round(
-                        converter.convert(max(start_ts - worst_to_best_ts, 0))),
-                    'response_time': max(end_ts - (start_ts - worst_to_best_ts), 0)
+                        converter.convert(start_ts - worst_to_best_ts)),
+                    'response_time': end_ts - (start_ts - worst_to_best_ts)
                 }
             else:
                 record = {
-                    self._start_column: max(start_ts - worst_to_best_ts, 0),
-                    'response_time': max(end_ts - (start_ts - worst_to_best_ts), 0)
+                    self._start_column: start_ts - worst_to_best_ts,
+                    'response_time': end_ts - (start_ts - worst_to_best_ts)
                 }
             records.append(record)
 
@@ -354,12 +354,12 @@ class ResponseMapAll:
             if converter:
                 record = {
                     self._start_column: round(converter.convert(start_ts)),
-                    'response_time': max(end_ts - start_ts, 0)
+                    'response_time': end_ts - start_ts
                 }
             else:
                 record = {
                     self._start_column: start_ts,
-                    'response_time': max(end_ts - start_ts, 0)
+                    'response_time': end_ts - start_ts
                 }
             records.append(record)
 
@@ -375,12 +375,12 @@ class ResponseMapAll:
             if converter:
                 record = {
                     self._start_column: round(converter.convert(start_ts)),
-                    'response_time': max(end_ts - start_ts, 0)
+                    'response_time': end_ts - start_ts
                 }
             else:
                 record = {
                     self._start_column: start_ts,
-                    'response_time': max(end_ts - start_ts, 0)
+                    'response_time': end_ts - start_ts
                 }
             records.append(record)
 
@@ -406,12 +406,12 @@ class ResponseMapAll:
             if converter:
                 record = {
                     self._start_column: round(converter.convert(start_ts)),
-                    'response_time': max(end_ts - start_ts, 0)
+                    'response_time': end_ts - start_ts
                 }
             else:
                 record = {
                     self._start_column: start_ts,
-                    'response_time': max(end_ts - start_ts, 0)
+                    'response_time': end_ts - start_ts
                 }
             records.append(record)
 
