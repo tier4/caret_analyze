@@ -26,7 +26,7 @@ from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
-                       Publisher, Subscription, Path)
+                       Path, Publisher, Subscription)
 
 logger = getLogger(__name__)
 
