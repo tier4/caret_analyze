@@ -429,9 +429,9 @@ class Lttng(InfraBase):
         if isinstance(trace_dir_or_events[0], str):
             tid_remapper = MultiHostIdRemapper(LttngEventFilter.VTID)
             pid_remapper = MultiHostIdRemapper(LttngEventFilter.VPID)
-            for trace_dir_or_event in trace_dir_or_events:
+            for trace_dir in trace_dir_or_events:
                 event_collection = EventCollection(
-                    trace_dir_or_event, force_conversion)  # type: ignore
+                    trace_dir, force_conversion)  # type: ignore
                 print('{} events found.'.format(len(event_collection)))
 
                 common = LttngEventFilter.Common()
