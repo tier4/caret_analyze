@@ -475,10 +475,10 @@ class Lttng(InfraBase):
                         total=len(init_events),
                         desc='loading',
                         mininterval=1.0):
-                    event_name = event[LttngEventFilter.NAME]
-                    handler_ = handler.handler_map[event_name]
                     tid_remapper.remap(event)
                     pid_remapper.remap(event)
+                    event_name = event[LttngEventFilter.NAME]
+                    handler_ = handler.handler_map[event_name]
                     handler_(event)
 
                 handler.create_runtime_handler_map()
@@ -494,10 +494,10 @@ class Lttng(InfraBase):
                         }
                         events.append(event_dict)
                     filtered_event_count += 1
-                    event_name = event[LttngEventFilter.NAME]
-                    handler_ = handler.handler_map[event_name]
                     tid_remapper.remap(event)
                     pid_remapper.remap(event)
+                    event_name = event[LttngEventFilter.NAME]
+                    handler_ = handler.handler_map[event_name]
                     handler_(event)
                 tid_remapper.change_host()
                 pid_remapper.change_host()
