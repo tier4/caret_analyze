@@ -16,15 +16,12 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 
-from logging import getLogger
 from warnings import warn
 
 from ..column import ColumnValue
 from ..interface import RecordInterface, RecordsInterface
 from ..record_factory import RecordFactory, RecordsFactory
 from ...common import ClockConverter
-
-logger = getLogger(__name__)
 
 
 class TimeRange:
