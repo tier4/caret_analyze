@@ -278,7 +278,7 @@ class MultiHostIdRemapper:
             else:
                 while self._next_id in self._other_host_ids or \
                         self._next_id in self._current_host_remapped_ids or \
-	                        self._next_id in self._current_host_not_remapped_ids:
+                        self._next_id in self._current_host_not_remapped_ids:
                     self._next_id += 1
                 remapped_id = self._next_id
                 self._next_id += 1

@@ -86,7 +86,8 @@ class Latency:
             latency = end_ts - start_ts
             if latency < 0:
                 warn('Record data is invalid. '
-                     'The end time of the callback or communication is recorded before the start time.',
+                     'The end time of the callback or communication is '
+                     'recorded before the start time.',
                      UserWarning)
                 continue
             if converter:
