@@ -28,6 +28,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from .events_factory import EventsFactory
+from .id_remapper import AddressRemapper
 from .lttng_event_filter import LttngEventFilter, SameAddressFilter
 from .ros2_tracing.data_model import Ros2DataModel
 from .ros2_tracing.data_model_service import DataModelService
@@ -429,6 +430,7 @@ class Lttng(InfraBase):
         if isinstance(trace_dir_or_events[0], str):
             tid_remapper = MultiHostIdRemapper(LttngEventFilter.VTID)
             pid_remapper = MultiHostIdRemapper(LttngEventFilter.VPID)
+            evant_remapper = AddressRemapper()
             for trace_dir in trace_dir_or_events:
                 event_collection = EventCollection(
                     trace_dir, force_conversion)  # type: ignore
@@ -446,7 +448,7 @@ class Lttng(InfraBase):
                         offset = Ros2Handler.get_monotonic_to_system_offset(event)
                         break
 
-                handler = Ros2Handler(data, offset)
+                handler = Ros2Handler(data, evant_remapper, offset)
 
                 init_events = []
                 run_events = []
@@ -517,7 +519,8 @@ class Lttng(InfraBase):
                     offset = Ros2Handler.get_monotonic_to_system_offset(event)
                     break
 
-            handler = Ros2Handler(data, offset)
+            event_remapper = AddressRemapper()
+            handler = Ros2Handler(data, event_remapper, offset)
 
             begin = events[0][LttngEventFilter.TIMESTAMP]
             end = events[-1][LttngEventFilter.TIMESTAMP]
