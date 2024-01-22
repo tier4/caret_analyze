@@ -86,18 +86,18 @@ class Latency:
             latency = end_ts - start_ts
             if latency < 0:
                 warn('Record data is invalid. '
-                     'The end time of the path is recorded before the start time.',
+                     'The end time of the callback or communication is recorded before the start time.',
                      UserWarning)
                 continue
             if converter:
                 record = {
                     self._start_column: round(converter.convert(start_ts)),
-                    'latency': max(end_ts - start_ts, 0)
+                    'latency': latency
                 }
             else:
                 record = {
                     self._start_column: start_ts,
-                    'latency': max(end_ts - start_ts, 0)
+                    'latency': latency
                 }
             records.append(record)
 
