@@ -109,7 +109,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication]
+        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -133,7 +133,7 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication]
+        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
