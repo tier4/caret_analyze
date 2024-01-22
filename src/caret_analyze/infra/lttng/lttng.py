@@ -417,7 +417,7 @@ class Lttng(InfraBase):
             trace_dir_or_events = [trace_dir_or_events]
 
         if len(trace_dir_or_events) == 0:
-            raise InvalidArgumentError('not empty')
+            raise InvalidArgumentError('trace_dir_or_events should not be an empty list.')
 
         # validate list[str] case
         first_element_type = type(trace_dir_or_events[0])
