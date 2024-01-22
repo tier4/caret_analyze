@@ -27,7 +27,7 @@ from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
-TimeSeriesPlotTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
+TimeSeriesPlotTypes =  CallbackBase | Communication | (Publisher | Subscription) | Path
 
 
 class TimeSeriesPlotFactory:

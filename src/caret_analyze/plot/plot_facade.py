@@ -26,7 +26,7 @@ from .stacked_bar import StackedBarPlot, StackedBarPlotFactory
 from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
-                       Path)
+                       Publisher, Subscription, Path)
 
 logger = getLogger(__name__)
 
@@ -102,7 +102,7 @@ class Plot:
 
     @staticmethod
     def create_period_timeseries_plot(
-        *target_objects: CallbackBase | Communication
+        *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
         """
         Get period timeseries plot instance.
@@ -126,7 +126,7 @@ class Plot:
 
     @staticmethod
     def create_frequency_timeseries_plot(
-        *target_objects: CallbackBase | Communication
+        *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
         """
         Get frequency timeseries plot instance.
