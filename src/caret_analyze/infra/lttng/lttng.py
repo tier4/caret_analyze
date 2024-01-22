@@ -427,8 +427,8 @@ class Lttng(InfraBase):
 
         # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events[0], str):
-            tid_remapper = MultiHostIdRemapper('_vtid')
-            pid_remapper = MultiHostIdRemapper('_vpid')
+            tid_remapper = MultiHostIdRemapper(LttngEventFilter.VTID)
+            pid_remapper = MultiHostIdRemapper(LttngEventFilter.VPID)
             for trace_dir_or_event in trace_dir_or_events:
                 event_collection = EventCollection(
                     trace_dir_or_event, force_conversion)  # type: ignore
