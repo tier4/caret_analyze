@@ -146,7 +146,7 @@ class FrequencyTimeSeries(MetricsBase):
             timestamps = records.get_column_series(records.columns[0])
             all_timestamps.extend(Util.filter_items(lambda x, : isinstance(x, int), timestamps))
 
-        if len(all_timestamps) == 0 or len(all_timestamps) == 0:
+        if len(all_timestamps) == 0:
             return 0, 1  # Intended to show an empty figure.
         else:
             return min(all_timestamps), max(all_timestamps)
