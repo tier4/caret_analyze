@@ -271,14 +271,14 @@ class Plot:
 
     @staticmethod
     def create_frequency_histogram_plot(
-        *target_objects: CallbackBase | Communication
+        *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
         """
         Get frequency histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication]
+        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
@@ -321,14 +321,14 @@ class Plot:
 
     @staticmethod
     def create_period_histogram_plot(
-        *target_objects: CallbackBase | Communication
+        *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
         """
         Get period histogram plot instance.
 
         Parameters
         ----------
-        target_objects : Collection[CallbackBase | Communication]
+        target_objects : Collection[CallbackBase | Communication | Publisher | Subscription]
             Instances that are the sources of the plotting.
             This also accepts multiple inputs by unpacking.
 
