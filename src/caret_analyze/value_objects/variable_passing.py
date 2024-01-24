@@ -28,6 +28,21 @@ class VariablePassingValue(ValueObject):
         callback_id_write: str,
         callback_id_read: str,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        callback_id_write : str
+            Unique id of write callback,
+            a value that can be identified when retrieved from the Architecture reader.
+        callback_id_read : str
+            Unique id of read callback,
+            a value that can be identified when retrieved from the Architecture reader.
+
+        """
         self._node_name = node_name
         self._callback_id_write = callback_id_write
         self._callback_id_read = callback_id_read
@@ -40,7 +55,7 @@ class VariablePassingValue(ValueObject):
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -52,8 +67,8 @@ class VariablePassingValue(ValueObject):
 
         Returns
         -------
-        [str]
-            write-side callback id.
+        str
+            Write-side callback id.
 
         """
         return self._callback_id_write
@@ -65,8 +80,8 @@ class VariablePassingValue(ValueObject):
 
         Returns
         -------
-        [str]
-            read-side callback id.
+        str
+            Read-side callback id.
 
         """
         return self._callback_id_read
@@ -81,6 +96,19 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         callback_write: CallbackStructValue,
         callback_read: CallbackStructValue,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        callback_write : CallbackStructValue
+            Write callback.
+        callback_read : CallbackStructValue
+            Read callback.
+
+        """
         self._node_name = node_name
         self._cb_write = callback_write
         self._cb_read = callback_read
@@ -93,7 +121,7 @@ class VariablePassingStructValue(ValueObject, Summarizable):
         Returns
         -------
         str
-            node name
+            Node name.
 
         """
         return self._node_name
@@ -105,8 +133,8 @@ class VariablePassingStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        [str]
-            write-side callback name.
+        str
+            Write-side callback name.
 
         """
         return self._cb_write.callback_name
@@ -118,22 +146,49 @@ class VariablePassingStructValue(ValueObject, Summarizable):
 
         Returns
         -------
-        [str]
-            read-side callback name.
+        str
+            Read-side callback name.
 
         """
         return self._cb_read.callback_name
 
     @property
     def callback_write(self) -> CallbackStructValue:
+        """
+        Get write-side callback.
+
+        Returns
+        -------
+        str
+            Write-side callback.
+
+        """
         return self._cb_write
 
     @property
     def callback_read(self) -> CallbackStructValue:
+        """
+        Get read-side callback.
+
+        Returns
+        -------
+        str
+            Read-side callback.
+
+        """
         return self._cb_read
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         return Summary({
             'node': self.node_name,
             'write': self.callback_name_write,

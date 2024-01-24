@@ -11,5 +11,5 @@ mike
 plantuml-markdown
 pymdown-extensions
 python-markdown-math
-mkdocstrings
+mkdocstrings<=0.23
 mkdocstrings[python]
