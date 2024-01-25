@@ -24,7 +24,7 @@ from bokeh.plotting import figure as Figure
 
 from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
-from numpy import histogram
+from numpy import empty, histogram
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
@@ -273,8 +273,8 @@ class Bokeh(VisualizeLibInterface):
             if len(hist_type) != 0:
                 hist, bins = histogram(hist_type, 20, data_range, density=False)
             else:
-                hist = []
-                bins = []
+                hist = empty(0)
+                bins = empty(0)
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5,
