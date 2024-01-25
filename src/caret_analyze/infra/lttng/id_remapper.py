@@ -137,7 +137,7 @@ class IDRemapper():
             return addr
 
 
-class AddressRemapper:
+class IDRemapperCollection:
 
     def __init__(self):
         self._context_handle_remapper = IDRemapper()

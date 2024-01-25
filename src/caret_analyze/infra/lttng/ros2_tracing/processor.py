@@ -25,7 +25,7 @@ import bt2
 from .data_model import Ros2DataModel
 
 if TYPE_CHECKING:
-    from ..id_remapper import AddressRemapper
+    from ..id_remapper import IDRemapperCollection
 
 
 def get_field(event, key):
@@ -56,7 +56,7 @@ class Ros2Handler():
     def __init__(
         self,
         data: Ros2DataModel,
-        addr_remapper: AddressRemapper,
+        remapper: IDRemapperCollection,
         monotonic_to_system_time_offset: int | None,
     ) -> None:
         """
@@ -66,7 +66,7 @@ class Ros2Handler():
         ----------
         data : Ros2DataModel
             DataModel to be handles
-        addr_remapper : AddressRemapper
+        remapper : IDRemapperCollection
             Addrees remapper to resolve address duplication.
         monotonic_to_system_time_offset : int | None
             Offset time to convert monotonic time to system time.
@@ -75,7 +75,8 @@ class Ros2Handler():
             to use time sampled from the trace point.
 
         """
-        self._remapper = addr_remapper
+        self._remapper = remapper
+
         self._monotonic_to_system_offset: int | None = monotonic_to_system_time_offset
         self._caret_init_recorded: defaultdict[int, bool] = defaultdict(lambda: False)
 
