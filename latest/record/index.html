@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.4">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.5">
     
     
       
@@ -717,21 +717,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="get_range">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.Range.get_range--notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Notes
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -950,21 +935,6 @@
       merge_sequential
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="merge_sequential">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.RecordsInterface.merge_sequential--records" class="md-nav__link">
-    <span class="md-ellipsis">
-      Records
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1353,21 +1323,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="get_range">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.Range.get_range--notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Notes
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -1586,21 +1541,6 @@
       merge_sequential
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="merge_sequential">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.record.RecordsInterface.merge_sequential--records" class="md-nav__link">
-    <span class="md-ellipsis">
-      Records
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -2533,11 +2473,13 @@ Columns
         </tr>
     </tbody>
   </table>
-      <h5 id="caret_analyze.record.Range.get_range--notes">Notes<a class="headerlink" href="#caret_analyze.record.Range.get_range--notes" title="Permanent link">#</a></h5>
-<p>The first column is system time for now.
+
+<details class="notes" open>
+  <summary>Notes</summary>
+  <p>The first column is system time for now.
 The other columns could be other than system time.
 Only the system time is picked out here.</p>
-
+</details>
   </div>
 
 </div>
@@ -4065,10 +4007,12 @@ If join_key is set, left_records[join_key]==right_records[join_key] is added as 
         </tr>
     </tbody>
   </table>
-      <h5 id="caret_analyze.record.RecordsInterface.merge_sequential--records">Records<a class="headerlink" href="#caret_analyze.record.RecordsInterface.merge_sequential--records" title="Permanent link">#</a></h5>
-<p>RecordsInterface
-    Merged records.</p>
 
+<details class="records" open>
+  <summary>Records</summary>
+  <p>RecordsInterface
+    Merged records.</p>
+</details>
 
 
 <p><strong>Examples:</strong></p>
@@ -5343,10 +5287,22 @@ as well as delays caused by various factors such as lost messages.</p>
               <em>required</em>
           </td>
         </tr>
+        <tr>
+          <td><code>converter</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="caret_analyze.common.ClockConverter" href="../common/#caret_analyze.common.ClockConverter">ClockConverter</a> | None</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Converter to simulation time.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
     </tbody>
   </table>
-      <p>converter : ClockConverter | None, optional
-    Converter to simulation time.</p>
 
 
 
@@ -5492,10 +5448,10 @@ as well as delays caused by various factors such as lost messages.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.c011b7c0.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.7389ff0e.min.js"></script>
+      <script src="../assets/javascripts/bundle.c18c5fb9.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
       
