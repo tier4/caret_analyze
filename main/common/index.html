@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/tier4.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.4">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.5">
     
     
       
@@ -594,21 +594,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Singleton">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Singleton--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note:
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -644,15 +629,6 @@
   
     <nav class="md-nav" aria-label="Summary">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Summary--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note:
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#caret_analyze.common.Summary.__eq__" class="md-nav__link">
@@ -763,21 +739,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="ext">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Util.ext--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
           <li class="md-nav__item">
@@ -831,21 +792,6 @@
       get_ext
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="get_ext">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Util.get_ext--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1115,21 +1061,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Singleton">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Singleton--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note:
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1165,15 +1096,6 @@
   
     <nav class="md-nav" aria-label="Summary">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Summary--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note:
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#caret_analyze.common.Summary.__eq__" class="md-nav__link">
@@ -1284,21 +1206,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="ext">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Util.ext--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
           <li class="md-nav__item">
@@ -1352,21 +1259,6 @@
       get_ext
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="get_ext">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#caret_analyze.common.Util.get_ext--note" class="md-nav__link">
-    <span class="md-ellipsis">
-      Note
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1871,9 +1763,11 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
   
       <p>Singleton class.</p>
 <p>Inherited classes become singleton.</p>
-<h4 id="caret_analyze.common.Singleton--note">Note:<a class="headerlink" href="#caret_analyze.common.Singleton--note" title="Permanent link">#</a></h4>
-<p>Basically, implementation should avoid the use of Singleton.</p>
 
+<details class="note:" open>
+  <summary>Note:</summary>
+  <p>Basically, implementation should avoid the use of Singleton.</p>
+</details>
 
   
 
@@ -1994,11 +1888,13 @@ progress bar is enabled if Progress.enable == True, disabled otherwise.</p>
 
   
       <p>Summary about value objects and runtime data objects.</p>
-<h4 id="caret_analyze.common.Summary--note">Note:<a class="headerlink" href="#caret_analyze.common.Summary--note" title="Permanent link">#</a></h4>
-<p>The class is used to get an overview of the instance
+
+<details class="note:" open>
+  <summary>Note:</summary>
+  <p>The class is used to get an overview of the instance
 without any effect to <strong>eq</strong> and  <strong>hash</strong>.
 Users can get an overview in dictionary form or check the overview in the standard output.</p>
-
+</details>
 
   
 
@@ -2506,10 +2402,12 @@ If there are duplicate values, only the first value is inserted.</p>
         </tr>
     </tbody>
   </table>
-      <h5 id="caret_analyze.common.Util.ext--note">Note<a class="headerlink" href="#caret_analyze.common.Util.ext--note" title="Permanent link">#</a></h5>
-<div class="codehilite"><pre><span></span><code>This function is duplicated. see: get_ext in Util.
-</code></pre></div>
 
+<details class="note" open>
+  <summary>Note</summary>
+  <div class="codehilite"><pre><span></span><code>This function is duplicated. see: get_ext in Util.
+</code></pre></div>
+</details>
   </div>
 
 </div>
@@ -3167,10 +3065,12 @@ A candidate is mentioned only if it is higher than the threshold.</p>
         </tr>
     </tbody>
   </table>
-      <h5 id="caret_analyze.common.Util.get_ext--note">Note<a class="headerlink" href="#caret_analyze.common.Util.get_ext--note" title="Permanent link">#</a></h5>
-<div class="codehilite"><pre><span></span><code>This function is duplicated. see: ext in Util.
-</code></pre></div>
 
+<details class="note" open>
+  <summary>Note</summary>
+  <div class="codehilite"><pre><span></span><code>This function is duplicated. see: ext in Util.
+</code></pre></div>
+</details>
   </div>
 
 </div>
@@ -3479,10 +3379,10 @@ A candidate is mentioned only if it is higher than the threshold.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.c011b7c0.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.7389ff0e.min.js"></script>
+      <script src="../assets/javascripts/bundle.c18c5fb9.min.js"></script>
       
         <script src="https://unpkg.com/mermaid@8.13.10/dist/mermaid.min.js"></script>
       
