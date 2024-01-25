@@ -270,7 +270,11 @@ class Bokeh(VisualizeLibInterface):
             data_range = None
 
         for hist_type, target_object in zip(data_list, target_objects):
-            hist, bins = histogram(hist_type, 20, data_range, density=False)
+            if len(hist_type) != 0:
+                hist, bins = histogram(hist_type, 20, data_range, density=False)
+            else:
+                hist = []
+                bins = []
             quad = plot.quad(top=hist, bottom=0,
                              left=bins[:-1], right=bins[1:],
                              line_color='white', alpha=0.5,
