@@ -430,7 +430,7 @@ class Lttng(InfraBase):
         if isinstance(trace_dir_or_events[0], str):
             tid_remapper = MultiHostIdRemapper(LttngEventFilter.VTID)
             pid_remapper = MultiHostIdRemapper(LttngEventFilter.VPID)
-            evant_remapper = IDRemapperCollection()
+            event_remapper = IDRemapperCollection()
             for trace_dir in trace_dir_or_events:
                 event_collection = EventCollection(
                     trace_dir, force_conversion)  # type: ignore
@@ -448,7 +448,7 @@ class Lttng(InfraBase):
                         offset = Ros2Handler.get_monotonic_to_system_offset(event)
                         break
 
-                handler = Ros2Handler(data, evant_remapper, offset)
+                handler = Ros2Handler(data, event_remapper, offset)
 
                 init_events = []
                 run_events = []
