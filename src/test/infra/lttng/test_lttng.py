@@ -2711,7 +2711,7 @@ class TestMultiHostIdRemapper:
 
         assert remapped_events == expect
 
-    def test_three_host_case_with_duplicated_ids(self):
+    def test_two_host_case_with_duplicated_remapped_ids(self):
         host1_events = [
             {'_vtid': 1000},
             {'_vtid': 1001},
@@ -2721,7 +2721,42 @@ class TestMultiHostIdRemapper:
         host2_events = [
             {'_vtid': 1003},
             {'_vtid': 1001},  # duplicated id
-            {'_vtid': 1002},  # duplicated id
+            {'_vtid': 1000000000},        # duplicated id
+        ]
+
+        id_remapper = MultiHostIdRemapper('_vtid')
+        for event in host1_events:
+            id_remapper.remap(event)
+        id_remapper.change_host()
+        for event in host2_events:
+            id_remapper.remap(event)
+
+        remapped_events = []
+        remapped_events.extend(host1_events)
+        remapped_events.extend(host2_events)
+
+        expect = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+            {'_vtid': 1003},
+            {'_vtid': 1000000000},  # host2 _vtid: 1001
+            {'_vtid': 1000000001},  # host2 _vtid: 1000000000
+        ]
+
+        assert remapped_events == expect
+
+    def test_three_host_case_with_duplicated_ids(self):
+        host1_events = [
+            {'_vtid': 1000},
+            {'_vtid': 1001},
+            {'_vtid': 1002},
+        ]
+
+        host2_events = [
+            {'_vtid': 1003},
+            {'_vtid': 1001},        # duplicated id
+            {'_vtid': 1000000000},  # duplicated id
         ]
 
         host3_events = [
@@ -2751,7 +2786,7 @@ class TestMultiHostIdRemapper:
             {'_vtid': 1002},
             {'_vtid': 1003},
             {'_vtid': 1000000000},  # host2 _vtid: 1001
-            {'_vtid': 1000000001},  # host2 _vtid: 1002
+            {'_vtid': 1000000001},  # host2 _vtid: 1000000000
             {'_vtid': 1000000002},  # host3 _vtid: 1003
             {'_vtid': 1004},
             {'_vtid': 1005},
