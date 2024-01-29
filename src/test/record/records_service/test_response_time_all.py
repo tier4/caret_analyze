@@ -949,7 +949,7 @@ class TestAllStackedBar:
         result = to_dict(response_time.to_all_stacked_bar())
         assert result == expect_raw
 
-    def test_invalid_case(self):
+    def test_invalid_value_case(self):
         records_raw = [
             {'start': 0, 'middle0': 1, 'middle1': 2, 'end': 3},
             {'start': 1, 'middle0': 3, 'middle1': 2, 'end': 4},
