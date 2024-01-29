@@ -249,8 +249,8 @@ class TestResponseTimeAll:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Trace data has reversed timestamps. ' \
-                'These data entries will be ignored for accurate analysis.'
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
 
             response_time = ResponseTime(records)
 
@@ -436,8 +436,8 @@ class TestResponseTimeBest:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Trace data has reversed timestamps. ' \
-                'These data entries will be ignored for accurate analysis.'
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
 
             response_time = ResponseTime(records)
 
@@ -646,8 +646,8 @@ class TestResponseTimeWorstWithExternalLatency:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Trace data has reversed timestamps. ' \
-                'These data entries will be ignored for accurate analysis.'
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
 
             response_time = ResponseTime(records)
 
@@ -852,8 +852,8 @@ class TestResponseTimeWorst:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
             warning_message =\
-                'Trace data has reversed timestamps. ' \
-                'These data entries will be ignored for accurate analysis.'
+                'Trace data has records with reversed timestamps. ' \
+                'These record entries are ignored for accurate analysis.'
             response_time = ResponseTime(records)
 
             assert issubclass(w[0].category, UserWarning)

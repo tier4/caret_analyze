@@ -148,8 +148,8 @@ class ResponseMap():
             prev_ts = record.get(prev)
             current_ts = record.get(current)
             if prev_ts > current_ts:
-                warn('Trace data has reversed timestamps. '
-                     'These data entries will be ignored for accurate analysis.')
+                warn('Trace data has records with reversed timestamps. '
+                     'These record entries are ignored for accurate analysis.')
                 return True
         return False
 
@@ -306,8 +306,8 @@ class ResponseMapAll:
             prev_ts = record.get(prev)
             current_ts = record.get(current)
             if prev_ts > current_ts:
-                warn('Trace data has reversed timestamps. '
-                     'These data entries will be ignored for accurate analysis.')
+                warn('Trace data has records with reversed timestamps. '
+                     'These record entries are ignored for accurate analysis.')
                 return True
         return False
 
