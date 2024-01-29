@@ -67,7 +67,7 @@ class Ros2Handler():
         data : Ros2DataModel
             DataModel to be handles
         remapper : IDRemapperCollection
-            Collections of IDRemapper.
+            Collection of IDRemappers.
         monotonic_to_system_time_offset : int | None
             Offset time to convert monotonic time to system time.
             This values should be valid number if a recording was done with runtime recording.

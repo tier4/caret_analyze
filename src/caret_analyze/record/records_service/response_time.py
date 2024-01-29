@@ -271,7 +271,7 @@ class ResponseMapAll:
                 continue
             start_ts = record.get(self._start_column)
 
-            if self._has_inverted_timestamp(record):
+            if self._has_reversed_timestamp(record):
                 continue
 
             if start_ts not in self._start_timestamps:
@@ -298,7 +298,7 @@ class ResponseMapAll:
             v for i, v in enumerate(self._records) if i not in min_end_timestamp_idx
             ]
 
-    def _has_inverted_timestamp(self, record: RecordInterface):
+    def _has_reversed_timestamp(self, record: RecordInterface):
         for prev, current in zip(self._columns[:-1], self._columns[1:]):
             # skip drop case
             if not (prev in record.columns and current in record.columns):
