@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - v*
-  workflow_dispatch:
 
 jobs:
   update-version-and-create-pr:
@@ -59,9 +58,11 @@ jobs:
         run: |
           if [ ${{ steps.tag.outputs.LATEST_TAG_NAME }} == ${{ steps.tag.outputs.TAG_NAME }} ]; then
             gh pr create --title "chore: update version to ${{ steps.tag.outputs.TAG_NAME }}" \
-                         --body "This pull request updates the version in __version__.py to ${{ steps.tag.outputs.TAG_NAME }}" \
+                         --body "This pull request updates the version in package.xml to ${{ steps.tag.outputs.TAG_NAME }}" \
                          --base main \
                          --head ${{ steps.tag.outputs.BRANCH_NAME }}
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+
