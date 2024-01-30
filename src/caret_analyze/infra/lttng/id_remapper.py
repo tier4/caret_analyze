@@ -14,8 +14,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-
 from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.processor import get_field
 
@@ -25,11 +23,13 @@ class IDRemappingInfo():
             self,
             timestamp: int,
             pid: int,
-            remapped_id: int
+            remapped_id: int,
+            event: dict
     ) -> None:
         self._timestamp = timestamp
         self._pid = pid
         self._remapped_id = remapped_id
+        self._event = event
 
     @property
     def timestamp(self) -> int:
@@ -43,11 +43,14 @@ class IDRemappingInfo():
     def remapped_id(self) -> int:
         return self._remapped_id
 
+    @property
+    def event(self) -> dict:
+        return self._event
+
 
 class IDRemapper():
 
     def __init__(self) -> None:
-        self._addr_to_init_event: dict = defaultdict(list)
         self._addr_to_remapping_info: dict = {}
         self._all_object_ids: set = set()
         self._next_object_id = 1
@@ -59,29 +62,33 @@ class IDRemapper():
     ) -> int:
         # register initialization trace event
         if addr not in self._all_object_ids:
-            self._addr_to_init_event[addr].append(event)
             self._all_object_ids.add(addr)
+            remap_info = IDRemappingInfo(get_field(event, LttngEventFilter.TIMESTAMP),
+                                         get_field(event, LttngEventFilter.VPID),
+                                         addr,
+                                         event)
+            self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
             return addr
         else:
             # same address already in use
-            for val_event in self._addr_to_init_event[addr]:
-                if val_event == event:
+            for info in self._addr_to_remapping_info[addr]:
+                if info.event == event:
                     # events with exact contents
-                    return addr
+                    return info.remapped_id
             # the address is the same,
             # but the contents do not match, so it needs to be replaced.
-            self._addr_to_init_event[addr].append(event)
             while self._next_object_id in self._all_object_ids:
                 self._next_object_id += 1
             remap_info = IDRemappingInfo(get_field(event, LttngEventFilter.TIMESTAMP),
                                          get_field(event, LttngEventFilter.VPID),
-                                         self._next_object_id)
+                                         self._next_object_id,
+                                         event)
             self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
             self._all_object_ids.add(self._next_object_id)
             self._next_object_id += 1
             return self._next_object_id - 1
 
-    def get_object_id(
+    def get_latest_object_id(
         self,
         addr: int,
         event: dict,
@@ -99,5 +106,30 @@ class IDRemapper():
 
             max_item = max(list_search, key=lambda item: item.timestamp)
             return max_item.remapped_id
+        else:
+            return addr
+
+    def get_nearest_object_id(
+        self,
+        addr: int,
+        event: dict,
+    ) -> int:
+        if addr in self._addr_to_remapping_info:
+            pid = get_field(event, LttngEventFilter.VPID)
+            timestamp = get_field(event, LttngEventFilter.TIMESTAMP)
+            list_search = \
+                [item for item in self._addr_to_remapping_info[addr]
+                 if item.pid == pid]
+            if len(list_search) == 0:
+                return addr
+            else:
+                min_distance = abs(list_search[0].timestamp - timestamp)
+                min_distance_item = list_search[0]
+                for item in list_search:
+                    distance = abs(item.timestamp - timestamp)
+                    if min_distance == None or min_distance > distance:
+                        min_distance = distance
+                        min_distance_item = item
+                return min_distance_item.remapped_id
         else:
             return addr
