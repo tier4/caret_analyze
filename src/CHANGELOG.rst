@@ -2,8 +2,8 @@
 Changelog for package caret_analyze
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.0 (2024-01-30)
+------------------
 * Update: package.xml version to 0.4.24 (`#471 <https://github.com/tier4/caret_analyze/issues/471>`_)
 * fix: plot API annotations (`#463 <https://github.com/tier4/caret_analyze/issues/463>`_)
   * diff_node_names
