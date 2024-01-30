@@ -389,7 +389,7 @@ class Lttng(InfraBase):
                 else:
                     run_events.append(event)
 
-            Lttng.apply_init_timestamp(init_events,offset)
+            Lttng.apply_init_timestamp(init_events, offset)
 
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
@@ -462,7 +462,7 @@ class Lttng(InfraBase):
                 else:
                     run_events.append(event)
 
-            Lttng.apply_init_timestamp(init_events,offset)
+            Lttng.apply_init_timestamp(init_events, offset)
 
             import functools
             init_events.sort(key=functools.cmp_to_key(Lttng._compare_init_event))
@@ -495,7 +495,7 @@ class Lttng(InfraBase):
         monotonic_to_system_offset: int | None,
     ):
         for event in events:
-            if monotonic_to_system_offset != None:
+            if monotonic_to_system_offset is not None:
                 if 'init_timestamp' in event:
                     init_timestamp: int = event.pop('init_timestamp')
                     event['_timestamp'] = init_timestamp + monotonic_to_system_offset

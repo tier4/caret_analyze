@@ -18,7 +18,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Callable
 from typing import Any
 
 
@@ -724,7 +723,8 @@ class Ros2Handler():
         tid = get_field(event, '_vtid')
         message = get_field(event, 'message')
 
-        publisher_handle = self._publisher_handle_remapper.get_latest_object_id(publisher_handle, event)
+        publisher_handle = \
+            self._publisher_handle_remapper.get_latest_object_id(publisher_handle, event)
         self.data.add_rcl_publish_instance(
             tid, timestamp, publisher_handle, message)
 
@@ -758,7 +758,8 @@ class Ros2Handler():
             message_timestamp = 0
         tid = get_field(event, '_vtid')
 
-        publisher_handle = self._publisher_handle_remapper.get_latest_object_id(publisher_handle, event)
+        publisher_handle = \
+            self._publisher_handle_remapper.get_latest_object_id(publisher_handle, event)
         self.data.add_rclcpp_intra_publish_instance(
             tid, timestamp, publisher_handle, message, message_timestamp)
 

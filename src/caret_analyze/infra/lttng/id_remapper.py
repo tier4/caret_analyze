@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.processor import get_field
 
@@ -51,7 +52,7 @@ class IDRemappingInfo():
 class IDRemapper():
 
     def __init__(self) -> None:
-        self._addr_to_remapping_info: dict = {}
+        self._addr_to_remapping_info = defaultdict(list)
         self._all_object_ids: set = set()
         self._next_object_id = 1
 
@@ -67,7 +68,7 @@ class IDRemapper():
                                          get_field(event, LttngEventFilter.VPID),
                                          addr,
                                          event)
-            self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
+            self._addr_to_remapping_info[addr].append(remap_info)
             return addr
         else:
             # same address already in use
@@ -83,7 +84,7 @@ class IDRemapper():
                                          get_field(event, LttngEventFilter.VPID),
                                          self._next_object_id,
                                          event)
-            self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
+            self._addr_to_remapping_info[addr].append(remap_info)
             self._all_object_ids.add(self._next_object_id)
             self._next_object_id += 1
             return self._next_object_id - 1
@@ -127,7 +128,7 @@ class IDRemapper():
                 min_distance_item = list_search[0]
                 for item in list_search:
                     distance = abs(item.timestamp - timestamp)
-                    if min_distance == None or min_distance > distance:
+                    if min_distance is None or min_distance > distance:
                         min_distance = distance
                         min_distance_item = item
                 return min_distance_item.remapped_id
