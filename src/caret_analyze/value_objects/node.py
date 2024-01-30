@@ -59,10 +59,28 @@ class NodeValue(ValueObject):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self.__node_name
 
     @property
     def node_id(self) -> str | None:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str | None
+            Node id.
+
+        """
         return self.__node_id
 
 
@@ -97,6 +115,15 @@ class NodeValueWithId(NodeValue):
 
     @property
     def node_id(self) -> str:
+        """
+        Get node id.
+
+        Returns
+        -------
+        str
+            Node id.
+
+        """
         return self._node_id
 
 
@@ -119,6 +146,29 @@ class NodeStructValue(ValueObject, Summarizable):
         callback_groups: tuple[CallbackGroupStructValue, ...] | None,
         variable_passings: tuple[VariablePassingStructValue, ...] | None,
     ) -> None:
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        node_name : str
+            Node name.
+        publishers : tuple[PublisherStructValue, ...]
+            Publishers in the node.
+        subscriptions_info : tuple[SubscriptionStructValue, ...]
+            Subscriptions info in the node.
+        services_info : tuple[ServiceStructValue, ...]
+            Services info in the node.
+        timers : tuple[TimerStructValue, ...]
+            Timers in the node.
+        node_paths : tuple[NodePathStructValue, ...]
+            Node paths in the node.
+        callback_groups : tuple[CallbackGroupStructValue, ...] | None
+            Callback groups in the node.
+        variable_passings : tuple[VariablePassingStructValue, ...] | None
+            Variable passings in the node.
+
+        """
         self._node_name = node_name
         self._publishers = publishers
         self._subscriptions = subscriptions_info
@@ -130,34 +180,106 @@ class NodeStructValue(ValueObject, Summarizable):
 
     @property
     def node_name(self) -> str:
+        """
+        Get node name.
+
+        Returns
+        -------
+        str
+            Node name.
+
+        """
         return self._node_name
 
     @property
     def publishers(self) -> tuple[PublisherStructValue, ...]:
+        """
+        Get publishers.
+
+        Returns
+        -------
+        tuple[PublisherStructValue, ...]
+            Node path publishers.
+
+        """
         return self._publishers
 
     @property
     def publish_topic_names(self) -> tuple[str, ...]:
+        """
+        Get topic names to publish.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Topic names to publish.
+
+        """
         return tuple(p.topic_name for p in self._publishers)
 
     @property
     def subscribe_topic_names(self) -> tuple[str, ...]:
+        """
+        Get topic names to subscribe to.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Topic names to subscribe to.
+
+        """
         return tuple(s.topic_name for s in self._subscriptions)
 
     @property
     def subscriptions(self) -> tuple[SubscriptionStructValue, ...]:
+        """
+        Get subscriptions.
+
+        Returns
+        -------
+        tuple[SubscriptionStructValue, ...]
+            Subscriptions to subscribe to.
+
+        """
         return self._subscriptions
 
     @property
     def service_names(self) -> tuple[str, ...]:
+        """
+        Get service names.
+
+        Returns
+        -------
+        tuple[str, ...]
+            Service names that the node contains.
+
+        """
         return tuple(s.service_name for s in self._services)
 
     @property
     def services(self) -> tuple[ServiceStructValue, ...]:
+        """
+        Get services.
+
+        Returns
+        -------
+        tuple[ServiceStructValue, ...]
+            Services that the node contains.
+
+        """
         return self._services
 
     @property
     def timers(self) -> tuple[TimerStructValue, ...]:
+        """
+        Get timers.
+
+        Returns
+        -------
+        tuple[TimerStructValue, ...]
+            Timers that the node contains.
+
+        """
         return self._timers
 
     def get_path(
@@ -165,6 +287,29 @@ class NodeStructValue(ValueObject, Summarizable):
         subscribe_topic_name: str,
         publish_topic_name: str
     ) -> NodePathStructValue:
+        """
+        Get node path.
+
+        Parameters
+        ----------
+        subscribe_topic_name : str | None
+            Topic name to which the node subscribes.
+        publish_topic_name : str | None
+            Topic name to which the node publishes.
+
+        Returns
+        -------
+        NodePathStructValue
+            Node path that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+        MultipleItemFoundError
+            Occurs when several items were found.
+
+        """
         def is_target(path: NodePathStructValue):
             return path.publish_topic_name == publish_topic_name and \
                 path.subscribe_topic_name == subscribe_topic_name
@@ -173,32 +318,88 @@ class NodeStructValue(ValueObject, Summarizable):
 
     @property
     def callbacks(self) -> tuple[CallbackStructValue, ...] | None:
+        """
+        Get callbacks.
+
+        Returns
+        -------
+        tuple[CallbackStructValue, ...] | None
+            Callbacks that the node contains.
+
+        """
         if self._callback_groups is None:
             return None
         return tuple(Util.flatten(cbg.callbacks for cbg in self._callback_groups))
 
     @property
     def callback_names(self) -> tuple[str, ...] | None:
+        """
+        Get callback names.
+
+        Returns
+        -------
+        tuple[str, ...] | None
+            Callback names that the node contains.
+
+        """
         if self.callbacks is None:
             return None
         return tuple(_.callback_name for _ in self.callbacks)
 
     @property
     def callback_groups(self) -> tuple[CallbackGroupStructValue, ...] | None:
+        """
+        Get callback groups.
+
+        Returns
+        -------
+        tuple[CallbackGroupStructValue, ...] | None
+            Callback groups that the node contains.
+
+        """
         return self._callback_groups
 
     @property
     def callback_group_names(self) -> tuple[str, ...] | None:
+        """
+        Get callback group names.
+
+        Returns
+        -------
+        tuple[str, ...] | None
+            Callback group names that the node contains.
+
+        """
         if self.callback_groups is None:
             return None
         return tuple(_.callback_group_name for _ in self.callback_groups)
 
     @property
     def paths(self) -> tuple[NodePathStructValue, ...]:
+        """
+        Get node paths.
+
+        Node paths are defined by subscription and publisher pair.
+
+        Returns
+        -------
+        tuple[NodePathStructValue, ...]
+            Node paths that the node contains.
+
+        """
         return self._node_paths
 
     @property
     def variable_passings(self) -> tuple[VariablePassingStructValue, ...] | None:
+        """
+        Get variable passings.
+
+        Returns
+        -------
+        tuple[VariablePassingStructValue, ...] | None
+            Variable passings in all child elements that the node contains.
+
+        """
         return self._variable_passings_info
 
     def get_subscription(
@@ -206,7 +407,27 @@ class NodeStructValue(ValueObject, Summarizable):
         subscribe_topic_name: str,
         construction_order: int | None
     ) -> SubscriptionStructValue:
+        """
+        Get subscription.
 
+        Parameters
+        ----------
+        subscribe_topic_name : str
+            Topic name to get.
+        construction_order : int | None
+            Construction order to get.
+
+        Returns
+        -------
+        SubscriptionStructValue
+            Subscription instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_subscribe(subscribe: SubscriptionStructValue):
                 subscribe_topic_name_match = subscribe.topic_name == subscribe_topic_name
@@ -227,7 +448,27 @@ class NodeStructValue(ValueObject, Summarizable):
         service_name: str,
         construction_order: int | None
     ) -> ServiceStructValue:
+        """
+        Get service.
 
+        Parameters
+        ----------
+        service_name : str
+            Service name to get.
+        construction_order : int | None
+            Construction order to get.
+
+        Returns
+        -------
+        ServiceStructValue
+            Service instance that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_service(service: ServiceStructValue):
                 service_name_match = service.service_name == service_name
@@ -248,6 +489,27 @@ class NodeStructValue(ValueObject, Summarizable):
         publish_topic_name: str,
         construction_order: int | None
     ) -> PublisherStructValue:
+        """
+        Get publisher.
+
+        Parameters
+        ----------
+        publish_topic_name : str
+            Publisher topic name to get.
+        construction_order : int | None
+            Construction order to get.
+
+        Returns
+        -------
+        PublisherStructValue
+            A publisher that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_publisher(publisher: PublisherStructValue):
                 publish_topic_name_match = publisher.topic_name == publish_topic_name
@@ -268,6 +530,27 @@ class NodeStructValue(ValueObject, Summarizable):
         timer_period: str,
         construction_order: int | None
     ) -> TimerStructValue:
+        """
+        Get timer.
+
+        Parameters
+        ----------
+        timer_period: str
+            Timer period to get.
+        construction_order : int | None
+            Construction order to get.
+
+        Returns
+        -------
+        TimerStructValue
+            A timer that matches the condition.
+
+        Raises
+        ------
+        ItemNotFoundError
+            Occurs when no items were found.
+
+        """
         try:
             def is_target_timer(timer: TimerStructValue):
                 timer_node_name_match = timer.node_name == timer_period
@@ -285,6 +568,15 @@ class NodeStructValue(ValueObject, Summarizable):
 
     @property
     def summary(self) -> Summary:
+        """
+        Get summary.
+
+        Returns
+        -------
+        Summary
+            Summary about value objects and runtime data objects.
+
+        """
         d: Summary = Summary()
         d['node'] = self.node_name
         d['callbacks'] = self.callback_names
@@ -309,10 +601,30 @@ class DiffNode:
         left_node: NodeStructValue,
         right_node: NodeStructValue
     ):
+        """
+        Construct an instance.
+
+        Parameters
+        ----------
+        left_node : NodeStructValue
+            Node in architecture.
+        right_node : NodeStructValue
+            Node in architecture.
+
+        """
         self._left_node = left_node
         self._right_node = right_node
 
     def diff_node_pubs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of publish topic names.
+
+        Returns
+        -------
+        tuple[tuple[str, ...], tuple[str, ...]]
+            Returns publish topic names that exist only in the respective nodes.
+
+        """
         set_left_pubs = set(self._left_node.publish_topic_names)
         set_right_pubs = set(self._right_node.publish_topic_names)
         common_node_pubs = set_left_pubs & set_right_pubs
@@ -321,6 +633,16 @@ class DiffNode:
         return left_only_pubs, right_only_pubs
 
     def diff_node_subs(self) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """
+        Compare two nodes of architecture objects and return the difference of \
+        subscribe topic names.
+
+        Returns
+        -------
+        tuple[tuple[str, ...], tuple[str, ...]]
+            Returns subscribe topic names that exist only in the respective nodes.
+
+        """
         set_left_subs = set(self._left_node.subscribe_topic_names)
         set_right_subs = set(self._right_node.subscribe_topic_names)
         common_node_subs = set_left_subs & set_right_subs
