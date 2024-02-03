@@ -118,6 +118,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, (CallbackBase, Communication, Publisher, Subscription)):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects), 'period', visualize_lib
@@ -142,6 +146,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, (CallbackBase, Communication, Publisher, Subscription)):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects), 'frequency', visualize_lib
@@ -166,6 +174,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, (CallbackBase, Communication)):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects), 'latency', visualize_lib
@@ -194,6 +206,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, Path):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects), 'response_time', visualize_lib, case
@@ -287,6 +303,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, (CallbackBase, Communication, Publisher, Subscription)):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects),
@@ -312,6 +332,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, (CallbackBase, Communication)):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects),
@@ -337,6 +361,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, (CallbackBase, Communication, Publisher, Subscription)):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects),
@@ -366,6 +394,10 @@ class Plot:
         PlotBase
 
         """
+        for objct in parse_collection_or_unpack(target_objects):
+            if not isinstance(objct, Path):
+                raise TypeError(f'Invalid type: {type(objct)} is unsupported.')
+
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects),
