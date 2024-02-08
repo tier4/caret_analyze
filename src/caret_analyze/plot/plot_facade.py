@@ -27,7 +27,7 @@ from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
                        Path, Publisher, Subscription)
-from common import type_check_decorator
+from ..common import type_check_decorator
 
 logger = getLogger(__name__)
 
