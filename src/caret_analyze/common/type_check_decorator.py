@@ -191,7 +191,7 @@ try:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
         return given_arg_type_str
-    
+
     def _parse_collection_or_unpack(
         target_arg: tuple[Collection[Any]] | tuple[Any, ...]
     ) -> list[Any]:
