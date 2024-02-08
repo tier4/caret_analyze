@@ -34,7 +34,7 @@ class TimeSeriesPlotFactory:
     """Factory class to create an instance of TimeSeriesPlot."""
 
     @staticmethod
-    @type_check_decorator
+    # @type_check_decorator
     def create_instance(
         target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,

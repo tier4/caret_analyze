@@ -18,9 +18,10 @@ from functools import wraps
 from inspect import Signature, signature
 from re import findall
 from typing import Any
+from collections.abc import Collection
+
 
 from ..exceptions import UnsupportedTypeError
-from ..plot.plot_facade import parse_collection_or_unpack
 
 
 try:
@@ -190,6 +191,35 @@ try:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
         return given_arg_type_str
+    
+    def _parse_collection_or_unpack(
+        target_arg: tuple[Collection[Any]] | tuple[Any, ...]
+    ) -> list[Any]:
+        """
+        Parse target argument.
+
+        To address both cases where the target argument is passed in collection type
+        or unpacked, this function converts them to the same list format.
+
+        Parameters
+        ----------
+        target_arg : tuple[Collection[Any]] | tuple[Any, ...]
+            Target objects.
+
+        Returns
+        -------
+        list[Any]
+
+        """
+        parsed_target_objects: list[Any]
+        if isinstance(target_arg[0], Collection):
+            assert len(target_arg) == 1
+            parsed_target_objects = list(target_arg[0])
+        else:  # Unpacked case
+            parsed_target_objects = list(target_arg)  # type: ignore
+
+        return parsed_target_objects
+
 
     def decorator(func):
         validate_arguments_wrapper = \
@@ -198,8 +228,11 @@ try:
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
             try:
-                args = parse_collection_or_unpack(args)
-                return validate_arguments_wrapper(*args, **kwargs)
+                if len(args) > 1:
+                    return validate_arguments_wrapper(*args, **kwargs)
+                else:
+                    args = _parse_collection_or_unpack(args)
+                    return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e, signature(func))
                 error_type = e.title
