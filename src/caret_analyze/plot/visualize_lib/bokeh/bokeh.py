@@ -22,9 +22,14 @@ from bokeh.models.renderers import GlyphRenderer
 
 from bokeh.plotting import figure as Figure
 
+from bokeh.colors import color
+
 from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
-from numpy import empty, histogram
+import numpy as np
+from numpy import histogram
+
+from random import randint
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
@@ -269,23 +274,41 @@ class Bokeh(VisualizeLibInterface):
         else:
             data_range = None
 
-        for hist_type, target_object in zip(data_list, target_objects):
-            if len(hist_type) != 0:
-                hist, bins = histogram(hist_type, 20, data_range, density=False)
-            else:
-                hist = empty(0)
-                bins = empty(0)
-            quad = plot.quad(top=hist, bottom=0,
-                             left=bins[:-1], right=bins[1:],
-                             line_color='white', alpha=0.5,
-                             color=color_selector.get_color())
-            legend_manager.add_legend(target_object, quad)
+        hists = []
+
+        for hist_type in data_list:
+            hist, bins = histogram(hist_type, 20, data_range, density=False)
+            hists.append(hist)
+
+        hists_t = np.array(hists).T
+
+        colors = [color.RGB(randint(0, 255), randint(0, 255), randint(0, 255)) for _ in range(len(hists_t))]
+
+        quad_dicts = {}
+    
+        for i, h in enumerate(hists_t):
+            data = list(zip(h, colors, target_objects))
+            data.sort(key=lambda x: x[0], reverse=True)
+            for top, col, target_object in data:
+                quad = plot.quad(top=top, bottom=0,
+                               left=bins[i], right=bins[i+1], 
+                               color=col, alpha=1, line_color='white')
+                if target_object not in quad_dicts:
+                    quad_dicts[target_object] = [quad]
+                else:
+                    quad_dicts[target_object] = quad_dicts[target_object] + [quad]
+            print(quad_dicts)
+        for tatget_object_key, quad_value in quad_dicts.items():
+            legend_manager.add_legend(tatget_object_key, quad_value)
+
+
             hover = HoverTool(
-                tooltips=[(x_label, '@left'), ('The number of samples', '@top')], renderers=[quad]
+                tooltips=[('x', '@left'), ('The number of samples', '@top')], renderers=[quad]
                 )
             plot.add_tools(hover)
 
         legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
             plot.add_layout(legend, 'right')
+            plot.legend.click_policy='hide'
         return plot
