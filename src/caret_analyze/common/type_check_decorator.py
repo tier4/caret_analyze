@@ -212,8 +212,8 @@ try:
 
         """
         parsed_target_objects: list[Any]
-        if isinstance(target_arg[0], Collection):
-            assert len(target_arg) == 1
+        if isinstance(target_arg[0], Collection) and len(target_arg) == 1:
+            # assert len(target_arg) == 1
             parsed_target_objects = list(target_arg[0])
         else:  # Unpacked case
             parsed_target_objects = list(target_arg)  # type: ignore
@@ -228,11 +228,8 @@ try:
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
             try:
-                if len(args) > 1:
-                    return validate_arguments_wrapper(*args, **kwargs)
-                else:
-                    args = _parse_collection_or_unpack(args)
-                    return validate_arguments_wrapper(*args, **kwargs)
+                args = _parse_collection_or_unpack(args)
+                return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e, signature(func))
                 error_type = e.title

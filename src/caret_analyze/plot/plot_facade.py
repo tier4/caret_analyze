@@ -123,7 +123,6 @@ class Plot:
         # for obj in parse_collection_or_unpack(target_objects):
         #     if not isinstance(obj, (CallbackBase, Communication, Publisher, Subscription)):
         #         raise TypeError(f'Invalid type: {type(obj)} is unsupported.')
-        print(target_objects)
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
             parse_collection_or_unpack(target_objects), 'period', visualize_lib
