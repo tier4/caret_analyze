@@ -20,6 +20,7 @@ from re import findall
 from typing import Any
 
 from ..exceptions import UnsupportedTypeError
+from ..plot.plot_facade import parse_collection_or_unpack
 
 
 try:
@@ -197,6 +198,7 @@ try:
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
             try:
+                args = parse_collection_or_unpack(args)
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e, signature(func))

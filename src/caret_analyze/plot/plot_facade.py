@@ -27,6 +27,7 @@ from .timeseries import TimeSeriesPlotFactory
 from .visualize_lib import VisualizeLibFactory
 from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, Executor, Node,
                        Path, Publisher, Subscription)
+from common import type_check_decorator
 
 logger = getLogger(__name__)
 
@@ -101,6 +102,7 @@ class Plot:
         return plot
 
     @staticmethod
+    @type_check_decorator
     def create_period_timeseries_plot(
         *target_objects: CallbackBase | Communication | Publisher | Subscription
     ) -> PlotBase:
@@ -118,9 +120,9 @@ class Plot:
         PlotBase
 
         """
-        for obj in parse_collection_or_unpack(target_objects):
-            if not isinstance(obj, (CallbackBase, Communication, Publisher, Subscription)):
-                raise TypeError(f'Invalid type: {type(obj)} is unsupported.')
+        # for obj in parse_collection_or_unpack(target_objects):
+        #     if not isinstance(obj, (CallbackBase, Communication, Publisher, Subscription)):
+        #         raise TypeError(f'Invalid type: {type(obj)} is unsupported.')
 
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
