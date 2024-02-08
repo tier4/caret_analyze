@@ -261,8 +261,6 @@ class Bokeh(VisualizeLibInterface):
                 if not isinstance(m, ResponseTime)
             ]
 
-        color_selector = ColorSelectorFactory.create_instance('unique')
-
         if data_type in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
 
@@ -297,14 +295,13 @@ class Bokeh(VisualizeLibInterface):
                     quad_dicts[target_object] = [quad]
                 else:
                     quad_dicts[target_object] = quad_dicts[target_object] + [quad]
-            print(quad_dicts)
         for tatget_object_key, quad_value in quad_dicts.items():
             legend_manager.add_legend(tatget_object_key, quad_value)
-
 
             hover = HoverTool(
                 tooltips=[('x', '@left'), ('The number of samples', '@top')], renderers=[quad]
                 )
+            print(type([quad]))
             plot.add_tools(hover)
 
         legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
