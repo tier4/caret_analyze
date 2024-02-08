@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+
 from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.processor import get_field
 
