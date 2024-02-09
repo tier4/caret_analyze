@@ -295,14 +295,12 @@ class Bokeh(VisualizeLibInterface):
                     quad_dicts[target_object] = [quad]
                 else:
                     quad_dicts[target_object] = quad_dicts[target_object] + [quad]
+                hover = HoverTool(
+                    tooltips=[('x', '@left'), ('The number of samples', '@top')], renderers=[quad]
+                    )
+                plot.add_tools(hover)
         for tatget_object_key, quad_value in quad_dicts.items():
             legend_manager.add_legend(tatget_object_key, quad_value)
-
-            hover = HoverTool(
-                tooltips=[('x', '@left'), ('The number of samples', '@top')], renderers=[quad]
-                )
-            print(type([quad]))
-            plot.add_tools(hover)
 
         legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
