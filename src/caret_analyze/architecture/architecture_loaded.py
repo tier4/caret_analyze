@@ -1599,6 +1599,8 @@ class CallbackPathSearched():
 
         if callbacks is not None:
             for write_callback, read_callback in product(callbacks, callbacks):
+                if write_callback.construction_order > 10 or read_callback.construction_order > 10:
+                    continue
                 searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
                     msg = 'Path Added: '
