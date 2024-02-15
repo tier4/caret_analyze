@@ -305,8 +305,8 @@ class Bokeh(VisualizeLibInterface):
                 else:
                     quad_dicts[target_object] = quad_dicts[target_object] + [quad]
 
-        for tatget_object_key, quad_value in quad_dicts.items():
-            legend_manager.add_legend(tatget_object_key, quad_value)
+        for target_object_key, quad_value in quad_dicts.items():
+            legend_manager.add_legend(target_object_key, quad_value)
 
         legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
