@@ -17,10 +17,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from logging import getLogger
 
-from random import randint
-
-from bokeh.colors import color
-
 from bokeh.models import HoverTool
 from bokeh.models.renderers import GlyphRenderer
 
@@ -35,7 +31,7 @@ from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
 from .stacked_bar import BokehStackedBar
 from .timeseries import BokehTimeSeries
-from .util import LegendManager
+from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
 from ....common import ClockConverter
@@ -280,20 +276,21 @@ class Bokeh(VisualizeLibInterface):
 
         hists_t = np.array(hists).T
 
-        colors = [
-            color.RGB(randint(0, 255), randint(0, 255), randint(0, 255))
-            for _ in range(len(hists_t))
-            ]
+        colors = []
+
+        color_selector = ColorSelectorFactory.create_instance('unique')
+        for _ in hists_t:
+            colors.append(color_selector.get_color())
 
         quad_dicts = {}
 
         for i, h in enumerate(hists_t):
             data = list(zip(h, colors, target_objects))
             data.sort(key=lambda x: x[0], reverse=True)
-            for top, col, target_object in data:
+            for top, color, target_object in data:
                 quad = plot.quad(
                     top=top, bottom=0, left=bins[i], right=bins[i+1],
-                    color=col, alpha=1, line_color='white'
+                    color=color, alpha=1, line_color='white'
                     )
                 hover = HoverTool(
                     tooltips=[(x_label, f'{bins[i]}'), ('The number of samples', f'{top}')],
