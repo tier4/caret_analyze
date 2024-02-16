@@ -276,18 +276,17 @@ class Bokeh(VisualizeLibInterface):
 
         hists_t = np.array(hists).T
 
-        colors = []
-
         color_selector = ColorSelectorFactory.create_instance('unique')
-        for _ in hists_t:
-            colors.append(color_selector.get_color())
+        colors = [color_selector.get_color() for _ in hists_t]
 
-        quad_dicts = {}
+        quad_dicts = {t: [] for t in target_objects}
 
         for i, h in enumerate(hists_t):
             data = list(zip(h, colors, target_objects))
             data.sort(key=lambda x: x[0], reverse=True)
             for top, color, target_object in data:
+                if top == 0:
+                    continue
                 quad = plot.quad(
                     top=top, bottom=0, left=bins[i], right=bins[i+1],
                     color=color, alpha=1, line_color='white'
@@ -297,10 +296,7 @@ class Bokeh(VisualizeLibInterface):
                     renderers=[quad]
                     )
                 plot.add_tools(hover)
-                if target_object not in quad_dicts:
-                    quad_dicts[target_object] = [quad]
-                else:
-                    quad_dicts[target_object] = quad_dicts[target_object] + [quad]
+                quad_dicts[target_object] = quad_dicts[target_object] + [quad]
 
         for target_object_key, quad_value in quad_dicts.items():
             legend_manager.add_legend(target_object_key, quad_value)
