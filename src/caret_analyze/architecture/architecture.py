@@ -36,12 +36,14 @@ from ..value_objects.node import DiffNode
 
 logger = logging.getLogger(__name__)
 
+MAX_CONSTRUCTION_ORDER = 10
 
 class Architecture(Summarizable):
     def __init__(
         self,
         file_type: str,
         file_path: str,
+        max_construction_order: int = MAX_CONSTRUCTION_ORDER
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
@@ -51,7 +53,7 @@ class Architecture(Summarizable):
 
         reader = ArchitectureReaderFactory.create_instance(
             file_type, file_path)
-        loaded = ArchitectureLoaded(reader, ignore_topics)
+        loaded = ArchitectureLoaded(reader, ignore_topics, max_construction_order=max_construction_order)
 
         self._nodes: list[NodeStruct] = loaded.nodes
         self._communications: list[CommunicationStruct] = loaded.communications
