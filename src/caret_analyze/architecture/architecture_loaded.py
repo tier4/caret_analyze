@@ -1615,10 +1615,13 @@ class CallbackPathSearched():
                 if max_construction_order != 0:
                     if write_callback.construction_order > max_construction_order or \
                         read_callback.construction_order > max_construction_order:
+                            """
                             if node.node_name not in skip_nodes:
                                 skip_nodes.append(node.node_name)
                                 logger.warn(f'skip due to callback construction_order over'
                                             f'({max_construction_order}): {node.node_name}')
+                            """
+                            skip_nodes.append(node.node_name)
                             continue
                 searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
@@ -1628,6 +1631,12 @@ class CallbackPathSearched():
                     msg += f'callbacks: {path.callback_names}'
                     logger.info(msg)
                 paths += searched_paths
+
+            from collections import Counter
+            skip_node_counts = Counter(skip_nodes)
+            for name, count in skip_node_counts.items():
+                logger.warn(f'skip due to callback construction_order over'
+                            f'({max_construction_order}): {name} ({count})')
 
         self._data = paths
 

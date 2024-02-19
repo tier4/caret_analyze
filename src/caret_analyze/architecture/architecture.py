@@ -18,7 +18,7 @@ from collections.abc import Callable, Collection, Sequence
 import logging
 
 from .architecture_exporter import ArchitectureExporter
-from .architecture_loaded import NodeValuesLoaded
+from .architecture_loaded import NodeValuesLoaded, MAX_CONSTRUCTION_ORDER
 from .combine_path import CombinePath
 
 from .reader_interface import ArchitectureReader, IGNORE_TOPICS
@@ -35,8 +35,6 @@ from ..value_objects import (CallbackGroupStructValue, CallbackStructValue,
 from ..value_objects.node import DiffNode
 
 logger = logging.getLogger(__name__)
-
-MAX_CONSTRUCTION_ORDER = 10
 
 class Architecture(Summarizable):
     def __init__(
