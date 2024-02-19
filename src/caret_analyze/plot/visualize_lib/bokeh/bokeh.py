@@ -279,7 +279,7 @@ class Bokeh(VisualizeLibInterface):
         color_selector = ColorSelectorFactory.create_instance('unique')
         colors = [color_selector.get_color() for _ in hists_t]
 
-        quad_dicts = {t: [] for t in target_objects}
+        quad_dicts: dict = {t: [] for t in target_objects}
 
         for i, h in enumerate(hists_t):
             data = list(zip(h, colors, target_objects))
