@@ -70,7 +70,8 @@ class IDRemapper():
                     return addr
             # the address is the same,
             # but the contents do not match, so it needs to be replaced.
-            self._addr_to_init_event[addr].append(event)
+            if len(self._addr_to_init_event[addr]) < 10:
+                self._addr_to_init_event[addr].append(event)
             while self._next_object_id in self._all_object_ids:
                 self._next_object_id += 1
             remap_info = IDRemappingInfo(get_field(event, LttngEventFilter.TIMESTAMP),
