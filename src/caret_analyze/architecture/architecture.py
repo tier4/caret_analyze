@@ -43,6 +43,9 @@ class Architecture(Summarizable):
         file_path: str,
         max_construction_order: int = MAX_CONSTRUCTION_ORDER
     ) -> None:
+        if max_construction_order == 0:
+            max_construction_order = MAX_CONSTRUCTION_ORDER
+
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
 
