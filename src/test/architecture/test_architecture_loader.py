@@ -718,11 +718,11 @@ class TestNodePathLoaded:
 
     def test_full(self, mocker):
         searcher_mock = mocker.Mock(spec=CallbackPathSearcher)
-        searcher_mock.max_construction_order = MAX_CONSTRUCTION_ORDER
         mocker.patch('caret_analyze.architecture.graph_search.CallbackPathSearcher',
                      return_value=searcher_mock)
 
         callback_mock = mocker.Mock(spec=CallbackStruct)
+        callback_mock.construction_order = MAX_CONSTRUCTION_ORDER - 1
         node_path_mock = mocker.Mock(NodePathStruct)
         mocker.patch.object(searcher_mock, 'search',
                             return_value=[node_path_mock])
@@ -732,7 +732,7 @@ class TestNodePathLoaded:
         callbacks = (callback_mock, callback_mock)
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'callbacks', callbacks)
-        searched = CallbackPathSearched(node_mock)
+        searched = CallbackPathSearched(node_mock, MAX_CONSTRUCTION_ORDER)
 
         import itertools
         product = list(itertools.product(callbacks, callbacks))
