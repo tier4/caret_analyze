@@ -15,6 +15,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from bisect import bisect_right, insort_right
+from operator import attrgetter
 
 from .lttng_event_filter import LttngEventFilter
 from .ros2_tracing.processor import get_field
@@ -74,10 +76,12 @@ class IDRemapper():
                 self._addr_to_init_event[addr].append(event)
             while self._next_object_id in self._all_object_ids:
                 self._next_object_id += 1
+            pid = get_field(event, LttngEventFilter.VPID)
             remap_info = IDRemappingInfo(get_field(event, LttngEventFilter.TIMESTAMP),
-                                         get_field(event, LttngEventFilter.VPID),
+                                         pid,
                                          self._next_object_id)
-            self._addr_to_remapping_info.setdefault(addr, []).append(remap_info)
+            remapping_info_list = self._addr_to_remapping_info.setdefault(addr, {}).setdefault(pid, [])
+            insort_right(remapping_info_list, remap_info, key=lambda info: info.timestamp)
             self._all_object_ids.add(self._next_object_id)
             self._next_object_id += 1
             return self._next_object_id - 1
@@ -89,16 +93,14 @@ class IDRemapper():
     ) -> int:
         if addr in self._addr_to_remapping_info:
             pid = get_field(event, LttngEventFilter.VPID)
-            timestamp = get_field(event, LttngEventFilter.TIMESTAMP)
-            list_search = \
-                [item for item in self._addr_to_remapping_info[addr]
-                 if item.pid == pid and item.timestamp <= timestamp]
-            if len(list_search) == 0:
-                return addr
-            elif len(list_search) == 1:
-                return list_search[0].remapped_id
-
-            max_item = max(list_search, key=lambda item: item.timestamp)
-            return max_item.remapped_id
+            if pid in self._addr_to_remapping_info[addr]:
+                remapping_info_list = self._addr_to_remapping_info[addr][pid]
+                if len(remapping_info_list) > 0:
+                    index = bisect_right(remapping_info_list, get_field(event, LttngEventFilter.TIMESTAMP), key=attrgetter('timestamp'))
+                    if index == 0:
+                        return addr
+                    else:
+                        return remapping_info_list[index - 1].remapped_id
+            return addr
         else:
             return addr
