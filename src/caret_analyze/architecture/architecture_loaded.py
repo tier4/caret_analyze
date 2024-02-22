@@ -54,6 +54,7 @@ logger = getLogger(__name__)
 
 MAX_CONSTRUCTION_ORDER = 10
 
+
 def indexed_name(base_name: str, i: int, num_digit: int):
     index_str = str(i).zfill(num_digit)
     return f'{base_name}_{index_str}'
@@ -70,7 +71,7 @@ class ArchitectureLoaded():
         topic_ignored_reader = TopicIgnoredReader(reader, ignore_topics)
 
         self._nodes: list[NodeStruct]
-        nodes_loaded = NodeValuesLoaded(topic_ignored_reader, 
+        nodes_loaded = NodeValuesLoaded(topic_ignored_reader,
                                         max_construction_order=max_construction_order)
 
         self._nodes = nodes_loaded.data
@@ -295,9 +296,11 @@ class NodeValuesLoaded():
 
         for node in Progress.tqdm(nodes, 'Loading nodes.'):
             try:
-                node, cb_loaded, cbg_loaded = self._create_node(node, 
-                                                                reader, 
-                                                                max_construction_order=max_construction_order)
+                node, cb_loaded, cbg_loaded = self._create_node(
+                    node,
+                    reader,
+                    max_construction_order=max_construction_order
+                )
                 nodes_struct.append(node)
                 self._cb_loaded.append(cb_loaded)
                 self._cbg_loaded.append(cbg_loaded)
@@ -484,9 +487,11 @@ class NodeValuesLoaded():
 
         try:
             node_paths = \
-                    NodeValuesLoaded._search_node_paths(node_struct, 
-                                                        reader, 
-                                                        max_construction_order=max_construction_order)
+                    NodeValuesLoaded._search_node_paths(
+                        node_struct,
+                        reader,
+                        max_construction_order=max_construction_order
+                    )
             node_path_added = NodeStruct(
                 node_struct.node_name, node_struct.publishers,
                 node_struct.subscriptions,
@@ -1614,9 +1619,9 @@ class CallbackPathSearched():
             for write_callback, read_callback in product(callbacks, callbacks):
                 if max_construction_order != 0:
                     if write_callback.construction_order > max_construction_order or \
-                        read_callback.construction_order > max_construction_order:
-                            skip_nodes.append(node.node_name)
-                            continue
+                            read_callback.construction_order > max_construction_order:
+                        skip_nodes.append(node.node_name)
+                        continue
                 searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
                     msg = 'Path Added: '
