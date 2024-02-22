@@ -18,6 +18,7 @@ from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
                                                             CallbacksLoaded,
                                                             CommValuesLoaded,
                                                             ExecutorValuesLoaded,
+                                                            MAX_CONSTRUCTION_ORDER,
                                                             NodePathCreated,
                                                             NodeValuesLoaded,
                                                             PathValuesLoaded,
@@ -237,7 +238,11 @@ class TestNodesInfoLoaded():
         mocker.patch.object(
             reader_mock, 'get_nodes', return_value=[node_b, node_c, node_a])
 
-        def create_node(node, reader):
+        def create_node(
+            node,
+            reader,
+            max_construction_order: int = MAX_CONSTRUCTION_ORDER
+        ):
             node_mock = mocker.Mock(spec=NodeStruct)
             cb_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
             cbg_loaded_mock = mocker.Mock(spec=CallbackGroupsLoaded)
@@ -713,6 +718,7 @@ class TestNodePathLoaded:
 
     def test_full(self, mocker):
         searcher_mock = mocker.Mock(spec=CallbackPathSearcher)
+        searcher_mock.max_construction_order = MAX_CONSTRUCTION_ORDER
         mocker.patch('caret_analyze.architecture.graph_search.CallbackPathSearcher',
                      return_value=searcher_mock)
 

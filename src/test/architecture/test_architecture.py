@@ -21,7 +21,7 @@ from logging import WARNING
 from string import Template
 
 from caret_analyze.architecture import Architecture
-from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded, MAX_CONSTRUCTION_ORDER
+from caret_analyze.architecture.architecture_loaded import ArchitectureLoaded
 from caret_analyze.architecture.architecture_reader_factory import \
     ArchitectureReaderFactory
 from caret_analyze.architecture.graph_search import NodePathSearcher
@@ -131,13 +131,11 @@ def create_arch(mocker):
 def create_node(
     create_publisher: Callable[[str, str], PublisherStructValue],
     create_subscription: Callable[[str, str], SubscriptionStructValue],
-    max_construction_order: int = MAX_CONSTRUCTION_ORDER
 ):
     def _create_node(
         node_name: str,
         sub_topic_name: str | None,
         pub_topic_name: str | None,
-        max_construction_order: int = MAX_CONSTRUCTION_ORDER
     ) -> NodeStructValue:
         pubs: tuple[PublisherStructValue, ...]
         subs: tuple[SubscriptionStructValue, ...]
