@@ -11,17 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from __future__ import annotations
 
+import inspect
+
+from collections.abc import Collection
 from functools import wraps
 from inspect import Signature, signature
 from re import findall
 from typing import Any
-from collections.abc import Collection
-
 
 from ..exceptions import UnsupportedTypeError
+
+
 
 
 try:
@@ -191,7 +193,7 @@ try:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
 
         return given_arg_type_str
-    
+
     def _parse_collection_or_unpack(
         target_arg: tuple[Collection[Any]] | tuple[Any, ...]
     ) -> list[Any]:
@@ -212,14 +214,12 @@ try:
 
         """
         parsed_target_objects: list[Any]
-        if isinstance(target_arg[0], Collection) and len(target_arg) == 1:
-            # assert len(target_arg) == 1
+        if isinstance(target_arg[0], Collection):
+            assert len(target_arg) == 1
             parsed_target_objects = list(target_arg[0])
         else:  # Unpacked case
             parsed_target_objects = list(target_arg)  # type: ignore
-
         return parsed_target_objects
-
 
     def decorator(func):
         validate_arguments_wrapper = \
@@ -228,7 +228,10 @@ try:
         @wraps(func)
         def _custom_wrapper(*args, **kwargs):
             try:
-                args = _parse_collection_or_unpack(args)
+                # Checks whether the arguments of a given func have variable length arguments
+                check_exist_varargs= inspect.getfullargspec(func)
+                if check_exist_varargs.varargs is not None:
+                    args = _parse_collection_or_unpack(args)
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
                 expected_types = _get_expected_types(e, signature(func))

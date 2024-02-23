@@ -20,7 +20,6 @@ from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
 from .histogram_plot import HistogramPlot
 from ..visualize_lib import VisualizeLibInterface
-from ...common import type_check_decorator
 from ...exceptions import UnsupportedTypeError
 from ...runtime import CallbackBase, Communication, Path, Publisher, Subscription
 
@@ -32,7 +31,6 @@ class HistogramPlotFactory:
     """Factory class to create an instance of HistogramPlot."""
 
     @staticmethod
-    @type_check_decorator
     def create_instance(
         target_objects: Sequence[HistTypes],
         metrics_name: str,

@@ -18,7 +18,6 @@ from collections.abc import Sequence
 
 from .callback_scheduling_plot import CallbackSchedulingPlot
 from ..visualize_lib import VisualizeLibInterface
-from ...common import type_check_decorator
 from ...runtime import Application, CallbackGroup, Executor, Node, Path
 
 CallbackGroupTypes = (Application | Executor | Path | Node |
@@ -29,7 +28,6 @@ class CallbackSchedulingPlotFactory:
     """Factory class to create an instance of CallbackSchedulingPlot."""
 
     @staticmethod
-    @type_check_decorator
     def create_instance(
         target_objects: CallbackGroupTypes,
         visualize_lib: VisualizeLibInterface,

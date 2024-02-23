@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from .message_flow_plot import MessageFlowPlot
 from ..visualize_lib import VisualizeLibInterface
-from ...common import type_check_decorator
 from ...exceptions import InvalidArgumentError
 from ...runtime import Path
 
@@ -25,7 +24,6 @@ class MessageFlowPlotFactory:
     """Factory class to create an instance of MessageFlowPlot."""
 
     @staticmethod
-    @type_check_decorator
     def create_instance(
         target_path: Path,
         visualize_lib: VisualizeLibInterface,
