@@ -65,8 +65,6 @@ class TimeSeriesPlotFactory:
             Argument metrics is not "frequency", "latency", "period", or "response_time".
 
         """
-        print(target_objects)
-        print(type(target_objects))
         metrics_: MetricsBase
         PlotTypes = (CallbackBase, Communication, Publisher, Subscription)
         if metrics == 'frequency':
