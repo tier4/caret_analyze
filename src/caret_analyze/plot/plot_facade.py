@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection, Sequence
+from collections.abc import Sequence
 from logging import getLogger
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
