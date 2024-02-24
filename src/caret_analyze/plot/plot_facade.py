@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 from logging import getLogger
 
 from .callback_scheduling import CallbackSchedulingPlot, CallbackSchedulingPlotFactory
@@ -30,8 +30,9 @@ from ..runtime import (Application, CallbackBase, CallbackGroup, Communication, 
 
 logger = getLogger(__name__)
 
-CallbackSchedTypes = (Application | Executor | Path |
-                      Node | CallbackGroup | Collection[CallbackGroup])
+
+CallbackGroupTypes = (Application | Executor | Path | Node |
+                      CallbackGroup | Sequence[CallbackGroup])
 
 
 class Plot:
@@ -173,7 +174,7 @@ class Plot:
     @staticmethod
     @type_check_decorator
     def create_callback_scheduling_plot(
-        target_objects: CallbackSchedTypes,
+        target_objects: CallbackGroupTypes,
         lstrip_s: float = 0,
         rstrip_s: float = 0
     ) -> CallbackSchedulingPlot:
@@ -182,9 +183,9 @@ class Plot:
 
         Parameters
         ----------
-        target_objects : CallbackSchedTypes
-            CallbackSchedTypes = (Application | Executor | Path | Node |
-                                  CallbackGroup | Collection[CallbackGroup])
+        target_objects : CallbackGroupTypes
+            CallbackGroupTypes = (Application | Executor | Path | Node |
+                                  CallbackGroup | Sequence[CallbackGroup])
             Instances that are the sources of the plotting.
         lstrip_s : float, optional
             Start time of cropping range, 0 by default.

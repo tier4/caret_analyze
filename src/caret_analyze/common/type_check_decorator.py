@@ -13,18 +13,16 @@
 # limitations under the License.
 from __future__ import annotations
 
-import inspect
-
 from collections.abc import Collection
 from functools import wraps
+
+import inspect
+
 from inspect import Signature, signature
 from re import findall
 from typing import Any
 
 from ..exceptions import UnsupportedTypeError
-
-
-
 
 try:
     from pydantic import ValidationError
@@ -229,7 +227,7 @@ try:
         def _custom_wrapper(*args, **kwargs):
             try:
                 # Checks whether the arguments of a given func have variable length arguments
-                check_exist_varargs= inspect.getfullargspec(func)
+                check_exist_varargs = inspect.getfullargspec(func)
                 if check_exist_varargs.varargs is not None:
                     args = _parse_collection_or_unpack(args)
                 return validate_arguments_wrapper(*args, **kwargs)
