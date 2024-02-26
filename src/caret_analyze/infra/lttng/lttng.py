@@ -382,9 +382,22 @@ class Lttng(InfraBase):
 
             # distribute all trace events to init_events and run_events
             init_event_names = set(Lttng._prioritized_init_events)
+            from collections import defaultdict
+            list_construct_executor: dict = {}
+            list_callback_group: dict = {}
             for event in event_collection:
                 event_name = event[LttngEventFilter.NAME]
                 if event_name in init_event_names:
+                    if event_name == 'ros2_caret:construct_executor':
+                        event_addr = event['executor_addr']
+                        list_construct_executor[event_addr] = list_construct_executor.get(event_addr, 0) + 1
+                        if list_construct_executor[event_addr] > 10:
+                            continue
+                    if event_name == 'ros2_caret:add_callback_group':
+                        event_addr = event['callback_group_addr']
+                        list_callback_group[event_addr] = list_callback_group.get(event_addr, 0) + 1
+                        if list_callback_group[event_addr] > 10:
+                            continue
                     init_events.append(event)
                 else:
                     run_events.append(event)
