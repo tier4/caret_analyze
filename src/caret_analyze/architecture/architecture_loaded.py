@@ -52,8 +52,6 @@ from ..value_objects import (CallbackGroupValue,
 
 logger = getLogger(__name__)
 
-MAX_CONSTRUCTION_ORDER = 10
-
 
 def indexed_name(base_name: str, i: int, num_digit: int):
     index_str = str(i).zfill(num_digit)
@@ -65,14 +63,14 @@ class ArchitectureLoaded():
         self,
         reader: ArchitectureReader,
         ignore_topics: list[str],
-        max_construction_order: int = MAX_CONSTRUCTION_ORDER
+        max_construction_order: int
     ) -> None:
 
         topic_ignored_reader = TopicIgnoredReader(reader, ignore_topics)
 
         self._nodes: list[NodeStruct]
         nodes_loaded = NodeValuesLoaded(topic_ignored_reader,
-                                        max_construction_order=max_construction_order)
+                                        max_construction_order)
 
         self._nodes = nodes_loaded.data
 
@@ -278,7 +276,7 @@ class NodeValuesLoaded():
     def __init__(
         self,
         reader: ArchitectureReader,
-        max_construction_order: int = MAX_CONSTRUCTION_ORDER
+        max_construction_order: int
     ) -> None:
         self._reader = reader
         nodes_struct: list[NodeStruct] = []
@@ -299,7 +297,7 @@ class NodeValuesLoaded():
                 node, cb_loaded, cbg_loaded = self._create_node(
                     node,
                     reader,
-                    max_construction_order=max_construction_order
+                    max_construction_order
                 )
                 nodes_struct.append(node)
                 self._cb_loaded.append(cb_loaded)
@@ -455,7 +453,7 @@ class NodeValuesLoaded():
     def _create_node(
         node: NodeValue,
         reader: ArchitectureReader,
-        max_construction_order: int = MAX_CONSTRUCTION_ORDER
+        max_construction_order: int
     ) -> tuple[NodeStruct, CallbacksLoaded, CallbackGroupsLoaded]:
 
         callbacks_loaded = CallbacksLoaded(reader, node)
@@ -490,7 +488,7 @@ class NodeValuesLoaded():
                     NodeValuesLoaded._search_node_paths(
                         node_struct,
                         reader,
-                        max_construction_order=max_construction_order
+                        max_construction_order
                     )
             node_path_added = NodeStruct(
                 node_struct.node_name, node_struct.publishers,
@@ -512,7 +510,7 @@ class NodeValuesLoaded():
     def _search_node_paths(
         node: NodeStruct,
         reader: ArchitectureReader,
-        max_construction_order: int = MAX_CONSTRUCTION_ORDER
+        max_construction_order: int
     ) -> list[NodePathStruct]:
 
         node_paths: list[NodePathStruct] = []
@@ -1604,7 +1602,7 @@ class CallbackPathSearched():
     def __init__(
         self,
         node: NodeStruct,
-        max_construction_order: int = MAX_CONSTRUCTION_ORDER
+        max_construction_order: int
     ) -> None:
         from .graph_search import CallbackPathSearcher
         self._data: list[NodePathStruct]

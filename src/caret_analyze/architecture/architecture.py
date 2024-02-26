@@ -18,7 +18,7 @@ from collections.abc import Callable, Collection, Sequence
 import logging
 
 from .architecture_exporter import ArchitectureExporter
-from .architecture_loaded import MAX_CONSTRUCTION_ORDER, NodeValuesLoaded
+from .architecture_loaded import NodeValuesLoaded
 from .combine_path import CombinePath
 
 from .reader_interface import ArchitectureReader, IGNORE_TOPICS
@@ -42,19 +42,19 @@ class Architecture(Summarizable):
         self,
         file_type: str,
         file_path: str,
-        max_construction_order: int = MAX_CONSTRUCTION_ORDER
+        max_construction_order: int = 10
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
+
+        self._max_construction_order = max_construction_order
 
         # /parameter events and /rosout measurements are not yet supported.
         ignore_topics: list[str] = IGNORE_TOPICS
 
         reader = ArchitectureReaderFactory.create_instance(
             file_type, file_path)
-        loaded = ArchitectureLoaded(reader,
-                                    ignore_topics,
-                                    max_construction_order=max_construction_order)
+        loaded = ArchitectureLoaded(reader, ignore_topics, max_construction_order)
 
         self._nodes: list[NodeStruct] = loaded.nodes
         self._communications: list[CommunicationStruct] = loaded.communications
@@ -386,7 +386,10 @@ class Architecture(Summarizable):
         context_reader = AssignContextReader(node)
         context_reader.update_message_context(context_type,
                                               subscribe_topic_name, publish_topic_name)
-        node.update_node_path(NodeValuesLoaded._search_node_paths(node, context_reader))
+        node.update_node_path(NodeValuesLoaded._search_node_paths(
+                                                    node,
+                                                    context_reader,
+                                                    self._max_construction_order))
 
     def insert_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
@@ -408,7 +411,7 @@ class Architecture(Summarizable):
         node.insert_publisher_callback(publish_topic_name, callback_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
+                              AssignContextReader(node), self._max_construction_order))
 
     def insert_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
@@ -430,7 +433,7 @@ class Architecture(Summarizable):
         node.insert_variable_passing(callback_name_write, callback_name_read)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
+                              AssignContextReader(node), self._max_construction_order))
 
     def remove_publisher_callback(self, node_name: str,
                                   publish_topic_name: str, callback_name: str) -> None:
@@ -452,7 +455,7 @@ class Architecture(Summarizable):
         node.remove_publisher_and_callback(publish_topic_name, callback_name)
 
         node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                              AssignContextReader(node)))
+                              AssignContextReader(node), self._max_construction_order))
 
     def remove_variable_passing(self, node_name: str,
                                 callback_name_write: str, callback_name_read: str) -> None:
@@ -486,7 +489,7 @@ class Architecture(Summarizable):
                                                          publish_topic_name)
 
             node.update_node_path(NodeValuesLoaded._search_node_paths(node,
-                                  context_reader))
+                                  context_reader, self._max_construction_order))
 
     def rename_callback(self, src: str, dst: str) -> None:
         """

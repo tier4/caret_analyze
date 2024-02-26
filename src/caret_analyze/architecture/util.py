@@ -39,7 +39,7 @@ def check_procedure(
     reader = ArchitectureReaderFactory.create_instance(file_type, file_path)
     node = Util.find_one(lambda x: x.node_name == node_name, app_arch._nodes)
 
-    paths = NodeValuesLoaded._search_node_paths(node, reader)
+    paths = NodeValuesLoaded._search_node_paths(node, reader, app_arch._max_construction_order)
 
     root_logger.removeHandler(handler)
     return tuple(v.to_value() for v in paths)
