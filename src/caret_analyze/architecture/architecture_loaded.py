@@ -63,14 +63,14 @@ class ArchitectureLoaded():
         self,
         reader: ArchitectureReader,
         ignore_topics: list[str],
-        max_construction_order: int
+        max_callback_construction_order_on_path_searching: int
     ) -> None:
 
         topic_ignored_reader = TopicIgnoredReader(reader, ignore_topics)
 
         self._nodes: list[NodeStruct]
         nodes_loaded = NodeValuesLoaded(topic_ignored_reader,
-                                        max_construction_order)
+                                        max_callback_construction_order_on_path_searching)
 
         self._nodes = nodes_loaded.data
 
@@ -276,7 +276,7 @@ class NodeValuesLoaded():
     def __init__(
         self,
         reader: ArchitectureReader,
-        max_construction_order: int
+        max_callback_construction_order_on_path_searching: int
     ) -> None:
         self._reader = reader
         nodes_struct: list[NodeStruct] = []
@@ -297,7 +297,7 @@ class NodeValuesLoaded():
                 node, cb_loaded, cbg_loaded = self._create_node(
                     node,
                     reader,
-                    max_construction_order
+                    max_callback_construction_order_on_path_searching
                 )
                 nodes_struct.append(node)
                 self._cb_loaded.append(cb_loaded)
@@ -453,7 +453,7 @@ class NodeValuesLoaded():
     def _create_node(
         node: NodeValue,
         reader: ArchitectureReader,
-        max_construction_order: int
+        max_callback_construction_order_on_path_searching: int
     ) -> tuple[NodeStruct, CallbacksLoaded, CallbackGroupsLoaded]:
 
         callbacks_loaded = CallbacksLoaded(reader, node)
@@ -488,7 +488,7 @@ class NodeValuesLoaded():
                     NodeValuesLoaded._search_node_paths(
                         node_struct,
                         reader,
-                        max_construction_order
+                        max_callback_construction_order_on_path_searching
                     )
             node_path_added = NodeStruct(
                 node_struct.node_name, node_struct.publishers,
@@ -510,14 +510,14 @@ class NodeValuesLoaded():
     def _search_node_paths(
         node: NodeStruct,
         reader: ArchitectureReader,
-        max_construction_order: int
+        max_callback_construction_order: int
     ) -> list[NodePathStruct]:
 
         node_paths: list[NodePathStruct] = []
 
         # add callback-graph paths
         logger.info('[callback_chain]')
-        node_paths += list(CallbackPathSearched(node, max_construction_order).data)
+        node_paths += list(CallbackPathSearched(node, max_callback_construction_order).data)
 
         # add pub-sub pair graph paths
         logger.info('\n[pub-sub pair]')
@@ -1602,7 +1602,7 @@ class CallbackPathSearched():
     def __init__(
         self,
         node: NodeStruct,
-        max_construction_order: int
+        max_callback_construction_order_on_path_searching: int
     ) -> None:
         from .graph_search import CallbackPathSearcher
         self._data: list[NodePathStruct]
@@ -1615,9 +1615,11 @@ class CallbackPathSearched():
         if callbacks is not None:
             skip_nodes = []
             for write_callback, read_callback in product(callbacks, callbacks):
-                if max_construction_order != 0:
-                    if write_callback.construction_order > max_construction_order or \
-                            read_callback.construction_order > max_construction_order:
+                if max_callback_construction_order_on_path_searching != 0:
+                    if (write_callback.construction_order >
+                            max_callback_construction_order_on_path_searching or
+                            read_callback.construction_order >
+                            max_callback_construction_order_on_path_searching):
                         skip_nodes.append(node.node_name)
                         continue
                 searched_paths = searcher.search(write_callback, read_callback, node)
@@ -1633,7 +1635,8 @@ class CallbackPathSearched():
             skip_node_counts = Counter(skip_nodes)
             for name, count in skip_node_counts.items():
                 logger.warn(f'skip due to callback construction_order over'
-                            f'({max_construction_order}): {name} ({count})')
+                            f'({max_callback_construction_order_on_path_searching})'
+                            f': {name} ({count})')
 
         self._data = paths
 

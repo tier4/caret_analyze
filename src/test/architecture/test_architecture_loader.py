@@ -240,7 +240,7 @@ class TestNodesInfoLoaded():
         def create_node(
             node,
             reader,
-            max_construction_order: int
+            max_callback_construction_order_on_path_searching: int
         ):
             node_mock = mocker.Mock(spec=NodeStruct)
             cb_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
