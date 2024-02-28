@@ -130,12 +130,12 @@ def create_arch(mocker):
 @pytest.fixture
 def create_node(
     create_publisher: Callable[[str, str], PublisherStructValue],
-    create_subscription: Callable[[str, str], SubscriptionStructValue],
+    create_subscription: Callable[[str, str], SubscriptionStructValue]
 ):
     def _create_node(
         node_name: str,
         sub_topic_name: str | None,
-        pub_topic_name: str | None,
+        pub_topic_name: str | None
     ) -> NodeStructValue:
         pubs: tuple[PublisherStructValue, ...]
         subs: tuple[SubscriptionStructValue, ...]

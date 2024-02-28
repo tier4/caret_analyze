@@ -1613,14 +1613,20 @@ class CallbackPathSearched():
         paths: list[NodePathStruct] = []
 
         if callbacks is not None:
-            skip_nodes = []
+            skip_count = 0
+            import sys
+            construction_order = {'min': sys.maxsize, 'max': 0}
             for write_callback, read_callback in product(callbacks, callbacks):
                 if max_callback_construction_order_on_path_searching != 0:
                     if (write_callback.construction_order >
                             max_callback_construction_order_on_path_searching or
                             read_callback.construction_order >
                             max_callback_construction_order_on_path_searching):
-                        skip_nodes.append(node.node_name)
+                        skip_count += 1
+                        construction_order['min'] = min(construction_order['min'],
+                                                        write_callback.construction_order)
+                        construction_order['max'] = max(construction_order['max'],
+                                                        write_callback.construction_order)
                         continue
                 searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
@@ -1631,12 +1637,14 @@ class CallbackPathSearched():
                     logger.info(msg)
                 paths += searched_paths
 
-            from collections import Counter
-            skip_node_counts = Counter(skip_nodes)
-            for name, count in skip_node_counts.items():
-                logger.warn(f'skip due to callback construction_order over'
-                            f'({max_callback_construction_order_on_path_searching})'
-                            f': {name} ({count})')
+            if skip_count:
+                logger.warn(
+                    f'contains callbacks whose construction_order are greater than'
+                    f' ({max_callback_construction_order_on_path_searching})'
+                    f': {node.node_name} ({skip_count=})'
+                    f' construction_order'
+                    f' ({construction_order["min"]} - {construction_order["max"]})'
+                )
 
         self._data = paths
 

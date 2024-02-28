@@ -36,13 +36,16 @@ from ..value_objects.node import DiffNode
 
 logger = logging.getLogger(__name__)
 
+MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING = 10
+
 
 class Architecture(Summarizable):
     def __init__(
         self,
         file_type: str,
         file_path: str,
-        max_callback_construction_order_on_path_searching: int = 10
+        max_callback_construction_order_on_path_searching: int =
+            MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded
