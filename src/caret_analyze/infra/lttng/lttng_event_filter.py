@@ -44,9 +44,36 @@ class LttngEventFilter(metaclass=ABCMeta):
     def init_pass_filter() -> LttngEventFilter:
         return InitEventPassFilter()
 
+    @staticmethod
+    def same_address_filter(max_count: int) -> LttngEventFilter:
+        return SameAddressFilter(max_count)
+
     @abstractmethod
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
         pass
+
+
+class SameAddressFilter(LttngEventFilter):
+    def __init__(self, max_count: int) -> None:
+        self._max_count = max_count
+        self._list_construct_executor: dict = {}
+        self._list_callback_group: dict = {}
+
+    def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
+        event_name = event[self.NAME]
+        if event_name == 'ros2_caret:construct_executor':
+            event_addr = event['executor_addr']
+            self._list_construct_executor[event_addr] = self._list_construct_executor.get(event_addr, 0) + 1
+            if self._list_construct_executor[event_addr] > self._max_count:
+                return False
+            return True
+        if event_name == 'ros2_caret:add_callback_group':
+            event_addr = event['callback_group_addr']
+            self._list_callback_group[event_addr] = self._list_callback_group.get(event_addr, 0) + 1
+            if self._list_callback_group[event_addr] > self._max_count:
+                return False
+            return True
+        return True
 
 
 class InitEventPassFilter(LttngEventFilter):
