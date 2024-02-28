@@ -333,7 +333,8 @@ class Lttng(InfraBase):
         modified_event_filters = []
         if event_filters:
             modified_event_filters = event_filters.copy()
-        if len(list(filter(lambda f: isinstance(f, SameAddressFilter), modified_event_filters))) == 0:
+        if len(list(filter(lambda f: isinstance(f, SameAddressFilter),
+                           modified_event_filters))) == 0:
             modified_event_filters.append(LttngEventFilter.same_address_filter(10))
 
         data, events, begin, end = self._parse_lttng_data(

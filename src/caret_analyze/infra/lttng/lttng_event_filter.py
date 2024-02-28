@@ -54,6 +54,7 @@ class LttngEventFilter(metaclass=ABCMeta):
 
 
 class SameAddressFilter(LttngEventFilter):
+
     def __init__(self, max_count: int) -> None:
         self._max_count = max_count
         self._list_construct_executor: dict = {}
@@ -63,13 +64,15 @@ class SameAddressFilter(LttngEventFilter):
         event_name = event[self.NAME]
         if event_name == 'ros2_caret:construct_executor':
             event_addr = event['executor_addr']
-            self._list_construct_executor[event_addr] = self._list_construct_executor.get(event_addr, 0) + 1
+            self._list_construct_executor[event_addr] = \
+                self._list_construct_executor.get(event_addr, 0) + 1
             if self._list_construct_executor[event_addr] > self._max_count:
                 return False
             return True
         if event_name == 'ros2_caret:add_callback_group':
             event_addr = event['callback_group_addr']
-            self._list_callback_group[event_addr] = self._list_callback_group.get(event_addr, 0) + 1
+            self._list_callback_group[event_addr] = \
+                self._list_callback_group.get(event_addr, 0) + 1
             if self._list_callback_group[event_addr] > self._max_count:
                 return False
             return True
