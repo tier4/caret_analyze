@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ class LegendManager:
     def add_legend(
         self,
         target_object: Any,
-        renderer: GlyphRenderer,
+        renderer: GlyphRenderer | list[GlyphRenderer],
         legend_word: str | None = None,
     ) -> None:
         """
@@ -58,7 +58,9 @@ class LegendManager:
 
         """
         label = self.get_label(target_object, legend_word)
-        self._legend_items.append((label, [renderer]))
+        if not isinstance(renderer, list):
+            renderer = [renderer]
+        self._legend_items.append((label, renderer))
         self._legend[target_object] = label
 
     def create_legends(
