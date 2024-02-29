@@ -129,7 +129,7 @@ class IDRemapper():
                 min_distance_item = list_search[0]
                 for item in list_search:
                     distance = abs(item.timestamp - timestamp)
-                    if min_distance is None or min_distance > distance:
+                    if min_distance > distance:
                         min_distance = distance
                         min_distance_item = item
                 return min_distance_item.remapped_id

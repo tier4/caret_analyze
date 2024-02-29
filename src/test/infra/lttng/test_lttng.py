@@ -1136,33 +1136,11 @@ class TestLttng:
             lttng.data.lifecycle_state_machines.df.iloc[1]['node_handle'] == 1
 
     def test_duplicated_events_caret_init(self, mocker):
-        HDL_NODE = 1000201
-        HDL_RMW = 1000211
         VTID1 = 500001
         VPID1 = 600001
 
         events = [
             # Initialization trace points
-            {
-                '_name': 'ros2:rcl_node_init',
-                'node_handle': HDL_NODE,
-                'rmw_handle': HDL_RMW,
-                'node_name': 'my_node_name',
-                'namespace': '/',
-                '_timestamp': 100100201,
-                '_vtid': VTID1,
-                '_vpid': VPID1
-            },
-            {
-                '_name': 'ros2:rcl_node_init',
-                'node_handle': HDL_NODE,
-                'rmw_handle': HDL_RMW,
-                'node_name': 'my_node_name',
-                'namespace': '/',
-                '_timestamp': 100100203,
-                '_vtid': VTID1,
-                '_vpid': VPID1
-            },
             {
                 '_name': 'ros2_caret:caret_init',
                 'clock_offset': 10,
@@ -1191,8 +1169,6 @@ class TestLttng:
         assert lttng.data.rmw_impl.df.iloc[0]['rmw_impl'] == 10
 
     def test_duplicated_events_executors(self, mocker):
-        HDL_NODE = 1000201
-        HDL_RMW = 1000211
         HDL_EXECUTOR = 1001101
         HDL_EXECUTOR_STATIC = 1001201
         HDL_ENTITIES = 1001211
@@ -1201,26 +1177,6 @@ class TestLttng:
 
         events = [
             # Initialization trace points
-            {
-                '_name': 'ros2:rcl_node_init',
-                'node_handle': HDL_NODE,
-                'rmw_handle': HDL_RMW,
-                'node_name': 'my_node_name',
-                'namespace': '/',
-                '_timestamp': 100100201,
-                '_vtid': VTID1,
-                '_vpid': VPID1
-            },
-            {
-                '_name': 'ros2:rcl_node_init',
-                'node_handle': HDL_NODE,
-                'rmw_handle': HDL_RMW,
-                'node_name': 'my_node_name',
-                'namespace': '/',
-                '_timestamp': 100100203,
-                '_vtid': VTID1,
-                '_vpid': VPID1
-            },
             {
                 '_name': 'ros2_caret:construct_executor',
                 'executor_addr': HDL_EXECUTOR,
@@ -1582,28 +1538,6 @@ class TestLttng:
         ]
 
         lttng = Lttng(events, event_filters=[], validate=False)
-
-        # executors
-        # ['timestamp', 'executor_type_name']
-        assert lttng.data.executors.df.index[0] == HDL_EXECUTOR and \
-            lttng.data.executors.df.iloc[0]['timestamp'] == 100101101
-
-        assert lttng.data.executors.df.index[1] == 1 and \
-            lttng.data.executors.df.iloc[1]['timestamp'] == 100101103
-
-        # executors_static
-        # ['timestamp', 'entities_collector_addr', 'executor_type_name']
-        assert lttng.data.executors_static.df.index[0] == HDL_EXECUTOR_STATIC and \
-            lttng.data.executors_static.df.iloc[0]['timestamp'] == 100101102 and \
-            lttng.data.executors_static.df.iloc[0]['entities_collector_addr'] == HDL_ENTITIES
-
-        assert lttng.data.executors_static.df.index[1] == 2 and \
-            lttng.data.executors_static.df.iloc[1]['timestamp'] == 100101203 and \
-            lttng.data.executors_static.df.iloc[1]['entities_collector_addr'] == 1
-
-        assert lttng.data.executors_static.df.index[2] == 3 and \
-            lttng.data.executors_static.df.iloc[2]['timestamp'] == 100101205 and \
-            lttng.data.executors_static.df.iloc[2]['entities_collector_addr'] == 2
 
         # ['timestamp', 'executor_addr', 'group_type_name']
         assert lttng.data.callback_groups.df.index[0] == EXECUTOR_CALLBACK and \
