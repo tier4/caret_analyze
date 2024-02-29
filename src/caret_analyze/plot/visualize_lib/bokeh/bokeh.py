@@ -1,4 +1,4 @@
-# Copyright 2021 Research Institute of Systems Planning, Inc.
+# Copyright 2021 TIER IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ from bokeh.plotting import figure as Figure
 
 from caret_analyze.record import Frequency, Latency, Period, ResponseTime
 
+import numpy as np
 from numpy import histogram
 
 from .callback_scheduling import BokehCallbackSched
@@ -256,31 +257,52 @@ class Bokeh(VisualizeLibInterface):
                 if not isinstance(m, ResponseTime)
             ]
 
-        color_selector = ColorSelectorFactory.create_instance('unique')
-
         if data_type in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
 
-        max_value = max(
-            max([max_len for max_len in data_list if len(max_len)], key=lambda x: max(x))
-            )
-        min_value = min(
-            min([min_len for min_len in data_list if len(min_len)], key=lambda x: min(x))
-            )
+        filled_data_list = [data for data in data_list if len(data)]
+        if len(filled_data_list) != 0:
+            max_value = max(max(filled_data_list, key=lambda x: max(x)))
+            min_value = min(min(filled_data_list, key=lambda x: min(x)))
+            data_range = (min_value, max_value)
+        else:
+            data_range = None
 
-        for hist_type, target_object in zip(data_list, target_objects):
-            hist, bins = histogram(hist_type, 20, (min_value, max_value), density=False)
-            quad = plot.quad(top=hist, bottom=0,
-                             left=bins[:-1], right=bins[1:],
-                             line_color='white', alpha=0.5,
-                             color=color_selector.get_color())
-            legend_manager.add_legend(target_object, quad)
-            hover = HoverTool(
-                tooltips=[(x_label, '@left'), ('The number of samples', '@top')], renderers=[quad]
-                )
-            plot.add_tools(hover)
+        hists = []
+
+        for hist_type in data_list:
+            hist, bins = histogram(hist_type, 20, data_range, density=False)
+            hists.append(hist)
+
+        hists_t = np.array(hists).T
+
+        color_selector = ColorSelectorFactory.create_instance('unique')
+        colors = [color_selector.get_color() for _ in target_objects]
+
+        quad_dicts: dict = {t: [] for t in target_objects}
+
+        for i, h in enumerate(hists_t):
+            data = list(zip(h, colors, target_objects))
+            data.sort(key=lambda x: x[0], reverse=True)
+            for top, color, target_object in data:
+                if top == 0:
+                    continue
+                quad = plot.quad(
+                    top=top, bottom=0, left=bins[i], right=bins[i+1],
+                    color=color, alpha=1, line_color='white'
+                    )
+                hover = HoverTool(
+                    tooltips=[(x_label, f'{bins[i]}'), ('The number of samples', f'{top}')],
+                    renderers=[quad]
+                    )
+                plot.add_tools(hover)
+                quad_dicts[target_object] = quad_dicts[target_object] + [quad]
+
+        for target_object_key, quad_value in quad_dicts.items():
+            legend_manager.add_legend(target_object_key, quad_value)
 
         legends = legend_manager.create_legends(20, False, location='top_right', separate=20)
         for legend in legends:
             plot.add_layout(legend, 'right')
+            plot.legend.click_policy = 'hide'
         return plot
