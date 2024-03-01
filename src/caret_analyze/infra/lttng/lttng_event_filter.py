@@ -55,6 +55,7 @@ class LttngEventFilter(metaclass=ABCMeta):
     def reset(self) -> None:
         pass
 
+
 class SameAddressFilter(LttngEventFilter):
 
     def __init__(self, max_count: int) -> None:
@@ -84,6 +85,7 @@ class SameAddressFilter(LttngEventFilter):
         super().reset()
         self._list_construct_executor.clear()
         self._list_callback_group.clear()
+
 
 class InitEventPassFilter(LttngEventFilter):
 
