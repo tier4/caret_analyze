@@ -1614,17 +1614,16 @@ class CallbackPathSearched():
 
         if callbacks is not None:
             skip_count = 0
-            import sys
-            construction_order = {'min': sys.maxsize, 'max': 0}
+            max_ignored_construction_order = 0
             for write_callback, read_callback in product(callbacks, callbacks):
                 if max_callback_construction_order != 0:
                     if write_callback.construction_order > max_callback_construction_order or \
                        read_callback.construction_order > max_callback_construction_order:
                         skip_count += 1
-                        construction_order['min'] = min(construction_order['min'],
-                                                        write_callback.construction_order)
-                        construction_order['max'] = max(construction_order['max'],
-                                                        write_callback.construction_order)
+                        max_ignored_construction_order = max(
+                            max_ignored_construction_order,
+                            write_callback.construction_order
+                        )
                         continue
                 searched_paths = searcher.search(write_callback, read_callback, node)
                 for path in searched_paths:
@@ -1641,7 +1640,7 @@ class CallbackPathSearched():
                     f'contains callbacks whose construction_order are greater than '
                     f'{max_callback_construction_order}. '
                     f'{skip_count} paths are ignored as a result. '
-                    f'(max construction_order: {construction_order["max"]})'
+                    f'(max construction_order: {max_ignored_construction_order})'
                 )
 
         self._data = paths
