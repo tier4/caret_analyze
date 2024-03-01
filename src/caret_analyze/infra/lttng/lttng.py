@@ -340,7 +340,7 @@ class Lttng(InfraBase):
         data, events, begin, end = self._parse_lttng_data(
             trace_dir_or_events,
             force_conversion,
-            modified_event_filters or [],
+            modified_event_filters,
             store_events
         )
         self.data = data
@@ -365,6 +365,10 @@ class Lttng(InfraBase):
         events = []
         begin: int
         end: int
+
+        if event_filters:
+            for f in event_filters:
+                f.reset()
 
         # TODO(hsgwa): Same implementation duplicated. Refactoring required.
         if isinstance(trace_dir_or_events, str):

@@ -52,6 +52,8 @@ class LttngEventFilter(metaclass=ABCMeta):
     def accept(self, event: Event, common: LttngEventFilter.Common) -> bool:
         pass
 
+    def reset(self) -> None:
+        pass
 
 class SameAddressFilter(LttngEventFilter):
 
@@ -78,6 +80,10 @@ class SameAddressFilter(LttngEventFilter):
             return True
         return True
 
+    def reset(self) -> None:
+        super().reset()
+        self._list_construct_executor.clear()
+        self._list_callback_group.clear()
 
 class InitEventPassFilter(LttngEventFilter):
 
