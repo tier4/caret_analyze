@@ -36,7 +36,7 @@ from ..value_objects.node import DiffNode
 
 logger = logging.getLogger(__name__)
 
-MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING = 10
+DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING = 10
 
 
 class Architecture(Summarizable):
@@ -45,7 +45,7 @@ class Architecture(Summarizable):
         file_type: str,
         file_path: str,
         max_callback_construction_order_on_path_searching: int =
-            MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
     ) -> None:
         from .architecture_reader_factory import ArchitectureReaderFactory
         from .architecture_loaded import ArchitectureLoaded

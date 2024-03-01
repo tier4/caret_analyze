@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from caret_analyze.architecture.architecture import \
-    MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+    DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from caret_analyze.architecture.architecture_loaded import (ArchitectureLoaded,
                                                             CallbackGroupsLoaded,
                                                             CallbackPathSearched,
@@ -88,7 +88,7 @@ class TestArchitectureLoaded:
         mocker.patch.object(path_loaded, 'data', [])
 
         arch = ArchitectureLoaded(reader_mock, [],
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert len(arch.paths) == 0
         assert len(arch.executors) == 0
         assert len(arch.nodes) == 0
@@ -151,7 +151,7 @@ class TestArchitectureLoaded:
         mocker.patch('caret_analyze.architecture.architecture_loaded.TopicIgnoredReader',
                      return_value=reader_mock)
         arch = ArchitectureLoaded(reader_mock, [],
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert len(arch.paths) == 1
         assert len(arch.executors) == 1
         assert len(arch.nodes) == 1
@@ -173,7 +173,7 @@ class TestNodesInfoLoaded():
             reader_mock, 'get_nodes', return_value=[])
 
         loader = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert len(nodes) == 0
 
@@ -194,7 +194,7 @@ class TestNodesInfoLoaded():
                             return_value=[node])
 
         loader = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert nodes == [node_mock]
 
@@ -214,7 +214,7 @@ class TestNodesInfoLoaded():
                             return_value=[node_a, node_b])
 
         loader = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert len(nodes) == 1
         assert 'Duplicated node name.' in caplog.messages[0]
@@ -227,7 +227,7 @@ class TestNodesInfoLoaded():
                             return_value=[node_a, node_b])
 
         loader = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert len(nodes) == 1
         assert 'Duplicated node id.' in caplog.messages[0]
@@ -260,7 +260,7 @@ class TestNodesInfoLoaded():
                             side_effect=create_node)
 
         loader = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         nodes = loader.data
         assert nodes[0].node_name == 'a'
         assert nodes[1].node_name == 'b'
@@ -306,7 +306,7 @@ class TestNodesInfoLoaded():
         node, _, _ = NodeValuesLoaded._create_node(
             node_value,
             reader_mock,
-            MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
         )
 
         assert node.node_name == 'node'
@@ -409,7 +409,7 @@ class TestNodesInfoLoaded():
         node, _, _ = NodeValuesLoaded._create_node(
             node_value,
             reader_mock,
-            MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
         )
 
         assert node.node_name == 'node'
@@ -441,7 +441,7 @@ class TestNodesInfoLoaded():
                             return_value=[node])
 
         loaded = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert loaded.find_callback('callback_id') == cb_mock
 
         mocker.patch.object(cb_loaded_mock, 'find_callback',
@@ -460,7 +460,7 @@ class TestNodesInfoLoaded():
                             return_value=(node_mock, cb_loaded_mock, cbg_loaded_mock))
 
         nodes_loaded = NodeValuesLoaded(reader_mock,
-                                        MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(Util, 'find_one', return_value=node_mock)
@@ -484,7 +484,7 @@ class TestNodesInfoLoaded():
                             return_value=(node_mock, cb_loaded_mock, cbg_loaded_mock))
 
         nodes_loaded = NodeValuesLoaded(reader_mock,
-                                        MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         mocker.patch.object(nodes_loaded, 'find_node',
                             return_value=node_mock)
@@ -552,7 +552,7 @@ class TestNodesInfoLoaded():
         mocker.patch.object(reader_mock, 'get_nodes', return_value=[node])
 
         loaded = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert loaded.find_callbacks(['callback_id']) == [cb_mock]
 
         mocker.patch.object(cb_loaded_mock, 'search_callbacks', return_value=[])
@@ -580,7 +580,7 @@ class TestNodesInfoLoaded():
         mocker.patch.object(reader_mock, 'get_nodes', return_value=[node])
 
         loaded = NodeValuesLoaded(reader_mock,
-                                  MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                  DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         cb_mock = mocker.Mock(spec=CallbackStruct)
         cb_loaded_mock = mocker.Mock(spec=CallbacksLoaded)
@@ -735,7 +735,7 @@ class TestNodePathLoaded:
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'callbacks', [])
         searched = CallbackPathSearched(node_mock,
-                                        MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
         assert len(searched.data) == 0
 
     def test_full(self, mocker):
@@ -744,7 +744,8 @@ class TestNodePathLoaded:
                      return_value=searcher_mock)
 
         callback_mock = mocker.Mock(spec=CallbackStruct)
-        callback_mock.construction_order = MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1
+        callback_mock.construction_order = \
+            DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING - 1
         node_path_mock = mocker.Mock(NodePathStruct)
         mocker.patch.object(searcher_mock, 'search',
                             return_value=[node_path_mock])
@@ -755,7 +756,7 @@ class TestNodePathLoaded:
         node_mock = mocker.Mock(spec=NodeStruct)
         mocker.patch.object(node_mock, 'callbacks', callbacks)
         searched = CallbackPathSearched(node_mock,
-                                        MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
+                                        DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING)
 
         import itertools
         product = list(itertools.product(callbacks, callbacks))

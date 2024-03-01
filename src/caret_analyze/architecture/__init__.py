@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .architecture import Architecture, MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+from .architecture import Architecture, DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from .util import check_procedure
 
 __all__ = [
     'Architecture',
     'check_procedure',
-    'MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING'
+    'DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING'
 ]

@@ -16,7 +16,7 @@
 from pathlib import Path
 
 from .architecture import \
-    Architecture, check_procedure, MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
+    Architecture, check_procedure, DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING
 from .common import init_logger, Progress
 from .infra.lttng import Lttng, LttngEventFilter
 from .runtime.application import Application
@@ -26,7 +26,7 @@ __all__ = [
     'Architecture',
     'Lttng',
     'LttngEventFilter',
-    'MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING',
+    'DEFAULT_MAX_CALLBACK_CONSTRUCTION_ORDER_ON_PATH_SEARCHING',
     'Progress',
     'check_procedure'
 ]

@@ -1602,7 +1602,7 @@ class CallbackPathSearched():
     def __init__(
         self,
         node: NodeStruct,
-        max_callback_construction_order_on_path_searching: int
+        max_callback_construction_order: int
     ) -> None:
         from .graph_search import CallbackPathSearcher
         self._data: list[NodePathStruct]
@@ -1617,11 +1617,9 @@ class CallbackPathSearched():
             import sys
             construction_order = {'min': sys.maxsize, 'max': 0}
             for write_callback, read_callback in product(callbacks, callbacks):
-                if max_callback_construction_order_on_path_searching != 0:
-                    if (write_callback.construction_order >
-                            max_callback_construction_order_on_path_searching or
-                            read_callback.construction_order >
-                            max_callback_construction_order_on_path_searching):
+                if max_callback_construction_order != 0:
+                    if write_callback.construction_order > max_callback_construction_order or \
+                       read_callback.construction_order > max_callback_construction_order:
                         skip_count += 1
                         construction_order['min'] = min(construction_order['min'],
                                                         write_callback.construction_order)
@@ -1639,11 +1637,11 @@ class CallbackPathSearched():
 
             if skip_count:
                 logger.warn(
-                    f'contains callbacks whose construction_order are greater than'
-                    f' ({max_callback_construction_order_on_path_searching})'
-                    f': {node.node_name} ({skip_count=})'
-                    f' construction_order'
-                    f' ({construction_order["min"]} - {construction_order["max"]})'
+                    f'{node.node_name} '
+                    f'contains callbacks whose construction_order are greater than '
+                    f'{max_callback_construction_order}. '
+                    f'{skip_count} paths are ignored as a result. '
+                    f'(max construction_order: {construction_order["max"]})'
                 )
 
         self._data = paths
