@@ -125,11 +125,11 @@ class TestTypeCheckDecorator:
         def var_len_args(*i: DummyCustom1 | DummyCustom2):
             pass
 
-        dummycustom1 = DummyCustom1
-        dummycustom2 = DummyCustom2
+        dummy_1 = DummyCustom1
+        dummy_2 = DummyCustom2
         with pytest.raises(UnsupportedTypeError) as e:
-            var_len_args(1, dummycustom1, dummycustom2)
-            var_len_args(dummycustom1, 1, dummycustom2)
-            var_len_args(dummycustom1, dummycustom2, 1)
+            var_len_args(1, dummy_1, dummy_2)
+            var_len_args(dummy_1, 1, dummy_2)
+            var_len_args(dummy_1, dummy_2, 1)
         assert "'i' must be ['DummyCustom1', 'DummyCustom2']. The given argument type is 'int'" \
                in str(e.value)
