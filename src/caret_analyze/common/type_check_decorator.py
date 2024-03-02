@@ -124,7 +124,8 @@ try:
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
         given_arg_loc: tuple,
-        error_type: str
+        error_type: str,
+        varargs: None | str
     ) -> str:
         """
         Get given argument type.
@@ -155,6 +156,8 @@ try:
 
             (iii) Not iterable type case
                 other
+        varargs: None | str
+            The name of the variable length argument if the function has one, otherwise None
 
         Returns
         -------
@@ -177,7 +180,6 @@ try:
             if k == arg_name:
                 given_arg = v
                 break
-
         if given_arg is None:
             # Check args
             given_arg_idx = list(signature.parameters.keys()).index(arg_name)
@@ -187,8 +189,11 @@ try:
             given_arg_type_str = f"'{given_arg[given_arg_loc[1]].__class__.__name__}'"
         elif error_type == 'IterableArg':
             given_arg_type_str = f"'{given_arg[int(given_arg_loc[1])].__class__.__name__}'"
-        else:
+        elif varargs is None:
             given_arg_type_str = f"'{given_arg.__class__.__name__}'"
+        else:
+            # For functions with variable length arguments,
+            given_arg_type_str = f"'{args[given_arg_loc[1]].__class__.__name__}'"
 
         return given_arg_type_str
 
@@ -208,7 +213,7 @@ try:
 
         Returns
         -------
-        list[Any]
+        tuple[Any]
 
         """
         parsed_target_objects: tuple[Any]
@@ -236,8 +241,13 @@ try:
                 error_type = e.title
                 loc_tuple = e.errors()[0]['loc']
                 given_arg_loc_str = _get_given_arg_loc_str(loc_tuple, error_type)
-                given_arg_type \
-                    = _get_given_arg_type(signature(func), args, kwargs, loc_tuple, error_type)
+                given_arg_type = _get_given_arg_type(
+                                            signature(func),
+                                            args,
+                                            kwargs,
+                                            loc_tuple, error_type,
+                                            check_exist_varargs.varargs
+                )
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
                 msg += f'The given argument type is {given_arg_type}.'
