@@ -194,7 +194,7 @@ try:
 
     def _parse_collection_or_unpack(
         target_arg: tuple[Collection[Any]] | tuple[Any, ...]
-    ) -> list[Any]:
+    ) -> tuple[Any]:
         """
         Parse target argument.
 
@@ -211,12 +211,12 @@ try:
         list[Any]
 
         """
-        parsed_target_objects: list[Any]
+        parsed_target_objects: tuple[Any]
         if isinstance(target_arg[0], Collection):
             assert len(target_arg) == 1
-            parsed_target_objects = list(target_arg[0])
+            parsed_target_objects = tuple(target_arg[0])
         else:  # Unpacked case
-            parsed_target_objects = list(target_arg)  # type: ignore
+            parsed_target_objects = tuple(target_arg)  # type: ignore
         return parsed_target_objects
 
     def decorator(func):
