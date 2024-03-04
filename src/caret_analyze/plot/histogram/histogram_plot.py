@@ -18,7 +18,7 @@ from collections.abc import Sequence
 
 from bokeh.plotting import figure as Figure
 
-from caret_analyze.record import Frequency, Latency, Period, ResponseTime
+from caret_analyze.record import Frequency, Latency, Period, RecordsInterface, ResponseTime
 
 from numpy import histogram
 import pandas as pd
@@ -124,54 +124,33 @@ class HistogramPlot(PlotBase):
             self._case
             )
 
-    def _histogram_data(self,
-                        converter: ClockConverter | None) -> tuple[list[list[int]], list[float]]:
-        data_list: list[list[int]] = []
-        if self._data_type == 'response_time':
-            if self._case == 'all':
-                data_list = [
-                    [_ for _ in m.to_all_records(converter=converter).get_column_series(self._data_type)
-                     if _ is not None]
-                    for m in self._metrics if isinstance(m, ResponseTime)
-                    ]
-            elif self._case == 'best':
-                data_list = [
-                    [_ for _ in
-                        m.to_best_case_records(converter=converter).get_column_series(self._data_type)
-                     if _ is not None]
-                    for m in self._metrics if isinstance(m, ResponseTime)
-                    ]
-            elif self._case == 'worst':
-                data_list = [
-                    [_ for _ in
-                        m.to_worst_case_records(converter=converter).get_column_series(self._data_type)
-                     if _ is not None]
-                    for m in self._metrics if isinstance(m, ResponseTime)
-                    ]
-            elif self._case == 'worst-with-external-latency':
-                data_list = [
-                    [
-                        _ for _ in
-                        m.to_worst_with_external_latency_case_records(converter=converter)
-                        .get_column_series(self._data_type)
-                        if _ is not None
-                    ]
-                    for m in self._metrics
-                    if isinstance(m, ResponseTime)
-                ]
+    def _histogram_data(self, converter: ClockConverter | None
+                        ) -> tuple[list[list[int]], list[float]]:
+
+        def to_records(metrics: MetricsTypes,
+                       converter: ClockConverter | None) -> RecordsInterface:
+            if isinstance(metrics, ResponseTime):
+                if self._case == 'all':
+                    return metrics.to_all_records(converter=converter)
+                elif self._case == 'best':
+                    return metrics.to_best_case_records(converter=converter)
+                elif self._case == 'worst':
+                    return metrics.to_worst_case_records(converter=converter)
+                elif self._case == 'worst-with-external-latency':
+                    return metrics.to_worst_with_external_latency_case_records(converter=converter)
+                else:
+                    raise ValueError('optional argument "case" must be following: \
+                                     "all", "best", "worst", "worst-with-external-latency".')
             else:
-                raise ValueError('optional argument "case" must be following: \
-                                 "all", "best", "worst", "worst-with-external-latency".')
-        else:
-            data_list = [
-                [
-                    _ for _ in
-                    m.to_records(converter=converter).get_column_series(self._data_type)
-                    if _ is not None
+                return metrics.to_records(converter=converter)
+
+        data_list: list[list[int]] = [
+            [
+                _ for _ in to_records(m, converter).get_column_series(self._data_type)
+                if _ is not None
                 ]
-                for m in self._metrics
-                if not isinstance(m, ResponseTime)
-            ]
+            for m in self._metrics
+        ]
 
         if self._data_type in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
