@@ -22,10 +22,7 @@ from bokeh.models.renderers import GlyphRenderer
 
 from bokeh.plotting import figure as Figure
 
-from caret_analyze.record import Frequency, Latency, Period, ResponseTime
-
 import numpy as np
-from numpy import histogram
 
 from .callback_scheduling import BokehCallbackSched
 from .message_flow import BokehMessageFlow
@@ -34,11 +31,9 @@ from .timeseries import BokehTimeSeries
 from .util import ColorSelectorFactory, LegendManager
 from ..visualize_lib_interface import VisualizeLibInterface
 from ...metrics_base import MetricsBase
-from ....common import ClockConverter
 from ....runtime import CallbackBase, CallbackGroup, Communication, Path, Publisher, Subscription
 
 TimeSeriesTypes = CallbackBase | Communication | (Publisher | Subscription) | Path
-MetricsTypes = Frequency | Latency | Period | ResponseTime
 HistTypes = CallbackBase | Communication | Path
 
 
@@ -165,11 +160,11 @@ class Bokeh(VisualizeLibInterface):
 
     def histogram(
         self,
-        metrics: list[MetricsTypes],
+        hists: list[list[int]],
+        bins: list[float],
         target_objects: Sequence[HistTypes],
         data_type: str,
-        case: str | None = None,
-        converter: ClockConverter | None = None
+        case: str | None = None
     ) -> Figure:
         """
         Get a histogram figure.
@@ -209,70 +204,6 @@ class Bokeh(VisualizeLibInterface):
             if case is None else f'Histogram of {data_type} --- {case} case ---',
             x_axis_label=x_label, y_axis_label='The number of samples', width=800
             )
-
-        data_list: list[list[int]] = []
-        if data_type == 'response_time':
-            if case == 'all':
-                data_list = [
-                    [_ for _ in m.to_all_records(converter=converter).get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
-                    ]
-            elif case == 'best':
-                data_list = [
-                    [_ for _ in
-                        m.to_best_case_records(converter=converter).get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
-                    ]
-            elif case == 'worst':
-                data_list = [
-                    [_ for _ in
-                        m.to_worst_case_records(converter=converter).get_column_series(data_type)
-                     if _ is not None]
-                    for m in metrics if isinstance(m, ResponseTime)
-                    ]
-            elif case == 'worst-with-external-latency':
-                data_list = [
-                    [
-                        _ for _ in
-                        m.to_worst_with_external_latency_case_records(converter=converter)
-                        .get_column_series(data_type)
-                        if _ is not None
-                    ]
-                    for m in metrics
-                    if isinstance(m, ResponseTime)
-                ]
-            else:
-                raise ValueError('optional argument "case" must be following: \
-                                 "all", "best", "worst", "worst-with-external-latency".')
-        else:
-            data_list = [
-                [
-                    _ for _ in
-                    m.to_records(converter=converter).get_column_series(data_type)
-                    if _ is not None
-                ]
-                for m in metrics
-                if not isinstance(m, ResponseTime)
-            ]
-
-        if data_type in ['period', 'latency', 'response_time']:
-            data_list = [[_ *10**(-6) for _ in data] for data in data_list]
-
-        filled_data_list = [data for data in data_list if len(data)]
-        if len(filled_data_list) != 0:
-            max_value = max(max(filled_data_list, key=lambda x: max(x)))
-            min_value = min(min(filled_data_list, key=lambda x: min(x)))
-            data_range = (min_value, max_value)
-        else:
-            data_range = None
-
-        hists = []
-
-        for hist_type in data_list:
-            hist, bins = histogram(hist_type, 20, data_range, density=False)
-            hists.append(hist)
 
         hists_t = np.array(hists).T
 
