@@ -232,8 +232,8 @@ try:
         def _custom_wrapper(*args, **kwargs):
             try:
                 # Checks whether the arguments of a given func have variable length arguments
-                check_exist_varargs = inspect.getfullargspec(func)
-                if check_exist_varargs.varargs is not None:
+                arg_spec = inspect.getfullargspec(func)
+                if arg_spec.varargs is not None:
                     args = _parse_collection_or_unpack(args)
                 return validate_arguments_wrapper(*args, **kwargs)
             except ValidationError as e:
@@ -246,7 +246,7 @@ try:
                                             args,
                                             kwargs,
                                             loc_tuple, error_type,
-                                            check_exist_varargs.varargs
+                                            arg_spec.varargs
                 )
 
                 msg = f'Type of argument {given_arg_loc_str} must be {expected_types}. '
