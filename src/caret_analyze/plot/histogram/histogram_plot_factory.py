@@ -65,45 +65,29 @@ class HistogramPlotFactory:
             Argument metrics is not "frequency", "latency", or "period".
 
         """
+        metrics_list: list[MetricsType] = []
         if metrics_name == 'frequency':
-            metrics_frequency: list[MetricsType] =\
-                  [Frequency(target_object.to_records()) for target_object in target_objects]
-            return HistogramPlot(
-                metrics_frequency,
-                visualize_lib,
-                target_objects,
-                metrics_name
-                )
+            metrics_list =\
+                [Frequency(target_object.to_records()) for target_object in target_objects]
         elif metrics_name == 'latency':
-            metrics_latency: list[MetricsType] =\
-                  [Latency(target_object.to_records()) for target_object in target_objects]
-            return HistogramPlot(
-                metrics_latency,
-                visualize_lib,
-                target_objects,
-                metrics_name
-                )
+            metrics_list =\
+                [Latency(target_object.to_records()) for target_object in target_objects]
         elif metrics_name == 'period':
-            metrics_period: list[MetricsType] =\
-                  [Period(target_object.to_records()) for target_object in target_objects]
-            return HistogramPlot(
-                metrics_period,
-                visualize_lib,
-                target_objects,
-                metrics_name
-                )
+            metrics_list =\
+                [Period(target_object.to_records()) for target_object in target_objects]
         elif metrics_name == 'response_time':
-            metrics_response_time: list[MetricsType] =\
-                  [ResponseTime(target_object.to_records()) for target_object in target_objects]
-            return HistogramPlot(
-                metrics_response_time,
-                visualize_lib,
-                target_objects,
-                metrics_name,
-                case
-                )
+            metrics_list =\
+                [ResponseTime(target_object.to_records()) for target_object in target_objects]
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '
                 'Supported metrics: [frequency/latency/period]'
+            )
+
+        return HistogramPlot(
+            metrics_list,
+            visualize_lib,
+            target_objects,
+            metrics_name,
+            case
             )
