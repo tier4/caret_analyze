@@ -490,6 +490,7 @@ class Lttng(InfraBase):
         events_ = None if len(events) == 0 else events
         return data, events_, begin, end
 
+    @staticmethod
     def apply_init_timestamp(
         events: list,
         monotonic_to_system_offset: int | None,

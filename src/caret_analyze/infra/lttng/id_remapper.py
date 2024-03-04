@@ -53,7 +53,7 @@ class IDRemappingInfo():
 class IDRemapper():
 
     def __init__(self) -> None:
-        self._addr_to_remapping_info = defaultdict(list)
+        self._addr_to_remapping_info:dict = defaultdict(list)
         self._all_object_ids: set = set()
         self._next_object_id = 1
 
