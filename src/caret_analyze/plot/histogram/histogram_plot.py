@@ -42,13 +42,13 @@ class HistogramPlot(PlotBase):
         metrics: list[MetricsTypes],
         visualize_lib: VisualizeLibInterface,
         target_objects: Sequence[HistTypes],
-        data_type: str,
+        metrics_name: str,
         case: str | None = None
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
         self._target_objects = target_objects
-        self._data_type = data_type
+        self._metrics_name = metrics_name
         self._case = case
 
     def to_dataframe(
@@ -120,13 +120,14 @@ class HistogramPlot(PlotBase):
             hist_list,
             bins,
             self._target_objects,
-            self._data_type,
+            self._metrics_name,
             self._case
             )
 
     def _histogram_data(self, converter: ClockConverter | None
                         ) -> tuple[list[list[int]], list[float]]:
 
+        # wrapper function of to_records()/to_xxx_records()
         def to_records(metrics: MetricsTypes,
                        converter: ClockConverter | None) -> RecordsInterface:
             if isinstance(metrics, ResponseTime):
@@ -146,13 +147,13 @@ class HistogramPlot(PlotBase):
 
         data_list: list[list[int]] = [
             [
-                _ for _ in to_records(m, converter).get_column_series(self._data_type)
+                _ for _ in to_records(m, converter).get_column_series(self._metrics_name)
                 if _ is not None
-                ]
+            ]
             for m in self._metrics
         ]
 
-        if self._data_type in ['period', 'latency', 'response_time']:
+        if self._metrics_name in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
 
         filled_data_list = [data for data in data_list if len(data)]

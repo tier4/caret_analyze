@@ -81,10 +81,10 @@ class VisualizeLibInterface(metaclass=ABCMeta):
 
     def histogram(
         self,
-        hists: list[list[int]],
+        hist_list: list[list[int]],
         bins: list[float],
         target_objects: Sequence[HistTypes],
-        data_type: str,
+        metrics_name: str,
         case: str | None = None
     ) -> Figure:
         raise NotImplementedError()

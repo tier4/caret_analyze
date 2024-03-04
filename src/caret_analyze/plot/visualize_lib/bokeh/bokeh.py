@@ -160,10 +160,10 @@ class Bokeh(VisualizeLibInterface):
 
     def histogram(
         self,
-        hists: list[list[int]],
+        hist_list: list[list[int]],
         bins: list[float],
         target_objects: Sequence[HistTypes],
-        data_type: str,
+        metrics_name: str,
         case: str | None = None
     ) -> Figure:
         """
@@ -171,11 +171,13 @@ class Bokeh(VisualizeLibInterface):
 
         Parameters
         ----------
-        metrics : list[Frequency | Latency | Period | ResponseTime]
-            Data array to be visualized.
+        hist_list : list[list[int]]
+            Data array of histogram to be visualized.
+        bins : list[float]
+            Data array of bins of histogram.
         target_objects : list[CallbackBase | Communication | Path]
             Object array to be visualized.
-        data_type : str
+        metrics_name : str
             Name of metrics.
             "frequency", "latency", "period" or "response_time" can be specified.
         case : str
@@ -192,26 +194,25 @@ class Bokeh(VisualizeLibInterface):
 
         """
         legend_manager = LegendManager()
-        if data_type == 'frequency':
-            x_label = data_type + ' [Hz]'
-        elif data_type in ['period', 'latency', 'response_time']:
-            x_label = data_type + ' [ms]'
+        if metrics_name == 'frequency':
+            x_label = metrics_name + ' [Hz]'
+        elif metrics_name in ['period', 'latency', 'response_time']:
+            x_label = metrics_name + ' [ms]'
         else:
             raise NotImplementedError()
 
         plot: Figure = Figure(
-            title=f'Histogram of {data_type}'
-            if case is None else f'Histogram of {data_type} --- {case} case ---',
+            title=f'Histogram of {metrics_name}'
+            if case is None else f'Histogram of {metrics_name} --- {case} case ---',
             x_axis_label=x_label, y_axis_label='The number of samples', width=800
             )
 
-        hists_t = np.array(hists).T
+        hists_t = np.array(hist_list).T
 
         color_selector = ColorSelectorFactory.create_instance('unique')
         colors = [color_selector.get_color() for _ in target_objects]
 
         quad_dicts: dict = {t: [] for t in target_objects}
-
         for i, h in enumerate(hists_t):
             data = list(zip(h, colors, target_objects))
             data.sort(key=lambda x: x[0], reverse=True)
