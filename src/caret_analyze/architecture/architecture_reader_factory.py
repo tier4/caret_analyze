@@ -22,8 +22,8 @@ class ArchitectureReaderFactory:
     def create_instance(file_type: str, file_path: str | list[str]):
         if file_type in ['yaml', 'yml']:
             if not isinstance(file_path, str):
-                # TODO(ymski) Fix message
-                raise ValueError(f'When file_type={file_type}, file_path must be str')
+                raise ValueError(
+                    'Cannot create architecture object when multiple yaml files are provided.')
             return ArchitectureReaderYaml(file_path)
         elif file_type in ['lttng', 'ctf']:
             return ArchitectureReaderLttng(file_path)
